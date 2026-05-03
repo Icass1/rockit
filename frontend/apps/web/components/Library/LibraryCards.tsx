@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -9,8 +10,9 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { isDownloadable } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { AddListContextMenu } from "@/components/Library/LibraryContextMenu";
+import UnifiedMediaContextMenu from "@/components/Library/UnifiedMediaContextMenu";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -30,9 +32,9 @@ function CardShell({ children }: { children: React.ReactNode }) {
 export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
     return (
         <CardShell>
-            <AddListContextMenu list={playlist}>
+            <UnifiedMediaContextMenu media={playlist}>
                 <Link
-                    href={`/playlist/${playlist.publicId}`}
+                    href={playlist.url}
                     className="library-item flex flex-col transition-transform md:hover:scale-105"
                 >
                     <Image
@@ -53,7 +55,7 @@ export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
                         {playlist.owner}
                     </p>
                 </Link>
-            </AddListContextMenu>
+            </UnifiedMediaContextMenu>
         </CardShell>
     );
 }
@@ -61,9 +63,9 @@ export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
 export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
     return (
         <CardShell>
-            <AddListContextMenu list={album}>
+            <UnifiedMediaContextMenu media={album}>
                 <Link
-                    href={`/album/${album.publicId}`}
+                    href={album.url}
                     className="library-item flex flex-col transition-transform md:hover:scale-105"
                 >
                     <Image
@@ -81,78 +83,125 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                         {album.artists.map((a) => a.name).join(", ")}
                     </p>
                 </Link>
-            </AddListContextMenu>
+            </UnifiedMediaContextMenu>
         </CardShell>
     );
 }
 
 export function VideoCard({ video }: { video: BaseVideoResponse }) {
+    const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
+    const downloaded = !isDownloadable(video) || video.downloaded;
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (!downloaded) {
+            openMenuRef.current?.(e.clientX, e.clientY);
+            return;
+        }
+        rockIt.queueManager.setMedia([video], "library", video.publicId);
+        rockIt.queueManager.moveToMedia(video.publicId);
+        rockIt.mediaPlayerManager.play();
+    };
+
     return (
         <CardShell>
-            <div className="library-item flex flex-col transition-transform md:hover:scale-105">
-                {/* 16:9 aspect ratio for video thumbnails */}
-                <div className="relative aspect-video w-full overflow-hidden rounded-md">
-                    <Image
-                        src={video.imageUrl}
-                        alt={video.name}
-                        fill
-                        sizes={COVER_SIZES}
-                        className="object-cover"
-                    />
+            <UnifiedMediaContextMenu media={video}>
+                <div
+                    className={`library-item flex cursor-pointer flex-col transition-transform md:hover:scale-105 ${!downloaded && "opacity-50"}`}
+                    onClick={handleClick}
+                >
+                    {/* 16:9 aspect ratio for video thumbnails */}
+                    <div className="relative aspect-video w-full overflow-hidden rounded-md">
+                        <Image
+                            src={video.imageUrl}
+                            alt={video.name}
+                            fill
+                            sizes={COVER_SIZES}
+                            className="object-cover"
+                        />
+                    </div>
+                    <p className="mt-1 truncate text-center font-semibold">
+                        {video.name}
+                    </p>
                 </div>
-                <p className="mt-1 truncate text-center font-semibold">
-                    {video.name}
-                </p>
-            </div>
+            </UnifiedMediaContextMenu>
         </CardShell>
     );
 }
 
 /** Square song card — used only inside the masonry "All" view. */
 export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
+    const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
+    const downloaded = !isDownloadable(song) || song.downloaded;
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (!downloaded) {
+            openMenuRef.current?.(e.clientX, e.clientY);
+            return;
+        }
+        rockIt.queueManager.setMedia([song], "library", song.publicId);
+        rockIt.queueManager.moveToMedia(song.publicId);
+        rockIt.mediaPlayerManager.play();
+    };
+
     return (
         <CardShell>
-            <div className="library-item flex flex-col">
-                <Image
-                    alt={song.name}
-                    src={song.imageUrl}
-                    width={COVER_PX}
-                    height={COVER_PX}
-                    sizes={COVER_SIZES}
-                    className="aspect-square w-full rounded-md object-cover"
-                />
-                <p className="mt-1 truncate text-center font-semibold">
-                    {song.name}
-                </p>
-                <p className="truncate text-center text-sm text-gray-400">
-                    {song.artists?.map((a) => a.name).join(", ") ??
-                        "Unknown Artist"}
-                </p>
-            </div>
+            <UnifiedMediaContextMenu media={song}>
+                <div
+                    className={`library-item flex cursor-pointer flex-col ${!downloaded && "opacity-50"}`}
+                    onClick={handleClick}
+                >
+                    <Image
+                        alt={song.name}
+                        src={song.imageUrl}
+                        width={COVER_PX}
+                        height={COVER_PX}
+                        sizes={COVER_SIZES}
+                        className="aspect-square w-full rounded-md object-cover"
+                    />
+                    <p className="mt-1 truncate text-center font-semibold">
+                        {song.name}
+                    </p>
+                    <p className="truncate text-center text-sm text-gray-400">
+                        {song.artists?.map((a) => a.name).join(", ") ??
+                            "Unknown Artist"}
+                    </p>
+                </div>
+            </UnifiedMediaContextMenu>
         </CardShell>
     );
 }
 
 /** Square station card — used only inside the masonry "All" view. */
 export function StationCard({ station }: { station: BaseStationResponse }) {
+    const handlePlay = () => {
+        rockIt.queueManager.setMedia([station], "library", station.publicId);
+        rockIt.queueManager.moveToMedia(station.publicId);
+        rockIt.mediaPlayerManager.play();
+    };
+
     return (
         <CardShell>
-            <div className="library-item flex flex-col">
-                <Image
-                    alt={station.name}
-                    src={station.imageUrl}
-                    width={COVER_PX}
-                    height={COVER_PX}
-                    sizes={COVER_SIZES}
-                    className="aspect-square w-full rounded-md object-cover"
-                />
-                <p className="mt-1 truncate text-center font-semibold">
-                    {station.name}
-                </p>
-                <p className="truncate text-center text-sm text-gray-400">
-                    Radio Station
-                </p>
-            </div>
+            <UnifiedMediaContextMenu media={station}>
+                <div
+                    className="library-item flex cursor-pointer flex-col"
+                    onClick={handlePlay}
+                >
+                    <Image
+                        alt={station.name}
+                        src={station.imageUrl}
+                        width={COVER_PX}
+                        height={COVER_PX}
+                        sizes={COVER_SIZES}
+                        className="aspect-square w-full rounded-md object-cover"
+                    />
+                    <p className="mt-1 truncate text-center font-semibold">
+                        {station.name}
+                    </p>
+                    <p className="truncate text-center text-sm text-gray-400">
+                        Radio Station
+                    </p>
+                </div>
+            </UnifiedMediaContextMenu>
         </CardShell>
     );
 }

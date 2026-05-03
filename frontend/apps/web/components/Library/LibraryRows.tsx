@@ -10,8 +10,9 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { TPlayableMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { AddListContextMenu } from "@/components/Library/LibraryContextMenu";
+import UnifiedMediaContextMenu from "@/components/Library/UnifiedMediaContextMenu";
 
 /* ------------------------------------------------------- */
 /* GROUP BY FIRST ARTIST                                   */
@@ -68,9 +69,9 @@ function VideoCover({ src, alt }: { src: string; alt: string }) {
 
 export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
     return (
-        <AddListContextMenu list={album}>
+        <UnifiedMediaContextMenu media={album}>
             <Link
-                href={`/album/${album.publicId}`}
+                href={album.url}
                 className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
             >
                 <SquareCover
@@ -86,15 +87,15 @@ export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                     </p>
                 </div>
             </Link>
-        </AddListContextMenu>
+        </UnifiedMediaContextMenu>
     );
 }
 
 export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
     return (
-        <AddListContextMenu list={playlist}>
+        <UnifiedMediaContextMenu media={playlist}>
             <Link
-                href={`/playlist/${playlist.publicId}`}
+                href={playlist.url}
                 className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
             >
                 <SquareCover
@@ -113,55 +114,102 @@ export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
                     </p>
                 </div>
             </Link>
-        </AddListContextMenu>
+        </UnifiedMediaContextMenu>
     );
 }
 
 export function VideoRow({ video }: { video: BaseVideoResponse }) {
+    const handlePlay = () => {
+        rockIt.queueManager.setMedia(
+            [video as TPlayableMedia],
+            "library",
+            video.publicId
+        );
+        rockIt.queueManager.moveToMedia(video.publicId);
+        rockIt.mediaPlayerManager.play();
+    };
+
     return (
-        <div className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800">
-            <VideoCover
-                src={video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
-                alt={video.name}
-            />
-            <p className="min-w-0 flex-1 truncate font-medium text-white">
-                {video.name}
-            </p>
-        </div>
+        <UnifiedMediaContextMenu media={video}>
+            <div
+                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
+                onClick={handlePlay}
+            >
+                <VideoCover
+                    src={video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
+                    alt={video.name}
+                />
+                <p className="min-w-0 flex-1 truncate font-medium text-white">
+                    {video.name}
+                </p>
+            </div>
+        </UnifiedMediaContextMenu>
     );
 }
 
 export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
+    const handlePlay = () => {
+        rockIt.queueManager.setMedia(
+            [song as TPlayableMedia],
+            "library",
+            song.publicId
+        );
+        rockIt.queueManager.moveToMedia(song.publicId);
+        rockIt.mediaPlayerManager.play();
+    };
+
     return (
-        <div className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800">
-            <SquareCover
-                src={song.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
-                alt={song.name}
-            />
-            <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-white">{song.name}</p>
-                <p className="truncate text-sm text-neutral-400">
-                    {song.artists?.map((a) => a.name).join(", ") ??
-                        "Unknown Artist"}
-                </p>
+        <UnifiedMediaContextMenu media={song}>
+            <div
+                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
+                onClick={handlePlay}
+            >
+                <SquareCover
+                    src={song.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
+                    alt={song.name}
+                />
+                <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-white">
+                        {song.name}
+                    </p>
+                    <p className="truncate text-sm text-neutral-400">
+                        {song.artists?.map((a) => a.name).join(", ") ??
+                            "Unknown Artist"}
+                    </p>
+                </div>
             </div>
-        </div>
+        </UnifiedMediaContextMenu>
     );
 }
 
 export function StationRow({ station }: { station: BaseStationResponse }) {
+    const handlePlay = () => {
+        rockIt.queueManager.setMedia(
+            [station as TPlayableMedia],
+            "library",
+            station.publicId
+        );
+        rockIt.queueManager.moveToMedia(station.publicId);
+        rockIt.mediaPlayerManager.play();
+    };
+
     return (
-        <div className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800">
-            <SquareCover src={station.imageUrl} alt={station.name} />
-            <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-white">
-                    {station.name}
-                </p>
-                <p className="truncate text-sm text-neutral-400">
-                    Radio Station
-                </p>
+        <UnifiedMediaContextMenu media={station}>
+            <div
+                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
+                onClick={handlePlay}
+            >
+                <SquareCover src={station.imageUrl} alt={station.name} />
+                <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-white">
+                        {station.name}
+                    </p>
+                    <p className="truncate text-sm text-neutral-400">
+                        Radio Station
+                    </p>
+                </div>
             </div>
-        </div>
+        </UnifiedMediaContextMenu>
     );
 }
 

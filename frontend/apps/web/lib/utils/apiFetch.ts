@@ -105,6 +105,13 @@ export async function apiFetch<T>(
     }
 }
 
+export async function apiDeleteFetch<T>(
+    path: string,
+    schema: TZodSchema<T>
+): Promise<HttpResult<T>> {
+    return apiFetch(path, schema, { method: "DELETE" });
+}
+
 export async function apiPostFetch<T, G>(
     path: string,
     _requestSchema: TZodSchema<T>,

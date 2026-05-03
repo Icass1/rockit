@@ -1,6 +1,7 @@
 import { EEvent } from "../enums/events";
 import { IMediaAddedToLibraryEvent } from "./events/mediaAddedToLibrary";
 import { IMediaAddedToPlaylistEvent } from "./events/mediaAddedToPlaylist";
+import { IMediaRemovedFromLibraryEvent } from "./events/mediaRemovedFromLibrary";
 import { IMediaDownloadedEvent } from "./events/mediaDownloaded";
 import { IMediaDownloadStatus } from "./events/mediaDownloadStatus";
 import { IPlaylistCreatedEvent } from "./events/playlistCreated";
@@ -17,4 +18,5 @@ export interface IEventPayloadMap {
     [EEvent.MediaDownloaded]: IMediaDownloadedEvent;
     [EEvent.MediaDownloadStatus]: IMediaDownloadStatus;
     [EEvent.MediaAddedToLibrary]: IMediaAddedToLibraryEvent;
+    [EEvent.MediaRemovedFromLibrary]: IMediaRemovedFromLibraryEvent;
 }

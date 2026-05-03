@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LibraryListsResponseSchema } from "@/dto";
+import { EEvent, IMediaRemovedFromLibraryEvent } from "@rockit/shared";
 import { EFilterMode } from "@/models/enums/filterMode";
 import {
     IUseLibraryDataProps,
@@ -9,6 +10,7 @@ import {
     TFilteredLibrary,
 } from "@/models/interfaces/useLibraryData";
 import useFetch from "@/hooks/useFetch";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 const EMPTY: TFilteredLibrary = {
     albums: [],
@@ -55,10 +57,49 @@ export function useLibraryData({
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
-    const { data: libraryData, loading } = useFetch(
+    const { data: _libraryData, loading } = useFetch(
         "/user/library/medias",
         LibraryListsResponseSchema
     );
+
+    const [libraryData, setLibraryData] = useState(_libraryData);
+
+    useEffect(() => {
+        setLibraryData(_libraryData);
+    }, [_libraryData]);
+
+    useEffect(() => {
+        const filter = <T extends { publicId: string }>(
+            list: T[],
+            publicId: string
+        ) => list.filter((item) => item.publicId != publicId);
+
+        const handler = (e: IMediaRemovedFromLibraryEvent) => {
+            console.log("AAAAAAAAAAAAAA", e);
+            setLibraryData((data) => {
+                if (!data) return data;
+
+                return {
+                    songs: filter(data.songs, e.publicId),
+                    videos: filter(data.videos, e.publicId),
+                    albums: filter(data.albums, e.publicId),
+                    playlists: filter(data.playlists, e.publicId),
+                    shared: filter(data.shared, e.publicId),
+                    stations: filter(data.stations, e.publicId),
+                };
+            });
+        };
+
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaRemovedFromLibrary,
+            handler
+        );
+        return () =>
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaRemovedFromLibrary,
+                handler
+            );
+    }, []);
 
     const filtered = useMemo((): TFilteredLibrary => {
         if (!libraryData) return EMPTY;

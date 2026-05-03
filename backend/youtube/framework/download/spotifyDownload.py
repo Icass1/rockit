@@ -11,7 +11,6 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
-from backend.core.framework.downloader.types import DownloadStatus
 
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
@@ -132,9 +131,6 @@ class SpotifyDownload(BaseDownload):
 
             filename: str = f"{track.spotify_id}_{self.download_id}"
 
-            async def _progress_callback(progress: float, status: DownloadStatus):
-                await self.progress_callback(progress=progress, status=status)
-
             a_result_download: AResult[Dict[str, Any]] = (
                 await YouTubeDownloader.download_as_mp3_async(
                     youtube_url=youtube_url,
@@ -144,7 +140,6 @@ class SpotifyDownload(BaseDownload):
                     artist=artist_names[0] if artist_names else "Unknown",
                     filename=filename,
                     user_id=self.user_id,
-                    progress_callback=_progress_callback,
                 )
             )
 

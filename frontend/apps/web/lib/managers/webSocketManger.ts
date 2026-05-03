@@ -28,12 +28,9 @@ export class WebSocketManager {
         try {
             const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
 
-            console.log({ data });
-
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);
             if (handlers) {
-                console.log({ handlers });
                 handlers.forEach((handler) =>
                     handler(data as IWebSocketMessagePayloadMap[typeof type])
                 );

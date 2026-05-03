@@ -10,7 +10,6 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
-from backend.core.framework.downloader.types import DownloadStatus
 
 from backend.youtubeMusic.access.db.ormModels.track import TrackRow
 from backend.youtubeMusic.access.db.ormModels.artist import ArtistRow
@@ -82,9 +81,6 @@ class YoutubeMusicDownload(BaseDownload):
 
             filename: str = f"{self.youtube_id}_{self.download_id}"
 
-            async def _progress_callback(progress: float, status: DownloadStatus):
-                await self.progress_callback(progress=progress, status=status)
-
             a_result_download: AResult[Dict[str, Any]] = (
                 await YouTubeDownloader.download_as_mp3_async(
                     youtube_url=youtube_url,
@@ -94,7 +90,6 @@ class YoutubeMusicDownload(BaseDownload):
                     artist=", ".join(artist_names),
                     filename=filename,
                     user_id=self.user_id,
-                    progress_callback=_progress_callback,
                 )
             )
 

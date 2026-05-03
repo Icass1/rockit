@@ -31,6 +31,7 @@ export class EventManager {
     }
 
     dispatchEvent<K extends EEvent>(event: K, data: IEventPayloadMap[K]) {
+        console.log("dipatchEvent", event, data);
         this.listeners.get(event)?.forEach((handler) => handler(data));
     }
 }

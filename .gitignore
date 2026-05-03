@@ -132,3 +132,4 @@ pnpm-debug.log*
 cache/
 
 lint.txt
+pyright.txt

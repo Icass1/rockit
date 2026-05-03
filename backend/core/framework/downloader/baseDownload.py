@@ -2,13 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
-from backend.core.aResult import AResult, AResultCode
-
-from backend.core.access.db import rockit_db
-from backend.core.access.downloadAccess import DownloadAccess
-from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
-
-from backend.core.framework.downloader.types import DownloadStatus
+from backend.core.aResult import AResultCode
 
 logger = getLogger(__name__)
 
@@ -34,36 +28,36 @@ class BaseDownload:
 
         pass
 
-    async def progress_callback(self, progress: float, status: DownloadStatus):
-        """Insert a download status row and broadcast progress via WebSocket."""
+    # async def progress_callback(self, progress: float, status: DownloadStatus):
+    #     """Insert a download status row and broadcast progress via WebSocket."""
 
-        from backend.core.framework.websocket.webSocketManager import ws_manager
+    #     from backend.core.framework.websocket.webSocketManager import ws_manager
 
-        message = f"{status}: {progress:.1f}%"
+    #     message = f"{status}: {progress:.1f}%"
 
-        async with rockit_db.session_scope_async() as session:
-            a_result: AResult[DownloadStatusRow] = (
-                await DownloadAccess.create_download_status(
-                    session=session,
-                    download_id=self.download_id,
-                    completed=progress,
-                    message=message,
-                )
-            )
+    #     async with rockit_db.session_scope_async() as session:
+    #         a_result: AResult[DownloadStatusRow] = (
+    #             await DownloadAccess.create_download_status(
+    #                 session=session,
+    #                 download_id=self.download_id,
+    #                 completed=progress,
+    #                 message=message,
+    #             )
+    #         )
 
-        if a_result.is_not_ok():
-            logger.error(f"Error inserting download status. {a_result.info()}")
+    #     if a_result.is_not_ok():
+    #         logger.error(f"Error inserting download status. {a_result.info()}")
 
-        await ws_manager.broadcast_progress(
-            user_id=self.user_id,
-            download_id=self.download_id,
-            public_id=self.public_id,
-            title=self.public_id,
-            artist="",
-            status=status,
-            progress=progress,
-            message=message,
-        )
+    #     await ws_manager.broadcast_progress(
+    #         user_id=self.user_id,
+    #         download_id=self.download_id,
+    #         public_id=self.public_id,
+    #         title=self.public_id,
+    #         artist="",
+    #         status=status,
+    #         progress=progress,
+    #         message=message,
+    #     )
 
     async def download_method_async(self, session: AsyncSession) -> AResultCode:
         """Return a descriptive thread name for this download."""

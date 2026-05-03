@@ -1,7 +1,7 @@
 import asyncio
 import os
 import subprocess
-from typing import Any, Callable, Coroutine, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from yt_dlp import YoutubeDL
 
@@ -92,9 +92,6 @@ class YouTubeDownloader:
         title: str,
         artist: str,
         filename: str,
-        progress_callback: Optional[
-            Callable[[float, DownloadStatus], Coroutine[Any, Any, None]]
-        ] = None,
     ) -> AResult[Dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
@@ -105,7 +102,6 @@ class YouTubeDownloader:
             artist=artist,
             filename=filename,
             format_type="mp3",
-            progress_callback=progress_callback,
         )
 
     @staticmethod
@@ -118,12 +114,6 @@ class YouTubeDownloader:
         artist: str,
         filename: str,
         height: int = 1080,
-        progress_callback: Optional[
-            Callable[
-                [float, DownloadStatus],
-                Coroutine[Any, Any, None],
-            ]
-        ] = None,
     ) -> AResult[Dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
@@ -135,7 +125,6 @@ class YouTubeDownloader:
             filename=filename,
             format_type="mp4",
             height=height,
-            progress_callback=progress_callback,
         )
 
     @staticmethod
@@ -149,12 +138,6 @@ class YouTubeDownloader:
         filename: str,
         format_type: str,
         height: int = 1080,
-        progress_callback: Optional[
-            Callable[
-                [float, DownloadStatus],
-                Coroutine[Any, Any, None],
-            ]
-        ] = None,
     ) -> AResult[Dict[str, Any]]:
         output_path: str = TEMP_PATH
         os.makedirs(output_path, exist_ok=True)
@@ -220,11 +203,6 @@ class YouTubeDownloader:
                             message=f"Downloading: {percent:.1f}%",
                         ),
                     )
-                    if progress_callback:
-                        loop.call_soon_threadsafe(
-                            asyncio.create_task,
-                            progress_callback(percent, "downloading"),
-                        )
             elif status == "finished":
                 loop.call_soon_threadsafe(
                     asyncio.create_task,
@@ -239,11 +217,6 @@ class YouTubeDownloader:
                         message="Download finished, converting...",
                     ),
                 )
-                if progress_callback:
-                    loop.call_soon_threadsafe(
-                        asyncio.create_task,
-                        progress_callback(100, "converting"),
-                    )
 
         ydl_opts["progress_hooks"] = [progress_hook]
 

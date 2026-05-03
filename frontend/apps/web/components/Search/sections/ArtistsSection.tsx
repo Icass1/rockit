@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import SearchItemContextMenu from "@/components/Search/SearchItemContextMenu";
 
 export default function ArtistsSection({
     artists,
@@ -22,11 +22,10 @@ export default function ArtistsSection({
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {artists.map((artist) => (
-                    <Link
-                        href={artist.providerUrl}
-                        prefetch={false}
-                        className="w-36 flex-none transition md:w-48 md:hover:scale-105"
+                    <SearchItemContextMenu
                         key={artist.providerUrl}
+                        item={artist}
+                        className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
                     >
                         <Image
                             width={350}
@@ -38,7 +37,7 @@ export default function ArtistsSection({
                         <span className="mt-2 block truncate text-center font-semibold">
                             {artist.name}
                         </span>
-                    </Link>
+                    </SearchItemContextMenu>
                 ))}
             </div>
         </section>

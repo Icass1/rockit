@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import SearchItemContextMenu from "@/components/Search/SearchItemContextMenu";
 
 export default function AlbumsSection({
     albums,
@@ -13,7 +12,6 @@ export default function AlbumsSection({
     albums: BaseSearchResultsItem[];
 }) {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const router = useRouter();
 
     if (albums.length === 0) return null;
 
@@ -23,45 +21,32 @@ export default function AlbumsSection({
                 {$vocabulary.ALBUMS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {albums.map((album) => {
-                    return (
-                        <Link
-                            href={album.providerUrl}
-                            prefetch={false}
-                            className="w-36 flex-none transition md:w-48 md:hover:scale-105"
-                            key={album.providerUrl}
-                        >
-                            <Image
-                                width={350}
-                                height={350}
-                                className="aspect-square w-full rounded-lg object-cover"
-                                src={album.imageUrl}
-                                alt={`Cover of ${album.name}`}
-                            />
-                            <span className="mt-2 block truncate text-center font-semibold">
-                                {album.name}
-                            </span>
-                            <span className="block truncate text-center text-sm text-gray-400">
-                                {album.artists.map((artist, i) => (
-                                    <button
-                                        key={artist.url}
-                                        className="md:hover:underline"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            router.push(artist.url);
-                                        }}
-                                    >
-                                        {artist.name}
-                                        {i < album.artists.length - 1
-                                            ? ", "
-                                            : ""}
-                                    </button>
-                                ))}
-                            </span>
-                        </Link>
-                    );
-                })}
+                {albums.map((album) => (
+                    <SearchItemContextMenu
+                        key={album.providerUrl}
+                        item={album}
+                        className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
+                    >
+                        <Image
+                            width={350}
+                            height={350}
+                            className="aspect-square w-full rounded-lg object-cover"
+                            src={album.imageUrl}
+                            alt={`Cover of ${album.name}`}
+                        />
+                        <span className="mt-2 block truncate text-center font-semibold">
+                            {album.name}
+                        </span>
+                        <span className="block truncate text-center text-sm text-gray-400">
+                            {album.artists.map((artist, i) => (
+                                <span key={artist.url}>
+                                    {artist.name}
+                                    {i < album.artists.length - 1 ? ", " : ""}
+                                </span>
+                            ))}
+                        </span>
+                    </SearchItemContextMenu>
+                ))}
             </div>
         </section>
     );

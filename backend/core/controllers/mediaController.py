@@ -274,7 +274,8 @@ async def add_from_url(
     playlist_public_id: str | None = None,
     _=Depends(dependency=AuthMiddleware.auth_dependency),
 ) -> AddFromUrlAResult:
-    """Add media from a URL to the database and optionally to a playlist."""
+    """Add media from a URL to the database and to users library if playlist_public_id
+    is not given, else it is added to the playlist."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 

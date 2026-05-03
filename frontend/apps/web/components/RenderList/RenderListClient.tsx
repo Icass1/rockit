@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BaseArtistResponse, MediaResponseSchema } from "@/dto";
-import { TMedia } from "@rockit/packages/shared";
+import { EMediaType, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -11,15 +11,17 @@ import DropOverlay from "@/components/DropOverlay/DropOverlay";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function RenderListClient({
-    playlistPublicId,
+    publicId,
     title,
     artists,
+    type,
     image,
     media: initialMedia,
     showMediaIndex,
     showMediaImage,
 }: {
-    playlistPublicId?: string;
+    publicId?: string;
+    type: EMediaType;
     title: string;
     artists: BaseArtistResponse[];
     image: string;
@@ -34,7 +36,8 @@ export default function RenderListClient({
     }, [initialMedia]);
 
     useEffect(() => {
-        if (!playlistPublicId) return;
+        if (!publicId) return;
+        if (type !== EMediaType.Playlist) return;
 
         const handleMediaAdded = (data: IMediaAddedToPlaylistEvent) => {
             apiFetch(`/media/${data.publicId}`, MediaResponseSchema).then(
@@ -62,10 +65,11 @@ export default function RenderListClient({
                 handleMediaAdded
             );
         };
-    }, [playlistPublicId]);
+    }, [publicId, type]);
 
     const handleLinkDrop = (url: string) => {
-        rockIt.playlistManager.addMediaToPlaylistAsync(url, playlistPublicId);
+        if (type == EMediaType.Playlist)
+            rockIt.playlistManager.addMediaToPlaylistAsync(url, publicId);
     };
 
     return (
@@ -78,7 +82,7 @@ export default function RenderListClient({
                 media={media}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
-                listPublicId={playlistPublicId}
+                listPublicId={publicId}
             />
         </>
     );

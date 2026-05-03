@@ -144,6 +144,7 @@ export interface Vocabulary {
     NEW_PASSWORD: string;
     NEW_PLAYLIST: string;
     NEW_PLAYLIST_NAME: string;
+    NEW_VERSION_AVAILABLE: string;
     NEXT_MEDIA: string;
     NO_ALBUMS: string;
     NO_DATA: string;
@@ -242,5 +243,4 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    NEW_VERSION_AVAILABLE: string;
 }

@@ -481,15 +481,10 @@ class YoutubeMusicApi:
         youtube_id: str,
     ) -> AResult[YoutubeMusicAlbum]:
         try:
-            ydl_opts: Dict[str, Any] = {
-                "quiet": True,
-                "no_warnings": True,
-                "extract_flat": False,
-            }
-
-            loop = None
+            from ytmusicapi import YTMusic
             import asyncio
 
+            loop = None
             try:
                 loop = asyncio.get_event_loop()
             except RuntimeError:
@@ -497,11 +492,8 @@ class YoutubeMusicApi:
                 asyncio.set_event_loop(loop)
 
             def _get_info() -> Any:
-                with _create_youtube_dl(ydl_opts) as ydl:
-                    return ydl.extract_info(
-                        f"https://music.youtube.com/browse/{youtube_id}",
-                        download=False,
-                    )
+                yt = YTMusic()
+                return yt.get_album(youtube_id)
 
             info: Any = await loop.run_in_executor(None, _get_info)
 
@@ -513,21 +505,26 @@ class YoutubeMusicApi:
 
             info_dict: Dict[str, Any] = cast(Dict[str, Any], info)
 
-            thumbnail = str(info_dict.get("thumbnail", ""))
+            thumbnail = ""
+            thumbnails = info_dict.get("thumbnails")
+            if thumbnails and len(thumbnails) > 0:
+                thumb = cast(Dict[str, Any], thumbnails[-1])
+                thumb_url = cast(Optional[str], thumb.get("url"))
+                if thumb_url is not None:
+                    thumbnail = thumb_url
 
             release_year: Optional[int] = None
-            release_year_val = info_dict.get("release_year")
-            if release_year_val is not None:
-                release_year = int(release_year_val)
+            year_val = info_dict.get("year")
+            if year_val is not None:
+                try:
+                    release_year = int(year_val)
+                except (ValueError, TypeError):
+                    pass
 
             artists: List[str] = []
-            artist_val = info_dict.get("artist")
-            if artist_val is not None:
-                artists = [str(artist_val)]
-            else:
-                artists_val = info_dict.get("artists")
-                if artists_val is not None:
-                    artists = [str(a) for a in artists_val]
+            artists_val = info_dict.get("artists")
+            if artists_val is not None:
+                artists = [str(a.get("name", "")) for a in artists_val]
 
             album = YoutubeMusicAlbum(
                 youtube_id=youtube_id,
@@ -551,15 +548,10 @@ class YoutubeMusicApi:
         youtube_id: str,
     ) -> AResult[List[YoutubeMusicTrack]]:
         try:
-            ydl_opts: Dict[str, Any] = {
-                "quiet": True,
-                "no_warnings": True,
-                "extract_flat": False,
-            }
-
-            loop = None
+            from ytmusicapi import YTMusic
             import asyncio
 
+            loop = None
             try:
                 loop = asyncio.get_event_loop()
             except RuntimeError:
@@ -567,11 +559,8 @@ class YoutubeMusicApi:
                 asyncio.set_event_loop(loop)
 
             def _get_info() -> Any:
-                with _create_youtube_dl(ydl_opts) as ydl:
-                    return ydl.extract_info(
-                        f"https://music.youtube.com/browse/{youtube_id}",
-                        download=False,
-                    )
+                yt = YTMusic()
+                return yt.get_album(youtube_id)
 
             info: Any = await loop.run_in_executor(None, _get_info)
 
@@ -583,6 +572,16 @@ class YoutubeMusicApi:
 
             info_dict: Dict[str, Any] = cast(Dict[str, Any], info)
 
+            album_title = str(info_dict.get("title", ""))
+
+            album_thumbnail = ""
+            album_thumbnails = info_dict.get("thumbnails")
+            if album_thumbnails and len(album_thumbnails) > 0:
+                thumb = cast(Dict[str, Any], album_thumbnails[-1])
+                thumb_url = cast(Optional[str], thumb.get("url"))
+                if thumb_url is not None:
+                    album_thumbnail = thumb_url
+
             entries = info_dict.get("tracks", [])
             if not entries:
                 return AResult(code=AResultCode.OK, message="OK", result=[])
@@ -591,15 +590,19 @@ class YoutubeMusicApi:
             for entry in entries:
                 entry_dict: Dict[str, Any] = cast(Dict[str, Any], entry)
 
-                duration_ms = 0
-                duration_val = entry_dict.get("duration_ms")
-                if duration_val is not None:
-                    duration_ms = int(duration_val)
+                video_id = str(entry_dict.get("videoId", ""))
+                if not video_id:
+                    continue
 
-                thumbnail = ""
+                duration_ms = 0
+                duration_seconds = entry_dict.get("duration_seconds")
+                if duration_seconds is not None:
+                    duration_ms = int(duration_seconds) * 1000
+
+                thumbnail = album_thumbnail
                 thumbnails = entry_dict.get("thumbnails")
                 if thumbnails and len(thumbnails) > 0:
-                    thumb = cast(Dict[str, Any], thumbnails[0])
+                    thumb = cast(Dict[str, Any], thumbnails[-1])
                     thumb_url = cast(Optional[str], thumb.get("url"))
                     if thumb_url is not None:
                         thumbnail = thumb_url
@@ -609,13 +612,11 @@ class YoutubeMusicApi:
                 if artists_val is not None:
                     artists = [str(a.get("name", "")) for a in artists_val]
 
-                album = str(info_dict.get("title", ""))
-
                 track = YoutubeMusicTrack(
-                    youtube_id=str(entry_dict.get("videoId", "")),
+                    youtube_id=video_id,
                     title=str(entry_dict.get("title", "")),
                     artists=artists,
-                    album=album,
+                    album=album_title,
                     duration_ms=duration_ms,
                     thumbnail_url=thumbnail,
                 )

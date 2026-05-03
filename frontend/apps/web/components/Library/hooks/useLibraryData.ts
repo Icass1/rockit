@@ -75,7 +75,6 @@ export function useLibraryData({
         ) => list.filter((item) => item.publicId != publicId);
 
         const handler = (e: IMediaRemovedFromLibraryEvent) => {
-            console.log("AAAAAAAAAAAAAA", e);
             setLibraryData((data) => {
                 if (!data) return data;
 

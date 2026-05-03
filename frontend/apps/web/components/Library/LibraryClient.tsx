@@ -39,7 +39,7 @@ export default function LibraryClient() {
             <header className="mb-6 hidden items-center gap-3 py-4 md:flex">
                 {/* Left: title + pills */}
                 <div className="mr-4 flex items-center gap-8">
-                    <h1 className="shrink-0 text-4xl font-bold text-white select-none">
+                    <h1 className="ml-2 shrink-0 text-4xl font-bold text-white select-none">
                         {$vocabulary.LIBRARY}
                     </h1>
                     <LibraryFilters

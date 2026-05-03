@@ -297,7 +297,7 @@ class YoutubeMusicAccess:
             artists: List[ArtistRow] = cast(List[ArtistRow], result.scalars().all())
 
             if not artists:
-                logger.error(f"Error getting artists from track row {track.id}.")
+                logger.warning(f"Artists not found from track row {track.id}.")
                 return AResult(
                     code=AResultCode.NOT_FOUND,
                     message=f"Error getting artists from track row. {track.id}",

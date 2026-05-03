@@ -471,7 +471,7 @@ class YoutubeMusic:
                         BaseArtistResponse(
                             provider=YoutubeMusic.provider_name,
                             publicId=core_artist.public_id,
-                            url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                            url=f"/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                             name=artist.name,
                             imageUrl="",
@@ -492,7 +492,7 @@ class YoutubeMusic:
             album_data = BaseAlbumWithoutSongsResponse(
                 provider=YoutubeMusic.provider_name,
                 publicId=db_track.album.core_album.public_id,
-                url=f"{BACKEND_URL}/album/{db_track.album.core_album.public_id}",
+                url=f"/album/{db_track.album.core_album.public_id}",
                 providerUrl=f"https://music.youtube.com/browse/{db_track.album.youtube_id}",
                 name=db_track.album.title,
                 artists=[],
@@ -580,7 +580,7 @@ class YoutubeMusic:
                         BaseArtistResponse(
                             provider=YoutubeMusic.provider_name,
                             publicId=core_artist.public_id,
-                            url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                            url=f"/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                             name=artist.name,
                             imageUrl="",
@@ -607,7 +607,7 @@ class YoutubeMusic:
                                 BaseArtistResponse(
                                     provider=YoutubeMusic.provider_name,
                                     publicId=core_artist.public_id,
-                                    url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                                    url=f"/artist/{core_artist.public_id}",
                                     providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                                     name=artist.name,
                                     imageUrl="",
@@ -645,7 +645,7 @@ class YoutubeMusic:
                             album=BaseAlbumWithoutSongsResponse(
                                 provider=YoutubeMusic.provider_name,
                                 publicId=public_id,
-                                url=f"{BACKEND_URL}/album/{public_id}",
+                                url=f"/album/{public_id}",
                                 providerUrl=f"https://music.youtube.com/browse/{youtube_id}",
                                 name=album_info.title,
                                 artists=artists_list,
@@ -665,7 +665,7 @@ class YoutubeMusic:
             response = YoutubeMusicAlbumResponse(
                 provider=YoutubeMusic.provider_name,
                 publicId=public_id,
-                url=f"{BACKEND_URL}/album/{public_id}",
+                url=f"/album/{public_id}",
                 providerUrl=f"https://music.youtube.com/browse/{youtube_id}",
                 name=album_info.title,
                 imageUrl=image_url,
@@ -755,7 +755,7 @@ class YoutubeMusic:
                                 BaseArtistResponse(
                                     provider=YoutubeMusic.provider_name,
                                     publicId=core_artist.public_id,
-                                    url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                                    url=f"/artist/{core_artist.public_id}",
                                     providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                                     name=artist.name,
                                     imageUrl="",
@@ -797,7 +797,7 @@ class YoutubeMusic:
                             album=BaseAlbumWithoutSongsResponse(
                                 provider=YoutubeMusic.provider_name,
                                 publicId=album_public_id,
-                                url=f"{BACKEND_URL}/album/{album_public_id}",
+                                url=f"/album/{album_public_id}",
                                 providerUrl=(
                                     f"https://music.youtube.com/browse/{track.album.youtube_id}"
                                     if track.album
@@ -823,7 +823,7 @@ class YoutubeMusic:
             response = YoutubeMusicArtistResponse(
                 provider=YoutubeMusic.provider_name,
                 publicId=public_id,
-                url=f"{BACKEND_URL}/artist/{public_id}",
+                url=f"/artist/{public_id}",
                 providerUrl=f"https://music.youtube.com/channel/{youtube_id}",
                 name=artist_info.name,
                 imageUrl=image_url,
@@ -870,7 +870,7 @@ class YoutubeMusic:
                     BaseArtistResponse(
                         provider=YoutubeMusic.provider_name,
                         publicId=core_artist.public_id,
-                        url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                        url=f"/artist/{core_artist.public_id}",
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                         name=artist.name,
                         imageUrl="",
@@ -891,7 +891,7 @@ class YoutubeMusic:
         album_data = BaseAlbumWithoutSongsResponse(
             provider=YoutubeMusic.provider_name,
             publicId=db_track.album.core_album.public_id,
-            url=f"{BACKEND_URL}/album/{db_track.album.core_album.public_id}",
+            url=f"/album/{db_track.album.core_album.public_id}",
             providerUrl=f"https://music.youtube.com/browse/{db_track.album.youtube_id}",
             name=db_track.album.title,
             artists=[],
@@ -945,7 +945,7 @@ class YoutubeMusic:
                     BaseArtistResponse(
                         provider=YoutubeMusic.provider_name,
                         publicId=core_artist.public_id,
-                        url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                        url=f"/artist/{core_artist.public_id}",
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                         name=artist.name,
                         imageUrl="",
@@ -970,7 +970,7 @@ class YoutubeMusic:
                             BaseArtistResponse(
                                 provider=YoutubeMusic.provider_name,
                                 publicId=core_artist.public_id,
-                                url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                                url=f"/artist/{core_artist.public_id}",
                                 providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                                 name=artist.name,
                                 imageUrl="",
@@ -1006,7 +1006,7 @@ class YoutubeMusic:
                         album=BaseAlbumWithoutSongsResponse(
                             provider=YoutubeMusic.provider_name,
                             publicId=public_id,
-                            url=f"{BACKEND_URL}/album/{public_id}",
+                            url=f"/album/{public_id}",
                             providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
                             name=album_info.title,
                             artists=artists_list,
@@ -1026,7 +1026,7 @@ class YoutubeMusic:
         response = YoutubeMusicAlbumResponse(
             provider=YoutubeMusic.provider_name,
             publicId=public_id,
-            url=f"{BACKEND_URL}/album/{public_id}",
+            url=f"/album/{public_id}",
             providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
             name=album_info.title,
             imageUrl=image_url,
@@ -1074,7 +1074,7 @@ class YoutubeMusic:
                             BaseArtistResponse(
                                 provider=YoutubeMusic.provider_name,
                                 publicId=core_artist.public_id,
-                                url=f"{BACKEND_URL}/artist/{core_artist.public_id}",
+                                url=f"/artist/{core_artist.public_id}",
                                 providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                                 name=artist.name,
                                 imageUrl="",
@@ -1114,7 +1114,7 @@ class YoutubeMusic:
                         album=BaseAlbumWithoutSongsResponse(
                             provider=YoutubeMusic.provider_name,
                             publicId=album_public_id,
-                            url=f"{BACKEND_URL}/album/{album_public_id}",
+                            url=f"/album/{album_public_id}",
                             providerUrl=(
                                 f"https://music.youtube.com/browse/{track.album.youtube_id}"
                                 if track.album
@@ -1140,7 +1140,7 @@ class YoutubeMusic:
         response = YoutubeMusicArtistResponse(
             provider=YoutubeMusic.provider_name,
             publicId=public_id,
-            url=f"{BACKEND_URL}/artist/{public_id}",
+            url=f"/artist/{public_id}",
             providerUrl=f"https://music.youtube.com/channel/{db_artist.youtube_id}",
             name=artist_info.name,
             imageUrl=image_url,

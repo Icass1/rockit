@@ -1,10 +1,4 @@
-import React, {
-    RefObject,
-    useEffect,
-    useRef,
-    useState,
-    type ReactNode,
-} from "react";
+import { RefObject, useEffect, useRef, useState, type ReactNode } from "react";
 import { ContextMenuContext } from "@/components/ContextMenu/context";
 import type ContextMenuProps from "@/components/ContextMenu/Props";
 

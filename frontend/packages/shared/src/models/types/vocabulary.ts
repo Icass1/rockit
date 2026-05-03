@@ -243,4 +243,9 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
+    STARTING: string;
+    COMPLETED: string;
+    FAILED: string;
+    DOWNLOADING: string;
+    RETRY: string;
 }

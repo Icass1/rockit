@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -16,6 +17,7 @@ interface DownloadItemProps {
 
 export default function DownloadItem({ download }: DownloadItemProps) {
     const $download = useMedia(download);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(
         () => ({
             publicId: download.publicId,
@@ -55,15 +57,15 @@ export default function DownloadItem({ download }: DownloadItemProps) {
     }, [download]);
 
     const getStatusText = (): string => {
-        if (!downloadInfo) return "Starting...";
-        if (downloadInfo.completed === 100) return "Completed";
-        if (downloadInfo.completed === -1) return "Failed";
+        if (!downloadInfo) return $vocabulary.STARTING;
+        if (downloadInfo.completed === 100) return $vocabulary.COMPLETED;
+        if (downloadInfo.completed === -1) return $vocabulary.FAILED;
         if (downloadInfo.completed >= 0) {
             const minutes = Math.floor(downloadInfo.completed / 60);
             const seconds = downloadInfo.completed % 60;
             return `${minutes}:${seconds.toString().padStart(2, "0")}`;
         }
-        return "Downloading";
+        return $vocabulary.DOWNLOADING;
     };
 
     const getProgressColor = (): string => {
@@ -76,7 +78,8 @@ export default function DownloadItem({ download }: DownloadItemProps) {
     const handleRetry = async () => {
         try {
             await rockIt.downloaderManager.startDownloadAsync(
-                download.providerUrl
+                download.providerUrl,
+                download.name
             );
         } catch (err) {
             console.error("Retry failed:", err);
@@ -121,10 +124,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
                 <div className="flex items-center gap-2 text-sm text-neutral-400">
                     {$download.artists.map((artist, index) => (
                         <>
-                            <span
-                                key={index}
-                                className="max-w-37.5 truncate"
-                            >
+                            <span key={index} className="max-w-37.5 truncate">
                                 {artist.name}
                             </span>
                             {index < $download.artists.length - 1 && ", "}
@@ -144,7 +144,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
                         onClick={handleRetry}
                         className="mt-2 text-xs text-[#ee1086] hover:underline"
                     >
-                        Retry
+                        {$vocabulary.RETRY}
                     </button>
                 )}
 
@@ -166,7 +166,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
                                 d="M5 13l4 4L19 7"
                             />
                         </svg>
-                        Play
+                        {$vocabulary.PLAY}
                     </button>
                 )}
             </div>

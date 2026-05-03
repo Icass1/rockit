@@ -27,9 +27,10 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     const progress = duration > 0 ? seekValue / duration : 0;
     // The slider pads thumbSize/2 on each side so the thumb doesn't overflow.
     // Mirror that math so the gradient's right edge aligns with the thumb center.
-    const fillWidth = trackWidth > 0
-        ? thumbSize / 2 + progress * (trackWidth - thumbSize)
-        : 0;
+    const fillWidth =
+        trackWidth > 0
+            ? thumbSize / 2 + progress * (trackWidth - thumbSize)
+            : 0;
 
     useEffect(() => {
         if (!isSeeking) setSeekValue(currentTime);
@@ -50,10 +51,7 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                         ]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={[
-                            styles.gradientFill,
-                            { width: fillWidth },
-                        ]}
+                        style={[styles.gradientFill, { width: fillWidth }]}
                     />
                 </View>
                 <Slider

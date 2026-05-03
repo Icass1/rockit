@@ -54,7 +54,10 @@ export function PlayableMedia({
 
     const handleClick = useCallback(() => {
         if (isDownloadable($media) && $media.downloaded !== true) {
-            rockIt.downloaderManager.downloadMediaAsync([$media.publicId]);
+            rockIt.downloaderManager.downloadMediaAsync(
+                [$media.publicId],
+                $media.name
+            );
         } else if (allMedia && allMedia.length > 0 && listPublicId) {
             const tempAllMedia = [...allMedia];
 

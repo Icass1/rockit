@@ -168,10 +168,7 @@ class MediaStorageManager {
         ]);
     }
 
-    async downloadImage(
-        publicId: string,
-        url: string
-    ): Promise<string | null> {
+    async downloadImage(publicId: string, url: string): Promise<string | null> {
         await this.init();
 
         const baseDir = cacheDir ?? "";

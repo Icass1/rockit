@@ -37,15 +37,15 @@ export class DownloaderManager {
         return this._downloadInfoAtom;
     }
 
-    async startDownloadAsync(url: string) {
+    async startDownloadAsync(url: string, name: string) {
         try {
             const response = await apiPostFetch(
-                "/downloads/start",
+                "/downloader/start-downloads",
                 StartDownloadRequestSchema,
                 StartDownloadResponseSchema,
                 {
                     ids: [url], // The API expects an array of IDs/URLs
-                    title: "Download from URL",
+                    title: name,
                 }
             );
 
@@ -103,14 +103,14 @@ export class DownloaderManager {
         };
     }
 
-    async downloadMediaAsync(publicIds: string[]) {
+    async downloadMediaAsync(publicIds: string[], name: string) {
         const response = await apiPostFetch(
-            "/downloads/start",
+            "/downloader/start-downloads",
             StartDownloadRequestSchema,
             StartDownloadResponseSchema,
             {
                 ids: publicIds,
-                title: "Download",
+                title: name,
             }
         );
 

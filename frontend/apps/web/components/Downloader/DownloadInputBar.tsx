@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 interface DownloadInputBarProps {
-  onSubmit: (url: string) => Promise<void>;
+    onSubmit: (url: string) => Promise<void>;
 }
 
 export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {

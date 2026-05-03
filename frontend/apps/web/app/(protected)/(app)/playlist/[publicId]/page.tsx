@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
+import { EMediaType } from "@rockit/packages/shared";
 import { getPlaylistAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
@@ -44,7 +45,8 @@ export default async function PlaylistPage({
 
     return (
         <RenderListClient
-            playlistPublicId={publicId}
+            publicId={publicId}
+            type={EMediaType.Playlist}
             title={playlistResponse.name}
             artists={[]}
             media={playlistMedia}

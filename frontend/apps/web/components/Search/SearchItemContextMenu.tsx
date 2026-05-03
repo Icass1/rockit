@@ -1,15 +1,15 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import { BaseSearchResultsItem } from "@/dto";
 import { Library } from "lucide-react";
 import { z } from "zod";
-import { BaseSearchResultsItem } from "@/dto";
-import { apiFetch } from "@/lib/utils/apiFetch";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import { apiFetch } from "@/lib/utils/apiFetch";
 import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import { useContextMenu } from "@/components/ContextMenu/context";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
 
 function SearchItemTrigger({
     children,

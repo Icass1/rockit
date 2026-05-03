@@ -20,7 +20,6 @@ import {
 } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { apiFetch } from "@/lib/api";
-import { getMediaByPublicId } from "@/lib/database";
 import {
     AudioIntegrationService,
     type LockScreenMetadata,
@@ -30,6 +29,7 @@ import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
+import { getMediaByPublicId } from "@/lib/database";
 import { webSocketManager } from "@/lib/webSocketManager";
 
 const WS_TIME_SYNC_INTERVAL_MS = 1000;
@@ -362,8 +362,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const outgoingMedia = queue.currentMedia;
             if (outgoingMedia) {
                 const outgoingUri = getUri(outgoingMedia);
-                if (outgoingUri)
-                    mediaCacheManager.deleteCached(outgoingUri);
+                if (outgoingUri) mediaCacheManager.deleteCached(outgoingUri);
             }
 
             const index = queue.setQueueAndPlay(media, newQueue);

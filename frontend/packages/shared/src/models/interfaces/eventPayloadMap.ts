@@ -1,9 +1,9 @@
 import { EEvent } from "../enums/events";
 import { IMediaAddedToLibraryEvent } from "./events/mediaAddedToLibrary";
 import { IMediaAddedToPlaylistEvent } from "./events/mediaAddedToPlaylist";
-import { IMediaRemovedFromLibraryEvent } from "./events/mediaRemovedFromLibrary";
 import { IMediaDownloadedEvent } from "./events/mediaDownloaded";
 import { IMediaDownloadStatus } from "./events/mediaDownloadStatus";
+import { IMediaRemovedFromLibraryEvent } from "./events/mediaRemovedFromLibrary";
 import { IPlaylistCreatedEvent } from "./events/playlistCreated";
 import { ISongFinishedEvent } from "./events/songFinished";
 import { IUserLoginEvent } from "./events/userLogin";

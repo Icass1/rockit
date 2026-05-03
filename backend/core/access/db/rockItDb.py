@@ -262,4 +262,5 @@ class RockItDB:
         await self.create_schemas()
         logger.info("All schemas created")
 
-        await CoreBase.metadata.create_all(self.engine)
+        async with self.engine.begin() as conn:
+            await conn.run_sync(CoreBase.metadata.create_all)

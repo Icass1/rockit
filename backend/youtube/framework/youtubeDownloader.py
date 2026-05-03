@@ -189,7 +189,7 @@ class YouTubeDownloader:
                 )
                 downloaded_bytes: float = float(d.get("downloaded_bytes", 0))
                 if total_bytes > 0:
-                    percent: float = (downloaded_bytes / total_bytes) * 100
+                    percent: float = (downloaded_bytes / total_bytes) * 80
                     loop.call_soon_threadsafe(
                         asyncio.create_task,
                         _insert_and_broadcast(
@@ -200,7 +200,7 @@ class YouTubeDownloader:
                             artist=artist,
                             status="downloading",
                             progress=percent,
-                            message=f"Downloading: {percent:.1f}%",
+                            message=f"Downloading: {percent / 0.8:.1f}%",
                         ),
                     )
             elif status == "finished":
@@ -213,8 +213,8 @@ class YouTubeDownloader:
                         title=title,
                         artist=artist,
                         status="converting",
-                        progress=100,
-                        message="Download finished, converting...",
+                        progress=80,
+                        message="Converting...",
                     ),
                 )
 

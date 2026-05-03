@@ -55,23 +55,20 @@ export function PlayableMedia({
     );
 
     useEffect(() => {
-        const handler = (event: IMediaDownloadStatus) => {
+        const statusHandler = (event: IMediaDownloadStatus) => {
             if (event.publicId != $media.publicId) return;
-            console.log($media.name, event.completed);
-            setDownloadProgress(
-                event.completed >= 100 ? null : event.completed
-            );
+            setDownloadProgress(event.completed < 100 ? event.completed : null);
         };
 
         rockIt.eventManager.addEventListener(
             EEvent.MediaDownloadStatus,
-            handler
+            statusHandler
         );
 
         return () => {
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaDownloadStatus,
-                handler
+                statusHandler
             );
         };
     }, [$media.publicId, $media.name]);

@@ -131,7 +131,6 @@ export class DownloaderManager {
     }
 
     updateDownloadProgress(data: DownloadProgressMessage) {
-        console.log(data);
         // Map the data to our DownloadInfo format
         const downloadInfo: DownloadInfo = {
             publicId: data.publicId,

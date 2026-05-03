@@ -25,6 +25,8 @@ class YoutubeMusicTrack:
     thumbnail_url: str = ""
     isrc: Optional[str] = None
     release_year: Optional[int] = None
+    track_number: int = 1
+    disc_number: int = 1
 
 
 @dataclass
@@ -587,7 +589,7 @@ class YoutubeMusicApi:
                 return AResult(code=AResultCode.OK, message="OK", result=[])
 
             tracks: List[YoutubeMusicTrack] = []
-            for entry in entries:
+            for i, entry in enumerate(entries, start=1):
                 entry_dict: Dict[str, Any] = cast(Dict[str, Any], entry)
 
                 video_id = str(entry_dict.get("videoId", ""))
@@ -612,6 +614,9 @@ class YoutubeMusicApi:
                 if artists_val is not None:
                     artists = [str(a.get("name", "")) for a in artists_val]
 
+                track_number_val = entry_dict.get("trackNumber")
+                track_number = int(track_number_val) if track_number_val is not None else i
+
                 track = YoutubeMusicTrack(
                     youtube_id=video_id,
                     title=str(entry_dict.get("title", "")),
@@ -619,6 +624,7 @@ class YoutubeMusicApi:
                     album=album_title,
                     duration_ms=duration_ms,
                     thumbnail_url=thumbnail,
+                    track_number=track_number,
                 )
                 tracks.append(track)
 

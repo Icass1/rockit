@@ -657,8 +657,8 @@ class YoutubeMusicAccess:
                 duration_ms=raw.duration_ms,
                 image_id=image_id,
                 album_id=album_row.id,
-                track_number=1,
-                disc_number=1,
+                track_number=raw.track_number,
+                disc_number=raw.disc_number,
                 isrc=raw.isrc,
             )
             session.add(track_row)

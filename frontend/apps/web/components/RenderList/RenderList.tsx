@@ -3,6 +3,7 @@ import { BaseArtistResponse } from "@/dto";
 import { TMedia } from "@/models/types/media";
 import Artists from "@/components/Artists/Artists";
 import { Media } from "@/components/RenderList/Media";
+import ListOptionsMenu from "@/components/RenderList/ListOptionsMenu";
 
 export default function RenderList({
     title,
@@ -47,9 +48,16 @@ export default function RenderList({
                                 // blurDataURL={imageBlur}
                             />
                         </div>
-                        <span className="px-2 text-center text-2xl font-bold">
-                            {title}
-                        </span>
+                        <div className="flex items-center justify-center gap-2 px-2">
+                            <span className="text-center text-2xl font-bold">
+                                {title}
+                            </span>
+                            <ListOptionsMenu
+                                media={media}
+                                listPublicId={listPublicId}
+                                title={title}
+                            />
+                        </div>
                         <Artists artists={artists}></Artists>
                     </div>
                 </div>

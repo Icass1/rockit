@@ -7,12 +7,12 @@ export default function PopupMenuOption({
     children,
     onClick,
     closeOnClick = true,
-    disabled = false,
+    disable = false,
     className,
 }: {
     children: ReactNode;
     onClick?: MouseEventHandler;
-    disabled?: boolean;
+    disable?: boolean;
     closeOnClick?: boolean;
     className?: string;
 }) {
@@ -21,14 +21,14 @@ export default function PopupMenuOption({
     return (
         <div
             onClick={(e) => {
-                if (disabled) return;
+                if (disable) return;
                 e.stopPropagation();
                 onClick?.(e);
                 if (closeOnClick) setOpen(false);
             }}
             className={[
                 "flex cursor-pointer flex-row items-center gap-2 rounded-sm p-2 text-sm font-semibold md:hover:bg-neutral-700",
-                disabled || !onClick ? "pointer-events-none opacity-50" : "",
+                disable || !onClick ? "pointer-events-none opacity-50" : "",
                 className ?? "",
             ]
                 .filter(Boolean)

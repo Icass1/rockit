@@ -248,4 +248,5 @@ export interface Vocabulary {
     FAILED: string;
     DOWNLOADING: string;
     RETRY: string;
+    DOWNLOAD_LIST_TO_SERVER: string;
 }

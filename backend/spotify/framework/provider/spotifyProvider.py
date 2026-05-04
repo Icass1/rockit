@@ -75,6 +75,8 @@ class SpotifyProvider(BaseProvider):
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """Search Spotify and return a list of search items."""
 
+        return AResult(code=AResultCode.OK, message="OK", result=[])
+
         a_result: AResult[List[BaseSearchResultsItem]] = await Spotify.search_async(
             query
         )

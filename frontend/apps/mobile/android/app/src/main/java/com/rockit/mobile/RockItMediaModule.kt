@@ -1,5 +1,7 @@
 package com.rockit.mobile
 
+import android.content.Intent
+import android.os.Build
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -30,6 +32,10 @@ class RockItMediaModule(reactContext: ReactApplicationContext) :
         MediaStateManager.isPlaying = isPlaying
         MediaStateManager.position = position.toLong()
         MediaStateManager.notifyChange()
+
+        if (isPlaying) {
+            startMediaService()
+        }
     }
 
     @ReactMethod
@@ -51,6 +57,16 @@ class RockItMediaModule(reactContext: ReactApplicationContext) :
         MediaStateManager.queue = items
         MediaStateManager.currentQueueIndex = currentIndex
         MediaStateManager.notifyChange()
+    }
+
+    private fun startMediaService() {
+        val context = reactApplicationContext
+        val intent = Intent(context, RockItAutoMediaService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
     }
 
     // Required by NativeEventEmitter on the JS side

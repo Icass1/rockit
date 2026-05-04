@@ -58,7 +58,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         CoreMediaRow, lazy="selectin", uselist=False
     )
 
-
     def __init__(
         self,
         id: int,
@@ -67,7 +66,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         duration_ms: int,
         track_number: int,
         disc_number: int,
-        image_id: int,
         album_id: int,
         isrc: str,
         real_duration_ms: int | None = None,
@@ -85,7 +83,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["duration_ms"] = duration_ms
         kwargs["track_number"] = track_number
         kwargs["disc_number"] = disc_number
-        kwargs["image_id"] = image_id
         kwargs["album_id"] = album_id
         kwargs["isrc"] = isrc
         kwargs["real_duration_ms"] = real_duration_ms

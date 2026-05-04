@@ -12,6 +12,7 @@ import {
 } from "@/dto";
 import { EMediaContextLocation } from "@rockit/shared";
 import { isDownloadable } from "@/models/types/media";
+import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
@@ -95,24 +96,25 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
     );
 }
 
-export function VideoCard({ video }: { video: BaseVideoResponse }) {
+export function VideoCard({ video: _video }: { video: BaseVideoResponse }) {
+    const $video = useMedia(_video);
     const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
-    const downloaded = !isDownloadable(video) || video.downloaded;
+    const downloaded = !isDownloadable($video) || $video.downloaded;
 
     const handleClick = (e: React.MouseEvent) => {
         if (!downloaded) {
             openMenuRef.current?.(e.clientX, e.clientY);
             return;
         }
-        rockIt.queueManager.setMedia([video], "library", video.publicId);
-        rockIt.queueManager.moveToMedia(video.publicId);
+        rockIt.queueManager.setMedia([$video], "library", $video.publicId);
+        rockIt.queueManager.moveToMedia($video.publicId);
         rockIt.mediaPlayerManager.play();
     };
 
     return (
         <CardShell>
             <MediaContextMenu
-                media={video}
+                media={$video}
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
@@ -122,15 +124,15 @@ export function VideoCard({ video }: { video: BaseVideoResponse }) {
                     {/* 16:9 aspect ratio for video thumbnails */}
                     <div className="relative aspect-video w-full overflow-hidden rounded-md">
                         <Image
-                            src={video.imageUrl}
-                            alt={video.name}
+                            src={$video.imageUrl}
+                            alt={$video.name}
                             fill
                             sizes={COVER_SIZES}
                             className="object-cover"
                         />
                     </div>
                     <p className="mt-1 truncate text-center font-semibold">
-                        {video.name}
+                        {$video.name}
                     </p>
                 </div>
             </MediaContextMenu>
@@ -139,24 +141,25 @@ export function VideoCard({ video }: { video: BaseVideoResponse }) {
 }
 
 /** Square song card — used only inside the masonry "All" view. */
-export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
+export function SongCard({ song: _song }: { song: BaseSongWithoutAlbumResponse }) {
+    const $song = useMedia(_song);
     const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
-    const downloaded = !isDownloadable(song) || song.downloaded;
+    const downloaded = !isDownloadable($song) || $song.downloaded;
 
     const handleClick = (e: React.MouseEvent) => {
         if (!downloaded) {
             openMenuRef.current?.(e.clientX, e.clientY);
             return;
         }
-        rockIt.queueManager.setMedia([song], "library", song.publicId);
-        rockIt.queueManager.moveToMedia(song.publicId);
+        rockIt.queueManager.setMedia([$song], "library", $song.publicId);
+        rockIt.queueManager.moveToMedia($song.publicId);
         rockIt.mediaPlayerManager.play();
     };
 
     return (
         <CardShell>
             <MediaContextMenu
-                media={song}
+                media={$song}
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
@@ -164,18 +167,18 @@ export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
                     onClick={handleClick}
                 >
                     <Image
-                        alt={song.name}
-                        src={song.imageUrl}
+                        alt={$song.name}
+                        src={$song.imageUrl}
                         width={COVER_PX}
                         height={COVER_PX}
                         sizes={COVER_SIZES}
                         className="aspect-square w-full rounded-md object-cover"
                     />
                     <p className="mt-1 truncate text-center font-semibold">
-                        {song.name}
+                        {$song.name}
                     </p>
                     <p className="truncate text-center text-sm text-gray-400">
-                        {song.artists?.map((a) => a.name).join(", ") ??
+                        {$song.artists?.map((a) => a.name).join(", ") ??
                             "Unknown Artist"}
                     </p>
                 </div>
@@ -185,17 +188,19 @@ export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
 }
 
 /** Square station card — used only inside the masonry "All" view. */
-export function StationCard({ station }: { station: BaseStationResponse }) {
+export function StationCard({ station: _station }: { station: BaseStationResponse }) {
+    const $station = useMedia(_station);
+
     const handlePlay = () => {
-        rockIt.queueManager.setMedia([station], "library", station.publicId);
-        rockIt.queueManager.moveToMedia(station.publicId);
+        rockIt.queueManager.setMedia([$station], "library", $station.publicId);
+        rockIt.queueManager.moveToMedia($station.publicId);
         rockIt.mediaPlayerManager.play();
     };
 
     return (
         <CardShell>
             <MediaContextMenu
-                media={station}
+                media={$station}
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
@@ -203,15 +208,15 @@ export function StationCard({ station }: { station: BaseStationResponse }) {
                     onClick={handlePlay}
                 >
                     <Image
-                        alt={station.name}
-                        src={station.imageUrl}
+                        alt={$station.name}
+                        src={$station.imageUrl}
                         width={COVER_PX}
                         height={COVER_PX}
                         sizes={COVER_SIZES}
                         className="aspect-square w-full rounded-md object-cover"
                     />
                     <p className="mt-1 truncate text-center font-semibold">
-                        {station.name}
+                        {$station.name}
                     </p>
                     <p className="truncate text-center text-sm text-gray-400">
                         Radio Station

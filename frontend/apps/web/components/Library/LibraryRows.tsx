@@ -12,6 +12,7 @@ import {
 } from "@/dto";
 import { EMediaContextLocation } from "@rockit/shared";
 import { TPlayableMedia } from "@/models/types/media";
+import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
@@ -125,20 +126,22 @@ export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
     );
 }
 
-export function VideoRow({ video }: { video: BaseVideoResponse }) {
+export function VideoRow({ video: _video }: { video: BaseVideoResponse }) {
+    const $video = useMedia(_video);
+
     const handlePlay = () => {
         rockIt.queueManager.setMedia(
-            [video as TPlayableMedia],
+            [$video as TPlayableMedia],
             "library",
-            video.publicId
+            $video.publicId
         );
-        rockIt.queueManager.moveToMedia(video.publicId);
+        rockIt.queueManager.moveToMedia($video.publicId);
         rockIt.mediaPlayerManager.play();
     };
 
     return (
         <MediaContextMenu
-            media={video}
+            media={$video}
             location={EMediaContextLocation.LIBRARY}
         >
             <div
@@ -146,44 +149,46 @@ export function VideoRow({ video }: { video: BaseVideoResponse }) {
                 onClick={handlePlay}
             >
                 <VideoCover
-                    src={video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
-                    alt={video.name}
+                    src={$video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
+                    alt={$video.name}
                 />
                 <p className="min-w-0 flex-1 truncate font-medium text-white">
-                    {video.name}
+                    {$video.name}
                 </p>
             </div>
         </MediaContextMenu>
     );
 }
 
-export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
+export function SongRow({ song: _song }: { song: BaseSongWithoutAlbumResponse }) {
+    const $song = useMedia(_song);
+
     const handlePlay = () => {
         rockIt.queueManager.setMedia(
-            [song as TPlayableMedia],
+            [$song as TPlayableMedia],
             "library",
-            song.publicId
+            $song.publicId
         );
-        rockIt.queueManager.moveToMedia(song.publicId);
+        rockIt.queueManager.moveToMedia($song.publicId);
         rockIt.mediaPlayerManager.play();
     };
 
     return (
-        <MediaContextMenu media={song} location={EMediaContextLocation.LIBRARY}>
+        <MediaContextMenu media={$song} location={EMediaContextLocation.LIBRARY}>
             <div
                 className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
                 onClick={handlePlay}
             >
                 <SquareCover
-                    src={song.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
-                    alt={song.name}
+                    src={$song.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
+                    alt={$song.name}
                 />
                 <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-white">
-                        {song.name}
+                        {$song.name}
                     </p>
                     <p className="truncate text-sm text-neutral-400">
-                        {song.artists?.map((a) => a.name).join(", ") ??
+                        {$song.artists?.map((a) => a.name).join(", ") ??
                             "Unknown Artist"}
                     </p>
                 </div>
@@ -192,30 +197,32 @@ export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
     );
 }
 
-export function StationRow({ station }: { station: BaseStationResponse }) {
+export function StationRow({ station: _station }: { station: BaseStationResponse }) {
+    const $station = useMedia(_station);
+
     const handlePlay = () => {
         rockIt.queueManager.setMedia(
-            [station as TPlayableMedia],
+            [$station as TPlayableMedia],
             "library",
-            station.publicId
+            $station.publicId
         );
-        rockIt.queueManager.moveToMedia(station.publicId);
+        rockIt.queueManager.moveToMedia($station.publicId);
         rockIt.mediaPlayerManager.play();
     };
 
     return (
         <MediaContextMenu
-            media={station}
+            media={$station}
             location={EMediaContextLocation.LIBRARY}
         >
             <div
                 className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
                 onClick={handlePlay}
             >
-                <SquareCover src={station.imageUrl} alt={station.name} />
+                <SquareCover src={$station.imageUrl} alt={$station.name} />
                 <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-white">
-                        {station.name}
+                        {$station.name}
                     </p>
                     <p className="truncate text-sm text-neutral-400">
                         Radio Station

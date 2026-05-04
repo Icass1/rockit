@@ -35,6 +35,7 @@ CHUNKED_UPLOADS: dict[str, Any] = defaultdict(
         "total_chunks": 0,
         "version": "",
         "description": "",
+        "version_filename": "",
     }
 )
 
@@ -97,8 +98,8 @@ async def upload_apk(request: Request, payload: UploadApkRequest) -> UploadApkRe
     os.makedirs(BUILDS_PATH, exist_ok=True)
 
     file_ext = os.path.splitext(payload.fileName)[1]
-    unique_filename = f"{uuid.uuid4()}{file_ext}"
-    file_path = os.path.join(BUILDS_PATH, unique_filename)
+    version_filename = f"v{payload.version}{file_ext}"
+    file_path = os.path.join(BUILDS_PATH, version_filename)
 
     try:
         file_content = base64.b64decode(payload.fileContent)
@@ -112,7 +113,7 @@ async def upload_apk(request: Request, payload: UploadApkRequest) -> UploadApkRe
     a_result = await AdminVersionAccess.add_version_async(
         session=session,
         version=payload.version,
-        apk_filename=unique_filename,
+        apk_filename=version_filename,
         description=payload.description,
     )
 
@@ -124,7 +125,7 @@ async def upload_apk(request: Request, payload: UploadApkRequest) -> UploadApkRe
         )
 
     return UploadApkResponse(
-        message="Build uploaded successfully.", id=a_result.result().id
+        message="Build uploaded successfully.", id=a_result.result().id, filename=version_filename
     )
 
 
@@ -141,8 +142,8 @@ async def start_chunked_upload(
     os.makedirs(BUILDS_PATH, exist_ok=True)
 
     file_ext = os.path.splitext(payload.fileName)[1]
-    unique_filename = f"{upload_id}{file_ext}"
-    file_path = os.path.join(BUILDS_PATH, unique_filename)
+    version_filename = f"v{payload.version}{file_ext}"
+    file_path = os.path.join(BUILDS_PATH, version_filename)
 
     CHUNKED_UPLOADS[upload_id] = {
         "file_path": file_path,
@@ -150,6 +151,7 @@ async def start_chunked_upload(
         "total_chunks": total_chunks,
         "version": payload.version,
         "description": payload.description,
+        "version_filename": version_filename,
     }
 
     with open(file_path, "wb"):
@@ -216,7 +218,7 @@ async def complete_chunked_upload(
     a_result = await AdminVersionAccess.add_version_async(
         session=session,
         version=upload["version"],
-        apk_filename=os.path.basename(file_path),
+        apk_filename=upload["version_filename"],
         description=upload["description"],
     )
 
@@ -228,5 +230,5 @@ async def complete_chunked_upload(
         )
 
     return UploadApkResponse(
-        message="Build uploaded successfully.", id=a_result.result().id
+        message="Build uploaded successfully.", id=a_result.result().id, filename=upload["version_filename"]
     )

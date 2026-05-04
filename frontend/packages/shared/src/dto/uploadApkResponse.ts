@@ -6,6 +6,7 @@ import { z } from "zod";
 export const UploadApkResponseSchema = z.object({
     message: z.string(),
     id: z.number(),
+    filename: z.string(),
 });
 
 export type UploadApkResponse = z.infer<typeof UploadApkResponseSchema>;

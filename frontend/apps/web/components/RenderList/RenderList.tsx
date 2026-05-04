@@ -2,8 +2,8 @@ import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { TMedia } from "@/models/types/media";
 import Artists from "@/components/Artists/Artists";
-import { Media } from "@/components/RenderList/Media";
 import ListOptionsMenu from "@/components/RenderList/ListOptionsMenu";
+import { Media } from "@/components/RenderList/Media";
 
 export default function RenderList({
     title,

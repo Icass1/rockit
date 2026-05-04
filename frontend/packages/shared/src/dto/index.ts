@@ -6,6 +6,10 @@ export {
     type AddContributorRequest,
 } from "./addContributorRequest";
 export {
+    AddFromUrlResponseSchema,
+    type AddFromUrlResponse,
+} from "./addFromUrlResponse";
+export {
     AddMediaToPlaylistRequestSchema,
     type AddMediaToPlaylistRequest,
 } from "./addMediaToPlaylistRequest";

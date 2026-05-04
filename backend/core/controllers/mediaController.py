@@ -31,6 +31,7 @@ from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.addFromUrlResponse import AddFromUrlResponse
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -273,7 +274,7 @@ async def add_from_url(
     url: str,
     playlist_public_id: str | None = None,
     _=Depends(dependency=AuthMiddleware.auth_dependency),
-) -> AddFromUrlAResult:
+) -> AddFromUrlResponse:
     """Add media from a URL to the database and to users library if playlist_public_id
     is not given, else it is added to the playlist."""
 
@@ -316,4 +317,4 @@ async def add_from_url(
             media_public_id=media.publicId,
         )
 
-    return media
+    return AddFromUrlResponse(data=media)

@@ -37,14 +37,14 @@ export class DownloaderManager {
         return this._downloadInfoAtom;
     }
 
-    async startDownloadAsync(url: string, name: string) {
+    async startDownloadAsync(publicId: string, name: string) {
         try {
             const response = await apiPostFetch(
                 "/downloader/start-downloads",
                 StartDownloadRequestSchema,
                 StartDownloadResponseSchema,
                 {
-                    ids: [url], // The API expects an array of IDs/URLs
+                    ids: [publicId], // The API expects an array of IDs/URLs
                     title: name,
                 }
             );

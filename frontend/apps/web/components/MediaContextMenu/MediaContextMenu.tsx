@@ -3,9 +3,11 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import { isDownloadable } from "@rockit/packages/shared";
 import {
-    BaseSearchResultsItem,
+    AddFromUrlResponseSchema,
+    isDownloadable,
+} from "@rockit/packages/shared";
+import {
     EEvent,
     EMediaContextLocation,
     OkResponseSchema,
@@ -89,7 +91,7 @@ export default function MediaContextMenu({
         !isSearch &&
         isDownloadableMedia &&
         isDownloadable(media) &&
-        media.downloaded;
+        !media.downloaded;
     const showDownloadOption = isDownloadableMedia && isNotDownloadedMedia;
 
     const handlePlay = () => {
@@ -110,27 +112,48 @@ export default function MediaContextMenu({
     };
 
     const handleAddToLibrary = async () => {
-        if (!isSearch) return;
-        setLoading(true);
-        const searchItem = media as BaseSearchResultsItem;
-        const res = await apiFetch(
-            `/media/url/add?url=${encodeURIComponent(searchItem.providerUrl)}`,
-            OkResponseSchema
-        );
-        setLoading(false);
-
-        if (!res.isOk()) {
-            rockIt.notificationManager.notifyError(res.message);
-        } else {
-            rockIt.notificationManager.notifySuccess(
-                `"${searchItem.name}" added to library`
+        if (isSearchResult(media)) {
+            setLoading(true);
+            const searchItem = media;
+            const res = await apiFetch(
+                `/media/url/add?url=${encodeURIComponent(searchItem.providerUrl)}`,
+                AddFromUrlResponseSchema
             );
+            setLoading(false);
+
+            if (!res.isOk()) {
+                rockIt.notificationManager.notifyError(res.message);
+            } else {
+                rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
+                    publicId: res.result.data.publicId,
+                });
+                rockIt.notificationManager.notifySuccess(
+                    `"${searchItem.name}" added to library`
+                );
+            }
+        } else {
+            const res = await apiFetch(
+                `/user/library/media/${media.publicId}`,
+                OkResponseSchema
+            );
+            setLoading(false);
+
+            if (!res.isOk()) {
+                rockIt.notificationManager.notifyError(res.message);
+            } else {
+                rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
+                    publicId: media.publicId,
+                });
+                rockIt.notificationManager.notifySuccess(
+                    `"${media.name}" added to library`
+                );
+            }
         }
     };
 
     const handleRemoveFromLibrary = async () => {
         if (isSearch) return;
-        const mediaItem = media as TMedia;
+        const mediaItem = media;
         const res = await apiDeleteFetch(
             `/user/library/media/${mediaItem.publicId}`,
             OkResponseSchema
@@ -197,7 +220,7 @@ export default function MediaContextMenu({
         if (isSearch) return;
         const mediaItem = media as TMedia;
         await rockIt.downloaderManager.startDownloadAsync(
-            mediaItem.providerUrl,
+            mediaItem.publicId,
             mediaItem.name
         );
     };
@@ -206,16 +229,14 @@ export default function MediaContextMenu({
         if (isSearch || !isDownloadableMedia) return;
         const mediaItem = media as TMedia;
         await rockIt.downloaderManager.startDownloadAsync(
-            mediaItem.providerUrl,
+            mediaItem.publicId,
             mediaItem.name
         );
     };
 
-    const showPlay =
-        isPlayableMedia && location !== EMediaContextLocation.LIBRARY;
+    const showPlay = isPlayableMedia;
     const disablePlay = showDownloadOption;
     const showNavigate = isNavigableMedia;
-    const showAddToLibrary = isSearch;
     const showRemoveFromLibrary =
         location === EMediaContextLocation.LIBRARY && !isListMedia && !isSearch;
     const showListOptions =
@@ -254,8 +275,7 @@ export default function MediaContextMenu({
                               : $vocabulary.OPEN_LIST}
                     </ContextMenuOption>
                 )}
-
-                {showAddToLibrary && (
+                {location !== EMediaContextLocation.LIBRARY && (
                     <ContextMenuOption
                         onClick={handleAddToLibrary}
                         disable={loading}

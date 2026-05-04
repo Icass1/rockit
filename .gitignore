@@ -77,12 +77,7 @@ frontend/apps/mobile/.gitignore
 *.tsbuildinfo
 expo-env.d.ts
 
-# Android
-android/
 .gradle/
-
-# iOS
-ios/
 
 # ============================
 # Datos y archivos locales

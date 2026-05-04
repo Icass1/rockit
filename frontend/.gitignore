@@ -4,6 +4,4 @@ dist
 .next
 !.next/cache
 .expo
-android
-ios
 *.tsbuildinfo

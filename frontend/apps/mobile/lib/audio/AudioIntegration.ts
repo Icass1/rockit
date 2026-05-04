@@ -6,6 +6,7 @@ import {
     Platform,
     TurboModuleRegistry,
 } from "react-native";
+import { NativeMediaBridge } from "@/lib/audio/NativeMediaBridge";
 
 export interface AudioIntegrationConfig {
     stayActiveInBackground: boolean;
@@ -298,6 +299,7 @@ class AudioIntegrationServiceClass {
         if (this.mediaControlListener) {
             this.mediaControlListener();
         }
+        NativeMediaBridge.dispose();
     }
 }
 

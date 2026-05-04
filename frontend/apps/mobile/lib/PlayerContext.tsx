@@ -25,6 +25,10 @@ import {
     type LockScreenMetadata,
 } from "@/lib/audio/AudioIntegration";
 import { mediaCacheManager } from "@/lib/audio/MediaCacheManager";
+import {
+    NativeMediaBridge,
+    type AutoQueueItem,
+} from "@/lib/audio/NativeMediaBridge";
 import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
@@ -168,6 +172,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 showSeekForward: true,
                 showSeekBackward: true,
             });
+            // Keep Android Auto in sync with the current track
+            NativeMediaBridge.updateNowPlaying(
+                queue.currentMedia.name,
+                queue.currentMedia.artists?.[0]?.name ?? "",
+                "album" in queue.currentMedia
+                    ? (queue.currentMedia.album?.name ?? "")
+                    : "",
+                queue.currentMedia.imageUrl ?? "",
+                duration > 0 ? Math.round(duration * 1000) : 0
+            );
         } else {
             AudioIntegrationService.setLockScreenActive(false);
         }
@@ -175,7 +189,47 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         AudioIntegrationService.updatePlaybackState(isPlaying, currentTime);
+        NativeMediaBridge.updatePlaybackState(
+            isPlaying,
+            Math.round(currentTime * 1000)
+        );
     }, [isPlaying, currentTime]);
+
+    // Sync queue to Android Auto MediaBrowserService
+    useEffect(() => {
+        const autoQueue: AutoQueueItem[] = queue.queue.map((m) => ({
+            mediaId: m.publicId,
+            title: m.name,
+            artist: m.artists?.[0]?.name ?? "",
+            album: "album" in m ? (m.album?.name ?? "") : "",
+            artworkUrl: m.imageUrl ?? "",
+            duration:
+                duration > 0 && m.publicId === queue.currentMedia?.publicId
+                    ? Math.round(duration * 1000)
+                    : 0,
+        }));
+        NativeMediaBridge.updateQueue(autoQueue, queue.currentIndex);
+    }, [queue.queue, queue.currentIndex]);
+
+    // Wire Android Auto transport commands to player actions
+    useEffect(() => {
+        NativeMediaBridge.setup({
+            onBluetoothConnected: () => {
+                if (!isPlaying && queue.currentMedia) play();
+            },
+            onBluetoothDisconnected: () => {},
+            onAutoPlay: () => play(),
+            onAutoPause: () => pause(),
+            onAutoNext: () => skipForward(),
+            onAutoPrevious: () => skipBack(),
+            onAutoSeekTo: (seconds) => seekTo(seconds),
+            onAutoSkipToIndex: (index) => {
+                const target = queue.queue[index];
+                if (target) playMedia(target, queue.queue);
+            },
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isPlaying, queue.currentMedia, queue.queue]);
 
     useEffect(() => {
         async function restoreSession() {

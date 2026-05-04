@@ -58,7 +58,10 @@ export default function RenderList({
                                 title={title}
                             />
                         </div>
-                        <Artists artists={artists}></Artists>
+                        <Artists
+                            artists={artists}
+                            className="font-semibold"
+                        ></Artists>
                     </div>
                 </div>
             </div>

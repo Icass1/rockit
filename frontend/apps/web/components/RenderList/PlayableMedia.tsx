@@ -18,6 +18,7 @@ import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 function getArtistNames(
     media: TPlayableMedia,
@@ -172,14 +173,17 @@ export function PlayableMedia({
                             {$media.name}
                         </p>
                     </div>
-                    {artists.length > 0 && (
-                        <div className="w-fit">
-                            <Artists
-                                artists={artists}
-                                className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
-                            ></Artists>
-                        </div>
-                    )}
+                    <div className="flex flex-row items-center gap-1">
+                        <ProviderTag name={$media.provider}></ProviderTag>
+                        {artists.length > 0 && (
+                            <div className="w-fit">
+                                <Artists
+                                    artists={artists}
+                                    className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
+                                />
+                            </div>
+                        )}
+                    </div>
                     {!downloaded && (
                         <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded px-2 py-1 text-sm font-semibold text-white group-hover:block">
                             {$vocabulary.CLICK_TO_DOWNLOAD}

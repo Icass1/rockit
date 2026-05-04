@@ -29,7 +29,9 @@
     "python.analysis.autoImportCompletions": true,
     "python.analysis.inlayHints.callArgumentNames": "all",
     "python.analysis.functionReturnTypes": true,
-    "python.analysis.extraPaths": ["./backend"],
+    "python.analysis.extraPaths": [
+        "./backend"
+    ],
     "python.analysis.inlayHints.variableTypes": true,
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "css.lint.unknownAtRules": "ignore",
@@ -41,5 +43,12 @@
     "editor.formatOnSaveTimeout": 5000,
     "prettier.requireConfig": false,
     "prettier.enabled": true,
-    "files.autoSave": "onFocusChange"
+    "files.autoSave": "onFocusChange",
+    "python-envs.pythonProjects": [
+        {
+            "path": "frontend/apps/web/components/RenderList",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
+        }
+    ]
 }

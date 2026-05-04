@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict
 
-from sqlalchemy import ForeignKey, Integer
+from sqlalchemy import ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.default.access.db.base import DefaultBase
@@ -18,7 +18,10 @@ class PlaylistMediaRow(
     DefaultBase, TableAutoincrementId, TableDateAdded, TableDateUpdated
 ):
     __tablename__ = "playlist_media"
-    __table_args__ = ({"schema": "default_schema", "extend_existing": True},)
+    __table_args__ = (
+        UniqueConstraint("playlist_id", "position", name="uq_playlist_media_position"),
+        {"schema": "default_schema", "extend_existing": True},
+    )
 
     playlist_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("default_schema.playlist.id"), nullable=False

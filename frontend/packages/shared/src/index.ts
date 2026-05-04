@@ -24,6 +24,7 @@ export * from "./models/enums/platform";
 export * from "./models/enums/queueAction";
 export * from "./models/enums/queueType";
 export * from "./models/enums/repeatMode";
+export * from "./models/enums/providers";
 
 export * from "./models/interfaces/events/mediaAddedToLibrary";
 export * from "./models/interfaces/events/mediaAddedToPlaylist";

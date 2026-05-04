@@ -25,7 +25,7 @@ export class DownloaderManager {
         if (this._initialized) {
             return;
         }
-        console.log("DownloaderManager.init");
+        // console.log("DownloaderManager.init");
         this._initialized = true;
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.DownloadProgress,

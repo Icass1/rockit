@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { LibraryListsResponseSchema } from "@/dto";
-import { EEvent, IMediaRemovedFromLibraryEvent } from "@rockit/shared";
+import {
+    API_ENDPOINTS,
+    EEvent,
+    IMediaRemovedFromLibraryEvent,
+} from "@rockit/shared";
 import { EFilterMode } from "@/models/enums/filterMode";
 import {
     IUseLibraryDataProps,
@@ -58,7 +62,7 @@ export function useLibraryData({
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
     const { data: _libraryData, loading } = useFetch(
-        "/user/library/medias",
+        API_ENDPOINTS.libraryMedias,
         LibraryListsResponseSchema
     );
 

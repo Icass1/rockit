@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { EMediaType } from "@rockit/packages/shared";
+import { EMediaType } from "@rockit/shared";
 import { getAlbumAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 

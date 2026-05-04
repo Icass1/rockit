@@ -70,15 +70,15 @@ export class MediaPlayerManager {
     }
 
     play() {
-        console.log(
-            "MediaPlayerManager.play",
-            rockIt.queueManager.currentMedia
-        );
+        // console.log(
+        //     "MediaPlayerManager.play",
+        //     rockIt.queueManager.currentMedia
+        // );
 
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
-        console.log(currentMedia.type);
+        // console.log(currentMedia.type);
 
         if (isVideo(currentMedia)) {
             this.playVideo();
@@ -90,7 +90,7 @@ export class MediaPlayerManager {
     }
 
     private playAudio() {
-        console.log("MediaPlayerManager.playVideo", this._audio);
+        // console.log("MediaPlayerManager.playVideo", this._audio);
         if (!this._audio) return;
         this.setAudio();
         this._audio.play().catch((err) => {
@@ -101,7 +101,7 @@ export class MediaPlayerManager {
     }
 
     private playVideo() {
-        console.log("MediaPlayerManager.playVideo", this._video);
+        // console.log("MediaPlayerManager.playVideo", this._video);
         if (!this._video) return;
         this.setVideo();
         this._video.play().catch((err) => {
@@ -237,7 +237,7 @@ export class MediaPlayerManager {
     }
 
     setMedia(useSavedCurrentTime: boolean = false) {
-        console.log("MediaPlayerManager.setMedia");
+        // console.log("MediaPlayerManager.setMedia");
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
@@ -249,7 +249,7 @@ export class MediaPlayerManager {
     }
 
     private setAudio(useSavedCurrentTime: boolean = false) {
-        console.log("MediaPlayerManager.setAudio");
+        // console.log("MediaPlayerManager.setAudio");
 
         this.clearVideo();
         // console.log({
@@ -326,7 +326,7 @@ export class MediaPlayerManager {
     }
 
     private clearVideo() {
-        console.log("MediaPlayerManager.clearVideo");
+        // console.log("MediaPlayerManager.clearVideo");
         if (!this._video) return;
 
         this._video.pause();

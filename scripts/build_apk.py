@@ -21,7 +21,7 @@ def main():
             return
 
     version_ts = Path("frontend/apps/mobile/constants/version.ts")
-    version_ts.write_text(f'export const APP_VERSION = "{version}";')
+    version_ts.write_text(f'export const APP_VERSION = "{version}";\n')
 
     app_json = Path("frontend/apps/mobile/app.json")
 

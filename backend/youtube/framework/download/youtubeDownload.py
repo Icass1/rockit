@@ -65,6 +65,8 @@ class YoutubeDownload(BaseDownload):
                     if a_result_channel.is_ok():
                         video_artist = a_result_channel.result().name or ""
 
+            self.title = video_title
+            self.artist = video_artist
             filename: str = f"{self.youtube_video_id}_{self.download_id}"
 
             a_result_download: AResult[dict[str, Any]] = (

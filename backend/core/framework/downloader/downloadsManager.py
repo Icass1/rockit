@@ -13,6 +13,7 @@ from backend.core.access.userAccess import UserAccess
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
+from backend.core.framework.websocket.webSocketManager import ws_manager
 
 logger: Logger = getLogger(__name__)
 
@@ -140,6 +141,16 @@ class DownloadsManager:
                                             )
 
                                 await session.commit()
+                                await ws_manager.broadcast_progress(
+                                    user_id=d.user_id,
+                                    download_id=d.download_id,
+                                    public_id=d.public_id,
+                                    title=d.title,
+                                    artist=d.artist,
+                                    status="completed",
+                                    progress=100,
+                                    message="Download completed!",
+                                )
                             if a_result.is_not_ok():
                                 logger.error(
                                     f"Download {d.public_id} failed with error: {a_result.message()}"

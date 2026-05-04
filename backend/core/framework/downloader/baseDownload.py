@@ -12,6 +12,8 @@ class BaseDownload:
     download_id: int
     download_group_id: int
     user_id: int
+    title: str
+    artist: str
 
     def __init__(
         self, public_id: str, download_id: int, download_group_id: int, user_id: int
@@ -22,6 +24,8 @@ class BaseDownload:
         self.download_id = download_id
         self.download_group_id = download_group_id
         self.user_id = user_id
+        self.title = ""
+        self.artist = ""
 
     def download_method(self, session: AsyncSession) -> None:
         """Execute the download. Override in provider-specific subclasses."""

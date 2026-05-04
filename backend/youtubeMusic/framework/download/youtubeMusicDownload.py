@@ -74,6 +74,9 @@ class YoutubeMusicDownload(BaseDownload):
             if a_result_artists.is_ok():
                 artist_names = [a.name for a in a_result_artists.result()]
 
+            self.title = track.title
+            self.artist = ", ".join(artist_names)
+
             youtube_url: str = (
                 self.download_url
                 or f"https://music.youtube.com/watch?v={self.youtube_id}"

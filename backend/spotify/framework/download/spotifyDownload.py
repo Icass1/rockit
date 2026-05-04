@@ -88,6 +88,9 @@ class SpotifyDownload(BaseDownload):
             artists: List[ArtistRow] = a_result_artists.result()
             artist_names: list[str] = [artist.name for artist in artists]
 
+            self.title = track.name
+            self.artist = ", ".join(artist_names)
+
             youtube_url: str | None = track.download_url
 
             if not youtube_url:

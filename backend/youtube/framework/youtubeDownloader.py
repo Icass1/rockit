@@ -249,17 +249,6 @@ class YouTubeDownloader:
 
             real_duration_ms: Optional[int] = _get_duration_with_ffprobe(final_path)
 
-            await _insert_and_broadcast(
-                download_id=download_id,
-                user_id=user_id,
-                public_id=public_id,
-                title=title,
-                artist=artist,
-                status="completed",
-                progress=100,
-                message="Download completed!",
-            )
-
             return AResult(
                 code=AResultCode.OK,
                 message="Download completed",

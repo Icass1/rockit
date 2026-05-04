@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -99,7 +100,10 @@ export default function DownloadItem({ download }: DownloadItemProps) {
 
     return (
         <div className="flex items-start gap-4 border-b border-neutral-700 py-3">
-            <MediaContextMenu media={$download}>
+            <MediaContextMenu
+                media={$download}
+                location={EMediaContextLocation.DOWNLOADS}
+            >
                 <div className="shrink-0">
                     <Image
                         width={300}

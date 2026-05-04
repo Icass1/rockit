@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import SearchItemContextMenu from "@/components/Search/SearchItemContextMenu";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 export default function ArtistsSection({
     artists,
@@ -22,22 +23,24 @@ export default function ArtistsSection({
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {artists.map((artist) => (
-                    <SearchItemContextMenu
+                    <MediaContextMenu
                         key={artist.providerUrl}
-                        item={artist}
-                        className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
+                        media={artist}
+                        location={EMediaContextLocation.SEARCH}
                     >
-                        <Image
-                            width={350}
-                            height={350}
-                            className="aspect-square w-full rounded-full object-cover"
-                            src={artist.imageUrl}
-                            alt={`Image of ${artist.name}`}
-                        />
-                        <span className="mt-2 block truncate text-center font-semibold">
-                            {artist.name}
-                        </span>
-                    </SearchItemContextMenu>
+                        <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
+                            <Image
+                                width={350}
+                                height={350}
+                                className="aspect-square w-full rounded-full object-cover"
+                                src={artist.imageUrl}
+                                alt={`Image of ${artist.name}`}
+                            />
+                            <span className="mt-2 block truncate text-center font-semibold">
+                                {artist.name}
+                            </span>
+                        </div>
+                    </MediaContextMenu>
                 ))}
             </div>
         </section>

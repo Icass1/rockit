@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
+import { EMediaContextLocation } from "@rockit/shared";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -28,7 +29,7 @@ export default function QuickSelectionsSong({
     }, [$song.publicId, songs]);
 
     return (
-        <MediaContextMenu media={$song}>
+        <MediaContextMenu media={$song} location={EMediaContextLocation.HOME}>
             <div
                 className="flex h-fit cursor-pointer items-center gap-2 rounded-lg p-2 transition hover:bg-zinc-800"
                 onClick={handleClick}

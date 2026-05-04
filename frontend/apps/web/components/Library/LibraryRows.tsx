@@ -10,9 +10,10 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { EMediaContextLocation } from "@rockit/shared";
 import { TPlayableMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import UnifiedMediaContextMenu from "@/components/Library/UnifiedMediaContextMenu";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 /* ------------------------------------------------------- */
 /* GROUP BY FIRST ARTIST                                   */
@@ -69,7 +70,10 @@ function VideoCover({ src, alt }: { src: string; alt: string }) {
 
 export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
     return (
-        <UnifiedMediaContextMenu media={album}>
+        <MediaContextMenu
+            media={album}
+            location={EMediaContextLocation.LIBRARY}
+        >
             <Link
                 href={album.url}
                 className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
@@ -87,13 +91,16 @@ export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                     </p>
                 </div>
             </Link>
-        </UnifiedMediaContextMenu>
+        </MediaContextMenu>
     );
 }
 
 export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
     return (
-        <UnifiedMediaContextMenu media={playlist}>
+        <MediaContextMenu
+            media={playlist}
+            location={EMediaContextLocation.LIBRARY}
+        >
             <Link
                 href={playlist.url}
                 className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
@@ -114,7 +121,7 @@ export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
                     </p>
                 </div>
             </Link>
-        </UnifiedMediaContextMenu>
+        </MediaContextMenu>
     );
 }
 
@@ -130,7 +137,10 @@ export function VideoRow({ video }: { video: BaseVideoResponse }) {
     };
 
     return (
-        <UnifiedMediaContextMenu media={video}>
+        <MediaContextMenu
+            media={video}
+            location={EMediaContextLocation.LIBRARY}
+        >
             <div
                 className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
                 onClick={handlePlay}
@@ -143,7 +153,7 @@ export function VideoRow({ video }: { video: BaseVideoResponse }) {
                     {video.name}
                 </p>
             </div>
-        </UnifiedMediaContextMenu>
+        </MediaContextMenu>
     );
 }
 
@@ -159,7 +169,7 @@ export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
     };
 
     return (
-        <UnifiedMediaContextMenu media={song}>
+        <MediaContextMenu media={song} location={EMediaContextLocation.LIBRARY}>
             <div
                 className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
                 onClick={handlePlay}
@@ -178,7 +188,7 @@ export function SongRow({ song }: { song: BaseSongWithoutAlbumResponse }) {
                     </p>
                 </div>
             </div>
-        </UnifiedMediaContextMenu>
+        </MediaContextMenu>
     );
 }
 
@@ -194,7 +204,10 @@ export function StationRow({ station }: { station: BaseStationResponse }) {
     };
 
     return (
-        <UnifiedMediaContextMenu media={station}>
+        <MediaContextMenu
+            media={station}
+            location={EMediaContextLocation.LIBRARY}
+        >
             <div
                 className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
                 onClick={handlePlay}
@@ -209,7 +222,7 @@ export function StationRow({ station }: { station: BaseStationResponse }) {
                     </p>
                 </div>
             </div>
-        </UnifiedMediaContextMenu>
+        </MediaContextMenu>
     );
 }
 

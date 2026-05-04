@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { BaseSearchResultsItem } from "@/dto";
-import SearchItemContextMenu from "@/components/Search/SearchItemContextMenu";
+import { EMediaContextLocation } from "@rockit/shared";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 export default function VideosSection({
     videos,
@@ -18,30 +19,34 @@ export default function VideosSection({
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {videos.map((video) => (
-                    <SearchItemContextMenu
+                    <MediaContextMenu
                         key={video.providerUrl}
-                        item={video}
-                        className="w-64 flex-none cursor-pointer transition md:w-80 md:hover:scale-105"
+                        media={video}
+                        location={EMediaContextLocation.SEARCH}
                     >
-                        <Image
-                            width={350}
-                            height={197}
-                            className="aspect-video w-full rounded-lg object-cover"
-                            src={video.imageUrl}
-                            alt={`Thumbnail of ${video.name}`}
-                        />
-                        <span className="mt-2 block truncate text-left font-semibold">
-                            {video.name}
-                        </span>
-                        <span className="block truncate text-center text-sm text-gray-400">
-                            {video.artists.map((artist, i) => (
-                                <span key={artist.name}>
-                                    {artist.name}
-                                    {i < video.artists.length - 1 ? ", " : ""}
-                                </span>
-                            ))}
-                        </span>
-                    </SearchItemContextMenu>
+                        <div className="w-64 flex-none cursor-pointer transition md:w-80 md:hover:scale-105">
+                            <Image
+                                width={350}
+                                height={197}
+                                className="aspect-video w-full rounded-lg object-cover"
+                                src={video.imageUrl}
+                                alt={`Thumbnail of ${video.name}`}
+                            />
+                            <span className="mt-2 block truncate text-left font-semibold">
+                                {video.name}
+                            </span>
+                            <span className="block truncate text-center text-sm text-gray-400">
+                                {video.artists.map((artist, i) => (
+                                    <span key={artist.name}>
+                                        {artist.name}
+                                        {i < video.artists.length - 1
+                                            ? ", "
+                                            : ""}
+                                    </span>
+                                ))}
+                            </span>
+                        </div>
+                    </MediaContextMenu>
                 ))}
             </div>
         </section>

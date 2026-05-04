@@ -10,9 +10,10 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { EMediaContextLocation } from "@rockit/shared";
 import { isDownloadable } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import UnifiedMediaContextMenu from "@/components/Library/UnifiedMediaContextMenu";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -32,7 +33,10 @@ function CardShell({ children }: { children: React.ReactNode }) {
 export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
     return (
         <CardShell>
-            <UnifiedMediaContextMenu media={playlist}>
+            <MediaContextMenu
+                media={playlist}
+                location={EMediaContextLocation.LIBRARY}
+            >
                 <Link
                     href={playlist.url}
                     className="library-item flex flex-col transition-transform md:hover:scale-105"
@@ -55,7 +59,7 @@ export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
                         {playlist.owner}
                     </p>
                 </Link>
-            </UnifiedMediaContextMenu>
+            </MediaContextMenu>
         </CardShell>
     );
 }
@@ -63,7 +67,10 @@ export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
 export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
     return (
         <CardShell>
-            <UnifiedMediaContextMenu media={album}>
+            <MediaContextMenu
+                media={album}
+                location={EMediaContextLocation.LIBRARY}
+            >
                 <Link
                     href={album.url}
                     className="library-item flex flex-col transition-transform md:hover:scale-105"
@@ -83,7 +90,7 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                         {album.artists.map((a) => a.name).join(", ")}
                     </p>
                 </Link>
-            </UnifiedMediaContextMenu>
+            </MediaContextMenu>
         </CardShell>
     );
 }
@@ -104,7 +111,10 @@ export function VideoCard({ video }: { video: BaseVideoResponse }) {
 
     return (
         <CardShell>
-            <UnifiedMediaContextMenu media={video}>
+            <MediaContextMenu
+                media={video}
+                location={EMediaContextLocation.LIBRARY}
+            >
                 <div
                     className={`library-item flex cursor-pointer flex-col transition-transform md:hover:scale-105 ${!downloaded && "opacity-50"}`}
                     onClick={handleClick}
@@ -123,7 +133,7 @@ export function VideoCard({ video }: { video: BaseVideoResponse }) {
                         {video.name}
                     </p>
                 </div>
-            </UnifiedMediaContextMenu>
+            </MediaContextMenu>
         </CardShell>
     );
 }
@@ -145,7 +155,10 @@ export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
 
     return (
         <CardShell>
-            <UnifiedMediaContextMenu media={song}>
+            <MediaContextMenu
+                media={song}
+                location={EMediaContextLocation.LIBRARY}
+            >
                 <div
                     className={`library-item flex cursor-pointer flex-col ${!downloaded && "opacity-50"}`}
                     onClick={handleClick}
@@ -166,7 +179,7 @@ export function SongCard({ song }: { song: BaseSongWithoutAlbumResponse }) {
                             "Unknown Artist"}
                     </p>
                 </div>
-            </UnifiedMediaContextMenu>
+            </MediaContextMenu>
         </CardShell>
     );
 }
@@ -181,7 +194,10 @@ export function StationCard({ station }: { station: BaseStationResponse }) {
 
     return (
         <CardShell>
-            <UnifiedMediaContextMenu media={station}>
+            <MediaContextMenu
+                media={station}
+                location={EMediaContextLocation.LIBRARY}
+            >
                 <div
                     className="library-item flex cursor-pointer flex-col"
                     onClick={handlePlay}
@@ -201,7 +217,7 @@ export function StationCard({ station }: { station: BaseStationResponse }) {
                         Radio Station
                     </p>
                 </div>
-            </UnifiedMediaContextMenu>
+            </MediaContextMenu>
         </CardShell>
     );
 }

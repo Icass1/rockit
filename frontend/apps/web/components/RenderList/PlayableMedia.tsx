@@ -3,6 +3,7 @@ import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EEvent, IMediaDownloadStatus } from "@rockit/packages/shared";
+import { EMediaContextLocation } from "@rockit/shared";
 import {
     getMediaDuration,
     isDownloadable,
@@ -109,7 +110,10 @@ export function PlayableMedia({
     const downloaded = !isDownloadable($media) || $media.downloaded === true;
 
     return (
-        <MediaContextMenu media={$media}>
+        <MediaContextMenu
+            media={$media}
+            location={EMediaContextLocation.PLAYLIST}
+        >
             <div
                 className="group flex cursor-pointer flex-row items-center gap-4 pr-3"
                 onClick={handleClick}

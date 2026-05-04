@@ -19,18 +19,19 @@ export * from "./models/types/rockIt";
 export * from "./models/types/webSocketMessages";
 
 export * from "./models/enums/events";
+export * from "./models/enums/mediaContextLocation";
 export * from "./models/enums/mediaType";
 export * from "./models/enums/platform";
+export * from "./models/enums/providers";
 export * from "./models/enums/queueAction";
 export * from "./models/enums/queueType";
 export * from "./models/enums/repeatMode";
-export * from "./models/enums/providers";
 
 export * from "./models/interfaces/events/mediaAddedToLibrary";
 export * from "./models/interfaces/events/mediaAddedToPlaylist";
-export * from "./models/interfaces/events/mediaRemovedFromLibrary";
 export * from "./models/interfaces/events/mediaDownloaded";
 export * from "./models/interfaces/events/mediaDownloadStatus";
+export * from "./models/interfaces/events/mediaRemovedFromLibrary";
 export * from "./models/interfaces/events/playlistCreated";
 export * from "./models/interfaces/events/songFinished";
 export * from "./models/interfaces/events/userLogin";

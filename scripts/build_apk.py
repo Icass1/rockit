@@ -31,6 +31,11 @@ def main():
 
     app_json.write_text(json.dumps(data, indent=4))
 
+    package_json = Path("frontend/apps/mobile/package.json")
+    package_data = json.loads(package_json.read_text())
+    package_data["version"] = version
+    package_json.write_text(json.dumps(package_data, indent=4))
+
     expo_token = os.environ.get("EXPO_TOKEN")
 
     os.chdir("frontend/apps/mobile")

@@ -9,7 +9,6 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableAutoincrementId,
 )
 
-from backend.core.access.db.ormModels.image import ImageRow
 from backend.spotify.access.db.base import SpotifyBase
 from backend.spotify.access.db.associationTables.song_artists import song_artists
 
@@ -35,9 +34,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    image_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("core.image.id"), nullable=False
-    )
     path: Mapped[str | None] = mapped_column(String, nullable=True)
     album_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("spotify.album.id"), nullable=False
@@ -62,7 +58,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         CoreMediaRow, lazy="selectin", uselist=False
     )
 
-    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
 
     def __init__(
         self,

@@ -81,6 +81,8 @@ class AudioIntegrationServiceClass {
     private async ensureMediaControlLoaded() {
         if (this.mediaControl) return;
         if (Platform.OS === EPlatform.Web) return;
+        // Android media session is handled natively by RockItAutoMediaService
+        if (Platform.OS === EPlatform.Android) return;
         if (!TurboModuleRegistry.get("ExpoMediaControl")) return;
 
         try {

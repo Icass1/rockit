@@ -121,7 +121,18 @@ export class WebSocketManager {
             }
 
             try {
-                this._webSocket = new WebSocket(getWsUrl());
+                // React Native's WebSocket accepts headers as a non-standard 3rd argument.
+                // The session cookie must be passed explicitly since SecureStore is not
+                // the system cookie jar and Android/OkHttp won't include it automatically.
+                this._webSocket = new (WebSocket as any)(
+                    getWsUrl(),
+                    undefined,
+                    {
+                        headers: { Cookie: `session_id=${cookie}` },
+                    }
+                );
+
+                if (!this._webSocket) return;
 
                 this._webSocket.onopen = () => {
                     this._init = true;

@@ -81,14 +81,25 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         }
     }
 
-    private fun updateSession() {
-        val metadata = MediaMetadataCompat.Builder()
+    private fun applyMetadata() {
+        val builder = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, MediaStateManager.title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, MediaStateManager.artist)
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, MediaStateManager.album)
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, MediaStateManager.duration)
-            .build()
-        mediaSession.setMetadata(metadata)
+        MediaStateManager.artworkUrl?.let {
+            builder.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, it)
+            builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, it)
+        }
+        currentArtwork?.let {
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, it)
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it)
+        }
+        mediaSession.setMetadata(builder.build())
+    }
+
+    private fun updateSession() {
+        applyMetadata()
 
         val stateCode = if (MediaStateManager.isPlaying)
             PlaybackStateCompat.STATE_PLAYING
@@ -132,10 +143,12 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
                     } catch (_: Exception) {
                         currentArtwork = null
                     }
+                    applyMetadata()
                     postNotification()
                 }
             } else {
                 currentArtwork = null
+                applyMetadata()
                 postNotification()
             }
         } else {

@@ -87,10 +87,10 @@ export class QueueManager {
             (item) => item.queueMediaId === currentQueueMediaId
         );
 
-        if (currentIndex > 0) {
-            this.setQueueMediaId(queue[currentIndex - 1].queueMediaId);
-            rockIt.mediaPlayerManager.play();
-        }
+        const prevIndex =
+            (currentIndex - 1 + queue.length) % queue.length;
+        this.setQueueMediaId(queue[prevIndex].queueMediaId);
+        rockIt.mediaPlayerManager.play();
     }
 
     skipForward() {
@@ -105,11 +105,9 @@ export class QueueManager {
             (item) => item.queueMediaId === currentQueueMediaId
         );
 
-        const nextIndex = currentIndex + 1;
-        if (nextIndex < queue.length) {
-            this.setQueueMediaId(queue[nextIndex].queueMediaId);
-            rockIt.mediaPlayerManager.play();
-        }
+        const nextIndex = (currentIndex + 1) % queue.length;
+        this.setQueueMediaId(queue[nextIndex].queueMediaId);
+        rockIt.mediaPlayerManager.play();
     }
 
     setMedia(

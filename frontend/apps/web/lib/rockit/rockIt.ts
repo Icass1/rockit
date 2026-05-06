@@ -55,6 +55,7 @@ export class RockIt {
     constructor() {
         if (typeof window === "undefined") return;
 
+        console.log("WebSocketManager.init() 1");
         this.webSocketManager.init();
     }
 }

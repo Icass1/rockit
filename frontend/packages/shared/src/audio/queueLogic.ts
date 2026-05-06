@@ -70,7 +70,7 @@ export function getPrevQueueMediaId<T extends QueueItem>(
 
 /**
  * Resolve which queueMediaId to play next based on repeat mode.
- * Returns null if playback should stop.
+ * Loops back to beginning when reaching end.
  */
 export function resolveNextOnEnd<T extends QueueItem>(
     queue: T[],
@@ -84,7 +84,7 @@ export function resolveNextOnEnd<T extends QueueItem>(
     if (nextId !== null) {
         return { action: EQueueAction.PLAY, nextId };
     }
-    if (repeatMode === ERepeatMode.ALL && queue.length > 0) {
+    if (queue.length > 0) {
         return { action: EQueueAction.PLAY, nextId: queue[0].queueMediaId };
     }
     return { action: EQueueAction.STOP, nextId: null };

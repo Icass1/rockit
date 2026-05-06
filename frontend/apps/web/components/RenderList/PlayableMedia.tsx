@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EEvent, IMediaDownloadStatus } from "@rockit/packages/shared";
+import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
 import { EMediaContextLocation } from "@rockit/shared";
 import {
     getMediaDuration,
@@ -52,28 +52,6 @@ export function PlayableMedia({
 }) {
     const $media = useMedia(_media);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [downloadProgress, setDownloadProgress] = useState<number | null>(
-        null
-    );
-
-    useEffect(() => {
-        const statusHandler = (event: IMediaDownloadStatus) => {
-            if (event.publicId != $media.publicId) return;
-            setDownloadProgress(event.completed < 100 ? event.completed : null);
-        };
-
-        rockIt.eventManager.addEventListener(
-            EEvent.MediaDownloadStatus,
-            statusHandler
-        );
-
-        return () => {
-            rockIt.eventManager.removeEventListener(
-                EEvent.MediaDownloadStatus,
-                statusHandler
-            );
-        };
-    }, [$media.publicId, $media.name]);
 
     const artists = getArtistNames($media, substractArtists);
 
@@ -134,43 +112,7 @@ export function PlayableMedia({
                 )}
                 <div className={`relative flex w-full flex-col`}>
                     <div className="flex items-center gap-1.5">
-                        {downloadProgress !== null && (
-                            <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 20 20"
-                                className="shrink-0"
-                            >
-                                <circle
-                                    cx="10"
-                                    cy="10"
-                                    r="8"
-                                    fill="none"
-                                    stroke="#404040"
-                                    strokeWidth="2"
-                                />
-                                <circle
-                                    cx="10"
-                                    cy="10"
-                                    r="8"
-                                    fill="none"
-                                    stroke="#ee1086"
-                                    strokeWidth="2"
-                                    strokeDasharray={`${2 * Math.PI * 8}`}
-                                    strokeDashoffset={`${2 * Math.PI * 8 * (1 - downloadProgress / 100)}`}
-                                    strokeLinecap="round"
-                                    transform="rotate(-90 10 10)"
-                                />
-                                <path
-                                    d="M10 6v5M7 9l3 3 3-3"
-                                    stroke="#ee1086"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    fill="none"
-                                />
-                            </svg>
-                        )}
+                        <DownloadStatusIcon publicId={$media.publicId} />
                         <p
                             className={`text-md font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
                         >

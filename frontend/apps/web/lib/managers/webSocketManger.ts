@@ -19,6 +19,7 @@ export class WebSocketManager {
 
     private webSocket?: WebSocket;
     private _init = false;
+    private initializing = false;
     private _messageHandlers: Map<
         EWebSocketMessage,
         Set<WebSocketMessageHandler<EWebSocketMessage>>
@@ -42,6 +43,7 @@ export class WebSocketManager {
 
     constructor() {
         if (typeof window === "undefined") return;
+        console.log("WebSocketManager.#instance", WebSocketManager.#instance);
         if (WebSocketManager.#instance) {
             return WebSocketManager.#instance;
         }
@@ -75,12 +77,17 @@ export class WebSocketManager {
     async init() {
         if (this._init) return;
 
-        this.attemptReconnect();
+        console.debug("WebSocketManager.init", this.webSocket);
+
+        await this.attemptReconnect();
     }
 
     private async attemptReconnect() {
         const maxRetries = 5;
         let retries = 0;
+        console.debug("WebSocketManager.attemptReconnect", this.initializing);
+        if (this.initializing) return;
+        this.initializing = true;
 
         while (retries < maxRetries) {
             await new Promise((resolve) =>
@@ -96,12 +103,14 @@ export class WebSocketManager {
                 this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
 
                 this.webSocket.onopen = () => {
+                    this.initializing = false;
                     this._init = true;
                 };
 
                 this.webSocket.onmessage = this._onMessageHandler;
 
                 this.webSocket.onclose = () => {
+                    this.initializing = false;
                     this._init = false;
                     this.attemptReconnect();
                 };
@@ -115,10 +124,12 @@ export class WebSocketManager {
 
     async send(message: object) {
         if (!this.webSocket) {
+            console.log("WebSocketManager.init() 2", message);
             await this.init();
         }
 
         if (this.webSocket?.readyState === WebSocket.CLOSED) {
+            console.log("WebSocketManager.init() 3");
             await this.init();
         }
 

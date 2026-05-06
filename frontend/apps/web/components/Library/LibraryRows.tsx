@@ -76,6 +76,7 @@ export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
             location={EMediaContextLocation.LIBRARY}
         >
             <Link
+                prefetch={false}
                 href={album.url}
                 className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
             >
@@ -103,6 +104,7 @@ export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
             location={EMediaContextLocation.LIBRARY}
         >
             <Link
+                prefetch={false}
                 href={playlist.url}
                 className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
             >
@@ -160,7 +162,11 @@ export function VideoRow({ video: _video }: { video: BaseVideoResponse }) {
     );
 }
 
-export function SongRow({ song: _song }: { song: BaseSongWithoutAlbumResponse }) {
+export function SongRow({
+    song: _song,
+}: {
+    song: BaseSongWithoutAlbumResponse;
+}) {
     const $song = useMedia(_song);
 
     const handlePlay = () => {
@@ -174,7 +180,10 @@ export function SongRow({ song: _song }: { song: BaseSongWithoutAlbumResponse })
     };
 
     return (
-        <MediaContextMenu media={$song} location={EMediaContextLocation.LIBRARY}>
+        <MediaContextMenu
+            media={$song}
+            location={EMediaContextLocation.LIBRARY}
+        >
             <div
                 className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
                 onClick={handlePlay}
@@ -197,7 +206,11 @@ export function SongRow({ song: _song }: { song: BaseSongWithoutAlbumResponse })
     );
 }
 
-export function StationRow({ station: _station }: { station: BaseStationResponse }) {
+export function StationRow({
+    station: _station,
+}: {
+    station: BaseStationResponse;
+}) {
     const $station = useMedia(_station);
 
     const handlePlay = () => {

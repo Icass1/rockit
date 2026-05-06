@@ -6,6 +6,7 @@ from logging import Logger
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
 from backend.core.aResult import AResult
 
 from backend.core.requests.likeMediaRequest import LikeMediaRequest
@@ -192,6 +193,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
 
 
 @router.get(path="/library/medias")
+@time_it
 async def get_user_library_medias(
     request: Request,
 ) -> LibraryMediasResponse:

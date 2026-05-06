@@ -8,8 +8,9 @@ def _create_youtube_dl(opts: Any) -> Any:
     return YoutubeDL(opts)
 
 
-from backend.core.aResult import AResult, AResultCode
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
+from backend.core.aResult import AResult, AResultCode
 
 logger = getLogger(__name__)
 
@@ -479,6 +480,7 @@ class YoutubeMusicApi:
             )
 
     @staticmethod
+    @time_it
     async def get_album_info_async(
         youtube_id: str,
     ) -> AResult[YoutubeMusicAlbum]:
@@ -493,6 +495,7 @@ class YoutubeMusicApi:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
 
+            @time_it
             def _get_info() -> Any:
                 yt = YTMusic()
                 return yt.get_album(youtube_id)
@@ -615,7 +618,9 @@ class YoutubeMusicApi:
                     artists = [str(a.get("name", "")) for a in artists_val]
 
                 track_number_val = entry_dict.get("trackNumber")
-                track_number = int(track_number_val) if track_number_val is not None else i
+                track_number = (
+                    int(track_number_val) if track_number_val is not None else i
+                )
 
                 track = YoutubeMusicTrack(
                     youtube_id=video_id,

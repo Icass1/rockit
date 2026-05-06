@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 
 # UTILS
-from backend.utils.backendUtils import create_id
+from backend.utils.backendUtils import create_id, time_it
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -63,6 +63,7 @@ logger = getLogger(__name__)
 
 class SpotifyAccess:
     @staticmethod
+    @time_it
     async def get_album_public_id_async(
         session: AsyncSession,
         spotify_id: str,
@@ -97,6 +98,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_album_id_async(
         session: AsyncSession,
         id: int,
@@ -121,6 +123,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_album_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
@@ -154,6 +157,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_track_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
@@ -187,6 +191,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_artist_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
@@ -220,6 +225,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_playlist_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
@@ -253,6 +259,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_track_spotify_id_async(
         session: AsyncSession,
         spotify_id: str,
@@ -280,6 +287,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_track_id_async(
         session: AsyncSession,
         id: int,
@@ -303,6 +311,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_artist_public_id_async(
         session: AsyncSession,
         spotify_id: str,
@@ -326,6 +335,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_playlist_public_id_async(
         session: AsyncSession,
         spotify_id: str,
@@ -351,6 +361,7 @@ class SpotifyAccess:
     # ── Image helpers ────────────────────────────────────────────────────────
 
     @staticmethod
+    @time_it
     async def _download_and_create_internal_image(
         session: AsyncSession,
         url: str,
@@ -377,6 +388,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def _get_or_create_external_image(
         session: AsyncSession,
         url: str,
@@ -421,6 +433,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def _get_or_create_genre(
         session: AsyncSession,
         name: str,
@@ -461,6 +474,7 @@ class SpotifyAccess:
     # ── Entity population helpers ─────────────────────────────────────────────
 
     @staticmethod
+    @time_it
     async def get_or_create_artist(
         session: AsyncSession,
         raw: RawSpotifyApiArtist,
@@ -582,6 +596,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_or_create_album(
         session: AsyncSession,
         raw: RawSpotifyApiAlbum,
@@ -711,6 +726,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_or_create_track(
         session: AsyncSession,
         raw: RawSpotifyApiTrack,
@@ -764,7 +780,6 @@ class SpotifyAccess:
                 ),
                 track_number=(raw.track_number if raw.track_number is not None else 0),
                 disc_number=raw.disc_number if raw.disc_number is not None else 1,
-                image_id=album_row.image_id,
                 album_id=album_row.id,
                 isrc=isrc,
                 popularity=raw.popularity,
@@ -792,6 +807,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_or_create_playlist(
         session: AsyncSession,
         raw: RawSpotifyApiPlaylist,
@@ -895,6 +911,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_artists_from_track_row_async(
         session: AsyncSession,
         track_row: TrackRow,
@@ -921,6 +938,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_artists_from_album_id_async(
         session: AsyncSession,
         album_id: int,
@@ -954,6 +972,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_tracks_from_album_id_async(
         session: AsyncSession,
         album_id: int,
@@ -980,6 +999,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_external_images_from_album_id_async(
         session: AsyncSession,
         album_id: int,
@@ -1006,6 +1026,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_tracks_with_core_song_from_album_async(
         session: AsyncSession,
         album_id: int,
@@ -1040,6 +1061,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_genres_from_artist_id_async(
         session: AsyncSession,
         artist_id: int,
@@ -1065,6 +1087,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_genres_from_artist_async(
         session: AsyncSession,
         artist: ArtistRow,
@@ -1089,6 +1112,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_playlist_track_links_async(
         session: AsyncSession,
         playlist_id: int,
@@ -1128,6 +1152,39 @@ class SpotifyAccess:
     # ── Bulk getters ─────────────────────────────────────────────────────────────
 
     @staticmethod
+    async def get_album_rows_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[List[AlbumRow]]:
+        """Fetch AlbumRows for multiple public_ids in one query."""
+        try:
+            if not public_ids:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            stmt = (
+                select(AlbumRow)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == AlbumRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id.in_(public_ids))
+            )
+            result = await session.execute(stmt)
+            albums: List[AlbumRow] = list(result.scalars().all())
+            return AResult(code=AResultCode.OK, message="OK", result=albums)
+
+        except Exception as e:
+            logger.error(f"Failed to get album rows from public_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get album rows from public_ids: {e}",
+            )
+
+    @staticmethod
+    @time_it
     async def get_albums_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: List[str],
@@ -1160,6 +1217,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_tracks_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: List[str],
@@ -1192,6 +1250,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_artists_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: List[str],
@@ -1224,6 +1283,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_playlists_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: List[str],
@@ -1258,6 +1318,7 @@ class SpotifyAccess:
     # ── Image download helpers ────────────────────────────────────────────────
 
     @staticmethod
+    @time_it
     async def download_and_create_album_image_async(
         session: AsyncSession,
         url: str,
@@ -1292,6 +1353,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def download_and_create_artist_image_async(
         session: AsyncSession,
         url: str,
@@ -1328,6 +1390,7 @@ class SpotifyAccess:
     # ── Association helpers ──────────────────────────────────────────────────
 
     @staticmethod
+    @time_it
     async def link_album_external_image_async(
         session: AsyncSession,
         album_id: int,
@@ -1352,6 +1415,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def link_artist_external_image_async(
         session: AsyncSession,
         artist_id: int,
@@ -1376,6 +1440,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def link_track_artists_async(
         session: AsyncSession,
         track_id: int,
@@ -1399,6 +1464,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def link_album_artists_async(
         session: AsyncSession,
         album_id: int,
@@ -1422,6 +1488,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def link_artist_genres_async(
         session: AsyncSession,
         artist_id: int,
@@ -1445,6 +1512,7 @@ class SpotifyAccess:
             )
 
     @staticmethod
+    @time_it
     async def link_album_copyrights_async(
         session: AsyncSession,
         album_id: int,

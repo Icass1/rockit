@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Any, List, Union
 from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +10,6 @@ from backend.core.access.userAccess import UserAccess
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 
-from backend.core.framework.media.media import Media
 from backend.core.framework.media.image import Image
 
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
@@ -826,6 +825,81 @@ class Playlist:
     ) -> AResult[BasePlaylistResponse]:
         """Build a BasePlaylistResponse from a PlaylistWithDetailsModel."""
 
+        from backend.core.framework import providers as provider_utils
+
+        # Group media items by (provider_id, media_type)
+        groups: dict[tuple[int, MediaTypeEnum], list[tuple[int, str]]] = {}
+        for idx, media in enumerate(playlist.medias):
+            key = (media.provider_id, media.media_type)
+            groups.setdefault(key, []).append((idx, media.media_id))
+
+        # Map index -> PlaylistResponseItem
+        result_map: dict[int, Any] = {}
+
+        for (provider_id, media_type), items in groups.items():
+            provider = provider_utils.find_provider(provider_id)
+            if provider is None:
+                logger.error(f"Provider not found for provider_id {provider_id}")
+                continue
+
+            public_ids = [public_id for _, public_id in items]
+            indices = [idx for idx, _ in items]
+
+            if media_type == MediaTypeEnum.SONG:
+                a_result = await provider.get_songs_async(
+                    session=session, public_ids=public_ids
+                )
+                if a_result.is_ok():
+                    for idx, resp in zip(indices, a_result.result()):
+                        result_map[idx] = PlaylistResponseItem(
+                            item=resp, addedAt=playlist.date_added
+                        )
+
+            elif media_type == MediaTypeEnum.VIDEO:
+                a_result = await provider.get_videos_async(
+                    session=session, public_ids=public_ids
+                )
+                if a_result.is_ok():
+                    for idx, resp in zip(indices, a_result.result()):
+                        result_map[idx] = PlaylistResponseItem(
+                            item=resp, addedAt=playlist.date_added
+                        )
+
+            elif media_type == MediaTypeEnum.ALBUM:
+                a_result = await provider.get_albums_async(
+                    session=session, public_ids=public_ids
+                )
+                if a_result.is_ok():
+                    for idx, resp in zip(indices, a_result.result()):
+                        result_map[idx] = PlaylistResponseItem(
+                            item=resp, addedAt=playlist.date_added
+                        )
+
+            elif media_type == MediaTypeEnum.PLAYLIST:
+                a_result = await provider.get_playlists_async(
+                    session=session,
+                    user_id=playlist.owner_id,
+                    public_ids=public_ids,
+                )
+                if a_result.is_ok():
+                    for idx, resp in zip(indices, a_result.result()):
+                        playlist_for_playlist = BasePlaylistForPlaylistResponse(
+                            type=resp.type,
+                            provider=resp.provider,
+                            publicId=resp.publicId,
+                            url=resp.url,
+                            providerUrl=resp.providerUrl,
+                            name=resp.name,
+                            imageUrl=resp.imageUrl,
+                            owner=resp.owner,
+                            description=resp.description,
+                            itemCount=len(resp.medias),
+                        )
+                        result_map[idx] = PlaylistResponseItem(
+                            item=playlist_for_playlist, addedAt=playlist.date_added
+                        )
+
+        # Build medias list in original order
         medias: List[
             Union[
                 PlaylistResponseItem[BaseSongWithAlbumResponse],
@@ -836,66 +910,9 @@ class Playlist:
                 PlaylistResponseItem[BaseAlbumWithSongsResponse],
             ]
         ] = []
-        for media in playlist.medias:
-            if media.media_type == MediaTypeEnum.SONG:
-                a_result_song = await Media.get_song_async(
-                    session=session, public_id=media.media_id
-                )
-                if a_result_song.is_ok():
-                    medias.append(
-                        PlaylistResponseItem(
-                            item=a_result_song.result(),
-                            addedAt=playlist.date_added,
-                        )
-                    )
-            elif media.media_type == MediaTypeEnum.VIDEO:
-                a_result_video = await Media.get_video_async(
-                    session=session, public_id=media.media_id
-                )
-                if a_result_video.is_ok():
-                    medias.append(
-                        PlaylistResponseItem(
-                            item=a_result_video.result(),
-                            addedAt=playlist.date_added,
-                        )
-                    )
-            elif media.media_type == MediaTypeEnum.ALBUM:
-                a_result_album = await Media.get_album_async(
-                    session=session, public_id=media.media_id
-                )
-                if a_result_album.is_ok():
-                    medias.append(
-                        PlaylistResponseItem(
-                            item=a_result_album.result(),
-                            addedAt=playlist.date_added,
-                        )
-                    )
-            elif media.media_type == MediaTypeEnum.PLAYLIST:
-                a_result_playlist = await Media.get_playlist_async(
-                    session=session, user_id=playlist.owner_id, public_id=media.media_id
-                )
-                if a_result_playlist.is_ok():
-                    playlist_result: BasePlaylistResponse = a_result_playlist.result()
-                    playlist_for_playlist: BasePlaylistForPlaylistResponse = (
-                        BasePlaylistForPlaylistResponse(
-                            type=playlist_result.type,
-                            provider=playlist_result.provider,
-                            publicId=playlist_result.publicId,
-                            url=playlist_result.url,
-                            providerUrl=playlist_result.providerUrl,
-                            name=playlist_result.name,
-                            imageUrl=playlist_result.imageUrl,
-                            owner=playlist_result.owner,
-                            description=playlist_result.description,
-                            itemCount=len(playlist_result.medias),
-                        )
-                    )
-                    medias.append(
-                        PlaylistResponseItem(
-                            item=playlist_for_playlist,
-                            addedAt=playlist.date_added,
-                        )
-                    )
+        for idx in range(len(playlist.medias)):
+            if idx in result_map:
+                medias.append(result_map[idx])
 
         contributor_responses: List[PlaylistContributorResponse] = [
             PlaylistContributorResponse(

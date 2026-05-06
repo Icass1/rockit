@@ -72,6 +72,7 @@ class YoutubeProvider(BaseProvider):
         self._id = provider_id
         self._name = provider_name
 
+    @time_it
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """TODO"""
 
@@ -198,45 +199,49 @@ class YoutubeProvider(BaseProvider):
         return str(medium.get("url") or high.get("url") or default.get("url") or "")
 
     @time_it
-    async def get_video_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseVideoResponse]:
-        """Get a video by public_id."""
+    async def get_videos_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseVideoResponse]]:
+        """Get videos by public_ids."""
 
-        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
-            session=session, public_id=public_id
-        )
-        if a_result_video.is_not_ok():
-            logger.error(f"Error getting video from public id {public_id}")
-            return AResult(code=a_result_video.code(), message=a_result_video.message())
+        results: List[BaseVideoResponse] = []
+        for public_id in public_ids:
+            a_result_video: AResult[VideoRow] = (
+                await Video.get_video_from_public_id_async(
+                    session=session, public_id=public_id
+                )
+            )
+            if a_result_video.is_not_ok():
+                logger.error(f"Error getting video from public id {public_id}")
+                continue
 
-        video: VideoRow = a_result_video.result()
+            video: VideoRow = a_result_video.result()
 
-        a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
-            session=session, youtube_id=video.youtube_id
-        )
-        if a_result.is_not_ok():
-            logger.error(f"Error getting video from YouTube. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+                session=session, youtube_id=video.youtube_id
+            )
+            if a_result.is_not_ok():
+                logger.error(f"Error getting video from YouTube. {a_result.info()}")
+                continue
 
-        youtube_video: YoutubeVideoResponse = a_result.result()
+            youtube_video: YoutubeVideoResponse = a_result.result()
 
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=BaseVideoResponse(
-                provider=youtube_video.provider,
-                publicId=youtube_video.publicId,
-                providerUrl=youtube_video.providerUrl,
-                name=youtube_video.name,
-                imageUrl=youtube_video.imageUrl or "",
-                duration_ms=youtube_video.duration_ms,
-                artists=youtube_video.artists,
-                downloaded=youtube_video.downloaded,
-                videoSrc=youtube_video.videoSrc,
-                audioSrc=youtube_video.audioSrc,
-            ),
-        )
+            results.append(
+                BaseVideoResponse(
+                    provider=youtube_video.provider,
+                    publicId=youtube_video.publicId,
+                    providerUrl=youtube_video.providerUrl,
+                    name=youtube_video.name,
+                    imageUrl=youtube_video.imageUrl or "",
+                    duration_ms=youtube_video.duration_ms,
+                    artists=youtube_video.artists,
+                    downloaded=youtube_video.downloaded,
+                    videoSrc=youtube_video.videoSrc,
+                    audioSrc=youtube_video.audioSrc,
+                )
+            )
+
+        return AResult(code=AResultCode.OK, message="OK", result=results)
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
@@ -249,7 +254,9 @@ class YoutubeProvider(BaseProvider):
             return AResult(code=a_result_video.code(), message=a_result_video.message())
 
         video: VideoRow = a_result_video.result()
-        duration_ms = video.real_duration_ms if video.real_duration_ms else video.duration_ms or 0
+        duration_ms = (
+            video.real_duration_ms if video.real_duration_ms else video.duration_ms or 0
+        )
 
         return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
 

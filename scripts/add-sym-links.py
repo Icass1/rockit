@@ -3,37 +3,31 @@ import asyncio
 import os
 
 
-
-async def songs(db:aiosqlite.Connection):
+async def songs(db: aiosqlite.Connection):
 
     src = "/mnt/music/"
 
     dst = "/root/rockit-beta/media/spotify"
 
-    async with db.execute(
-        "SELECT id, path FROM song"
-    ) as cursor:
+    async with db.execute("SELECT id, path FROM song") as cursor:
         rows = await cursor.fetchall()
 
         for row in rows:
             id = row[0]
             path = row[1]
 
-            cmd: str = f'ln -s "{src}{path}" {dst}/{id}.mp3' 
+            cmd: str = f'ln -s "{src}{path}" {dst}/{id}.mp3'
 
             os.system(cmd)
 
-async def images(db:aiosqlite.Connection):
-    async with db.execute(
-        "SELECT id, path FROM image"
-    ) as cursor:
+
+async def images(db: aiosqlite.Connection):
+    async with db.execute("SELECT id, path FROM image") as cursor:
         images = await cursor.fetchall()
 
-    async with db.execute(
-        "SELECT id, image FROM album"
-    ) as cursor:
+    async with db.execute("SELECT id, image FROM album") as cursor:
         albums = await cursor.fetchall()
-   
+
     src = "/mnt/music/_images"
 
     for album in albums:
@@ -54,18 +48,18 @@ async def images(db:aiosqlite.Connection):
             print(f"Image not found for album {album_id}")
             continue
 
-
-        cmd: str = f'ln -s "{src}/{image_path}" images/spotify/albums/{album_id}.png' 
+        cmd: str = f'ln -s "{src}/{image_path}" images/spotify/albums/{album_id}.png'
         os.system(cmd)
+
 
 async def main():
     sqlite_file = "/root/rockit/database/database.db"
-
 
     async with aiosqlite.connect(sqlite_file) as db:
 
         await images(db)
         # await songs(db)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

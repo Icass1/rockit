@@ -1,5 +1,7 @@
 import asyncio
-from typing import List, Tuple
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any, Coroutine, List, Tuple, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
@@ -43,6 +45,25 @@ from backend.utils.backendUtils import time_it
 logger = getLogger(__name__)
 
 
+@dataclass
+class QueueTask:
+    """Holds a coroutine task for queue processing with metadata."""
+
+    coroutine: Coroutine[Any, Any, AResult[Any]]
+    media_type: str
+    provider_id: int
+    items: List[Tuple[int, str]]
+
+
+@dataclass
+class LibraryTask:
+    """Holds a coroutine task for library processing with metadata."""
+
+    coroutine: Coroutine[Any, Any, AResult[Any]]
+    media_type: str
+    provider_id: int
+
+
 class User:
     @staticmethod
     async def get_user_queue_async(
@@ -69,64 +90,99 @@ class User:
 
         queue_items: List[UserQueueRow] = a_result_queue.result()
 
-        queue: List[QueueResponseItem] = []
+        # Group queue items by (provider_id, media_type_key)
+        groups: dict[tuple[int, int], list[tuple[int, str]]] = defaultdict(list)
         for item in queue_items:
             media: CoreMediaRow = item.media
-            provider: BaseProvider | None = providers.find_provider(
-                provider_id=media.provider_id
+            groups[(media.provider_id, media.media_type_key)].append(
+                (item.queue_media_id, media.public_id)
             )
-            if provider is None:
-                logger.error(f"No provider found for provider_id {media.provider_id}.")
+
+        # Collect all coroutines to run in parallel
+        tasks: List[QueueTask] = []
+        for (provider_id, media_type_key), items in groups.items():
+            provider_instance: BaseProvider | None = providers.find_provider(
+                provider_id=provider_id
+            )
+            if provider_instance is None:
+                logger.error(f"No provider found for provider_id {provider_id}.")
                 continue
 
-            list_public_id: str = ""
+            public_ids = [public_id for _, public_id in items]
 
-            if media.media_type_key == MediaTypeEnum.VIDEO.value:
-                a_result_video: AResult[BaseVideoResponse] = (
-                    await provider.get_video_async(
-                        session=session, public_id=media.public_id
+            if media_type_key == MediaTypeEnum.VIDEO.value:
+                task = provider_instance.get_videos_async(
+                    session=session, public_ids=public_ids
+                )
+                tasks.append(
+                    QueueTask(
+                        coroutine=task,
+                        media_type="videos",
+                        provider_id=provider_id,
+                        items=items,
                     )
                 )
-                if a_result_video.is_not_ok():
-                    logger.error(
-                        f"Error getting video from provider. {a_result_video.info()}"
-                    )
-                    continue
-
-                video: BaseVideoResponse = a_result_video.result()
-
-                queue.append(
-                    QueueResponseItem(
-                        queueMediaId=item.queue_media_id,
-                        listPublicId=list_public_id,
-                        media=video,
-                    )
+            elif media_type_key == MediaTypeEnum.SONG.value:
+                task = provider_instance.get_songs_async(
+                    session=session, public_ids=public_ids
                 )
-            elif media.media_type_key == MediaTypeEnum.SONG.value:
-                a_result_song: AResult[BaseSongWithAlbumResponse] = (
-                    await provider.get_song_async(
-                        session=session, public_id=media.public_id
-                    )
-                )
-                if a_result_song.is_not_ok():
-                    logger.error(
-                        f"Error getting song from provider. {a_result_song.info()}"
-                    )
-                    continue
-
-                song: BaseSongWithAlbumResponse = a_result_song.result()
-
-                queue.append(
-                    QueueResponseItem(
-                        queueMediaId=item.queue_media_id,
-                        listPublicId=song.album.publicId,
-                        media=song,
+                tasks.append(
+                    QueueTask(
+                        coroutine=task,
+                        media_type="songs",
+                        provider_id=provider_id,
+                        items=items,
                     )
                 )
             else:
                 logger.warning(
-                    f"Unsupported media type {MediaTypeEnum(media.media_type_key)} in user queue. Skipping."
+                    f"Unsupported media type {MediaTypeEnum(media_type_key)} in user queue. Skipping."
                 )
+
+        # Run all provider calls in parallel
+        queue: List[QueueResponseItem] = []
+        if tasks:
+            results: List[Union[AResult[Any], BaseException]] = await asyncio.gather(
+                *(task.coroutine for task in tasks), return_exceptions=True
+            )
+            for task, result in zip(tasks, results):
+                if isinstance(result, BaseException):
+                    logger.error(
+                        f"Error getting {task.media_type} from provider {task.provider_id}: {result}"
+                    )
+                    continue
+
+                a_result: AResult[Any] = result
+                if a_result.is_not_ok():
+                    logger.error(
+                        f"Error getting {task.media_type} from provider {task.provider_id}. {a_result.info()}"
+                    )
+                    continue
+
+                media_list: List[Any] = a_result.result()
+                # Map results back to queue items
+                media_dict: dict[str, Any] = {
+                    media.publicId: media for media in media_list
+                }
+                for queue_media_id, public_id in task.items:
+                    media_item: Any = media_dict.get(public_id)
+                    if media_item is None:
+                        logger.warning(
+                            f"Media {public_id} not found in provider response."
+                        )
+                        continue
+
+                    list_public_id = ""
+                    if task.media_type == "songs":
+                        list_public_id = media_item.album.publicId
+
+                    queue.append(
+                        QueueResponseItem(
+                            queueMediaId=queue_media_id,
+                            listPublicId=list_public_id,
+                            media=media_item,
+                        )
+                    )
 
         return AResult(
             code=AResultCode.OK,
@@ -160,6 +216,14 @@ class User:
                 code=a_result_medias.code(), message=a_result_medias.message()
             )
 
+        items = a_result_medias.result()
+        logger.debug(f"Found {len(items)} media items in user library.")
+
+        # Group by (provider_id, media_type_key) so each provider is called once with all IDs
+        groups: dict[tuple[int, int], list[str]] = defaultdict(list)
+        for _, media, provider_row in items:
+            groups[(provider_row.id, media.media_type_key)].append(media.public_id)
+
         library_medias: List[
             BaseAlbumWithoutSongsResponse
             | BasePlaylistResponse
@@ -167,93 +231,85 @@ class User:
             | BaseVideoResponse
         ] = []
 
-        logger.debug(
-            f"Found {len(a_result_medias.result())} media items in user library."
-        )
-
-        async def process_media(
-            media: CoreMediaRow, provider_row: ProviderRow
-        ) -> (
-            BaseAlbumWithoutSongsResponse
-            | BasePlaylistResponse
-            | BaseSongWithAlbumResponse
-            | BaseVideoResponse
-            | None
-        ):
+        # Collect all coroutines to run in parallel
+        tasks: List[LibraryTask] = []
+        for (provider_id, media_type_key), public_ids in groups.items():
             provider_instance: BaseProvider | None = providers.find_provider(
-                provider_id=provider_row.id
+                provider_id=provider_id
             )
-
             if provider_instance is None:
-                logger.error(f"No provider found for provider_id {provider_row.id}.")
-                return None
+                logger.error(f"No provider found for provider_id {provider_id}.")
+                continue
 
-            if media.media_type_key == MediaTypeEnum.ALBUM.value:
-                a_result_album: AResult[BaseAlbumWithSongsResponse] = (
-                    await provider_instance.get_album_async(
-                        session=session, public_id=media.public_id
+            if media_type_key == MediaTypeEnum.ALBUM.value:
+                task = provider_instance.get_albums_async(
+                    session=session, public_ids=public_ids
+                )
+                tasks.append(
+                    LibraryTask(
+                        coroutine=task,
+                        media_type="albums",
+                        provider_id=provider_id,
                     )
                 )
-                if a_result_album.is_not_ok():
-                    logger.error(
-                        f"Error getting album from provider. {a_result_album.info()}"
-                    )
-                    return None
-
-                return a_result_album.result()
-
-            elif media.media_type_key == MediaTypeEnum.PLAYLIST.value:
-                a_result_playlist: AResult[BasePlaylistResponse] = (
-                    await provider_instance.get_playlist_async(
-                        session=session, user_id=user_id, public_id=media.public_id
+            elif media_type_key == MediaTypeEnum.PLAYLIST.value:
+                task = provider_instance.get_playlists_async(
+                    session=session, user_id=user_id, public_ids=public_ids
+                )
+                tasks.append(
+                    LibraryTask(
+                        coroutine=task,
+                        media_type="playlists",
+                        provider_id=provider_id,
                     )
                 )
-                if a_result_playlist.is_not_ok():
-                    logger.error(
-                        f"Error getting playlist from provider. {a_result_playlist.info()}"
-                    )
-                    return None
-
-                return a_result_playlist.result()
-
-            elif media.media_type_key == MediaTypeEnum.SONG.value:
-                a_result_song: AResult[BaseSongWithAlbumResponse] = (
-                    await provider_instance.get_song_async(
-                        session=session, public_id=media.public_id
+            elif media_type_key == MediaTypeEnum.SONG.value:
+                task = provider_instance.get_songs_async(
+                    session=session, public_ids=public_ids
+                )
+                tasks.append(
+                    LibraryTask(
+                        coroutine=task,
+                        media_type="songs",
+                        provider_id=provider_id,
                     )
                 )
-                if a_result_song.is_not_ok():
-                    logger.error(
-                        f"Error getting song from provider. {a_result_song.info()}"
-                    )
-                    return None
-
-                return a_result_song.result()
-
-            elif media.media_type_key == MediaTypeEnum.VIDEO.value:
-                a_result_video: AResult[BaseVideoResponse] = (
-                    await provider_instance.get_video_async(
-                        session=session, public_id=media.public_id
+            elif media_type_key == MediaTypeEnum.VIDEO.value:
+                task = provider_instance.get_videos_async(
+                    session=session, public_ids=public_ids
+                )
+                tasks.append(
+                    LibraryTask(
+                        coroutine=task,
+                        media_type="videos",
+                        provider_id=provider_id,
                     )
                 )
-                if a_result_video.is_not_ok():
+            else:
+                logger.warning(
+                    f"Unsupported media type {MediaTypeEnum(media_type_key)} in user library. Skipping."
+                )
+
+        # Run all provider calls in parallel
+        if tasks:
+            results: List[Union[AResult[Any], BaseException]] = await asyncio.gather(
+                *(task.coroutine for task in tasks), return_exceptions=True
+            )
+            for task, result in zip(tasks, results):
+                if isinstance(result, BaseException):
                     logger.error(
-                        f"Error getting video from provider. {a_result_video.info()}"
+                        f"Error getting {task.media_type} from provider {task.provider_id}: {result}"
                     )
-                    return None
+                    continue
 
-                return a_result_video.result()
+                a_result: AResult[Any] = result
+                if a_result.is_not_ok():
+                    logger.error(
+                        f"Error getting {task.media_type} from provider {task.provider_id}. {a_result.info()}"
+                    )
+                    continue
 
-            return None
-
-        results = await asyncio.gather(
-            *[
-                process_media(media, provider)
-                for _, media, provider in a_result_medias.result()
-            ]
-        )
-
-        library_medias = [r for r in results if r is not None]
+                library_medias.extend(a_result.result())
 
         return AResult(code=AResultCode.OK, message="OK", result=library_medias)
 
@@ -379,14 +435,16 @@ class User:
                 code=AResultCode.NOT_FOUND, message="Provider not found for album"
             )
 
-        a_result_album: AResult[BaseAlbumWithSongsResponse] = (
-            await provider.get_album_async(session=session, public_id=album_public_id)
+        a_result_album: AResult[List[BaseAlbumWithSongsResponse]] = (
+            await provider.get_albums_async(
+                session=session, public_ids=[album_public_id]
+            )
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from provider. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
-        album: BaseAlbumWithSongsResponse = a_result_album.result()
+        album: BaseAlbumWithSongsResponse = a_result_album.result()[0]
         liked_songs: List[UserLikedMediaRow] = []
 
         for song in album.songs:
@@ -445,14 +503,16 @@ class User:
                 code=AResultCode.NOT_FOUND, message="Provider not found for album"
             )
 
-        a_result_album: AResult[BaseAlbumWithSongsResponse] = (
-            await provider.get_album_async(session=session, public_id=album_public_id)
+        a_result_album: AResult[List[BaseAlbumWithSongsResponse]] = (
+            await provider.get_albums_async(
+                session=session, public_ids=[album_public_id]
+            )
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from provider. {a_result_album.info()}")
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
-        album: BaseAlbumWithSongsResponse = a_result_album.result()
+        album: BaseAlbumWithSongsResponse = a_result_album.result()[0]
         unliked_count: int = 0
 
         for song in album.songs:

@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy import Connection, Inspector, Table, text, inspect
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
 from backend.core.access.db.base import CoreBase
 
 from backend.core.access.db.ormModels.declarativeMixin import triggers
@@ -72,6 +73,7 @@ $$ LANGUAGE plpgsql;
 
 
 class RockItDB:
+    @time_it
     def __init__(
         self,
         username: str,
@@ -97,6 +99,7 @@ class RockItDB:
             echo=verbose,
         )
 
+    @time_it
     async def async_init(self):
         await self.create_schemas()
 
@@ -143,6 +146,7 @@ class RockItDB:
                 await conn.execute(text(trigger))
             await conn.commit()
 
+    @time_it
     async def check_table_schema_async(self, table: Table):
         """Compare ORM Table definition vs actual database table for async engine."""
 

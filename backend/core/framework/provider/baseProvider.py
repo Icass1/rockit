@@ -28,16 +28,13 @@ class BaseProvider:
     _name: str
 
     def set_info(self, provider_id: int, provider_name: str):
-        """TODO"""
         self._id = provider_id
         self._name = provider_name
 
     async def async_init(self, session: AsyncSession):
-        logger.debug(f"Provider {self} does not implement async_int")
-        """TODO"""
+        logger.debug(f"Provider {self} does not implement async_init")
 
     def get_id(self) -> AResult[int]:
-        """TODO"""
         try:
             return AResult(code=AResultCode.OK, message="OK", result=self._id)
         except:
@@ -47,7 +44,6 @@ class BaseProvider:
             )
 
     def get_name(self):
-        """TODO"""
         return self._name
 
     def start_download(self, publicId: str) -> AResult[BaseDownload]:
@@ -67,8 +63,6 @@ class BaseProvider:
         download_group_id: int,
         user_id: int,
     ) -> AResult[BaseDownload]:
-        """Create a BaseDownload for the given song. Override in provider-specific subclasses."""
-
         logger.warning(
             f"Provider '{self._name}' doesn't implement start_download_async method."
         )
@@ -78,74 +72,58 @@ class BaseProvider:
         )
 
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
-        """TODO"""
         logger.warning(f"Provider '{self._name} doesn't implement search method.'")
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement search_async method.'",
         )
 
-    async def get_song_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseSongWithAlbumResponse]:
-        """TODO"""
+    async def get_songs_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseSongWithAlbumResponse]]:
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name} doesn't implement get_song_async method. Trying to get song with public_id: {public_id}'",
+            message=f"Provider '{self._name}' doesn't implement get_songs_async.",
         )
 
-    async def get_album_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseAlbumWithSongsResponse]:
-        """"""
+    async def get_albums_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseAlbumWithSongsResponse]]:
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name} doesn't implement get_album_async method.'",
+            message=f"Provider '{self._name}' doesn't implement get_albums_async.",
         )
 
-    async def get_artist_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseArtistResponse]:
-        """"""
+    async def get_artists_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseArtistResponse]]:
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name} doesn't implement get_artist_async method.'",
+            message=f"Provider '{self._name}' doesn't implement get_artists_async.",
         )
 
-    async def get_playlist_async(
-        self, session: AsyncSession, user_id: int, public_id: str
-    ) -> AResult[BasePlaylistResponse]:
-        """"""
+    async def get_playlists_async(
+        self, session: AsyncSession, user_id: int, public_ids: List[str]
+    ) -> AResult[List[BasePlaylistResponse]]:
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name} doesn't implement get_playlist_async method.'",
+            message=f"Provider '{self._name}' doesn't implement get_playlists_async.",
         )
 
-    async def get_video_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseVideoResponse]:
-        """"""
+    async def get_videos_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseVideoResponse]]:
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name}' doesn't implement get_video_async method.",
+            message=f"Provider '{self._name}' doesn't implement get_videos_async.",
         )
 
     def match_url(self, url: str) -> str | None:
-        """Check if the given URL matches this provider and return the internal path.
-
-        Returns the internal path (e.g., '/spotify/track/{id}') if the URL matches,
-        or None if it doesn't match this provider.
-        """
         return None
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
     ) -> AResult[AddFromUrlAResult]:
-        """Add media from a URL to the database.
-
-        Takes an external URL, adds the media to the database,
-        and returns the created media object.
-        """
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement add_from_url_async.",
@@ -154,7 +132,6 @@ class BaseProvider:
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[int]:
-        """Get the duration of a media item in milliseconds."""
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_media_duration_ms_async.",

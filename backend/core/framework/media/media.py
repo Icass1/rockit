@@ -119,14 +119,14 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for song"
             )
 
-        a_result: AResult[BaseSongWithAlbumResponse] = await provider.get_song_async(
-            session=session, public_id=public_id
+        a_result: AResult[List[BaseSongWithAlbumResponse]] = (
+            await provider.get_songs_async(session=session, public_ids=[public_id])
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting song. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
 
     @staticmethod
     async def get_album_async(
@@ -157,14 +157,14 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for album"
             )
 
-        a_result: AResult[BaseAlbumWithSongsResponse] = await provider.get_album_async(
-            session=session, public_id=public_id
+        a_result: AResult[List[BaseAlbumWithSongsResponse]] = (
+            await provider.get_albums_async(session=session, public_ids=[public_id])
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting album. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
 
     @staticmethod
     async def get_artist_async(
@@ -195,14 +195,14 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for artist"
             )
 
-        a_result: AResult[BaseArtistResponse] = await provider.get_artist_async(
-            session=session, public_id=public_id
+        a_result: AResult[List[BaseArtistResponse]] = await provider.get_artists_async(
+            session=session, public_ids=[public_id]
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting artist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
 
     @staticmethod
     async def get_playlist_async(
@@ -233,14 +233,16 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for playlist"
             )
 
-        a_result: AResult[BasePlaylistResponse] = await provider.get_playlist_async(
-            session=session, user_id=user_id, public_id=public_id
+        a_result: AResult[List[BasePlaylistResponse]] = (
+            await provider.get_playlists_async(
+                session=session, user_id=user_id, public_ids=[public_id]
+            )
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting playlist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
 
     @staticmethod
     async def search_async(
@@ -330,14 +332,14 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for video"
             )
 
-        a_result: AResult[BaseVideoResponse] = await provider.get_video_async(
-            session=session, public_id=public_id
+        a_result: AResult[List[BaseVideoResponse]] = await provider.get_videos_async(
+            session=session, public_ids=[public_id]
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting video. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
 
     @staticmethod
     async def get_media_async(
@@ -367,44 +369,54 @@ class Media:
         media_type: MediaTypeEnum = MediaTypeEnum(media.media_type_key)
 
         if media_type == MediaTypeEnum.SONG:
-            a_result = await provider.get_song_async(
-                session=session, public_id=public_id
+            a_result = await provider.get_songs_async(
+                session=session, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+            return AResult(
+                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+            )
 
         elif media_type == MediaTypeEnum.ALBUM:
-            a_result = await provider.get_album_async(
-                session=session, public_id=public_id
+            a_result = await provider.get_albums_async(
+                session=session, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+            return AResult(
+                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+            )
 
         elif media_type == MediaTypeEnum.ARTIST:
-            a_result = await provider.get_artist_async(
-                session=session, public_id=public_id
+            a_result = await provider.get_artists_async(
+                session=session, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+            return AResult(
+                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+            )
 
         elif media_type == MediaTypeEnum.PLAYLIST:
-            a_result = await provider.get_playlist_async(
-                session=session, user_id=0, public_id=public_id
+            a_result = await provider.get_playlists_async(
+                session=session, user_id=0, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+            return AResult(
+                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+            )
 
         elif media_type == MediaTypeEnum.VIDEO:
-            a_result = await provider.get_video_async(
-                session=session, public_id=public_id
+            a_result = await provider.get_videos_async(
+                session=session, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+            return AResult(
+                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+            )
 
         logger.error(f"Unknown media type: {media_type}")
         return AResult(code=AResultCode.NOT_FOUND, message="Unknown media type")

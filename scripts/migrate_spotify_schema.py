@@ -16,7 +16,6 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 
-
 sys.path.append(".")
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
@@ -240,8 +239,7 @@ async def migrate_table_reference_media(
 
 
 async def get_referencing_fks(conn: AsyncSession, table_schema: str, table_name: str):
-    query = text(
-        """
+    query = text("""
         SELECT
             tc.table_name AS ref_table,
             kcu.column_name AS ref_column,
@@ -254,8 +252,7 @@ async def get_referencing_fks(conn: AsyncSession, table_schema: str, table_name:
         WHERE tc.constraint_type = 'FOREIGN KEY'
           AND ccu.table_name = :table_name
           AND ccu.table_schema = :table_schema
-    """
-    )
+    """)
 
     result = await conn.execute(
         query,
@@ -289,12 +286,10 @@ async def delete_orphans(
 
     where_clause = " AND ".join(conditions)
 
-    sql = text(
-        f"""
+    sql = text(f"""
         DELETE FROM {target_schema}.{target_table} m
         WHERE {where_clause}
-    """
-    )
+    """)
 
     await conn.execute(sql)
     await conn.commit()

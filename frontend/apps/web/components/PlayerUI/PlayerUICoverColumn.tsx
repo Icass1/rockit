@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
@@ -15,6 +15,7 @@ export function PlayerUICoverColumn({
 }) {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const [showIcon, setShowIcon] = useState(false);
+    const videoContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!showIcon) return;
@@ -22,40 +23,57 @@ export function PlayerUICoverColumn({
         return () => clearTimeout(t);
     }, [showIcon]);
 
+    useEffect(() => {
+        if (videoContainerRef.current && currentMedia?.type === "video") {
+            rockIt.mediaPlayerManager.attachVideoToContainer(
+                videoContainerRef.current
+            );
+        }
+    }, [currentMedia]);
+
     const iconClassName =
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 z-20 transition-all z-20 p-5 duration-500" +
         (showIcon ? " opacity-100" : " opacity-0");
 
+    const isVideo = currentMedia?.type === "video";
+
     return (
         <div className="z-10 flex h-full w-full flex-col items-center justify-center">
-            {/* Cover */}
-            <div
-                className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
-                onClick={() => {
-                    setShowIcon(true);
-                    rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia();
-                }}
-            >
-                <Image
-                    src={
-                        currentMedia?.imageUrl ??
-                        rockIt.MEDIA_PLACEHOLDER_IMAGE_URL
-                    }
-                    height={600}
-                    width={600}
-                    alt="Media Cover"
-                    className="absolute h-full w-full rounded-xl select-none"
-                />
+            {/* Cover or Video */}
+            {isVideo ? (
                 <div
-                    className={`h-20 w-20 rounded-full bg-[#1a1a1a]/60 ${iconClassName}`}
+                    ref={videoContainerRef}
+                    className="relative w-full max-w-[70%] overflow-hidden rounded-lg aspect-video"
+                />
+            ) : (
+                <div
+                    className="relative aspect-square w-full max-w-[70%] overflow-hidden rounded-lg"
+                    onClick={() => {
+                        setShowIcon(true);
+                        rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia();
+                    }}
                 >
-                    {$playing ? (
-                        <Pause className={iconClassName} fill="white" />
-                    ) : (
-                        <Play className={iconClassName} fill="white" />
-                    )}
+                    <Image
+                        src={
+                            currentMedia?.imageUrl ??
+                            rockIt.MEDIA_PLACEHOLDER_IMAGE_URL
+                        }
+                        height={600}
+                        width={600}
+                        alt="Media Cover"
+                        className="absolute h-full w-full rounded-xl select-none"
+                    />
+                    <div
+                        className={`h-20 w-20 rounded-full bg-[#1a1a1a]/60 ${iconClassName}`}
+                    >
+                        {$playing ? (
+                            <Pause className={iconClassName} fill="white" />
+                        ) : (
+                            <Play className={iconClassName} fill="white" />
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Media info */}
             <div className="flex w-full flex-col items-center justify-center px-2 text-center">

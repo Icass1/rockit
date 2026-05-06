@@ -19,7 +19,6 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 
-
 sys.path.append(".")
 
 

@@ -97,6 +97,7 @@ class YoutubeMusicProvider(BaseProvider):
         YoutubeMusic.provider = self
         YoutubeMusic.provider_name = provider_name
 
+    @time_it
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
         """Search YouTube Music and return songs, artists, albums and playlists."""
         import asyncio
@@ -190,130 +191,130 @@ class YoutubeMusicProvider(BaseProvider):
 
         return AResult(code=AResultCode.OK, message="OK", result=result)
 
-    async def get_playlist_async(
-        self, session: AsyncSession, user_id: int, public_id: str
-    ) -> AResult[BasePlaylistResponse]:
-        """Get a YouTube Music playlist by public_id."""
+    @time_it
+    async def get_playlists_async(
+        self, session: AsyncSession, user_id: int, public_ids: List[str]
+    ) -> AResult[List[BasePlaylistResponse]]:
+        """Get YouTube Music playlists by public_ids."""
 
-        a_result_playlist: AResult[YoutubeMusicPlaylist] = (
-            await YoutubeMusicApi.get_playlist_info_async(playlist_id=public_id)
-        )
-        if a_result_playlist.is_not_ok():
-            logger.error(
-                f"Error getting YouTube Music playlist. {a_result_playlist.info()}"
+        results: List[BasePlaylistResponse] = []
+        for public_id in public_ids:
+            a_result_playlist: AResult[YoutubeMusicPlaylist] = (
+                await YoutubeMusicApi.get_playlist_info_async(playlist_id=public_id)
             )
-            return AResult(
-                code=a_result_playlist.code(), message=a_result_playlist.message()
-            )
+            if a_result_playlist.is_not_ok():
+                logger.error(
+                    f"Error getting YouTube Music playlist. {a_result_playlist.info()}"
+                )
+                continue
 
-        playlist: YoutubeMusicPlaylist = a_result_playlist.result()
+            playlist: YoutubeMusicPlaylist = a_result_playlist.result()
 
-        song_responses: List[PlaylistResponseItem[BaseSongWithAlbumResponse]] = []
-        for track in playlist.tracks:
-            artists_list: List[BaseArtistResponse] = [
-                BaseArtistResponse(
+            song_responses: List[PlaylistResponseItem[BaseSongWithAlbumResponse]] = []
+            for track in playlist.tracks:
+                artists_list: List[BaseArtistResponse] = [
+                    BaseArtistResponse(
+                        provider="YouTube Music",
+                        publicId="",
+                        url="",
+                        providerUrl="",
+                        name=artist_name,
+                        imageUrl="",
+                    )
+                    for artist_name in track.artists
+                ]
+
+                album_response = BaseAlbumWithoutSongsResponse(
                     provider="YouTube Music",
                     publicId="",
                     url="",
                     providerUrl="",
-                    name=artist_name,
-                    imageUrl="",
+                    name=track.album,
+                    artists=[],
+                    releaseDate="",
+                    imageUrl=track.thumbnail_url,
                 )
-                for artist_name in track.artists
-            ]
 
-            album_response = BaseAlbumWithoutSongsResponse(
-                provider="YouTube Music",
-                publicId="",
-                url="",
-                providerUrl="",
-                name=track.album,
-                artists=[],
-                releaseDate="",
-                imageUrl=track.thumbnail_url,
+                song_responses.append(
+                    PlaylistResponseItem(
+                        item=BaseSongWithAlbumResponse(
+                            provider="YouTube Music",
+                            publicId=track.youtube_id,
+                            providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
+                            name=track.title,
+                            artists=artists_list,
+                            audioSrc=None,
+                            downloaded=False,
+                            imageUrl=track.thumbnail_url,
+                            duration_ms=track.duration_ms,
+                            discNumber=1,
+                            trackNumber=1,
+                            album=album_response,
+                        ),
+                        addedAt=datetime.now(timezone.utc),
+                    )
+                )
+
+            results.append(
+                BasePlaylistResponse(
+                    type="playlist",
+                    description=playlist.description,
+                    provider="YouTube Music",
+                    publicId=public_id,
+                    url=f"/youtube-music/playlist/{public_id}",
+                    providerUrl=f"https://music.youtube.com/playlist?list={public_id}",
+                    name=playlist.title,
+                    medias=song_responses,
+                    contributors=[],
+                    imageUrl=playlist.thumbnail_url,
+                    owner="",
+                )
             )
 
-            song_responses.append(
-                PlaylistResponseItem(
-                    item=BaseSongWithAlbumResponse(
-                        provider="YouTube Music",
-                        publicId=track.youtube_id,
-                        providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
-                        name=track.title,
-                        artists=artists_list,
-                        audioSrc=None,
-                        downloaded=False,
-                        imageUrl=track.thumbnail_url,
-                        duration_ms=track.duration_ms,
-                        discNumber=1,
-                        trackNumber=1,
-                        album=album_response,
-                    ),
-                    addedAt=datetime.now(timezone.utc),
-                )
-            )
+        return AResult(code=AResultCode.OK, message="OK", result=results)
 
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=BasePlaylistResponse(
-                type="playlist",
-                description=playlist.description,
-                provider="YouTube Music",
-                publicId=public_id,
-                url=f"/youtube-music/playlist/{public_id}",
-                providerUrl=f"https://music.youtube.com/playlist?list={public_id}",
-                name=playlist.title,
-                medias=song_responses,
-                contributors=[],
-                imageUrl=playlist.thumbnail_url,
-                owner="",
-            ),
+    @time_it
+    async def get_songs_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+        """Get YouTube Music tracks by public_ids using batch method."""
+
+        return await youtube_music.get_tracks_batch_async(
+            session=session, public_ids=public_ids
         )
 
     @time_it
-    async def get_song_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseSongWithAlbumResponse]:
-        """Get a YouTube Music track by public_id."""
+    async def get_albums_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseAlbumWithSongsResponse]]:
+        """Get YouTube Music albums by public_ids using batch method."""
 
-        a_result: AResult[BaseSongWithAlbumResponse] = (
-            await youtube_music.get_track_async(session=session, public_id=public_id)
+        return await youtube_music.get_albums_batch_async(
+            session=session, public_ids=public_ids
         )
-        if a_result.is_not_ok():
-            logger.error(f"Error getting YouTube Music track. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+    @time_it
+    async def get_artists_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseArtistResponse]]:
+        """Get YouTube Music artists by public_ids."""
 
-    async def get_album_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseAlbumWithSongsResponse]:
-        """Get a YouTube Music album by public_id."""
+        results: List[BaseArtistResponse] = []
+        for public_id in public_ids:
+            a_result: AResult[BaseArtistResponse] = (
+                await youtube_music.get_artist_async(
+                    session=session, public_id=public_id
+                )
+            )
+            if a_result.is_not_ok():
+                logger.error(f"Error getting YouTube Music artist. {a_result.info()}")
+                continue
 
-        a_result: AResult[BaseAlbumWithSongsResponse] = (
-            await youtube_music.get_album_async(session=session, public_id=public_id)
-        )
-        if a_result.is_not_ok():
-            logger.error(f"Error getting YouTube Music album. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            results.append(a_result.result())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return AResult(code=AResultCode.OK, message="OK", result=results)
 
-    async def get_artist_async(
-        self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseArtistResponse]:
-        """Get a YouTube Music artist by public_id."""
-
-        a_result: AResult[BaseArtistResponse] = await youtube_music.get_artist_async(
-            session=session, public_id=public_id
-        )
-        if a_result.is_not_ok():
-            logger.error(f"Error getting YouTube Music artist. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
-
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
-
+    @time_it
     async def add_from_url_async(
         self, session: AsyncSession, url: str
     ) -> AResult[AddFromUrlAResult]:
@@ -398,32 +399,40 @@ class YoutubeMusicProvider(BaseProvider):
                     result=a_result_artist.result(),
                 )
         elif "youtube-music/playlist" in internal_path:
-            a_result_playlist: AResult[BasePlaylistResponse] = (
-                await self.get_playlist_async(
-                    session=session, user_id=0, public_id=resource_id
+            a_result_playlists: AResult[List[BasePlaylistResponse]] = (
+                await self.get_playlists_async(
+                    session=session, user_id=0, public_ids=[resource_id]
                 )
             )
 
-            if a_result_playlist.is_not_ok():
+            if a_result_playlists.is_not_ok():
                 logger.error(
-                    f"Error adding YouTube Music playlist from URL. {a_result_playlist.info()}"
+                    f"Error adding YouTube Music playlist from URL. {a_result_playlists.info()}"
                 )
                 return AResult(
-                    code=a_result_playlist.code(), message=a_result_playlist.message()
+                    code=a_result_playlists.code(),
+                    message=a_result_playlists.message(),
                 )
 
-            else:
-                return AResult[AddFromUrlAResult](
-                    code=a_result_playlist.code(),
-                    message="OK",
-                    result=a_result_playlist.result(),
+            playlists: List[BasePlaylistResponse] = a_result_playlists.result()
+            if not playlists:
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message="Playlist not found",
                 )
+
+            return AResult[AddFromUrlAResult](
+                code=a_result_playlists.code(),
+                message="OK",
+                result=playlists[0],
+            )
 
         return AResult(
             code=AResultCode.BAD_REQUEST,
             message="Unsupported YouTube Music resource type",
         )
 
+    @time_it
     async def start_download_async(
         self,
         session: AsyncSession,

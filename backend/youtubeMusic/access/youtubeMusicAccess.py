@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
-from backend.utils.backendUtils import create_id
+from backend.utils.backendUtils import create_id, time_it
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
@@ -21,6 +21,7 @@ from backend.youtubeMusic.access.db.ormModels.playlist import PlaylistRow
 from backend.youtubeMusic.access.db.ormModels.playlist_track import PlaylistTrackRow
 from backend.youtubeMusic.access.db.associationTables.track_album_artists import (
     track_artists,
+    album_artists,
 )
 
 if TYPE_CHECKING:
@@ -68,6 +69,7 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_track_by_public_id_async(
         session: AsyncSession,
         public_id: str,
@@ -191,6 +193,7 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_album_youtube_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
@@ -285,6 +288,7 @@ class YoutubeMusicAccess:
             )
 
     @staticmethod
+    @time_it
     async def get_artists_from_track_async(
         session: AsyncSession,
         track: TrackRow,
@@ -711,4 +715,161 @@ class YoutubeMusicAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create track: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_tracks_by_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[List[TrackRow]]:
+        """Batch fetch tracks by public_ids in a single query."""
+        try:
+            stmt: Select[Tuple[TrackRow]] = (
+                select(TrackRow)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == TrackRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id.in_(public_ids))
+                .options(
+                    selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
+                    selectinload(TrackRow.image),
+                    selectinload(TrackRow.core_song),
+                )
+            )
+            result: Result[Tuple[TrackRow]] = await session.execute(stmt)
+            tracks: List[TrackRow] = cast(List[TrackRow], result.scalars().all())
+
+            return AResult(code=AResultCode.OK, message="OK", result=tracks)
+
+        except Exception as e:
+            logger.error(f"Failed to get tracks by public_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get tracks by public_ids: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_artists_for_tracks_batch_async(
+        session: AsyncSession,
+        track_ids: List[int],
+    ) -> AResult[Dict[int, List[ArtistRow]]]:
+        """Batch fetch artists for multiple tracks in a single query."""
+        try:
+            stmt = (
+                select(ArtistRow, track_artists.c.track_id)
+                .join(track_artists, ArtistRow.id == track_artists.c.artist_id)
+                .where(track_artists.c.track_id.in_(track_ids))
+            )
+            result = await session.execute(stmt)
+            rows = result.all()
+
+            track_artists_map: Dict[int, List[ArtistRow]] = {
+                tid: [] for tid in track_ids
+            }
+            for artist_row, track_id in rows:
+                track_artists_map[track_id].append(artist_row)
+
+            return AResult(code=AResultCode.OK, message="OK", result=track_artists_map)
+
+        except Exception as e:
+            logger.error(f"Failed to get artists for tracks batch: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get artists for tracks batch: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_albums_by_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[List[AlbumRow]]:
+        """Batch fetch albums by public_ids in a single query."""
+        try:
+            stmt: Select[Tuple[AlbumRow]] = (
+                select(AlbumRow)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == AlbumRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                    ),
+                )
+                .where(CoreMediaRow.public_id.in_(public_ids))
+            )
+            result: Result[Tuple[AlbumRow]] = await session.execute(stmt)
+            albums: List[AlbumRow] = cast(List[AlbumRow], result.scalars().all())
+
+            return AResult(code=AResultCode.OK, message="OK", result=albums)
+
+        except Exception as e:
+            logger.error(f"Failed to get albums by public_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get albums by public_ids: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_artists_for_albums_batch_async(
+        session: AsyncSession,
+        album_ids: List[int],
+    ) -> AResult[Dict[int, List[ArtistRow]]]:
+        """Batch fetch artists for multiple albums in a single query."""
+        try:
+            stmt = (
+                select(ArtistRow, album_artists.c.album_id)
+                .join(album_artists, ArtistRow.id == album_artists.c.artist_id)
+                .where(album_artists.c.album_id.in_(album_ids))
+            )
+            result = await session.execute(stmt)
+            rows = result.all()
+
+            album_artists_map: Dict[int, List[ArtistRow]] = {
+                aid: [] for aid in album_ids
+            }
+            for artist_row, album_id in rows:
+                album_artists_map[album_id].append(artist_row)
+
+            return AResult(code=AResultCode.OK, message="OK", result=album_artists_map)
+
+        except Exception as e:
+            logger.error(f"Failed to get artists for albumns batch: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get artists for albumns batch: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_tracks_by_album_ids_async(
+        session: AsyncSession,
+        album_ids: List[int],
+    ) -> AResult[List[TrackRow]]:
+        """Batch fetch tracks by album IDs in a single query."""
+        try:
+            stmt: Select[Tuple[TrackRow]] = (
+                select(TrackRow)
+                .where(TrackRow.album_id.in_(album_ids))
+                .options(
+                    selectinload(TrackRow.image),
+                    selectinload(TrackRow.core_song),
+                )
+            )
+            result: Result[Tuple[TrackRow]] = await session.execute(stmt)
+            tracks: List[TrackRow] = cast(List[TrackRow], result.scalars().all())
+
+            return AResult(code=AResultCode.OK, message="OK", result=tracks)
+
+        except Exception as e:
+            logger.error(f"Failed to get tracks by album_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get tracks by album_ids: {e}",
             )

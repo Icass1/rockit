@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Set, TYPE_CHECKING, Tuple
 
 from backend.utils.logger import getLogger
-
+from backend.utils.backendUtils import time_it
 from backend.constants import MEDIA_PATH
 
 from backend.core.aResult import AResult, AResultCode
@@ -157,6 +157,7 @@ class Spotify:
         return AResult(code=AResultCode.OK, message="OK", result=items)
 
     @staticmethod
+    @time_it
     async def get_album_async(
         session: AsyncSession, spotify_id: str
     ) -> AResult[SpotifyAlbumResponse]:

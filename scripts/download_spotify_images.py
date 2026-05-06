@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy import select
 
-
 sys.path.append(".")
 
 

@@ -5,19 +5,23 @@ from typing import Dict, List, TYPE_CHECKING
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.constants import BACKEND_URL, MEDIA_PATH
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
+from backend.constants import BACKEND_URL, MEDIA_PATH
+
 from backend.core.aResult import AResult, AResultCode
 
+from backend.core.access.db.ormModels.image import ImageRow
+
+from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.media.image import Image
+
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
-from backend.core.responses.baseArtistResponse import BaseArtistResponse
-
-from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.framework.media.image import Image
 
 from backend.youtubeMusic.utils.youtubeMusicApi import YoutubeMusicApi
 from backend.youtubeMusic.utils.youtubeMusicApi import (
@@ -27,13 +31,12 @@ from backend.youtubeMusic.utils.youtubeMusicApi import (
 )
 
 from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
+
 from backend.youtubeMusic.framework.download.imageDownload import ImageDownload
 
 from backend.youtubeMusic.responses.songResponse import YoutubeMusicTrackResponse
 from backend.youtubeMusic.responses.albumResponse import YoutubeMusicAlbumResponse
 from backend.youtubeMusic.responses.artistResponse import YoutubeMusicArtistResponse
-
-from backend.core.framework.provider.baseProvider import BaseProvider
 
 if TYPE_CHECKING:
     from backend.youtubeMusic.access.db.ormModels.track import TrackRow
@@ -442,6 +445,7 @@ class YoutubeMusic:
         )
 
     @staticmethod
+    @time_it
     async def get_track_async(
         session: AsyncSession,
         public_id: str,
@@ -526,6 +530,7 @@ class YoutubeMusic:
             )
 
     @staticmethod
+    @time_it
     async def get_album_async(
         session: AsyncSession,
         public_id: str,
@@ -545,138 +550,28 @@ class YoutubeMusic:
 
             youtube_id = a_result_youtube_id.result()
 
-            a_result_album_info = await YoutubeMusicApi.get_album_info_async(
-                youtube_id=youtube_id
-            )
-            if a_result_album_info.is_not_ok():
-                logger.error(f"Error getting album info. {a_result_album_info.info()}")
-                return AResult(
-                    code=a_result_album_info.code(),
-                    message=a_result_album_info.message(),
-                )
-
-            album_info = a_result_album_info.result()
-
+            # Check database FIRST before calling API
             a_result_db_album = await YoutubeMusicAccess.get_album_by_youtube_id_async(
                 session=session, youtube_id=youtube_id
             )
-            if a_result_db_album.is_not_ok():
+            if a_result_db_album.is_ok():
+                # Album found in DB - build response from DB without calling API
+                db_album = a_result_db_album.result()
+                return await YoutubeMusic._build_album_response(
+                    session=session, db_album=db_album, public_id=public_id
+                )
+
+            if a_result_db_album.code() != AResultCode.NOT_FOUND:
                 logger.error(f"Error getting album from DB. {a_result_db_album.info()}")
                 return AResult(
                     code=a_result_db_album.code(),
                     message=a_result_db_album.message(),
                 )
 
-            db_album = a_result_db_album.result()
-
-            a_result_artists = await YoutubeMusicAccess.get_artists_from_album_async(
-                session=session, album=db_album
+            # Album not in DB - use add_album_async which fetches from API and saves to DB
+            return await YoutubeMusic.add_album_async(
+                session=session, youtube_id=youtube_id
             )
-            artists_list: List[BaseArtistResponse] = []
-            if a_result_artists.is_ok():
-                for artist in a_result_artists.result():
-                    core_artist = artist.core_artist
-                    artists_list.append(
-                        BaseArtistResponse(
-                            provider=YoutubeMusic.provider_name,
-                            publicId=core_artist.public_id,
-                            url=f"/artist/{core_artist.public_id}",
-                            providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
-                            name=artist.name,
-                            imageUrl="",
-                        )
-                    )
-
-            a_result_tracks = await YoutubeMusicAccess.get_tracks_from_album_id_async(
-                session=session, album_id=db_album.id
-            )
-            songs_list: List[YoutubeMusicTrackResponse] = []
-            if a_result_tracks.is_ok():
-                for track in a_result_tracks.result():
-                    core_track = track.core_song
-                    track_artists = (
-                        await YoutubeMusicAccess.get_artists_from_track_async(
-                            session=session, track=track
-                        )
-                    )
-                    track_artists_list: List[BaseArtistResponse] = []
-                    if track_artists.is_ok():
-                        for artist in track_artists.result():
-                            core_artist = artist.core_artist
-                            track_artists_list.append(
-                                BaseArtistResponse(
-                                    provider=YoutubeMusic.provider_name,
-                                    publicId=core_artist.public_id,
-                                    url=f"/artist/{core_artist.public_id}",
-                                    providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
-                                    name=artist.name,
-                                    imageUrl="",
-                                )
-                            )
-
-                    image_url = ""
-                    if track.image and track.image.public_id:
-                        image_url = (
-                            BACKEND_URL + "/media/image/" + track.image.public_id
-                        )
-                    # elif album_info.thumbnail_url:
-                    #     image_url = album_info.thumbnail_url
-
-                    is_downloaded = track.path is not None
-                    audio_src = (
-                        f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
-                        if is_downloaded
-                        else None
-                    )
-
-                    songs_list.append(
-                        YoutubeMusicTrackResponse(
-                            provider=YoutubeMusic.provider_name,
-                            publicId=core_track.public_id,
-                            providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
-                            name=track.title,
-                            duration_ms=track.duration_ms,
-                            trackNumber=track.track_number,
-                            discNumber=track.disc_number,
-                            imageUrl=image_url,
-                            audioSrc=audio_src,
-                            downloaded=is_downloaded,
-                            artists=track_artists_list,
-                            album=BaseAlbumWithoutSongsResponse(
-                                provider=YoutubeMusic.provider_name,
-                                publicId=public_id,
-                                url=f"/album/{public_id}",
-                                providerUrl=f"https://music.youtube.com/browse/{youtube_id}",
-                                name=album_info.title,
-                                artists=artists_list,
-                                releaseDate=db_album.release_date,
-                                imageUrl=album_info.thumbnail_url,
-                            ),
-                            youtubeId=track.youtube_id,
-                        )
-                    )
-
-            image_url = ""
-            if db_album.image and db_album.image.public_id:
-                image_url = BACKEND_URL + "/media/image/" + db_album.image.public_id
-            elif album_info.thumbnail_url:
-                image_url = album_info.thumbnail_url
-
-            response = YoutubeMusicAlbumResponse(
-                provider=YoutubeMusic.provider_name,
-                publicId=public_id,
-                url=f"/album/{public_id}",
-                providerUrl=f"https://music.youtube.com/browse/{youtube_id}",
-                name=album_info.title,
-                imageUrl=image_url,
-                artists=artists_list,
-                releaseDate=db_album.release_date,
-                year=album_info.release_year,
-                songs=songs_list,
-                youtubeId=youtube_id,
-            )
-
-            return AResult(code=AResultCode.OK, message="OK", result=response)
 
         except Exception as e:
             logger.error(f"Failed to get album: {e}")
@@ -705,26 +600,20 @@ class YoutubeMusic:
 
             youtube_id = a_result_youtube_id.result()
 
-            a_result_artist_info = await YoutubeMusicApi.get_artist_info_async(
-                youtube_id=youtube_id
-            )
-            if a_result_artist_info.is_not_ok():
-                logger.error(
-                    f"Error getting artist info. {a_result_artist_info.info()}"
-                )
-                return AResult(
-                    code=a_result_artist_info.code(),
-                    message=a_result_artist_info.message(),
-                )
-
-            artist_info = a_result_artist_info.result()
-
+            # Check database FIRST before calling API
             a_result_db_artist = (
                 await YoutubeMusicAccess.get_artist_by_youtube_id_async(
                     session=session, youtube_id=youtube_id
                 )
             )
-            if a_result_db_artist.is_not_ok():
+            if a_result_db_artist.is_ok():
+                # Artist found in DB - build response from DB without calling API
+                db_artist = a_result_db_artist.result()
+                return await YoutubeMusic._build_artist_response(
+                    session=session, db_artist=db_artist, public_id=public_id
+                )
+
+            if a_result_db_artist.code() != AResultCode.NOT_FOUND:
                 logger.error(
                     f"Error getting artist from DB. {a_result_db_artist.info()}"
                 )
@@ -733,106 +622,10 @@ class YoutubeMusic:
                     message=a_result_db_artist.message(),
                 )
 
-            db_artist = a_result_db_artist.result()
-
-            a_result_tracks = await YoutubeMusicAccess.get_tracks_from_artist_id_async(
-                session=session, artist_id=db_artist.id
+            # Artist not in DB - use add_artist_async which fetches from API and saves to DB
+            return await YoutubeMusic.add_artist_async(
+                session=session, youtube_id=youtube_id
             )
-            top_songs: List[YoutubeMusicTrackResponse] = []
-            if a_result_tracks.is_ok():
-                for track in a_result_tracks.result():
-                    core_track = track.core_song
-                    track_artists = (
-                        await YoutubeMusicAccess.get_artists_from_track_async(
-                            session=session, track=track
-                        )
-                    )
-                    track_artists_list: List[BaseArtistResponse] = []
-                    if track_artists.is_ok():
-                        for artist in track_artists.result():
-                            core_artist = artist.core_artist
-                            track_artists_list.append(
-                                BaseArtistResponse(
-                                    provider=YoutubeMusic.provider_name,
-                                    publicId=core_artist.public_id,
-                                    url=f"/artist/{core_artist.public_id}",
-                                    providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
-                                    name=artist.name,
-                                    imageUrl="",
-                                )
-                            )
-
-                    image_url = ""
-                    if track.image and track.image.public_id:
-                        image_url = (
-                            BACKEND_URL + "/media/image/" + track.image.public_id
-                        )
-                    # elif artist_info.thumbnail_url:
-                    #     image_url = artist_info.thumbnail_url
-
-                    album_public_id = ""
-                    if track.album and track.album.core_album:
-                        album_public_id = track.album.core_album.public_id
-
-                    is_downloaded = track.path is not None
-                    audio_src = (
-                        f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
-                        if is_downloaded
-                        else None
-                    )
-
-                    top_songs.append(
-                        YoutubeMusicTrackResponse(
-                            provider=YoutubeMusic.provider_name,
-                            publicId=core_track.public_id,
-                            providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
-                            name=track.title,
-                            duration_ms=track.duration_ms,
-                            trackNumber=track.track_number,
-                            discNumber=track.disc_number,
-                            imageUrl=image_url,
-                            audioSrc=audio_src,
-                            downloaded=is_downloaded,
-                            artists=track_artists_list,
-                            album=BaseAlbumWithoutSongsResponse(
-                                provider=YoutubeMusic.provider_name,
-                                publicId=album_public_id,
-                                url=f"/album/{album_public_id}",
-                                providerUrl=(
-                                    f"https://music.youtube.com/browse/{track.album.youtube_id}"
-                                    if track.album
-                                    else ""
-                                ),
-                                name=track.album.title if track.album else "",
-                                artists=[],
-                                releaseDate=(
-                                    track.album.release_date if track.album else ""
-                                ),
-                                imageUrl=image_url,
-                            ),
-                            youtubeId=track.youtube_id,
-                        )
-                    )
-
-            image_url = ""
-            if db_artist.image and db_artist.image.public_id:
-                image_url = BACKEND_URL + "/media/image/" + db_artist.image.public_id
-            # elif artist_info.thumbnail_url:
-            #     image_url = artist_info.thumbnail_url
-
-            response = YoutubeMusicArtistResponse(
-                provider=YoutubeMusic.provider_name,
-                publicId=public_id,
-                url=f"/artist/{public_id}",
-                providerUrl=f"https://music.youtube.com/channel/{youtube_id}",
-                name=artist_info.name,
-                imageUrl=image_url,
-                topSongs=top_songs,
-                albums=[],
-                youtubeId=youtube_id,
-            )
-
-            return AResult(code=AResultCode.OK, message="OK", result=response)
 
         except Exception as e:
             logger.error(f"Failed to get artist: {e}")
@@ -847,17 +640,7 @@ class YoutubeMusic:
         db_track: "TrackRow",
         public_id: str,
     ) -> AResult[BaseSongWithAlbumResponse]:
-        a_result_track_api = await YoutubeMusicApi.get_track_info_async(
-            youtube_id=db_track.youtube_id
-        )
-        if a_result_track_api.is_not_ok():
-            logger.error(f"Error getting track info. {a_result_track_api.info()}")
-            return AResult(
-                code=a_result_track_api.code(), message=a_result_track_api.message()
-            )
-
-        track_info = a_result_track_api.result()
-
+        # Build response from database only - no API call needed
         artists = await YoutubeMusicAccess.get_artists_from_track_async(
             session=session, track=db_track
         )
@@ -880,8 +663,6 @@ class YoutubeMusic:
         image_url = ""
         if db_track.image and db_track.image.public_id:
             image_url = BACKEND_URL + "/media/image/" + db_track.image.public_id
-        # elif track_info.thumbnail_url:
-        #     image_url = track_info.thumbnail_url
 
         is_downloaded = db_track.path is not None
         audio_src = (
@@ -903,8 +684,8 @@ class YoutubeMusic:
             provider=YoutubeMusic.provider_name,
             publicId=public_id,
             providerUrl=f"https://music.youtube.com/watch?v={db_track.youtube_id}",
-            name=track_info.title,
-            duration_ms=track_info.duration_ms,
+            name=db_track.title,
+            duration_ms=db_track.duration_ms,
             trackNumber=db_track.track_number,
             discNumber=db_track.disc_number,
             imageUrl=image_url,
@@ -923,17 +704,7 @@ class YoutubeMusic:
         db_album: "AlbumRow",
         public_id: str,
     ) -> AResult[BaseAlbumWithSongsResponse]:
-        a_result_album_api = await YoutubeMusicApi.get_album_info_async(
-            youtube_id=db_album.youtube_id
-        )
-        if a_result_album_api.is_not_ok():
-            logger.error(f"Error getting album info. {a_result_album_api.info()}")
-            return AResult(
-                code=a_result_album_api.code(), message=a_result_album_api.message()
-            )
-
-        album_info = a_result_album_api.result()
-
+        # Build response from database only - no API call needed
         a_result_artists = await YoutubeMusicAccess.get_artists_from_album_async(
             session=session, album=db_album
         )
@@ -980,8 +751,6 @@ class YoutubeMusic:
                 image_url = ""
                 if track.image and track.image.public_id:
                     image_url = BACKEND_URL + "/media/image/" + track.image.public_id
-                # elif album_info.thumbnail_url:
-                #     image_url = album_info.thumbnail_url
 
                 is_downloaded = track.path is not None
                 audio_src = (
@@ -1008,10 +777,10 @@ class YoutubeMusic:
                             publicId=public_id,
                             url=f"/album/{public_id}",
                             providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
-                            name=album_info.title,
+                            name=db_album.title,
                             artists=artists_list,
                             releaseDate=db_album.release_date,
-                            imageUrl=album_info.thumbnail_url,
+                            imageUrl=image_url,
                         ),
                         youtubeId=track.youtube_id,
                     )
@@ -1020,19 +789,17 @@ class YoutubeMusic:
         image_url = ""
         if db_album.image and db_album.image.public_id:
             image_url = BACKEND_URL + "/media/image/" + db_album.image.public_id
-        # elif album_info.thumbnail_url:
-        #     image_url = album_info.thumbnail_url
 
         response = YoutubeMusicAlbumResponse(
             provider=YoutubeMusic.provider_name,
             publicId=public_id,
             url=f"/album/{public_id}",
             providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
-            name=album_info.title,
+            name=db_album.title,
             imageUrl=image_url,
             artists=artists_list,
             releaseDate=db_album.release_date,
-            year=album_info.release_year,
+            year=db_album.year,
             songs=songs_list,
             youtubeId=db_album.youtube_id,
         )
@@ -1045,17 +812,7 @@ class YoutubeMusic:
         db_artist: "ArtistRow",
         public_id: str,
     ) -> AResult[BaseArtistResponse]:
-        a_result_artist_api = await YoutubeMusicApi.get_artist_info_async(
-            youtube_id=db_artist.youtube_id
-        )
-        if a_result_artist_api.is_not_ok():
-            logger.error(f"Error getting artist info. {a_result_artist_api.info()}")
-            return AResult(
-                code=a_result_artist_api.code(), message=a_result_artist_api.message()
-            )
-
-        artist_info = a_result_artist_api.result()
-
+        # Build response from database only - no API call needed
         a_result_tracks = await YoutubeMusicAccess.get_tracks_from_artist_id_async(
             session=session, artist_id=db_artist.id
         )
@@ -1084,8 +841,6 @@ class YoutubeMusic:
                 image_url = ""
                 if track.image and track.image.public_id:
                     image_url = BACKEND_URL + "/media/image/" + track.image.public_id
-                # elif artist_info.thumbnail_url:
-                #     image_url = artist_info.thumbnail_url
 
                 album_public_id = ""
                 if track.album and track.album.core_album:
@@ -1134,15 +889,13 @@ class YoutubeMusic:
         image_url = ""
         if db_artist.image and db_artist.image.public_id:
             image_url = BACKEND_URL + "/media/image/" + db_artist.image.public_id
-        # elif artist_info.thumbnail_url:
-        #     image_url = artist_info.thumbnail_url
 
         response = YoutubeMusicArtistResponse(
             provider=YoutubeMusic.provider_name,
             publicId=public_id,
             url=f"/artist/{public_id}",
             providerUrl=f"https://music.youtube.com/channel/{db_artist.youtube_id}",
-            name=artist_info.name,
+            name=db_artist.name,
             imageUrl=image_url,
             topSongs=top_songs,
             albums=[],
@@ -1150,6 +903,242 @@ class YoutubeMusic:
         )
 
         return AResult(code=AResultCode.OK, message="OK", result=response)
+
+    @staticmethod
+    @time_it
+    async def get_tracks_batch_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+        """Batch fetch multiple tracks by public_ids efficiently."""
+        a_result_tracks = await YoutubeMusicAccess.get_tracks_by_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+        if a_result_tracks.is_not_ok():
+            return AResult(
+                code=a_result_tracks.code(), message=a_result_tracks.message()
+            )
+
+        db_tracks = a_result_tracks.result()
+        if not db_tracks:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        track_ids = [t.id for t in db_tracks]
+        a_result_artists_map = (
+            await YoutubeMusicAccess.get_artists_for_tracks_batch_async(
+                session=session, track_ids=track_ids
+            )
+        )
+
+        artists_map: Dict[int, List[ArtistRow]] = {}
+        if a_result_artists_map.is_ok():
+            artists_map = a_result_artists_map.result()
+
+        results: List[BaseSongWithAlbumResponse] = []
+        for db_track in db_tracks:
+            artists_list: List[BaseArtistResponse] = []
+            track_artists = artists_map.get(db_track.id, [])
+            for artist in track_artists:
+                core_artist = artist.core_artist
+                if core_artist:
+                    artists_list.append(
+                        BaseArtistResponse(
+                            provider=YoutubeMusic.provider_name,
+                            publicId=core_artist.public_id,
+                            url=f"/artist/{core_artist.public_id}",
+                            providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
+                            name=artist.name,
+                            imageUrl="",
+                        )
+                    )
+
+            image_url = ""
+            if db_track.image and db_track.image.public_id:
+                image_url = BACKEND_URL + "/media/image/" + db_track.image.public_id
+
+            is_downloaded = db_track.path is not None
+            audio_src = (
+                f"{BACKEND_URL}/youtube-music/audio/{db_track.core_song.public_id}"
+                if is_downloaded
+                else None
+            )
+
+            album_data = BaseAlbumWithoutSongsResponse(
+                provider=YoutubeMusic.provider_name,
+                publicId=db_track.album.core_album.public_id,
+                url=f"/album/{db_track.album.core_album.public_id}",
+                providerUrl=f"https://music.youtube.com/browse/{db_track.album.youtube_id}",
+                name=db_track.album.title,
+                artists=[],
+                releaseDate=db_track.album.release_date,
+                imageUrl=image_url,
+            )
+
+            results.append(
+                YoutubeMusicTrackResponse(
+                    provider=YoutubeMusic.provider_name,
+                    publicId=db_track.core_song.public_id,
+                    providerUrl=f"https://music.youtube.com/watch?v={db_track.youtube_id}",
+                    name=db_track.title,
+                    duration_ms=db_track.duration_ms,
+                    trackNumber=db_track.track_number,
+                    discNumber=db_track.disc_number,
+                    imageUrl=image_url,
+                    audioSrc=audio_src,
+                    downloaded=is_downloaded,
+                    artists=artists_list,
+                    album=album_data,
+                    youtubeId=db_track.youtube_id,
+                )
+            )
+
+        return AResult(code=AResultCode.OK, message="OK", result=results)
+
+    @staticmethod
+    @time_it
+    async def get_albums_batch_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[List[BaseAlbumWithSongsResponse]]:
+        """Batch fetch multiple albums by public_ids efficiently."""
+        a_result_albums = await YoutubeMusicAccess.get_albums_by_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+        if a_result_albums.is_not_ok():
+            return AResult(
+                code=a_result_albums.code(), message=a_result_albums.message()
+            )
+
+        db_albums = a_result_albums.result()
+        if not db_albums:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        album_ids = [a.id for a in db_albums]
+        a_result_tracks = await YoutubeMusicAccess.get_tracks_by_album_ids_async(
+            session=session, album_ids=album_ids
+        )
+
+        tracks_by_album: Dict[int, List[TrackRow]] = {}
+        all_track_ids: List[int] = []
+        if a_result_tracks.is_ok():
+            for track in a_result_tracks.result():
+                if track.album_id not in tracks_by_album:
+                    tracks_by_album[track.album_id] = []
+                tracks_by_album[track.album_id].append(track)
+                all_track_ids.append(track.id)
+
+        a_result_track_artists_map = (
+            await YoutubeMusicAccess.get_artists_for_tracks_batch_async(
+                session=session, track_ids=all_track_ids
+            )
+        )
+        track_artists_map: Dict[int, List[ArtistRow]] = {}
+        if a_result_track_artists_map.is_ok():
+            track_artists_map = a_result_track_artists_map.result()
+
+        a_result_album_artists_map = (
+            await YoutubeMusicAccess.get_artists_for_albums_batch_async(
+                session=session, album_ids=album_ids
+            )
+        )
+        album_artists_map: Dict[int, List[ArtistRow]] = {}
+        if a_result_album_artists_map.is_ok():
+            album_artists_map = a_result_album_artists_map.result()
+
+        results: List[BaseAlbumWithSongsResponse] = []
+        for db_album in db_albums:
+            album_artists_list: List[BaseArtistResponse] = []
+            for artist in album_artists_map.get(db_album.id, []):
+                core_artist = artist.core_artist
+                if core_artist:
+                    album_artists_list.append(
+                        BaseArtistResponse(
+                            provider=YoutubeMusic.provider_name,
+                            publicId=core_artist.public_id,
+                            url=f"/artist/{core_artist.public_id}",
+                            providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
+                            name=artist.name,
+                            imageUrl="",
+                        )
+                    )
+
+            songs_list: List[YoutubeMusicTrackResponse] = []
+            for track in tracks_by_album.get(db_album.id, []):
+                track_artists = track_artists_map.get(track.id, [])
+                track_artists_list: List[BaseArtistResponse] = []
+                for artist in track_artists:
+                    core_artist = artist.core_artist
+                    if core_artist:
+                        track_artists_list.append(
+                            BaseArtistResponse(
+                                provider=YoutubeMusic.provider_name,
+                                publicId=core_artist.public_id,
+                                url=f"/artist/{core_artist.public_id}",
+                                providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
+                                name=artist.name,
+                                imageUrl="",
+                            )
+                        )
+
+                image_url = ""
+                if track.image and track.image.public_id:
+                    image_url = BACKEND_URL + "/media/image/" + track.image.public_id
+
+                is_downloaded = track.path is not None
+                audio_src = (
+                    f"{BACKEND_URL}/youtube-music/audio/{track.core_song.public_id}"
+                    if is_downloaded
+                    else None
+                )
+
+                songs_list.append(
+                    YoutubeMusicTrackResponse(
+                        provider=YoutubeMusic.provider_name,
+                        publicId=track.core_song.public_id,
+                        providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
+                        name=track.title,
+                        duration_ms=track.duration_ms,
+                        trackNumber=track.track_number,
+                        discNumber=track.disc_number,
+                        imageUrl=image_url,
+                        audioSrc=audio_src,
+                        downloaded=is_downloaded,
+                        artists=track_artists_list,
+                        album=BaseAlbumWithoutSongsResponse(
+                            provider=YoutubeMusic.provider_name,
+                            publicId=db_album.core_album.public_id,
+                            url=f"/album/{db_album.core_album.public_id}",
+                            providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
+                            name=db_album.title,
+                            artists=album_artists_list,
+                            releaseDate=db_album.release_date,
+                            imageUrl=image_url,
+                        ),
+                        youtubeId=track.youtube_id,
+                    )
+                )
+
+            image_url = ""
+            if db_album.image and db_album.image.public_id:
+                image_url = BACKEND_URL + "/media/image/" + db_album.image.public_id
+
+            results.append(
+                YoutubeMusicAlbumResponse(
+                    provider=YoutubeMusic.provider_name,
+                    publicId=db_album.core_album.public_id,
+                    url=f"/album/{db_album.core_album.public_id}",
+                    providerUrl=f"https://music.youtube.com/browse/{db_album.youtube_id}",
+                    name=db_album.title,
+                    imageUrl=image_url,
+                    artists=album_artists_list,
+                    releaseDate=db_album.release_date,
+                    year=db_album.year,
+                    songs=songs_list,
+                    youtubeId=db_album.youtube_id,
+                )
+            )
+
+        return AResult(code=AResultCode.OK, message="OK", result=results)
 
     @staticmethod
     async def get_audio_with_range_async(

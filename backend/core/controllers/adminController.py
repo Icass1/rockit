@@ -125,7 +125,9 @@ async def upload_apk(request: Request, payload: UploadApkRequest) -> UploadApkRe
         )
 
     return UploadApkResponse(
-        message="Build uploaded successfully.", id=a_result.result().id, filename=version_filename
+        message="Build uploaded successfully.",
+        id=a_result.result().id,
+        filename=version_filename,
     )
 
 
@@ -230,5 +232,7 @@ async def complete_chunked_upload(
         )
 
     return UploadApkResponse(
-        message="Build uploaded successfully.", id=a_result.result().id, filename=upload["version_filename"]
+        message="Build uploaded successfully.",
+        id=a_result.result().id,
+        filename=upload["version_filename"],
     )

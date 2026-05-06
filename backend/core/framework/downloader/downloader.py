@@ -187,21 +187,21 @@ class Downloader:
 
                     if provider:
                         if media.media_type_key == MediaTypeEnum.SONG.value:
-                            a_result_song = await provider.get_song_async(
-                                session=session, public_id=media.public_id
+                            a_result_song = await provider.get_songs_async(
+                                session=session, public_ids=[media.public_id]
                             )
                             if a_result_song.is_ok():
-                                song = a_result_song.result()
+                                song = a_result_song.result()[0]
                                 media_name = song.name
                                 image_url = song.imageUrl
                                 if song.artists:
                                     subtitle = song.artists[0].name
                         elif media.media_type_key == MediaTypeEnum.VIDEO.value:
-                            a_result_video = await provider.get_video_async(
-                                session=session, public_id=media.public_id
+                            a_result_video = await provider.get_videos_async(
+                                session=session, public_ids=[media.public_id]
                             )
                             if a_result_video.is_ok():
-                                video = a_result_video.result()
+                                video = a_result_video.result()[0]
                                 media_name = video.name
                                 image_url = video.imageUrl
                                 if video.artists:
@@ -217,9 +217,9 @@ class Downloader:
                     elif download.status_key == 4:
                         completed_val = 0.0
                     elif download.download_status_list:
-                        last_status: DownloadStatusRow = (
-                            download.download_status_list[-1]
-                        )
+                        last_status: DownloadStatusRow = download.download_status_list[
+                            -1
+                        ]
                         completed_val = float(last_status.completed)
 
                     download_date: str = ""

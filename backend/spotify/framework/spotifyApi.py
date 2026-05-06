@@ -7,10 +7,13 @@ from typing import Any, Dict, List
 from urllib.parse import quote_plus
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.aResult import AResult, AResultCode
-from backend.constants import CLIENT_ID, CLIENT_SECRET
-from backend.spotify.framework.spotifyCache import SpotifyCache
+from backend.utils.backendUtils import time_it
 from backend.utils.logger import getLogger
+from backend.constants import CLIENT_ID, CLIENT_SECRET
+
+from backend.core.aResult import AResult, AResultCode
+
+from backend.spotify.framework.spotifyCache import SpotifyCache
 
 from backend.spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum
 from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrack
@@ -132,6 +135,7 @@ class SpotifyApi:
                     code=AResultCode.GENERAL_ERROR, message="Unable to parse json"
                 )
 
+    @time_it
     async def get_albums_async(
         self, session: AsyncSession, ids: List[str]
     ) -> AResult[List[RawSpotifyApiAlbum]]:

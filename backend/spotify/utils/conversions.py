@@ -1,8 +1,11 @@
-from typing import List, Tuple
+from collections import defaultdict
+from typing import Dict, List, Tuple
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
 
 from backend.constants import BACKEND_URL
 
@@ -29,9 +32,15 @@ from backend.core.responses.baseSongWithoutAlbumResponse import (
 from backend.spotify.access.db.ormModels.album import AlbumRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
+from backend.spotify.access.db.ormModels.genre import GenreRow
 from backend.spotify.access.db.ormModels.playlist import PlaylistRow
 from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 from backend.spotify.access.db.ormModels.track import TrackRow
+from backend.spotify.access.db.associationTables.song_artists import song_artists
+from backend.spotify.access.db.associationTables.artist_genres import artist_genres
+from backend.spotify.access.db.associationTables.album_external_images import (
+    album_external_images,
+)
 from backend.spotify.access.spotifyAccess import SpotifyAccess
 from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
 from backend.spotify.responses.artistResponse import SpotifyArtistResponse
@@ -162,6 +171,7 @@ async def get_track_response_async(
     )
 
 
+@time_it
 async def get_album_with_songs_response_async(
     session: AsyncSession,
     provider_name: str,
@@ -348,3 +358,181 @@ async def get_playlist_response_async(
             owner=playlist_row.owner,
         ),
     )
+
+
+async def get_albums_with_songs_responses_async(
+    session: AsyncSession,
+    provider_name: str,
+    album_rows: List[AlbumRow],
+) -> AResult[List[SpotifyAlbumResponse]]:
+    """Build SpotifyAlbumResponse for many albums using ~6 queries total regardless of count."""
+
+    if not album_rows:
+        return AResult(code=AResultCode.OK, message="OK", result=[])
+
+    try:
+        album_ids = [a.id for a in album_rows]
+
+        # Query 1: All tracks for all albums (core_song selectin-loaded automatically)
+        tracks_result = await session.execute(
+            select(TrackRow).where(TrackRow.album_id.in_(album_ids))
+        )
+        all_tracks: List[TrackRow] = list(tracks_result.scalars().all())
+
+        tracks_by_album: Dict[int, List[TrackRow]] = defaultdict(list)
+        for track in all_tracks:
+            tracks_by_album[track.album_id].append(track)
+
+        track_ids = [t.id for t in all_tracks]
+
+        # Query 2: All track→artist links
+        track_artist_map: Dict[int, List[ArtistRow]] = defaultdict(list)
+        if track_ids:
+            link_result = await session.execute(
+                select(song_artists.c.track_id, song_artists.c.artist_id).where(
+                    song_artists.c.track_id.in_(track_ids)
+                )
+            )
+            artist_links = list(link_result.all())
+            all_artist_ids = list({row.artist_id for row in artist_links})
+
+            # Query 3: Load ArtistRow objects (image + core_artist selectin-loaded automatically)
+            artist_by_id: Dict[int, ArtistRow] = {}
+            if all_artist_ids:
+                artist_result = await session.execute(
+                    select(ArtistRow).where(ArtistRow.id.in_(all_artist_ids))
+                )
+                for artist in artist_result.scalars().all():
+                    artist_by_id[artist.id] = artist
+
+            for row in artist_links:
+                artist = artist_by_id.get(row.artist_id)
+                if artist:
+                    track_artist_map[row.track_id].append(artist)
+        else:
+            all_artist_ids = []
+            artist_by_id = {}
+
+        # Query 4: All genre names for all artists
+        artist_genre_map: Dict[int, List[str]] = defaultdict(list)
+        if artist_by_id:
+            genre_result = await session.execute(
+                select(artist_genres.c.artist_id, GenreRow.name)
+                .join(GenreRow, GenreRow.id == artist_genres.c.genre_id)
+                .where(artist_genres.c.artist_id.in_(list(artist_by_id.keys())))
+            )
+            for row in genre_result.all():
+                artist_genre_map[row.artist_id].append(row.name)
+
+        # Query 5+6: All external images for all albums (link query + image load)
+        ext_image_map: Dict[int, List[ExternalImageRow]] = defaultdict(list)
+        if album_ids:
+            link_result2 = await session.execute(
+                select(
+                    album_external_images.c.album_id,
+                    album_external_images.c.external_image_id,
+                ).where(album_external_images.c.album_id.in_(album_ids))
+            )
+            img_links = list(link_result2.all())
+            img_ids = list({row.external_image_id for row in img_links})
+
+            ext_img_by_id: Dict[int, ExternalImageRow] = {}
+            if img_ids:
+                img_result = await session.execute(
+                    select(ExternalImageRow).where(ExternalImageRow.id.in_(img_ids))
+                )
+                for img in img_result.scalars().all():
+                    ext_img_by_id[img.id] = img
+
+            for row in img_links:
+                img = ext_img_by_id.get(row.external_image_id)
+                if img:
+                    ext_image_map[row.album_id].append(img)
+
+        # Build all responses from in-memory data
+        responses: List[SpotifyAlbumResponse] = []
+        for album_row in album_rows:
+            album_tracks = sorted(
+                tracks_by_album.get(album_row.id, []),
+                key=lambda t: (t.disc_number, t.track_number),
+            )
+
+            album_artist_responses: List[BaseArtistResponse] = [
+                BaseArtistResponse(
+                    provider=provider_name,
+                    publicId=a.core_artist.public_id,
+                    url=f"/artist/{a.core_artist.public_id}",
+                    providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
+                    name=a.name,
+                    imageUrl=Image.get_internal_image_url(image=a.image),
+                )
+                for a in album_row.artists
+            ]
+
+            song_responses: List[BaseSongWithoutAlbumResponse] = []
+            for track in album_tracks:
+                track_artists = track_artist_map.get(track.id, [])
+                track_artist_responses: List[SpotifyArtistResponse] = [
+                    SpotifyArtistResponse(
+                        provider=provider_name,
+                        publicId=a.core_artist.public_id,
+                        url=f"/artist/{a.core_artist.public_id}",
+                        providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
+                        name=a.name,
+                        imageUrl=Image.get_internal_image_url(image=a.image),
+                        genres=artist_genre_map.get(a.id, []),
+                    )
+                    for a in track_artists
+                ]
+
+                is_downloaded = track.path is not None
+                audio_src = (
+                    f"{BACKEND_URL}/spotify/audio/{track.spotify_id}"
+                    if is_downloaded
+                    else None
+                )
+
+                song_responses.append(
+                    BaseSongWithoutAlbumResponse(
+                        provider=provider_name,
+                        publicId=track.core_song.public_id,
+                        providerUrl=f"https://open.spotify.com/track/{track.spotify_id}",
+                        name=track.name,
+                        artists=track_artist_responses,
+                        audioSrc=audio_src,
+                        downloaded=is_downloaded,
+                        imageUrl=Image.get_internal_image_url(image=album_row.image),
+                        duration_ms=track.duration_ms,
+                        discNumber=track.disc_number,
+                        trackNumber=track.track_number,
+                    )
+                )
+
+            ext_img_responses: List[SpotifyExternalImageResponse] = [
+                SpotifyExternalImageResponse(
+                    url=img.url, width=img.width, height=img.height
+                )
+                for img in ext_image_map.get(album_row.id, [])
+            ]
+
+            responses.append(
+                SpotifyAlbumResponse(
+                    provider=provider_name,
+                    publicId=album_row.core_album.public_id,
+                    url=f"/album/{album_row.core_album.public_id}",
+                    providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
+                    name=album_row.name,
+                    imageUrl=Image.get_internal_image_url(image=album_row.image),
+                    artists=album_artist_responses,
+                    releaseDate=album_row.release_date,
+                    spotifyId=album_row.spotify_id,
+                    externalImages=ext_img_responses,
+                    songs=song_responses,
+                )
+            )
+
+        return AResult(code=AResultCode.OK, message="OK", result=responses)
+
+    except Exception as e:
+        logger.error(f"Error building bulk album responses: {e}")
+        return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))

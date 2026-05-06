@@ -36,6 +36,18 @@ def main():
     package_data["version"] = version
     package_json.write_text(json.dumps(package_data, indent=4))
 
+    build_gradle_path = Path("frontend/apps/mobile/android/app/build.gradle")
+
+    input_content = build_gradle_path.read_text().split("\n")
+    output_content: list[str] = []
+    for line in input_content:
+        if "versionName" in line:
+            output_content.append(f'        versionName "{version}"')
+        else:
+            output_content.append(line)
+
+    build_gradle_path.write_text("\n".join(output_content))
+
     expo_token = os.environ.get("EXPO_TOKEN")
 
     os.chdir("frontend/apps/mobile")

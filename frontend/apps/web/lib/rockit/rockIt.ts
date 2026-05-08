@@ -4,6 +4,7 @@ import { AuthManager } from "@/lib/managers/authManager";
 import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
+import { LibraryManager } from "@/lib/managers/libraryManager";
 import { ListManager } from "@/lib/managers/listManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
@@ -51,6 +52,7 @@ export class RockIt {
     playerUIManager = new PlayerUIManager();
     indexedDBManager = new IndexedDBManager();
     eventManager = new EventManager();
+    libraryManager = new LibraryManager();
 
     constructor() {
         if (typeof window === "undefined") return;
@@ -66,4 +68,5 @@ if (typeof window !== "undefined") {
     rockIt.queueManager.init();
     rockIt.userManager.init();
     rockIt.downloaderManager.init();
+    rockIt.libraryManager.init();
 }

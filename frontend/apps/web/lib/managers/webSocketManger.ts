@@ -29,6 +29,8 @@ export class WebSocketManager {
         try {
             const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
 
+            console.log("WebSocketManager", { data });
+
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);
             if (handlers) {
@@ -43,7 +45,7 @@ export class WebSocketManager {
 
     constructor() {
         if (typeof window === "undefined") return;
-        console.log("WebSocketManager.#instance", WebSocketManager.#instance);
+        // console.log("WebSocketManager.#instance", WebSocketManager.#instance);
         if (WebSocketManager.#instance) {
             return WebSocketManager.#instance;
         }
@@ -77,7 +79,7 @@ export class WebSocketManager {
     async init() {
         if (this._init) return;
 
-        console.debug("WebSocketManager.init", this.webSocket);
+        // console.debug("WebSocketManager.init", this.webSocket);
 
         await this.attemptReconnect();
     }
@@ -85,7 +87,7 @@ export class WebSocketManager {
     private async attemptReconnect() {
         const maxRetries = 5;
         let retries = 0;
-        console.debug("WebSocketManager.attemptReconnect", this.initializing);
+        // console.debug("WebSocketManager.attemptReconnect", this.initializing);
         if (this.initializing) return;
         this.initializing = true;
 
@@ -124,12 +126,12 @@ export class WebSocketManager {
 
     async send(message: object) {
         if (!this.webSocket) {
-            console.log("WebSocketManager.init() 2", message);
+            // console.log("WebSocketManager.init() 2", message);
             await this.init();
         }
 
         if (this.webSocket?.readyState === WebSocket.CLOSED) {
-            console.log("WebSocketManager.init() 3");
+            // console.log("WebSocketManager.init() 3");
             await this.init();
         }
 

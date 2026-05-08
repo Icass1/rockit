@@ -124,6 +124,14 @@ export {
     type LibraryListsResponse,
 } from "./libraryListsResponse";
 export {
+    LibraryMediaAddedMessageSchema,
+    type LibraryMediaAddedMessage,
+} from "./libraryMediaAddedMessage";
+export {
+    LibraryMediaRemovedMessageSchema,
+    type LibraryMediaRemovedMessage,
+} from "./libraryMediaRemovedMessage";
+export {
     LibraryMediasResponseSchema,
     type LibraryMediasResponse,
 } from "./libraryMediasResponse";

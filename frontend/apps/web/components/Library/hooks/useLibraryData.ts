@@ -5,6 +5,8 @@ import { LibraryListsResponseSchema } from "@/dto";
 import {
     API_ENDPOINTS,
     EEvent,
+    EMediaType,
+    IMediaAddedToLibraryEvent,
     IMediaRemovedFromLibraryEvent,
 } from "@rockit/shared";
 import { EFilterMode } from "@/models/enums/filterMode";
@@ -100,6 +102,73 @@ export function useLibraryData({
         return () =>
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaRemovedFromLibrary,
+                handler
+            );
+    }, []);
+
+    function addMediaToArray<T extends { publicId: string }>(
+        arr: T[],
+        item: T
+    ): T[] {
+        if (arr.some((el) => el.publicId === item.publicId)) return arr;
+        return [...arr, item];
+    }
+
+    useEffect(() => {
+        const handler = (e: IMediaAddedToLibraryEvent) => {
+            rockIt.mediaManager.getMedia(e.publicId).then((data) => {
+                if (data.isOk()) {
+                    setLibraryData((libraryData) => {
+                        if (!libraryData) return;
+
+                        const _libraryData = { ...libraryData };
+
+                        switch (data.result.type) {
+                            case EMediaType.Song:
+                                _libraryData.songs = addMediaToArray(
+                                    _libraryData.songs,
+                                    data.result
+                                );
+                                break;
+                            case EMediaType.Video:
+                                _libraryData.videos = addMediaToArray(
+                                    _libraryData.videos,
+                                    data.result
+                                );
+                                break;
+                            case EMediaType.Album:
+                                _libraryData.albums = addMediaToArray(
+                                    _libraryData.albums,
+                                    data.result
+                                );
+                                break;
+                            case EMediaType.Playlist:
+                                _libraryData.playlists = addMediaToArray(
+                                    _libraryData.playlists,
+                                    data.result
+                                );
+                                break;
+                            default:
+                                break;
+                        }
+
+                        return _libraryData;
+                    });
+                } else {
+                    rockIt.notificationManager.notifyError(
+                        rockIt.vocabularyManager.vocabulary.ERROR_GETTING_MEDIA
+                    );
+                }
+            });
+        };
+
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaAddedToLibrary,
+            handler
+        );
+        return () =>
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaAddedToLibrary,
                 handler
             );
     }, []);

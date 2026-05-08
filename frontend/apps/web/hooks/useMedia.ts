@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { MediaResponseSchema } from "@/dto";
 import { EEvent } from "@/models/enums/events";
 import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import { isSearchResult, TMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch } from "@/lib/utils/apiFetch";
 
 export default function useMedia<T extends TMedia>(media: T) {
     const [_media, setMedia] = useState<T>(media);
@@ -16,20 +14,19 @@ export default function useMedia<T extends TMedia>(media: T) {
             if (data.publicId != media.publicId) {
                 return;
             }
-            apiFetch(`/media/${data.publicId}`, MediaResponseSchema).then(
-                (data) => {
-                    if (data.isOk()) {
-                        if (data.result.type === media.type)
-                            setMedia(data.result as T);
-                    } else {
-                        console.error(
-                            "Error gettting media",
-                            data.message,
-                            data.detail
-                        );
-                    }
+
+            rockIt.mediaManager.getMedia(data.publicId).then((data) => {
+                if (data.isOk()) {
+                    if (data.result.type === media.type)
+                        setMedia(data.result as T);
+                } else {
+                    console.error(
+                        "Error gettting media",
+                        data.message,
+                        data.detail
+                    );
                 }
-            );
+            });
         };
 
         rockIt.eventManager.addEventListener(

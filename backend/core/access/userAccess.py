@@ -192,8 +192,18 @@ class UserAccess:
             return AResult(code=AResultCode.OK, message="OK", result=user_library_media)
 
         except Exception as e:
-            logger.error(f"Error in add_user_library_media: {e}")
             await session.rollback()
+
+            if "already exists" in str(e):
+                logger.info(
+                    f"Media {media_id} already exists in user {user_id} library"
+                )
+                return AResult(
+                    code=AResultCode.ALREADY_EXISTS,
+                    message="Media already exists in library.",
+                )
+
+            logger.error(f"Error in add_user_library_media: {e}")
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to add media to user library: {e}",

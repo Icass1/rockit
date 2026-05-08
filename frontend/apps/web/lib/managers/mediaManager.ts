@@ -1,6 +1,7 @@
 import {
     LikedMediaResponseSchema,
     LikeMediaRequestSchema,
+    MediaResponseSchema,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
@@ -8,6 +9,10 @@ import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class MediaManager {
     private _likedMediaAtom = createArrayAtom<string>([]);
+
+    getMedia(publicId: string) {
+        return apiFetch(`/media/${publicId}`, MediaResponseSchema);
+    }
 
     async fetchLikedMedia() {
         const res = await apiFetch(

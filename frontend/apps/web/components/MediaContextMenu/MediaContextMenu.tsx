@@ -141,9 +141,6 @@ export default function MediaContextMenu({
             if (!res.isOk()) {
                 rockIt.notificationManager.notifyError(res.message);
             } else {
-                rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
-                    publicId: media.publicId,
-                });
                 rockIt.notificationManager.notifySuccess(
                     `"${media.name}" added to library`
                 );
@@ -158,11 +155,7 @@ export default function MediaContextMenu({
             `/user/library/media/${mediaItem.publicId}`,
             OkResponseSchema
         );
-        if (res.isOk()) {
-            rockIt.eventManager.dispatchEvent(EEvent.MediaRemovedFromLibrary, {
-                publicId: mediaItem.publicId,
-            });
-        } else {
+        if (res.isNotOk()) {
             rockIt.notificationManager.notifyError(res.message);
         }
     };

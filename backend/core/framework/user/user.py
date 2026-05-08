@@ -29,8 +29,12 @@ from backend.core.access.languageAccess import LanguageAccess
 from backend.core.access.userQueueAccess import UserQueueAccess
 from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 
-from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework import providers
+from backend.core.framework.websocket.sendToUser import SendToUser
+from backend.core.framework.provider.baseProvider import BaseProvider
+
+from backend.core.responses.libraryMediaAddedMessage import LibraryMediaAddedMessage
+from backend.core.responses.libraryMediaRemovedMessage import LibraryMediaRemovedMessage
 
 from backend.core.responses.queueResponse import QueueResponse, QueueResponseItem
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
@@ -341,6 +345,11 @@ class User:
                 code=a_result_user_media.code(), message=a_result_user_media.message()
             )
 
+        await SendToUser.send_to_user(
+            user_id=user_id,
+            message=LibraryMediaAddedMessage(publicId=media_public_id),
+        )
+
         return AResult(
             code=AResultCode.OK, message="OK", result=a_result_user_media.result()
         )
@@ -372,6 +381,11 @@ class User:
             return AResult(
                 code=a_result_removed.code(), message=a_result_removed.message()
             )
+
+        await SendToUser.send_to_user(
+            user_id=user_id,
+            message=LibraryMediaRemovedMessage(publicId=media_public_id),
+        )
 
         return AResult(
             code=AResultCode.OK, message="OK", result=a_result_removed.result()

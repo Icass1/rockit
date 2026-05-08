@@ -249,4 +249,5 @@ export interface Vocabulary {
     DOWNLOADING: string;
     RETRY: string;
     DOWNLOAD_LIST_TO_SERVER: string;
+    ERROR_GETTING_MEDIA: string;
 }

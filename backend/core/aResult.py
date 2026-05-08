@@ -29,7 +29,7 @@ class AResultCode:
         if self._code == AResultCode.OK:
             return 200
         if self._code == AResultCode.ALREADY_EXISTS:
-            return 200
+            return 409
         if self._code == AResultCode.GENERAL_ERROR:
             return 500
         if self._code == AResultCode.NOT_FOUND:

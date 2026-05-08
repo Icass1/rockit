@@ -4,7 +4,9 @@
 import { z } from "zod";
 
 export const DownloadProgressMessageSchema = z.object({
-    type: z.union([z.literal("download_progress")]),
+    type: z
+        .union([z.literal("download_progress")])
+        .default("download_progress"),
     download_id: z.number(),
     publicId: z.string(),
     title: z.string(),

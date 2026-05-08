@@ -36,68 +36,6 @@ export default function PlayLibraryButton() {
         );
     }
 
-    // const playLibraryHandler = async () => {
-    //     const albums = libraryLists
-    //         .get()
-    //         .filter((list) => list.type === "album");
-
-    //     const librarySongs: SongDB<
-    //         | "id"
-    //         | "path"
-    //         | "name"
-    //         | "image"
-    //         | "artists"
-    //         | "albumName"
-    //         | "albumId"
-    //         | "duration"
-    //     >[] = [];
-
-    //     await Promise.all(
-    //         albums.map(async (album) => {
-    //             const response = await fetch(`album/${album.id}?p=songs`);
-    //             const json = await response.json();
-    //             const albumsSongs = json.songs;
-    //             librarySongs.push(...albumsSongs);
-    //         })
-    //     );
-
-    //     let songsToAdd = librarySongs
-    //         .filter((song) => song?.path)
-    //         .map((song, index) => {
-    //             return {
-    //                 song: song,
-    //                 list: { type: "library", id: "" },
-    //                 index: index,
-    //             };
-    //         });
-
-    //     if (songsToAdd.length == 0) {
-    //         console.warn("No songs to play in this list");
-    //         return;
-    //     }
-
-    //     if (!window.navigator.onLine) {
-    //         songsToAdd = songsToAdd.filter((song) =>
-    //             mediaInIndexedDB.get()?.includes(song.song.id)
-    //         );
-    //     }
-
-    //     if (randomQueue.get()) {
-    //         const shuffled = [...songsToAdd].sort(() => Math.random() - 0.5);
-    //         playWhenReady.set(true);
-
-    //         currentSong.set(shuffled[0].song);
-    //         queueIndex.set(shuffled[0].index);
-    //         queue.set(shuffled);
-    //     } else {
-    //         playWhenReady.set(true);
-
-    //         currentSong.set(songsToAdd[0].song);
-    //         queueIndex.set(0);
-    //         queue.set(songsToAdd);
-    //     }
-    // };
-
     return (
         <>
             <div

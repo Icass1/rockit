@@ -2,6 +2,7 @@ import {
     LikedMediaResponseSchema,
     LikeMediaRequestSchema,
     MediaResponseSchema,
+    TMedia,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
@@ -25,6 +26,13 @@ export class MediaManager {
         } else {
             console.error("Error getting liked media", res.message, res.detail);
         }
+    }
+
+    async downloadMedia(media: TMedia) {
+        await rockIt.downloaderManager.startDownloadAsync(
+            media.publicId,
+            media.name
+        );
     }
 
     async toggleLikeMedia(publicId: string) {

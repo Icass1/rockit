@@ -3,16 +3,8 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import {
-    AddFromUrlResponseSchema,
-    isDownloadable,
-} from "@rockit/packages/shared";
-import {
-    EEvent,
-    EMediaContextLocation,
-    OkResponseSchema,
-    QueueListType,
-} from "@rockit/shared";
+import { isDownloadable } from "@rockit/packages/shared";
+import { EMediaContextLocation, QueueListType } from "@rockit/shared";
 import {
     ExternalLink,
     HardDriveDownload,
@@ -29,12 +21,9 @@ import {
     isNavigable,
     isPlayable,
     isSearchResult,
-    TMedia,
     TMediaWithSearch,
-    TPlayableMedia,
 } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiDeleteFetch, apiFetch } from "@/lib/utils/apiFetch";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -96,7 +85,7 @@ export default function MediaContextMenu({
 
     const handlePlay = () => {
         if (!isPlayableMedia) return;
-        const playableMedia = media as TPlayableMedia;
+        const playableMedia = media;
         rockIt.queueManager.setMedia(
             [playableMedia],
             locationToQueueType(location),
@@ -112,132 +101,59 @@ export default function MediaContextMenu({
     };
 
     const handleAddToLibrary = async () => {
-        if (isSearchResult(media)) {
-            setLoading(true);
-            const searchItem = media;
-            const res = await apiFetch(
-                `/media/url/add?url=${encodeURIComponent(searchItem.providerUrl)}`,
-                AddFromUrlResponseSchema
-            );
-            setLoading(false);
-
-            if (!res.isOk()) {
-                rockIt.notificationManager.notifyError(res.message);
-            } else {
-                rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
-                    publicId: res.result.data.publicId,
-                });
-                rockIt.notificationManager.notifySuccess(
-                    `"${searchItem.name}" added to library`
-                );
-            }
-        } else {
-            const res = await apiFetch(
-                `/user/library/media/${media.publicId}`,
-                OkResponseSchema
-            );
-            setLoading(false);
-
-            if (!res.isOk()) {
-                rockIt.notificationManager.notifyError(res.message);
-            } else {
-                rockIt.notificationManager.notifySuccess(
-                    `"${media.name}" added to library`
-                );
-            }
-        }
+        setLoading(true);
+        await rockIt.libraryManager.addMediaToLibrary(media);
+        setLoading(false);
     };
 
     const handleRemoveFromLibrary = async () => {
         if (isSearch) return;
-        const mediaItem = media;
-        const res = await apiDeleteFetch(
-            `/user/library/media/${mediaItem.publicId}`,
-            OkResponseSchema
-        );
-        if (res.isNotOk()) {
-            rockIt.notificationManager.notifyError(res.message);
-        }
+        await rockIt.libraryManager.removeMediaFromLibrary(media);
     };
 
-    const handlePlayList = () => {
+    const handlePlayList = async () => {
         if (!isListMedia) return;
-        console.warn("TODO: Play list");
+        await rockIt.queueManager.playList(media);
     };
 
     const handleAddListToQueue = async () => {
         if (!isListMedia) return;
-        const mediaItem = media as TMedia;
-        await rockIt.queueManager.addListToTopAsync(
-            mediaItem.type as "album" | "playlist",
-            mediaItem.publicId
-        );
+        await rockIt.queueManager.addListToQueueTopAsync(media);
     };
 
     const handleAddListRandom = async () => {
         if (!isListMedia) return;
-        const mediaItem = media as TMedia;
-        await rockIt.queueManager.addListRandomAsync(
-            mediaItem.type as "album" | "playlist",
-            mediaItem.publicId
-        );
+        await rockIt.queueManager.addListToQueueRandomAsync(media);
     };
 
     const handleAddListToBottom = async () => {
         if (!isListMedia) return;
-        const mediaItem = media as TMedia;
-        await rockIt.queueManager.addListToBottomAsync(
-            mediaItem.type as "album" | "playlist",
-            mediaItem.publicId
-        );
+        await rockIt.queueManager.addListToQueueBottomAsync(media);
     };
 
-    const handleRemoveListFromLibrary = async () => {
-        if (!isListMedia) return;
-        const mediaItem = media as TMedia;
-        await rockIt.listManager.removeListFromLibraryAsync(
-            mediaItem.type as "album" | "playlist",
-            mediaItem.publicId
-        );
-    };
-
-    const handleDownloadList = () => {
-        console.warn("TODO: Download list to device");
-    };
-
-    const handleDownloadZip = () => {
+    const handleDownloadListZip = () => {
         console.warn("TODO: Download ZIP");
     };
 
     const handleRetryDownload = async () => {
         if (isSearch) return;
-        const mediaItem = media as TMedia;
-        await rockIt.downloaderManager.startDownloadAsync(
-            mediaItem.publicId,
-            mediaItem.name
-        );
+        rockIt.mediaManager.downloadMedia(media);
     };
 
     const handleDownloadMedia = async () => {
         if (isSearch || !isDownloadableMedia) return;
-        const mediaItem = media as TMedia;
-        await rockIt.downloaderManager.startDownloadAsync(
-            mediaItem.publicId,
-            mediaItem.name
-        );
+        rockIt.mediaManager.downloadMedia(media);
     };
 
     const showPlay = isPlayableMedia;
     const disablePlay = showDownloadOption;
     const showNavigate = isNavigableMedia;
     const showRemoveFromLibrary =
-        location === EMediaContextLocation.LIBRARY && !isListMedia && !isSearch;
+        location === EMediaContextLocation.LIBRARY && !isSearch;
     const showListOptions =
         isListMedia &&
         location !== EMediaContextLocation.SEARCH &&
         location !== EMediaContextLocation.DOWNLOADS;
-    const showRemoveListFromLibrary =
-        isListMedia && location === EMediaContextLocation.LIBRARY;
     const showRetryDownload = location === EMediaContextLocation.DOWNLOADS;
 
     return (
@@ -314,27 +230,10 @@ export default function MediaContextMenu({
                             {$vocabulary.ADD_LIST_TO_BOTTOM}
                         </ContextMenuOption>
 
-                        {showRemoveListFromLibrary && (
-                            <>
-                                <ContextMenuSplitter />
-                                <ContextMenuOption
-                                    onClick={handleRemoveListFromLibrary}
-                                >
-                                    <Library className="h-5 w-5" />
-                                    {$vocabulary.REMOVE_FROM_LIBRARY}
-                                </ContextMenuOption>
-                            </>
-                        )}
-
                         <ContextMenuSplitter />
 
-                        <ContextMenuOption onClick={handleDownloadList}>
-                            <HardDriveDownload className="h-5 w-5" />
-                            {$vocabulary.DOWNLOAD_LIST_TO_DEVICE}
-                        </ContextMenuOption>
-
                         {media.type === "album" && (
-                            <ContextMenuOption onClick={handleDownloadZip}>
+                            <ContextMenuOption onClick={handleDownloadListZip}>
                                 <HardDriveDownload className="h-5 w-5" />
                                 {$vocabulary.DOWNLOAD_ZIP}
                             </ContextMenuOption>

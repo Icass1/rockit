@@ -5,7 +5,6 @@ import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
-import { ListManager } from "@/lib/managers/listManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
@@ -39,7 +38,6 @@ export class RockIt {
     userManager = new UserManager();
     searchManager = new SearchManager();
     mediaManager = new MediaManager();
-    listManager = new ListManager();
     currentListManager = new CurrentListManager();
     vocabularyManager = new VocabularyManager();
     stationManager = new StationManager();

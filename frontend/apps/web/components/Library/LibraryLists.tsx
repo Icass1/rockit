@@ -115,7 +115,6 @@ function MasonryAllGrid({
      * Strategy: zip by index across all arrays, cycling until exhausted.
      */
     const items = useMemo<ILibraryMasonryItem[]>(() => {
-        console.log("MasonryAllGrid useMemo", albums);
         const buckets: ILibraryMasonryItem[][] = [
             albums.map((d) => ({ kind: EContentKind.ALBUM, data: d })),
             playlists.map((d) => ({ kind: EContentKind.PLAYLIST, data: d })),
@@ -135,8 +134,6 @@ function MasonryAllGrid({
 
         return result;
     }, [albums, playlists, videos, songs, stations]);
-
-    console.log(albums);
 
     if (items.length === 0) return null;
 
@@ -290,8 +287,6 @@ export function LibraryLists({
 }: ILibraryListsProps) {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
-
-    console.log("LibraryLists", { filtered, loading });
 
     const showAll = activeType === EContentType.All;
 

@@ -26,8 +26,7 @@ export type TListMedia =
     | BasePlaylistResponse
     | BasePlaylistForPlaylistResponse
     | BaseAlbumWithSongsResponse
-    | BaseAlbumWithoutSongsResponse
-    | BaseArtistResponse;
+    | BaseAlbumWithoutSongsResponse;
 
 export type DownloadableMediaType =
     | BaseSongWithAlbumResponse
@@ -37,9 +36,10 @@ export type DownloadableMediaType =
 export type TMediaWithSearch =
     | TPlayableMedia
     | TListMedia
-    | BaseSearchResultsItem;
+    | BaseSearchResultsItem
+    | BaseArtistResponse;
 
-export type TMedia = TPlayableMedia | TListMedia;
+export type TMedia = TPlayableMedia | TListMedia | BaseArtistResponse;
 
 export function isQueueable(media: TMedia): media is TQueueMedia {
     switch (media.type) {

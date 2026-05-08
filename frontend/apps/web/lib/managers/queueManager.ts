@@ -6,10 +6,14 @@ import {
     QueueResponseSchema,
 } from "@/dto";
 import {
+    isAlbum,
+    isAlbumWithSongs,
+    isPlaylist,
     shuffleQueue as shuffleQueueLogic,
+    TListMedia,
     TPlayableMedia,
 } from "@rockit/shared";
-import { ListType, QueueListType } from "@/models/types/rockIt";
+import { QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom } from "@/lib/store";
 import { apiFetch } from "@/lib/utils/apiFetch";
@@ -87,8 +91,7 @@ export class QueueManager {
             (item) => item.queueMediaId === currentQueueMediaId
         );
 
-        const prevIndex =
-            (currentIndex - 1 + queue.length) % queue.length;
+        const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
         this.setQueueMediaId(queue[prevIndex].queueMediaId);
         rockIt.mediaPlayerManager.play();
     }
@@ -185,28 +188,42 @@ export class QueueManager {
         this._currentMediaAtom.set(undefined);
     }
 
-    async addListToTopAsync(type: ListType, publicId: string) {
-        console.log(type, publicId);
-        throw "(addListToTopAsync) Not implemented method";
+    async addListToQueueTopAsync(media: TListMedia) {
+        console.log(media);
+        throw "(addListToQueueTopAsync) Not implemented method";
     }
 
-    async addListRandomAsync(type: ListType, publicId: string) {
-        console.log(type, publicId);
-        throw "(addListRandomAsync) Not implemented method";
+    async addListToQueueRandomAsync(media: TListMedia) {
+        console.log(media);
+        throw "(addListToQueueRandomAsync) Not implemented method";
     }
 
-    async addListToBottomAsync(type: ListType, publicId: string) {
-        void type;
-        void publicId;
-        throw "(addListToBottomAsync) Not implemented method";
+    async addListToQueueBottomAsync(media: TListMedia) {
+        console.log(media);
+        throw "(addListToQueueBottomAsync) Not implemented method";
     }
 
-    addMediaNext(_media: TPlayableMedia) {
-        void _media;
+    async playList(media: TListMedia) {
+        console.log(media);
+        if (isAlbumWithSongs(media)) {
+            console.log("album with songs");
+        } else if (isAlbum(media)) {
+            console.log("album without songs");
+        } else if (isPlaylist(media)) {
+            console.log("album without songs");
+        }
+
+        throw "(playList) Not implemented method";
     }
 
-    addMediaToEnd(_media: TPlayableMedia) {
-        void _media;
+    addMediaNext(media: TPlayableMedia) {
+        console.log(media);
+        throw "(addMediaNext) Not implemented method";
+    }
+
+    addMediaToEnd(media: TPlayableMedia) {
+        console.log(media);
+        throw "(addMediaToEnd) Not implemented method";
     }
 
     shuffleQueue() {

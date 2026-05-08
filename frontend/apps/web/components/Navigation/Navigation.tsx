@@ -90,14 +90,13 @@ export default function Navigation() {
             href: "/downloader",
             icon: Download,
         },
-        user?.admin
-            ? {
-                  name: "Admin",
-                  title: "Admin",
-                  href: "/admin",
-                  icon: ShieldEllipsis,
-              }
-            : undefined,
+        {
+            name: "Admin",
+            title: "Admin",
+            href: "/admin",
+            icon: ShieldEllipsis,
+            disabled: !user?.admin,
+        },
     ];
 
     return (
@@ -119,36 +118,34 @@ export default function Navigation() {
                 >
                     <Menu className="h-5 w-5" />
                 </div>
-                {pages
-                    .filter((page) => typeof page != "undefined")
-                    .map((page) => {
-                        return (
-                            <Link
-                                key={page.href}
-                                id={"navigation-" + page.name}
-                                href={page.href}
-                                title={page.title}
-                                className={`relative mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
-                                    activePage === page.href
-                                        ? "bg-white text-black"
-                                        : "text-white md:hover:bg-[#414141]"
-                                } ${page.disabled == true ? "pointer-events-none opacity-50" : ""}`}
-                            >
-                                <div className="relative flex h-8 w-8 items-center justify-center">
-                                    {page.name == "Downloads" &&
-                                        $downloads.length > 0 && (
-                                            <label className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-400 text-center text-xs">
-                                                {$downloads.length}
-                                            </label>
-                                        )}
-                                    <page.icon className="h-5 w-5" />
-                                </div>
-                                <label className="cursor-pointer font-semibold">
-                                    {page.title}
-                                </label>
-                            </Link>
-                        );
-                    })}
+                {pages.map((page) => {
+                    return (
+                        <Link
+                            key={page.href}
+                            id={"navigation-" + page.name}
+                            href={page.href}
+                            title={page.title}
+                            className={`relative mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
+                                activePage === page.href
+                                    ? "bg-white text-black"
+                                    : "text-white md:hover:bg-[#414141]"
+                            } ${page.disabled == true ? "pointer-events-none opacity-50" : ""}`}
+                        >
+                            <div className="relative flex h-8 w-8 items-center justify-center">
+                                {page.name == "Downloads" &&
+                                    $downloads.length > 0 && (
+                                        <label className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-400 text-center text-xs">
+                                            {$downloads.length}
+                                        </label>
+                                    )}
+                                <page.icon className="h-5 w-5" />
+                            </div>
+                            <label className="cursor-pointer font-semibold">
+                                {page.title}
+                            </label>
+                        </Link>
+                    );
+                })}
 
                 <div
                     className={`ml-2 h-1 rounded-full bg-neutral-600 transition-all duration-400 ${

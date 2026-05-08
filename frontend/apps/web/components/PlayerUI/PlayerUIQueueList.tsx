@@ -102,7 +102,7 @@ export function PlayerUIQueueList({
                                     <ListX className="h-5 w-5" />
                                     {$vocabulary.REMOVE_FROM_QUEUE}
                                 </ContextMenuOption>
-                                <ContextMenuOption
+                                {/* <ContextMenuOption
                                     onClick={() =>
                                         rockIt.indexedDBManager.saveMediaToIndexedDB(
                                             queueMedia.media
@@ -111,7 +111,7 @@ export function PlayerUIQueueList({
                                 >
                                     <HardDriveDownload className="h-5 w-5" />
                                     {$vocabulary.DOWNLOAD_MEDIA_TO_DEVICE}
-                                </ContextMenuOption>
+                                </ContextMenuOption> */}
                             </ContextMenuContent>
                         </ContextMenu>
                     </div>

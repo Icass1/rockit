@@ -35,7 +35,7 @@ export function useQueue(): UseQueueReturn {
     const [queue, setQueue] = useState<TQueueMedia[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [shuffle, setShuffle] = useState(false);
-    const [repeatMode, setRepeatMode] = useState<ERepeatMode>(ERepeatMode.ONE);
+    const [repeatMode, setRepeatMode] = useState<ERepeatMode>(ERepeatMode.OFF);
 
     const queueRef = useRef(queue);
     const currentIndexRef = useRef(currentIndex);

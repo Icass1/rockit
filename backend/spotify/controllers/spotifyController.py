@@ -2,11 +2,10 @@ from logging import Logger
 from typing import Dict
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends, APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult
-from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
@@ -21,7 +20,6 @@ from backend.spotify.responses.artistResponse import SpotifyArtistResponse
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
     prefix="/spotify",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Spotify"],
 )
 

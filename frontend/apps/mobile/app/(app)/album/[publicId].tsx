@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { BaseAlbumWithSongsResponse, getAlbumAsync } from "@rockit/shared";
+import { getAlbumAsync } from "@/services/mediaService";
+import { BaseAlbumWithSongsResponse } from "@/shared/dto";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function AlbumPage() {
     const { publicId } = useLocalSearchParams<{ publicId: string }>();
-    const [album, setAlbum] = useState<BaseAlbumWithSongsResponse | null>(null);
+    const [album, setAlbum] = useState<BaseAlbumWithSongsResponse | undefined>(
+        undefined
+    );
 
     useEffect(() => {
         if (!publicId) return;

@@ -14,7 +14,15 @@ from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.provider.baseProvider import BaseProvider
 
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
+
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
+    PlaylistContributorResponse,
+)
 
 from backend.default.framework.default import Default
 from backend.default.framework.playlist import Playlist
@@ -41,12 +49,12 @@ class DefaultProvider(BaseProvider):
         """Populate provider-owned enum tables in the database."""
 
     @time_it
-    async def get_playlists_async(
+    async def get_playlists_with_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: List[str]
-    ) -> AResult[List[BasePlaylistResponse]]:
-        """Get default playlists by public_ids."""
+    ) -> AResult[List[BasePlaylistWithMediasResponse]]:
+        """Get default playlists by public_ids with medias."""
 
-        results: List[BasePlaylistResponse] = []
+        results: List[BasePlaylistWithMediasResponse] = []
         for public_id in public_ids:
             a_result_media: AResult[MediaModel] = (
                 await Media.get_media_from_public_id_async(
@@ -82,7 +90,7 @@ class DefaultProvider(BaseProvider):
             owner = a_result_owner.result()
             owner_name: str = owner.username
 
-            a_result_response: AResult[BasePlaylistResponse] = (
+            a_result_response: AResult[BasePlaylistWithMediasResponse] = (
                 await Playlist.build_playlist_response_async(
                     session=session, playlist=playlist, owner_name=owner_name
                 )
@@ -94,6 +102,73 @@ class DefaultProvider(BaseProvider):
                 continue
 
             results.append(a_result_response.result())
+
+        return AResult(code=AResultCode.OK, message="OK", result=results)
+
+    @time_it
+    async def get_playlists_without_medias_async(
+        self, session: AsyncSession, user_id: int, public_ids: List[str]
+    ) -> AResult[List[BasePlaylistWithoutMediasResponse]]:
+        """Get default playlists by public_ids without medias."""
+
+        results: List[BasePlaylistWithoutMediasResponse] = []
+        for public_id in public_ids:
+            a_result_media: AResult[MediaModel] = (
+                await Media.get_media_from_public_id_async(
+                    session=session,
+                    public_id=public_id,
+                    media_type_keys=[MediaTypeEnum.PLAYLIST],
+                )
+            )
+            if a_result_media.is_not_ok():
+                logger.error(f"Error getting media. {a_result_media.info()}")
+                continue
+
+            a_result_playlist: AResult[PlaylistWithDetailsModel] = (
+                await Playlist.get_playlist_async(
+                    session=session,
+                    playlist_public_id=a_result_media.result().public_id,
+                    user_id=user_id,
+                )
+            )
+            if a_result_playlist.is_not_ok():
+                logger.error(f"Error getting playlist. {a_result_playlist.info()}")
+                continue
+
+            playlist: PlaylistWithDetailsModel = a_result_playlist.result()
+
+            a_result_owner: AResult[UserRow] = await UserAccess.get_user_from_id(
+                session=session, user_id=playlist.owner_id
+            )
+            if a_result_owner.is_not_ok():
+                logger.error(f"Error getting owner. {a_result_owner.info()}")
+                continue
+
+            owner = a_result_owner.result()
+            owner_name: str = owner.username
+
+            contributor_responses: List[PlaylistContributorResponse] = [
+                PlaylistContributorResponse(
+                    user_id=c.user_id,
+                    role=PlaylistContributorRoleEnum(c.role_key),
+                )
+                for c in playlist.contributors
+            ]
+
+            results.append(
+                BasePlaylistWithoutMediasResponse(
+                    type="playlist",
+                    description=playlist.description,
+                    provider=Default.provider_name,
+                    publicId=playlist.public_id,
+                    url=f"/playlist/{playlist.public_id}",
+                    providerUrl="",
+                    name=playlist.name,
+                    contributors=contributor_responses,
+                    imageUrl=playlist.image_url,
+                    owner=owner_name,
+                )
+            )
 
         return AResult(code=AResultCode.OK, message="OK", result=results)
 

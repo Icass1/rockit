@@ -3,7 +3,7 @@ import { COLORS } from "@/constants/theme";
 import {
     isSearchResult,
     type BaseAlbumWithoutSongsResponse,
-    type BasePlaylistResponse,
+    type BasePlaylistWithoutMediasResponse,
     type BaseSongWithAlbumResponse,
     type BaseVideoResponse,
     type TMedia,
@@ -19,7 +19,7 @@ import MediaRow from "@/components/Media/MediaRow";
 
 interface LibraryContentProps {
     albums: BaseAlbumWithoutSongsResponse[];
-    playlists: BasePlaylistResponse[];
+    playlists: BasePlaylistWithoutMediasResponse[];
     songs: BaseSongWithAlbumResponse[];
     videos: BaseVideoResponse[];
     activeType: ELibraryActiveType;

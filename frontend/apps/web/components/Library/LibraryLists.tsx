@@ -3,7 +3,7 @@
 import { ReactNode, useMemo } from "react";
 import {
     BaseAlbumWithoutSongsResponse,
-    BasePlaylistResponse,
+    BasePlaylistWithoutMediasResponse,
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
@@ -104,7 +104,7 @@ function MasonryAllGrid({
     stations,
 }: {
     albums: BaseAlbumWithoutSongsResponse[];
-    playlists: BasePlaylistResponse[];
+    playlists: BasePlaylistWithoutMediasResponse[];
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
@@ -210,7 +210,7 @@ function SectionedAllList({
     stations,
 }: {
     albums: BaseAlbumWithoutSongsResponse[];
-    playlists: BasePlaylistResponse[];
+    playlists: BasePlaylistWithoutMediasResponse[];
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];

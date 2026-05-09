@@ -1,5 +1,5 @@
-import { DeviceEventEmitter, NativeModules, Platform } from "react-native";
 import { EPlatform } from "@/shared/models/enums/platform";
+import { DeviceEventEmitter, NativeModules, Platform } from "react-native";
 
 // Commands emitted by Android Auto's MediaSession callback
 export type AutoCommand =
@@ -47,14 +47,21 @@ class NativeMediaBridgeClass {
             DeviceEventEmitter.addListener("bluetoothDisconnected", () =>
                 this.callbacks?.onBluetoothDisconnected()
             ),
-            DeviceEventEmitter.addListener("autoCommand", (cmd: AutoCommand) => {
-                switch (cmd) {
-                    case "play":    return this.callbacks?.onAutoPlay();
-                    case "pause":   return this.callbacks?.onAutoPause();
-                    case "next":    return this.callbacks?.onAutoNext();
-                    case "previous":return this.callbacks?.onAutoPrevious();
+            DeviceEventEmitter.addListener(
+                "autoCommand",
+                (cmd: AutoCommand) => {
+                    switch (cmd) {
+                        case "play":
+                            return this.callbacks?.onAutoPlay();
+                        case "pause":
+                            return this.callbacks?.onAutoPause();
+                        case "next":
+                            return this.callbacks?.onAutoNext();
+                        case "previous":
+                            return this.callbacks?.onAutoPrevious();
+                    }
                 }
-            }),
+            ),
             DeviceEventEmitter.addListener(
                 "autoCommandData_seekTo",
                 (seconds: number) => this.callbacks?.onAutoSeekTo(seconds)

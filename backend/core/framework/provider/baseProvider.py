@@ -6,6 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 
 # Core framework.
 if TYPE_CHECKING:
@@ -16,7 +19,9 @@ from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
+)
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
@@ -102,9 +107,17 @@ class BaseProvider:
             message=f"Provider '{self._name}' doesn't implement get_artists_async.",
         )
 
-    async def get_playlists_async(
+    async def get_playlists_without_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: List[str]
-    ) -> AResult[List[BasePlaylistResponse]]:
+    ) -> AResult[List[BasePlaylistWithoutMediasResponse]]:
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name}' doesn't implement get_playlists_async.",
+        )
+
+    async def get_playlists_with_medias_async(
+        self, session: AsyncSession, user_id: int, public_ids: List[str]
+    ) -> AResult[List[BasePlaylistWithMediasResponse]]:
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_playlists_async.",

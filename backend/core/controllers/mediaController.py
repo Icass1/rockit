@@ -28,10 +28,12 @@ from backend.core.responses.urlMatchResponse import UrlMatchResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import SearchResultsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.addFromUrlResponse import AddFromUrlResponse
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -93,7 +95,7 @@ async def get_playlist(
     request: Request,
     public_id: str,
     _=Depends(dependency=AuthMiddleware.auth_dependency),
-) -> BasePlaylistResponse:
+) -> BasePlaylistWithMediasResponse:
     """Get a playlist by its public_id."""
 
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
@@ -104,8 +106,10 @@ async def get_playlist(
         )
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BasePlaylistResponse] = await Media.get_playlist_async(
-        session=session, user_id=a_result_user.result().id, public_id=public_id
+    a_result: AResult[BasePlaylistWithMediasResponse] = (
+        await Media.get_playlist_with_medias_async(
+            session=session, user_id=a_result_user.result().id, public_id=public_id
+        )
     )
     if a_result.is_not_ok():
         raise HTTPException(

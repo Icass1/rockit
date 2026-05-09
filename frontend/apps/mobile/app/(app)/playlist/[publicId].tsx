@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { BasePlaylistResponse, getPlaylistAsync } from "@rockit/shared";
+import { getPlaylistAsync } from "@/services/mediaService";
+import { BasePlaylistWithMediasResponse } from "@/shared/dto";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function PlaylistPage() {
     const { publicId } = useLocalSearchParams<{ publicId: string }>();
-    const [playlist, setPlaylist] = useState<BasePlaylistResponse | null>(null);
+    const [playlist, setPlaylist] = useState<
+        BasePlaylistWithMediasResponse | undefined
+    >(undefined);
 
     useEffect(() => {
         if (!publicId) return;

@@ -11,7 +11,7 @@ import { BaseVideoResponseSchema } from "./baseVideoResponse";
 import { PlaylistContributorResponseSchema } from "./playlistContributorResponse";
 import { PlaylistResponseItemSchema } from "./playlistResponseItem";
 
-export const BasePlaylistResponseSchema = z.object({
+export const BasePlaylistWithMediasResponseSchema = z.object({
     type: z.union([z.literal("playlist")]).default("playlist"),
     description: z.string().nullable(),
     provider: z.string(),
@@ -19,6 +19,9 @@ export const BasePlaylistResponseSchema = z.object({
     url: z.string(),
     providerUrl: z.string(),
     name: z.string(),
+    contributors: z.array(z.lazy(() => PlaylistContributorResponseSchema)),
+    imageUrl: z.string(),
+    owner: z.string(),
     medias: z.array(
         z.union([
             z
@@ -67,9 +70,8 @@ export const BasePlaylistResponseSchema = z.object({
                 }),
         ])
     ),
-    contributors: z.array(z.lazy(() => PlaylistContributorResponseSchema)),
-    imageUrl: z.string(),
-    owner: z.string(),
 });
 
-export type BasePlaylistResponse = z.infer<typeof BasePlaylistResponseSchema>;
+export type BasePlaylistWithMediasResponse = z.infer<
+    typeof BasePlaylistWithMediasResponseSchema
+>;

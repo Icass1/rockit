@@ -39,7 +39,9 @@ from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.likedMediaResponse import LikedMediaResponse
 from backend.core.responses.libraryListsResponse import LibraryListsResponse
 from backend.core.responses.userSettingsResponse import UserSettingsResponse
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
+)
 from backend.core.responses.libraryMediasResponse import LibraryMediasResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
@@ -144,7 +146,7 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
     a_result_library_media: AResult[
         List[
             BaseAlbumWithoutSongsResponse
-            | BasePlaylistResponse
+            | BasePlaylistWithoutMediasResponse
             | BaseSongWithAlbumResponse
             | BaseVideoResponse
         ]
@@ -166,8 +168,8 @@ async def get_library_lists(request: Request) -> LibraryListsResponse:
         if library_media
         else []
     )
-    playlists: List[BasePlaylistResponse] = (
-        [m for m in library_media if isinstance(m, BasePlaylistResponse)]
+    playlists: List[BasePlaylistWithoutMediasResponse] = (
+        [m for m in library_media if isinstance(m, BasePlaylistWithoutMediasResponse)]
         if library_media
         else []
     )
@@ -211,7 +213,7 @@ async def get_user_library_medias(
     a_result_library_media: AResult[
         List[
             BaseAlbumWithoutSongsResponse
-            | BasePlaylistResponse
+            | BasePlaylistWithoutMediasResponse
             | BaseSongWithAlbumResponse
             | BaseVideoResponse
         ]
@@ -233,8 +235,8 @@ async def get_user_library_medias(
         if library_media
         else []
     )
-    playlists: List[BasePlaylistResponse] = (
-        [m for m in library_media if isinstance(m, BasePlaylistResponse)]
+    playlists: List[BasePlaylistWithoutMediasResponse] = (
+        [m for m in library_media if isinstance(m, BasePlaylistWithoutMediasResponse)]
         if library_media
         else []
     )

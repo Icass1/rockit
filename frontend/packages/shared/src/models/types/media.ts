@@ -3,7 +3,8 @@ import {
     BaseAlbumWithSongsResponse,
     BaseArtistResponse,
     BasePlaylistForPlaylistResponse,
-    BasePlaylistResponse,
+    BasePlaylistWithMediasResponse,
+    BasePlaylistWithoutMediasResponse,
     BaseSearchResultsItem,
     BaseSongWithAlbumResponse,
     BaseSongWithoutAlbumResponse,
@@ -23,7 +24,8 @@ export type TQueueMedia =
     | BaseVideoResponse;
 
 export type TListMedia =
-    | BasePlaylistResponse
+    | BasePlaylistWithMediasResponse
+    | BasePlaylistWithoutMediasResponse
     | BasePlaylistForPlaylistResponse
     | BaseAlbumWithSongsResponse
     | BaseAlbumWithoutSongsResponse;
@@ -110,7 +112,18 @@ export function isAlbumWithSongs(
     );
 }
 
-export function isPlaylist(media: TMedia): media is BasePlaylistResponse {
+export function isPlaylistWithMedias(
+    media: TMedia
+): media is BasePlaylistWithMediasResponse {
+    return (
+        media.type === "playlist" &&
+        (media as BasePlaylistWithMediasResponse).medias !== undefined
+    );
+}
+
+export function isPlaylist(
+    media: TMedia
+): media is BasePlaylistWithoutMediasResponse {
     return media.type === "playlist";
 }
 
@@ -128,7 +141,8 @@ export function isNavigable(
 ): media is
     | BaseAlbumWithSongsResponse
     | BaseAlbumWithoutSongsResponse
-    | BasePlaylistResponse
+    | BasePlaylistWithMediasResponse
+    | BasePlaylistWithoutMediasResponse
     | BaseArtistResponse {
     if (isSearchResult(media)) return false;
     switch (media.type) {
@@ -177,13 +191,15 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
     } else if (isAlbumWithSongs(media)) {
         const totalSongs = media.songs.length ?? 0;
         return `${totalSongs} song${totalSongs !== 1 ? "s" : ""}`;
-    } else if (isPlaylist(media)) {
+    } else if (isPlaylistWithMedias(media)) {
         return (
             media.description ??
             `${media.medias?.length ?? 0} song${
                 (media.medias?.length ?? 0) !== 1 ? "s" : ""
             }`
         );
+    } else if (isPlaylist(media)) {
+        return media.description ?? "";
     }
     return "";
 }

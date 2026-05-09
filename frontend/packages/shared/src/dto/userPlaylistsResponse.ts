@@ -2,10 +2,10 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BasePlaylistResponseSchema } from "./basePlaylistResponse";
+import { BasePlaylistWithMediasResponseSchema } from "./basePlaylistWithMediasResponse";
 
 export const UserPlaylistsResponseSchema = z.object({
-    playlists: z.array(z.lazy(() => BasePlaylistResponseSchema)),
+    playlists: z.array(z.lazy(() => BasePlaylistWithMediasResponseSchema)),
 });
 
 export type UserPlaylistsResponse = z.infer<typeof UserPlaylistsResponseSchema>;

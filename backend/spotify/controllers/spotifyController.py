@@ -9,7 +9,9 @@ from backend.core.aResult import AResult
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 
 from backend.spotify.framework.spotify import Spotify
 
@@ -70,10 +72,14 @@ async def get_artist_async(request: Request, spotify_id: str) -> BaseArtistRespo
 
 
 @router.get("/playlist/{spotify_id}")
-async def get_playlist_async(request: Request, spotify_id: str) -> BasePlaylistResponse:
+async def get_playlist_async(
+    request: Request, spotify_id: str
+) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BasePlaylistResponse] = await Spotify.get_playlist_async(
-        session=session, spotify_id=spotify_id
+    a_result: AResult[BasePlaylistWithMediasResponse] = (
+        await Spotify.get_playlist_with_medias_async(
+            session=session, spotify_id=spotify_id
+        )
     )
     if a_result.is_not_ok():
         logger.error(f"Error getting playlist. {a_result.info()}")

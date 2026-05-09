@@ -43,7 +43,7 @@ export function PlayerUICoverColumn({
             {isVideo ? (
                 <div
                     ref={videoContainerRef}
-                    className="relative w-full max-w-[70%] overflow-hidden rounded-lg aspect-video"
+                    className="relative aspect-video w-full max-w-[70%] overflow-hidden rounded-lg"
                 />
             ) : (
                 <div

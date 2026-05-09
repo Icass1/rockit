@@ -15,7 +15,9 @@ from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.userAccess import UserAccess
 
 from backend.core.responses.okResponse import OkResponse
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 
 from backend.default.framework.playlist import Playlist
 from backend.default.framework.models.playlist import (
@@ -36,12 +38,12 @@ from backend.default.responses.userPlaylistsResponse import UserPlaylistsRespons
 async def get_playlist_list_response(
     session: AsyncSession,
     playlists: List[PlaylistModel],
-) -> List[BasePlaylistResponse]:
+) -> List[BasePlaylistWithMediasResponse]:
     """Build a list of BasePlaylistResponse from PlaylistModels."""
 
     from backend.core.access.userAccess import UserAccess
 
-    result: List[BasePlaylistResponse] = []
+    result: List[BasePlaylistWithMediasResponse] = []
     for p in playlists:
         a_result_owner: AResult[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=p.owner_id
@@ -51,7 +53,7 @@ async def get_playlist_list_response(
             owner_name = a_result_owner.result().username
 
         result.append(
-            BasePlaylistResponse(
+            BasePlaylistWithMediasResponse(
                 type="playlist",
                 description=p.description,
                 provider=Default.provider_name,
@@ -76,10 +78,10 @@ router = APIRouter(
 )
 
 
-@router.post("/create", response_model=BasePlaylistResponse)
+@router.post("/create", response_model=BasePlaylistWithMediasResponse)
 async def create_playlist_async(
     request: Request, create_request: CreatePlaylistRequest
-) -> BasePlaylistResponse:
+) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
@@ -99,7 +101,7 @@ async def create_playlist_async(
         )
 
     playlist: PlaylistModel = a_result.result()
-    return BasePlaylistResponse(
+    return BasePlaylistWithMediasResponse(
         type="playlist",
         description=playlist.description,
         provider=Default.provider_name,
@@ -138,10 +140,10 @@ async def get_user_playlists_async(
     )
 
 
-@router.get("/{playlist_public_id}", response_model=BasePlaylistResponse)
+@router.get("/{playlist_public_id}", response_model=BasePlaylistWithMediasResponse)
 async def get_playlist_async(
     request: Request, playlist_public_id: str
-) -> BasePlaylistResponse:
+) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
@@ -164,7 +166,7 @@ async def get_playlist_async(
     if a_result_owner.is_ok():
         owner_name = a_result_owner.result().username
 
-    a_result_response: AResult[BasePlaylistResponse] = (
+    a_result_response: AResult[BasePlaylistWithMediasResponse] = (
         await Playlist.build_playlist_response_async(
             session=session, playlist=playlist, owner_name=owner_name
         )
@@ -174,10 +176,10 @@ async def get_playlist_async(
     return a_result_response.result()
 
 
-@router.patch("/{playlist_public_id}", response_model=BasePlaylistResponse)
+@router.patch("/{playlist_public_id}", response_model=BasePlaylistWithMediasResponse)
 async def update_playlist_async(
     request: Request, playlist_public_id: str, update_request: UpdatePlaylistRequest
-) -> BasePlaylistResponse:
+) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
@@ -214,7 +216,7 @@ async def update_playlist_async(
         if a_result_owner.is_ok():
             owner_name = a_result_owner.result().username
 
-        a_result_response: AResult[BasePlaylistResponse] = (
+        a_result_response: AResult[BasePlaylistWithMediasResponse] = (
             await Playlist.build_playlist_response_async(
                 session=session, playlist=playlist_details, owner_name=owner_name
             )
@@ -223,7 +225,7 @@ async def update_playlist_async(
             raise HTTPException(status_code=500, detail=a_result_response.message())
         return a_result_response.result()
 
-    return BasePlaylistResponse(
+    return BasePlaylistWithMediasResponse(
         type="playlist",
         description=playlist.description,
         provider=Default.provider_name,
@@ -259,10 +261,12 @@ async def delete_playlist_async(
     return OkResponse()
 
 
-@router.post("/{playlist_public_id}/media", response_model=BasePlaylistResponse)
+@router.post(
+    "/{playlist_public_id}/media", response_model=BasePlaylistWithMediasResponse
+)
 async def add_media_to_playlist_async(
     request: Request, playlist_public_id: str, media_request: AddMediaToPlaylistRequest
-) -> BasePlaylistResponse:
+) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
@@ -303,7 +307,7 @@ async def add_media_to_playlist_async(
     if a_result_owner.is_ok():
         owner_name = a_result_owner.result().username
 
-    a_result_response: AResult[BasePlaylistResponse] = (
+    a_result_response: AResult[BasePlaylistWithMediasResponse] = (
         await Playlist.build_playlist_response_async(
             session=session, playlist=playlist, owner_name=owner_name
         )
@@ -341,12 +345,14 @@ async def remove_media_from_playlist_async(
     return OkResponse()
 
 
-@router.post("/{playlist_public_id}/contributor", response_model=BasePlaylistResponse)
+@router.post(
+    "/{playlist_public_id}/contributor", response_model=BasePlaylistWithMediasResponse
+)
 async def add_contributor_async(
     request: Request,
     playlist_public_id: str,
     contributor_request: AddContributorRequest,
-) -> BasePlaylistResponse:
+) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
@@ -388,7 +394,7 @@ async def add_contributor_async(
     if a_result_owner.is_ok():
         owner_name = a_result_owner.result().username
 
-    a_result_response: AResult[BasePlaylistResponse] = (
+    a_result_response: AResult[BasePlaylistWithMediasResponse] = (
         await Playlist.build_playlist_response_async(
             session=session, playlist=playlist, owner_name=owner_name
         )

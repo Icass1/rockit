@@ -21,7 +21,7 @@ class StatsAccess:
         """Get the count of songs listened by a user in a date range."""
 
         # TODO: Replace with real DB query
-        # SELECT COUNT(*) FROM core.user_media_clicked
+        # SELECT COUNT(*) from backend.coreuser_media_clicked
         # WHERE user_id = :user_id AND date_added BETWEEN :start_date AND :end_date
         return AResult(code=AResultCode.OK, message="OK", result=0)
 

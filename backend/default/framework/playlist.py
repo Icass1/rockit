@@ -21,10 +21,12 @@ from backend.core.responses.baseAlbumWithSongsResponse import (
 from backend.core.responses.basePlaylistForPlaylistResponse import (
     BasePlaylistForPlaylistResponse,
 )
-from backend.core.responses.basePlaylistResponse import (
-    BasePlaylistResponse,
-    PlaylistContributorResponse,
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
     PlaylistResponseItem,
+)
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    PlaylistContributorResponse,
 )
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseStationResponse import BaseStationResponse
@@ -822,7 +824,7 @@ class Playlist:
         session: AsyncSession,
         playlist: PlaylistWithDetailsModel,
         owner_name: str,
-    ) -> AResult[BasePlaylistResponse]:
+    ) -> AResult[BasePlaylistWithMediasResponse]:
         """Build a BasePlaylistResponse from a PlaylistWithDetailsModel."""
 
         from backend.core.framework import providers as provider_utils
@@ -876,7 +878,7 @@ class Playlist:
                         )
 
             elif media_type == MediaTypeEnum.PLAYLIST:
-                a_result = await provider.get_playlists_async(
+                a_result = await provider.get_playlists_with_medias_async(
                     session=session,
                     user_id=playlist.owner_id,
                     public_ids=public_ids,
@@ -925,7 +927,7 @@ class Playlist:
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=BasePlaylistResponse(
+            result=BasePlaylistWithMediasResponse(
                 type="playlist",
                 description=playlist.description,
                 provider=Default.provider_name,

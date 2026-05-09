@@ -20,13 +20,16 @@ from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
-from backend.core.responses.basePlaylistResponse import (
-    BasePlaylistResponse,
-    PlaylistResponseItem,
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
 )
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseSongWithoutAlbumResponse import (
     BaseSongWithoutAlbumResponse,
+)
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+    PlaylistResponseItem,
 )
 
 from backend.spotify.access.db.ormModels.album import AlbumRow
@@ -279,11 +282,49 @@ async def get_album_with_songs_response_async(
     )
 
 
-async def get_playlist_response_async(
+async def get_playlist_without_medias_response_async(
     session: AsyncSession,
     provider_name: str,
     playlist_row: PlaylistRow,
-) -> AResult[BasePlaylistResponse]:
+) -> AResult[BasePlaylistWithoutMediasResponse]:
+    """Convert a PlaylistRow to a BasePlaylistResponse with all songs."""
+
+    a_result_core_playlist: AResult[CoreMediaRow] = (
+        await MediaAccess.get_media_from_id_async(session=session, id=playlist_row.id)
+    )
+    if a_result_core_playlist.is_not_ok():
+        logger.error(
+            f"Error getting core media for playlist {playlist_row.id}. {a_result_core_playlist.info()}"
+        )
+        return AResult(
+            code=a_result_core_playlist.code(), message=a_result_core_playlist.message()
+        )
+
+    public_id: str = a_result_core_playlist.result().public_id
+
+    return AResult(
+        code=AResultCode.OK,
+        message="OK",
+        result=BasePlaylistWithoutMediasResponse(
+            type="playlist",
+            description=playlist_row.description or "",
+            provider=provider_name,
+            publicId=public_id,
+            url=f"/playlist/{public_id}",
+            providerUrl=f"https://open.spotify.com/playlist/{playlist_row.spotify_id}",
+            name=playlist_row.name,
+            contributors=[],
+            imageUrl=Image.get_internal_image_url(image=playlist_row.image),
+            owner=playlist_row.owner,
+        ),
+    )
+
+
+async def get_playlist_with_medias_response_async(
+    session: AsyncSession,
+    provider_name: str,
+    playlist_row: PlaylistRow,
+) -> AResult[BasePlaylistWithMediasResponse]:
     """Convert a PlaylistRow to a BasePlaylistResponse with all songs."""
 
     a_result_track_links: AResult[List[Tuple[PlaylistTrackRow, TrackRow]]] = (
@@ -344,7 +385,7 @@ async def get_playlist_response_async(
     return AResult(
         code=AResultCode.OK,
         message="OK",
-        result=BasePlaylistResponse(
+        result=BasePlaylistWithMediasResponse(
             type="playlist",
             description=playlist_row.description or "",
             provider=provider_name,

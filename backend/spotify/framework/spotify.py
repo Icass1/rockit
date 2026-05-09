@@ -12,16 +12,18 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.media import CoreMediaRow
 
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
     ArtistSearchResultsItem,
 )
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 
 from backend.spotify.utils.conversions import (
     get_album_with_songs_response_async,
     get_artist_response_async,
-    get_playlist_response_async,
+    get_playlist_with_medias_response_async,
     get_track_response_async,
 )
 
@@ -508,9 +510,9 @@ class Spotify:
         )
 
     @staticmethod
-    async def get_playlist_async(
+    async def get_playlist_with_medias_async(
         session: AsyncSession, spotify_id: str
-    ) -> AResult[BasePlaylistResponse]:
+    ) -> AResult[BasePlaylistWithMediasResponse]:
         """Get a playlist by ID, fetching from Spotify API and populating the database if not found."""
 
         # Check DB.
@@ -520,7 +522,7 @@ class Spotify:
             )
         )
         if a_result_playlist.is_ok():
-            return await get_playlist_response_async(
+            return await get_playlist_with_medias_response_async(
                 session=session,
                 provider_name=Spotify.provider_name,
                 playlist_row=a_result_playlist.result(),
@@ -672,7 +674,7 @@ class Spotify:
                 message=a_result_fetched_playlist.message(),
             )
 
-        return await get_playlist_response_async(
+        return await get_playlist_with_medias_response_async(
             session=session,
             provider_name=Spotify.provider_name,
             playlist_row=a_result_fetched_playlist.result(),

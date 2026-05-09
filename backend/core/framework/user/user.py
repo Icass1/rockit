@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Any, Coroutine, List, Tuple, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
@@ -42,6 +41,10 @@ from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongs
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
+)
+
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.access.db.ormModels.language import LanguageRow
 from backend.utils.backendUtils import time_it
@@ -203,7 +206,7 @@ class User:
     ) -> AResult[
         List[
             BaseAlbumWithoutSongsResponse
-            | BasePlaylistResponse
+            | BasePlaylistWithoutMediasResponse
             | BaseSongWithAlbumResponse
             | BaseVideoResponse
         ]
@@ -230,7 +233,7 @@ class User:
 
         library_medias: List[
             BaseAlbumWithoutSongsResponse
-            | BasePlaylistResponse
+            | BasePlaylistWithoutMediasResponse
             | BaseSongWithAlbumResponse
             | BaseVideoResponse
         ] = []
@@ -257,7 +260,7 @@ class User:
                     )
                 )
             elif media_type_key == MediaTypeEnum.PLAYLIST.value:
-                task = provider_instance.get_playlists_async(
+                task = provider_instance.get_playlists_without_medias_async(
                     session=session, user_id=user_id, public_ids=public_ids
                 )
                 tasks.append(

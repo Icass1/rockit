@@ -16,12 +16,17 @@ from backend.core.framework import providers
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.provider.baseProvider import BaseProvider
 
+from backend.core.responses.mediaResponse import MediaResponse
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
-from backend.core.responses.baseArtistResponse import BaseArtistResponse
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
-from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from backend.core.responses.mediaResponse import MediaResponse
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
+)
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
     SearchResultsResponse,
@@ -205,9 +210,9 @@ class Media:
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
 
     @staticmethod
-    async def get_playlist_async(
+    async def get_playlist_with_medias_async(
         session: AsyncSession, user_id: int, public_id: str
-    ) -> AResult[BasePlaylistResponse]:
+    ) -> AResult[BasePlaylistWithMediasResponse]:
         """Get a playlist by public_id, dispatching to the matched provider."""
 
         a_result_playlist: AResult[CoreMediaRow] = (
@@ -233,8 +238,48 @@ class Media:
                 code=AResultCode.NOT_FOUND, message="Provider not found for playlist"
             )
 
-        a_result: AResult[List[BasePlaylistResponse]] = (
-            await provider.get_playlists_async(
+        a_result: AResult[List[BasePlaylistWithMediasResponse]] = (
+            await provider.get_playlists_with_medias_async(
+                session=session, user_id=user_id, public_ids=[public_id]
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Provider error getting playlist. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+
+    @staticmethod
+    async def get_playlist_without_async(
+        session: AsyncSession, user_id: int, public_id: str
+    ) -> AResult[BasePlaylistWithoutMediasResponse]:
+        """Get a playlist by public_id, dispatching to the matched provider."""
+
+        a_result_playlist: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_keys=[MediaTypeEnum.PLAYLIST],
+            )
+        )
+        if a_result_playlist.is_not_ok():
+            logger.error(
+                f"Error getting playlist from database. {a_result_playlist.info()}"
+            )
+            return AResult(
+                code=a_result_playlist.code(), message=a_result_playlist.message()
+            )
+
+        playlist: CoreMediaRow = a_result_playlist.result()
+        provider: BaseProvider | None = providers.find_provider(playlist.provider_id)
+        if provider is None:
+            logger.error(f"No provider found for provider_id {playlist.provider_id}.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Provider not found for playlist"
+            )
+
+        a_result: AResult[List[BasePlaylistWithoutMediasResponse]] = (
+            await provider.get_playlists_without_medias_async(
                 session=session, user_id=user_id, public_ids=[public_id]
             )
         )
@@ -399,7 +444,7 @@ class Media:
             )
 
         elif media_type == MediaTypeEnum.PLAYLIST:
-            a_result = await provider.get_playlists_async(
+            a_result = await provider.get_playlists_without_medias_async(
                 session=session, user_id=0, public_ids=[public_id]
             )
             if a_result.is_not_ok():

@@ -17,7 +17,16 @@ from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
+)
+
+from backend.spotify.utils.conversions import (
+    get_playlist_without_medias_response_async,
+)
 
 from backend.spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
 
@@ -219,12 +228,12 @@ class SpotifyProvider(BaseProvider):
         return AResult(code=AResultCode.OK, message="OK", result=results)
 
     @time_it
-    async def get_playlists_async(
+    async def get_playlists_with_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: List[str]
-    ) -> AResult[List[BasePlaylistResponse]]:
-        """Get Spotify playlists by public_ids."""
+    ) -> AResult[List[BasePlaylistWithMediasResponse]]:
+        """Get Spotify playlists by public_ids with medias."""
 
-        results: List[BasePlaylistResponse] = []
+        results: List[BasePlaylistWithMediasResponse] = []
         for public_id in public_ids:
             a_result_spotify_id: AResult[str] = (
                 await SpotifyAccess.get_playlist_spotify_id_from_public_id_async(
@@ -239,11 +248,60 @@ class SpotifyProvider(BaseProvider):
 
             spotify_id: str = a_result_spotify_id.result()
 
-            a_result: AResult[BasePlaylistResponse] = await Spotify.get_playlist_async(
-                session=session, spotify_id=spotify_id
+            a_result: AResult[BasePlaylistWithMediasResponse] = (
+                await Spotify.get_playlist_with_medias_async(
+                    session=session, spotify_id=spotify_id
+                )
             )
             if a_result.is_not_ok():
                 logger.error(f"Error getting Spotify playlist. {a_result.info()}")
+                continue
+
+            results.append(a_result.result())
+
+        return AResult(code=AResultCode.OK, message="OK", result=results)
+
+    @time_it
+    async def get_playlists_without_medias_async(
+        self, session: AsyncSession, user_id: int, public_ids: List[str]
+    ) -> AResult[List[BasePlaylistWithoutMediasResponse]]:
+        """Get Spotify playlists by public_ids without medias."""
+
+        results: List[BasePlaylistWithoutMediasResponse] = []
+        for public_id in public_ids:
+            a_result_spotify_id: AResult[str] = (
+                await SpotifyAccess.get_playlist_spotify_id_from_public_id_async(
+                    session=session, public_id=public_id
+                )
+            )
+            if a_result_spotify_id.is_not_ok():
+                logger.error(
+                    f"Error getting spotify_id from public_id. {a_result_spotify_id.info()}"
+                )
+                continue
+
+            spotify_id: str = a_result_spotify_id.result()
+
+            a_result_playlist_row = await SpotifyAccess.get_playlist_public_id_async(
+                session=session, spotify_id=spotify_id
+            )
+            if a_result_playlist_row.is_not_ok():
+                logger.error(
+                    f"Playlist not found in DB: {spotify_id}. {a_result_playlist_row.info()}"
+                )
+                continue
+
+            a_result: AResult[BasePlaylistWithoutMediasResponse] = (
+                await get_playlist_without_medias_response_async(
+                    session=session,
+                    provider_name=Spotify.provider_name,
+                    playlist_row=a_result_playlist_row.result(),
+                )
+            )
+            if a_result.is_not_ok():
+                logger.error(
+                    f"Error getting Spotify playlist without medias. {a_result.info()}"
+                )
                 continue
 
             results.append(a_result.result())

@@ -10,8 +10,6 @@ export * from "./audio/queueLogic";
 export { type Station } from "./models/types/station";
 export { type Vocabulary } from "./models/types/vocabulary";
 
-export * from "./services/mediaService";
-
 export * from "./models/types/api";
 export * from "./models/types/http";
 export * from "./models/types/media";

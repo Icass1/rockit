@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
     BaseAlbumWithoutSongsResponse,
-    BasePlaylistResponse,
+    BasePlaylistWithoutMediasResponse,
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
@@ -31,7 +31,11 @@ function CardShell({ children }: { children: React.ReactNode }) {
     return <div className="mx-auto w-full max-w-62.5">{children}</div>;
 }
 
-export function PlaylistCard({ playlist }: { playlist: BasePlaylistResponse }) {
+export function PlaylistCard({
+    playlist,
+}: {
+    playlist: BasePlaylistWithoutMediasResponse;
+}) {
     return (
         <CardShell>
             <MediaContextMenu
@@ -141,7 +145,11 @@ export function VideoCard({ video: _video }: { video: BaseVideoResponse }) {
 }
 
 /** Square song card — used only inside the masonry "All" view. */
-export function SongCard({ song: _song }: { song: BaseSongWithoutAlbumResponse }) {
+export function SongCard({
+    song: _song,
+}: {
+    song: BaseSongWithoutAlbumResponse;
+}) {
     const $song = useMedia(_song);
     const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
     const downloaded = !isDownloadable($song) || $song.downloaded;
@@ -188,7 +196,11 @@ export function SongCard({ song: _song }: { song: BaseSongWithoutAlbumResponse }
 }
 
 /** Square station card — used only inside the masonry "All" view. */
-export function StationCard({ station: _station }: { station: BaseStationResponse }) {
+export function StationCard({
+    station: _station,
+}: {
+    station: BaseStationResponse;
+}) {
     const $station = useMedia(_station);
 
     const handlePlay = () => {

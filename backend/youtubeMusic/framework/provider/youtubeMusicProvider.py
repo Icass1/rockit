@@ -15,20 +15,23 @@ from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
 # Core responses.
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from backend.core.responses.searchResponse import (
     BaseSearchResultsItem,
     ArtistSearchResultsItem,
 )
-from backend.core.responses.basePlaylistResponse import (
-    BasePlaylistResponse,
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
     PlaylistResponseItem,
 )
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
-from backend.core.responses.baseArtistResponse import BaseArtistResponse
-from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.basePlaylistWithoutMediasResponse import (
+    BasePlaylistWithoutMediasResponse,
+)
 
 # Youtube Music utils.
 from backend.youtubeMusic.utils.youtubeMusicApi import (
@@ -192,12 +195,12 @@ class YoutubeMusicProvider(BaseProvider):
         return AResult(code=AResultCode.OK, message="OK", result=result)
 
     @time_it
-    async def get_playlists_async(
+    async def get_playlists_with_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: List[str]
-    ) -> AResult[List[BasePlaylistResponse]]:
+    ) -> AResult[List[BasePlaylistWithMediasResponse]]:
         """Get YouTube Music playlists by public_ids."""
 
-        results: List[BasePlaylistResponse] = []
+        results: List[BasePlaylistWithMediasResponse] = []
         for public_id in public_ids:
             a_result_playlist: AResult[YoutubeMusicPlaylist] = (
                 await YoutubeMusicApi.get_playlist_info_async(playlist_id=public_id)
@@ -256,7 +259,7 @@ class YoutubeMusicProvider(BaseProvider):
                 )
 
             results.append(
-                BasePlaylistResponse(
+                BasePlaylistWithMediasResponse(
                     type="playlist",
                     description=playlist.description,
                     provider="YouTube Music",
@@ -265,6 +268,42 @@ class YoutubeMusicProvider(BaseProvider):
                     providerUrl=f"https://music.youtube.com/playlist?list={public_id}",
                     name=playlist.title,
                     medias=song_responses,
+                    contributors=[],
+                    imageUrl=playlist.thumbnail_url,
+                    owner="",
+                )
+            )
+
+        return AResult(code=AResultCode.OK, message="OK", result=results)
+
+    @time_it
+    async def get_playlists_without_medias_async(
+        self, session: AsyncSession, user_id: int, public_ids: List[str]
+    ) -> AResult[List[BasePlaylistWithoutMediasResponse]]:
+        """Get YouTube Music playlists by public_ids without medias."""
+
+        results: List[BasePlaylistWithoutMediasResponse] = []
+        for public_id in public_ids:
+            a_result_playlist: AResult[YoutubeMusicPlaylist] = (
+                await YoutubeMusicApi.get_playlist_info_async(playlist_id=public_id)
+            )
+            if a_result_playlist.is_not_ok():
+                logger.error(
+                    f"Error getting YouTube Music playlist. {a_result_playlist.info()}"
+                )
+                continue
+
+            playlist: YoutubeMusicPlaylist = a_result_playlist.result()
+
+            results.append(
+                BasePlaylistWithoutMediasResponse(
+                    type="playlist",
+                    description=playlist.description,
+                    provider="YouTube Music",
+                    publicId=public_id,
+                    url=f"/youtube-music/playlist/{public_id}",
+                    providerUrl=f"https://music.youtube.com/playlist?list={public_id}",
+                    name=playlist.title,
                     contributors=[],
                     imageUrl=playlist.thumbnail_url,
                     owner="",
@@ -399,8 +438,8 @@ class YoutubeMusicProvider(BaseProvider):
                     result=a_result_artist.result(),
                 )
         elif "youtube-music/playlist" in internal_path:
-            a_result_playlists: AResult[List[BasePlaylistResponse]] = (
-                await self.get_playlists_async(
+            a_result_playlists: AResult[List[BasePlaylistWithoutMediasResponse]] = (
+                await self.get_playlists_without_medias_async(
                     session=session, user_id=0, public_ids=[resource_id]
                 )
             )
@@ -414,7 +453,9 @@ class YoutubeMusicProvider(BaseProvider):
                     message=a_result_playlists.message(),
                 )
 
-            playlists: List[BasePlaylistResponse] = a_result_playlists.result()
+            playlists: List[BasePlaylistWithoutMediasResponse] = (
+                a_result_playlists.result()
+            )
             if not playlists:
                 return AResult(
                     code=AResultCode.NOT_FOUND,

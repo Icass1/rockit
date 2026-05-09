@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 
-from backend.core.responses.basePlaylistResponse import BasePlaylistResponse
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 
 
 class UserPlaylistsResponse(BaseModel):
-    playlists: list[BasePlaylistResponse]
+    playlists: list[BasePlaylistWithMediasResponse]

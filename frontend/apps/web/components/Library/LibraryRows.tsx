@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
     BaseAlbumWithoutSongsResponse,
-    BasePlaylistResponse,
+    BasePlaylistWithoutMediasResponse,
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
@@ -97,7 +97,11 @@ export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
     );
 }
 
-export function PlaylistRow({ playlist }: { playlist: BasePlaylistResponse }) {
+export function PlaylistRow({
+    playlist,
+}: {
+    playlist: BasePlaylistWithoutMediasResponse;
+}) {
     return (
         <MediaContextMenu
             media={playlist}

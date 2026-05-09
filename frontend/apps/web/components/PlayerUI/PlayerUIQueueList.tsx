@@ -2,12 +2,7 @@
 
 import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
-import {
-    GripVertical,
-    HardDriveDownload,
-    ListX,
-    PlayCircle,
-} from "lucide-react";
+import { GripVertical, ListX, PlayCircle } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";

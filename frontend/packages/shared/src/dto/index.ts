@@ -42,9 +42,13 @@ export {
     type BasePlaylistForPlaylistResponse,
 } from "./basePlaylistForPlaylistResponse";
 export {
-    BasePlaylistResponseSchema,
-    type BasePlaylistResponse,
-} from "./basePlaylistResponse";
+    BasePlaylistWithMediasResponseSchema,
+    type BasePlaylistWithMediasResponse,
+} from "./basePlaylistWithMediasResponse";
+export {
+    BasePlaylistWithoutMediasResponseSchema,
+    type BasePlaylistWithoutMediasResponse,
+} from "./basePlaylistWithoutMediasResponse";
 export {
     BaseSearchResultsItemSchema,
     type BaseSearchResultsItem,

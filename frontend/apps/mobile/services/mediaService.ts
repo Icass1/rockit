@@ -3,10 +3,8 @@ import {
     BaseAlbumWithSongsResponseSchema,
     BasePlaylistWithMediasResponse,
     BasePlaylistWithMediasResponseSchema,
-    BaseSongWithAlbumResponse,
-    BaseSongWithAlbumResponseSchema,
-} from "@/dto";
-import { apiFetch } from "@/lib/utils/apiFetch";
+} from "@/shared/dto";
+import { apiFetch } from "@/lib/api";
 
 export async function getAlbumAsync(
     publicId: string
@@ -16,20 +14,6 @@ export async function getAlbumAsync(
         BaseAlbumWithSongsResponseSchema
     );
 
-    if (response.isOk()) {
-        return response.result;
-    } else {
-        console.error("Error getting album", response.message, response.detail);
-    }
-}
-
-export async function getSongAsync(
-    publicId: string
-): Promise<BaseSongWithAlbumResponse | undefined> {
-    const response = await apiFetch(
-        `/media/song/${publicId}`,
-        BaseSongWithAlbumResponseSchema
-    );
     if (response.isOk()) {
         return response.result;
     } else {

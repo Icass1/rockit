@@ -3,7 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BasePlaylistResponseSchema, CreatePlaylistRequestSchema } from "@/dto";
+import {
+    BasePlaylistWithoutMediasResponseSchema,
+    CreatePlaylistRequestSchema,
+} from "@/dto";
 import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -29,7 +32,7 @@ export default function NewPlaylistButton() {
             const res = await apiPostFetch(
                 "/default/playlist/create",
                 CreatePlaylistRequestSchema,
-                BasePlaylistResponseSchema,
+                BasePlaylistWithoutMediasResponseSchema,
                 {
                     name: name.trim(),
                     description: null,

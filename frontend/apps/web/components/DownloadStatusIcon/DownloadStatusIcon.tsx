@@ -13,9 +13,15 @@ export function DownloadStatusIcon({ publicId }: { publicId: string }) {
             setProgress(event.completed < 100 ? event.completed : null);
         };
 
-        rockIt.eventManager.addEventListener(EEvent.MediaDownloadStatus, handler);
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaDownloadStatus,
+            handler
+        );
         return () => {
-            rockIt.eventManager.removeEventListener(EEvent.MediaDownloadStatus, handler);
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaDownloadStatus,
+                handler
+            );
         };
     }, [publicId]);
 
@@ -25,7 +31,14 @@ export function DownloadStatusIcon({ publicId }: { publicId: string }) {
 
     return (
         <svg width="18" height="18" viewBox="0 0 20 20" className="shrink-0">
-            <circle cx="10" cy="10" r="8" fill="none" stroke="#404040" strokeWidth="2" />
+            <circle
+                cx="10"
+                cy="10"
+                r="8"
+                fill="none"
+                stroke="#404040"
+                strokeWidth="2"
+            />
             <circle
                 cx="10"
                 cy="10"

@@ -49,6 +49,11 @@
             "path": "frontend/apps/web/components/RenderList",
             "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
+        },
+        {
+            "path": "backend/core/requests/addFromUrlRequest.py",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
         }
     ]
 }

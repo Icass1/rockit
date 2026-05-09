@@ -146,8 +146,6 @@ async def import_vocabulary() -> None:
 
 
 async def main() -> None:
-    logger.info("Future CLI in progress")
-
     from backend.core.access.db import rockit_db
 
     await rockit_db.wait_for_session_local_async()
@@ -176,10 +174,12 @@ async def main() -> None:
             elif command == "reinit":
                 await rockit_db.reinit()
 
-            elif command == "zod":
-                from backend.utils.zod_generator import generate_zod_schemas
+            elif command == "models":
+                from backend.utils.zodGenerator import generate_zod_schemas
+                from backend.utils.httpMethodsGenerator import http_methods_generator
 
                 await generate_zod_schemas()
+                await http_methods_generator()
 
             elif command == "import-vocabulary":
                 await import_vocabulary()

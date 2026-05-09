@@ -1,14 +1,11 @@
 import {
     EQueueType,
     ERepeatMode,
-    OkResponseSchema,
+    Http,
     SessionResponse,
-    SessionResponseSchema,
-    UpdateLangRequestSchema,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
-import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class UserManager {
     private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
@@ -18,7 +15,7 @@ export class UserManager {
     async init() {
         if (typeof window === "undefined") return;
 
-        const res = await apiFetch("/user/session", SessionResponseSchema);
+        const res = await Http.getSession();
 
         if (res.isOk()) {
             this._userAtom.set(res.result);
@@ -53,14 +50,7 @@ export class UserManager {
     }
 
     async setLangAsync(langCode: string) {
-        const res = await apiPostFetch(
-            "/user/lang",
-            UpdateLangRequestSchema,
-            OkResponseSchema,
-            {
-                lang: langCode,
-            }
-        );
+        const res = await Http.updateLang({ lang: langCode });
 
         if (res.isOk()) {
             rockIt.notificationManager.notifySuccess(
@@ -98,7 +88,7 @@ export class UserManager {
     }
 
     async signOut() {
-        const response = await apiFetch("/auth/logout", OkResponseSchema);
+        const response = await Http.logoutUser();
         if (response.isOk()) {
             this._userAtom.set(undefined);
             rockIt.searchManager.clearResults();

@@ -14,7 +14,7 @@ router = APIRouter(prefix="/youtube-music", tags=["Youtube Music"])
 
 
 @router.get("/audio/{public_id}")
-async def get_audio_async(request: Request, public_id: str) -> Response:
+async def get_youtube_music_audio_async(request: Request, public_id: str) -> Response:
     """Stream audio file with range support for HTML audio element seeking."""
     session = DBSessionMiddleware.get_session(request=request)
 

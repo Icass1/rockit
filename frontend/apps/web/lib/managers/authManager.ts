@@ -1,13 +1,6 @@
-import {
-    LoginRequestSchema,
-    LoginResponseSchema,
-    RegisterRequestSchema,
-    RegisterResponseSchema,
-    SessionResponseSchema,
-} from "@/dto";
+import { Http } from "@rockit/packages/shared";
 import { getUserInClient } from "@/lib/getUserInClient";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export interface AuthResult {
     success: boolean;
@@ -16,21 +9,16 @@ export interface AuthResult {
 
 export class AuthManager {
     async isLoggedInAsync(): Promise<boolean> {
-        const res = await apiFetch("/user/session", SessionResponseSchema);
+        const res = await Http.getSession();
         return res.isOk();
     }
 
     async loginAsync(username: string, password: string): Promise<AuthResult> {
-        const res = await apiPostFetch(
-            "/auth/login",
-            LoginRequestSchema,
-            LoginResponseSchema,
-            {
-                username,
-                password,
-                platform: "WEB",
-            }
-        );
+        const res = await Http.login({
+            username,
+            password,
+            platform: "WEB",
+        });
 
         if (res.isOk()) {
             const session = await getUserInClient();
@@ -48,17 +36,12 @@ export class AuthManager {
         password: string,
         repeatPassword: string
     ): Promise<AuthResult> {
-        const res = await apiPostFetch(
-            "/auth/register",
-            RegisterRequestSchema,
-            RegisterResponseSchema,
-            {
-                username,
-                password,
-                repeatPassword,
-                platform: "WEB",
-            }
-        );
+        const res = await Http.register({
+            username,
+            password,
+            repeatPassword,
+            platform: "WEB",
+        });
 
         if (res.isOk()) {
             const session = await getUserInClient();

@@ -1,14 +1,9 @@
-import {
-    DownloadProgressMessage,
-    EWebSocketMessage,
-    StartDownloadRequestSchema,
-    StartDownloadResponseSchema,
-} from "@rockit/shared";
+import { Http } from "@rockit/packages/shared";
+import { DownloadProgressMessage, EWebSocketMessage } from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { EEvent } from "@/models/enums/events";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import { apiPostFetch } from "@/lib/utils/apiFetch";
 
 export interface DownloadInfo {
     publicId: string;
@@ -39,15 +34,10 @@ export class DownloaderManager {
 
     async startDownloadAsync(publicId: string, name: string) {
         try {
-            const response = await apiPostFetch(
-                "/downloader/start-downloads",
-                StartDownloadRequestSchema,
-                StartDownloadResponseSchema,
-                {
-                    ids: [publicId], // The API expects an array of IDs/URLs
-                    title: name,
-                }
-            );
+            const response = await Http.startDownload({
+                ids: [publicId], // The API expects an array of IDs/URLs
+                title: name,
+            });
 
             if (response.isOk()) {
                 rockIt.notificationManager.notifySuccess(
@@ -104,15 +94,10 @@ export class DownloaderManager {
     }
 
     async downloadMediaAsync(publicIds: string[], name: string) {
-        const response = await apiPostFetch(
-            "/downloader/start-downloads",
-            StartDownloadRequestSchema,
-            StartDownloadResponseSchema,
-            {
-                ids: publicIds,
-                title: name,
-            }
-        );
+        const response = await Http.startDownload({
+            ids: publicIds,
+            title: name,
+        });
 
         if (response.isOk()) {
             rockIt.notificationManager.notifySuccess(

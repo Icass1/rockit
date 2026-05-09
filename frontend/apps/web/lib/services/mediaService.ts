@@ -1,20 +1,14 @@
 import {
     BaseAlbumWithSongsResponse,
-    BaseAlbumWithSongsResponseSchema,
     BasePlaylistWithMediasResponse,
-    BasePlaylistWithMediasResponseSchema,
     BaseSongWithAlbumResponse,
-    BaseSongWithAlbumResponseSchema,
 } from "@/dto";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { Http } from "@rockit/shared";
 
 export async function getAlbumAsync(
     publicId: string
 ): Promise<BaseAlbumWithSongsResponse | undefined> {
-    const response = await apiFetch(
-        `/media/album/${publicId}`,
-        BaseAlbumWithSongsResponseSchema
-    );
+    const response = await Http.getAlbum(publicId);
 
     if (response.isOk()) {
         return response.result;
@@ -26,10 +20,7 @@ export async function getAlbumAsync(
 export async function getSongAsync(
     publicId: string
 ): Promise<BaseSongWithAlbumResponse | undefined> {
-    const response = await apiFetch(
-        `/media/song/${publicId}`,
-        BaseSongWithAlbumResponseSchema
-    );
+    const response = await Http.getSong(publicId);
     if (response.isOk()) {
         return response.result;
     } else {
@@ -40,10 +31,7 @@ export async function getSongAsync(
 export async function getPlaylistAsync(
     publicId: string
 ): Promise<BasePlaylistWithMediasResponse | undefined> {
-    const response = await apiFetch(
-        `/media/playlist/${publicId}`,
-        BasePlaylistWithMediasResponseSchema
-    );
+    const response = await Http.getPlaylist(publicId);
     console.log(response);
 
     if (response.isOk()) {

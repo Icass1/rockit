@@ -17,8 +17,8 @@ export default function useMedia<T extends TMedia>(media: T) {
 
             rockIt.mediaManager.getMedia(data.publicId).then((data) => {
                 if (data.isOk()) {
-                    if (data.result.type === media.type)
-                        setMedia(data.result as T);
+                    if (data.result.media.type === media.type)
+                        setMedia(data.result.media as T);
                 } else {
                     console.error(
                         "Error gettting media",

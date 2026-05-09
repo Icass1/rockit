@@ -2,7 +2,6 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { HomeStatsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
@@ -37,12 +36,8 @@ function useOnClient<T>(fn: () => T, initialValue: T): T {
     );
 }
 
-interface HomeClientProps {
-    initialStats?: HomeStatsResponse | null;
-}
-
-export default function HomeClient({ initialStats }: HomeClientProps) {
-    const data = useHomeData(initialStats);
+export default function HomeClient() {
+    const data = useHomeData();
     const router = useRouter();
     const previousMonthKey = useOnClient(getPreviousMonthKey, null);
 

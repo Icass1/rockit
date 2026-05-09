@@ -1,17 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import {
-    AllBuildsResponseSchema,
-    BuildResponse,
-    CompleteChunkedUploadRequestSchema,
-    StartChunkedUploadRequestSchema,
-    StartChunkedUploadResponseSchema,
-    UploadApkResponseSchema,
-    UploadChunkRequestSchema,
-    UploadChunkResponseSchema,
-} from "@/dto";
+import { BuildResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { Http } from "@rockit/packages/shared";
 import {
     Download,
     Loader2,
@@ -26,7 +18,6 @@ import {
 } from "lucide-react";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 interface AdminClientProps {
     builds: BuildResponse[];
@@ -52,7 +43,7 @@ export default function AdminClient({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const refreshBuilds = async () => {
-        const result = await apiFetch("/admin/builds", AllBuildsResponseSchema);
+        const result = await Http.getAllBuilds();
         if (result.isOk()) {
             setBuilds(result.result.builds);
         }
@@ -93,17 +84,12 @@ export default function AdminClient({
         const fileSize = selectedFile.size;
         const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
 
-        const startResult = await apiPostFetch(
-            "/admin/builds/upload/start",
-            StartChunkedUploadRequestSchema,
-            StartChunkedUploadResponseSchema,
-            {
-                fileName: selectedFile.name,
-                totalSize: fileSize,
-                version,
-                description: description || null,
-            }
-        );
+        const startResult = await Http.startChunkedUpload({
+            fileName: selectedFile.name,
+            totalSize: fileSize,
+            version,
+            description: description || null,
+        });
 
         if (!startResult.isOk()) {
             const errMsg =
@@ -142,18 +128,13 @@ export default function AdminClient({
                 }
                 const chunkBase64 = btoa(binary);
 
-                const chunkResult = await apiPostFetch(
-                    "/admin/builds/upload/chunk",
-                    UploadChunkRequestSchema,
-                    UploadChunkResponseSchema,
-                    {
-                        uploadId,
-                        chunkIndex,
-                        chunkData: chunkBase64,
-                        chunkSize: chunk.length,
-                        totalChunks,
-                    }
-                );
+                const chunkResult = await Http.uploadChunk({
+                    uploadId,
+                    chunkIndex,
+                    chunkData: chunkBase64,
+                    chunkSize: chunk.length,
+                    totalChunks,
+                });
 
                 if (chunkResult.isNotOk()) {
                     const errMsg =
@@ -171,12 +152,9 @@ export default function AdminClient({
                 setUploadProgress(progress);
             }
 
-            const completeResult = await apiPostFetch(
-                "/admin/builds/upload/complete",
-                CompleteChunkedUploadRequestSchema,
-                UploadApkResponseSchema,
-                { uploadId }
-            );
+            const completeResult = await Http.completeChunkedUpload({
+                uploadId,
+            });
 
             if (completeResult.isNotOk()) {
                 const errMsg =

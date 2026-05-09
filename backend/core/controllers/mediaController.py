@@ -23,6 +23,8 @@ from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
 from backend.core.framework.provider.types import AddFromUrlAResult
 
+from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
+
 from backend.core.responses.mediaResponse import MediaResponse
 from backend.core.responses.urlMatchResponse import UrlMatchResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
@@ -34,6 +36,7 @@ from backend.core.responses.addFromUrlResponse import AddFromUrlResponse
 from backend.core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
 )
+from backend.core.requests import searchRequest
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -135,13 +138,15 @@ async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse
     return a_result.result()
 
 
-@router.get("/search")
-async def search(request: Request, q: str) -> SearchResultsResponse:
+@router.post("/search")
+async def search(
+    request: Request, payload: searchRequest.SearchRequest
+) -> SearchResultsResponse:
     """Search all providers and return aggregated results."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[SearchResultsResponse] = await Media.search_async(
-        session=session, query=q
+        session=session, query=payload.query
     )
     if a_result.is_not_ok():
         raise HTTPException(
@@ -272,11 +277,10 @@ async def match_url(request: Request, url: str) -> UrlMatchResponse:
     return UrlMatchResponse(path=path)
 
 
-@router.get("/url/add")
+@router.post("/url/add")
 async def add_from_url(
     request: Request,
-    url: str,
-    playlist_public_id: str | None = None,
+    payload: AddFromUrlRequest,
     _=Depends(dependency=AuthMiddleware.auth_dependency),
 ) -> AddFromUrlResponse:
     """Add media from a URL to the database and to users library if playlist_public_id
@@ -285,10 +289,10 @@ async def add_from_url(
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
     a_result: AResult[AddFromUrlAResult] = await providers.add_from_url_async(
-        session=session, url=url
+        session=session, url=payload.url
     )
     if a_result.is_not_ok():
-        logger.error(f"Error adding media from URL '{url}'. {a_result.info()}")
+        logger.error(f"Error adding media from URL '{payload.url}'. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
@@ -304,12 +308,12 @@ async def add_from_url(
 
     user: UserRow = a_result_user.result()
 
-    if playlist_public_id:
+    if payload.playlistPublicId:
         from backend.default.framework.playlist import Playlist
 
         await Playlist.add_media_to_playlist_async(
             session=session,
-            playlist_public_id=playlist_public_id,
+            playlist_public_id=payload.playlistPublicId,
             user_id=user.id,
             media_public_id=media.publicId,
         )

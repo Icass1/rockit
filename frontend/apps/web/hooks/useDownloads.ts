@@ -2,16 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { DownloadProgressMessage } from "@rockit/shared";
-import {
-    DownloadsResponseSchema,
-    EWebSocketMessage,
-    MediaResponseSchema,
-    OkResponseSchema,
-    StartDownloadRequestSchema,
-    StartDownloadResponseSchema,
-} from "@rockit/shared";
+import { EWebSocketMessage, Http } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export interface DownloadInfo {
     publicId: string;
@@ -41,10 +33,8 @@ export function useDownloads() {
     // Fetch all download groups from the backend and flatten to a list
     // ---------------------------------------------------------------------
     const fetchDownloads = useCallback(async () => {
-        const response = await apiFetch(
-            "/downloader/downloads",
-            DownloadsResponseSchema
-        );
+        const response = await Http.getDownloads();
+
         if (!response.isOk()) {
             rockIt.notificationManager.notifyError(
                 rockIt.vocabularyManager.vocabulary.ERROR_GETTING_DOWNLOADS
@@ -138,10 +128,11 @@ export function useDownloads() {
     const startDownload = async (url: string) => {
         try {
             // Resolve the external URL to an internal publicId
-            const mediaRes = await apiFetch(
-                `/media/url/add?url=${encodeURIComponent(url)}`,
-                MediaResponseSchema
-            );
+            const mediaRes = await Http.addFromUrl({
+                url,
+                playlistPublicId: null,
+            });
+
             if (!mediaRes.isOk()) {
                 rockIt.notificationManager.notifyError(
                     rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
@@ -149,15 +140,14 @@ export function useDownloads() {
                 console.error(mediaRes.message, mediaRes.detail);
                 return { ok: false };
             }
-            const publicId = mediaRes.result.publicId;
+            const publicId = mediaRes.result.data.publicId;
 
             // Start the actual download process
-            const startRes = await apiPostFetch(
-                "/downloader/start-downloads",
-                StartDownloadRequestSchema,
-                StartDownloadResponseSchema,
-                { ids: [publicId], title: "Download" }
-            );
+            const startRes = await Http.startDownload({
+                ids: [publicId],
+                title: "Download",
+            });
+
             if (!startRes.isOk()) {
                 rockIt.notificationManager.notifyError(
                     rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
@@ -191,12 +181,7 @@ export function useDownloads() {
                 .map((d) => d.groupId)
         );
         for (const groupId of completedGroups) {
-            await apiPostFetch(
-                `/downloader/downloads/${groupId}/seen`,
-                StartDownloadRequestSchema,
-                OkResponseSchema,
-                { ids: [], title: "" }
-            );
+            await Http.markDownloadSeen(groupId);
         }
         setDownloads((prev) => prev.filter((d) => d.completed !== 100));
     };
@@ -208,12 +193,7 @@ export function useDownloads() {
                 .map((d) => d.groupId)
         );
         for (const groupId of failedGroups) {
-            await apiPostFetch(
-                `/downloader/downloads/${groupId}/seen`,
-                StartDownloadRequestSchema,
-                OkResponseSchema,
-                { ids: [], title: "" }
-            );
+            await Http.markDownloadSeen(groupId);
         }
         setDownloads((prev) => prev.filter((d) => d.message !== "Error"));
     };

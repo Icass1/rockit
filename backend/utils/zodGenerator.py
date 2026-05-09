@@ -345,7 +345,7 @@ async def generate_zod_schemas() -> None:
 
     type_name_to_file: dict[str, str] = {v: k for k, v in known_types.items()}
 
-    GENERATED_FILE_HEADER = """// This file is generated using: python3 -m backend zod
+    GENERATED_FILE_HEADER = """// This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 """
 

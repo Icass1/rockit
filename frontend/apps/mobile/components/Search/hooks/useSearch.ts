@@ -1,10 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import {
-    API_ENDPOINTS,
-    SearchResultsResponseSchema,
-    type BaseSearchResultsItem,
-} from "@rockit/shared";
-import { apiFetch } from "@/lib/api";
+import { Http, type BaseSearchResultsItem } from "@rockit/shared";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export interface SearchState {
@@ -40,10 +35,7 @@ export function useSearch() {
                 setSearching(true);
                 setError(null);
 
-                const response = await apiFetch(
-                    `${API_ENDPOINTS.search}?q=${encodeURIComponent(text)}`,
-                    SearchResultsResponseSchema
-                );
+                const response = await Http.search({ query: text });
                 if (response.isOk() && response.result) {
                     setResults(response.result.results);
                 } else {

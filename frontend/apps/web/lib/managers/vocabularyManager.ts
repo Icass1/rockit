@@ -1,10 +1,9 @@
 import {
+    Http,
     UserVocabularyResponse,
-    UserVocabularyResponseSchema,
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
 import { createAtom } from "@/lib/store";
-import { apiFetch } from "@/lib/utils/apiFetch";
 
 function createVocabularyProxy(data: Record<string, string>): VocabularyType {
     return new Proxy(data, {
@@ -35,7 +34,7 @@ export class VocabularyManager {
     }
 
     async getVocabulary() {
-        return await apiFetch("/vocabulary/user", UserVocabularyResponseSchema);
+        return await Http.getUserVocabulary();
     }
 
     setVocabulary(data: UserVocabularyResponse) {

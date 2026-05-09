@@ -72,7 +72,7 @@ async def get_artist_async(request: Request, spotify_id: str) -> BaseArtistRespo
 
 
 @router.get("/playlist/{spotify_id}")
-async def get_playlist_async(
+async def get_spotify_playlist_async(
     request: Request, spotify_id: str
 ) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
@@ -91,7 +91,7 @@ async def get_playlist_async(
 
 
 @router.get("/audio/{spotify_id}")
-async def get_audio_async(request: Request, spotify_id: str) -> Response:
+async def get_spotify_audio_async(request: Request, spotify_id: str) -> Response:
     """Stream audio file with range support for HTML audio element seeking."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result_response: AResult[tuple[bytes, int, str]] = (

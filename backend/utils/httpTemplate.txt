@@ -1,0 +1,199 @@
+// This file is generated using: python3 -m backend models
+// Do not modify this file manually.
+
+import * as dto from "@/dto";
+import { BACKEND_URL } from "@/environment";
+import { EPlatform } from "@/models/enums/platform";
+import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
+import { FastApiError, HttpResult } from "@/models/types/http";
+
+export class Http {
+    static platform: EPlatform;
+
+    private static async baseApiFetchMobileAsync(
+        path: string,
+        options: IApiFetchOptions = {}
+    ): Promise<Response> {
+        const { method = "GET", headers, body, signal } = options;
+
+        const { getItemAsync } = await import("expo-secure-store");
+
+        const SESSION_KEY = "session_id";
+
+        const cookie = await getItemAsync(SESSION_KEY);
+
+        const requestHeaders: Record<string, string> = {
+            "Content-Type": "application/json",
+            ...(typeof headers === "object" && !Array.isArray(headers)
+                ? (headers as Record<string, string>)
+                : {}),
+            ...(cookie ? { Cookie: `session_id=${cookie}` } : {}),
+        };
+
+        return fetch(`${BACKEND_URL}${path}`, {
+            method,
+            headers: requestHeaders,
+            body,
+            credentials: "include",
+            signal,
+        });
+    }
+
+    private static async baseApiFetchWebAsync(
+        path: string,
+        options: IApiFetchOptions = {}
+    ): Promise<Response> {
+        const { method = "GET", headers, body, signal } = options;
+
+        if (!path.startsWith("/")) {
+            console.warn(`'${path}' doesn't start with /`);
+        }
+
+        if (typeof window === "undefined") {
+            const { cookies } = await import("next/headers");
+            const cookieStore = await cookies();
+            const session = cookieStore.get("session_id")?.value;
+
+            const existingHeaders =
+                typeof headers === "object" && !Array.isArray(headers)
+                    ? (headers as Record<string, string>)
+                    : {};
+
+            const requestHeaders: Record<string, string> = {
+                ...existingHeaders,
+                ...(session ? { Cookie: `session_id=${session}` } : {}),
+            };
+
+            return fetch(`${BACKEND_URL}${path}`, {
+                method,
+                headers: requestHeaders,
+                body,
+                cache: "no-store",
+            });
+        }
+
+        return fetch(`${BACKEND_URL}${path}`, {
+            method,
+            headers,
+            body,
+            credentials: "include",
+            signal,
+        });
+    }
+
+    private static baseApiFetchAsync(
+        path: string,
+        options: IApiFetchOptions = {}
+    ): Promise<Response> {
+        if (Http.platform == EPlatform.Web) {
+            return Http.baseApiFetchWebAsync(path, options);
+        } else if ([EPlatform.Android, EPlatform.iOS].includes(Http.platform)) {
+            return Http.baseApiFetchMobileAsync(path, options);
+        } else {
+            throw `Unkown platform ${Http.platform}`;
+        }
+    }
+
+    private static async apiFetchAsync<T>(
+        path: string,
+        schema: TZodSchema<T>,
+        options: IApiFetchOptions = {}
+    ): Promise<HttpResult<T>> {
+        let res: Response;
+
+        try {
+            res = await Http.baseApiFetchAsync(path, options);
+        } catch (err) {
+            return new HttpResult<T>({
+                ok: false,
+                code: 0,
+                message: "Network Error",
+                detail: (err as Error).message,
+            });
+        }
+
+        let json: unknown;
+
+        try {
+            json = await res.json();
+        } catch {
+            return new HttpResult<T>({
+                ok: false,
+                code: res.status,
+                message: res.statusText,
+                detail: "Invalid JSON response from server",
+            });
+        }
+
+        if (!res.ok) {
+            const obj = json as { detail?: FastApiError["detail"] };
+
+            return new HttpResult<T>({
+                ok: false,
+                code: res.status,
+                message: res.statusText,
+                detail: obj.detail ?? "Unknown error",
+            });
+        }
+
+        try {
+            const parsed = schema.parse(json);
+            return new HttpResult<T>({
+                ok: true,
+                code: res.status,
+                message: res.statusText,
+                result: parsed,
+            });
+        } catch (err) {
+            return new HttpResult<T>({
+                ok: false,
+                code: res.status,
+                message: "Validation Error",
+                detail: (err as Error).message,
+            });
+        }
+    }
+
+    private static async apiPostAsync<T, G>(
+        path: string,
+        _requestSchema: TZodSchema<T>,
+        responseSchema: TZodSchema<G>,
+        body: T
+    ): Promise<HttpResult<G>> {
+        return Http.apiFetchAsync(path, responseSchema, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+    }
+
+    private static async apiGetAsync<T>(
+        path: string,
+        responseSchema: TZodSchema<T>
+    ): Promise<HttpResult<T>> {
+        return Http.apiFetchAsync(path, responseSchema, {
+            method: "GET",
+        });
+    }
+
+    private static async apiDeleteAsync<T>(
+        path: string,
+        responseSchema: TZodSchema<T>
+    ): Promise<HttpResult<T>> {
+        return Http.apiFetchAsync(path, responseSchema, {
+            method: "DELETE",
+        });
+    }
+
+    private static async apiPatchAsync<T>(
+        path: string,
+        responseSchema: TZodSchema<T>
+    ): Promise<HttpResult<T>> {
+        return Http.apiFetchAsync(path, responseSchema, {
+            method: "PATCH",
+        });
+    }
+
+
+    <HTTP_METHODS_HERE/>
+}

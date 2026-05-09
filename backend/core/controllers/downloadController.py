@@ -83,7 +83,7 @@ async def get_downloads(request: Request) -> DownloadsResponse:
     return a_result.result()
 
 
-@router.post("/downloads/{public_id}/seen")
+@router.get("/downloads/{public_id}/seen")
 async def mark_download_seen(request: Request, public_id: str) -> OkResponse:
     """Mark a download as seen (delete the download group)."""
 

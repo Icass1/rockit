@@ -1,7 +1,6 @@
 import {
     CurrentQueueMessageRequestItem,
     QueueResponseItem,
-    QueueResponseSchema,
 } from "@/dto";
 import {
     isAlbum,
@@ -16,7 +15,7 @@ import {
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getAlbumAsync } from "@/lib/services/mediaService";
 import { createArrayAtom, createAtom } from "@/lib/store";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { Http } from "@rockit/shared";
 
 export class QueueManager {
     // #region: Atoms
@@ -38,7 +37,7 @@ export class QueueManager {
 
     async init() {
         if (typeof window === "undefined") return;
-        const response = await apiFetch("/user/queue", QueueResponseSchema);
+        const response = await Http.getQueue();
 
         if (response.isNotOk()) {
             rockIt.notificationManager.notifyError(

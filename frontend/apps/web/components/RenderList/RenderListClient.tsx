@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BaseArtistResponse, MediaResponseSchema } from "@/dto";
-import { EMediaType, TMedia } from "@rockit/packages/shared";
+import { BaseArtistResponse } from "@/dto";
+import { EMediaType, Http, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch } from "@/lib/utils/apiFetch";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
 import RenderList from "@/components/RenderList/RenderList";
 
@@ -40,18 +39,17 @@ export default function RenderListClient({
         if (type !== EMediaType.Playlist) return;
 
         const handleMediaAdded = (data: IMediaAddedToPlaylistEvent) => {
-            apiFetch(`/media/${data.publicId}`, MediaResponseSchema).then(
-                (data) => {
-                    if (data.isOk()) setMedia((prev) => [...prev, data.result]);
-                    else {
-                        console.error(
-                            "Failed to fetch media data for added media:",
-                            data.message,
-                            data.detail
-                        );
-                    }
+            Http.getMedia(data.publicId).then((data) => {
+                if (data.isOk())
+                    setMedia((prev) => [...prev, data.result.media]);
+                else {
+                    console.error(
+                        "Failed to fetch media data for added media:",
+                        data.message,
+                        data.detail
+                    );
                 }
-            );
+            });
         };
 
         rockIt.eventManager.addEventListener(

@@ -1,4 +1,4 @@
-// This file is generated using: python3 -m backend zod
+// This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 
 import { z } from "zod";
@@ -8,12 +8,14 @@ import { BasePlaylistWithoutMediasResponseSchema } from "./basePlaylistWithoutMe
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
 import { BaseVideoResponseSchema } from "./baseVideoResponse";
 
-export const MediaResponseSchema = z.union([
-    z.lazy(() => BaseSongWithAlbumResponseSchema),
-    z.lazy(() => BaseAlbumWithSongsResponseSchema),
-    z.lazy(() => BaseArtistResponseSchema),
-    z.lazy(() => BasePlaylistWithoutMediasResponseSchema),
-    z.lazy(() => BaseVideoResponseSchema),
-]);
+export const MediaResponseSchema = z.object({
+    media: z.union([
+        z.lazy(() => BaseSongWithAlbumResponseSchema),
+        z.lazy(() => BaseAlbumWithSongsResponseSchema),
+        z.lazy(() => BaseArtistResponseSchema),
+        z.lazy(() => BasePlaylistWithoutMediasResponseSchema),
+        z.lazy(() => BaseVideoResponseSchema),
+    ]),
+});
 
 export type MediaResponse = z.infer<typeof MediaResponseSchema>;

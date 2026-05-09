@@ -420,7 +420,9 @@ class Media:
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
             return AResult(
-                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaResponse(media=a_result.result()[0]),
             )
 
         elif media_type == MediaTypeEnum.ALBUM:
@@ -430,7 +432,9 @@ class Media:
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
             return AResult(
-                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaResponse(media=a_result.result()[0]),
             )
 
         elif media_type == MediaTypeEnum.ARTIST:
@@ -440,7 +444,9 @@ class Media:
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
             return AResult(
-                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaResponse(media=a_result.result()[0]),
             )
 
         elif media_type == MediaTypeEnum.PLAYLIST:
@@ -450,7 +456,9 @@ class Media:
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
             return AResult(
-                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaResponse(media=a_result.result()[0]),
             )
 
         elif media_type == MediaTypeEnum.VIDEO:
@@ -460,7 +468,9 @@ class Media:
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())
             return AResult(
-                code=AResultCode.OK, message="OK", result=a_result.result()[0]
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaResponse(media=a_result.result()[0]),
             )
 
         logger.error(f"Unknown media type: {media_type}")

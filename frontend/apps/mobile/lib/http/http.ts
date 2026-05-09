@@ -1,10 +1,4 @@
-import {
-    API_ENDPOINTS,
-    HttpResult,
-    LibraryMediasResponseSchema,
-    type LibraryMediasResponse,
-} from "@rockit/shared";
-import { apiFetch } from "@/lib/api";
+import { Http, HttpResult, type LibraryMediasResponse } from "@rockit/shared";
 import { addToLibrary } from "../database/access/libraryAccess";
 import {
     createMediaFromDTO,
@@ -248,14 +242,9 @@ export async function getLibraryMedias(): Promise<
         // Online: call API, return data, and update SQLite
         console.log("[getLibraryMedias] Online mode - calling API...");
 
-        console.log(
-            "[getLibraryMedias] Calling API endpoint:",
-            API_ENDPOINTS.libraryMedias
-        );
-        const response = await apiFetch(
-            API_ENDPOINTS.libraryMedias,
-            LibraryMediasResponseSchema
-        );
+        console.log("[getLibraryMedias] Calling API endpoint:");
+
+        const response = await Http.getUserLibraryMedias();
 
         if (response.isOk()) {
             console.log("[getLibraryMedias] API call successful!");

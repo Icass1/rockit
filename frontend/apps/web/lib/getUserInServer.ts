@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
-import { SessionResponseSchema, type SessionResponse } from "@/dto";
+import { type SessionResponse } from "@/dto";
 import { BACKEND_URL } from "@/environment";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { Http } from "@rockit/packages/shared";
 
 export async function getUserInServer(): Promise<SessionResponse | undefined> {
     const cookieStore = await cookies();
@@ -12,7 +12,7 @@ export async function getUserInServer(): Promise<SessionResponse | undefined> {
         headers.Cookie = `session_id=${sessionId}`;
     }
 
-    const session = await apiFetch("/user/session", SessionResponseSchema);
+    const session = await Http.getSession();
 
     if (session.isOk()) return session.result;
 

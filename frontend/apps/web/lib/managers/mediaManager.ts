@@ -1,25 +1,19 @@
 import {
-    LikedMediaResponseSchema,
-    LikeMediaRequestSchema,
-    MediaResponseSchema,
+    Http,
     TMedia,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
-import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class MediaManager {
     private _likedMediaAtom = createArrayAtom<string>([]);
 
     getMedia(publicId: string) {
-        return apiFetch(`/media/${publicId}`, MediaResponseSchema);
+        return Http.getMedia(publicId);
     }
 
     async fetchLikedMedia() {
-        const res = await apiFetch(
-            "/user/liked-media",
-            LikedMediaResponseSchema
-        );
+        const res = await Http.getLikedMedia();
 
         if (res.isOk()) {
             this._likedMediaAtom.set(res.result.media);
@@ -39,14 +33,7 @@ export class MediaManager {
         const current = this._likedMediaAtom.get();
         const isLiked = current.includes(publicId);
 
-        const res = await apiPostFetch(
-            `/user/like/media`,
-            LikeMediaRequestSchema,
-            LikedMediaResponseSchema,
-            {
-                publicIds: [publicId],
-            }
-        );
+        const res = await Http.likeMediaAsync({ publicIds: [publicId] });
 
         if (res.isOk()) {
             this._likedMediaAtom.set(

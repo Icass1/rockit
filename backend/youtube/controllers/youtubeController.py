@@ -183,7 +183,9 @@ async def stream_audio_async(request: Request, youtube_id: str):
 
 
 @router.get("/video/{youtube_id}")
-async def get_video_async(request: Request, youtube_id: str) -> YoutubeVideoResponse:
+async def get_youtube_video_async(
+    request: Request, youtube_id: str
+) -> YoutubeVideoResponse:
     """TODO"""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)

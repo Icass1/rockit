@@ -1,10 +1,14 @@
-// This file is generated using: python3 -m backend zod
+// This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 
 export {
     AddContributorRequestSchema,
     type AddContributorRequest,
 } from "./addContributorRequest";
+export {
+    AddFromUrlRequestSchema,
+    type AddFromUrlRequest,
+} from "./addFromUrlRequest";
 export {
     AddFromUrlResponseSchema,
     type AddFromUrlResponse,
@@ -157,6 +161,7 @@ export {
     MediaEndedMessageRequestSchema,
     type MediaEndedMessageRequest,
 } from "./mediaEndedMessageRequest";
+export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {
     PlaylistContributorResponseSchema,
@@ -180,6 +185,7 @@ export {
     RemoveContributorRequestSchema,
     type RemoveContributorRequest,
 } from "./removeContributorRequest";
+export { SearchRequestSchema, type SearchRequest } from "./searchRequest";
 export {
     SearchResultsResponseSchema,
     type SearchResultsResponse,
@@ -329,5 +335,4 @@ export {
 export { DictSchema, type Dict } from "./dict";
 export { DownloadStatusSchema, type DownloadStatus } from "./downloadStatus";
 export { ListSchema, type List } from "./list";
-export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
 export { SequenceSchema, type Sequence } from "./sequence";

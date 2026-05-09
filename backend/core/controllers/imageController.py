@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.get("/{path}")
-async def get_session(request: Request, path: str) -> FileResponse:
+async def get_image_async(request: Request, path: str) -> FileResponse:
     image_path: str = os.path.join(IMAGES_PATH, path)
 
     if not os.path.exists(image_path):

@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LibraryListsResponseSchema } from "@/dto";
 import {
-    API_ENDPOINTS,
     EEvent,
     EMediaType,
+    Http,
     IMediaAddedToLibraryEvent,
     IMediaRemovedFromLibraryEvent,
 } from "@rockit/shared";
@@ -63,10 +62,7 @@ export function useLibraryData({
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
-    const { data: _libraryData, loading } = useFetch(
-        API_ENDPOINTS.libraryMedias,
-        LibraryListsResponseSchema
-    );
+    const { data: _libraryData, loading } = useFetch(Http.getLibraryLists);
 
     const [libraryData, setLibraryData] = useState(_libraryData);
 
@@ -122,30 +118,31 @@ export function useLibraryData({
                         if (!libraryData) return;
 
                         const _libraryData = { ...libraryData };
+                        const media = data.result.media;
 
-                        switch (data.result.type) {
+                        switch (media.type) {
                             case EMediaType.Song:
                                 _libraryData.songs = addMediaToArray(
                                     _libraryData.songs,
-                                    data.result
+                                    media
                                 );
                                 break;
                             case EMediaType.Video:
                                 _libraryData.videos = addMediaToArray(
                                     _libraryData.videos,
-                                    data.result
+                                    media
                                 );
                                 break;
                             case EMediaType.Album:
                                 _libraryData.albums = addMediaToArray(
                                     _libraryData.albums,
-                                    data.result
+                                    media
                                 );
                                 break;
                             case EMediaType.Playlist:
                                 _libraryData.playlists = addMediaToArray(
                                     _libraryData.playlists,
-                                    data.result
+                                    media
                                 );
                                 break;
                             default:

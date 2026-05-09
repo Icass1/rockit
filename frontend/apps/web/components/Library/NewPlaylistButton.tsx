@@ -3,14 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-    BasePlaylistWithoutMediasResponseSchema,
-    CreatePlaylistRequestSchema,
-} from "@/dto";
+import { Http } from "@rockit/shared";
 import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiPostFetch } from "@/lib/utils/apiFetch";
 
 export default function NewPlaylistButton() {
     const [showModal, setShowModal] = useState(false);
@@ -29,16 +25,11 @@ export default function NewPlaylistButton() {
 
         setLoading(true);
         try {
-            const res = await apiPostFetch(
-                "/default/playlist/create",
-                CreatePlaylistRequestSchema,
-                BasePlaylistWithoutMediasResponseSchema,
-                {
-                    name: name.trim(),
-                    description: null,
-                    isPublic: true,
-                }
-            );
+            const res = await Http.createPlaylistAsync({
+                name: name.trim(),
+                description: null,
+                isPublic: true,
+            });
 
             if (res.isOk()) {
                 router.push(`/playlist/${res.result.publicId}`);

@@ -396,7 +396,7 @@ async def like_media_async(request: Request, payload: LikeMediaRequest) -> OkRes
     return OkResponse()
 
 
-@router.patch("/lang")
+@router.post("/lang")
 async def update_lang(request: Request, payload: UpdateLangRequest) -> OkResponse:
     """Update user language."""
     session: AsyncSession = DBSessionMiddleware.get_session(request)

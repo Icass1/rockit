@@ -1,4 +1,5 @@
-export { API_ENDPOINTS } from "./api/apiEndpoints";
+export { Http } from "./http/http";
+
 export { AUTH_ENDPOINTS } from "./auth/authEndpoints";
 export * from "./environment";
 

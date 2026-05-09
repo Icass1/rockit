@@ -1,14 +1,12 @@
 import {
-    AddFromUrlResponseSchema,
     EEvent,
     EWebSocketMessage,
+    Http,
     isSearchResult,
-    OkResponseSchema,
     TMedia,
     TMediaWithSearch,
 } from "@rockit/packages/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiDeleteFetch, apiFetch } from "@/lib/utils/apiFetch";
 
 export class LibraryManager {
     static #instance: LibraryManager;
@@ -44,10 +42,10 @@ export class LibraryManager {
     async addMediaToLibrary(media: TMediaWithSearch) {
         if (isSearchResult(media)) {
             const searchItem = media;
-            const res = await apiFetch(
-                `/media/url/add?url=${encodeURIComponent(searchItem.providerUrl)}`,
-                AddFromUrlResponseSchema
-            );
+            const res = await Http.addFromUrl({
+                url: searchItem.providerUrl,
+                playlistPublicId: null,
+            });
 
             if (!res.isOk()) {
                 rockIt.notificationManager.notifyError(res.message);
@@ -60,11 +58,7 @@ export class LibraryManager {
                 );
             }
         } else {
-            const res = await apiFetch(
-                `/user/library/media/${media.publicId}`,
-                OkResponseSchema
-            );
-
+            const res = await Http.addMediaToLibrary(media.publicId);
             if (!res.isOk()) {
                 rockIt.notificationManager.notifyError(res.message);
             } else {
@@ -76,10 +70,7 @@ export class LibraryManager {
     }
 
     async removeMediaFromLibrary(media: TMedia) {
-        const res = await apiDeleteFetch(
-            `/user/library/media/${media.publicId}`,
-            OkResponseSchema
-        );
+        const res = await Http.removeMediaFromLibrary(media.publicId);
         if (res.isNotOk()) {
             rockIt.notificationManager.notifyError(res.message);
         }

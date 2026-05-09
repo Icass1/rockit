@@ -3,14 +3,14 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import { BasePlaylistWithoutMediasResponse } from "@rockit/packages/dto";
 import {
+    BasePlaylistWithoutMediasResponse,
+    EMediaContextLocation,
     EMediaType,
     getMediaSubtitle,
     isDownloadable,
     isQueueable,
-} from "@rockit/packages/shared";
-import { EMediaContextLocation } from "@rockit/shared";
+} from "@rockit/shared";
 import {
     ExternalLink,
     HardDriveDownload,

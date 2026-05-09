@@ -1,17 +1,11 @@
-import { BasePlaylistWithoutMediasResponse } from "@rockit/packages/dto";
 import {
-    AddMediaToPlaylistRequestSchema,
-    API_ENDPOINTS,
+    BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
-    BaseSongWithAlbumResponseSchema,
-    BaseVideoResponseSchema,
-    OkResponseSchema,
+    Http,
     TMedia,
-    UserPlaylistsResponseSchema,
 } from "@rockit/shared";
 import { EEvent } from "@/models/enums/events";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class PlaylistManager {
     async playPlaylist(
@@ -31,37 +25,25 @@ export class PlaylistManager {
     }
 
     async getUserPlaylistsAsync() {
-        return await apiFetch(
-            API_ENDPOINTS.userPlaylists,
-            UserPlaylistsResponseSchema
-        );
+        return await Http.getUserPlaylistsAsync();
     }
 
     async addMediaToPlaylist(
         media: TMedia,
         playlist: BasePlaylistWithoutMediasResponse
     ) {
-        return await apiPostFetch(
-            `/default/playlist/${playlist.publicId}/media`,
-            AddMediaToPlaylistRequestSchema,
-            OkResponseSchema,
-            {
-                mediaPublicId: media.publicId,
-            }
-        );
+        return await Http.addMediaToPlaylistAsync(playlist.publicId, {
+            mediaPublicId: media.publicId,
+        });
     }
 
-    async addMediaToPlaylist(
+    async removeMediaFromPlaylist(
         media: TMedia,
         playlist: BasePlaylistWithoutMediasResponse
     ) {
-        return await apiPostFetch(
-            `/default/playlist/${playlist.publicId}/media`,
-            AddMediaToPlaylistRequestSchema,
-            OkResponseSchema,
-            {
-                mediaPublicId: media.publicId,
-            }
+        return await Http.removeMediaFromPlaylistAsync(
+            playlist.publicId,
+            media.publicId
         );
     }
 
@@ -69,31 +51,46 @@ export class PlaylistManager {
         url: string,
         playlistPublicId?: string
     ): Promise<void> {
-        const query = playlistPublicId
-            ? `?url=${url}&playlist_public_id=${playlistPublicId}`
-            : `?url=${url}`;
+        const mediaRes = await Http.addFromUrl({
+            url,
+            playlistPublicId: playlistPublicId ?? null,
+        });
 
-        const media = await apiFetch(
-            `/media/url/add${query}`,
-            BaseSongWithAlbumResponseSchema.or(BaseVideoResponseSchema)
-        );
-
-        if (media.isOk()) {
-            rockIt.notificationManager.notifyInfo("Media added successfully!");
-
-            if (playlistPublicId) {
-                rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToPlaylist, {
-                    publicId: media.result.publicId,
-                    playlistPublicId,
-                });
-            }
-        } else {
+        if (!mediaRes.isOk()) {
             rockIt.notificationManager.notifyError("Failed to add media.");
             console.error(
                 "Error adding media to playlist",
-                media.message,
-                media.detail
+                mediaRes.message,
+                mediaRes.detail
             );
+            return;
+        }
+
+        const media = mediaRes.result.data;
+
+        if (playlistPublicId) {
+            const addRes = await Http.addMediaToPlaylistAsync(playlistPublicId, {
+                mediaPublicId: media.publicId,
+            });
+
+            if (addRes.isOk()) {
+                rockIt.notificationManager.notifyInfo(
+                    "Media added successfully!"
+                );
+                rockIt.eventManager.dispatchEvent(
+                    EEvent.MediaAddedToPlaylist,
+                    {
+                        publicId: media.publicId,
+                        playlistPublicId,
+                    }
+                );
+            } else {
+                rockIt.notificationManager.notifyError(
+                    "Failed to add media."
+                );
+            }
+        } else {
+            rockIt.notificationManager.notifyInfo("Media added successfully!");
         }
     }
 }

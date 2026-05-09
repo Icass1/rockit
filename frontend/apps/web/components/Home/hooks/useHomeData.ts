@@ -1,4 +1,5 @@
-import { BaseSongWithAlbumResponse, HomeStatsResponseSchema } from "@/dto";
+import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
+import { Http } from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
 
 export interface HomeData {
@@ -12,9 +13,7 @@ export interface HomeData {
     isEmpty: boolean;
 }
 
-function transformStats(
-    dataResponse: NonNullable<ReturnType<typeof HomeStatsResponseSchema.parse>>
-): HomeData {
+function transformStats(dataResponse: HomeStatsResponse): HomeData {
     const songsByTimePlayed = dataResponse.songsByTimePlayed.map(
         (song) => song
     );
@@ -48,16 +47,8 @@ function transformStats(
     };
 }
 
-export function useHomeData(
-    initialStats?: Awaited<
-        ReturnType<typeof HomeStatsResponseSchema.parse>
-    > | null
-): HomeData | null {
-    const { data: dataResponse } = useFetch(
-        "/stats/home",
-        HomeStatsResponseSchema
-    );
-    const stats = dataResponse ?? initialStats;
-    if (!stats) return null;
-    return transformStats(stats);
+export function useHomeData(): HomeData | null {
+    const { data: dataResponse } = useFetch(Http.getHomeStats);
+    if (!dataResponse) return null;
+    return transformStats(dataResponse);
 }

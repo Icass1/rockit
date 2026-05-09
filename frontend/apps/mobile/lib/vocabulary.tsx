@@ -6,14 +6,8 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import {
-    OkResponseSchema,
-    UpdateLangRequestSchema,
-    UserVocabularyResponseSchema,
-    type Vocabulary,
-} from "@rockit/shared";
+import { Http, type Vocabulary } from "@rockit/shared";
 import { toasterManager } from "@/lib/toasterManager";
-import { apiFetch, apiPatchFetch } from "./api";
 
 function createVocabularyProxy(data: Record<string, string>): Vocabulary {
     return new Proxy(data, {
@@ -42,10 +36,7 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
 
     const refreshVocabulary = useCallback(async () => {
         setIsLoading(true);
-        const response = await apiFetch(
-            "/vocabulary/user",
-            UserVocabularyResponseSchema
-        );
+        const response = await Http.getUserVocabulary();
 
         if (!response.isOk()) {
             console.error(response.message, response.detail);
@@ -63,12 +54,7 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
 
     const setLanguage = useCallback(
         async (newLang: string) => {
-            const response = await apiPatchFetch(
-                "/user/lang",
-                UpdateLangRequestSchema,
-                OkResponseSchema,
-                { lang: newLang }
-            );
+            const response = await Http.updateLang({ lang: newLang });
             if (response.isOk()) {
                 toasterManager.notifySuccess(vocabulary.LANGUAGE_CHANGED);
             } else {

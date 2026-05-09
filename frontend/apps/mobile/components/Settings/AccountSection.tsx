@@ -1,23 +1,10 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { HttpResult, UpdatePasswordRequestSchema } from "@rockit/shared";
-import type { TZodSchema } from "@rockit/shared";
+import { Http } from "@rockit/shared";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
-import { apiFetch } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
 import SettingRow from "./SettingRow";
-
-async function apiPatchNoResponse<T>(
-    path: string,
-    schema: TZodSchema<T>,
-    body: T
-): Promise<HttpResult<unknown>> {
-    return apiFetch(path, schema, {
-        method: "PATCH",
-        body: JSON.stringify(body),
-    });
-}
 
 export default function AccountSection() {
     const { username, isLoading } = useSettingsUser();
@@ -40,21 +27,17 @@ export default function AccountSection() {
             return;
         }
         setIsSaving(true);
-        try {
-            await apiPatchNoResponse(
-                "/user/password",
-                UpdatePasswordRequestSchema,
-                { password: newPassword }
-            );
+        const response = await Http.updatePassword({ password: newPassword });
+
+        if (response.isOk()) {
             Alert.alert("Success", "Password updated");
             setNewPassword("");
             setRepeatPassword("");
             setShowPasswordForm(false);
-        } catch {
+        } else {
             Alert.alert(vocabulary.ERROR, "Failed to update password");
-        } finally {
-            setIsSaving(false);
         }
+        setIsSaving(false);
     }
 
     return (

@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-    UserStatsResponseSchema,
-    type UserStatsResponse,
-} from "@rockit/shared";
-import { apiFetch } from "@/lib/api";
+import { type UserStatsResponse } from "@rockit/shared";
 
 export type Range = "7d" | "30d" | "1y" | "custom";
 
@@ -36,22 +32,6 @@ export function useUserStats({
         }
 
         setLoading(true);
-        apiFetch(`/stats/user?${params.toString()}`, UserStatsResponseSchema)
-            .then((response) => {
-                if (response.isNotOk()) {
-                    console.error(response.message, response.detail);
-                }
-                if (!cancelled && response.isOk()) {
-                    setData(response.result);
-                    setLoading(false);
-                }
-            })
-            .catch((err) => {
-                if (!cancelled) {
-                    setError(err.message);
-                    setLoading(false);
-                }
-            });
 
         return () => {
             cancelled = true;

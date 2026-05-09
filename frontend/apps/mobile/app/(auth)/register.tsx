@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import {
-    AUTH_ENDPOINTS,
-    RegisterRequestSchema,
-    RegisterResponseSchema,
-} from "@rockit/shared";
+import { Http } from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -18,7 +14,6 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostFetch } from "@/lib/api";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;
@@ -68,12 +63,12 @@ export default function RegisterScreen() {
         setLoading(true);
 
         try {
-            const result = await apiPostFetch(
-                AUTH_ENDPOINTS.register,
-                RegisterRequestSchema,
-                RegisterResponseSchema,
-                { username, password, repeatPassword, platform: "MOBILE" }
-            );
+            const result = await Http.register({
+                username,
+                password,
+                repeatPassword,
+                platform: "MOBILE",
+            });
 
             if (result.isOk()) {
                 router.replace("/");

@@ -1,24 +1,20 @@
 import { memo, useCallback } from "react";
 import useHandlePlay from "@/callbacks/handlePlay";
 import {
-    API_ENDPOINTS,
     BaseSearchResultsItem,
-    BaseSongWithAlbumResponseSchema,
-    BaseVideoResponseSchema,
     EEvent,
     EventManager,
     getMediaSubtitle,
+    Http,
     isList,
     isPlayable,
     isQueueable,
     isSearchResult,
     isVideo,
     TMedia,
-    UserPlaylistsResponseSchema,
 } from "@rockit/shared";
 import { Download, Heart, Music, Play, PlusCircle } from "lucide-react-native";
 import { Pressable } from "react-native";
-import { apiFetch } from "@/lib/api";
 import {
     ContextMenuConfig,
     ContextMenuOption,
@@ -58,11 +54,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     if (isSearchResult(media)) {
                         toasterManager.notifyWarn(vocabulary.TODO);
                     } else {
-                        const response = await apiFetch(
-                            `${API_ENDPOINTS.addMediaToLibrary}/${media.publicId}`,
-                            BaseSongWithAlbumResponseSchema.or(
-                                BaseVideoResponseSchema
-                            )
+                        const response = await Http.addMediaToLibrary(
+                            media.publicId
                         );
 
                         if (response.isOk()) {
@@ -71,7 +64,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             );
                             EventManager.getInstance().dispatchEvent(
                                 EEvent.MediaAddedToLibrary,
-                                { publicId: response.result.publicId }
+                                { publicId: media.publicId }
                             );
                         } else {
                             toasterManager.notifyError(
@@ -176,10 +169,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 name: string;
                 imageUrl: string;
             }[] = [];
-            const res = await apiFetch(
-                API_ENDPOINTS.userPlaylists,
-                UserPlaylistsResponseSchema
-            );
+            const res = await Http.getUserPlaylistsAsync();
 
             if (res.isOk()) playlists = res.result.playlists;
             else {
@@ -199,12 +189,10 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     icon: Music,
                     onPress: async () => {
                         hide();
-                        const response = await apiFetch(
-                            `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}&playlist_public_id=${encodeURIComponent(pl.publicId)}`,
-                            BaseSongWithAlbumResponseSchema.or(
-                                BaseVideoResponseSchema
-                            )
-                        );
+                        const response = await Http.addFromUrl({
+                            url: item.providerUrl,
+                            playlistPublicId: pl.publicId,
+                        });
                         if (response.isOk()) {
                             toasterManager.notifySuccess(
                                 `${item.name} ${vocabulary.ADDED_TO_PLAYLIST}`
@@ -218,12 +206,12 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
 
                         const eventManager = EventManager.getInstance();
                         eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
-                            publicId: response.result.publicId,
+                            publicId: response.result.data.publicId,
                         });
                         eventManager.dispatchEvent(
                             EEvent.MediaAddedToPlaylist,
                             {
-                                publicId: response.result.publicId,
+                                publicId: response.result.data.publicId,
                                 playlistPublicId: pl.publicId,
                             }
                         );

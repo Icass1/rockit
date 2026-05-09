@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import {
     EEvent,
     EventManager,
-    MediaResponseSchema,
+    Http,
     type IMediaDownloadedEvent,
     type TMedia,
 } from "@rockit/shared";
-import { apiFetch } from "@/lib/api";
 
 export function useMedia<T extends TMedia>(media: T): T {
     const [_media, setMedia] = useState<T>(media);
@@ -19,15 +18,16 @@ export function useMedia<T extends TMedia>(media: T): T {
         const handleDownloaded = (data: IMediaDownloadedEvent) => {
             if (data.publicId !== media.publicId) return;
 
-            apiFetch(`/media/${media.publicId}`, MediaResponseSchema)
+            Http.getMedia(media.publicId)
                 .then((response) => {
                     if (response.isOk()) {
-                        if (response.result.type === media.type) {
-                            setMedia(response.result as T);
+                        const resultMedia = response.result.media;
+                        if (resultMedia.type === media.type) {
+                            setMedia(resultMedia as T);
                         }
                     }
                 })
-                .catch((err) =>
+                .catch((err: Error) =>
                     console.error("useMedia: error refreshing media", err)
                 );
         };

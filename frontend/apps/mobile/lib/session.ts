@@ -1,10 +1,8 @@
 import {
-    AUTH_ENDPOINTS,
     EQueueType,
-    SessionResponseSchema,
+    Http,
     type SessionResponse,
 } from "@rockit/shared";
-import { apiFetch } from "./api";
 import {
     createUser,
     getFirstUser,
@@ -60,10 +58,7 @@ export async function getSession(): Promise<SessionResponse | null> {
     const isOnline = await checkNetworkConnection();
 
     if (isOnline) {
-        const response = await apiFetch(
-            AUTH_ENDPOINTS.session,
-            SessionResponseSchema
-        );
+        const response = await Http.getSession();
 
         if (response.isOk()) {
             saveSessionToSqlite(response.result).catch(console.error);

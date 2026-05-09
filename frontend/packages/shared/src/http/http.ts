@@ -368,12 +368,22 @@ export class Http {
         );
     }
 
-    static async updateCrossfade() {
-        return Http.apiPatchAsync(`/user/crossfade`, dto.OkResponseSchema);
+    static async updateCrossfade(payload: dto.UpdateCrossfadeRequest) {
+        return Http.apiPostAsync(
+            `/user/crossfade`,
+            dto.UpdateCrossfadeRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
     }
 
-    static async updatePassword() {
-        return Http.apiPatchAsync(`/user/password`, dto.OkResponseSchema);
+    static async updatePassword(payload: dto.UpdatePasswordRequest) {
+        return Http.apiPostAsync(
+            `/user/password`,
+            dto.UpdatePasswordRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
     }
 
     static async toggleRandomQueue() {

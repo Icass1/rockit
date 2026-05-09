@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_ENDPOINTS, SessionResponseSchema } from "@rockit/shared";
-import { apiFetch } from "@/lib/api";
+import { Http, HttpResult, type SessionResponse } from "@rockit/shared";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 
@@ -23,8 +22,8 @@ export function useSettingsUser(): SettingsUser {
 
     useEffect(() => {
         let cancelled = false;
-        apiFetch(API_ENDPOINTS.userSession, SessionResponseSchema)
-            .then((response) => {
+        Http.getSession()
+            .then((response: HttpResult<SessionResponse>) => {
                 if (!response.isOk()) {
                     toasterManager.notifyError(vocabulary.ERROR_GETTING_USER);
                 }

@@ -8,7 +8,7 @@ import {
 } from "@rockit/shared";
 import { ELibraryActiveType } from "@/models/enums/libraryActiveType";
 import { getLibraryMedias } from "@/lib/http/http";
-import { useApiFetch2 } from "@/lib/useApiFetch";
+import { useApiFetch } from "@/lib/useApiFetch";
 
 interface UseLibraryDataResult {
     albums: LibraryListsResponse["albums"];
@@ -32,7 +32,7 @@ export function useLibraryData(options: {
     //     LibraryListsResponseSchema
     // );
 
-    const { data, loading, error } = useApiFetch2(getLibraryMedias);
+    const { data, loading, error } = useApiFetch(getLibraryMedias);
 
     const filtered = useMemo(() => {
         if (!data) return [];

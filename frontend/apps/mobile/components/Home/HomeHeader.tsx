@@ -1,15 +1,12 @@
 import { COLORS } from "@/constants/theme";
-import { SessionResponseSchema } from "@rockit/shared";
+import { Http } from "@rockit/shared";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useGreeting } from "@/hooks/useGreeting";
 import { useApiFetch } from "@/lib/useApiFetch";
 
 export default function HomeHeader() {
     const greeting = useGreeting();
-    const { data: session } = useApiFetch(
-        "/user/session",
-        SessionResponseSchema
-    );
+    const { data: session } = useApiFetch(() => Http.getSession());
     const username = session?.username ?? "Rockit User";
 
     return (

@@ -1,21 +1,8 @@
 import { useCallback } from "react";
-import type {
-    BaseSearchResultsItem,
-    BaseSongWithAlbumResponse,
-    BaseVideoResponse,
-    UserPlaylistsResponse,
-} from "@rockit/shared";
-import {
-    API_ENDPOINTS,
-    BaseSongWithAlbumResponseSchema,
-    BaseVideoResponseSchema,
-    EEvent,
-    EventManager,
-    UserPlaylistsResponseSchema,
-} from "@rockit/shared";
+import type { BaseSearchResultsItem } from "@rockit/shared";
+import { EEvent, EventManager, Http } from "@rockit/shared";
 import { Heart, Music, PlusCircle } from "lucide-react-native";
 import { FlatList, StyleSheet, View } from "react-native";
-import { apiFetch } from "@/lib/api";
 import {
     useContextMenu,
     type ContextMenuConfig,
@@ -45,34 +32,30 @@ export default function SearchSection({
             imageUrl: item.imageUrl,
             title: item.name,
             subtitle: item.artists?.map((a) => a.name).join(", "),
-            options: [
-                {
-                    label: "Add to library",
-                    icon: Heart,
-                    onPress: async () => {
-                        hide();
-                        const result = await apiFetch<
-                            BaseSongWithAlbumResponse | BaseVideoResponse
-                        >(
-                            `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}`,
-                            BaseSongWithAlbumResponseSchema.or(
-                                BaseVideoResponseSchema
-                            )
-                        );
-                        if (result.isOk() && result.result) {
-                            EventManager.getInstance().dispatchEvent(
-                                EEvent.MediaAddedToLibrary,
-                                { publicId: result.result.publicId }
-                            );
-                        }
+                options: [
+                    {
+                        label: "Add to library",
+                        icon: Heart,
+                        onPress: async () => {
+                            hide();
+                            const result = await Http.addFromUrl({
+                                url: item.providerUrl,
+                                playlistPublicId: null,
+                            });
+                            if (result.isOk() && result.result?.data) {
+                                EventManager.getInstance().dispatchEvent(
+                                    EEvent.MediaAddedToLibrary,
+                                    { publicId: result.result.data.publicId }
+                                );
+                            }
+                        },
                     },
-                },
-                {
-                    label: "Add to playlist",
-                    icon: PlusCircle,
-                    onPress: () => showPlaylistPicker(item),
-                },
-            ],
+                    {
+                        label: "Add to playlist",
+                        icon: PlusCircle,
+                        onPress: () => showPlaylistPicker(item),
+                    },
+                ],
         }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [hide, show]
@@ -86,10 +69,7 @@ export default function SearchSection({
                 imageUrl: string;
             }[] = [];
             try {
-                const res = await apiFetch<UserPlaylistsResponse>(
-                    API_ENDPOINTS.userPlaylists,
-                    UserPlaylistsResponseSchema
-                );
+                const res = await Http.getUserPlaylistsAsync();
                 if (res.isOk() && res.result) {
                     playlists = res.result.playlists;
                 }
@@ -107,24 +87,20 @@ export default function SearchSection({
                     icon: Music,
                     onPress: async () => {
                         hide();
-                        const result = await apiFetch<
-                            BaseSongWithAlbumResponse | BaseVideoResponse
-                        >(
-                            `${API_ENDPOINTS.mediaAddFromUrl}?url=${encodeURIComponent(item.providerUrl)}&playlist_public_id=${encodeURIComponent(pl.publicId)}`,
-                            BaseSongWithAlbumResponseSchema.or(
-                                BaseVideoResponseSchema
-                            )
-                        );
-                        if (result.isOk() && result.result) {
+                        const result = await Http.addFromUrl({
+                            url: item.providerUrl,
+                            playlistPublicId: pl.publicId,
+                        });
+                        if (result.isOk() && result.result?.data) {
                             const eventManager = EventManager.getInstance();
                             eventManager.dispatchEvent(
                                 EEvent.MediaAddedToLibrary,
-                                { publicId: result.result.publicId }
+                                { publicId: result.result.data.publicId }
                             );
                             eventManager.dispatchEvent(
                                 EEvent.MediaAddedToPlaylist,
                                 {
-                                    publicId: result.result.publicId,
+                                    publicId: result.result.data.publicId,
                                     playlistPublicId: pl.publicId,
                                 }
                             );

@@ -9,17 +9,11 @@ import {
 import type {
     BaseSongWithoutAlbumResponse,
     BaseVideoResponse,
+    QueueResponseItem,
     TQueueMedia,
 } from "@rockit/shared";
-import {
-    API_ENDPOINTS,
-    ERepeatMode,
-    isVideo,
-    QueueResponseSchema,
-    SessionResponseSchema,
-} from "@rockit/shared";
+import { ERepeatMode, Http, isVideo } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
-import { apiFetch } from "@/lib/api";
 import {
     AudioIntegrationService,
     type LockScreenMetadata,
@@ -235,8 +229,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         async function restoreSession() {
             try {
                 const [queueResponse, sessionResponse] = await Promise.all([
-                    apiFetch(API_ENDPOINTS.userQueue, QueueResponseSchema),
-                    apiFetch(API_ENDPOINTS.userSession, SessionResponseSchema),
+                    Http.getQueue(),
+                    Http.getSession(),
                 ]);
 
                 if (!queueResponse.isOk()) {
@@ -255,14 +249,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 if (queueResponse.result.currentQueueMediaId === null) return;
 
                 const currentItem = queueResponse.result.queue.find(
-                    (item) =>
+                    (item: QueueResponseItem) =>
                         item.queueMediaId ===
                         queueResponse.result.currentQueueMediaId
                 );
                 if (!currentItem) return;
 
                 const queueMedia = queueResponse.result.queue.map(
-                    (item) => item.media
+                    (item: QueueResponseItem) => item.media
                 );
                 const currentMedia = currentItem.media;
 

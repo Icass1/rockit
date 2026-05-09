@@ -420,7 +420,7 @@ async def update_lang(request: Request, payload: UpdateLangRequest) -> OkRespons
     return OkResponse()
 
 
-@router.patch("/crossfade")
+@router.post("/crossfade")
 async def update_crossfade(
     request: Request, payload: UpdateCrossfadeRequest
 ) -> OkResponse:
@@ -450,7 +450,7 @@ async def update_crossfade(
     return OkResponse()
 
 
-@router.patch("/password")
+@router.post("/password")
 async def update_password(
     request: Request, payload: UpdatePasswordRequest
 ) -> OkResponse:

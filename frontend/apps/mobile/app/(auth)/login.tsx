@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import {
-    AUTH_ENDPOINTS,
-    EPlatform,
-    LoginRequestSchema,
-    LoginResponseSchema,
-} from "@rockit/shared";
+import { EPlatform, Http } from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -19,7 +14,6 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { apiPostFetch } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LoginScreen() {
@@ -41,12 +35,11 @@ export default function LoginScreen() {
         setLoading(true);
 
         try {
-            const result = await apiPostFetch(
-                AUTH_ENDPOINTS.login,
-                LoginRequestSchema,
-                LoginResponseSchema,
-                { username, password, platform: "MOBILE" }
-            );
+            const result = await Http.login({
+                username,
+                password,
+                platform: "MOBILE",
+            });
 
             if (result.isOk()) {
                 router.replace("/");

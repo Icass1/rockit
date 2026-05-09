@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
 import { APP_VERSION } from "@/constants/version";
-import { z } from "zod";
-import { apiFetch } from "@/lib/api";
+import { Http } from "@rockit/shared";
 import { useModal } from "@/lib/ModalContext";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 import { UpdateModalContent } from "@/components/UpdateModal";
-
-const LatestVersionSchema = z.object({
-    version: z.string(),
-    apkUrl: z.string(),
-});
 
 function isNewerVersion(remote: string, local: string): boolean {
     const remoteParts = remote.split(".").map(Number);
@@ -33,7 +27,7 @@ export function useVersionCheck() {
     const { show } = useModal();
 
     useEffect(() => {
-        apiFetch("/version/latest", LatestVersionSchema)
+        Http.getLatestVersion()
             .then((response) => {
                 if (response.isOk()) {
                     if (isNewerVersion(response.result.version, APP_VERSION)) {

@@ -1,5 +1,4 @@
 import { BaseSongWithAlbumResponse } from "@/dto";
-import { QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export class AlbumManager {
@@ -11,11 +10,10 @@ export class AlbumManager {
 
     static async playAlbum(
         songs: BaseSongWithAlbumResponse[],
-        listType: QueueListType,
         listPublicId: string,
         startSongPublicId?: string
     ) {
-        rockIt.queueManager.setMedia(songs, listType, listPublicId);
+        rockIt.queueManager.setMedia(songs, listPublicId);
 
         if (startSongPublicId)
             rockIt.queueManager.moveToMedia(startSongPublicId);

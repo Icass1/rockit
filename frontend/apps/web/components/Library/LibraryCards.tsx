@@ -110,7 +110,7 @@ export function VideoCard({ video: _video }: { video: BaseVideoResponse }) {
             openMenuRef.current?.(e.clientX, e.clientY);
             return;
         }
-        rockIt.queueManager.setMedia([$video], "library", $video.publicId);
+        rockIt.queueManager.setMedia([$video], $video.publicId);
         rockIt.queueManager.moveToMedia($video.publicId);
         rockIt.mediaPlayerManager.play();
     };
@@ -159,7 +159,7 @@ export function SongCard({
             openMenuRef.current?.(e.clientX, e.clientY);
             return;
         }
-        rockIt.queueManager.setMedia([$song], "library", $song.publicId);
+        rockIt.queueManager.setMedia([$song], $song.publicId);
         rockIt.queueManager.moveToMedia($song.publicId);
         rockIt.mediaPlayerManager.play();
     };
@@ -204,9 +204,9 @@ export function StationCard({
     const $station = useMedia(_station);
 
     const handlePlay = () => {
-        rockIt.queueManager.setMedia([$station], "library", $station.publicId);
-        rockIt.queueManager.moveToMedia($station.publicId);
-        rockIt.mediaPlayerManager.play();
+        // rockIt.queueManager.setMedia([$station], $station.publicId);
+        // rockIt.queueManager.moveToMedia($station.publicId);
+        // rockIt.mediaPlayerManager.play();
     };
 
     return (

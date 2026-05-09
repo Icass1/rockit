@@ -13,7 +13,6 @@ export { type Vocabulary } from "./models/types/vocabulary";
 export * from "./models/types/api";
 export * from "./models/types/http";
 export * from "./models/types/media";
-export * from "./models/types/rockIt";
 export * from "./models/types/webSocketMessages";
 
 export * from "./models/enums/events";

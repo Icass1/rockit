@@ -91,7 +91,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
         if (downloadInfo?.completed === 100) {
             const playable = [$download].filter(isSongWithAlbum);
             if (playable.length > 0) {
-                rockIt.queueManager.setMedia(playable, "auto-list", "");
+                rockIt.queueManager.setMedia(playable, "");
                 rockIt.queueManager.moveToMedia($download.publicId);
                 rockIt.mediaPlayerManager.play();
             }

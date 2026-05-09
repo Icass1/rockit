@@ -1,15 +1,22 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import { isDownloadable } from "@rockit/packages/shared";
-import { EMediaContextLocation, QueueListType } from "@rockit/shared";
+import { BasePlaylistWithoutMediasResponse } from "@rockit/packages/dto";
+import {
+    EMediaType,
+    getMediaSubtitle,
+    isDownloadable,
+    isQueueable,
+} from "@rockit/packages/shared";
+import { EMediaContextLocation } from "@rockit/shared";
 import {
     ExternalLink,
     HardDriveDownload,
     Library,
     ListEnd,
+    ListIcon,
     ListStart,
     Play,
     PlayCircle,
@@ -28,34 +35,13 @@ import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 
 function getMediaCover(media: TMediaWithSearch): string | undefined {
     return media.imageUrl;
-}
-
-function getMediaTitle(media: TMediaWithSearch): string {
-    return media.name;
-}
-
-function getMediaDescription(media: TMediaWithSearch): string | undefined {
-    if (isSearchResult(media)) return media.artists[0]?.name;
-    return undefined;
-}
-
-function locationToQueueType(location: EMediaContextLocation): QueueListType {
-    switch (location) {
-        case EMediaContextLocation.LIBRARY:
-            return "library";
-        case EMediaContextLocation.HOME:
-            return "auto-list";
-        case EMediaContextLocation.PLAYLIST:
-            return "playlist";
-        case EMediaContextLocation.QUEUE:
-            return "carousel";
-        default:
-            return "auto-list";
-    }
 }
 
 export default function MediaContextMenu({
@@ -71,9 +57,14 @@ export default function MediaContextMenu({
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
+    const [playlists, setPlaylists] = useState<
+        BasePlaylistWithoutMediasResponse[]
+    >([]);
+
     const isSearch = isSearchResult(media);
     const isListMedia = !isSearch && isList(media);
     const isPlayableMedia = !isSearch && isPlayable(media);
+    const isQueueableMedia = !isSearch && isQueueable(media);
     const isNavigableMedia = !isSearch && isNavigable(media);
     const isDownloadableMedia = !isSearch && isDownloadable(media);
     const isNotDownloadedMedia =
@@ -83,16 +74,22 @@ export default function MediaContextMenu({
         !media.downloaded;
     const showDownloadOption = isDownloadableMedia && isNotDownloadedMedia;
 
+    useEffect(() => {
+        rockIt.playlistManager.getUserPlaylistsAsync().then((data) => {
+            if (data.isOk()) {
+                setPlaylists(data.result.playlists);
+            }
+        });
+    }, []);
+
     const handlePlay = () => {
-        if (!isPlayableMedia) return;
-        const playableMedia = media;
-        rockIt.queueManager.setMedia(
-            [playableMedia],
-            locationToQueueType(location),
-            playableMedia.publicId
-        );
-        rockIt.queueManager.moveToMedia(playableMedia.publicId);
-        rockIt.mediaPlayerManager.play();
+        if (isQueueableMedia) {
+            rockIt.queueManager.setMedia([media], media.publicId);
+            rockIt.queueManager.moveToMedia(media.publicId);
+            rockIt.mediaPlayerManager.play();
+        } else {
+            console.log("Media is not queueable.");
+        }
     };
 
     const handleNavigate = () => {
@@ -100,33 +97,33 @@ export default function MediaContextMenu({
         router.push(media.url);
     };
 
-    const handleAddToLibrary = async () => {
+    const handleAddToLibraryAsync = async () => {
         setLoading(true);
         await rockIt.libraryManager.addMediaToLibrary(media);
         setLoading(false);
     };
 
-    const handleRemoveFromLibrary = async () => {
+    const handleRemoveFromLibraryAsync = async () => {
         if (isSearch) return;
         await rockIt.libraryManager.removeMediaFromLibrary(media);
     };
 
-    const handlePlayList = async () => {
+    const handlePlayListAsync = async () => {
         if (!isListMedia) return;
         await rockIt.queueManager.playList(media);
     };
 
-    const handleAddListToQueue = async () => {
+    const handleAddListToQueueAsync = async () => {
         if (!isListMedia) return;
         await rockIt.queueManager.addListToQueueTopAsync(media);
     };
 
-    const handleAddListRandom = async () => {
+    const handleAddListRandomAsync = async () => {
         if (!isListMedia) return;
         await rockIt.queueManager.addListToQueueRandomAsync(media);
     };
 
-    const handleAddListToBottom = async () => {
+    const handleAddListToBottomAsync = async () => {
         if (!isListMedia) return;
         await rockIt.queueManager.addListToQueueBottomAsync(media);
     };
@@ -135,14 +132,28 @@ export default function MediaContextMenu({
         console.warn("TODO: Download ZIP");
     };
 
-    const handleRetryDownload = async () => {
+    const handleRetryDownloadAsync = async () => {
         if (isSearch) return;
         rockIt.mediaManager.downloadMedia(media);
     };
 
-    const handleDownloadMedia = async () => {
+    const handleDownloadMediaAsync = async () => {
         if (isSearch || !isDownloadableMedia) return;
         rockIt.mediaManager.downloadMedia(media);
+    };
+
+    const handleAddToPlaylistAsync = async (
+        media: TMediaWithSearch,
+        playlist: BasePlaylistWithoutMediasResponse
+    ) => {
+        if (isSearchResult(media)) {
+            rockIt.playlistManager.addUrlToPlaylistAsync(
+                media.providerUrl,
+                playlist.publicId
+            );
+        } else {
+            rockIt.playlistManager.addMediaToPlaylist(media, playlist);
+        }
     };
 
     const showPlay = isPlayableMedia;
@@ -161,8 +172,8 @@ export default function MediaContextMenu({
             <ContextMenuTrigger>{children}</ContextMenuTrigger>
             <ContextMenuContent
                 cover={getMediaCover(media)}
-                title={getMediaTitle(media)}
-                description={getMediaDescription(media)}
+                title={media.name}
+                description={getMediaSubtitle(media)}
             >
                 {showPlay && (
                     <ContextMenuOption
@@ -174,19 +185,38 @@ export default function MediaContextMenu({
                     </ContextMenuOption>
                 )}
 
+                <SubContextMenu>
+                    <SubContextMenuTrigger>
+                        <ListIcon />
+                        {$vocabulary.ADD_MEDIA_TO_PLAYLIST}
+                    </SubContextMenuTrigger>
+                    <SubContextMenuContent>
+                        {playlists.map((playlist) => (
+                            <ContextMenuOption
+                                onClick={() =>
+                                    handleAddToPlaylistAsync(media, playlist)
+                                }
+                                key={playlist.publicId}
+                            >
+                                {playlist.name}
+                            </ContextMenuOption>
+                        ))}
+                    </SubContextMenuContent>
+                </SubContextMenu>
+
                 {showNavigate && (
                     <ContextMenuOption onClick={handleNavigate}>
                         <ExternalLink className="h-5 w-5" />
-                        {media.type === "album"
+                        {media.type === EMediaType.Album
                             ? $vocabulary.GO_TO_ALBUM
-                            : media.type === "artist"
+                            : media.type === EMediaType.Artist
                               ? $vocabulary.GO_TO_ARTIST
                               : $vocabulary.OPEN_LIST}
                     </ContextMenuOption>
                 )}
                 {location !== EMediaContextLocation.LIBRARY && (
                     <ContextMenuOption
-                        onClick={handleAddToLibrary}
+                        onClick={handleAddToLibraryAsync}
                         disable={loading}
                     >
                         <Library className="h-5 w-5" />
@@ -197,7 +227,9 @@ export default function MediaContextMenu({
                 {showRemoveFromLibrary && (
                     <>
                         <ContextMenuSplitter />
-                        <ContextMenuOption onClick={handleRemoveFromLibrary}>
+                        <ContextMenuOption
+                            onClick={handleRemoveFromLibraryAsync}
+                        >
                             <Library className="h-5 w-5" />
                             {$vocabulary.REMOVE_FROM_LIBRARY}
                         </ContextMenuOption>
@@ -208,24 +240,24 @@ export default function MediaContextMenu({
                     <>
                         <ContextMenuSplitter />
 
-                        <ContextMenuOption onClick={handlePlayList}>
+                        <ContextMenuOption onClick={handlePlayListAsync}>
                             <PlayCircle className="h-5 w-5" />
                             {$vocabulary.PLAY_LIST}
                         </ContextMenuOption>
 
                         <ContextMenuSplitter />
 
-                        <ContextMenuOption onClick={handleAddListToQueue}>
+                        <ContextMenuOption onClick={handleAddListToQueueAsync}>
                             <ListStart className="h-5 w-5" />
                             {$vocabulary.ADD_LIST_TO_QUEUE}
                         </ContextMenuOption>
 
-                        <ContextMenuOption onClick={handleAddListRandom}>
+                        <ContextMenuOption onClick={handleAddListRandomAsync}>
                             <Shuffle className="h-5 w-5" />
                             {$vocabulary.ADD_LIST_RANDOMLY}
                         </ContextMenuOption>
 
-                        <ContextMenuOption onClick={handleAddListToBottom}>
+                        <ContextMenuOption onClick={handleAddListToBottomAsync}>
                             <ListEnd className="h-5 w-5" />
                             {$vocabulary.ADD_LIST_TO_BOTTOM}
                         </ContextMenuOption>
@@ -244,7 +276,7 @@ export default function MediaContextMenu({
                 {showRetryDownload && (
                     <>
                         <ContextMenuSplitter />
-                        <ContextMenuOption onClick={handleRetryDownload}>
+                        <ContextMenuOption onClick={handleRetryDownloadAsync}>
                             <RefreshCw className="h-5 w-5" />
                             {$vocabulary.RETRY}
                         </ContextMenuOption>
@@ -254,7 +286,7 @@ export default function MediaContextMenu({
                 {showDownloadOption && (
                     <>
                         <ContextMenuSplitter />
-                        <ContextMenuOption onClick={handleDownloadMedia}>
+                        <ContextMenuOption onClick={handleDownloadMediaAsync}>
                             <HardDriveDownload className="h-5 w-5" />
                             {$vocabulary.DOWNLOAD}
                         </ContextMenuOption>

@@ -1,7 +1,12 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { isDownloadable, isPlayable, TMedia } from "@rockit/packages/shared";
+import {
+    isDownloadable,
+    isPlayable,
+    isQueueable,
+    TMedia,
+} from "@rockit/packages/shared";
 import {
     Download,
     ListEnd,
@@ -37,7 +42,10 @@ export default function ListOptionsMenu({
 
     const handlePlay = () => {
         if (!listPublicId || !playableMedia.length) return;
-        rockIt.queueManager.setMedia(playableMedia, "album", listPublicId);
+        rockIt.queueManager.setMedia(
+            playableMedia.filter((m) => isQueueable(m)),
+            listPublicId
+        );
         rockIt.queueManager.setQueueMediaId(0);
         rockIt.mediaPlayerManager.play();
     };

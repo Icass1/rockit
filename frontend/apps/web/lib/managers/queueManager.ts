@@ -1,6 +1,4 @@
 import {
-    BaseSongWithAlbumResponse,
-    BaseVideoResponse,
     CurrentQueueMessageRequestItem,
     QueueResponseItem,
     QueueResponseSchema,
@@ -9,12 +7,14 @@ import {
     isAlbum,
     isAlbumWithSongs,
     isPlaylist,
+    isQueueable,
     shuffleQueue as shuffleQueueLogic,
     TListMedia,
     TPlayableMedia,
+    TQueueMedia,
 } from "@rockit/shared";
-import { QueueListType } from "@/models/types/rockIt";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { getAlbumAsync } from "@/lib/services/mediaService";
 import { createArrayAtom, createAtom } from "@/lib/store";
 import { apiFetch } from "@/lib/utils/apiFetch";
 
@@ -80,10 +80,11 @@ export class QueueManager {
     // #region: Methods
 
     skipBack() {
-        rockIt.webSocketManager.sendSkipClicked({
-            direction: "PREVIOUS",
-            mediaPublicId: "TODO",
-        });
+        if (this.currentMedia?.publicId)
+            rockIt.webSocketManager.sendSkipClicked({
+                direction: "PREVIOUS",
+                mediaPublicId: this.currentMedia.publicId,
+            });
         const currentQueueMediaId = this.currentQueueMediaId;
         const queue = this.queue;
 
@@ -97,10 +98,11 @@ export class QueueManager {
     }
 
     skipForward() {
-        rockIt.webSocketManager.sendSkipClicked({
-            direction: "NEXT",
-            mediaPublicId: "TODO",
-        });
+        if (this.currentMedia?.publicId)
+            rockIt.webSocketManager.sendSkipClicked({
+                direction: "NEXT",
+                mediaPublicId: this.currentMedia.publicId,
+            });
         const currentQueueMediaId = this.currentQueueMediaId;
         const queue = this.queue;
 
@@ -113,11 +115,7 @@ export class QueueManager {
         rockIt.mediaPlayerManager.play();
     }
 
-    setMedia(
-        medias: TPlayableMedia[],
-        _listType: QueueListType,
-        listPublicId: string
-    ) {
+    setMedia(medias: TQueueMedia[], listPublicId: string) {
         const queueData: CurrentQueueMessageRequestItem[] = medias.map(
             (media, index): CurrentQueueMessageRequestItem => {
                 return {
@@ -132,12 +130,8 @@ export class QueueManager {
             queueType: "SORTED",
         });
 
-        const validMedias = medias.filter(
-            (m): m is BaseSongWithAlbumResponse | BaseVideoResponse =>
-                m.type === "song" || m.type === "video"
-        );
         this._queueAtom.set(
-            validMedias.map((media, index) => {
+            medias.map((media, index) => {
                 return {
                     listPublicId: listPublicId,
                     media,
@@ -166,9 +160,9 @@ export class QueueManager {
     setQueueMediaId(queueMediaId: number) {
         this._currentQueueMediaIdAtom.set(queueMediaId);
 
-        const media = this._queueAtom
-            .get()
-            .find((media) => media.queueMediaId == queueMediaId);
+        const queue = this._queueAtom.get();
+
+        const media = queue.find((media) => media.queueMediaId == queueMediaId);
 
         if (!media) {
             rockIt.notificationManager.notifyError(
@@ -176,6 +170,18 @@ export class QueueManager {
             );
             return;
         }
+
+        if (!media.media.downloaded) {
+            console.warn("Current media is not downloaded");
+            const index = queue.indexOf(media);
+            for (let i = 1; i < queue.length; i++) {
+                if (queue[(index + i) % queue.length].media.downloaded) {
+                    this.setQueueMediaId(index + i);
+                    return;
+                }
+            }
+        }
+
         this._currentMediaAtom.set(media.media);
         this._currentListAtom.set(media.listPublicId);
     }
@@ -204,16 +210,40 @@ export class QueueManager {
     }
 
     async playList(media: TListMedia) {
-        console.log(media);
+        const medias = await this.getListMediasAsync(media);
+
+        if (medias.length == 0) return;
+
+        rockIt.queueManager.setMedia(
+            medias.filter((m) => isQueueable(m)),
+            media.publicId
+        );
+        rockIt.queueManager.setQueueMediaId(0);
+        rockIt.mediaPlayerManager.play();
+        rockIt.queueManager.setMedia(
+            medias.filter((m) => isQueueable(m)),
+            media.publicId
+        );
+        rockIt.queueManager.setQueueMediaId(0);
+        rockIt.mediaPlayerManager.play();
+    }
+
+    async getListMediasAsync(media: TListMedia): Promise<TPlayableMedia[]> {
+        const medias: TPlayableMedia[] = [];
+
         if (isAlbumWithSongs(media)) {
-            console.log("album with songs");
+            return media.songs;
         } else if (isAlbum(media)) {
-            console.log("album without songs");
+            const album = await getAlbumAsync(media.publicId);
+
+            if (album) {
+                return album.songs;
+            }
         } else if (isPlaylist(media)) {
-            console.log("album without songs");
+            console.log("playlist without songs");
         }
 
-        throw "(playList) Not implemented method";
+        return medias;
     }
 
     addMediaNext(media: TPlayableMedia) {

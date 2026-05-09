@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 export const AddContributorRequestSchema = z.object({
-    user_public_id: z.string(),
+    userPublicId: z.string(),
     role: z.enum(["OWNER", "EDITOR", "VIEWER"]),
 });
 

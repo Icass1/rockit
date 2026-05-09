@@ -11,7 +11,6 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { EMediaContextLocation } from "@rockit/shared";
-import { TPlayableMedia } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
@@ -136,11 +135,7 @@ export function VideoRow({ video: _video }: { video: BaseVideoResponse }) {
     const $video = useMedia(_video);
 
     const handlePlay = () => {
-        rockIt.queueManager.setMedia(
-            [$video as TPlayableMedia],
-            "library",
-            $video.publicId
-        );
+        rockIt.queueManager.setMedia([$video], $video.publicId);
         rockIt.queueManager.moveToMedia($video.publicId);
         rockIt.mediaPlayerManager.play();
     };
@@ -174,11 +169,7 @@ export function SongRow({
     const $song = useMedia(_song);
 
     const handlePlay = () => {
-        rockIt.queueManager.setMedia(
-            [$song as TPlayableMedia],
-            "library",
-            $song.publicId
-        );
+        rockIt.queueManager.setMedia([$song], $song.publicId);
         rockIt.queueManager.moveToMedia($song.publicId);
         rockIt.mediaPlayerManager.play();
     };
@@ -218,13 +209,12 @@ export function StationRow({
     const $station = useMedia(_station);
 
     const handlePlay = () => {
-        rockIt.queueManager.setMedia(
-            [$station as TPlayableMedia],
-            "library",
-            $station.publicId
-        );
-        rockIt.queueManager.moveToMedia($station.publicId);
-        rockIt.mediaPlayerManager.play();
+        // rockIt.queueManager.setMedia(
+        //     [$station as TPlayableMedia],
+        //     $station.publicId
+        // );
+        // rockIt.queueManager.moveToMedia($station.publicId);
+        // rockIt.mediaPlayerManager.play();
     };
 
     return (

@@ -22,7 +22,7 @@ export default function QuickSelectionsSong({
         // Set the queue with all songs
         const playableSongs = songs.filter(isSongWithAlbum);
         if (playableSongs.length > 0) {
-            rockIt.queueManager.setMedia(playableSongs, "auto-list", "");
+            rockIt.queueManager.setMedia(playableSongs, "");
             rockIt.queueManager.moveToMedia($song.publicId);
             rockIt.mediaPlayerManager.play();
         }

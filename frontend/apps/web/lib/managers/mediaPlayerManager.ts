@@ -70,15 +70,8 @@ export class MediaPlayerManager {
     }
 
     play() {
-        // console.log(
-        //     "MediaPlayerManager.play",
-        //     rockIt.queueManager.currentMedia
-        // );
-
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
-
-        // console.log(currentMedia.type);
 
         if (isVideo(currentMedia)) {
             this.playVideo();
@@ -336,7 +329,7 @@ export class MediaPlayerManager {
     }
 
     private clearAudio() {
-        console.log("MediaPlayerManager.clearAudio");
+        // console.log("MediaPlayerManager.clearAudio");
         if (!this._audio) return;
 
         this._audio.pause();
@@ -347,6 +340,7 @@ export class MediaPlayerManager {
 
     private _sendCurrentMedia(currentMedia: TPlayableMedia) {
         const queueMediaId = rockIt.queueManager.currentQueueMediaId;
+
         if (queueMediaId !== null) {
             rockIt.webSocketManager.sendCurrentMedia({
                 mediaPublicId: currentMedia.publicId,

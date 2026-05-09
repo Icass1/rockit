@@ -3,7 +3,6 @@ import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
 import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
-import { IndexedDBManager } from "@/lib/managers/indexedDBManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
@@ -18,8 +17,6 @@ import { VocabularyManager } from "@/lib/managers/vocabularyManager";
 import { WebSocketManager } from "@/lib/managers/webSocketManger";
 
 export class RockIt {
-    public readonly VERSION = "0.1.0";
-    public readonly BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
         "/playlist-placeholder.png";
     public readonly ALBUM_PLACEHOLDER_IMAGE_URL =
@@ -42,13 +39,12 @@ export class RockIt {
     vocabularyManager = new VocabularyManager();
     stationManager = new StationManager();
     downloaderManager = new DownloaderManager();
-    playlistManager = PlaylistManager;
-    albumManager = AlbumManager;
+    playlistManager = new PlaylistManager();
+    albumManager = new AlbumManager();
     authManager = new AuthManager();
     mediaPlayerManager = new MediaPlayerManager();
     queueManager = new QueueManager();
     playerUIManager = new PlayerUIManager();
-    indexedDBManager = new IndexedDBManager();
     eventManager = new EventManager();
     libraryManager = new LibraryManager();
 

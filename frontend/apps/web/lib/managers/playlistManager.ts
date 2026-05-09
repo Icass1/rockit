@@ -1,21 +1,25 @@
+import { BasePlaylistWithoutMediasResponse } from "@rockit/packages/dto";
 import {
+    AddMediaToPlaylistRequestSchema,
+    API_ENDPOINTS,
     BaseSongWithAlbumResponse,
     BaseSongWithAlbumResponseSchema,
     BaseVideoResponseSchema,
-    QueueListType,
+    OkResponseSchema,
+    TMedia,
+    UserPlaylistsResponseSchema,
 } from "@rockit/shared";
 import { EEvent } from "@/models/enums/events";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { apiFetch } from "@/lib/utils/apiFetch";
+import { apiFetch, apiPostFetch } from "@/lib/utils/apiFetch";
 
 export class PlaylistManager {
-    static async playPlaylist(
+    async playPlaylist(
         songs: BaseSongWithAlbumResponse[],
-        listType: QueueListType,
         listPublicId: string,
         startSongPublicId?: string
     ) {
-        rockIt.queueManager.setMedia(songs, listType, listPublicId);
+        rockIt.queueManager.setMedia(songs, listPublicId);
 
         if (startSongPublicId) {
             rockIt.queueManager.moveToMedia(startSongPublicId);
@@ -26,7 +30,42 @@ export class PlaylistManager {
         rockIt.mediaPlayerManager.play();
     }
 
-    static async addMediaToPlaylistAsync(
+    async getUserPlaylistsAsync() {
+        return await apiFetch(
+            API_ENDPOINTS.userPlaylists,
+            UserPlaylistsResponseSchema
+        );
+    }
+
+    async addMediaToPlaylist(
+        media: TMedia,
+        playlist: BasePlaylistWithoutMediasResponse
+    ) {
+        return await apiPostFetch(
+            `/default/playlist/${playlist.publicId}/media`,
+            AddMediaToPlaylistRequestSchema,
+            OkResponseSchema,
+            {
+                mediaPublicId: media.publicId,
+            }
+        );
+    }
+
+    async addMediaToPlaylist(
+        media: TMedia,
+        playlist: BasePlaylistWithoutMediasResponse
+    ) {
+        return await apiPostFetch(
+            `/default/playlist/${playlist.publicId}/media`,
+            AddMediaToPlaylistRequestSchema,
+            OkResponseSchema,
+            {
+                mediaPublicId: media.publicId,
+            }
+        );
+    }
+
+    async addUrlToPlaylistAsync(
         url: string,
         playlistPublicId?: string
     ): Promise<void> {

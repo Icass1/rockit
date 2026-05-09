@@ -59,6 +59,7 @@ export interface Vocabulary {
     CLEAR_DOWNLOADS: string;
     CLICK_TO_DOWNLOAD: string;
     COMMUNITY_TOP: string;
+    COMPLETED: string;
     COPY_LIST_URL: string;
     COPY_SONG_URL: string;
     CREATE: string;
@@ -72,11 +73,13 @@ export interface Vocabulary {
     DOWNLOAD_APP: string;
     DOWNLOAD_INPUT_PLACEHOLDER: string;
     DOWNLOAD_LIST_TO_DEVICE: string;
+    DOWNLOAD_LIST_TO_SERVER: string;
     DOWNLOAD_MEDIA_TO_DEVICE: string;
     DOWNLOAD_MP3: string;
     DOWNLOAD_SONG_TO_DEVICE: string;
     DOWNLOAD_STARTED: string;
     DOWNLOAD_ZIP: string;
+    DOWNLOADING: string;
     DOWNLOADS: string;
     DURATION: string;
     ENERGY: string;
@@ -87,12 +90,14 @@ export interface Vocabulary {
     ERROR_CREATING_PLAYLIST: string;
     ERROR_ENTER_NAME: string;
     ERROR_GETTING_DOWNLOADS: string;
+    ERROR_GETTING_MEDIA: string;
     ERROR_GETTING_QUEUE: string;
     ERROR_GETTING_USER: string;
     ERROR_LIKING_MEDIA: string;
     ERROR_SEARCHING: string;
     ERROR_STARTING_DOWNLOAD: string;
     ERROR_UNLIKING_MEDIA: string;
+    FAILED: string;
     FAILED_TO_ADD_MEDIA_TO_LIBRARY: string;
     FAILED_TO_ADD_MEDIA_TO_PLAYLIST: string;
     FAILED_TO_CHANGE_LANGUAGE: string;
@@ -198,6 +203,7 @@ export interface Vocabulary {
     REPEAT_ALL: string;
     REPEAT_ONE: string;
     REPEAT_PASSWORD: string;
+    RETRY: string;
     RETURN_BACK_HOME: string;
     SAVING: string;
     SEARCH: string;
@@ -218,6 +224,7 @@ export interface Vocabulary {
     SONGS_FOR_YOU: string;
     SONGS_FROM: string;
     SONGS_LISTENED: string;
+    STARTING: string;
     STATISTICS: string;
     STATS: string;
     STOP: string;
@@ -243,11 +250,4 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    STARTING: string;
-    COMPLETED: string;
-    FAILED: string;
-    DOWNLOADING: string;
-    RETRY: string;
-    DOWNLOAD_LIST_TO_SERVER: string;
-    ERROR_GETTING_MEDIA: string;
 }

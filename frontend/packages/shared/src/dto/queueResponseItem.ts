@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
+import { BaseSongWithoutAlbumResponseSchema } from "./baseSongWithoutAlbumResponse";
 import { BaseVideoResponseSchema } from "./baseVideoResponse";
 
 export const QueueResponseItemSchema = z.object({
@@ -11,6 +12,7 @@ export const QueueResponseItemSchema = z.object({
     media: z.union([
         z.lazy(() => BaseSongWithAlbumResponseSchema),
         z.lazy(() => BaseVideoResponseSchema),
+        z.lazy(() => BaseSongWithoutAlbumResponseSchema),
     ]),
 });
 

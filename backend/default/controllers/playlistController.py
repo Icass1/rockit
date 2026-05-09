@@ -26,13 +26,12 @@ from backend.default.framework.models.playlist import (
     PlaylistMediaAddModel,
     PlaylistContributorAddModel,
 )
-from backend.default.requests.playlistRequest import (
-    CreatePlaylistRequest,
-    UpdatePlaylistRequest,
-    AddMediaToPlaylistRequest,
-    AddContributorRequest,
-)
+
 from backend.default.responses.userPlaylistsResponse import UserPlaylistsResponse
+from backend.default.requests.addContributorRequest import AddContributorRequest
+from backend.default.requests.addMediaToPlaylistRequest import AddMediaToPlaylistRequest
+from backend.default.requests.createPlaylistRequest import CreatePlaylistRequest
+from backend.default.requests.updatePlaylistRequest import UpdatePlaylistRequest
 
 
 async def get_playlist_list_response(
@@ -191,7 +190,7 @@ async def update_playlist_async(
         user_id=user.result().id,
         name=update_request.name,
         description=update_request.description,
-        is_public=update_request.is_public,
+        is_public=update_request.isPublic,
     )
     if a_result.is_not_ok():
         logger.error(f"Error updating playlist. {a_result.info()}")
@@ -261,12 +260,10 @@ async def delete_playlist_async(
     return OkResponse()
 
 
-@router.post(
-    "/{playlist_public_id}/media", response_model=BasePlaylistWithMediasResponse
-)
+@router.post("/{playlist_public_id}/media", response_model=OkResponse)
 async def add_media_to_playlist_async(
     request: Request, playlist_public_id: str, media_request: AddMediaToPlaylistRequest
-) -> BasePlaylistWithMediasResponse:
+) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
     if user.is_not_ok():
@@ -277,7 +274,7 @@ async def add_media_to_playlist_async(
             session=session,
             playlist_public_id=playlist_public_id,
             user_id=user.result().id,
-            media_public_id=media_request.playlist_media_public_id,
+            media_public_id=media_request.mediaPublicId,
         )
     )
     if a_result.is_not_ok():
@@ -299,22 +296,7 @@ async def add_media_to_playlist_async(
             detail=a_result_playlist.message(),
         )
 
-    playlist: PlaylistWithDetailsModel = a_result_playlist.result()
-    a_result_owner = await UserAccess.get_user_from_id(
-        session=session, user_id=playlist.owner_id
-    )
-    owner_name: str = "Unknown"
-    if a_result_owner.is_ok():
-        owner_name = a_result_owner.result().username
-
-    a_result_response: AResult[BasePlaylistWithMediasResponse] = (
-        await Playlist.build_playlist_response_async(
-            session=session, playlist=playlist, owner_name=owner_name
-        )
-    )
-    if a_result_response.is_not_ok():
-        raise HTTPException(status_code=500, detail=a_result_response.message())
-    return a_result_response.result()
+    return OkResponse()
 
 
 @router.delete(
@@ -363,7 +345,7 @@ async def add_contributor_async(
             session=session,
             playlist_public_id=playlist_public_id,
             owner_id=user.result().id,
-            new_user_public_id=contributor_request.user_public_id,
+            new_user_public_id=contributor_request.userPublicId,
             role=contributor_request.role,
         )
     )

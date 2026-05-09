@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { isQueueable } from "@rockit/packages/shared";
 import { EMediaContextLocation } from "@rockit/shared";
 import {
     getMediaDuration,
@@ -79,7 +80,10 @@ export function PlayableMedia({
                 $media.publicId
             );
 
-            rockIt.queueManager.setMedia(playableMedia, "album", listPublicId);
+            rockIt.queueManager.setMedia(
+                playableMedia.filter((m) => isQueueable(m)),
+                listPublicId
+            );
             rockIt.queueManager.moveToMedia($media.publicId);
             rockIt.mediaPlayerManager.play();
         }
@@ -116,11 +120,14 @@ export function PlayableMedia({
                         <p
                             className={`text-md font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
                         >
-                            {$media.name}
+                            {$media.name} {$media.publicId}
                         </p>
                     </div>
                     <div className="flex flex-row items-center gap-1">
-                        <ProviderTag name={$media.provider}></ProviderTag>
+                        <ProviderTag
+                            name={$media.provider}
+                            className={`${!downloaded && "opacity-65"}`}
+                        />
                         {artists.length > 0 && (
                             <div className="w-fit">
                                 <Artists

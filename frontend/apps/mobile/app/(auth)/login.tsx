@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { EPlatform, Http } from "@rockit/shared";
+import { EPlatform } from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -14,6 +14,7 @@ import {
     TextInput,
     View,
 } from "react-native";
+import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LoginScreen() {

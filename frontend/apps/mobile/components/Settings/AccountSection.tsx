@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Http } from "@rockit/shared";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
+import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
 import SettingRow from "./SettingRow";
 

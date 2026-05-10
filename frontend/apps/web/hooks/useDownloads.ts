@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { DownloadProgressMessage } from "@rockit/shared";
-import { EWebSocketMessage, Http } from "@rockit/shared";
+import { EWebSocketMessage } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export interface DownloadInfo {

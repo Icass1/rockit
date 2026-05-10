@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Http } from "@rockit/shared";
 import { useStore } from "@nanostores/react";
 import { Plus } from "lucide-react";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function NewPlaylistButton() {

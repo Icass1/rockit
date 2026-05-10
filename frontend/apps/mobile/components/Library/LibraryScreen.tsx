@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import type { FilterMode, LibraryListsResponse } from "@rockit/shared";
+import type { FilterMode, LibraryMediasResponse } from "@rockit/shared";
 import { filterBySearch, sortItems } from "@rockit/shared";
 import { LayoutGrid, List } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -11,10 +11,10 @@ import LibraryFilters from "@/components/Library/LibraryFilters";
 import SearchBar from "@/components/Search/SearchBar";
 
 interface LibraryScreenProps {
-    albums: LibraryListsResponse["albums"];
-    playlists: LibraryListsResponse["playlists"];
-    songs: LibraryListsResponse["songs"];
-    videos: LibraryListsResponse["videos"];
+    albums: LibraryMediasResponse["albums"];
+    playlists: LibraryMediasResponse["playlists"];
+    songs: LibraryMediasResponse["songs"];
+    videos: LibraryMediasResponse["videos"];
     searchQuery: string;
     onSearchChange: (query: string) => void;
     activeType: ELibraryActiveType;

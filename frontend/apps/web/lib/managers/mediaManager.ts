@@ -1,7 +1,5 @@
-import {
-    Http,
-    TMedia,
-} from "@rockit/shared";
+import { TMedia } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 

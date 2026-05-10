@@ -12,7 +12,7 @@ import type {
     QueueResponseItem,
     TQueueMedia,
 } from "@rockit/shared";
-import { ERepeatMode, Http, isVideo } from "@rockit/shared";
+import { ERepeatMode, isVideo } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import {
     AudioIntegrationService,
@@ -28,6 +28,7 @@ import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
 import { getMediaByPublicId } from "@/lib/database";
+import { Http } from "@/lib/http";
 import { webSocketManager } from "@/lib/webSocketManager";
 
 const WS_TIME_SYNC_INTERVAL_MS = 1000;

@@ -15,7 +15,7 @@ def snake_to_camel(snake_str: str):
 async def http_methods_generator():
     from backend.core.main import app
 
-    http_path = Path("frontend/packages/shared/src/http/http.ts")
+    http_path = Path("frontend/packages/shared/src/http/baseHttp.ts")
     http_path.touch(exist_ok=True)
 
     template = Path("backend/utils/httpTemplate.txt")
@@ -51,7 +51,7 @@ async def http_methods_generator():
 
             if method == "GET":
                 text += f"    static async {method_name}({','.join(params)})" + " {\n"
-                text += f"        return Http.apiGetAsync(`{path}`, dto.{route.response_model.__name__}Schema)\n"
+                text += f"        return this.apiGetAsync(`{path}`, dto.{route.response_model.__name__}Schema)\n"
                 text += "    }"
 
             elif method == "POST":
@@ -70,17 +70,17 @@ async def http_methods_generator():
                 params.append(f"payload: dto.{request_model}")
 
                 text += f"    static async {method_name}({', '.join(params)})" + " {\n"
-                text += f"        return Http.apiPostAsync(`{path}`, dto.{request_model}Schema, dto.{route.response_model.__name__}Schema, payload)\n"
+                text += f"        return this.apiPostAsync(`{path}`, dto.{request_model}Schema, dto.{route.response_model.__name__}Schema, payload)\n"
                 text += "    }"
 
             elif method == "DELETE":
                 text += f"    static async {method_name}({','.join(params)})" + " {\n"
-                text += f"        return Http.apiDeleteAsync(`{path}`, dto.{route.response_model.__name__}Schema)\n"
+                text += f"        return this.apiDeleteAsync(`{path}`, dto.{route.response_model.__name__}Schema)\n"
                 text += "    }"
 
             elif method == "PATCH":
                 text += f"    static async {method_name}({','.join(params)})" + " {\n"
-                text += f"        return Http.apiPatchAsync(`{path}`, dto.{route.response_model.__name__}Schema)\n"
+                text += f"        return this.apiPatchAsync(`{path}`, dto.{route.response_model.__name__}Schema)\n"
                 text += "    }"
 
             else:

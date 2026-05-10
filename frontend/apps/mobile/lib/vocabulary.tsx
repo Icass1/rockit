@@ -6,7 +6,8 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import { Http, type Vocabulary } from "@rockit/shared";
+import { type Vocabulary } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
 
 function createVocabularyProxy(data: Record<string, string>): Vocabulary {

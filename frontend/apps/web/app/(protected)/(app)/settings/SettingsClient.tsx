@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { Http } from "@rockit/packages/shared";
 import { type UserVocabularyResponse, type Vocabulary } from "@rockit/shared";
 import { Check, Globe } from "lucide-react";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 interface SettingsClientProps {

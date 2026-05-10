@@ -1,10 +1,10 @@
 import {
     BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
-    Http,
     TMedia,
 } from "@rockit/shared";
 import { EEvent } from "@/models/enums/events";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export class PlaylistManager {
@@ -69,25 +69,23 @@ export class PlaylistManager {
         const media = mediaRes.result.data;
 
         if (playlistPublicId) {
-            const addRes = await Http.addMediaToPlaylistAsync(playlistPublicId, {
-                mediaPublicId: media.publicId,
-            });
+            const addRes = await Http.addMediaToPlaylistAsync(
+                playlistPublicId,
+                {
+                    mediaPublicId: media.publicId,
+                }
+            );
 
             if (addRes.isOk()) {
                 rockIt.notificationManager.notifyInfo(
                     "Media added successfully!"
                 );
-                rockIt.eventManager.dispatchEvent(
-                    EEvent.MediaAddedToPlaylist,
-                    {
-                        publicId: media.publicId,
-                        playlistPublicId,
-                    }
-                );
+                rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToPlaylist, {
+                    publicId: media.publicId,
+                    playlistPublicId,
+                });
             } else {
-                rockIt.notificationManager.notifyError(
-                    "Failed to add media."
-                );
+                rockIt.notificationManager.notifyError("Failed to add media.");
             }
         } else {
             rockIt.notificationManager.notifyInfo("Media added successfully!");

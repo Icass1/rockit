@@ -1,8 +1,8 @@
 import {
-    Http,
     UserVocabularyResponse,
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { createAtom } from "@/lib/store";
 
 function createVocabularyProxy(data: Record<string, string>): VocabularyType {

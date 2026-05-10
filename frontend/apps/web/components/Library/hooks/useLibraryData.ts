@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
     EEvent,
     EMediaType,
-    Http,
     IMediaAddedToLibraryEvent,
     IMediaRemovedFromLibraryEvent,
 } from "@rockit/shared";
@@ -15,6 +14,7 @@ import {
     TFilteredLibrary,
 } from "@/models/interfaces/useLibraryData";
 import useFetch from "@/hooks/useFetch";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 const EMPTY: TFilteredLibrary = {

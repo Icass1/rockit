@@ -1,8 +1,5 @@
-import {
-    EQueueType,
-    Http,
-    type SessionResponse,
-} from "@rockit/shared";
+import { EQueueType, type SessionResponse } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import {
     createUser,
     getFirstUser,

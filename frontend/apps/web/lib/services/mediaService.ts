@@ -3,7 +3,7 @@ import {
     BasePlaylistWithMediasResponse,
     BaseSongWithAlbumResponse,
 } from "@/dto";
-import { Http } from "@rockit/shared";
+import { Http } from "@/lib/http";
 
 export async function getAlbumAsync(
     publicId: string

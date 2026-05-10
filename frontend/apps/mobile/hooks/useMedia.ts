@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import {
     EEvent,
     EventManager,
-    Http,
     type IMediaDownloadedEvent,
     type TMedia,
 } from "@rockit/shared";
+import { Http } from "@/lib/http";
 
 export function useMedia<T extends TMedia>(media: T): T {
     const [_media, setMedia] = useState<T>(media);

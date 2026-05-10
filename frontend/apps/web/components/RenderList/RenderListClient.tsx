@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { BaseArtistResponse } from "@/dto";
-import { EMediaType, Http, TMedia } from "@rockit/packages/shared";
+import { EMediaType, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
 import RenderList from "@/components/RenderList/RenderList";

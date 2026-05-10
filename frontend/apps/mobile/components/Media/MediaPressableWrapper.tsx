@@ -5,7 +5,6 @@ import {
     EEvent,
     EventManager,
     getMediaSubtitle,
-    Http,
     isList,
     isPlayable,
     isQueueable,
@@ -21,6 +20,7 @@ import {
     useContextMenu,
 } from "@/lib/ContextMenuContext";
 import { createMediaFromDTO, markMediaDownloaded } from "@/lib/database";
+import { Http } from "@/lib/http";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";

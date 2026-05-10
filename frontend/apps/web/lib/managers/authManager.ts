@@ -1,5 +1,5 @@
-import { Http } from "@rockit/packages/shared";
 import { getUserInClient } from "@/lib/getUserInClient";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export interface AuthResult {

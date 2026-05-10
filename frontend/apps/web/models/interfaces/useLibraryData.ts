@@ -1,4 +1,4 @@
-import { LibraryListsResponse } from "@/dto";
+import { LibraryMediasResponse } from "@/dto";
 import { EFilterMode } from "@/models/enums/filterMode";
 
 export interface IUseLibraryDataProps {
@@ -7,12 +7,12 @@ export interface IUseLibraryDataProps {
 }
 
 export type TFilteredLibrary = {
-    albums: LibraryListsResponse["albums"];
-    playlists: LibraryListsResponse["playlists"];
-    songs: LibraryListsResponse["songs"];
-    videos: LibraryListsResponse["videos"];
-    stations: LibraryListsResponse["stations"];
-    shared: LibraryListsResponse["shared"];
+    albums: LibraryMediasResponse["albums"];
+    playlists: LibraryMediasResponse["playlists"];
+    songs: LibraryMediasResponse["songs"];
+    videos: LibraryMediasResponse["videos"];
+    stations: LibraryMediasResponse["stations"];
+    shared: LibraryMediasResponse["shared"];
 };
 
 export interface IUseLibraryDataReturn extends TFilteredLibrary {

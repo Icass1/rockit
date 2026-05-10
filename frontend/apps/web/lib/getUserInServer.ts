@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { type SessionResponse } from "@/dto";
 import { BACKEND_URL } from "@/environment";
-import { Http } from "@rockit/packages/shared";
+import { Http } from "@/lib/http";
 
 export async function getUserInServer(): Promise<SessionResponse | undefined> {
     const cookieStore = await cookies();

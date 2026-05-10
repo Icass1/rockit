@@ -1,4 +1,5 @@
-import { Http, HttpResult, type LibraryMediasResponse } from "@rockit/shared";
+import { HttpResult, type LibraryMediasResponse } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { addToLibrary } from "../database/access/libraryAccess";
 import {
     createMediaFromDTO,

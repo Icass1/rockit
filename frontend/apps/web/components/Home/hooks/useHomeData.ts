@@ -1,6 +1,6 @@
 import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
-import { Http } from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
+import { Http } from "@/lib/http";
 
 export interface HomeData {
     songsByTimePlayed: BaseSongWithAlbumResponse[];

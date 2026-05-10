@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
-import { Http } from "@rockit/shared";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Http } from "@/lib/http";
 import { usePlayer } from "@/lib/PlayerContext";
 
 /**

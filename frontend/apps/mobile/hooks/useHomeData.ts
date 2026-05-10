@@ -1,8 +1,8 @@
 import {
     BaseSongWithAlbumResponse,
     HomeStatsResponseSchema,
-    Http,
 } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { useApiFetch } from "@/lib/useApiFetch";
 
 export interface HomeData {
@@ -45,9 +45,7 @@ function transformStats(
 }
 
 export function useHomeData() {
-    const { data, loading, error } = useApiFetch(() =>
-        Http.getHomeStats()
-    );
+    const { data, loading, error } = useApiFetch(() => Http.getHomeStats());
 
     if (!data || loading || error) {
         return {

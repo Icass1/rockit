@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
-import { Http, type BaseSearchResultsItem } from "@rockit/shared";
+import { type BaseSearchResultsItem } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export interface SearchState {

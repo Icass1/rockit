@@ -1,7 +1,4 @@
-import {
-    CurrentQueueMessageRequestItem,
-    QueueResponseItem,
-} from "@/dto";
+import { CurrentQueueMessageRequestItem, QueueResponseItem } from "@/dto";
 import {
     isAlbum,
     isAlbumWithSongs,
@@ -12,10 +9,10 @@ import {
     TPlayableMedia,
     TQueueMedia,
 } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getAlbumAsync } from "@/lib/services/mediaService";
 import { createArrayAtom, createAtom } from "@/lib/store";
-import { Http } from "@rockit/shared";
 
 export class QueueManager {
     // #region: Atoms

@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
-import { EEvent, EventManager, Http } from "@rockit/shared";
+import { EEvent, EventManager } from "@rockit/shared";
 import { Heart, Music, PlusCircle } from "lucide-react-native";
 import { FlatList, StyleSheet, View } from "react-native";
 import {
     useContextMenu,
     type ContextMenuConfig,
 } from "@/lib/ContextMenuContext";
+import { Http } from "@/lib/http";
 import SectionTitle from "@/components/layout/SectionTitle";
 import ArtistAvatar from "@/components/Media/ArtistAvatar";
 import MediaCard from "@/components/Media/MediaCard";
@@ -32,30 +33,30 @@ export default function SearchSection({
             imageUrl: item.imageUrl,
             title: item.name,
             subtitle: item.artists?.map((a) => a.name).join(", "),
-                options: [
-                    {
-                        label: "Add to library",
-                        icon: Heart,
-                        onPress: async () => {
-                            hide();
-                            const result = await Http.addFromUrl({
-                                url: item.providerUrl,
-                                playlistPublicId: null,
-                            });
-                            if (result.isOk() && result.result?.data) {
-                                EventManager.getInstance().dispatchEvent(
-                                    EEvent.MediaAddedToLibrary,
-                                    { publicId: result.result.data.publicId }
-                                );
-                            }
-                        },
+            options: [
+                {
+                    label: "Add to library",
+                    icon: Heart,
+                    onPress: async () => {
+                        hide();
+                        const result = await Http.addFromUrl({
+                            url: item.providerUrl,
+                            playlistPublicId: null,
+                        });
+                        if (result.isOk() && result.result?.data) {
+                            EventManager.getInstance().dispatchEvent(
+                                EEvent.MediaAddedToLibrary,
+                                { publicId: result.result.data.publicId }
+                            );
+                        }
                     },
-                    {
-                        label: "Add to playlist",
-                        icon: PlusCircle,
-                        onPress: () => showPlaylistPicker(item),
-                    },
-                ],
+                },
+                {
+                    label: "Add to playlist",
+                    icon: PlusCircle,
+                    onPress: () => showPlaylistPicker(item),
+                },
+            ],
         }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [hide, show]

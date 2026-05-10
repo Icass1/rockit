@@ -1,4 +1,4 @@
-export { Http } from "./http/http";
+export { BaseHttp } from "./http/baseHttp";
 
 export { AUTH_ENDPOINTS } from "./auth/authEndpoints";
 export * from "./environment";
@@ -12,7 +12,7 @@ export { type Station } from "./models/types/station";
 export { type Vocabulary } from "./models/types/vocabulary";
 
 export * from "./models/types/api";
-export * from "./models/types/http";
+export * from "./models/types/httpTypes";
 export * from "./models/types/media";
 export * from "./models/types/webSocketMessages";
 

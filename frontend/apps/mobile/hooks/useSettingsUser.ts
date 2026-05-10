@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Http, HttpResult, type SessionResponse } from "@rockit/shared";
+import { HttpResult, type SessionResponse } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { APP_VERSION } from "@/constants/version";
-import { Http } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { useModal } from "@/lib/ModalContext";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";

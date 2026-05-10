@@ -1,8 +1,8 @@
-import { Http } from "@rockit/shared";
 import type {
     BaseAlbumWithSongsResponse,
     BasePlaylistWithMediasResponse,
 } from "@rockit/shared";
+import { Http } from "@/lib/http";
 
 export async function getAlbumAsync(
     publicId: string

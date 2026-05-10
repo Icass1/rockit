@@ -1,11 +1,11 @@
 import {
     EEvent,
     EWebSocketMessage,
-    Http,
     isSearchResult,
     TMedia,
     TMediaWithSearch,
 } from "@rockit/packages/shared";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export class LibraryManager {

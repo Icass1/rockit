@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { EWebSocketMessage, Http } from "@rockit/shared";
+import { EWebSocketMessage } from "@rockit/shared";
 import type { DownloadProgressMessage } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
 import { webSocketManager } from "@/lib/webSocketManager";

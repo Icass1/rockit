@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Http } from "@rockit/shared";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
@@ -14,6 +13,7 @@ import {
     TextInput,
     View,
 } from "react-native";
+import { Http } from "@/lib/http";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;

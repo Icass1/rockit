@@ -1,7 +1,7 @@
-import { Http } from "@rockit/packages/shared";
 import { DownloadProgressMessage, EWebSocketMessage } from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { EEvent } from "@/models/enums/events";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom } from "@/lib/store";
 

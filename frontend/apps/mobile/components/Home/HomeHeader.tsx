@@ -1,7 +1,7 @@
 import { COLORS } from "@/constants/theme";
-import { Http } from "@rockit/shared";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useGreeting } from "@/hooks/useGreeting";
+import { Http } from "@/lib/http";
 import { useApiFetch } from "@/lib/useApiFetch";
 
 export default function HomeHeader() {

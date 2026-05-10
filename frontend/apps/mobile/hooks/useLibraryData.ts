@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import {
     filterBySearch,
-    LibraryListsResponse,
+    LibraryMediasResponse,
     sortItems,
     TMedia,
     type FilterMode,
@@ -11,12 +11,12 @@ import { getLibraryMedias } from "@/lib/http/http";
 import { useApiFetch } from "@/lib/useApiFetch";
 
 interface UseLibraryDataResult {
-    albums: LibraryListsResponse["albums"];
-    playlists: LibraryListsResponse["playlists"];
-    songs: LibraryListsResponse["songs"];
-    videos: LibraryListsResponse["videos"];
-    stations: LibraryListsResponse["stations"];
-    shared: LibraryListsResponse["shared"];
+    albums: LibraryMediasResponse["albums"];
+    playlists: LibraryMediasResponse["playlists"];
+    songs: LibraryMediasResponse["songs"];
+    videos: LibraryMediasResponse["videos"];
+    stations: LibraryMediasResponse["stations"];
+    shared: LibraryMediasResponse["shared"];
     filtered: TMedia[];
     loading: boolean;
     error: string | null;
@@ -27,9 +27,9 @@ export function useLibraryData(options: {
     searchQuery: string;
     activeType: ELibraryActiveType;
 }): UseLibraryDataResult {
-    // const { data, loading, error } = useApiFetch<LibraryListsResponse>(
+    // const { data, loading, error } = useApiFetch<LibraryMediasResponse>(
     //     API_ENDPOINTS.libraryMedias,
-    //     LibraryListsResponseSchema
+    //     LibraryMediasResponseSchema
     // );
 
     const { data, loading, error } = useApiFetch(getLibraryMedias);

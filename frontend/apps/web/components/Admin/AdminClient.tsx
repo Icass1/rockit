@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import { BuildResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { Http } from "@rockit/packages/shared";
 import {
     Download,
     Loader2,
@@ -17,6 +16,7 @@ import {
     X,
 } from "lucide-react";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 interface AdminClientProps {

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { Http } from "@rockit/packages/shared/http/http";
 import { getUserInServer } from "@/lib/getUserInServer";
+import { Http } from "@/lib/http";
 import AdminClient from "@/components/Admin/AdminClient";
 
 export default async function AdminPage() {

@@ -1,7 +1,5 @@
-import {
-    Http,
-    SearchResultsResponse,
-} from "@rockit/shared";
+import { SearchResultsResponse } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom } from "@/lib/store";
 

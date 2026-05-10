@@ -1,6 +1,7 @@
 # Backend Skill
 
 ## Architecture Overview
+
 - FastAPI (async) with Python 3.9+
 - SQLAlchemy (async) with PostgreSQL
 - asyncpg as PostgreSQL driver
@@ -12,22 +13,24 @@
 ## Key Conventions
 
 ### Layer Architecture
+
 ```
 controllers/  →  framework/  →  access/
    (HTTP)        (Logic)        (DB)
 ```
 
-| Layer            | Responsibilities                                                                 | Must NOT do                                                                 |
-| ---------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **controllers/** | Parse HTTP, validate with Pydantic, call framework, raise HTTPException          | Call access directly, return dicts, use raw SQL                             |
-| **framework/**   | Business logic, orchestrate calls, apply rules                                   | Call controllers, raise HTTPException, use raw SQL                          |
-| **access/**      | SQLAlchemy CRUD, SQL queries, return ORM models                                  | Call framework, contain business logic                                      |
+| Layer            | Responsibilities                                                        | Must NOT do                                        |
+| ---------------- | ----------------------------------------------------------------------- | -------------------------------------------------- |
+| **controllers/** | Parse HTTP, validate with Pydantic, call framework, raise HTTPException | Call access directly, return dicts, use raw SQL    |
+| **framework/**   | Business logic, orchestrate calls, apply rules                          | Call controllers, raise HTTPException, use raw SQL |
+| **access/**      | SQLAlchemy CRUD, SQL queries, return ORM models                         | Call framework, contain business logic             |
 
 **Rule:** SQL statements (raw SQL or SQLAlchemy queries) can ONLY live in `access/` files. Framework and controller layers must never contain SQL.
 
 Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (singular).
 
 ### AResult Pattern
+
 All framework and access functions return `AResult`, never raise exceptions internally.
 
 ```python
@@ -44,6 +47,7 @@ class AResultCode:
 ```
 
 **Usage in framework/access:**
+
 ```python
 async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow]:
     a_result = await UserAccess.get_user_from_id_async(session=session, user_id=user_id)
@@ -54,6 +58,7 @@ async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow
 ```
 
 **Usage in controller (only place that raises HTTPException):**
+
 ```python
 @router.get("/user/{user_id}")
 async def get_user(request: Request, user_id: int) -> UserResponse:
@@ -77,12 +82,14 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
 | NOT_IMPLEMENTED | 501  |
 
 ### Database
+
 - Connection manager: `backend/core/access/db/rockItDb.py`
 - Transaction scope: `async with rockit_db.session_scope_async() as session:`
 - Session per request: `DBSessionMiddleware` injects `request.state.db`
 - Controllers retrieve session: `session = DBSessionMiddleware.get_session(request=request)`
 
 **ORM model example:**
+
 ```python
 class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
     __tablename__ = "user"
@@ -100,15 +107,18 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
 | `TableDateAdded`       | `date_added`                                      |
 
 ### Authentication
+
 - Session cookie: `session_id` (set on login, destroyed on logout)
 - Middleware: `AuthMiddleware.auth_dependency` for protected endpoints
 - Current user: `AuthMiddleware.get_current_user(request)`
 - Password hashing: `backend/core/framework/auth/password.py`
 
 ### Providers System
+
 Providers abstract multiple music sources (Spotify, YouTube, RockIt).
 
 **Base provider** (`backend/core/framework/provider/baseProvider.py`):
+
 ```python
 class BaseProvider:
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]
@@ -122,6 +132,7 @@ class BaseProvider:
 ```
 
 **To add a provider:**
+
 1. Create `backend/{name}/framework/provider/provider.py` implementing `BaseProvider`
 2. Export `provider = MyProvider()` and `name = "ProviderName"`
 3. Register in `backend/core/framework/provider/providers.py`
@@ -129,6 +140,7 @@ class BaseProvider:
 ### Code Style
 
 #### Imports Order
+
 1. Standard library (stdlib)
 2. Backend utils (`backend.utils.*`)
 3. AResult (`backend.core.aResult`)
@@ -139,14 +151,17 @@ class BaseProvider:
 8. Requests (`backend.core.requests.*`)
 
 #### Function Definitions
+
 - Every method: `async`, `static`, with docstring and type hints
 - Use keyword arguments in function calls
 - Run `black` after every edit
 
 #### File Headers
+
 No file headers (copyright, etc.) unless required by law.
 
 ### Critical Rules
+
 1. **NEVER** raise exceptions inside framework or access layers
 2. **NEVER** call access layer directly from controller
 3. **NEVER** create database sessions inside access functions
@@ -159,6 +174,7 @@ No file headers (copyright, etc.) unless required by law.
 10. **ALWAYS** follow the AResult pattern in framework and access layers
 
 ### Key Files
+
 | File                                                    | Purpose                             |
 | ------------------------------------------------------- | ----------------------------------- |
 | `backend/core/main.py`                                  | FastAPI app entry, router discovery |
@@ -178,6 +194,7 @@ No file headers (copyright, etc.) unless required by law.
 | `backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
 
 ### Running the Project
+
 ```bash
 cd backend
 
@@ -194,5 +211,5 @@ venv/bin/python -m black <file>
 python3 -m backend init-db
 
 # Generate frontend DTOs from backend responses
-python3 -m backend zod
+python3 -m backend models
 ```

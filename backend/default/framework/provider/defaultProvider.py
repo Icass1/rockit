@@ -21,8 +21,8 @@ from backend.core.responses.basePlaylistWithMediasResponse import (
 )
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
-    PlaylistContributorResponse,
 )
+from backend.core.types.playlistContributor import PlaylistContributor
 
 from backend.default.framework.default import Default
 from backend.default.framework.playlist import Playlist
@@ -50,7 +50,11 @@ class DefaultProvider(BaseProvider):
 
     @time_it
     async def get_playlists_with_medias_async(
-        self, session: AsyncSession, user_id: int, public_ids: List[str]
+        self,
+        session: AsyncSession,
+        user_id: int,
+        public_ids: List[str],
+        _visited_playlist_ids: set[str] | None = None,
     ) -> AResult[List[BasePlaylistWithMediasResponse]]:
         """Get default playlists by public_ids with medias."""
 
@@ -92,7 +96,10 @@ class DefaultProvider(BaseProvider):
 
             a_result_response: AResult[BasePlaylistWithMediasResponse] = (
                 await Playlist.build_playlist_response_async(
-                    session=session, playlist=playlist, owner_name=owner_name
+                    session=session,
+                    playlist=playlist,
+                    owner_name=owner_name,
+                    _visited_playlist_ids=_visited_playlist_ids,
                 )
             )
             if a_result_response.is_not_ok():
@@ -147,13 +154,21 @@ class DefaultProvider(BaseProvider):
             owner = a_result_owner.result()
             owner_name: str = owner.username
 
-            contributor_responses: List[PlaylistContributorResponse] = [
-                PlaylistContributorResponse(
-                    user_id=c.user_id,
-                    role=PlaylistContributorRoleEnum(c.role_key),
+            contributor_responses: List[PlaylistContributor] = []
+            for c in playlist.contributors:
+                a_result_user = await UserAccess.get_user_from_id(
+                    session=session, user_id=c.user_id
                 )
-                for c in playlist.contributors
-            ]
+                if a_result_user.is_not_ok():
+                    continue
+                user = a_result_user.result()
+                contributor_responses.append(
+                    PlaylistContributor(
+                        userPublicId=user.public_id,
+                        username=user.username,
+                        role=PlaylistContributorRoleEnum(c.role_key),
+                    )
+                )
 
             results.append(
                 BasePlaylistWithoutMediasResponse(

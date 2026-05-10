@@ -1,11 +1,10 @@
-from typing import Generic, Sequence, TypeVar, Union
-from datetime import datetime
+from typing import Sequence, Union
 
-from pydantic import BaseModel
 
-from backend.core.responses.baseAlbumWithoutSongsResponse import (
-    BaseAlbumWithoutSongsResponse,
+from backend.core.types.playlistMediaTypes import (
+    PlaylistResponseItem,
 )
+
 from backend.core.responses.baseAlbumWithSongsResponse import (
     BaseAlbumWithSongsResponse,
 )
@@ -19,13 +18,6 @@ from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
 
-T = TypeVar("T")
-
-
-class PlaylistResponseItem(BaseModel, Generic[T]):
-    item: T
-    addedAt: datetime
-
 
 class BasePlaylistWithMediasResponse(BasePlaylistWithoutMediasResponse):
     medias: Sequence[
@@ -34,7 +26,6 @@ class BasePlaylistWithMediasResponse(BasePlaylistWithoutMediasResponse):
             PlaylistResponseItem[BaseVideoResponse],
             PlaylistResponseItem[BaseStationResponse],
             PlaylistResponseItem[BasePlaylistForPlaylistResponse],
-            PlaylistResponseItem[BaseAlbumWithoutSongsResponse],
             PlaylistResponseItem[BaseAlbumWithSongsResponse],
         ]
     ]

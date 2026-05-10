@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { PlaylistContributorResponseSchema } from "./playlistContributorResponse";
+import { PlaylistContributorSchema } from "./playlistContributor";
 
 export const BasePlaylistWithoutMediasResponseSchema = z.object({
     type: z.union([z.literal("playlist")]).default("playlist"),
@@ -12,7 +12,7 @@ export const BasePlaylistWithoutMediasResponseSchema = z.object({
     url: z.string(),
     providerUrl: z.string(),
     name: z.string(),
-    contributors: z.array(z.lazy(() => PlaylistContributorResponseSchema)),
+    contributors: z.array(z.lazy(() => PlaylistContributorSchema)),
     imageUrl: z.string(),
     owner: z.string(),
 });

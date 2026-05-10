@@ -5,16 +5,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.mediaAccess import MediaAccess
-from backend.core.access.userAccess import UserAccess
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 
+from backend.core.types.playlistContributor import PlaylistContributor
+
+from backend.core.access.mediaAccess import MediaAccess
+from backend.core.access.userAccess import UserAccess
+
 from backend.core.framework.media.image import Image
 
-from backend.core.responses.baseAlbumWithoutSongsResponse import (
-    BaseAlbumWithoutSongsResponse,
-)
 from backend.core.responses.baseAlbumWithSongsResponse import (
     BaseAlbumWithSongsResponse,
 )
@@ -24,9 +24,6 @@ from backend.core.responses.basePlaylistForPlaylistResponse import (
 from backend.core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
     PlaylistResponseItem,
-)
-from backend.core.responses.basePlaylistWithoutMediasResponse import (
-    PlaylistContributorResponse,
 )
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseStationResponse import BaseStationResponse
@@ -460,6 +457,17 @@ class Playlist:
 
         media_row = a_result_media.result()
 
+        # Prevent adding a playlist to itself
+        media_type_enum = MediaTypeEnum(media_row.media_type_key)
+        if (
+            media_type_enum == MediaTypeEnum.PLAYLIST
+            and media_public_id == playlist_public_id
+        ):
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Cannot add a playlist to itself.",
+            )
+
         a_result: AResult[PlaylistMediaRow] = (
             await PlaylistAccess.add_media_to_playlist_async(
                 session=session,
@@ -824,10 +832,17 @@ class Playlist:
         session: AsyncSession,
         playlist: PlaylistWithDetailsModel,
         owner_name: str,
+        _visited_playlist_ids: set[str] | None = None,
     ) -> AResult[BasePlaylistWithMediasResponse]:
         """Build a BasePlaylistResponse from a PlaylistWithDetailsModel."""
 
         from backend.core.framework import providers as provider_utils
+
+        # Track visited playlist IDs to prevent infinite recursion from circular references
+        if _visited_playlist_ids is None:
+            _visited_playlist_ids = {playlist.public_id}
+        else:
+            _visited_playlist_ids = _visited_playlist_ids | {playlist.public_id}
 
         # Group media items by (provider_id, media_type)
         groups: dict[tuple[int, MediaTypeEnum], list[tuple[int, str]]] = {}
@@ -878,28 +893,55 @@ class Playlist:
                         )
 
             elif media_type == MediaTypeEnum.PLAYLIST:
-                a_result = await provider.get_playlists_with_medias_async(
-                    session=session,
-                    user_id=playlist.owner_id,
-                    public_ids=public_ids,
-                )
-                if a_result.is_ok():
-                    for idx, resp in zip(indices, a_result.result()):
-                        playlist_for_playlist = BasePlaylistForPlaylistResponse(
-                            type=resp.type,
-                            provider=resp.provider,
-                            publicId=resp.publicId,
-                            url=resp.url,
-                            providerUrl=resp.providerUrl,
-                            name=resp.name,
-                            imageUrl=resp.imageUrl,
-                            owner=resp.owner,
-                            description=resp.description,
-                            itemCount=len(resp.medias),
+                # Filter out already-visited playlists to prevent circular recursion
+                non_visited_public_ids: list[str] = []
+                non_visited_indices: list[int] = []
+                for idx, pid in zip(indices, public_ids):
+                    if pid in _visited_playlist_ids:
+                        logger.warning(
+                            f"Skipping circular playlist reference: {pid} already in ancestor chain"
                         )
-                        result_map[idx] = PlaylistResponseItem(
-                            item=playlist_for_playlist, addedAt=playlist.date_added
+                    else:
+                        non_visited_public_ids.append(pid)
+                        non_visited_indices.append(idx)
+
+                if non_visited_public_ids:
+                    from backend.default.framework.provider.defaultProvider import (
+                        DefaultProvider,
+                    )
+
+                    if isinstance(provider, DefaultProvider):
+                        a_result = await provider.get_playlists_with_medias_async(
+                            session=session,
+                            user_id=playlist.owner_id,
+                            public_ids=non_visited_public_ids,
+                            _visited_playlist_ids=_visited_playlist_ids,
                         )
+                    else:
+                        a_result = await provider.get_playlists_with_medias_async(
+                            session=session,
+                            user_id=playlist.owner_id,
+                            public_ids=non_visited_public_ids,
+                        )
+                    if a_result.is_ok():
+                        for idx, resp in zip(non_visited_indices, a_result.result()):
+                            playlist_for_playlist = BasePlaylistForPlaylistResponse(
+                                type=resp.type,
+                                provider=resp.provider,
+                                publicId=resp.publicId,
+                                url=resp.url,
+                                providerUrl=resp.providerUrl,
+                                name=resp.name,
+                                imageUrl=resp.imageUrl,
+                                owner=resp.owner,
+                                description=resp.description,
+                                itemCount=len(resp.medias),
+                                medias=resp.medias,
+                                contributors=resp.contributors,
+                            )
+                            result_map[idx] = PlaylistResponseItem(
+                                item=playlist_for_playlist, addedAt=playlist.date_added
+                            )
 
         # Build medias list in original order
         medias: List[
@@ -908,7 +950,6 @@ class Playlist:
                 PlaylistResponseItem[BaseVideoResponse],
                 PlaylistResponseItem[BaseStationResponse],
                 PlaylistResponseItem[BasePlaylistForPlaylistResponse],
-                PlaylistResponseItem[BaseAlbumWithoutSongsResponse],
                 PlaylistResponseItem[BaseAlbumWithSongsResponse],
             ]
         ] = []
@@ -916,13 +957,21 @@ class Playlist:
             if idx in result_map:
                 medias.append(result_map[idx])
 
-        contributor_responses: List[PlaylistContributorResponse] = [
-            PlaylistContributorResponse(
-                user_id=c.user_id,
-                role=PlaylistContributorRoleEnum(c.role_key),
+        contributor_responses: List[PlaylistContributor] = []
+        for c in playlist.contributors:
+            a_result_user = await UserAccess.get_user_from_id(
+                session=session, user_id=c.user_id
             )
-            for c in playlist.contributors
-        ]
+            if a_result_user.is_not_ok():
+                continue
+            user = a_result_user.result()
+            contributor_responses.append(
+                PlaylistContributor(
+                    userPublicId=user.public_id,
+                    username=user.username,
+                    role=PlaylistContributorRoleEnum(c.role_key),
+                )
+            )
 
         return AResult(
             code=AResultCode.OK,

@@ -169,7 +169,7 @@ Protected layout: if (!user) redirect("/login")
 
 ## DTOs — Zod Validation
 
-Auto-generated from backend: `python3 -m backend zod`
+Auto-generated from backend: `python3 -m backend models`
 
 NEVER edit manually.
 

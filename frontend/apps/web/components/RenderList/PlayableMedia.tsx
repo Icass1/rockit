@@ -97,21 +97,21 @@ export function PlayableMedia({
             location={EMediaContextLocation.PLAYLIST}
         >
             <div
-                className="group flex cursor-pointer flex-row items-center gap-4 pr-3"
+                className="group flex cursor-pointer flex-row items-center gap-3 pr-3"
                 onClick={handleClick}
             >
                 {showMediaIndex && (
-                    <p className="h-fit w-4 text-right text-gray-400">
+                    <p className="h-fit w-6 text-right text-gray-400">
                         {index + 1}
                     </p>
                 )}
                 {showMediaImage && (
                     <Image
-                        className="rounded"
+                        className="h-12 w-auto rounded"
                         src={$media.imageUrl}
                         alt={$media.name}
-                        width={40}
-                        height={40}
+                        width={50}
+                        height={50}
                     />
                 )}
                 <div className={`relative flex w-full flex-col`}>
@@ -120,7 +120,7 @@ export function PlayableMedia({
                         <p
                             className={`text-md font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
                         >
-                            {$media.name} {$media.publicId}
+                            {$media.name}
                         </p>
                     </div>
                     <div className="flex flex-row items-center gap-1">

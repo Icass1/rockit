@@ -281,5 +281,5 @@ cd backend
 uvicorn backend.core.main:app --reload
 venv/bin/python -m pyright  # typecheck
 python3 -m backend init-db
-python3 -m backend zod  # generate frontend DTOs
+python3 -m backend models  # generate frontend DTOs
 ```

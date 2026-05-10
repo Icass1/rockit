@@ -160,9 +160,9 @@ export {
 export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {
-    PlaylistContributorResponseSchema,
-    type PlaylistContributorResponse,
-} from "./playlistContributorResponse";
+    PlaylistContributorSchema,
+    type PlaylistContributor,
+} from "./playlistContributor";
 export {
     PlaylistResponseItemSchema,
     type PlaylistResponseItem,

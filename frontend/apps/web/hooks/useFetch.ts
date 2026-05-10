@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { HttpResult } from "@rockit/shared";
 import { IUseFetch } from "@/models/interfaces/useFetch";
+import { Http } from "@/lib/http";
 
 async function update<T>(
     func: () => Promise<HttpResult<T>>,
@@ -9,7 +10,7 @@ async function update<T>(
     setError: Dispatch<SetStateAction<boolean | undefined>>
 ) {
     setLoading(true);
-    const response = await func();
+    const response = await func.bind(Http)();
     setLoading(false);
 
     if (response.isOk()) {

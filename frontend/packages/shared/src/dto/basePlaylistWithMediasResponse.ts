@@ -2,13 +2,12 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseAlbumWithoutSongsResponseSchema } from "./baseAlbumWithoutSongsResponse";
 import { BaseAlbumWithSongsResponseSchema } from "./baseAlbumWithSongsResponse";
 import { BasePlaylistForPlaylistResponseSchema } from "./basePlaylistForPlaylistResponse";
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
 import { BaseStationResponseSchema } from "./baseStationResponse";
 import { BaseVideoResponseSchema } from "./baseVideoResponse";
-import { PlaylistContributorResponseSchema } from "./playlistContributorResponse";
+import { PlaylistContributorSchema } from "./playlistContributor";
 import { PlaylistResponseItemSchema } from "./playlistResponseItem";
 
 export const BasePlaylistWithMediasResponseSchema = z.object({
@@ -19,7 +18,7 @@ export const BasePlaylistWithMediasResponseSchema = z.object({
     url: z.string(),
     providerUrl: z.string(),
     name: z.string(),
-    contributors: z.array(z.lazy(() => PlaylistContributorResponseSchema)),
+    contributors: z.array(z.lazy(() => PlaylistContributorSchema)),
     imageUrl: z.string(),
     owner: z.string(),
     medias: z.array(
@@ -50,14 +49,6 @@ export const BasePlaylistWithMediasResponseSchema = z.object({
                 .extend({
                     item: z.union([
                         z.lazy(() => BasePlaylistForPlaylistResponseSchema),
-                    ]),
-                }),
-            z
-                .lazy(() => PlaylistResponseItemSchema)
-                .unwrap()
-                .extend({
-                    item: z.union([
-                        z.lazy(() => BaseAlbumWithoutSongsResponseSchema),
                     ]),
                 }),
             z

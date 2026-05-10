@@ -67,7 +67,7 @@ Patrones clave:
 - venv/bin/python -m pyright (typecheck)
 - venv/bin/python -m black <file> (format)
 - python3 -m backend init-db
-- python3 -m backend zod (genera DTOs Zod para frontend)
+- python3 -m backend models (genera DTOs Zod para frontend)
 
 ---
 
@@ -241,7 +241,7 @@ Instructions
 - Frontend Mobile: Expo (React Native), separate app at frontend/apps/mobile/
 - Key rule: page.tsx NEVER has "use client" — Server Components only. Client logic in \*Client.tsx
 - Key rule: All business logic in Managers (lib/managers/), never in components
-- Key rule: DTOs auto-generated from backend via python3 -m backend zod — NEVER edit manually
+- Key rule: DTOs auto-generated from backend via python3 -m backend models — NEVER edit manually
 - Old app uses @/packages/lib/... and @/packages/dto imports; new app uses @/lib/... and @/dto
 - Old app has no enums (uses string literals like "default" | "asc" | "desc"); new app has proper enums in @/models/enums/
   Page-by-Page Comparison (NEW vs OLD)

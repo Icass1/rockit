@@ -123,7 +123,10 @@ export function isPlaylistWithMedias(
 
 export function isPlaylist(
     media: TMedia
-): media is BasePlaylistWithoutMediasResponse {
+): media is
+    | BasePlaylistWithoutMediasResponse
+    | BasePlaylistForPlaylistResponse
+    | BasePlaylistWithMediasResponse {
     return media.type === "playlist";
 }
 
@@ -201,7 +204,7 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
     } else if (isPlaylist(media)) {
         return media.description ?? "";
     }
-    return "";
+    return "Not supported subtitle";
 }
 
 export function getMediaArtists(

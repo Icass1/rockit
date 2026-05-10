@@ -65,7 +65,7 @@ export default function RenderList({
                     </div>
                 </div>
             </div>
-            <div className="z-1 flex h-full w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto pb-96">
+            <div className="z-1 flex h-full w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto pr-1 pb-96">
                 {media.map((m, index) => (
                     <Media
                         key={m.publicId}

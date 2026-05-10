@@ -21,7 +21,7 @@ pip install -r requirements.txt
 cd ..
 
 # Generate Zod schemas from backend
-python3 -m backend zod
+python3 -m backend models
 
 # Import vocabulary
 python3 -m backend import-vocabulary

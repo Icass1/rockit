@@ -61,7 +61,7 @@ venv/bin/python -m black <file>
 python3 -m backend init-db
 
 # Generate frontend DTOs from backend responses
-python3 -m backend zod
+python3 -m backend models
 ```
 
 ### Frontend
@@ -672,7 +672,7 @@ Backend Pydantic response models are compiled to Zod schemas in `frontend/packag
 
 ```bash
 cd backend
-python3 -m backend zod
+python3 -m backend models
 ```
 
 **Never edit files in `packages/shared/src/dto/` manually.**
@@ -807,7 +807,7 @@ async def get_user_stats(
 #### Generate DTO
 
 ```bash
-cd backend && python3 -m backend zod
+cd backend && python3 -m backend models
 ```
 
 #### Frontend
@@ -1017,7 +1017,9 @@ When adding new vocabulary keys:
 For practical, focused guidance on implementing features, see the skills in the `skills/` directory:
 
 ### 12.1 Frontend Web Skill
+
 See `skills/frontend-web.md` for detailed conventions, patterns, and best practices for building the Next.js web application including:
+
 - Server vs Client Components rules
 - Data fetching patterns with `apiFetch` and `useFetch`
 - State management with nanostores
@@ -1031,7 +1033,9 @@ See `skills/frontend-web.md` for detailed conventions, patterns, and best practi
 - Critical rules to never do
 
 ### 12.2 Frontend Mobile Skill
+
 See `skills/frontend-mobile.md` for detailed conventions, patterns, and best practices for building the Expo React Native mobile application including:
+
 - File structure and routing with Expo Router
 - State management with nanostores (shared with web)
 - Data fetching patterns (shared `apiFetch` and `useFetch`)
@@ -1044,7 +1048,9 @@ See `skills/frontend-mobile.md` for detailed conventions, patterns, and best pra
 - Critical rules for mobile development
 
 ### 12.3 Backend Skill
+
 See `skills/backend.md` for detailed conventions, patterns, and best practices for building the FastAPI backend including:
+
 - Layered architecture (controllers → framework → access)
 - AResult pattern for error handling
 - Database connection and session management

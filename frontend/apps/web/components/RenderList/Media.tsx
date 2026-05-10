@@ -1,5 +1,5 @@
-import { isPlayable, TMedia } from "@/models/types/media";
-import useMedia from "@/hooks/useMedia";
+import { isList, isPlayable, TMedia } from "@/models/types/media";
+import { ListMedia } from "@/components/RenderList/ListMedia";
 import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
 
 export function Media({
@@ -19,13 +19,22 @@ export function Media({
     showMediaImage: boolean;
     listPublicId?: string;
 }) {
-    const $media = useMedia(media);
-
-    if (isPlayable($media)) {
+    if (isPlayable(media)) {
         return (
             <PlayableMedia
                 index={index}
-                media={$media}
+                media={media}
+                allMedia={allMedia}
+                substractArtists={substractArtists}
+                showMediaIndex={showMediaIndex}
+                showMediaImage={showMediaImage}
+                listPublicId={listPublicId}
+            />
+        );
+    } else if (isList(media)) {
+        return (
+            <ListMedia
+                media={media}
                 allMedia={allMedia}
                 substractArtists={substractArtists}
                 showMediaIndex={showMediaIndex}

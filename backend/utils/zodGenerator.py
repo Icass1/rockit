@@ -24,7 +24,7 @@ for root, dirs, files in os.walk("."):
     if "node_modules" in root:
         continue
     for dir in dirs:
-        if dir.endswith("responses") or dir.endswith("requests"):
+        if dir.endswith("responses") or dir.endswith("requests") or dir.endswith("types"):
             folders_to_process.append(os.path.join(root, dir))
 
 
@@ -37,6 +37,15 @@ PYTHON_TYPE_TO_ZOD = {
     bool: "z.boolean()",
     datetime.datetime: "z.iso.datetime()",
     datetime.date: "z.iso.date()",
+}
+
+PYTHON_TYPE_TO_TS = {
+    str: "string",
+    int: "number",
+    float: "number",
+    bool: "boolean",
+    datetime.datetime: "string",
+    datetime.date: "string",
 }
 
 
@@ -131,6 +140,13 @@ def convert_type_to_zod(
     if origin is None:
         if field_type in PYTHON_TYPE_TO_ZOD:
             return PYTHON_TYPE_TO_ZOD[field_type]
+        if isinstance(field_type, str):
+            if field_type in known_types:
+                target_file = known_types[field_type]
+                if target_file != current_file:
+                    schema_refs.add(target_file)
+                return f"z.lazy(() => {field_type}Schema)"
+            return "z.any()"
         if hasattr(field_type, "__name__") and field_type.__name__ in known_types:
             target_file = known_types[field_type.__name__]
             if target_file != current_file:
@@ -244,12 +260,99 @@ def convert_type_to_zod(
     return "z.any()"
 
 
+def convert_type_to_ts(
+    field_type: type,
+    known_types: dict[str, str],
+    known_type_objects: dict[str, type],
+) -> str:
+    origin = get_origin(field_type)
+    args = get_args(field_type)
+
+    if origin is None and inspect.isclass(field_type) and issubclass(field_type, Enum):
+        enum_members = list(field_type)
+        if enum_members and all(isinstance(m.value, str) for m in enum_members):
+            return " | ".join(f'"{m.value}"' for m in enum_members)
+        return " | ".join(f'"{m.name}"' for m in enum_members)
+
+    if origin is None:
+        if field_type in PYTHON_TYPE_TO_TS:
+            return PYTHON_TYPE_TO_TS[field_type]
+        if isinstance(field_type, str):
+            return field_type if field_type in known_types else "unknown"
+        if hasattr(field_type, "__name__") and field_type.__name__ in known_types:
+            return field_type.__name__
+        if hasattr(field_type, "model_fields"):
+            parsed = _parse_type_from_repr(repr(field_type), known_type_objects)
+            if parsed:
+                base_name, type_args = parsed
+                inner_types = [
+                    convert_type_to_ts(arg, known_types, known_type_objects)
+                    for arg in type_args
+                ]
+                inner = " | ".join(inner_types)
+                return f"(Omit<{base_name}, 'item'> & {{ item: {inner} }})"
+        return "unknown"
+
+    if origin is list or origin is Sequence or origin is ABCSequence:
+        if args:
+            inner = convert_type_to_ts(args[0], known_types, known_type_objects)
+            return f"Array<{inner}>"
+        return "Array<unknown>"
+
+    if origin is Optional:
+        if args:
+            inner = convert_type_to_ts(args[0], known_types, known_type_objects)
+            return f"{inner} | null"
+        return "string | null"
+
+    if origin is Literal:
+        if args:
+            parts: List[str] = []
+            for arg in args:
+                if isinstance(arg, bool):
+                    parts.append(str(arg).lower())
+                elif isinstance(arg, str):
+                    parts.append(f'"{arg}"')
+                else:
+                    parts.append(str(arg))
+            return " | ".join(parts)
+        return "string"
+
+    is_union = (
+        origin is Union
+        or origin is types.UnionType
+        or (hasattr(origin, "__name__") and origin.__name__ == "Union")
+    )
+    if is_union:
+        if args:
+            non_none = [a for a in args if a is not type(None)]
+            has_none = any(a is type(None) for a in args)
+            parts_ts: List[str] = [
+                convert_type_to_ts(a, known_types, known_type_objects)
+                for a in non_none
+            ]
+            result = " | ".join(parts_ts)
+            if has_none:
+                result = f"{result} | null"
+            return result
+        return "unknown"
+
+    if origin is dict or origin is Dict:
+        if args:
+            k = convert_type_to_ts(args[0], known_types, known_type_objects)
+            v = convert_type_to_ts(args[1], known_types, known_type_objects)
+            return f"Record<{k}, {v}>"
+        return "Record<string, unknown>"
+
+    return "unknown"
+
+
 def generate_zod_schema(
     model: type[BaseModel],
     known_types: dict[str, str],
     known_type_objects: dict[str, type],
     current_file: str,
-) -> tuple[str, set[str]]:
+) -> tuple[str, set[str], bool]:
     lines: list[str] = []
     class_name = model.__name__
     schema_refs: set[str] = set()
@@ -279,16 +382,39 @@ def generate_zod_schema(
         fields[field_name] = zod_type
 
     if not fields:
-        return (f"export const {class_name}Schema = z.any();\n", schema_refs)
+        return (f"export const {class_name}Schema = z.any();\n", schema_refs, False)
 
-    lines.append(f"export const {class_name}Schema = z.object({{")
-    for field_name, zod_type in fields.items():
-        lines.append(f"    {field_name}: {zod_type},")
-    lines.append("});")
+    has_self_ref = any(
+        f"z.lazy(() => {class_name}Schema)" in zod_type
+        for zod_type in fields.values()
+    )
 
-    lines.append(f"\nexport type {class_name} = z.infer<typeof {class_name}Schema>;")
+    if has_self_ref:
+        # TypeScript cannot infer recursive schemas — define the type explicitly
+        # and annotate the schema with z.ZodType<T> to break the inference cycle.
+        lines.append(f"export type {class_name} = {{")
+        for field_name, field_info in model.model_fields.items():
+            field_type = field_info.annotation
+            ts_type = "unknown" if field_type is None else convert_type_to_ts(
+                field_type, known_types, known_type_objects
+            )
+            lines.append(f"    {field_name}: {ts_type};")
+        lines.append("};")
+        lines.append("")
+        lines.append(f"export const {class_name}Schema: z.ZodType<{class_name}> = z.lazy(() =>")
+        lines.append(f"    z.object({{")
+        for field_name, zod_type in fields.items():
+            lines.append(f"        {field_name}: {zod_type},")
+        lines.append("    })")
+        lines.append(");")
+    else:
+        lines.append(f"export const {class_name}Schema = z.object({{")
+        for field_name, zod_type in fields.items():
+            lines.append(f"    {field_name}: {zod_type},")
+        lines.append("});")
+        lines.append(f"\nexport type {class_name} = z.infer<typeof {class_name}Schema>;")
 
-    return ("\n".join(lines), schema_refs)
+    return ("\n".join(lines), schema_refs, has_self_ref)
 
 
 def generate_zod_type_alias(
@@ -351,7 +477,7 @@ async def generate_zod_schemas() -> None:
 
     for model_name, model in all_models.items():
         file_name = to_camel_case(model_name)
-        schema, refs = generate_zod_schema(
+        schema, refs, is_self_ref = generate_zod_schema(
             model, known_types, known_type_objects, file_name
         )
 
@@ -362,9 +488,14 @@ async def generate_zod_schemas() -> None:
             if ref_file != file_name:
                 type_name = type_name_to_file.get(ref_file, "")
                 if type_name:
-                    import_lines.append(
-                        f"import {{ {type_name}Schema }} from './{ref_file}';"
-                    )
+                    if is_self_ref:
+                        import_lines.append(
+                            f"import {{ {type_name}Schema, type {type_name} }} from './{ref_file}';"
+                        )
+                    else:
+                        import_lines.append(
+                            f"import {{ {type_name}Schema }} from './{ref_file}';"
+                        )
                     schema_names_imported.add(type_name)
 
         output_lines = [GENERATED_FILE_HEADER] + import_lines + ["", schema]

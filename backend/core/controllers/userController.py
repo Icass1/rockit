@@ -37,7 +37,6 @@ from backend.core.responses.baseAlbumWithoutSongsResponse import (
 )
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.likedMediaResponse import LikedMediaResponse
-from backend.core.responses.libraryListsResponse import LibraryListsResponse
 from backend.core.responses.userSettingsResponse import UserSettingsResponse
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
@@ -122,76 +121,6 @@ async def get_queue(request: Request) -> QueueResponse:
         )
 
     return a_result_queue.result()
-
-
-@router.get(path="/library/lists")
-async def get_library_lists(request: Request) -> LibraryListsResponse:
-    """Get all albums and playlists in the user's library."""
-
-    logger.warning("Deprectated endpoint. Use /library/medias instead.")
-
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
-    if a_result_user.is_not_ok():
-        logger.error(f"Error getting current user. {a_result_user.info()}")
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
-    logger.debug(
-        f"Getting library lists for user {a_result_user.result().username} (id: {a_result_user.result().id})"
-    )
-
-    a_result_library_media: AResult[
-        List[
-            BaseAlbumWithoutSongsResponse
-            | BasePlaylistWithoutMediasResponse
-            | BaseSongWithAlbumResponse
-            | BaseVideoResponse
-        ]
-    ] = await User.get_user_library_medias(
-        session=session, user_id=a_result_user.result().id
-    )
-
-    if a_result_library_media.is_not_ok():
-        logger.error(f"Error getting user albums. {a_result_library_media.info()}")
-        raise HTTPException(
-            status_code=a_result_library_media.get_http_code(),
-            detail=a_result_library_media.message(),
-        )
-
-    library_media = a_result_library_media.result()
-
-    albums: List[BaseAlbumWithoutSongsResponse] = (
-        [m for m in library_media if isinstance(m, BaseAlbumWithoutSongsResponse)]
-        if library_media
-        else []
-    )
-    playlists: List[BasePlaylistWithoutMediasResponse] = (
-        [m for m in library_media if isinstance(m, BasePlaylistWithoutMediasResponse)]
-        if library_media
-        else []
-    )
-    songs: List[BaseSongWithAlbumResponse] = (
-        [m for m in library_media if isinstance(m, BaseSongWithAlbumResponse)]
-        if library_media
-        else []
-    )
-    videos: List[BaseVideoResponse] = (
-        [m for m in library_media if isinstance(m, BaseVideoResponse)]
-        if library_media
-        else []
-    )
-
-    return LibraryListsResponse(
-        albums=albums,
-        playlists=playlists,
-        songs=songs,
-        videos=videos,
-        stations=[],
-        shared=[],
-    )
 
 
 @router.get(path="/library/medias")

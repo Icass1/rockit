@@ -62,7 +62,7 @@ export function useLibraryData({
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
-    const { data: _libraryData, loading } = useFetch(Http.getLibraryLists);
+    const { data: _libraryData, loading } = useFetch(Http.getUserLibraryMedias);
 
     const [libraryData, setLibraryData] = useState(_libraryData);
 

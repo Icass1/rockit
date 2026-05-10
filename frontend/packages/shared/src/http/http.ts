@@ -8,7 +8,9 @@ import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/http";
 
 export class Http {
-    static platform: EPlatform;
+    static platform: EPlatform = (() => {
+        return EPlatform.Web;
+    })();
 
     private static async baseApiFetchMobileAsync(
         path: string,
@@ -16,7 +18,7 @@ export class Http {
     ): Promise<Response> {
         const { method = "GET", headers, body, signal } = options;
 
-        const { getItemAsync } = await import("expo-secure-store");
+        const { getItemAsync } = await Function('return import("expo-secure-store")')();
 
         const SESSION_KEY = "session_id";
 
@@ -306,13 +308,6 @@ export class Http {
 
     static async getQueue() {
         return Http.apiGetAsync(`/user/queue`, dto.QueueResponseSchema);
-    }
-
-    static async getLibraryLists() {
-        return Http.apiGetAsync(
-            `/user/library/lists`,
-            dto.LibraryListsResponseSchema
-        );
     }
 
     static async getUserLibraryMedias() {

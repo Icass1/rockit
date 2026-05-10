@@ -1,8 +1,8 @@
-import type { Metadata, Viewport } from "next";
-import "@/styles/globals.css";
-import "@/styles/base.css";
 import "@/styles/animations.css";
+import "@/styles/base.css";
 import "@/styles/components.css";
+import "@/styles/globals.css";
+import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
     title: "RockIt",

@@ -128,10 +128,6 @@ export {
     type LatestVersionResponse,
 } from "./latestVersionResponse";
 export {
-    LibraryListsResponseSchema,
-    type LibraryListsResponse,
-} from "./libraryListsResponse";
-export {
     LibraryMediaAddedMessageSchema,
     type LibraryMediaAddedMessage,
 } from "./libraryMediaAddedMessage";

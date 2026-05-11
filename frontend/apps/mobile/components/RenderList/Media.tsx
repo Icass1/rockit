@@ -1,6 +1,7 @@
-import { isPlayable, type TMedia } from "@rockit/shared";
+import { isList, isPlayable, type TMedia } from "@rockit/shared";
 import { Text } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
+import { ListMedia } from "@/components/RenderList/ListMedia";
 import { PlayableMedia } from "./PlayableMedia";
 
 export function Media({
@@ -31,7 +32,14 @@ export function Media({
                 showMediaImage={showMediaImage}
             />
         );
+    } else if (isList($media)) {
+        return (
+            <ListMedia
+                media={$media}
+                allMedia={allMedia}
+                substractArtists={substractArtists}
+            />
+        );
     }
-
     return <Text>Unsupported media type</Text>;
 }

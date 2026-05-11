@@ -19,7 +19,6 @@ function ListArtists({ media }: { media: TListMedia }) {
     if (isAlbum(media)) {
         return <Artists className="justify-start" artists={media.artists} />;
     } else if (isPlaylist(media)) {
-        console.log(media);
         return (
             <div>
                 {media.contributors.map((c) => (
@@ -35,15 +34,11 @@ export function ListMedia({
     media: _media,
     allMedia,
     substractArtists = [],
-    showMediaIndex,
-    showMediaImage,
     listPublicId,
 }: {
     media: TListMedia;
     allMedia?: TMedia[];
     substractArtists?: string[];
-    showMediaIndex: boolean;
-    showMediaImage: boolean;
     listPublicId?: string;
 }) {
     const $media = useMedia(_media);
@@ -92,7 +87,7 @@ export function ListMedia({
                 )}
             </button>
             {expanded && medias.length > 0 && (
-                <div className="mt-1 flex flex-col gap-1">
+                <div className="my-1 flex flex-col gap-1 px-1">
                     {medias.map((media, i) => (
                         <Media
                             key={media.publicId}

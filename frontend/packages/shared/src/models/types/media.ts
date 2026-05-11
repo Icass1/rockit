@@ -114,10 +114,14 @@ export function isAlbumWithSongs(
 
 export function isPlaylistWithMedias(
     media: TMedia
-): media is BasePlaylistWithMediasResponse {
+): media is BasePlaylistWithMediasResponse | BasePlaylistForPlaylistResponse {
     return (
         media.type === "playlist" &&
-        (media as BasePlaylistWithMediasResponse).medias !== undefined
+        (
+            media as
+                | BasePlaylistWithMediasResponse
+                | BasePlaylistForPlaylistResponse
+        ).medias !== undefined
     );
 }
 
@@ -248,4 +252,27 @@ export function getMediaVideoSrc(
         return media.videoSrc ?? undefined;
     }
     return undefined;
+}
+
+export function getAllPlayableMedia(medias: TMedia[]): TPlayableMedia[] {
+    const mediaList: TPlayableMedia[] = [];
+
+    medias.forEach((media) => {
+        if (isPlaylistWithMedias(media)) {
+            mediaList.push(
+                ...getAllPlayableMedia(media.medias.map((media) => media.item))
+            );
+        } else if (isAlbumWithSongs(media)) {
+            mediaList.push(...getAllPlayableMedia(media.songs));
+        } else if (isPlayable(media)) {
+            mediaList.push(media);
+        } else {
+            console.error(
+                "Unkown media type in getAllPlayableMedia",
+                media.type
+            );
+        }
+    });
+
+    return mediaList;
 }

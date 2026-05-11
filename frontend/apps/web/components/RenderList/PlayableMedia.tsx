@@ -2,17 +2,18 @@ import { useCallback } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { isQueueable } from "@rockit/packages/shared";
-import { EMediaContextLocation } from "@rockit/shared";
 import {
+    getAllPlayableMedia,
     getMediaDuration,
     isDownloadable,
     isPlayable,
+    isQueueable,
     isSong,
     isVideo,
     TMedia,
     TPlayableMedia,
-} from "@/models/types/media";
+} from "@rockit/packages/shared/models/types/media";
+import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -63,7 +64,7 @@ export function PlayableMedia({
                 $media.name
             );
         } else if (allMedia && allMedia.length > 0 && listPublicId) {
-            const tempAllMedia = [...allMedia];
+            const tempAllMedia = getAllPlayableMedia(allMedia);
 
             // Replace this media in allMedia in case it has been downloaded
             for (let i = 0; i < tempAllMedia.length; i++) {
@@ -73,12 +74,6 @@ export function PlayableMedia({
             }
 
             const playableMedia = tempAllMedia.filter(isPlayable);
-
-            console.log(
-                "PlayableMedia.handleClick: playableMedia",
-                playableMedia,
-                $media.publicId
-            );
 
             rockIt.queueManager.setMedia(
                 playableMedia.filter((m) => isQueueable(m)),

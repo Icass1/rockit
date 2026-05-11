@@ -37,8 +37,6 @@ export function Media({
                 media={media}
                 allMedia={allMedia}
                 substractArtists={substractArtists}
-                showMediaIndex={showMediaIndex}
-                showMediaImage={showMediaImage}
                 listPublicId={listPublicId}
             />
         );

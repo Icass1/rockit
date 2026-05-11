@@ -7,6 +7,7 @@ export const LoginRequestSchema = z.object({
     username: z.string(),
     password: z.string(),
     platform: z.enum(["WEB", "MOBILE"]),
+    rememberMe: z.boolean(),
 });
 
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;

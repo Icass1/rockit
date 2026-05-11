@@ -10,6 +10,7 @@ class RegisterRequest(BaseModel):
     password: str
     repeatPassword: str
     platform: PlatformEnum
+    rememberMe: bool
 
     @field_validator("platform", mode="before")
     @classmethod

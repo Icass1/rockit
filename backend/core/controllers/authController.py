@@ -55,7 +55,11 @@ async def login(
     user: UserRow = a_result_user.result()
 
     a_result_session: AResultCode = await Session.create_session_async(
-        session=session, response=response, user_id=user.id, platform=payload.platform
+        session=session,
+        response=response,
+        user_id=user.id,
+        platform=payload.platform,
+        rembember_me=payload.rememberMe,
     )
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")
@@ -84,7 +88,11 @@ async def register(
     user: UserRow = a_result_user.result()
 
     a_result_session = await Session.create_session_async(
-        session=session, response=response, user_id=user.id, platform=payload.platform
+        session=session,
+        response=response,
+        user_id=user.id,
+        platform=payload.platform,
+        rembember_me=payload.rememberMe,
     )
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")

@@ -11,6 +11,7 @@ from backend.constants import (
     SESSION_COOKIE,
     PROD_WEB_SESSION_DOMAIN,
     PROD_MOBILE_SESSION_DOMAIN,
+    SESSION_DURATION_REMBEMBER_ME,
 )
 
 from backend.core.aResult import AResult, AResultCode
@@ -26,11 +27,20 @@ logger: Logger = getLogger(name=__name__)
 class Session:
     @staticmethod
     async def create_session_async(
-        session: AsyncSession, response: Response, platform: PlatformEnum, user_id: int
+        session: AsyncSession,
+        response: Response,
+        platform: PlatformEnum,
+        user_id: int,
+        rembember_me: bool,
     ) -> AResultCode:
+        session_duration = SESSION_DURATION
+
+        if rembember_me:
+            session_duration = SESSION_DURATION_REMBEMBER_ME
+
         session_id = str(uuid.uuid4())
         expires_at: datetime = datetime.now(tz=timezone.utc) + timedelta(
-            seconds=SESSION_DURATION
+            seconds=session_duration
         )
 
         a_result_sesion: AResult[SessionRow] = await SessionAccess.create_session_async(

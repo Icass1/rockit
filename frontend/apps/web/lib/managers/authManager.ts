@@ -13,11 +13,12 @@ export class AuthManager {
         return res.isOk();
     }
 
-    async loginAsync(username: string, password: string): Promise<AuthResult> {
+    async loginAsync(username: string, password: string, rememberMe: boolean = false): Promise<AuthResult> {
         const res = await Http.login({
             username,
             password,
             platform: "WEB",
+            rememberMe,
         });
 
         if (res.isOk()) {
@@ -34,13 +35,15 @@ export class AuthManager {
     async registerAsync(
         username: string,
         password: string,
-        repeatPassword: string
+        repeatPassword: string,
+        rememberMe: boolean = false
     ): Promise<AuthResult> {
         const res = await Http.register({
             username,
             password,
             repeatPassword,
             platform: "WEB",
+            rememberMe,
         });
 
         if (res.isOk()) {

@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { EEvent, IMediaDownloadStatus } from "@rockit/packages/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export function DownloadStatusIcon({ publicId }: { publicId: string }) {
+export function DownloadStatusIcon({
+    publicId,
+    className,
+    stroke = 1,
+}: {
+    publicId: string;
+    className?: string;
+    stroke?: number;
+}) {
     const [progress, setProgress] = useState<number | null>(null);
 
     useEffect(() => {
@@ -30,14 +38,19 @@ export function DownloadStatusIcon({ publicId }: { publicId: string }) {
     const circumference = 2 * Math.PI * 8;
 
     return (
-        <svg width="18" height="18" viewBox="0 0 20 20" className="shrink-0">
+        <svg
+            width="18"
+            height="18"
+            viewBox="0 0 20 20"
+            className={`shrink-0 ${className}`}
+        >
             <circle
                 cx="10"
                 cy="10"
                 r="8"
                 fill="none"
                 stroke="#404040"
-                strokeWidth="2"
+                strokeWidth={stroke * 2}
             />
             <circle
                 cx="10"
@@ -45,16 +58,16 @@ export function DownloadStatusIcon({ publicId }: { publicId: string }) {
                 r="8"
                 fill="none"
                 stroke="#ee1086"
-                strokeWidth="2"
+                strokeWidth={stroke * 2}
                 strokeDasharray={circumference}
                 strokeDashoffset={circumference * (1 - progress / 100)}
                 strokeLinecap="round"
                 transform="rotate(-90 10 10)"
             />
             <path
-                d="M10 6v5M7 9l3 3 3-3"
+                d="M10 7v5M7 10l3 3 3-3"
                 stroke="#ee1086"
-                strokeWidth="1.5"
+                strokeWidth={stroke * 1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 fill="none"

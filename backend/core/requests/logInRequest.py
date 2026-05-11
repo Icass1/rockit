@@ -9,6 +9,7 @@ class LoginRequest(BaseModel):
     username: str
     password: str
     platform: PlatformEnum
+    rememberMe: bool
 
     @field_validator("platform", mode="before")
     @classmethod

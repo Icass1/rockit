@@ -21,10 +21,11 @@ export default function LoginScreen() {
     const router = useRouter();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const { refreshVocabulary } = useVocabulary();
+    const { vocabulary, refreshVocabulary } = useVocabulary();
 
     async function handleLogin() {
         if (!username.trim() || !password.trim()) {
@@ -40,6 +41,7 @@ export default function LoginScreen() {
                 username,
                 password,
                 platform: "MOBILE",
+                rememberMe,
             });
 
             if (result.isOk()) {
@@ -97,6 +99,24 @@ export default function LoginScreen() {
                     />
 
                     {error && <Text style={styles.error}>{error}</Text>}
+                    <Pressable
+                        style={styles.rememberMeRow}
+                        onPress={() => setRememberMe(!rememberMe)}
+                    >
+                        <View
+                            style={[
+                                styles.checkbox,
+                                rememberMe && styles.checkboxChecked,
+                            ]}
+                        >
+                            {rememberMe && (
+                                <Text style={styles.checkmark}>✓</Text>
+                            )}
+                        </View>
+                        <Text style={styles.rememberMeText}>
+                            {vocabulary.REMEMBER_ME}
+                        </Text>
+                    </Pressable>
                     <Pressable
                         style={[
                             styles.button,
@@ -190,6 +210,35 @@ const styles = StyleSheet.create({
     },
     linkText: {
         color: COLORS.accent,
+        fontSize: 14,
+    },
+    rememberMeRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 16,
+        gap: 8,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
+        borderWidth: 2,
+        borderColor: COLORS.gray400,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    checkboxChecked: {
+        backgroundColor: COLORS.accent,
+        borderColor: COLORS.accent,
+    },
+    checkmark: {
+        color: COLORS.white,
+        fontSize: 14,
+        fontWeight: "bold",
+    },
+    rememberMeText: {
+        color: COLORS.gray400,
         fontSize: 14,
     },
     fakeModeBadge: {

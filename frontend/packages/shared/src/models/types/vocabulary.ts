@@ -251,4 +251,5 @@ export interface Vocabulary {
     YOUR_MIX: string;
     YT_VIDEOS: string;
     MEDIA_LIKED: string;
+    REMEMBER_ME: string;
 }

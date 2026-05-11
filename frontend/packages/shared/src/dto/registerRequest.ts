@@ -8,6 +8,7 @@ export const RegisterRequestSchema = z.object({
     password: z.string(),
     repeatPassword: z.string(),
     platform: z.enum(["WEB", "MOBILE"]),
+    rememberMe: z.boolean(),
 });
 
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;

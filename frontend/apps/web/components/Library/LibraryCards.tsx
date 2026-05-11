@@ -14,6 +14,7 @@ import { EMediaContextLocation } from "@rockit/shared";
 import { isDownloadable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 /**
@@ -171,24 +172,31 @@ export function SongCard({
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
-                    className={`library-item flex cursor-pointer flex-col ${!downloaded && "opacity-50"}`}
+                    className={`library-item relative flex cursor-pointer flex-col`}
                     onClick={handleClick}
                 >
-                    <Image
-                        alt={$song.name}
-                        src={$song.imageUrl}
-                        width={COVER_PX}
-                        height={COVER_PX}
-                        sizes={COVER_SIZES}
-                        className="aspect-square w-full rounded-md object-cover"
+                    <div className={`${!downloaded && "opacity-50"}`}>
+                        <Image
+                            alt={$song.name}
+                            src={$song.imageUrl}
+                            width={COVER_PX}
+                            height={COVER_PX}
+                            sizes={COVER_SIZES}
+                            className="aspect-square w-full rounded-md object-cover"
+                        />
+                        <p className="mt-1 truncate text-center font-semibold">
+                            {$song.name}
+                        </p>
+                        <p className="truncate text-center text-sm text-gray-400">
+                            {$song.artists?.map((a) => a.name).join(", ") ??
+                                "Unknown Artist"}
+                        </p>
+                    </div>
+                    <DownloadStatusIcon
+                        stroke={0.8}
+                        publicId={$song.publicId}
+                        className="absolute h-full w-full"
                     />
-                    <p className="mt-1 truncate text-center font-semibold">
-                        {$song.name}
-                    </p>
-                    <p className="truncate text-center text-sm text-gray-400">
-                        {$song.artists?.map((a) => a.name).join(", ") ??
-                            "Unknown Artist"}
-                    </p>
                 </div>
             </MediaContextMenu>
         </CardShell>

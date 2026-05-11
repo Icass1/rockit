@@ -68,6 +68,7 @@ export default function RegisterScreen() {
                 password,
                 repeatPassword,
                 platform: "MOBILE",
+                rememberMe: false,
             });
 
             if (result.isOk()) {

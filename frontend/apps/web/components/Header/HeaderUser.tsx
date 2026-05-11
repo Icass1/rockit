@@ -22,7 +22,10 @@ export default function HeaderUser() {
         );
     }
 
-    const handleLogOut = () => rockIt.userManager.signOut();
+    const handleLogOut = () => {
+        rockIt.userManager.signOut();
+        router.push("/login");
+    };
 
     return (
         <PopupMenu>

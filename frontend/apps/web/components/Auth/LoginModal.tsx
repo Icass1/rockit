@@ -4,13 +4,17 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function LoginModal() {
     const router = useRouter();
 
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -31,7 +35,11 @@ export default function LoginModal() {
 
         setLoading(true);
 
-        const result = await rockIt.authManager.loginAsync(username, password);
+        const result = await rockIt.authManager.loginAsync(
+            username,
+            password,
+            rememberMe
+        );
 
         if (!result.success) {
             setError(result.error || "Login failed");
@@ -41,7 +49,7 @@ export default function LoginModal() {
 
         router.push("/");
         router.refresh();
-    }, [username, password, router, loading]);
+    }, [username, password, rememberMe, router, loading]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -128,6 +136,20 @@ export default function LoginModal() {
                             {error}
                         </p>
                     )}
+
+                    <label
+                        htmlFor="remember-me"
+                        className="flex cursor-pointer items-center justify-center gap-2 text-sm text-neutral-400"
+                    >
+                        <input
+                            id="remember-me"
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="size-4 accent-green-600"
+                        />
+                        {$vocabulary.REMEMBER_ME}
+                    </label>
 
                     <div className="flex justify-center">
                         <button

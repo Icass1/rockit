@@ -11,7 +11,7 @@ from backend.constants import (
     SESSION_COOKIE,
     PROD_WEB_SESSION_DOMAIN,
     PROD_MOBILE_SESSION_DOMAIN,
-    SESSION_DURATION_REMBEMBER_ME,
+    SESSION_DURATION_REMEMBER_ME,
 )
 
 from backend.core.aResult import AResult, AResultCode
@@ -36,7 +36,7 @@ class Session:
         session_duration = SESSION_DURATION
 
         if rembember_me:
-            session_duration = SESSION_DURATION_REMBEMBER_ME
+            session_duration = SESSION_DURATION_REMEMBER_ME
 
         session_id = str(uuid.uuid4())
         expires_at: datetime = datetime.now(tz=timezone.utc) + timedelta(

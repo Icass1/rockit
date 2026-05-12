@@ -29,9 +29,11 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
 
         if x_forwarded_for:
             request_ip = x_forwarded_for.split(",")[0]
-
         else:
             logger.warning("Unable to get x_forwarded_for")
+            if request.client:
+                logger.warning("Using client host instead.")
+                request_ip = request.client.host
 
         start_time: float = time.monotonic()
         timestamp: str = datetime.now(timezone.utc).isoformat()

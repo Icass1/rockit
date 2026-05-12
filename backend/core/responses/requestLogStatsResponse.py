@@ -10,12 +10,17 @@ class RequestLogTimeSeriesPoint(BaseModel):
 
 
 class RequestLogRouteStats(BaseModel):
-    route: str
+    normalizedRoute: str
     method: str
     count: int
     avgTimeMs: float
-    minTimeMs: int
-    maxTimeMs: int
+    minTimeMs: float
+    maxTimeMs: float
+
+
+class RequestLogTopIp(BaseModel):
+    ip: str
+    count: int
 
 
 class RequestLogCodeDistribution(BaseModel):
@@ -59,6 +64,7 @@ class RequestLogStatsResponse(BaseModel):
     totalRequests: int
     timeSeries: List[RequestLogTimeSeriesPoint]
     routeStats: List[RequestLogRouteStats]
+    topIps: List[RequestLogTopIp]
     codeDistribution: List[RequestLogCodeDistribution]
     methodDistribution: List[RequestLogMethodDistribution]
     userActivity: List[RequestLogUserActivity]

@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from logging import Logger
 from typing import List
 
@@ -6,70 +5,24 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
+
 from backend.core.utils.safeAsyncCall import safe_async
+
 from backend.core.aResult import AResult, AResultCode
 
+from backend.core.models.adminStats import (
+    CodeDistribution,
+    DailyStat,
+    HourlyStat,
+    LatencyPercentiles,
+    MethodDistribution,
+    RouteStat,
+    TimeSeriesPoint,
+    TopIp,
+    UserActivity,
+)
+
 logger: Logger = getLogger(__name__)
-
-
-@dataclass
-class TimeSeriesPoint:
-    timestamp: str
-    count: int
-    avgTimeMs: float
-
-
-@dataclass
-class RouteStat:
-    route: str
-    method: str
-    count: int
-    avgTimeMs: float
-    minTimeMs: int
-    maxTimeMs: int
-
-
-@dataclass
-class CodeDistribution:
-    code: int
-    count: int
-
-
-@dataclass
-class MethodDistribution:
-    method: str
-    count: int
-    avgTimeMs: float
-
-
-@dataclass
-class UserActivity:
-    userId: int | None
-    username: str | None
-    requestCount: int
-    avgTimeMs: float
-
-
-@dataclass
-class HourlyStat:
-    hour: int
-    count: int
-    avgTimeMs: float
-
-
-@dataclass
-class DailyStat:
-    date: str
-    count: int
-    avgTimeMs: float
-
-
-@dataclass
-class LatencyPercentiles:
-    p50Ms: int
-    p90Ms: int
-    p95Ms: int
-    p99Ms: int
 
 
 class RequestLogAccess:
@@ -78,9 +31,7 @@ class RequestLogAccess:
     async def get_total_requests_async(
         session: AsyncSession,
     ) -> AResult[int]:
-        result = await session.execute(
-            text("SELECT COUNT(*) from core.request_log")
-        )
+        result = await session.execute(text("SELECT COUNT(*) from core.request_log"))
         count = result.scalar() or 0
         return AResult(AResultCode.OK, "OK", int(count))
 
@@ -160,14 +111,48 @@ class RequestLogAccess:
         result = await session.execute(
             text("""
                 SELECT
-                    route,
+                    regexp_replace(route, '/[A-Za-z0-9-]{10,}', :replacement, 'g') AS normalized_route,
                     method,
                     COUNT(*) AS count,
                     COALESCE(AVG(time_taken_ms), 0) AS avg_time,
                     COALESCE(MIN(time_taken_ms), 0) AS min_time,
                     COALESCE(MAX(time_taken_ms), 0) AS max_time
                 from core.request_log
-                GROUP BY route, method
+                GROUP BY normalized_route, method
+                ORDER BY count DESC
+                LIMIT :limit
+                """),
+            {"limit": limit, "replacement": "/<id>"},
+        )
+        rows = result.fetchall()
+        return AResult(
+            AResultCode.OK,
+            "OK",
+            [
+                RouteStat(
+                    normalizedRoute=row[0],
+                    method=row[1],
+                    count=int(row[2]),
+                    avgTimeMs=round(float(row[3]), 2),
+                    minTimeMs=round(float(row[4]), 2),
+                    maxTimeMs=round(float(row[5]), 2),
+                )
+                for row in rows
+            ],
+        )
+
+    @staticmethod
+    @safe_async
+    async def get_top_ips_async(
+        session: AsyncSession,
+        limit: int = 20,
+    ) -> AResult[List[TopIp]]:
+        result = await session.execute(
+            text("""
+                SELECT ip, COUNT(*) AS count
+                from core.request_log
+                WHERE ip IS NOT NULL
+                GROUP BY ip
                 ORDER BY count DESC
                 LIMIT :limit
                 """),
@@ -177,17 +162,7 @@ class RequestLogAccess:
         return AResult(
             AResultCode.OK,
             "OK",
-            [
-                RouteStat(
-                    route=row[0],
-                    method=row[1],
-                    count=int(row[2]),
-                    avgTimeMs=round(float(row[3]), 2),
-                    minTimeMs=int(row[4]),
-                    maxTimeMs=int(row[5]),
-                )
-                for row in rows
-            ],
+            [TopIp(ip=row[0], count=int(row[1])) for row in rows],
         )
 
     @staticmethod

@@ -9,12 +9,14 @@ import { RequestLogLatencyPercentilesSchema } from "./requestLogLatencyPercentil
 import { RequestLogMethodDistributionSchema } from "./requestLogMethodDistribution";
 import { RequestLogRouteStatsSchema } from "./requestLogRouteStats";
 import { RequestLogTimeSeriesPointSchema } from "./requestLogTimeSeriesPoint";
+import { RequestLogTopIpSchema } from "./requestLogTopIp";
 import { RequestLogUserActivitySchema } from "./requestLogUserActivity";
 
 export const RequestLogStatsResponseSchema = z.object({
     totalRequests: z.number(),
     timeSeries: z.array(z.lazy(() => RequestLogTimeSeriesPointSchema)),
     routeStats: z.array(z.lazy(() => RequestLogRouteStatsSchema)),
+    topIps: z.array(z.lazy(() => RequestLogTopIpSchema)),
     codeDistribution: z.array(z.lazy(() => RequestLogCodeDistributionSchema)),
     methodDistribution: z.array(
         z.lazy(() => RequestLogMethodDistributionSchema)

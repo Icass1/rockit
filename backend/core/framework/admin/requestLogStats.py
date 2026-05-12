@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from logging import Logger
 from typing import List
 
@@ -10,6 +9,7 @@ from backend.core.responses.requestLogStatsResponse import (
     RequestLogStatsResponse,
     RequestLogTimeSeriesPoint,
     RequestLogRouteStats,
+    RequestLogTopIp,
     RequestLogCodeDistribution,
     RequestLogMethodDistribution,
     RequestLogUserActivity,
@@ -26,6 +26,7 @@ from backend.core.access.requestLogAccess import (
     MethodDistribution,
     RouteStat,
     TimeSeriesPoint,
+    TopIp,
     UserActivity,
 )
 
@@ -72,6 +73,13 @@ class RequestLogStats:
             return AResult(
                 code=a_result_routes.code(), message=a_result_routes.message()
             )
+
+        a_result_ips = await RequestLogAccess.get_top_ips_async(
+            session=session, limit=20
+        )
+        if a_result_ips.is_not_ok():
+            logger.error(f"Error getting top IPs. {a_result_ips.info()}")
+            return AResult(code=a_result_ips.code(), message=a_result_ips.message())
 
         a_result_codes = await RequestLogAccess.get_code_distribution_async(
             session=session
@@ -134,6 +142,7 @@ class RequestLogStats:
 
         time_series_data: List[TimeSeriesPoint] = a_result_series.result()
         route_stats_data: List[RouteStat] = a_result_routes.result()
+        top_ips_data: List[TopIp] = a_result_ips.result()
         code_dist_data: List[CodeDistribution] = a_result_codes.result()
         method_dist_data: List[MethodDistribution] = a_result_methods.result()
         user_activity_data: List[UserActivity] = a_result_users.result()
@@ -144,28 +153,65 @@ class RequestLogStats:
         response = RequestLogStatsResponse(
             totalRequests=a_result_total.result(),
             timeSeries=[
-                RequestLogTimeSeriesPoint(**asdict(item)) for item in time_series_data
+                RequestLogTimeSeriesPoint(
+                    timestamp=item.timestamp,
+                    count=item.count,
+                    avgTimeMs=item.avgTimeMs,
+                )
+                for item in time_series_data
             ],
             routeStats=[
-                RequestLogRouteStats(**asdict(item)) for item in route_stats_data
+                RequestLogRouteStats(
+                    normalizedRoute=item.normalizedRoute,
+                    method=item.method,
+                    count=item.count,
+                    avgTimeMs=item.avgTimeMs,
+                    minTimeMs=item.minTimeMs,
+                    maxTimeMs=item.maxTimeMs,
+                )
+                for item in route_stats_data
+            ],
+            topIps=[
+                RequestLogTopIp(ip=str(item.ip), count=item.count)
+                for item in top_ips_data
             ],
             codeDistribution=[
-                RequestLogCodeDistribution(**asdict(item)) for item in code_dist_data
+                RequestLogCodeDistribution(code=item.code, count=item.count)
+                for item in code_dist_data
             ],
             methodDistribution=[
-                RequestLogMethodDistribution(**asdict(item))
+                RequestLogMethodDistribution(
+                    method=item.method, count=item.count, avgTimeMs=item.avgTimeMs
+                )
                 for item in method_dist_data
             ],
             userActivity=[
-                RequestLogUserActivity(**asdict(item)) for item in user_activity_data
+                RequestLogUserActivity(
+                    userId=item.userId,
+                    username=item.username,
+                    requestCount=item.requestCount,
+                    avgTimeMs=item.avgTimeMs,
+                )
+                for item in user_activity_data
             ],
             hourlyStats=[
-                RequestLogHourlyStats(**asdict(item)) for item in hourly_stats_data
+                RequestLogHourlyStats(
+                    hour=item.hour, count=item.count, avgTimeMs=item.avgTimeMs
+                )
+                for item in hourly_stats_data
             ],
             dailyStats=[
-                RequestLogDailyStats(**asdict(item)) for item in daily_stats_data
+                RequestLogDailyStats(
+                    date=item.date, count=item.count, avgTimeMs=item.avgTimeMs
+                )
+                for item in daily_stats_data
             ],
-            latencyPercentiles=RequestLogLatencyPercentiles(**asdict(percentiles_data)),
+            latencyPercentiles=RequestLogLatencyPercentiles(
+                p50Ms=percentiles_data.p50Ms,
+                p90Ms=percentiles_data.p90Ms,
+                p95Ms=percentiles_data.p95Ms,
+                p99Ms=percentiles_data.p99Ms,
+            ),
             averageTimeMs=a_result_avg_time.result(),
             averageRequestsPerDay=a_result_avg_day.result(),
         )

@@ -10,6 +10,7 @@ import {
     TrendingUp,
     Users,
     Zap,
+    Fingerprint,
 } from "lucide-react";
 import {
     AreaChart,
@@ -523,7 +524,7 @@ export default function AdminStats() {
                                         className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
                                     >
                                         <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-white">
-                                            {r.route}
+                                            {r.normalizedRoute}
                                         </td>
                                         <td className="px-4 py-3">
                                             <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-medium text-neutral-300">
@@ -588,6 +589,48 @@ export default function AdminStats() {
                                             </td>
                                             <td className="px-4 py-3 text-right text-neutral-400">
                                                 {formatMs(u.avgTimeMs)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {data.topIps.length > 0 && (
+                <div>
+                    <SectionHeader
+                        title={$vocabulary.ADMIN_TOP_IPS}
+                        icon={
+                            <Fingerprint className="h-4 w-4 text-[#ee1086]" />
+                        }
+                    />
+                    <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="border-b border-neutral-800 bg-neutral-950/50">
+                                        <th className="px-4 py-3 font-medium text-neutral-400">
+                                            {$vocabulary.ADMIN_IP}
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                            {$vocabulary.ADMIN_REQUESTS}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.topIps.map((ip, i) => (
+                                        <tr
+                                            key={i}
+                                            className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                        >
+                                            <td className="px-4 py-3 font-mono text-xs text-white">
+                                                {ip.ip}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-white">
+                                                {ip.count.toLocaleString()}
                                             </td>
                                         </tr>
                                     ))}

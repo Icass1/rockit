@@ -27,6 +27,7 @@ export interface Vocabulary {
     ADMIN_FAILED_TO_LOAD_STATS: string;
     ADMIN_HOURLY_ACTIVITY: string;
     ADMIN_HTTP_METHODS: string;
+    ADMIN_IP: string;
     ADMIN_LATEST: string;
     ADMIN_MAX: string;
     ADMIN_METHOD: string;
@@ -42,6 +43,8 @@ export interface Vocabulary {
     ADMIN_P99: string;
     ADMIN_READ_FAILED: string;
     ADMIN_REQ_PER_DAY: string;
+    ADMIN_REQUEST_DESCRIPTION: string;
+    ADMIN_REQUEST_LOG_STATS: string;
     ADMIN_REQUESTS: string;
     ADMIN_REQUESTS_OVER_TIME: string;
     ADMIN_REQUIRED: string;
@@ -55,6 +58,7 @@ export interface Vocabulary {
     ADMIN_TAB_BUILDS: string;
     ADMIN_TAB_SETTINGS: string;
     ADMIN_TAB_USERS: string;
+    ADMIN_TOP_IPS: string;
     ADMIN_TOP_ROUTES: string;
     ADMIN_TOTAL_REQUESTS: string;
     ADMIN_UPLOAD_BUILD: string;
@@ -277,6 +281,4 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    ADMIN_REQUEST_LOG_STATS: string;
-    ADMIN_REQUEST_DESCRIPTION: string;
 }

@@ -229,6 +229,7 @@ export {
     RequestLogTimeSeriesPointSchema,
     type RequestLogTimeSeriesPoint,
 } from "./requestLogTimeSeriesPoint";
+export { RequestLogTopIpSchema, type RequestLogTopIp } from "./requestLogTopIp";
 export {
     RequestLogUserActivitySchema,
     type RequestLogUserActivity,

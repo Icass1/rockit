@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 export const RequestLogRouteStatsSchema = z.object({
-    route: z.string(),
+    normalizedRoute: z.string(),
     method: z.string(),
     count: z.number(),
     avgTimeMs: z.number(),

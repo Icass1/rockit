@@ -9,6 +9,7 @@ from collections import defaultdict
 from typing import Any
 
 from backend.core.access.adminVersionAccess import AdminVersionAccess
+from backend.core.framework.admin.requestLogStats import RequestLogStats
 from backend.core.requests.addVersionRequest import AddVersionRequest
 from backend.core.requests.uploadApkRequest import UploadApkRequest
 from backend.core.requests.startChunkedUploadRequest import StartChunkedUploadRequest
@@ -18,6 +19,7 @@ from backend.core.requests.completeChunkedUploadRequest import (
 )
 from backend.core.responses.buildResponse import AllBuildsResponse, BuildResponse
 from backend.core.responses.okResponse import OkResponse
+from backend.core.responses.requestLogStatsResponse import RequestLogStatsResponse
 from backend.core.responses.uploadApkResponse import UploadApkResponse
 from backend.core.responses.startChunkedUploadResponse import StartChunkedUploadResponse
 from backend.core.responses.uploadChunkResponse import UploadChunkResponse
@@ -236,3 +238,19 @@ async def complete_chunked_upload(
         id=a_result.result().id,
         filename=upload["version_filename"],
     )
+
+
+@router.get("/request-logs/stats")
+async def get_request_log_stats(request: Request) -> RequestLogStatsResponse:
+    """Get request log statistics for admin dashboard."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await RequestLogStats.get_stats_async(session=session)
+
+    if a_result.is_not_ok():
+        logger.error(f"Error getting request log stats. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()

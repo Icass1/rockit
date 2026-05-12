@@ -197,6 +197,42 @@ export {
     RemoveContributorRequestSchema,
     type RemoveContributorRequest,
 } from "./removeContributorRequest";
+export {
+    RequestLogCodeDistributionSchema,
+    type RequestLogCodeDistribution,
+} from "./requestLogCodeDistribution";
+export {
+    RequestLogDailyStatsSchema,
+    type RequestLogDailyStats,
+} from "./requestLogDailyStats";
+export {
+    RequestLogHourlyStatsSchema,
+    type RequestLogHourlyStats,
+} from "./requestLogHourlyStats";
+export {
+    RequestLogLatencyPercentilesSchema,
+    type RequestLogLatencyPercentiles,
+} from "./requestLogLatencyPercentiles";
+export {
+    RequestLogMethodDistributionSchema,
+    type RequestLogMethodDistribution,
+} from "./requestLogMethodDistribution";
+export {
+    RequestLogRouteStatsSchema,
+    type RequestLogRouteStats,
+} from "./requestLogRouteStats";
+export {
+    RequestLogStatsResponseSchema,
+    type RequestLogStatsResponse,
+} from "./requestLogStatsResponse";
+export {
+    RequestLogTimeSeriesPointSchema,
+    type RequestLogTimeSeriesPoint,
+} from "./requestLogTimeSeriesPoint";
+export {
+    RequestLogUserActivitySchema,
+    type RequestLogUserActivity,
+} from "./requestLogUserActivity";
 export { SearchRequestSchema, type SearchRequest } from "./searchRequest";
 export {
     SearchResultsResponseSchema,

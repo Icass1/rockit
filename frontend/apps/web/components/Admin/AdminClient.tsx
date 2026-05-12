@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { BuildResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
+    BarChart3,
     Download,
     Loader2,
     Package,
@@ -15,6 +16,7 @@ import {
     Users,
     X,
 } from "lucide-react";
+import AdminStats from "@/components/Admin/AdminStats";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -192,6 +194,11 @@ export default function AdminClient({
             id: EAdminClientTab.BUILDS,
             label: $vocabulary.ADMIN_TAB_BUILDS,
             icon: Smartphone,
+        },
+        {
+            id: EAdminClientTab.STATS,
+            label: "Stats",
+            icon: BarChart3,
         },
         {
             id: EAdminClientTab.USERS,
@@ -455,6 +462,20 @@ export default function AdminClient({
                                 ))}
                             </div>
                         )}
+                    </div>
+                )}
+
+                {activeTab === EAdminClientTab.STATS && (
+                    <div>
+                        <div className="mb-6">
+                            <h1 className="text-2xl font-bold text-white">
+                                Request Log Stats
+                            </h1>
+                            <p className="mt-1 text-sm text-neutral-500">
+                                Server request metrics and analytics
+                            </p>
+                        </div>
+                        <AdminStats />
                     </div>
                 )}
 

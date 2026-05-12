@@ -373,6 +373,13 @@ export class BaseHttp {
         );
     }
 
+    static async getRequestLogStats() {
+        return this.apiGetAsync(
+            `/admin/request-logs/stats`,
+            dto.RequestLogStatsResponseSchema
+        );
+    }
+
     static async login(payload: dto.LoginRequest) {
         return this.apiPostAsync(
             `/auth/login`,

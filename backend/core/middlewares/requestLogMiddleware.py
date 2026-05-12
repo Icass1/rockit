@@ -23,12 +23,12 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         if request.url.path in self.EXCLUDED_ROUTES:
             return await call_next(request)
 
-        start_time: float = time.time()
+        start_time: float = time.monotonic()
         timestamp: str = datetime.now(timezone.utc).isoformat()
 
         response: Response = await call_next(request)
 
-        time_taken_ms: int = int((time.time() - start_time) * 1000)
+        time_taken_ms: int = int((time.monotonic() - start_time) * 1000)
 
         user_id: int | None = None
         try:

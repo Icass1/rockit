@@ -44,6 +44,10 @@ from backend.default.framework.models.playlist import (
     PlaylistMediaAddModel,
     PlaylistContributorAddModel,
 )
+from backend.core.framework.websocket.sendToUser import SendToUser
+from backend.core.responses.playlistCreatedMessage import PlaylistCreatedMessage
+from backend.core.responses.playlistRenamedMessage import PlaylistRenamedMessage
+from backend.core.responses.playlistDeletedMessage import PlaylistDeletedMessage
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
@@ -120,6 +124,11 @@ class Playlist:
 
         await UserAccess.add_user_library_media(
             session=session, user_id=owner_id, media_id=playlist.id
+        )
+
+        await SendToUser.send_to_user(
+            user_id=owner_id,
+            message=PlaylistCreatedMessage(publicId=playlist.core_playlist.public_id),
         )
 
         return AResult(
@@ -308,6 +317,7 @@ class Playlist:
                 message="Playlist not found or access denied.",
             )
 
+        old_name: str = a_result_playlist.result().name
         playlist_id: int = a_result_playlist.result().id
         a_result_role = await PlaylistAccess.get_user_role_in_playlist_async(
             session=session, playlist_id=playlist_id, user_id=user_id
@@ -346,6 +356,16 @@ class Playlist:
             )
 
         playlist: PlaylistRow = a_result_playlist.result()
+
+        if name is not None and name != old_name:
+            await SendToUser.send_to_user(
+                user_id=user_id,
+                message=PlaylistRenamedMessage(
+                    publicId=playlist.core_playlist.public_id,
+                    name=playlist.name,
+                ),
+            )
+
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -395,6 +415,8 @@ class Playlist:
                 code=AResultCode.BAD_REQUEST, message="Only owner can delete playlist."
             )
 
+        playlist_public_id_to_delete: str = a_result_playlist.result().core_playlist.public_id
+
         a_result: AResult[bool] = await PlaylistAccess.delete_playlist_async(
             session=session, playlist_id=playlist_id
         )
@@ -404,6 +426,11 @@ class Playlist:
                 code=a_result.code(),
                 message=a_result.message(),
             )
+
+        await SendToUser.send_to_user(
+            user_id=user_id,
+            message=PlaylistDeletedMessage(publicId=playlist_public_id_to_delete),
+        )
 
         return AResult(code=AResultCode.OK, message="OK", result=True)
 

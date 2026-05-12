@@ -164,6 +164,18 @@ export {
     type PlaylistContributor,
 } from "./playlistContributor";
 export {
+    PlaylistCreatedMessageSchema,
+    type PlaylistCreatedMessage,
+} from "./playlistCreatedMessage";
+export {
+    PlaylistDeletedMessageSchema,
+    type PlaylistDeletedMessage,
+} from "./playlistDeletedMessage";
+export {
+    PlaylistRenamedMessageSchema,
+    type PlaylistRenamedMessage,
+} from "./playlistRenamedMessage";
+export {
     PlaylistResponseItemSchema,
     type PlaylistResponseItem,
 } from "./playlistResponseItem";

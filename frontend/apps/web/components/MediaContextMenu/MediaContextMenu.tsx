@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import {
@@ -57,9 +57,7 @@ export default function MediaContextMenu({
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
-    const [playlists, setPlaylists] = useState<
-        BasePlaylistWithoutMediasResponse[]
-    >([]);
+    const $playlists = useStore(rockIt.playlistManager.playlistsAtom);
 
     const isSearch = isSearchResult(media);
     const isListMedia = !isSearch && isList(media);
@@ -73,14 +71,6 @@ export default function MediaContextMenu({
         isDownloadable(media) &&
         !media.downloaded;
     const showDownloadOption = isDownloadableMedia && isNotDownloadedMedia;
-
-    useEffect(() => {
-        rockIt.playlistManager.getUserPlaylistsAsync().then((data) => {
-            if (data.isOk()) {
-                setPlaylists(data.result.playlists);
-            }
-        });
-    }, []);
 
     const handlePlay = () => {
         if (isQueueableMedia) {
@@ -191,7 +181,7 @@ export default function MediaContextMenu({
                         {$vocabulary.ADD_MEDIA_TO_PLAYLIST}
                     </SubContextMenuTrigger>
                     <SubContextMenuContent>
-                        {playlists.map((playlist) => (
+                        {$playlists.map((playlist) => (
                             <ContextMenuOption
                                 onClick={() =>
                                     handleAddToPlaylistAsync(media, playlist)

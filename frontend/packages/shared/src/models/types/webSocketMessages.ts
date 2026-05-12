@@ -2,6 +2,9 @@ import type {
     DownloadProgressMessage,
     LibraryMediaAddedMessage,
     LibraryMediaRemovedMessage,
+    PlaylistCreatedMessage,
+    PlaylistDeletedMessage,
+    PlaylistRenamedMessage,
     TestWebSocketMessage,
 } from "@rockit/shared";
 
@@ -10,6 +13,9 @@ export enum EWebSocketMessage {
     TestWebSocketMessage = "test_web_socket_message",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
+    PlaylistCreated = "playlist_created",
+    PlaylistRenamed = "playlist_renamed",
+    PlaylistDeleted = "playlist_deleted",
 }
 
 export interface IWebSocketMessagePayloadMap {
@@ -17,13 +23,19 @@ export interface IWebSocketMessagePayloadMap {
     [EWebSocketMessage.TestWebSocketMessage]: TestWebSocketMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
     [EWebSocketMessage.LibraryMediaRemoved]: LibraryMediaRemovedMessage;
+    [EWebSocketMessage.PlaylistCreated]: PlaylistCreatedMessage;
+    [EWebSocketMessage.PlaylistRenamed]: PlaylistRenamedMessage;
+    [EWebSocketMessage.PlaylistDeleted]: PlaylistDeletedMessage;
 }
 
 export type TWebSocketIncomingMessage =
     | DownloadProgressMessage
     | TestWebSocketMessage
     | LibraryMediaAddedMessage
-    | LibraryMediaRemovedMessage;
+    | LibraryMediaRemovedMessage
+    | PlaylistCreatedMessage
+    | PlaylistRenamedMessage
+    | PlaylistDeletedMessage;
 
 export type WebSocketMessageHandler<T extends EWebSocketMessage> = (
     data: IWebSocketMessagePayloadMap[T]

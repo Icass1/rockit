@@ -31,6 +31,8 @@ export * from "./models/interfaces/events/mediaDownloaded";
 export * from "./models/interfaces/events/mediaDownloadStatus";
 export * from "./models/interfaces/events/mediaRemovedFromLibrary";
 export * from "./models/interfaces/events/playlistCreated";
+export * from "./models/interfaces/events/playlistRenamed";
+export * from "./models/interfaces/events/playlistDeleted";
 export * from "./models/interfaces/events/songFinished";
 export * from "./models/interfaces/events/userLogin";
 export * from "./models/interfaces/events/volumeChanged";

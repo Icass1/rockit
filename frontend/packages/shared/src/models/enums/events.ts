@@ -1,5 +1,7 @@
 export enum EEvent {
     PlaylistCreated = "PlaylistCreated",
+    PlaylistRenamed = "PlaylistRenamed",
+    PlaylistDeleted = "PlaylistDeleted",
     UserLogin = "UserLogin",
     SongFinished = "SongFinished",
     VolumeChanged = "VolumeChanged",

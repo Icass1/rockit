@@ -1,13 +1,74 @@
 import {
     BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
+    EEvent,
+    EWebSocketMessage,
     TMedia,
+    type PlaylistCreatedMessage,
+    type PlaylistDeletedMessage,
+    type PlaylistRenamedMessage,
 } from "@rockit/shared";
-import { EEvent } from "@/models/enums/events";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
 
 export class PlaylistManager {
+    private _playlistsAtom = createArrayAtom<BasePlaylistWithoutMediasResponse>([]);
+    private _init = false;
+
+    get playlistsAtom(): ReadonlyArrayAtom<BasePlaylistWithoutMediasResponse> {
+        return this._playlistsAtom.getReadonlyAtom();
+    }
+
+    async init() {
+        if (this._init) return;
+        this._init = true;
+
+        await this.refreshPlaylistsAsync();
+
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.PlaylistCreated,
+            this.handlePlaylistCreated
+        );
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.PlaylistRenamed,
+            this.handlePlaylistRenamed
+        );
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.PlaylistDeleted,
+            this.handlePlaylistDeleted
+        );
+    }
+
+    private handlePlaylistCreated = async (data: PlaylistCreatedMessage) => {
+        rockIt.eventManager.dispatchEvent(EEvent.PlaylistCreated, {
+            publicId: data.publicId,
+        });
+        await this.refreshPlaylistsAsync();
+    };
+
+    private handlePlaylistRenamed = async (data: PlaylistRenamedMessage) => {
+        rockIt.eventManager.dispatchEvent(EEvent.PlaylistRenamed, {
+            publicId: data.publicId,
+            name: data.name,
+        });
+        await this.refreshPlaylistsAsync();
+    };
+
+    private handlePlaylistDeleted = async (data: PlaylistDeletedMessage) => {
+        rockIt.eventManager.dispatchEvent(EEvent.PlaylistDeleted, {
+            publicId: data.publicId,
+        });
+        await this.refreshPlaylistsAsync();
+    };
+
+    private async refreshPlaylistsAsync() {
+        const result = await this.getUserPlaylistsAsync();
+        if (result.isOk()) {
+            this._playlistsAtom.set(result.result.playlists);
+        }
+    }
+
     async playPlaylist(
         songs: BaseSongWithAlbumResponse[],
         listPublicId: string,

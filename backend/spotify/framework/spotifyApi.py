@@ -37,6 +37,8 @@ class SpotifyApi:
 
     def get_token(self, from_file: bool = False):
 
+        return
+
         if not self.client_id:
             logger.critical("client_id not set")
             return

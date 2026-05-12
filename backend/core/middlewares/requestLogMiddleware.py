@@ -23,6 +23,14 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         if request.url.path in self.EXCLUDED_ROUTES:
             return await call_next(request)
 
+        x_forwarded_for = request.headers.get("x-forwarded-for") or "Unable to get x-forwarded-for"
+        client_host =  "Unable to get client host"
+
+        if request.client:
+            client_host = request.client.host
+
+        logger.info(f"Request from '{x_forwarded_for=}' '{client_host=}'")
+
         start_time: float = time.monotonic()
         timestamp: str = datetime.now(timezone.utc).isoformat()
 

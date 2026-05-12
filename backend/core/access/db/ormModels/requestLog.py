@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Dict
 
 from sqlalchemy import ForeignKey, String, Integer
 from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy.dialects.postgresql import INET
 
 from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -21,6 +22,7 @@ class RequestLogRow(CoreBase, TableAutoincrementId, TableDateAdded):
         Integer, ForeignKey("core.user.id"), nullable=True
     )
     route: Mapped[str] = mapped_column(String, nullable=False)
+    ip: Mapped[str] = mapped_column(INET, nullable=False)
     method: Mapped[str] = mapped_column(String, nullable=False)
     response_code: Mapped[int] = mapped_column(Integer, nullable=False)
     time_taken_ms: Mapped[int] = mapped_column(Integer, nullable=False)

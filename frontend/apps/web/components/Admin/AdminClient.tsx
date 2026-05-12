@@ -16,10 +16,10 @@ import {
     Users,
     X,
 } from "lucide-react";
-import AdminStats from "@/components/Admin/AdminStats";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import AdminStats from "@/components/Admin/AdminStats";
 
 interface AdminClientProps {
     builds: BuildResponse[];
@@ -469,10 +469,10 @@ export default function AdminClient({
                     <div>
                         <div className="mb-6">
                             <h1 className="text-2xl font-bold text-white">
-                                Request Log Stats
+                                {$vocabulary.ADMIN_REQUEST_LOG_STATS}
                             </h1>
                             <p className="mt-1 text-sm text-neutral-500">
-                                Server request metrics and analytics
+                                {$vocabulary.ADMIN_REQUEST_DESCRIPTION}
                             </p>
                         </div>
                         <AdminStats />

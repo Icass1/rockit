@@ -277,4 +277,6 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
+    ADMIN_REQUEST_LOG_STATS: string;
+    ADMIN_REQUEST_DESCRIPTION: string;
 }

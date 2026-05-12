@@ -30,6 +30,8 @@ interface ContextMenuContextType {
     hide: () => void;
     config: ContextMenuConfig | null;
     sheetRef: React.RefObject<BottomSheetModal | null>;
+    isOpen: boolean;
+    handleSheetChange: (index: number) => void;
 }
 
 const ContextMenuContext = createContext<ContextMenuContextType>({
@@ -37,6 +39,8 @@ const ContextMenuContext = createContext<ContextMenuContextType>({
     hide: () => {},
     config: null,
     sheetRef: { current: null },
+    isOpen: false,
+    handleSheetChange: () => {},
 });
 
 export function useContextMenu() {
@@ -46,18 +50,29 @@ export function useContextMenu() {
 export function ContextMenuProvider({ children }: { children: ReactNode }) {
     const sheetRef = useRef<BottomSheetModal>(null);
     const [config, setConfig] = useState<ContextMenuConfig | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
 
     const show = useCallback((newConfig: ContextMenuConfig) => {
         setConfig(newConfig);
+        setIsOpen(true);
         setTimeout(() => sheetRef.current?.present(), 0);
     }, []);
 
     const hide = useCallback(() => {
         sheetRef.current?.dismiss();
+        setIsOpen(false);
+    }, []);
+
+    const handleSheetChange = useCallback((index: number) => {
+        if (index === -1) {
+            setIsOpen(false);
+        }
     }, []);
 
     return (
-        <ContextMenuContext.Provider value={{ show, hide, config, sheetRef }}>
+        <ContextMenuContext.Provider
+            value={{ show, hide, config, sheetRef, isOpen, handleSheetChange }}
+        >
             {children}
         </ContextMenuContext.Provider>
     );

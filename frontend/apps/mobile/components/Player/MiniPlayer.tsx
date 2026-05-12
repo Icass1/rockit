@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Loader2, Pause, Play, SkipForward } from "lucide-react-native";
@@ -21,14 +22,16 @@ export default function MiniPlayer() {
 
     const scale = useRef(new Animated.Value(1)).current;
     const { isPlayerVisible } = usePlayer();
-    const opacity = useRef(new Animated.Value(isPlayerVisible ? 0 : 1)).current;
+    const { isOpen: isContextMenuOpen } = useContextMenu();
+    const shouldHide = isPlayerVisible || isContextMenuOpen;
+    const opacity = useRef(new Animated.Value(shouldHide ? 0 : 1)).current;
     useEffect(() => {
         Animated.timing(opacity, {
-            toValue: isPlayerVisible ? 0 : 1,
+            toValue: shouldHide ? 0 : 1,
             duration: 120,
             useNativeDriver: true,
         }).start();
-    }, [isPlayerVisible, opacity]);
+    }, [shouldHide, opacity]);
 
     const handlePressIn = () =>
         Animated.spring(scale, {

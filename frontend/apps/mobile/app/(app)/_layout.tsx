@@ -96,7 +96,7 @@ function AppLayoutContent() {
     const router = useRouter();
     const { bottom: safeBottom } = useSafeAreaInsets();
     const { vocabulary } = useVocabulary();
-    const { config, sheetRef } = useContextMenu();
+    const { config, sheetRef, handleSheetChange } = useContextMenu();
 
     useEffect(() => {
         getSession().then((session) => {
@@ -113,6 +113,7 @@ function AppLayoutContent() {
                 vocabulary={vocabulary}
                 config={config}
                 sheetRef={sheetRef}
+                handleSheetChange={handleSheetChange}
             />
         </PlayerProvider>
     );
@@ -124,11 +125,13 @@ function AppLayoutInner({
     vocabulary,
     config,
     sheetRef,
+    handleSheetChange,
 }: {
     safeBottom: number;
     vocabulary: any;
     config: any;
     sheetRef: any;
+    handleSheetChange: (index: number) => void;
 }) {
     return (
         <View style={{ flex: 1 }}>
@@ -209,7 +212,11 @@ function AppLayoutInner({
             >
                 <Header />
             </View>
-            <ContextMenuSheet config={config} sheetRef={sheetRef} />
+            <ContextMenuSheet
+                config={config}
+                sheetRef={sheetRef}
+                onChange={handleSheetChange}
+            />
         </View>
     );
 }

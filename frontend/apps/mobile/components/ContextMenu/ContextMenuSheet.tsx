@@ -17,11 +17,13 @@ const SNAP_POINTS = ["85%"];
 interface ContextMenuSheetProps {
     config: ContextMenuConfig | null;
     sheetRef: RefObject<BottomSheetModalType | null>;
+    onChange?: (index: number) => void;
 }
 
 export default function ContextMenuSheet({
     config,
     sheetRef,
+    onChange,
 }: ContextMenuSheetProps) {
     const renderBackdrop = useCallback(
         (props: BottomSheetBackdropProps) => (
@@ -44,6 +46,7 @@ export default function ContextMenuSheet({
             backgroundStyle={styles.sheetBackground}
             handleIndicatorStyle={styles.handle}
             style={styles.modal}
+            onChange={onChange}
         >
             <BottomSheetScrollView
                 contentContainerStyle={styles.content}

@@ -4,6 +4,7 @@ import {
     BaseSearchResultsItem,
     EEvent,
     EventManager,
+    getAllPlayableMedia,
     getMediaSubtitle,
     isList,
     isPlayable,
@@ -88,7 +89,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     icon: Play,
                     onPress: () => {
                         console.log("Playing media from context menu", media);
-                        handlePlay(media, allMedia);
+                        handlePlay(media, getAllPlayableMedia(allMedia));
                         hide();
                     },
                 });
@@ -232,7 +233,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         if (isSearchResult(media)) {
             show(buildMainMenu(media));
         } else if (isPlayable(media)) {
-            handlePlay(media, allMedia);
+            handlePlay(media, getAllPlayableMedia(allMedia));
         } else if (isList(media)) {
             router.push(media.url);
         }

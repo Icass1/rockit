@@ -11,13 +11,15 @@ from backend.utils.logger import getLogger
 
 from backend.core.access.db import rockit_db
 
+from backend.core.framework import providers
 from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.downloader.types import DownloadStatus
-from backend.core.framework import providers
+from backend.core.framework.websocket.sendToUser import SendToUser
 
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
+from backend.core.responses.mediaListenedMessage import MediaListenedMessage
 from backend.core.requests.wsMessages import (
     MediaEndedMessageRequest,
     CurrentMediaMessageRequest,
@@ -356,6 +358,11 @@ class WebSocketManager:
             if a_result_listened.is_not_ok():
                 logger.error(
                     f"Error adding user media listened for user {user_id}. {a_result_listened.info()}"
+                )
+            else:
+                await SendToUser.send_to_user(
+                    user_id=user_id,
+                    message=MediaListenedMessage(publicId=media_public_id),
                 )
 
     async def _handle_media_clicked(

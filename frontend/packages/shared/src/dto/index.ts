@@ -157,6 +157,10 @@ export {
     MediaEndedMessageRequestSchema,
     type MediaEndedMessageRequest,
 } from "./mediaEndedMessageRequest";
+export {
+    MediaListenedMessageSchema,
+    type MediaListenedMessage,
+} from "./mediaListenedMessage";
 export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {

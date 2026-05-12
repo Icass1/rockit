@@ -22,7 +22,7 @@ class RequestLogRow(CoreBase, TableAutoincrementId, TableDateAdded):
         Integer, ForeignKey("core.user.id"), nullable=True
     )
     route: Mapped[str] = mapped_column(String, nullable=False)
-    ip: Mapped[str] = mapped_column(INET, nullable=False)
+    ip: Mapped[str | None] = mapped_column(INET, nullable=True)
     method: Mapped[str] = mapped_column(String, nullable=False)
     response_code: Mapped[int] = mapped_column(Integer, nullable=False)
     time_taken_ms: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -40,6 +40,7 @@ class RequestLogRow(CoreBase, TableAutoincrementId, TableDateAdded):
         time_taken_ms: int,
         timestamp: str,
         user_id: int | None = None,
+        ip: str | None = None,
     ):
         kwargs: Dict[str, None | int | str] = {}
         kwargs["route"] = route
@@ -48,5 +49,6 @@ class RequestLogRow(CoreBase, TableAutoincrementId, TableDateAdded):
         kwargs["time_taken_ms"] = time_taken_ms
         kwargs["timestamp"] = timestamp
         kwargs["user_id"] = user_id
+        kwargs["ip"] = ip
         for k, v in kwargs.items():
             setattr(self, k, v)

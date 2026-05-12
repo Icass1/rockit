@@ -23,13 +23,15 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         if request.url.path in self.EXCLUDED_ROUTES:
             return await call_next(request)
 
-        x_forwarded_for = request.headers.get("x-forwarded-for") or "Unable to get x-forwarded-for"
-        client_host =  "Unable to get client host"
+        request_ip: str | None = None
 
-        if request.client:
-            client_host = request.client.host
+        x_forwarded_for = request.headers.get("x-forwarded-for")
 
-        logger.info(f"Request from '{x_forwarded_for=}' '{client_host=}'")
+        if x_forwarded_for:
+            request_ip = x_forwarded_for.split(",")[0]
+
+        else:
+            logger.warning("Unable to get x_forwarded_for")
 
         start_time: float = time.monotonic()
         timestamp: str = datetime.now(timezone.utc).isoformat()
@@ -59,6 +61,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 response_code=response_code,
                 time_taken_ms=time_taken_ms,
                 timestamp=timestamp,
+                ip=request_ip,
             )
             session.add(request_log)
             await session.commit()

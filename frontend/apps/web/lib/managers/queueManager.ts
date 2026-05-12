@@ -236,7 +236,7 @@ export class QueueManager {
                 return album.songs;
             }
         } else if (isPlaylist(media)) {
-            console.log("playlist without songs");
+            console.warn("playlist without songs");
         }
 
         return medias;

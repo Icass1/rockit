@@ -32,7 +32,6 @@ export async function getPlaylistAsync(
     publicId: string
 ): Promise<BasePlaylistWithMediasResponse | undefined> {
     const response = await Http.getPlaylist(publicId);
-    console.log(response);
 
     if (response.isOk()) {
         return response.result;

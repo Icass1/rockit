@@ -292,7 +292,7 @@ export class MediaPlayerManager {
     }
 
     private setVideo(useSavedCurrentTime: boolean = false) {
-        console.log("MediaPlayerManager.setVideo");
+        // console.log("MediaPlayerManager.setVideo");
 
         this.clearAudio();
         if (!this._video) return;

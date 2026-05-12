@@ -159,6 +159,7 @@ export interface Vocabulary {
     MARCH: string;
     MAY: string;
     MEDIA_ADDED_TO_LIBRARY: string;
+    MEDIA_LIKED: string;
     MEDIA_PROGRESS: string;
     MINUTES: string;
     MINUTES_LISTEND: string;
@@ -221,6 +222,7 @@ export interface Vocabulary {
     REGISTERING: string;
     RELATED_ARTISTS: string;
     RELAXED: string;
+    REMEMBER_ME: string;
     REMOVE_FROM_LIBRARY: string;
     REMOVE_FROM_LIKED: string;
     REMOVE_FROM_PLAYLIST: string;
@@ -275,6 +277,4 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    MEDIA_LIKED: string;
-    REMEMBER_ME: string;
 }

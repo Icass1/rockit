@@ -1,10 +1,10 @@
 import { CurrentQueueMessageRequestItem, QueueResponseItem } from "@/dto";
 import {
+    EQueueType,
     isAlbum,
     isAlbumWithSongs,
     isPlaylist,
     isQueueable,
-    shuffleQueue as shuffleQueueLogic,
     TListMedia,
     TPlayableMedia,
     TQueueMedia,
@@ -22,7 +22,9 @@ export class QueueManager {
 
     private _queueAtom = createArrayAtom<QueueResponseItem>([]);
     private _currentQueueMediaIdAtom = createAtom<number | null>(0);
-    private _originalQueue: QueueResponseItem[] = [];
+
+    private sortedQueue: QueueResponseItem[] = [];
+    private randomQueue: QueueResponseItem[] = [];
 
     // #endregion: Atoms
 
@@ -47,15 +49,18 @@ export class QueueManager {
             this._currentQueueMediaIdAtom.set(
                 response.result.currentQueueMediaId
             );
-            this._queueAtom.set(
-                response.result.queue.map((queueElement): QueueResponseItem => {
-                    return {
-                        media: queueElement.media,
-                        queueMediaId: queueElement.queueMediaId,
-                        listPublicId: queueElement.listPublicId,
-                    };
-                })
+
+            this.randomQueue = response.result.queue.filter(
+                (item) => item.queueType === "RANDOM"
             );
+            this.sortedQueue = response.result.queue.filter(
+                (item) => item.queueType === "SORTED"
+            );
+
+            if (response.result.queueType === "RANDOM")
+                this._queueAtom.set(this.randomQueue);
+            else if (response.result.queueType === "SORTED")
+                this._queueAtom.set(this.sortedQueue);
 
             const currentMedia = this._queueAtom
                 .get()
@@ -74,6 +79,26 @@ export class QueueManager {
     // #endregion: Constructor
 
     // #region: Methods
+
+    updateQueue() {
+        const queueType = rockIt.userManager.queueTypeAtom.get();
+
+        if (queueType === EQueueType.RANDOM)
+            this._queueAtom.set(this.randomQueue);
+        else if (queueType === EQueueType.SORTED)
+            this._queueAtom.set(this.sortedQueue);
+
+        const currentMedia = this._queueAtom
+            .get()
+            .find(
+                (media) =>
+                    media.queueMediaId == this._currentQueueMediaIdAtom.get()
+            );
+
+        this._currentMediaAtom.set(currentMedia?.media);
+        this._currentListAtom.set(currentMedia?.listPublicId);
+        rockIt.mediaPlayerManager.setMedia(true);
+    }
 
     skipBack() {
         if (this.currentMedia?.publicId)
@@ -112,29 +137,56 @@ export class QueueManager {
     }
 
     setMedia(medias: TQueueMedia[], listPublicId: string) {
-        const queueData: CurrentQueueMessageRequestItem[] = medias.map(
-            (media, index): CurrentQueueMessageRequestItem => {
-                return {
-                    publicId: media.publicId,
-                    queueMediaId: index,
-                };
-            }
-        );
-
-        rockIt.webSocketManager.sendCurrentQueue({
-            queue: queueData,
-            queueType: "SORTED",
+        this.sortedQueue = medias.map((media, index): QueueResponseItem => {
+            return {
+                media: media,
+                listPublicId: listPublicId,
+                queueType: EQueueType.SORTED,
+                queueMediaId: index,
+            };
         });
 
-        this._queueAtom.set(
-            medias.map((media, index) => {
-                return {
-                    listPublicId: listPublicId,
-                    media,
-                    queueMediaId: index,
-                };
-            })
-        );
+        this.randomQueue = medias.map((media, index): QueueResponseItem => {
+            return {
+                media: media,
+                listPublicId: listPublicId,
+                queueType: EQueueType.RANDOM,
+                queueMediaId: index,
+            };
+        });
+
+        const shuffle = (array) => {
+            array.sort(() => Math.random() - 0.5);
+        };
+
+        shuffle(this.randomQueue);
+
+        this.updateQueue();
+
+        rockIt.webSocketManager.sendCurrentQueue({
+            queue: [
+                ...this.sortedQueue.map(
+                    (item): CurrentQueueMessageRequestItem => {
+                        return {
+                            listPublicId: item.listPublicId,
+                            mediaPublicId: item.media.publicId,
+                            queueType: EQueueType.SORTED,
+                            queueMediaId: item.queueMediaId,
+                        };
+                    }
+                ),
+                ...this.randomQueue.map(
+                    (item): CurrentQueueMessageRequestItem => {
+                        return {
+                            listPublicId: item.listPublicId,
+                            mediaPublicId: item.media.publicId,
+                            queueType: EQueueType.RANDOM,
+                            queueMediaId: item.queueMediaId,
+                        };
+                    }
+                ),
+            ],
+        });
     }
 
     moveToMedia(publicId: string) {
@@ -250,57 +302,6 @@ export class QueueManager {
     addMediaToEnd(media: TPlayableMedia) {
         console.log(media);
         throw "(addMediaToEnd) Not implemented method";
-    }
-
-    shuffleQueue() {
-        const currentQueueMediaId = this.currentQueueMediaId;
-        const currentQueue = this.queue;
-
-        if (!currentQueue.length) return;
-
-        this._originalQueue = [...currentQueue];
-
-        const queueItems = currentQueue.map((item) => ({
-            publicId: item.media.publicId,
-            queueMediaId: item.queueMediaId,
-        }));
-
-        const shuffledItems = shuffleQueueLogic(
-            queueItems,
-            currentQueueMediaId
-        );
-
-        const shuffled = shuffledItems.map((item) => {
-            return currentQueue.find(
-                (q) => q.queueMediaId === item.queueMediaId
-            )!;
-        });
-
-        this._queueAtom.set(shuffled);
-    }
-
-    restoreOriginalQueue() {
-        if (!this._originalQueue.length) return;
-
-        const currentQueueMediaId = this.currentQueueMediaId;
-        const restored = [...this._originalQueue];
-
-        // Keep current media at the front
-        const currentIndex = restored.findIndex(
-            (item) => item.queueMediaId === currentQueueMediaId
-        );
-        if (currentIndex > 0) {
-            [restored[0], restored[currentIndex]] = [
-                restored[currentIndex],
-                restored[0],
-            ];
-        }
-
-        this._queueAtom.set(restored);
-    }
-
-    saveOriginalQueue() {
-        this._originalQueue = [...this.queue];
     }
 
     // #endregion: Methods

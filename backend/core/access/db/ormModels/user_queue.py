@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict
 
-from sqlalchemy import ForeignKey, Integer
+from sqlalchemy import ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.core.access.db.base import CoreBase
@@ -17,7 +17,10 @@ if TYPE_CHECKING:
 
 class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
     __tablename__ = "user_queue"
-    __table_args__ = ({"schema": "core", "extend_existing": True},)
+    __table_args__ = (
+        UniqueConstraint("user_id", "queue_media_id", "queue_type_key"),
+        {"schema": "core", "extend_existing": True},
+    )
 
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.user.id"), nullable=False

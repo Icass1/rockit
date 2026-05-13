@@ -5,10 +5,15 @@ from sqlalchemy import Result, Select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.core.aResult import AResult, AResultCode
-from backend.core.access.db.ormModels.user_queue import UserQueueRow
-from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.utils.logger import getLogger
+
+from backend.core.aResult import AResult, AResultCode
+
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
+
+from backend.core.access.db.ormModels.user_queue import UserQueueRow
+
+from backend.core.framework.models.queue import QueueItem
 
 logger: Logger = getLogger(__name__)
 
@@ -67,23 +72,19 @@ class UserQueueAccess:
     async def save_user_queue_async(
         session: AsyncSession,
         user_id: int,
-        queue_items: List[Tuple[int, int]],
-        queue_type: QueueTypeEnum,
+        queue_items: List[QueueItem],
     ) -> AResult[bool]:
         """Save the user's queue. Replaces existing queue for the given type."""
         try:
-            delete_stmt = delete(UserQueueRow).where(
-                UserQueueRow.user_id == user_id,
-                UserQueueRow.queue_type_key == queue_type.value,
-            )
+            delete_stmt = delete(UserQueueRow).where(UserQueueRow.user_id == user_id)
             await session.execute(delete_stmt)
 
-            for queue_media_id, media_id in queue_items:
+            for item in queue_items:
                 user_queue = UserQueueRow(
                     user_id=user_id,
-                    media_id=media_id,
-                    queue_media_id=queue_media_id,
-                    queue_type_key=queue_type.value,
+                    media_id=item.media_id,
+                    queue_media_id=item.queue_id,
+                    queue_type_key=item.queue_type.value,
                 )
                 session.add(instance=user_queue)
 
@@ -122,7 +123,10 @@ class UserQueueAccess:
 
     @staticmethod
     async def get_queue_item_by_queue_media_id(
-        session: AsyncSession, user_id: int, queue_media_id: int
+        session: AsyncSession,
+        user_id: int,
+        queue_media_id: int,
+        queue_type: QueueTypeEnum,
     ) -> AResult[UserQueueRow]:
         """Get a queue item by its queue_media_id for a user."""
         try:
@@ -131,6 +135,7 @@ class UserQueueAccess:
                 .options(selectinload(UserQueueRow.media))
                 .where(UserQueueRow.user_id == user_id)
                 .where(UserQueueRow.queue_media_id == queue_media_id)
+                .where(UserQueueRow.queue_type_key == queue_type.value)
             )
             result: Result[Tuple[UserQueueRow]] = await session.execute(statement=stmt)
             queue_item: UserQueueRow | None = result.scalar_one_or_none()

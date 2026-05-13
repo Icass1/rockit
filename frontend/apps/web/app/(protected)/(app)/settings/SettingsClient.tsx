@@ -18,7 +18,7 @@ interface Language {
 
 export default function SettingsClient({ vocabulary }: SettingsClientProps) {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const $user = useStore(rockIt.userManager.userAtom);
+    const $username = useStore(rockIt.userManager.usernameAtom);
     const $lang = useStore(rockIt.vocabularyManager.langAtom);
 
     const [languages, setLanguages] = useState<Language[]>([]);
@@ -92,12 +92,12 @@ export default function SettingsClient({ vocabulary }: SettingsClientProps) {
 
             <section className="mb-8 rounded-lg bg-neutral-800 p-6">
                 <h2 className="mb-4 text-xl font-semibold text-white">
-                    {$user?.username}
+                    {$username}
                 </h2>
                 <div className="space-y-2 text-neutral-400">
                     <p>
                         <span className="font-medium text-neutral-200">
-                            {$user?.username}
+                            {$username}
                         </span>
                     </p>
                 </div>

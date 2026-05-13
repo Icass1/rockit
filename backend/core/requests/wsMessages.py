@@ -11,15 +11,6 @@ class MediaEndedMessageRequest(BaseModel):
 class CurrentMediaMessageRequest(BaseModel):
     mediaPublicId: str
     queueMediaId: int
-
-
-class CurrentQueueMessageRequestItem(BaseModel):
-    publicId: str
-    queueMediaId: int
-
-
-class CurrentQueueMessageRequest(BaseModel):
-    queue: list[CurrentQueueMessageRequestItem]
     queueType: QueueTypeEnum
 
     @field_validator("queueType", mode="before")
@@ -27,9 +18,32 @@ class CurrentQueueMessageRequest(BaseModel):
         return QueueTypeEnum[v]
 
 
+class CurrentQueueMessageRequestItem(BaseModel):
+    mediaPublicId: str
+    listPublicId: str
+    queueMediaId: int
+    queueType: QueueTypeEnum
+
+    @field_validator("queueType", mode="before")
+    def convert_string_to_enum(cls, v: str) -> QueueTypeEnum:
+        return QueueTypeEnum[v]
+
+
+class CurrentQueueMessageRequest(BaseModel):
+    queue: list[CurrentQueueMessageRequestItem]
+
+
 class CurrentTimeMessageRequest(BaseModel):
     currentTimeMs: int
     mediaPublicId: str
+
+
+class QueueTypeRequest(BaseModel):
+    queueType: QueueTypeEnum
+
+    @field_validator("queueType", mode="before")
+    def convert_string_to_enum(cls, v: str) -> QueueTypeEnum:
+        return QueueTypeEnum[v]
 
 
 class MediaClickedMessageRequest(BaseModel):

@@ -14,6 +14,7 @@ export const QueueResponseItemSchema = z.object({
         z.lazy(() => BaseVideoResponseSchema),
         z.lazy(() => BaseSongWithoutAlbumResponseSchema),
     ]),
+    queueType: z.enum(["RANDOM", "SORTED"]),
 });
 
 export type QueueResponseItem = z.infer<typeof QueueResponseItemSchema>;

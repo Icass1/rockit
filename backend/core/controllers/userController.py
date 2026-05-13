@@ -95,6 +95,7 @@ async def get_session(request: Request) -> SessionResponse:
         image=Image.get_internal_image_url(image),
         admin=a_result_user.result().admin,
         queueType=QueueTypeEnum(value=a_result_user.result().queue_type_key),
+        repeatMode=RepeatModeEnum(value=a_result_user.result().repeat_mode_key),
         currentTimeMs=a_result_user.result().current_time_ms,
     )
 

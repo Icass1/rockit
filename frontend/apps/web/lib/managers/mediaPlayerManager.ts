@@ -280,7 +280,7 @@ export class MediaPlayerManager {
         this._audio.src = audioSrc;
 
         if (useSavedCurrentTime) {
-            const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;
+            const savedTimeMs = rockIt.userManager.currentTimeMsAtom.get() ?? 0;
             if (savedTimeMs > 0) {
                 this._audio.currentTime = savedTimeMs / 1000;
             }
@@ -307,7 +307,7 @@ export class MediaPlayerManager {
         this._video.src = videoSrc;
 
         if (useSavedCurrentTime) {
-            const savedTimeMs = rockIt.userManager.user?.currentTimeMs ?? 0;
+            const savedTimeMs = rockIt.userManager.currentTimeMsAtom.get() ?? 0;
             if (savedTimeMs > 0) {
                 this._video.currentTime = savedTimeMs / 1000;
             }
@@ -340,13 +340,16 @@ export class MediaPlayerManager {
 
     private _sendCurrentMedia(currentMedia: TPlayableMedia) {
         const queueMediaId = rockIt.queueManager.currentQueueMediaId;
+        const queueType = rockIt.userManager.queueTypeAtom.get();
 
-        if (queueMediaId !== null) {
-            rockIt.webSocketManager.sendCurrentMedia({
-                mediaPublicId: currentMedia.publicId,
-                queueMediaId,
-            });
-        }
+        if (queueMediaId === null) return;
+        if (queueType === undefined) return;
+
+        rockIt.webSocketManager.sendCurrentMedia({
+            mediaPublicId: currentMedia.publicId,
+            queueMediaId,
+            queueType: queueType,
+        });
     }
 
     private _handleTimeUpdate() {

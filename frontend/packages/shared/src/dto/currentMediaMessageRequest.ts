@@ -6,6 +6,7 @@ import { z } from "zod";
 export const CurrentMediaMessageRequestSchema = z.object({
     mediaPublicId: z.string(),
     queueMediaId: z.number(),
+    queueType: z.enum(["RANDOM", "SORTED"]),
 });
 
 export type CurrentMediaMessageRequest = z.infer<

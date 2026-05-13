@@ -1,7 +1,7 @@
 import json
 import time as time_module
 from dataclasses import dataclass
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import WebSocket
@@ -17,6 +17,7 @@ from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.downloader.types import DownloadStatus
 from backend.core.framework.websocket.sendToUser import SendToUser
+from backend.core.framework.models.queue import QueueItem
 
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
 from backend.core.responses.mediaListenedMessage import MediaListenedMessage
@@ -25,6 +26,7 @@ from backend.core.requests.wsMessages import (
     CurrentMediaMessageRequest,
     CurrentQueueMessageRequest,
     CurrentTimeMessageRequest,
+    QueueTypeRequest,
     MediaClickedMessageRequest,
     SkipClickedMessageRequest,
     SeekMessageRequest,
@@ -130,6 +132,8 @@ class WebSocketManager:
                 await self._handle_skip_clicked(session, user_id, data)
             elif message_type == "seek":
                 await self._handle_seek(session, user_id, data)
+            elif message_type == "queue_type":
+                await self._handle_queue_type(session, user_id, data)
             else:
                 logger.warning(f"Unknown message type: {message_type}")
 
@@ -154,6 +158,7 @@ class WebSocketManager:
                 user_id=user_id,
                 queue_media_id=current_media_msg.queueMediaId,
                 media_public_id=current_media_msg.mediaPublicId,
+                queue_type=current_media_msg.queueType,
             )
         )
         if a_result_update_current_media.is_not_ok():
@@ -169,36 +174,42 @@ class WebSocketManager:
         a_result_medias: AResult[List[MediaModel]] = (
             await Media.get_medias_from_public_ids_async(
                 session=session,
-                public_ids=[item.publicId for item in current_queue_msg.queue],
+                public_ids=[item.mediaPublicId for item in current_queue_msg.queue],
                 media_type_keys=None,
             )
         )
 
-        queue_items: List[Tuple[int, int]] = []
+        queue_items: List[QueueItem] = []
 
         for item in current_queue_msg.queue:
             item_id: int | None = next(
                 (
                     row.id
                     for row in a_result_medias.result()
-                    if row.public_id == item.publicId
+                    if row.public_id == item.mediaPublicId
                 ),
                 None,
             )
 
             if item_id is None:
                 logger.error(
-                    f"Item with public id {item.publicId} not found in media table"
+                    f"Item with public id {item.mediaPublicId} not found in media table"
                 )
                 continue
 
-            queue_items.append((item.queueMediaId, item_id))
+            queue_items.append(
+                QueueItem(
+                    media_id=item_id,
+                    queue_id=item.queueMediaId,
+                    queue_type=item.queueType,
+                    list_id=23,
+                )
+            )
 
         await User.save_user_queue_async(
             session=session,
             user_id=user_id,
             queue_items=queue_items,
-            queue_type=current_queue_msg.queueType,
         )
 
     async def _handle_current_time(
@@ -400,6 +411,13 @@ class WebSocketManager:
             logger.error(
                 f"Error adding user media skip for user {user_id}. {a_result_skip.info()}"
             )
+
+    async def _handle_queue_type(
+        self, session: AsyncSession, user_id: int, data: Dict[str, Any]
+    ) -> None:
+        queue_type_msg = QueueTypeRequest(**data)
+
+        await User.update_queue_type_async(session, user_id, queue_type_msg.queueType)
 
     async def _handle_seek(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]

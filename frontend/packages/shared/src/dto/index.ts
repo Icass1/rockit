@@ -188,6 +188,10 @@ export {
     QueueResponseItemSchema,
     type QueueResponseItem,
 } from "./queueResponseItem";
+export {
+    QueueTypeRequestSchema,
+    type QueueTypeRequest,
+} from "./queueTypeRequest";
 export { RegisterRequestSchema, type RegisterRequest } from "./registerRequest";
 export {
     RegisterResponseSchema,

@@ -4,8 +4,10 @@
 import { z } from "zod";
 
 export const CurrentQueueMessageRequestItemSchema = z.object({
-    publicId: z.string(),
+    mediaPublicId: z.string(),
+    listPublicId: z.string(),
     queueMediaId: z.number(),
+    queueType: z.enum(["RANDOM", "SORTED"]),
 });
 
 export type CurrentQueueMessageRequestItem = z.infer<

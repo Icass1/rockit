@@ -59,11 +59,11 @@ class UserRow(
     )
 
     repeat_mode_enum: Mapped["RepeatModeEnumRow"] = relationship(
-        "RepeatModeEnumRow", back_populates="user", uselist=False
+        "RepeatModeEnumRow", back_populates="user", uselist=False, lazy="selectin"
     )
 
     queue_type_enum: Mapped["QueueTypeEnumRow"] = relationship(
-        "QueueTypeEnumRow", back_populates="user", uselist=False
+        "QueueTypeEnumRow", back_populates="user", uselist=False, lazy="selectin"
     )
 
     # one-to-many

@@ -13,7 +13,11 @@ export class AuthManager {
         return res.isOk();
     }
 
-    async loginAsync(username: string, password: string, rememberMe: boolean = false): Promise<AuthResult> {
+    async loginAsync(
+        username: string,
+        password: string,
+        rememberMe: boolean = false
+    ): Promise<AuthResult> {
         const res = await Http.login({
             username,
             password,
@@ -22,8 +26,7 @@ export class AuthManager {
         });
 
         if (res.isOk()) {
-            const session = await getUserInClient();
-            rockIt.userManager.userAtomForDirectAccess.set(session);
+            await rockIt.userManager.updateAsync();
             return { success: true };
         } else if (res.isNotOk()) {
             return { success: false, error: res.detail.toString() };
@@ -47,8 +50,7 @@ export class AuthManager {
         });
 
         if (res.isOk()) {
-            const session = await getUserInClient();
-            rockIt.userManager.userAtomForDirectAccess.set(session);
+            await rockIt.userManager.updateAsync();
             return { success: true };
         } else if (res.isNotOk()) {
             return { success: false, error: res.detail.toString() };

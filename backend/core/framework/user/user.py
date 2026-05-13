@@ -5,15 +5,18 @@ from typing import Any, Coroutine, List, Tuple, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import time_it
+
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.enums.skipDirectionEnum import SkipDirectionEnum
 
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
+from backend.core.access.db.ormModels.language import LanguageRow
 from backend.core.access.db.ormModels.user_queue import UserQueueRow
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
@@ -29,25 +32,22 @@ from backend.core.access.userQueueAccess import UserQueueAccess
 from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 
 from backend.core.framework import providers
+from backend.core.framework.models.queue import QueueItem
 from backend.core.framework.websocket.sendToUser import SendToUser
 from backend.core.framework.provider.baseProvider import BaseProvider
 
-from backend.core.responses.libraryMediaAddedMessage import LibraryMediaAddedMessage
-from backend.core.responses.libraryMediaRemovedMessage import LibraryMediaRemovedMessage
-
 from backend.core.responses.queueResponse import QueueResponse, QueueResponseItem
+from backend.core.responses.libraryMediaAddedMessage import LibraryMediaAddedMessage
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.libraryMediaRemovedMessage import LibraryMediaRemovedMessage
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
-
-from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from backend.core.access.db.ormModels.language import LanguageRow
-from backend.utils.backendUtils import time_it
 
 logger = getLogger(__name__)
 
@@ -59,7 +59,7 @@ class QueueTask:
     coroutine: Coroutine[Any, Any, AResult[Any]]
     media_type: str
     provider_id: int
-    items: List[Tuple[int, str]]
+    items: List[Tuple[int, str, int]]
 
 
 @dataclass
@@ -98,11 +98,11 @@ class User:
         queue_items: List[UserQueueRow] = a_result_queue.result()
 
         # Group queue items by (provider_id, media_type_key)
-        groups: dict[tuple[int, int], list[tuple[int, str]]] = defaultdict(list)
+        groups: dict[tuple[int, int], list[tuple[int, str, int]]] = defaultdict(list)
         for item in queue_items:
             media: CoreMediaRow = item.media
             groups[(media.provider_id, media.media_type_key)].append(
-                (item.queue_media_id, media.public_id)
+                (item.queue_media_id, media.public_id, item.queue_type_key)
             )
 
         # Collect all coroutines to run in parallel
@@ -115,7 +115,7 @@ class User:
                 logger.error(f"No provider found for provider_id {provider_id}.")
                 continue
 
-            public_ids = [public_id for _, public_id in items]
+            public_ids = [public_id for _, public_id, _ in items]
 
             if media_type_key == MediaTypeEnum.VIDEO.value:
                 task = provider_instance.get_videos_async(
@@ -171,7 +171,7 @@ class User:
                 media_dict: dict[str, Any] = {
                     media.publicId: media for media in media_list
                 }
-                for queue_media_id, public_id in task.items:
+                for queue_media_id, public_id, queue_type_key in task.items:
                     media_item: Any = media_dict.get(public_id)
                     if media_item is None:
                         logger.warning(
@@ -179,15 +179,12 @@ class User:
                         )
                         continue
 
-                    list_public_id = ""
-                    if task.media_type == "songs":
-                        list_public_id = media_item.album.publicId
-
                     queue.append(
                         QueueResponseItem(
                             queueMediaId=queue_media_id,
-                            listPublicId=list_public_id,
+                            listPublicId="TODO",
                             media=media_item,
+                            queueType=QueueTypeEnum(queue_type_key),
                         )
                     )
 
@@ -195,7 +192,9 @@ class User:
             code=AResultCode.OK,
             message="OK",
             result=QueueResponse(
-                currentQueueMediaId=current_queue_media_id, queue=queue
+                currentQueueMediaId=current_queue_media_id,
+                queue=queue,
+                queueType=QueueTypeEnum(user.queue_type_key),
             ),
         )
 
@@ -639,13 +638,20 @@ class User:
 
     @staticmethod
     async def update_user_current_media(
-        session: AsyncSession, user_id: int, queue_media_id: int, media_public_id: str
+        session: AsyncSession,
+        user_id: int,
+        queue_media_id: int,
+        media_public_id: str,
+        queue_type: QueueTypeEnum,
     ) -> AResult[bool]:
         """Update user's current queue media after validating the public ID matches."""
 
         a_result_queue_item: AResult[UserQueueRow] = (
             await UserQueueAccess.get_queue_item_by_queue_media_id(
-                session=session, user_id=user_id, queue_media_id=queue_media_id
+                session=session,
+                user_id=user_id,
+                queue_media_id=queue_media_id,
+                queue_type=queue_type,
             )
         )
         if a_result_queue_item.is_not_ok():
@@ -725,14 +731,12 @@ class User:
     async def save_user_queue_async(
         session: AsyncSession,
         user_id: int,
-        queue_items: List[Tuple[int, int]],
-        queue_type: QueueTypeEnum,
+        queue_items: List[QueueItem],
     ) -> AResultCode:
         a_result: AResult[bool] = await UserQueueAccess.save_user_queue_async(
             session=session,
             user_id=user_id,
             queue_items=queue_items,
-            queue_type=queue_type,
         )
 
         if a_result.is_not_ok():
@@ -805,6 +809,25 @@ class User:
 
         user: UserRow = a_result_user.result()
         user.password_hash = password_hash
+        await session.commit()
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def update_queue_type_async(
+        session: AsyncSession, user_id: int, queue_type: QueueTypeEnum
+    ) -> AResult[bool]:
+        """Set the user's queue type directly."""
+
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResult(code=a_result_user.code(), message=a_result_user.message())
+
+        user: UserRow = a_result_user.result()
+        user.queue_type_key = queue_type.value
         await session.commit()
 
         return AResult(code=AResultCode.OK, message="OK", result=True)

@@ -1,34 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { type RequestLogStatsResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import {
     Activity,
     BarChart3,
     Clock,
+    Fingerprint,
     Globe,
     Route,
     TrendingUp,
     Users,
     Zap,
-    Fingerprint,
 } from "lucide-react";
 import {
-    AreaChart,
     Area,
-    BarChart,
+    AreaChart,
     Bar,
-    LineChart,
-    Line,
+    BarChart,
+    CartesianGrid,
     Cell,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip,
     XAxis,
     YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    CartesianGrid,
 } from "recharts";
-import { type RequestLogStatsResponse } from "@/dto";
 import { Http } from "@/lib/http";
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -70,7 +70,9 @@ function StatCard({ icon, label, value, sub }: StatCardProps) {
                 <span>{label}</span>
             </div>
             <div className="text-2xl font-bold text-white">{value}</div>
-            {sub && <div className="mt-0.5 text-xs text-neutral-600">{sub}</div>}
+            {sub && (
+                <div className="mt-0.5 text-xs text-neutral-600">{sub}</div>
+            )}
         </div>
     );
 }
@@ -114,7 +116,7 @@ export default function AdminStats() {
             setLoading(false);
         };
         fetchStats();
-    }, []);
+    }, [$vocabulary.ADMIN_FAILED_TO_LOAD_STATS]);
 
     if (loading) {
         return (
@@ -165,7 +167,8 @@ export default function AdminStats() {
             <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
                 <BarChart3 className="mb-4 h-12 w-12 text-neutral-600" />
                 <p className="text-neutral-500">
-                    {$vocabulary.ADMIN_NO_DATA_YET} {$vocabulary.ADMIN_NO_DATA_DESC}
+                    {$vocabulary.ADMIN_NO_DATA_YET}{" "}
+                    {$vocabulary.ADMIN_NO_DATA_DESC}
                 </p>
             </div>
         );
@@ -309,9 +312,7 @@ export default function AdminStats() {
                                         borderRadius: "8px",
                                         color: "#fff",
                                     }}
-                                    formatter={(
-                                        value: unknown
-                                    ) => [
+                                    formatter={(value: unknown) => [
                                         `${Math.round(Number(value))}ms`,
                                         $vocabulary.ADMIN_AVG_TIME,
                                     ]}
@@ -363,9 +364,9 @@ export default function AdminStats() {
                                         borderRadius: "8px",
                                         color: "#fff",
                                     }}
-                                    labelFormatter={(
-                                        label: unknown
-                                    ) => `${String(label)}:00`}
+                                    labelFormatter={(label: unknown) =>
+                                        `${String(label)}:00`
+                                    }
                                 />
                                 <Bar
                                     dataKey="count"
@@ -386,10 +387,7 @@ export default function AdminStats() {
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
-                            <BarChart
-                                data={codeChartData}
-                                layout="vertical"
-                            >
+                            <BarChart data={codeChartData} layout="vertical">
                                 <CartesianGrid
                                     strokeDasharray="3 3"
                                     stroke={NEUTRAL_700}
@@ -418,22 +416,14 @@ export default function AdminStats() {
                                         borderRadius: "8px",
                                         color: "#fff",
                                     }}
-                                    formatter={(
-                                        value: unknown
-                                    ) => [
+                                    formatter={(value: unknown) => [
                                         Number(value).toLocaleString(),
                                         $vocabulary.ADMIN_COUNT,
                                     ]}
                                 />
-                                <Bar
-                                    dataKey="count"
-                                    radius={[0, 4, 4, 0]}
-                                >
+                                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                                     {codeChartData.map((entry, i) => (
-                                        <Cell
-                                            key={i}
-                                            fill={entry.fill}
-                                        />
+                                        <Cell key={i} fill={entry.fill} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -555,26 +545,24 @@ export default function AdminStats() {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_USER_ACTIVITY}
-                        icon={
-                            <Users className="h-4 w-4 text-[#ee1086]" />
-                        }
+                        icon={<Users className="h-4 w-4 text-[#ee1086]" />}
                     />
                     <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                            <thead>
-                                <tr className="border-b border-neutral-800 bg-neutral-950/50">
-                                    <th className="px-4 py-3 font-medium text-neutral-400">
-                                        {$vocabulary.ADMIN_USER}
-                                    </th>
-                                    <th className="px-4 py-3 text-right font-medium text-neutral-400">
-                                        {$vocabulary.ADMIN_REQUESTS}
-                                    </th>
-                                    <th className="px-4 py-3 text-right font-medium text-neutral-400">
-                                        {$vocabulary.ADMIN_AVG_TIME}
-                                    </th>
-                                </tr>
-                            </thead>
+                                <thead>
+                                    <tr className="border-b border-neutral-800 bg-neutral-950/50">
+                                        <th className="px-4 py-3 font-medium text-neutral-400">
+                                            {$vocabulary.ADMIN_USER}
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                            {$vocabulary.ADMIN_REQUESTS}
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium text-neutral-400">
+                                            {$vocabulary.ADMIN_AVG_TIME}
+                                        </th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     {data.userActivity.map((u, i) => (
                                         <tr
@@ -582,7 +570,8 @@ export default function AdminStats() {
                                             className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
                                         >
                                             <td className="px-4 py-3 text-white">
-                                                {u.username || $vocabulary.ADMIN_ANONYMOUS}
+                                                {u.username ||
+                                                    $vocabulary.ADMIN_ANONYMOUS}
                                             </td>
                                             <td className="px-4 py-3 text-right text-white">
                                                 {u.requestCount.toLocaleString()}

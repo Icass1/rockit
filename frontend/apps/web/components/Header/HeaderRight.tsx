@@ -14,7 +14,7 @@ export default function HeaderRight() {
     const [showNotifications, setShowNotifications] = useState(false);
     const [isUserLoaded, setIsUserLoaded] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
-    const $user = useStore(rockIt.userManager.userAtom);
+    const $loggedIn = useStore(rockIt.userManager.loggedInAtom);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -58,7 +58,7 @@ export default function HeaderRight() {
             </div>
 
             {/* User / Login */}
-            {!isUserLoaded ? null : $user ? (
+            {!isUserLoaded ? null : $loggedIn ? (
                 <HeaderUser />
             ) : (
                 <Link

@@ -8,6 +8,7 @@ export const SessionResponseSchema = z.object({
     image: z.string(),
     admin: z.boolean(),
     queueType: z.enum(["RANDOM", "SORTED"]),
+    repeatMode: z.enum(["OFF", "ONE", "ALL"]),
     currentTimeMs: z.number().nullable(),
 });
 

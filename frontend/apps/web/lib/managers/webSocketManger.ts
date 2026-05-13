@@ -6,13 +6,13 @@ import {
     EWebSocketMessage,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
+    QueueTypeRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
     TWebSocketIncomingMessage,
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 export class WebSocketManager {
     static #instance: WebSocketManager;
@@ -97,10 +97,6 @@ export class WebSocketManager {
             );
             if (this.webSocket?.readyState === WebSocket.OPEN) break;
 
-            if (!rockIt.userManager.user) {
-                continue;
-            }
-
             try {
                 this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
 
@@ -146,7 +142,13 @@ export class WebSocketManager {
             });
         }
 
-        this.webSocket?.send(JSON.stringify(message));
+        try {
+            this.webSocket?.send(JSON.stringify(message));
+        } catch (e) {
+            console.error(
+                `Error sending web socket message ${e}. Sending message ${message}`
+            );
+        }
     }
 
     sendMediaEnded(data: MediaEndedMessageRequest) {
@@ -166,6 +168,13 @@ export class WebSocketManager {
     sendCurrentQueue(data: CurrentQueueMessageRequest) {
         this.send({
             type: "current_queue",
+            ...data,
+        });
+    }
+
+    sendQueueType(data: QueueTypeRequest) {
+        this.send({
+            type: "queue_type",
             ...data,
         });
     }

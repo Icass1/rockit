@@ -22,6 +22,9 @@ import { rockIt } from "@/lib/rockit/rockIt";
 export default function Navigation() {
     const [open, setOpen] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const activePage = usePathname();
+    const $admin = useStore(rockIt.userManager.admin);
 
     const handleMouseEnter = () => {
         hoverTimeout.current = setTimeout(() => {
@@ -38,12 +41,6 @@ export default function Navigation() {
     };
 
     const $downloads = [];
-
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-
-    const activePage = usePathname();
-
-    const user = useStore(rockIt.userManager.userAtom);
 
     const pages = [
         {
@@ -95,7 +92,7 @@ export default function Navigation() {
             title: "Admin",
             href: "/admin",
             icon: ShieldEllipsis,
-            disabled: !user?.admin,
+            disabled: $admin,
         },
     ];
 

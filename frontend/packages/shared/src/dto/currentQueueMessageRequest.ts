@@ -6,7 +6,6 @@ import { CurrentQueueMessageRequestItemSchema } from "./currentQueueMessageReque
 
 export const CurrentQueueMessageRequestSchema = z.object({
     queue: z.array(z.lazy(() => CurrentQueueMessageRequestItemSchema)),
-    queueType: z.enum(["RANDOM", "SORTED"]),
 });
 
 export type CurrentQueueMessageRequest = z.infer<

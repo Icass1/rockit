@@ -12,7 +12,7 @@ import type {
     QueueResponseItem,
     TQueueMedia,
 } from "@rockit/shared";
-import { ERepeatMode, isVideo } from "@rockit/shared";
+import { EQueueType, ERepeatMode, isVideo } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import {
     AudioIntegrationService,
@@ -373,6 +373,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                     webSocketManager.sendCurrentMedia({
                         mediaPublicId: nextMedia.publicId,
                         queueMediaId: index,
+                        queueType: "SORTED",
                     });
                 }
             } else {
@@ -434,13 +435,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             webSocketManager.sendCurrentMedia({
                 mediaPublicId: media.publicId,
                 queueMediaId: index,
+                queueType: EQueueType.SORTED,
             });
             webSocketManager.sendCurrentQueue({
                 queue: newQueue.map((m, i) => ({
-                    publicId: m.publicId,
+                    mediaPublicId: m.publicId,
                     queueMediaId: i,
+                    listPublicId: "test",
+                    queueType: EQueueType.SORTED,
                 })),
-                queueType: queue.shuffle ? "RANDOM" : "SORTED",
             });
         },
         [mediaEngine, queue]
@@ -499,6 +502,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         webSocketManager.sendCurrentMedia({
             mediaPublicId: nextMedia.publicId,
             queueMediaId: nextIndex,
+            queueType: EQueueType.SORTED,
         });
     }, [mediaEngine, queue]);
 
@@ -536,6 +540,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         webSocketManager.sendCurrentMedia({
             mediaPublicId: prevMedia.publicId,
             queueMediaId: prevIndex,
+            queueType: EQueueType.SORTED,
         });
     }, [currentTime, mediaEngine, queue, seekTo]);
 

@@ -47,6 +47,7 @@ async function getSessionFromSqlite(): Promise<SessionResponse | null> {
         image: "",
         admin: user.admin,
         queueType: queueTypeKeyToString(user.queueTypeKey),
+        repeatMode: "OFF",
         currentTimeMs: user.currentTimeMs ?? null,
     };
 }

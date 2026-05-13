@@ -106,16 +106,18 @@ export default function PlayerUIContent() {
                     </div>
                 </>
             ) : isPortrait ? (
-                <div className="grid grid-cols-[1fr_1fr] gap-4">
-                    <div className="z-10 h-full max-h-full min-h-0">
+                <div className="grid min-h-0 grid-cols-[1fr_1fr] gap-4">
+                    <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
                         <PlayerUIQueue />
                     </div>
-                    <div className="z-10 h-full max-h-full min-h-0">Lyrics</div>
+                    <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
+                        Lyrics
+                    </div>
                 </div>
             ) : (
                 <div className="z-10 grid h-full max-h-full min-h-0 grid-rows-[min-content_1fr] gap-2">
                     <div className="flex flex-row justify-center gap-4">
-                        {["LYRICS", "QUEUE"].map((tab) => (
+                        {["QUEUE", "LYRICS"].map((tab) => (
                             <button
                                 key={tab}
                                 className={`text-lg font-semibold transition hover:text-white ${selectedTab === tab ? "border-b-2 border-white text-white" : "text-gray-400"}`}
@@ -129,11 +131,11 @@ export default function PlayerUIContent() {
                     </div>
                     {selectedTab == "LYRICS" ? (
                         <div className="z-10 h-full max-h-full min-h-0">
-                            <PlayerUIQueue />
+                            Lyrics
                         </div>
                     ) : selectedTab == "QUEUE" ? (
                         <div className="z-10 h-full max-h-full min-h-0">
-                            Queue
+                            <PlayerUIQueue />
                         </div>
                     ) : (
                         <div>{selectedTab}</div>

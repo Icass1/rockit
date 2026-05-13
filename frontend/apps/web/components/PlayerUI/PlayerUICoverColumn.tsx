@@ -2,16 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { getMediaArtists, TPlayableMedia } from "@rockit/shared";
+import {
+    getMediaArtists,
+    getMediaSubtitle,
+    TPlayableMedia,
+} from "@rockit/shared";
 import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import Artists from "@/components/Artists/Artists";
 
 export function PlayerUICoverColumn({
     currentMedia,
 }: {
-    currentMedia: TPlayableMedia | undefined;
+    currentMedia: TPlayableMedia;
 }) {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const [showIcon, setShowIcon] = useState(false);
@@ -24,7 +28,7 @@ export function PlayerUICoverColumn({
     }, [showIcon]);
 
     useEffect(() => {
-        if (videoContainerRef.current && currentMedia?.type === "video") {
+        if (videoContainerRef.current && currentMedia.type === "video") {
             rockIt.mediaPlayerManager.attachVideoToContainer(
                 videoContainerRef.current
             );
@@ -35,7 +39,7 @@ export function PlayerUICoverColumn({
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 z-20 transition-all z-20 p-5 duration-500" +
         (showIcon ? " opacity-100" : " opacity-0");
 
-    const isVideo = currentMedia?.type === "video";
+    const isVideo = currentMedia.type === "video";
 
     return (
         <div className="z-10 flex h-full w-full flex-col items-center justify-center">
@@ -54,10 +58,7 @@ export function PlayerUICoverColumn({
                     }}
                 >
                     <Image
-                        src={
-                            currentMedia?.imageUrl ??
-                            rockIt.MEDIA_PLACEHOLDER_IMAGE_URL
-                        }
+                        src={currentMedia.imageUrl}
                         height={600}
                         width={600}
                         alt="Media Cover"
@@ -75,29 +76,23 @@ export function PlayerUICoverColumn({
                 </div>
             )}
 
-            {/* Media info */}
-            <div className="flex w-full flex-col items-center justify-center px-2 text-center">
-                <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
-                    {currentMedia?.name}
-                </h1>
-                <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">
-                    <span className="max-w-[75%] truncate text-center md:hover:underline">
-                        currentMedia?.album.name
-                    </span>
-                    <span>•</span>
-                    {getMediaArtists(currentMedia) &&
-                    getMediaArtists(currentMedia)!.length > 0 ? (
-                        <Link
-                            href={`/artist/${getMediaArtists(currentMedia)![0].publicId}`}
-                            className="truncate md:hover:underline"
-                        >
-                            {getMediaArtists(currentMedia)![0].name}
-                        </Link>
-                    ) : (
-                        <span>Artista desconocido</span>
-                    )}
-                </p>
-            </div>
+            {currentMedia && (
+                <>
+                    {/* Media info */}
+                    <div className="flex w-full flex-col items-center justify-center px-2 text-center">
+                        <h1 className="line-clamp-2 text-4xl leading-normal font-bold text-balance">
+                            {currentMedia.name}
+                        </h1>
+                        <p className="mt-2 flex w-full items-center justify-center gap-1 text-xl font-medium text-gray-400">
+                            <span className="max-w-[75%] truncate text-center md:hover:underline">
+                                {getMediaSubtitle(currentMedia)}
+                            </span>
+                            <span>•</span>
+                            <Artists artists={getMediaArtists(currentMedia)} />
+                        </p>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

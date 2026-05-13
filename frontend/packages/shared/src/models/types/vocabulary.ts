@@ -281,4 +281,6 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
+    QUEUE: string;
+    NO_MEDIA_PLAYING: string;
 }

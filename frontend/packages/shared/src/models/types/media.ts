@@ -207,18 +207,20 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
         );
     } else if (isPlaylist(media)) {
         return media.description ?? "";
+    } else if (isVideo(media)) {
+        return media.artists.map((artist) => artist.name).join(", ");
     }
     return "Not supported subtitle";
 }
 
 export function getMediaArtists(
     media: TPlayableMedia | undefined
-): BaseArtistResponse[] | undefined {
-    if (!media) return undefined;
+): BaseArtistResponse[] {
+    if (!media) return [];
     if (isSong(media) || isVideo(media)) {
         return media.artists;
     }
-    return undefined;
+    return [];
 }
 
 export function getMediaAlbum(

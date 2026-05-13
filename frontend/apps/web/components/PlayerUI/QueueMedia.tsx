@@ -3,12 +3,18 @@
 import Image from "next/image";
 import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { Pause, Play } from "lucide-react";
+import { GripVertical, Pause, Play } from "lucide-react";
 import { getMediaArtists, getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
-export function QueueMedia({ media }: { media: QueueResponseItem }) {
+export function QueueMedia({
+    media,
+    onClick,
+}: {
+    media: QueueResponseItem;
+    onClick?: () => void;
+}) {
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
@@ -16,19 +22,20 @@ export function QueueMedia({ media }: { media: QueueResponseItem }) {
 
     const isCurrent = media.queueMediaId === $currentQueueMediaId;
 
-    // TODO: implement click handler when queueManager.playMediaFromQueue is available
-    const handleClick = () => {};
-
     return (
-        <li
-            onClick={handleClick}
-            className={`group flex items-center gap-x-2 p-2 ${
+        <div
+            onClick={onClick}
+            className={`group flex cursor-grab items-center gap-x-2 p-2 active:cursor-grabbing ${
                 isCurrent
                     ? "bg-[rgba(50,50,50,0.75)]"
                     : "md:hover:bg-[rgba(75,75,75,0.75)]"
             }`}
         >
-            <div className="relative">
+            <div className="flex cursor-grab items-center pr-1 active:cursor-grabbing">
+                <GripVertical className="h-4 w-4 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
+            </div>
+
+            <div className="relative shrink-0">
                 <Image
                     src={
                         media.media.imageUrl ??
@@ -61,9 +68,9 @@ export function QueueMedia({ media }: { media: QueueResponseItem }) {
                 </p>
             </div>
 
-            <p className="px-2 text-sm text-gray-300">
+            <p className="shrink-0 px-2 text-sm text-gray-300">
                 {getTime(getMediaDuration(media.media) ?? 0)}
             </p>
-        </li>
+        </div>
     );
 }

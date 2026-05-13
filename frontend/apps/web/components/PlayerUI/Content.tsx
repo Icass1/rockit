@@ -98,24 +98,24 @@ export default function PlayerUIContent() {
 
             {isLandscape ? (
                 <>
-                    <div className="z-10 order-1 h-full max-h-full min-h-0">
-                        <PlayerUIQueue />
-                    </div>
                     <div className="z-10 order-3 h-full max-h-full min-h-0">
                         Lyrics
+                    </div>
+                    <div className="z-10 order-1 h-full max-h-full min-h-0">
+                        <PlayerUIQueue />
                     </div>
                 </>
             ) : isPortrait ? (
                 <div className="grid min-h-0 grid-cols-[1fr_1fr] gap-4">
                     <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
-                        <PlayerUIQueue />
+                        Lyrics
                     </div>
                     <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
-                        Lyrics
+                        <PlayerUIQueue />
                     </div>
                 </div>
             ) : (
-                <div className="z-10 grid h-full max-h-full min-h-0 grid-rows-[min-content_1fr] gap-2">
+                <div className="z-10 grid h-full max-h-full min-h-0 min-w-0 grid-rows-[min-content_1fr] gap-2">
                     <div className="flex flex-row justify-center gap-4">
                         {["QUEUE", "LYRICS"].map((tab) => (
                             <button
@@ -130,11 +130,11 @@ export default function PlayerUIContent() {
                         ))}
                     </div>
                     {selectedTab == "LYRICS" ? (
-                        <div className="z-10 h-full max-h-full min-h-0">
+                        <div className="z-10 h-full max-h-full min-h-0 min-w-0">
                             Lyrics
                         </div>
                     ) : selectedTab == "QUEUE" ? (
-                        <div className="z-10 h-full max-h-full min-h-0">
+                        <div className="z-10 h-full max-h-full min-h-0 min-w-0">
                             <PlayerUIQueue />
                         </div>
                     ) : (

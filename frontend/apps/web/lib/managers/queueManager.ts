@@ -84,9 +84,9 @@ export class QueueManager {
         const queueType = rockIt.userManager.queueTypeAtom.get();
 
         if (queueType === EQueueType.RANDOM)
-            this._queueAtom.set(this.randomQueue);
+            this._queueAtom.set([...this.randomQueue]);
         else if (queueType === EQueueType.SORTED)
-            this._queueAtom.set(this.sortedQueue);
+            this._queueAtom.set([...this.sortedQueue]);
 
         const currentMedia = this._queueAtom
             .get()
@@ -292,6 +292,20 @@ export class QueueManager {
         }
 
         return medias;
+    }
+
+    reorderQueue(fromIndex: number, toIndex: number) {
+        if (fromIndex < 0 || fromIndex >= this.sortedQueue.length) return;
+        if (toIndex < 0 || toIndex >= this.sortedQueue.length) return;
+        if (fromIndex === toIndex) return;
+
+        const [movedItem] = this.sortedQueue.splice(fromIndex, 1);
+        this.sortedQueue.splice(toIndex, 0, movedItem);
+
+        const [movedRandomItem] = this.randomQueue.splice(fromIndex, 1);
+        this.randomQueue.splice(toIndex, 0, movedRandomItem);
+
+        this.updateQueue();
     }
 
     addMediaNext(media: TPlayableMedia) {

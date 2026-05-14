@@ -23,8 +23,12 @@ export default function LoginModal(): JSX.Element {
         rockIt.authManager.isLoggedInAsync().then(setIsLoggedIn);
     }, [router]);
 
-    useEffect((): void => {
-        rockIt.vocabularyManager.getVocabulary("en");
+    useEffect(() => {
+        const func = async (): Promise<void> => {
+            const b = await rockIt.vocabularyManager.getVocabularyAsync("en");
+            if (b.isOk()) rockIt.vocabularyManager.setVocabulary(b.result);
+        };
+        func();
     }, []);
 
     const handleSubmit = useCallback(async (): Promise<void> => {

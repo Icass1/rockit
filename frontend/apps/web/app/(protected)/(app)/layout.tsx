@@ -8,7 +8,7 @@ export default async function AppLayout({
 }: {
     children: React.ReactNode;
 }): Promise<JSX.Element> {
-    const vocabularyData = await rockIt.vocabularyManager.getVocabulary();
+    const vocabularyData = await rockIt.vocabularyManager.getVocabularyAsync();
 
     if (vocabularyData.isNotOk()) {
         if (vocabularyData.code === 401) {

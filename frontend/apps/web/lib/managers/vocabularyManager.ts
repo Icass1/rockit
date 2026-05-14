@@ -21,7 +21,7 @@ export class VocabularyManager {
     private _langAtom = createAtom<string>("");
 
     async init(): Promise<void> {
-        const data = await this.getVocabulary();
+        const data = await this.getVocabularyAsync();
         if (data.isOk()) {
             this.setVocabulary(data.result);
             return;
@@ -34,7 +34,7 @@ export class VocabularyManager {
         );
     }
 
-    async getVocabulary(
+    async getVocabularyAsync(
         lang?: string
     ): Promise<HttpResult<VocabularyResponse>> {
         if (lang) return await Http.getVocabularyByCode(lang);

@@ -21,7 +21,7 @@ export default function Artists({
                         <Link href={artist.url} className="hover:underline">
                             {artist.name}
                         </Link>
-                        {index != artists.length - 1 && <span>,</span>}
+                        {index !== artists.length - 1 && <span>,</span>}
                     </div>
                 )
             )}

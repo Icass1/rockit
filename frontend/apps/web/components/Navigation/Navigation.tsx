@@ -129,10 +129,10 @@ export default function Navigation(): JSX.Element {
                                 activePage === page.href
                                     ? "bg-white text-black"
                                     : "text-white md:hover:bg-[#414141]"
-                            } ${page.disabled == true ? "pointer-events-none opacity-50" : ""}`}
+                            } ${page.disabled === true ? "pointer-events-none opacity-50" : ""}`}
                         >
                             <div className="relative flex h-8 w-8 items-center justify-center">
-                                {page.name == "Downloads" &&
+                                {page.name === "Downloads" &&
                                     $downloads.length > 0 && (
                                         <label className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-400 text-center text-xs">
                                             {$downloads.length}

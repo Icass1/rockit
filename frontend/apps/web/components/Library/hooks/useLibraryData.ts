@@ -79,7 +79,7 @@ export function useLibraryData({
         const filter = <T extends { publicId: string }>(
             list: T[],
             publicId: string
-        ): T[] => list.filter((item): boolean => item.publicId != publicId);
+        ): T[] => list.filter((item): boolean => item.publicId !== publicId);
 
         const handler = (e: IMediaRemovedFromLibraryEvent): void => {
             setLibraryData((data): LibraryMediasResponse | undefined => {

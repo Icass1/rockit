@@ -23,6 +23,7 @@ const eslintConfig = defineConfig([
                 "error",
                 { allowExpressions: true },
             ],
+            eqeqeq: ["error", "always"],
         },
     },
     // Override default ignores of eslint-config-next.

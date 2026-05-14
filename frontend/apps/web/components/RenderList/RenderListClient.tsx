@@ -67,7 +67,7 @@ export default function RenderListClient({
     }, [publicId, type]);
 
     const handleLinkDrop = (url: string): void => {
-        if (type == EMediaType.Playlist)
+        if (type === EMediaType.Playlist)
             rockIt.playlistManager.addUrlToPlaylistAsync(url, publicId);
     };
 

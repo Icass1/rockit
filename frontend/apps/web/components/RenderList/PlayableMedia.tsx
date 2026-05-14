@@ -68,7 +68,7 @@ export function PlayableMedia({
 
             // Replace this media in allMedia in case it has been downloaded
             for (let i = 0; i < tempAllMedia.length; i++) {
-                if (tempAllMedia[i].publicId == $media.publicId) {
+                if (tempAllMedia[i].publicId === $media.publicId) {
                     tempAllMedia[i] = $media;
                 }
             }

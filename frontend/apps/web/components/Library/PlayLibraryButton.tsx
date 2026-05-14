@@ -13,8 +13,8 @@ export default function PlayLibraryButton(): JSX.Element {
 
     const playingLibrary = $queue?.find(
         (queueSong): boolean =>
-            queueSong.queueMediaId == $currentQueueMediaId &&
-            queueSong?.listPublicId == "library"
+            queueSong.queueMediaId === $currentQueueMediaId &&
+            queueSong?.listPublicId === "library"
     )
         ? true
         : false;

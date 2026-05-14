@@ -45,7 +45,7 @@ export default function PlayerUIContent(): JSX.Element {
             (s): boolean =>
                 s.queueMediaId === rockIt.queueManager.currentQueueMediaId
         );
-        if (index == null || index === -1) return;
+        if (index === null || index === -1) return;
         const queueEl = divRef.current?.querySelector(
             "[data-queue-scroll]"
         ) as HTMLDivElement | null;
@@ -135,11 +135,11 @@ export default function PlayerUIContent(): JSX.Element {
                             )
                         )}
                     </div>
-                    {selectedTab == "LYRICS" ? (
+                    {selectedTab === "LYRICS" ? (
                         <div className="z-10 h-full max-h-full min-h-0 min-w-0">
                             <PlayerUILyrics />
                         </div>
-                    ) : selectedTab == "QUEUE" ? (
+                    ) : selectedTab === "QUEUE" ? (
                         <div className="z-10 h-full max-h-full min-h-0 min-w-0">
                             <PlayerUIQueue />
                         </div>

@@ -80,7 +80,9 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
     @staticmethod
     def get_current_ip(request: Request) -> AResult[str]:
         try:
-            return AResult(code=AResultCode.OK, message="OK", result=request.state.ip)
+            return AResult(
+                code=AResultCode.OK, message="OK", result=request.state.request_ip
+            )
         except:
             logger.error("IP not in request state")
             return AResult(AResultCode.GENERAL_ERROR, message="IP not in request state")

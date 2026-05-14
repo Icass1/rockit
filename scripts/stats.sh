@@ -1,0 +1,1 @@
+cloc . --exclude-dir=venv,.venv,node_modules,__pycache__,cache,.trubo,.next,.pnpm

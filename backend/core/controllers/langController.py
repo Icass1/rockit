@@ -26,32 +26,6 @@ router = APIRouter(
 )
 
 
-@router.get("/{lang_code}")
-async def get_vocabulary_by_code(
-    request: Request, lang_code: str
-) -> VocabularyResponse:
-    """Get vocabulary for a specific language code."""
-
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-
-    a_result_vocabulary: AResult[Dict[str, str]] = (
-        await Vocabulary.get_vocabulary_by_lang_code(
-            session=session, lang_code=lang_code
-        )
-    )
-
-    if a_result_vocabulary.is_not_ok():
-        raise HTTPException(
-            status_code=a_result_vocabulary.get_http_code(),
-            detail=a_result_vocabulary.message(),
-        )
-
-    return VocabularyResponse(
-        vocabulary=a_result_vocabulary.result(),
-        currentLang=lang_code,
-    )
-
-
 @router.get("/user")
 async def get_user_vocabulary(
     request: Request,
@@ -111,3 +85,30 @@ async def get_all_languages(request: Request) -> LanguagesResponse:
     ]
 
     return LanguagesResponse(languages=languages)
+
+
+@router.get("/{lang_code}")
+async def get_vocabulary_by_code(
+    request: Request, lang_code: str
+) -> VocabularyResponse:
+    """Get vocabulary for a specific language code."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result_vocabulary: AResult[Dict[str, str]] = (
+        await Vocabulary.get_vocabulary_by_lang_code(
+            session=session, lang_code=lang_code
+        )
+    )
+
+    if a_result_vocabulary.is_not_ok():
+        logger.error(f"Unable to get language from code. {a_result_vocabulary.info()}")
+        raise HTTPException(
+            status_code=a_result_vocabulary.get_http_code(),
+            detail=a_result_vocabulary.message(),
+        )
+
+    return VocabularyResponse(
+        vocabulary=a_result_vocabulary.result(),
+        currentLang=lang_code,
+    )

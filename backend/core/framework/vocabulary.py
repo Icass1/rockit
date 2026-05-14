@@ -48,6 +48,9 @@ class Vocabulary:
             session=session, lang_code=lang_code
         )
         if a_result_language.is_not_ok():
+            logger.error(
+                f"Unable to get language from code. {a_result_language.info()}"
+            )
             return AResult(
                 code=a_result_language.code(), message=a_result_language.message()
             )

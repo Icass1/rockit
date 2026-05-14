@@ -23,8 +23,10 @@ class LanguageAccess:
             )
 
             if not result:
+                logger.error(f"Language id {lang_id} not found.")
                 return AResult(
-                    code=AResultCode.NOT_FOUND, message="Language not found."
+                    code=AResultCode.NOT_FOUND,
+                    message=f"Language id {lang_id} not found.",
                 )
 
             return AResult(code=AResultCode.OK, message="OK", result=result)
@@ -49,7 +51,11 @@ class LanguageAccess:
             language: LanguageRow | None = result.scalar_one_or_none()
 
             if not language:
-                return AResult(code=AResultCode.NOT_FOUND, message="Language not found")
+                logger.error(f"Language code {lang_code} not found")
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message=f"Language code {lang_code} not found",
+                )
 
             return AResult(code=AResultCode.OK, message="OK", result=language)
 

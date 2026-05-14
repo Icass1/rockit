@@ -1,16 +1,16 @@
-import { TMedia } from "@rockit/shared";
+import { HttpResult, MediaResponse, TMedia } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createArrayAtom } from "@/lib/store";
+import { ArrayAtom, createArrayAtom } from "@/lib/store";
 
 export class MediaManager {
     private _likedMediaAtom = createArrayAtom<string>([]);
 
-    getMedia(publicId: string) {
+    getMedia(publicId: string): Promise<HttpResult<MediaResponse>> {
         return Http.getMedia(publicId);
     }
 
-    async fetchLikedMedia() {
+    async fetchLikedMedia(): Promise<void> {
         const res = await Http.getLikedMedia();
 
         if (res.isOk()) {
@@ -20,14 +20,14 @@ export class MediaManager {
         }
     }
 
-    async downloadMedia(media: TMedia) {
+    async downloadMedia(media: TMedia): Promise<void> {
         await rockIt.downloaderManager.startDownloadAsync(
             media.publicId,
             media.name
         );
     }
 
-    async toggleLikeMedia(publicId: string) {
+    async toggleLikeMedia(publicId: string): Promise<void> {
         const current = this._likedMediaAtom.get();
         const isLiked = current.includes(publicId);
 
@@ -36,7 +36,7 @@ export class MediaManager {
         if (res.isOk()) {
             this._likedMediaAtom.set(
                 isLiked
-                    ? current.filter((id) => id !== publicId)
+                    ? current.filter((id): boolean => id !== publicId)
                     : [...current, publicId]
             );
         } else {
@@ -51,7 +51,7 @@ export class MediaManager {
         }
     }
 
-    get likedMediaAtom() {
+    get likedMediaAtom(): ArrayAtom<string> {
         return this._likedMediaAtom;
     }
 }

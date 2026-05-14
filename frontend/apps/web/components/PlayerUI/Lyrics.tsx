@@ -1,9 +1,10 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function PlayerUILyrics() {
+export default function PlayerUILyrics(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
         <div className="relative h-full w-full">

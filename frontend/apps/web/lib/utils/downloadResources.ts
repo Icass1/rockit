@@ -5,8 +5,8 @@ export async function downloadFile(
     url: string,
     database: IDBDatabase,
     setResources?: Dispatch<SetStateAction<string[]>> | undefined
-) {
-    if (setResources) setResources((value) => [...value, url]);
+): Promise<void> {
+    if (setResources) setResources((value): string[] => [...value, url]);
 
     const response = await fetch(url);
     if (response.ok) {
@@ -24,27 +24,32 @@ export async function downloadFile(
     }
 
     if (setResources)
-        setResources((value) => value.filter((value) => value != url));
+        setResources((value): string[] =>
+            value.filter((value): boolean => value != url)
+        );
 }
 
-export async function clearResources() {
+export async function clearResources(): Promise<void> {
     const database = await openRockItIndexedDB();
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve, reject): void => {
         const transaction = database?.transaction("file", "readwrite");
         const fileStore = transaction?.objectStore("file");
         const clearRequest = fileStore.clear();
 
-        clearRequest.onsuccess = () => {
+        clearRequest.onsuccess = (): void => {
             resolve();
         };
-        clearRequest.onerror = () => {
+        clearRequest.onerror = (): void => {
             reject();
         };
     });
 }
 
-export async function downloadRsc(url: string, database: IDBDatabase) {
+export async function downloadRsc(
+    url: string,
+    database: IDBDatabase
+): Promise<void> {
     const responsePreFetch = await fetch(url, {
         headers: { rsc: "1", "next-router-prefetch": "1" },
     });
@@ -85,7 +90,7 @@ export async function downloadResources({
     setResources,
 }: {
     setResources?: Dispatch<SetStateAction<string[]>> | undefined;
-}) {
+}): Promise<void> {
     const database = await openRockItIndexedDB();
 
     downloadFile("/", database, setResources);
@@ -105,7 +110,7 @@ export async function downloadResources({
     const staticTree: string[] = await responseStaticTree.json();
 
     await Promise.all(
-        staticTree.map(async (path) => {
+        staticTree.map(async (path): Promise<void> => {
             return downloadFile(
                 `/_next/static/${path}`,
                 database,

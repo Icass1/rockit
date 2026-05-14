@@ -12,7 +12,12 @@ import {
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getAlbumAsync } from "@/lib/services/mediaService";
-import { createArrayAtom, createAtom } from "@/lib/store";
+import {
+    createArrayAtom,
+    createAtom,
+    ReadonlyArrayAtom,
+    ReadonlyAtom,
+} from "@/lib/store";
 
 export class QueueManager {
     // #region: Atoms
@@ -34,7 +39,7 @@ export class QueueManager {
         if (typeof window === "undefined") return;
     }
 
-    async init() {
+    async init(): Promise<void> {
         if (typeof window === "undefined") return;
         const response = await Http.getQueue();
 
@@ -51,10 +56,10 @@ export class QueueManager {
             );
 
             this.randomQueue = response.result.queue.filter(
-                (item) => item.queueType === "RANDOM"
+                (item): boolean => item.queueType === "RANDOM"
             );
             this.sortedQueue = response.result.queue.filter(
-                (item) => item.queueType === "SORTED"
+                (item): boolean => item.queueType === "SORTED"
             );
 
             if (response.result.queueType === "RANDOM")
@@ -65,7 +70,7 @@ export class QueueManager {
             const currentMedia = this._queueAtom
                 .get()
                 .find(
-                    (media) =>
+                    (media): boolean =>
                         media.queueMediaId ==
                         this._currentQueueMediaIdAtom.get()
                 );
@@ -80,7 +85,7 @@ export class QueueManager {
 
     // #region: Methods
 
-    updateQueue() {
+    updateQueue(): void {
         const queueType = rockIt.userManager.queueTypeAtom.get();
 
         if (queueType === EQueueType.RANDOM)
@@ -91,7 +96,7 @@ export class QueueManager {
         const currentMedia = this._queueAtom
             .get()
             .find(
-                (media) =>
+                (media): boolean =>
                     media.queueMediaId == this._currentQueueMediaIdAtom.get()
             );
 
@@ -100,7 +105,7 @@ export class QueueManager {
         rockIt.mediaPlayerManager.setMedia(true);
     }
 
-    skipBack() {
+    skipBack(): void {
         if (this.currentMedia?.publicId)
             rockIt.webSocketManager.sendSkipClicked({
                 direction: "PREVIOUS",
@@ -110,7 +115,7 @@ export class QueueManager {
         const queue = this.queue;
 
         const currentIndex = queue.findIndex(
-            (item) => item.queueMediaId === currentQueueMediaId
+            (item): boolean => item.queueMediaId === currentQueueMediaId
         );
 
         const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
@@ -118,7 +123,7 @@ export class QueueManager {
         rockIt.mediaPlayerManager.play();
     }
 
-    skipForward() {
+    skipForward(): void {
         if (this.currentMedia?.publicId)
             rockIt.webSocketManager.sendSkipClicked({
                 direction: "NEXT",
@@ -128,7 +133,7 @@ export class QueueManager {
         const queue = this.queue;
 
         const currentIndex = queue.findIndex(
-            (item) => item.queueMediaId === currentQueueMediaId
+            (item): boolean => item.queueMediaId === currentQueueMediaId
         );
 
         const nextIndex = (currentIndex + 1) % queue.length;
@@ -136,7 +141,7 @@ export class QueueManager {
         rockIt.mediaPlayerManager.play();
     }
 
-    setMedia(medias: TQueueMedia[], listPublicId: string) {
+    setMedia(medias: TQueueMedia[], listPublicId: string): void {
         this.sortedQueue = medias.map((media, index): QueueResponseItem => {
             return {
                 media: media,
@@ -155,8 +160,8 @@ export class QueueManager {
             };
         });
 
-        const shuffle = (array) => {
-            array.sort(() => Math.random() - 0.5);
+        const shuffle = (array: object[]): void => {
+            array.sort((): number => Math.random() - 0.5);
         };
 
         shuffle(this.randomQueue);
@@ -189,10 +194,10 @@ export class QueueManager {
         });
     }
 
-    moveToMedia(publicId: string) {
+    moveToMedia(publicId: string): void {
         const media = this._queueAtom
             .get()
-            .find((media) => media.media.publicId == publicId);
+            .find((media): boolean => media.media.publicId == publicId);
         if (!media) {
             rockIt.notificationManager.notifyError(
                 "(moveToMedia) Media not found in queue."
@@ -205,12 +210,14 @@ export class QueueManager {
         this._currentListAtom.set(media.listPublicId);
     }
 
-    setQueueMediaId(queueMediaId: number) {
+    setQueueMediaId(queueMediaId: number): void {
         this._currentQueueMediaIdAtom.set(queueMediaId);
 
         const queue = this._queueAtom.get();
 
-        const media = queue.find((media) => media.queueMediaId == queueMediaId);
+        const media = queue.find(
+            (media): boolean => media.queueMediaId == queueMediaId
+        );
 
         if (!media) {
             rockIt.notificationManager.notifyError(
@@ -234,7 +241,7 @@ export class QueueManager {
         this._currentListAtom.set(media.listPublicId);
     }
 
-    setCurrentList(currentList: string | undefined) {
+    setCurrentList(currentList: string | undefined): void {
         this._currentListAtom.set(currentList);
     }
 
@@ -242,34 +249,34 @@ export class QueueManager {
         this._currentMediaAtom.set(undefined);
     }
 
-    async addListToQueueTopAsync(media: TListMedia) {
+    async addListToQueueTopAsync(media: TListMedia): Promise<void> {
         console.log(media);
         throw "(addListToQueueTopAsync) Not implemented method";
     }
 
-    async addListToQueueRandomAsync(media: TListMedia) {
+    async addListToQueueRandomAsync(media: TListMedia): Promise<void> {
         console.log(media);
         throw "(addListToQueueRandomAsync) Not implemented method";
     }
 
-    async addListToQueueBottomAsync(media: TListMedia) {
+    async addListToQueueBottomAsync(media: TListMedia): Promise<void> {
         console.log(media);
         throw "(addListToQueueBottomAsync) Not implemented method";
     }
 
-    async playList(media: TListMedia) {
+    async playList(media: TListMedia): Promise<void> {
         const medias = await this.getListMediasAsync(media);
 
         if (medias.length == 0) return;
 
         rockIt.queueManager.setMedia(
-            medias.filter((m) => isQueueable(m)),
+            medias.filter(isQueueable),
             media.publicId
         );
         rockIt.queueManager.setQueueMediaId(0);
         rockIt.mediaPlayerManager.play();
         rockIt.queueManager.setMedia(
-            medias.filter((m) => isQueueable(m)),
+            medias.filter(isQueueable),
             media.publicId
         );
         rockIt.queueManager.setQueueMediaId(0);
@@ -294,7 +301,7 @@ export class QueueManager {
         return medias;
     }
 
-    reorderQueue(fromIndex: number, toIndex: number) {
+    reorderQueue(fromIndex: number, toIndex: number): void {
         if (fromIndex < 0 || fromIndex >= this.sortedQueue.length) return;
         if (toIndex < 0 || toIndex >= this.sortedQueue.length) return;
         if (fromIndex === toIndex) return;
@@ -308,12 +315,12 @@ export class QueueManager {
         this.updateQueue();
     }
 
-    addMediaNext(media: TPlayableMedia) {
+    addMediaNext(media: TPlayableMedia): void {
         console.log(media);
         throw "(addMediaNext) Not implemented method";
     }
 
-    addMediaToEnd(media: TPlayableMedia) {
+    addMediaToEnd(media: TPlayableMedia): void {
         console.log(media);
         throw "(addMediaToEnd) Not implemented method";
     }
@@ -322,35 +329,129 @@ export class QueueManager {
 
     // #region: Getters
 
-    get currentMediaAtom() {
+    get currentMediaAtom(): ReadonlyAtom<TPlayableMedia | undefined> {
         return this._currentMediaAtom.getReadonlyAtom();
     }
 
-    get currentMedia() {
+    get currentMedia(): TPlayableMedia | undefined {
         return this._currentMediaAtom.get();
     }
 
-    get currentListAtom() {
+    get currentListAtom(): ReadonlyAtom<string | undefined> {
         return this._currentListAtom.getReadonlyAtom();
     }
 
-    get currentList() {
+    get currentList(): string | undefined {
         return this._currentListAtom.get();
     }
 
-    get queueAtom() {
+    get queueAtom(): ReadonlyArrayAtom<{
+        queueMediaId: number;
+        listPublicId: string;
+        media: TQueueMedia;
+        queueType: "RANDOM" | "SORTED";
+    }> {
         return this._queueAtom.getReadonlyAtom();
     }
 
-    get queue() {
+    get queue(): {
+        queueMediaId: number;
+        listPublicId: string;
+        media:
+            | {
+                  type: "song";
+                  provider: string;
+                  publicId: string;
+                  providerUrl: string;
+                  name: string;
+                  artists: {
+                      type: "artist";
+                      provider: string;
+                      publicId: string;
+                      url: string;
+                      providerUrl: string;
+                      name: string;
+                      imageUrl: string;
+                  }[];
+                  audioSrc: string | null;
+                  downloaded: boolean;
+                  imageUrl: string;
+                  duration_ms: number;
+                  discNumber: number;
+                  trackNumber: number;
+                  album: {
+                      type: "album";
+                      provider: string;
+                      publicId: string;
+                      url: string;
+                      providerUrl: string;
+                      name: string;
+                      artists: {
+                          type: "artist";
+                          provider: string;
+                          publicId: string;
+                          url: string;
+                          providerUrl: string;
+                          name: string;
+                          imageUrl: string;
+                      }[];
+                      releaseDate: string;
+                      imageUrl: string;
+                  };
+              }
+            | {
+                  type: "video";
+                  provider: string;
+                  publicId: string;
+                  providerUrl: string;
+                  name: string;
+                  videoSrc: string | null;
+                  audioSrc: string | null;
+                  imageUrl: string;
+                  duration_ms: number | null;
+                  artists: {
+                      type: "artist";
+                      provider: string;
+                      publicId: string;
+                      url: string;
+                      providerUrl: string;
+                      name: string;
+                      imageUrl: string;
+                  }[];
+                  downloaded: boolean;
+              }
+            | {
+                  type: "song";
+                  provider: string;
+                  publicId: string;
+                  providerUrl: string;
+                  name: string;
+                  artists: {
+                      type: "artist";
+                      provider: string;
+                      publicId: string;
+                      url: string;
+                      providerUrl: string;
+                      name: string;
+                      imageUrl: string;
+                  }[];
+                  audioSrc: string | null;
+                  downloaded: boolean;
+                  imageUrl: string;
+                  duration_ms: number;
+                  discNumber: number;
+                  trackNumber: number;
+              };
+        queueType: "RANDOM" | "SORTED";
+    }[] {
         return this._queueAtom.get();
     }
 
-    get currentQueueMediaIdAtom() {
+    get currentQueueMediaIdAtom(): ReadonlyAtom<number | null> {
         return this._currentQueueMediaIdAtom.getReadonlyAtom();
     }
 
-    get currentQueueMediaId() {
+    get currentQueueMediaId(): number | null {
         return this._currentQueueMediaIdAtom.get();
     }
 

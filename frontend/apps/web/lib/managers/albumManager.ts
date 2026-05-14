@@ -12,7 +12,7 @@ export class AlbumManager {
         songs: BaseSongWithAlbumResponse[],
         listPublicId: string,
         startSongPublicId?: string
-    ) {
+    ): Promise<void> {
         rockIt.queueManager.setMedia(songs, listPublicId);
 
         if (startSongPublicId)

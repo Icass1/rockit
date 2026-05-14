@@ -6,7 +6,7 @@ export class EventManager {
 
     private listeners = new Map<EEvent, Set<(data: object) => void>>();
 
-    static getInstance() {
+    static getInstance(): EventManager {
         if (!EventManager.#instance) {
             EventManager.#instance = new EventManager();
         }
@@ -16,7 +16,7 @@ export class EventManager {
     addEventListener<K extends EEvent>(
         event: K,
         handler: (data: IEventPayloadMap[K]) => void
-    ) {
+    ): void {
         if (!this.listeners.has(event)) {
             this.listeners.set(event, new Set());
         }
@@ -26,12 +26,12 @@ export class EventManager {
     removeEventListener<K extends EEvent>(
         event: K,
         handler: (data: IEventPayloadMap[K]) => void
-    ) {
+    ): void {
         this.listeners.get(event)?.delete(handler as (data: object) => void);
     }
 
-    dispatchEvent<K extends EEvent>(event: K, data: IEventPayloadMap[K]) {
+    dispatchEvent<K extends EEvent>(event: K, data: IEventPayloadMap[K]): void {
         console.log("dipatchEvent", event, data);
-        this.listeners.get(event)?.forEach((handler) => handler(data));
+        this.listeners.get(event)?.forEach((handler): void => handler(data));
     }
 }

@@ -1,11 +1,12 @@
 "use client";
 
+import type { JSX } from "react";
 import { User } from "lucide-react";
 
 //import { useStore } from "@nanostores/react";
 //import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function OnlineUserIndicator() {
+export default function OnlineUserIndicator(): JSX.Element | null {
     const $onlineUsers = 1263; // useStore(rockIt.userManager.onlineUsersAtom);
 
     if (!$onlineUsers || $onlineUsers <= 0) return null;

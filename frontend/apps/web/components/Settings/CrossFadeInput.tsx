@@ -1,9 +1,10 @@
 "use client";
 
+import { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function CrossFadeInput() {
+export default function CrossFadeInput(): JSX.Element {
     const $crossFade = useStore(rockIt.mediaPlayerManager.crossFadeAtom);
 
     return (
@@ -20,7 +21,7 @@ export default function CrossFadeInput() {
                     type="number"
                     value={$crossFade}
                     onChange={
-                        () =>
+                        (): void =>
                             console.warn(
                                 "CrossFade setting is currently not implemented"
                             ) // TODO: Implement CrossFade setting

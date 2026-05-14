@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -12,13 +13,13 @@ import {
     PopupMenuTrigger,
 } from "@/components/PopupMenu";
 
-export default function HeaderUser() {
+export default function HeaderUser(): JSX.Element {
     const router = useRouter();
     const $username = useStore(rockIt.userManager.usernameAtom);
     const $image = useStore(rockIt.userManager.imageAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const handleLogOut = () => {
+    const handleLogOut = (): void => {
         rockIt.userManager.signOut();
         router.push("/login");
     };
@@ -44,7 +45,7 @@ export default function HeaderUser() {
             </PopupMenuTrigger>
 
             <PopupMenuContent>
-                <PopupMenuOption onClick={() => router.push("/settings")}>
+                <PopupMenuOption onClick={(): void => router.push("/settings")}>
                     <Settings className="h-5 w-5" />
                     <span>{$vocabulary.SETTINGS}</span>
                 </PopupMenuOption>

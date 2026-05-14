@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 
 export default function DropOverlay({
     onDropLink,
 }: {
     onDropLink: (url: string) => void;
-}) {
+}): JSX.Element | null {
     const [show, setShow] = useState(false);
 
-    useEffect(() => {
-        const handleDragOver = (event: DragEvent) => {
+    useEffect((): (() => void) => {
+        const handleDragOver = (event: DragEvent): void => {
             console.log("Drag over detected");
             event.preventDefault();
 
@@ -26,12 +26,12 @@ export default function DropOverlay({
             if (isLink) setShow(true);
         };
 
-        const handleDragLeave = () => {
+        const handleDragLeave = (): void => {
             console.log("Drag leave detected");
             setShow(false);
         };
 
-        const handleDrop = (event: DragEvent) => {
+        const handleDrop = (event: DragEvent): void => {
             console.log("Drop detected");
             event.preventDefault();
             setShow(false);
@@ -47,7 +47,7 @@ export default function DropOverlay({
         window.addEventListener("dragleave", handleDragLeave);
         window.addEventListener("drop", handleDrop);
 
-        return () => {
+        return (): void => {
             window.removeEventListener("dragover", handleDragOver);
             window.removeEventListener("dragleave", handleDragLeave);
             window.removeEventListener("drop", handleDrop);

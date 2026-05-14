@@ -1,7 +1,6 @@
 import { EventManager } from "@rockit/packages/shared";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
-import { CurrentListManager } from "@/lib/managers/currentListManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
@@ -35,7 +34,6 @@ export class RockIt {
     userManager = new UserManager();
     searchManager = new SearchManager();
     mediaManager = new MediaManager();
-    currentListManager = new CurrentListManager();
     vocabularyManager = new VocabularyManager();
     stationManager = new StationManager();
     downloaderManager = new DownloaderManager();
@@ -53,7 +51,7 @@ export class RockIt {
         this.webSocketManager.init();
     }
 
-    async init() {
+    async init(): Promise<void> {
         rockIt.queueManager.init();
         rockIt.userManager.init();
         rockIt.downloaderManager.init();

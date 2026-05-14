@@ -3,7 +3,9 @@ import {
     BaseSongWithAlbumResponse,
     EEvent,
     EWebSocketMessage,
+    HttpResult,
     TMedia,
+    UserPlaylistsResponse,
     type PlaylistCreatedMessage,
     type PlaylistDeletedMessage,
     type PlaylistRenamedMessage,
@@ -13,14 +15,16 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
 
 export class PlaylistManager {
-    private _playlistsAtom = createArrayAtom<BasePlaylistWithoutMediasResponse>([]);
+    private _playlistsAtom = createArrayAtom<BasePlaylistWithoutMediasResponse>(
+        []
+    );
     private _init = false;
 
     get playlistsAtom(): ReadonlyArrayAtom<BasePlaylistWithoutMediasResponse> {
         return this._playlistsAtom.getReadonlyAtom();
     }
 
-    async init() {
+    async init(): Promise<void> {
         if (this._init) return;
         this._init = true;
 
@@ -40,14 +44,18 @@ export class PlaylistManager {
         );
     }
 
-    private handlePlaylistCreated = async (data: PlaylistCreatedMessage) => {
+    private handlePlaylistCreated = async (
+        data: PlaylistCreatedMessage
+    ): Promise<void> => {
         rockIt.eventManager.dispatchEvent(EEvent.PlaylistCreated, {
             publicId: data.publicId,
         });
         await this.refreshPlaylistsAsync();
     };
 
-    private handlePlaylistRenamed = async (data: PlaylistRenamedMessage) => {
+    private handlePlaylistRenamed = async (
+        data: PlaylistRenamedMessage
+    ): Promise<void> => {
         rockIt.eventManager.dispatchEvent(EEvent.PlaylistRenamed, {
             publicId: data.publicId,
             name: data.name,
@@ -55,14 +63,16 @@ export class PlaylistManager {
         await this.refreshPlaylistsAsync();
     };
 
-    private handlePlaylistDeleted = async (data: PlaylistDeletedMessage) => {
+    private handlePlaylistDeleted = async (
+        data: PlaylistDeletedMessage
+    ): Promise<void> => {
         rockIt.eventManager.dispatchEvent(EEvent.PlaylistDeleted, {
             publicId: data.publicId,
         });
         await this.refreshPlaylistsAsync();
     };
 
-    private async refreshPlaylistsAsync() {
+    private async refreshPlaylistsAsync(): Promise<void> {
         const result = await this.getUserPlaylistsAsync();
         if (result.isOk()) {
             this._playlistsAtom.set(result.result.playlists);
@@ -73,7 +83,7 @@ export class PlaylistManager {
         songs: BaseSongWithAlbumResponse[],
         listPublicId: string,
         startSongPublicId?: string
-    ) {
+    ): Promise<void> {
         rockIt.queueManager.setMedia(songs, listPublicId);
 
         if (startSongPublicId) {
@@ -85,14 +95,14 @@ export class PlaylistManager {
         rockIt.mediaPlayerManager.play();
     }
 
-    async getUserPlaylistsAsync() {
+    async getUserPlaylistsAsync(): Promise<HttpResult<UserPlaylistsResponse>> {
         return await Http.getUserPlaylistsAsync();
     }
 
     async addMediaToPlaylist(
         media: TMedia,
         playlist: BasePlaylistWithoutMediasResponse
-    ) {
+    ): Promise<HttpResult<{ status: string }>> {
         return await Http.addMediaToPlaylistAsync(playlist.publicId, {
             mediaPublicId: media.publicId,
         });
@@ -101,7 +111,7 @@ export class PlaylistManager {
     async removeMediaFromPlaylist(
         media: TMedia,
         playlist: BasePlaylistWithoutMediasResponse
-    ) {
+    ): Promise<HttpResult<{ status: string }>> {
         return await Http.removeMediaFromPlaylistAsync(
             playlist.publicId,
             media.publicId

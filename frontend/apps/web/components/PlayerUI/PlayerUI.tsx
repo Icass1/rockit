@@ -1,11 +1,12 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlayerUIContent from "@/components/PlayerUI/Content";
 
-export default function PlayerUI() {
+export default function PlayerUI(): JSX.Element | null {
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
 
     const innerWidth = useWindowSize().width;

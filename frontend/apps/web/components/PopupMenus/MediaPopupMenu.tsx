@@ -1,9 +1,7 @@
 "use client";
 
-import { ReactNode } from "react";
+import { JSX, ReactNode } from "react";
 import { isSong, isVideo, TPlayableMedia } from "@/models/types/media";
-
-// import SongPopupMenu from "@/components/ListSongs/SongPopupMenu";
 
 export default function MediaPopupMenu({
     media,
@@ -11,7 +9,7 @@ export default function MediaPopupMenu({
 }: {
     media: TPlayableMedia;
     children?: ReactNode;
-}) {
+}): JSX.Element {
     if (isSong(media)) {
         // return <SongPopupMenu song={media}>{children}</SongPopupMenu>;
     } else if (isVideo(media)) {

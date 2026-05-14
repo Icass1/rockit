@@ -1,5 +1,6 @@
 "use client";
 
+import { JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BaseSongWithAlbumResponse } from "@/dto";
@@ -13,11 +14,11 @@ export default function RecentlyPlayedSong({
 }: {
     song: BaseSongWithAlbumResponse;
     songs: BaseSongWithAlbumResponse[];
-}) {
+}): JSX.Element {
     const $song = useMedia(song);
     const router = useRouter();
 
-    const handleClick = () => {
+    const handleClick = (): void => {
         // Set the queue with all songs
         const playableSongs = songs.filter(isSongWithAlbum);
         if (playableSongs.length > 0) {
@@ -27,7 +28,7 @@ export default function RecentlyPlayedSong({
         }
     };
 
-    const handleArtistClick = (e: React.MouseEvent) => {
+    const handleArtistClick = (e: React.MouseEvent): void => {
         e.stopPropagation();
         if (song.artists.length > 0) {
             router.push(`/artist/${song.artists[0].publicId}`);

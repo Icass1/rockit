@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type JSX } from "react";
 import { BACKEND_URL } from "@/environment";
 import { useStore } from "@nanostores/react";
 import { FileArchive, FileAudio, Upload, X } from "lucide-react";
@@ -65,7 +65,10 @@ function parseFilename(filename: string): Omit<UploadFile, "id" | "file"> {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
+export default function UploadModal({
+    isOpen,
+    onClose,
+}: UploadModalProps): JSX.Element | null {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [files, setFiles] = useState<UploadFile[]>([]);
     const [isDragging, setIsDragging] = useState(false);
@@ -73,32 +76,34 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
     const [uploadError, setUploadError] = useState("");
     const dragCounter = useRef(0); // track nested dragenter/dragleave properly
 
-    const addFiles = useCallback((fileList: FileList | File[]) => {
-        const accepted = Array.from(fileList).filter((f) =>
+    const addFiles = useCallback((fileList: FileList | File[]): void => {
+        const accepted = Array.from(fileList).filter((f): boolean =>
             /\.(mp3|zip|flac|ogg|m4a)$/i.test(f.name)
         );
-        const parsed: UploadFile[] = accepted.map((file) => ({
-            id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-            file,
-            ...parseFilename(file.name),
-        }));
-        setFiles((prev) => [...prev, ...parsed]);
+        const parsed: UploadFile[] = accepted.map(
+            (file): UploadFile => ({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                file,
+                ...parseFilename(file.name),
+            })
+        );
+        setFiles((prev): UploadFile[] => [...prev, ...parsed]);
     }, []);
 
-    const handleDragEnter = useCallback((e: React.DragEvent) => {
+    const handleDragEnter = useCallback((e: React.DragEvent): void => {
         e.preventDefault();
         dragCounter.current++;
         setIsDragging(true);
     }, []);
 
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
+    const handleDragLeave = useCallback((e: React.DragEvent): void => {
         e.preventDefault();
         dragCounter.current--;
         if (dragCounter.current === 0) setIsDragging(false);
     }, []);
 
     const handleDrop = useCallback(
-        (e: React.DragEvent) => {
+        (e: React.DragEvent): void => {
             e.preventDefault();
             dragCounter.current = 0;
             setIsDragging(false);
@@ -110,7 +115,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
     );
 
     const handleInputChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
+        (e: React.ChangeEvent<HTMLInputElement>): void => {
             if (e.target.files?.length) {
                 addFiles(e.target.files);
                 // Reset input so same file can be re-added if removed
@@ -121,26 +126,31 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
     );
 
     const removeFile = useCallback(
-        (id: string) => setFiles((prev) => prev.filter((f) => f.id !== id)),
-        []
-    );
-
-    const updateFile = useCallback(
-        (id: string, updates: Partial<UploadFile>) =>
-            setFiles((prev) =>
-                prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
+        (id: string): void =>
+            setFiles((prev): UploadFile[] =>
+                prev.filter((f): boolean => f.id !== id)
             ),
         []
     );
 
-    const handleSubmit = async () => {
+    const updateFile = useCallback(
+        (id: string, updates: Partial<UploadFile>): void =>
+            setFiles((prev): UploadFile[] =>
+                prev.map(
+                    (f): UploadFile => (f.id === id ? { ...f, ...updates } : f)
+                )
+            ),
+        []
+    );
+
+    const handleSubmit = async (): Promise<void> => {
         if (files.length === 0) return;
         setUploading(true);
         setUploadError("");
 
         try {
             const formData = new FormData();
-            files.forEach((f) => {
+            files.forEach((f): void => {
                 formData.append("files", f.file);
                 formData.append(
                     "metadata",
@@ -177,7 +187,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         }
     };
 
-    const handleClose = () => {
+    const handleClose = (): void => {
         if (uploading) return; // prevent closing while uploading
         setFiles([]);
         setUploadError("");
@@ -190,7 +200,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         // Backdrop — close on click outside modal
         <div
             className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 md:items-center"
-            onClick={(e) => {
+            onClick={(e): void => {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
@@ -224,7 +234,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             : "border-neutral-700 hover:border-neutral-500"
                     }`}
                     onDragEnter={handleDragEnter}
-                    onDragOver={(e) => e.preventDefault()}
+                    onDragOver={(e): void => e.preventDefault()}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                 >
@@ -274,126 +284,138 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                             {/* Scrollable list */}
                             <div className="flex-1 overflow-y-auto">
                                 <ul className="space-y-2">
-                                    {files.map((file) => (
-                                        <li
-                                            key={file.id}
-                                            className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
-                                        >
-                                            {/* File type icon */}
-                                            <div className="mt-1 shrink-0">
-                                                {/\.zip$/i.test(
-                                                    file.file.name
-                                                ) ? (
-                                                    <FileArchive className="h-7 w-7 text-blue-400" />
-                                                ) : (
-                                                    <FileAudio className="h-7 w-7 text-pink-400" />
-                                                )}
-                                            </div>
-
-                                            {/* Metadata fields */}
-                                            <div className="min-w-0 flex-1 space-y-2">
-                                                {/* Row 1: Title + Track # */}
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        value={file.title}
-                                                        onChange={(e) =>
-                                                            updateFile(
-                                                                file.id,
-                                                                {
-                                                                    title: e
-                                                                        .target
-                                                                        .value,
-                                                                }
-                                                            )
-                                                        }
-                                                        placeholder="Title"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={file.track}
-                                                        onChange={(e) =>
-                                                            updateFile(
-                                                                file.id,
-                                                                {
-                                                                    track: e
-                                                                        .target
-                                                                        .value,
-                                                                }
-                                                            )
-                                                        }
-                                                        placeholder="#"
-                                                        inputMode="numeric"
-                                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                                    />
-                                                </div>
-                                                {/* Row 2: Artist + Album + Year */}
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        value={file.artist}
-                                                        onChange={(e) =>
-                                                            updateFile(
-                                                                file.id,
-                                                                {
-                                                                    artist: e
-                                                                        .target
-                                                                        .value,
-                                                                }
-                                                            )
-                                                        }
-                                                        placeholder="Artist"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={file.album}
-                                                        onChange={(e) =>
-                                                            updateFile(
-                                                                file.id,
-                                                                {
-                                                                    album: e
-                                                                        .target
-                                                                        .value,
-                                                                }
-                                                            )
-                                                        }
-                                                        placeholder="Album"
-                                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={file.year}
-                                                        onChange={(e) =>
-                                                            updateFile(
-                                                                file.id,
-                                                                {
-                                                                    year: e
-                                                                        .target
-                                                                        .value,
-                                                                }
-                                                            )
-                                                        }
-                                                        placeholder="Year"
-                                                        inputMode="numeric"
-                                                        className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Remove button */}
-                                            <button
-                                                onClick={() =>
-                                                    removeFile(file.id)
-                                                }
-                                                className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
-                                                aria-label={`Remove ${file.file.name}`}
+                                    {files.map(
+                                        (file): JSX.Element => (
+                                            <li
+                                                key={file.id}
+                                                className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
                                             >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        </li>
-                                    ))}
+                                                {/* File type icon */}
+                                                <div className="mt-1 shrink-0">
+                                                    {/\.zip$/i.test(
+                                                        file.file.name
+                                                    ) ? (
+                                                        <FileArchive className="h-7 w-7 text-blue-400" />
+                                                    ) : (
+                                                        <FileAudio className="h-7 w-7 text-pink-400" />
+                                                    )}
+                                                </div>
+
+                                                {/* Metadata fields */}
+                                                <div className="min-w-0 flex-1 space-y-2">
+                                                    {/* Row 1: Title + Track # */}
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={file.title}
+                                                            onChange={(
+                                                                e
+                                                            ): void =>
+                                                                updateFile(
+                                                                    file.id,
+                                                                    {
+                                                                        title: e
+                                                                            .target
+                                                                            .value,
+                                                                    }
+                                                                )
+                                                            }
+                                                            placeholder="Title"
+                                                            className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={file.track}
+                                                            onChange={(
+                                                                e
+                                                            ): void =>
+                                                                updateFile(
+                                                                    file.id,
+                                                                    {
+                                                                        track: e
+                                                                            .target
+                                                                            .value,
+                                                                    }
+                                                                )
+                                                            }
+                                                            placeholder="#"
+                                                            inputMode="numeric"
+                                                            className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        />
+                                                    </div>
+                                                    {/* Row 2: Artist + Album + Year */}
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={file.artist}
+                                                            onChange={(
+                                                                e
+                                                            ): void =>
+                                                                updateFile(
+                                                                    file.id,
+                                                                    {
+                                                                        artist: e
+                                                                            .target
+                                                                            .value,
+                                                                    }
+                                                                )
+                                                            }
+                                                            placeholder="Artist"
+                                                            className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={file.album}
+                                                            onChange={(
+                                                                e
+                                                            ): void =>
+                                                                updateFile(
+                                                                    file.id,
+                                                                    {
+                                                                        album: e
+                                                                            .target
+                                                                            .value,
+                                                                    }
+                                                                )
+                                                            }
+                                                            placeholder="Album"
+                                                            className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={file.year}
+                                                            onChange={(
+                                                                e
+                                                            ): void =>
+                                                                updateFile(
+                                                                    file.id,
+                                                                    {
+                                                                        year: e
+                                                                            .target
+                                                                            .value,
+                                                                    }
+                                                                )
+                                                            }
+                                                            placeholder="Year"
+                                                            inputMode="numeric"
+                                                            className="w-20 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Remove button */}
+                                                <button
+                                                    onClick={(): void =>
+                                                        removeFile(file.id)
+                                                    }
+                                                    className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
+                                                    aria-label={`Remove ${file.file.name}`}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </li>
+                                        )
+                                    )}
                                 </ul>
                             </div>
                         </div>

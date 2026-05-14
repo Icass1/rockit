@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ChangeEvent } from "react";
+import { JSX, useRef, type ChangeEvent } from "react";
 
 type ChangeEventHandler<T = Element> = (event: ChangeEvent<T>) => void;
 
@@ -26,7 +26,7 @@ export default function Slider({
     className = "",
     barClassName = "bg-linear-to-r from-[#ee1086] to-[#fb6467]",
     readOnly = false,
-}: SliderProps) {
+}: SliderProps): JSX.Element {
     // const m = 100 / ((max || 100) - (min || 0));
     // const n = -m * (min || 0);
 

@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function LoginModal() {
+export default function LoginModal(): JSX.Element {
     const router = useRouter();
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -19,15 +19,15 @@ export default function LoginModal() {
     const [loading, setLoading] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    useEffect(() => {
+    useEffect((): void => {
         rockIt.authManager.isLoggedInAsync().then(setIsLoggedIn);
     }, [router]);
 
-    useEffect(() => {
+    useEffect((): void => {
         rockIt.vocabularyManager.getVocabulary("en");
     }, []);
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = useCallback(async (): Promise<void> => {
         if (loading) return;
 
         setError("");
@@ -55,15 +55,16 @@ export default function LoginModal() {
         router.refresh();
     }, [username, password, rememberMe, router, loading]);
 
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
+    useEffect((): (() => void) => {
+        const handleKeyDown = (event: KeyboardEvent): void => {
             if (event.key === "Enter") {
                 handleSubmit();
             }
         };
 
         document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
+        return (): void =>
+            document.removeEventListener("keydown", handleKeyDown);
     }, [handleSubmit]);
 
     if (isLoggedIn) {
@@ -77,7 +78,7 @@ export default function LoginModal() {
                 <div className="mt-5 flex justify-center">
                     <button
                         type="button"
-                        onClick={() => router.push("/")}
+                        onClick={(): void => router.push("/")}
                         className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold md:hover:bg-green-800"
                     >
                         Go to Home
@@ -122,7 +123,9 @@ export default function LoginModal() {
                             className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                             autoComplete="username"
                             value={username}
-                            onChange={(e) => setUsername(e.currentTarget.value)}
+                            onChange={(e): void =>
+                                setUsername(e.currentTarget.value)
+                            }
                         />
 
                         <input
@@ -131,7 +134,9 @@ export default function LoginModal() {
                             className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                             autoComplete="current-password"
                             value={password}
-                            onChange={(e) => setPassword(e.currentTarget.value)}
+                            onChange={(e): void =>
+                                setPassword(e.currentTarget.value)
+                            }
                         />
                     </div>
 
@@ -149,7 +154,9 @@ export default function LoginModal() {
                             id="remember-me"
                             type="checkbox"
                             checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
+                            onChange={(e): void =>
+                                setRememberMe(e.target.checked)
+                            }
                             className="size-4 accent-green-600"
                         />
                         {$vocabulary.REMEMBER_ME}

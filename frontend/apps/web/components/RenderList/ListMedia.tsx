@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type JSX } from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import {
@@ -15,15 +15,17 @@ import useMedia from "@/hooks/useMedia";
 import Artists from "@/components/Artists/Artists";
 import { Media } from "@/components/RenderList/Media";
 
-function ListArtists({ media }: { media: TListMedia }) {
+function ListArtists({ media }: { media: TListMedia }): JSX.Element | null {
     if (isAlbum(media)) {
         return <Artists className="justify-start" artists={media.artists} />;
     } else if (isPlaylist(media)) {
         return (
             <div>
-                {media.contributors.map((c) => (
-                    <p key={c.userPublicId}>{c.username}</p>
-                ))}
+                {media.contributors.map(
+                    (c): JSX.Element => (
+                        <p key={c.userPublicId}>{c.username}</p>
+                    )
+                )}
             </div>
         );
     }
@@ -40,16 +42,16 @@ export function ListMedia({
     allMedia?: TMedia[];
     substractArtists?: string[];
     listPublicId?: string;
-}) {
+}): JSX.Element {
     const $media = useMedia(_media);
     const [expanded, setExpanded] = useState(true);
 
-    const medias: TMedia[] = useMemo(() => {
+    const medias: TMedia[] = useMemo((): TMedia[] => {
         if (isAlbumWithSongs($media)) {
             return $media.songs;
         }
         if (isPlaylistWithMedias($media)) {
-            return $media.medias.map((m) => m.item) as TMedia[];
+            return $media.medias.map((m) => m.item);
         }
         return [];
     }, [$media]);
@@ -58,7 +60,7 @@ export function ListMedia({
         <div className="flex flex-col rounded-[0.67rem] border border-neutral-800">
             <button
                 type="button"
-                onClick={() => setExpanded((prev) => !prev)}
+                onClick={(): void => setExpanded((prev): boolean => !prev)}
                 className="flex h-fit w-full cursor-pointer items-center gap-2 rounded-[0.6rem] bg-neutral-900 p-1.5 text-left"
             >
                 <Image
@@ -88,18 +90,20 @@ export function ListMedia({
             </button>
             {expanded && medias.length > 0 && (
                 <div className="my-1 flex flex-col gap-1 px-1">
-                    {medias.map((media, i) => (
-                        <Media
-                            key={media.publicId}
-                            index={i}
-                            media={media}
-                            allMedia={allMedia}
-                            substractArtists={substractArtists}
-                            showMediaIndex={isAlbum($media)}
-                            showMediaImage={!isAlbum($media)}
-                            listPublicId={listPublicId}
-                        />
-                    ))}
+                    {medias.map(
+                        (media, i): JSX.Element => (
+                            <Media
+                                key={media.publicId}
+                                index={i}
+                                media={media}
+                                allMedia={allMedia}
+                                substractArtists={substractArtists}
+                                showMediaIndex={isAlbum($media)}
+                                showMediaImage={!isAlbum($media)}
+                                listPublicId={listPublicId}
+                            />
+                        )
+                    )}
                 </div>
             )}
         </div>

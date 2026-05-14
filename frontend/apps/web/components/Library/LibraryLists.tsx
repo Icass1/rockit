@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, type JSX } from "react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -70,7 +70,7 @@ function SectionHeader({
 }: {
     title: string;
     rightElement?: ReactNode;
-}) {
+}): JSX.Element {
     return (
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
             <h2 className="text-3xl font-bold">{title}</h2>
@@ -79,7 +79,7 @@ function SectionHeader({
     );
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message }: { message: string }): JSX.Element {
     return (
         <div className="flex items-center justify-center py-16 text-neutral-500">
             <p className="text-base font-medium">{message}</p>
@@ -108,23 +108,65 @@ function MasonryAllGrid({
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
-}) {
+}): JSX.Element | null {
     /**
      * Interleave content types so the masonry looks varied rather than showing
      * all albums first, then all playlists, etc.
      * Strategy: zip by index across all arrays, cycling until exhausted.
      */
-    const items = useMemo<ILibraryMasonryItem[]>(() => {
+    const items = useMemo<ILibraryMasonryItem[]>((): ILibraryMasonryItem[] => {
         const buckets: ILibraryMasonryItem[][] = [
-            albums.map((d) => ({ kind: EContentKind.ALBUM, data: d })),
-            playlists.map((d) => ({ kind: EContentKind.PLAYLIST, data: d })),
-            videos.map((d) => ({ kind: EContentKind.VIDEO, data: d })),
-            songs.map((d) => ({ kind: EContentKind.SONG, data: d })),
-            stations.map((d) => ({ kind: EContentKind.STATION, data: d })),
+            albums.map(
+                (
+                    d
+                ): {
+                    kind: EContentKind.ALBUM;
+                    data: BaseAlbumWithoutSongsResponse;
+                } => ({ kind: EContentKind.ALBUM, data: d })
+            ),
+            playlists.map(
+                (
+                    d
+                ): {
+                    kind: EContentKind.PLAYLIST;
+                    data: BasePlaylistWithoutMediasResponse;
+                } => ({ kind: EContentKind.PLAYLIST, data: d })
+            ),
+            videos.map(
+                (
+                    d
+                ): {
+                    kind: EContentKind.VIDEO;
+                    data: BaseVideoResponse;
+                } => ({ kind: EContentKind.VIDEO, data: d })
+            ),
+            songs.map(
+                (
+                    d
+                ): {
+                    kind: EContentKind.SONG;
+                    data: BaseSongWithoutAlbumResponse;
+                } => ({ kind: EContentKind.SONG, data: d })
+            ),
+            stations.map(
+                (
+                    d
+                ): {
+                    kind: EContentKind.STATION;
+                    data: {
+                        type: "station";
+                        provider: string;
+                        publicId: string;
+                        providerUrl: string;
+                        name: string;
+                        imageUrl: string;
+                    };
+                } => ({ kind: EContentKind.STATION, data: d })
+            ),
         ];
 
         const result: ILibraryMasonryItem[] = [];
-        const maxLen = Math.max(...buckets.map((b) => b.length));
+        const maxLen = Math.max(...buckets.map((b): number => b.length));
 
         for (let i = 0; i < maxLen; i++) {
             for (const bucket of buckets) {
@@ -139,7 +181,7 @@ function MasonryAllGrid({
 
     return (
         <div className={MASONRY_CLASS}>
-            {items.map((item) => {
+            {items.map((item): JSX.Element | undefined => {
                 /**
                  * break-inside-avoid prevents a card from being split across
                  * two columns. mb-4 gives consistent spacing between cards.
@@ -214,16 +256,18 @@ function SectionedAllList({
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
-}) {
+}): JSX.Element {
     return (
         <div>
             {playlists.length > 0 && (
                 <section>
                     <SectionHeader title="PLAYLISTS" />
                     <div className={ROW_LIST_CLASS}>
-                        {playlists.map((pl) => (
-                            <PlaylistRow key={pl.publicId} playlist={pl} />
-                        ))}
+                        {playlists.map(
+                            (pl): JSX.Element => (
+                                <PlaylistRow key={pl.publicId} playlist={pl} />
+                            )
+                        )}
                     </div>
                 </section>
             )}
@@ -232,9 +276,11 @@ function SectionedAllList({
                 <section>
                     <SectionHeader title="ALBUMS" />
                     <div className={ROW_LIST_CLASS}>
-                        {albums.map((al) => (
-                            <AlbumRow key={al.publicId} album={al} />
-                        ))}
+                        {albums.map(
+                            (al): JSX.Element => (
+                                <AlbumRow key={al.publicId} album={al} />
+                            )
+                        )}
                     </div>
                 </section>
             )}
@@ -243,9 +289,11 @@ function SectionedAllList({
                 <section>
                     <SectionHeader title="SONGS" />
                     <div className={ROW_LIST_CLASS}>
-                        {songs.map((s) => (
-                            <SongRow key={s.publicId} song={s} />
-                        ))}
+                        {songs.map(
+                            (s): JSX.Element => (
+                                <SongRow key={s.publicId} song={s} />
+                            )
+                        )}
                     </div>
                 </section>
             )}
@@ -254,9 +302,11 @@ function SectionedAllList({
                 <section>
                     <SectionHeader title="VIDEOS" />
                     <div className={ROW_LIST_CLASS}>
-                        {videos.map((v) => (
-                            <VideoRow key={v.publicId} video={v} />
-                        ))}
+                        {videos.map(
+                            (v): JSX.Element => (
+                                <VideoRow key={v.publicId} video={v} />
+                            )
+                        )}
                     </div>
                 </section>
             )}
@@ -265,9 +315,11 @@ function SectionedAllList({
                 <section>
                     <SectionHeader title="RADIO_STATIONS" />
                     <div className={ROW_LIST_CLASS}>
-                        {stations.map((st) => (
-                            <StationRow key={st.publicId} station={st} />
-                        ))}
+                        {stations.map(
+                            (st): JSX.Element => (
+                                <StationRow key={st.publicId} station={st} />
+                            )
+                        )}
                     </div>
                 </section>
             )}
@@ -284,7 +336,7 @@ export function LibraryLists({
     searchQuery,
     activeType,
     viewMode,
-}: ILibraryListsProps) {
+}: ILibraryListsProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
@@ -342,9 +394,11 @@ export function LibraryLists({
                     <AlbumListView albums={filtered.albums} />
                 ) : (
                     <div className={GRID_CLASS}>
-                        {filtered.albums.map((al) => (
-                            <AlbumCard key={al.publicId} album={al} />
-                        ))}
+                        {filtered.albums.map(
+                            (al): JSX.Element => (
+                                <AlbumCard key={al.publicId} album={al} />
+                            )
+                        )}
                     </div>
                 ))}
 
@@ -354,16 +408,20 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_PLAYLISTS} />
                 ) : viewMode === EViewMode.List ? (
                     <div className={ROW_LIST_CLASS}>
-                        {filtered.playlists.map((pl) => (
-                            <PlaylistRow key={pl.publicId} playlist={pl} />
-                        ))}
+                        {filtered.playlists.map(
+                            (pl): JSX.Element => (
+                                <PlaylistRow key={pl.publicId} playlist={pl} />
+                            )
+                        )}
                     </div>
                 ) : (
                     <div className={GRID_CLASS}>
                         <NewPlaylistButton />
-                        {filtered.playlists.map((pl) => (
-                            <PlaylistCard key={pl.publicId} playlist={pl} />
-                        ))}
+                        {filtered.playlists.map(
+                            (pl): JSX.Element => (
+                                <PlaylistCard key={pl.publicId} playlist={pl} />
+                            )
+                        )}
                     </div>
                 ))}
 
@@ -373,9 +431,11 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (
                     <div className={ROW_LIST_CLASS}>
-                        {filtered.songs.map((s) => (
-                            <SongRow key={s.publicId} song={s} />
-                        ))}
+                        {filtered.songs.map(
+                            (s): JSX.Element => (
+                                <SongRow key={s.publicId} song={s} />
+                            )
+                        )}
                     </div>
                 ))}
 
@@ -385,15 +445,19 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_VIDEOS} />
                 ) : viewMode === EViewMode.List ? (
                     <div className={ROW_LIST_CLASS}>
-                        {filtered.videos.map((v) => (
-                            <VideoRow key={v.publicId} video={v} />
-                        ))}
+                        {filtered.videos.map(
+                            (v): JSX.Element => (
+                                <VideoRow key={v.publicId} video={v} />
+                            )
+                        )}
                     </div>
                 ) : (
                     <div className={GRID_CLASS}>
-                        {filtered.videos.map((v) => (
-                            <VideoCard key={v.publicId} video={v} />
-                        ))}
+                        {filtered.videos.map(
+                            (v): JSX.Element => (
+                                <VideoCard key={v.publicId} video={v} />
+                            )
+                        )}
                     </div>
                 ))}
 
@@ -403,9 +467,11 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_STATIONS} />
                 ) : (
                     <div className={ROW_LIST_CLASS}>
-                        {filtered.stations.map((st) => (
-                            <StationRow key={st.publicId} station={st} />
-                        ))}
+                        {filtered.stations.map(
+                            (st): JSX.Element => (
+                                <StationRow key={st.publicId} station={st} />
+                            )
+                        )}
                     </div>
                 ))}
         </section>

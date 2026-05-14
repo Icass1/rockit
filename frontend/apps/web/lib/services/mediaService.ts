@@ -15,6 +15,7 @@ export async function getAlbumAsync(
     } else {
         console.error("Error getting album", response.message, response.detail);
     }
+    return undefined;
 }
 
 export async function getSongAsync(
@@ -26,6 +27,7 @@ export async function getSongAsync(
     } else {
         console.error("Error getting album", response.message, response.detail);
     }
+    return undefined;
 }
 
 export async function getPlaylistAsync(
@@ -38,4 +40,5 @@ export async function getPlaylistAsync(
     } else {
         console.error("Error getting album", response.message, response.detail);
     }
+    return undefined;
 }

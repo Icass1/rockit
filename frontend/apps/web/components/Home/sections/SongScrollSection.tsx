@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import RecentlyPlayedSong from "@/components/Home/RecentlyPlayedSong";
 
@@ -11,20 +12,22 @@ export default function SongScrollSection({
     title,
     songs,
     className = "",
-}: SongScrollSectionProps) {
+}: SongScrollSectionProps): JSX.Element | null {
     if (songs.length === 0) return null;
 
     return (
         <section className={`text-white md:py-12 md:pl-12 ${className}`}>
             <h2 className="px-5 text-2xl font-bold md:text-3xl">{title}</h2>
             <div className="flex gap-4 overflow-x-auto px-10 py-4">
-                {songs.map((song) => (
-                    <RecentlyPlayedSong
-                        key={song.publicId}
-                        song={song}
-                        songs={songs}
-                    />
-                ))}
+                {songs.map(
+                    (song): JSX.Element => (
+                        <RecentlyPlayedSong
+                            key={song.publicId}
+                            song={song}
+                            songs={songs}
+                        />
+                    )
+                )}
             </div>
         </section>
     );

@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -39,7 +40,7 @@ interface PiPCoverProps {
     showControls: boolean;
 }
 
-export function PiPCover({ showControls }: PiPCoverProps) {
+export function PiPCover({ showControls }: PiPCoverProps): JSX.Element {
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     return (

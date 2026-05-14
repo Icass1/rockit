@@ -1,14 +1,14 @@
-import { SearchResultsResponse } from "@rockit/shared";
+import { BaseSearchResultsItem, SearchResultsResponse } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom } from "@/lib/store";
+import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class SearchManager {
     private _queryAtom = createAtom<string>("");
     private _searchingAtom = createAtom<boolean>(false);
     private _resultsAtom = createAtom<SearchResultsResponse | undefined>();
 
-    async search(query: string) {
+    async search(query: string): Promise<void> {
         this._queryAtom.set(query);
         this._searchingAtom.set(true);
 
@@ -23,21 +23,26 @@ export class SearchManager {
         }
     }
 
-    clearResults() {
+    clearResults(): void {
         this._queryAtom.set("");
         this._resultsAtom.set(undefined);
         this._searchingAtom.set(false);
     }
 
-    get queryAtom() {
+    get queryAtom(): ReadonlyAtom<string> {
         return this._queryAtom.getReadonlyAtom();
     }
 
-    get searchingAtom() {
+    get searchingAtom(): ReadonlyAtom<boolean> {
         return this._searchingAtom.getReadonlyAtom();
     }
 
-    get resultsAtom() {
+    get resultsAtom(): ReadonlyAtom<
+        | {
+              results: BaseSearchResultsItem[];
+          }
+        | undefined
+    > {
         return this._resultsAtom.getReadonlyAtom();
     }
 }

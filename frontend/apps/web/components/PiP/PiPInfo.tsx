@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { getMediaArtists } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -40,7 +41,7 @@ const S = {
     },
 };
 
-export function PiPInfo() {
+export function PiPInfo(): JSX.Element {
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     return (
@@ -51,7 +52,7 @@ export function PiPInfo() {
                 </p>
                 <p style={S.artistName as React.CSSProperties}>
                     {getMediaArtists($currentSong)
-                        ?.map((a: { name: string }) => a.name)
+                        ?.map((a: { name: string }): string => a.name)
                         .join(", ")}
                 </p>
             </div>

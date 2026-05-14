@@ -25,7 +25,7 @@ export class WebSocketManager {
         Set<WebSocketMessageHandler<EWebSocketMessage>>
     > = new Map();
 
-    private _onMessageHandler = (event: MessageEvent) => {
+    private _onMessageHandler = (event: MessageEvent): void => {
         try {
             const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
 
@@ -34,7 +34,7 @@ export class WebSocketManager {
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);
             if (handlers) {
-                handlers.forEach((handler) =>
+                handlers.forEach((handler): void =>
                     handler(data as IWebSocketMessagePayloadMap[typeof type])
                 );
             }
@@ -58,7 +58,7 @@ export class WebSocketManager {
     onMessage<K extends EWebSocketMessage>(
         type: K,
         handler: WebSocketMessageHandler<K>
-    ) {
+    ): void {
         if (!this._messageHandlers.has(type)) {
             this._messageHandlers.set(type, new Set());
         }
@@ -70,13 +70,13 @@ export class WebSocketManager {
     offMessage<K extends EWebSocketMessage>(
         type: K,
         handler: WebSocketMessageHandler<K>
-    ) {
+    ): void {
         this._messageHandlers
             .get(type)
             ?.delete(handler as WebSocketMessageHandler<EWebSocketMessage>);
     }
 
-    async init() {
+    async init(): Promise<void> {
         if (this._init) return;
 
         // console.debug("WebSocketManager.init", this.webSocket);
@@ -84,7 +84,7 @@ export class WebSocketManager {
         await this.attemptReconnect();
     }
 
-    private async attemptReconnect() {
+    private async attemptReconnect(): Promise<void> {
         const maxRetries = 5;
         let retries = 0;
         // console.debug("WebSocketManager.attemptReconnect", this.initializing);
@@ -92,22 +92,23 @@ export class WebSocketManager {
         this.initializing = true;
 
         while (retries < maxRetries) {
-            await new Promise((resolve) =>
-                setTimeout(resolve, Math.max(2000 * retries, 2000))
+            await new Promise(
+                (resolve): NodeJS.Timeout =>
+                    setTimeout(resolve, Math.max(2000 * retries, 2000))
             );
             if (this.webSocket?.readyState === WebSocket.OPEN) break;
 
             try {
                 this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
 
-                this.webSocket.onopen = () => {
+                this.webSocket.onopen = (): void => {
                     this.initializing = false;
                     this._init = true;
                 };
 
                 this.webSocket.onmessage = this._onMessageHandler;
 
-                this.webSocket.onclose = () => {
+                this.webSocket.onclose = (): void => {
                     this.initializing = false;
                     this._init = false;
                     this.attemptReconnect();
@@ -120,7 +121,7 @@ export class WebSocketManager {
         }
     }
 
-    async send(message: object) {
+    async send(message: object): Promise<void> {
         if (!this.webSocket) {
             // console.log("WebSocketManager.init() 2", message);
             await this.init();
@@ -132,8 +133,8 @@ export class WebSocketManager {
         }
 
         if (this.webSocket?.readyState === WebSocket.CONNECTING) {
-            await new Promise<void>((resolve) => {
-                const checkConnection = setInterval(() => {
+            await new Promise<void>((resolve): void => {
+                const checkConnection = setInterval((): void => {
                     if (this.webSocket?.readyState === WebSocket.OPEN) {
                         clearInterval(checkConnection);
                         resolve();
@@ -151,56 +152,56 @@ export class WebSocketManager {
         }
     }
 
-    sendMediaEnded(data: MediaEndedMessageRequest) {
+    sendMediaEnded(data: MediaEndedMessageRequest): void {
         this.send({
             type: "media_ended",
             ...data,
         });
     }
 
-    sendCurrentMedia(data: CurrentMediaMessageRequest) {
+    sendCurrentMedia(data: CurrentMediaMessageRequest): void {
         this.send({
             type: "current_media",
             ...data,
         });
     }
 
-    sendCurrentQueue(data: CurrentQueueMessageRequest) {
+    sendCurrentQueue(data: CurrentQueueMessageRequest): void {
         this.send({
             type: "current_queue",
             ...data,
         });
     }
 
-    sendQueueType(data: QueueTypeRequest) {
+    sendQueueType(data: QueueTypeRequest): void {
         this.send({
             type: "queue_type",
             ...data,
         });
     }
 
-    sendCurrentTime(data: CurrentTimeMessageRequest) {
+    sendCurrentTime(data: CurrentTimeMessageRequest): void {
         this.send({
             type: "current_time",
             ...data,
         });
     }
 
-    sendMediaClicked(data: MediaClickedMessageRequest) {
+    sendMediaClicked(data: MediaClickedMessageRequest): void {
         this.send({
             type: "media_clicked",
             ...data,
         });
     }
 
-    sendSkipClicked(data: SkipClickedMessageRequest) {
+    sendSkipClicked(data: SkipClickedMessageRequest): void {
         this.send({
             type: "skip_clicked",
             ...data,
         });
     }
 
-    sendSeek(data: SeekMessageRequest) {
+    sendSeek(data: SeekMessageRequest): void {
         this.send({
             type: "seek",
             ...data,

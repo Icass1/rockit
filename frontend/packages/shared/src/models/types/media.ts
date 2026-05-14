@@ -186,15 +186,15 @@ export function getMediaDuration(
 
 export function getMediaSubtitle(media: TMediaWithSearch): string {
     if (isSearchResult(media)) {
-        return media.artists.map((artist) => artist.name).join(", ");
+        return media.artists.map((artist): string => artist.name).join(", ");
     } else if (isSongWithAlbum(media)) {
         return (
-            media.artists.map((artist) => artist.name).join(", ") +
+            media.artists.map((artist): string => artist.name).join(", ") +
             " | " +
             media.album.name
         );
     } else if (isSong(media)) {
-        return media.artists.map((artist) => artist.name).join(", ");
+        return media.artists.map((artist): string => artist.name).join(", ");
     } else if (isAlbumWithSongs(media)) {
         const totalSongs = media.songs.length ?? 0;
         return `${totalSongs} song${totalSongs !== 1 ? "s" : ""}`;
@@ -208,7 +208,7 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
     } else if (isPlaylist(media)) {
         return media.description ?? "";
     } else if (isVideo(media)) {
-        return media.artists.map((artist) => artist.name).join(", ");
+        return media.artists.map((artist): string => artist.name).join(", ");
     }
     return "Not supported subtitle";
 }
@@ -259,10 +259,12 @@ export function getMediaVideoSrc(
 export function getAllPlayableMedia(medias: TMedia[]): TPlayableMedia[] {
     const mediaList: TPlayableMedia[] = [];
 
-    medias.forEach((media) => {
+    medias.forEach((media): void => {
         if (isPlaylistWithMedias(media)) {
             mediaList.push(
-                ...getAllPlayableMedia(media.medias.map((media) => media.item))
+                ...getAllPlayableMedia(
+                    media.medias.map((media): TMedia => media.item)
+                )
             );
         } else if (isAlbumWithSongs(media)) {
             mediaList.push(...getAllPlayableMedia(media.songs));

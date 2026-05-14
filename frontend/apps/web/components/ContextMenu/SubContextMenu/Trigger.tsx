@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { JSX, ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { useSubContextMenu } from "@/components/ContextMenu/SubContextMenu/context";
 import type SubContextMenuProps from "@/components/ContextMenu/SubContextMenu/Props";
@@ -11,21 +11,21 @@ export default function SubContextMenuTrigger({
     children: ReactNode[];
     className?: string;
     disable?: boolean;
-}) {
+}): JSX.Element {
     const { _triggerRef, _setHover } = useSubContextMenu();
 
     return (
         <div
             ref={_triggerRef}
-            onClick={(e) => {
+            onClick={(e): void => {
                 e.stopPropagation();
                 if (disable) return;
             }}
-            onMouseEnter={() => {
+            onMouseEnter={(): void => {
                 if (disable) return;
                 if (_setHover) _setHover(true);
             }}
-            onMouseLeave={() => {
+            onMouseLeave={(): void => {
                 if (_setHover) {
                     if (disable) return;
                     _setHover(false);

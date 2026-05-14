@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, type JSX } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import {
@@ -52,7 +52,7 @@ export default function MediaContextMenu({
     children: ReactNode;
     media: TMediaWithSearch;
     location: EMediaContextLocation;
-}) {
+}): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -72,7 +72,7 @@ export default function MediaContextMenu({
         !media.downloaded;
     const showDownloadOption = isDownloadableMedia && isNotDownloadedMedia;
 
-    const handlePlay = () => {
+    const handlePlay = (): void => {
         if (isQueueableMedia) {
             rockIt.queueManager.setMedia([media], media.publicId);
             rockIt.queueManager.moveToMedia(media.publicId);
@@ -82,52 +82,52 @@ export default function MediaContextMenu({
         }
     };
 
-    const handleNavigate = () => {
+    const handleNavigate = (): void => {
         if (!isNavigableMedia) return;
         router.push(media.url);
     };
 
-    const handleAddToLibraryAsync = async () => {
+    const handleAddToLibraryAsync = async (): Promise<void> => {
         setLoading(true);
         await rockIt.libraryManager.addMediaToLibrary(media);
         setLoading(false);
     };
 
-    const handleRemoveFromLibraryAsync = async () => {
+    const handleRemoveFromLibraryAsync = async (): Promise<void> => {
         if (isSearch) return;
         await rockIt.libraryManager.removeMediaFromLibrary(media);
     };
 
-    const handlePlayListAsync = async () => {
+    const handlePlayListAsync = async (): Promise<void> => {
         if (!isListMedia) return;
         await rockIt.queueManager.playList(media);
     };
 
-    const handleAddListToQueueAsync = async () => {
+    const handleAddListToQueueAsync = async (): Promise<void> => {
         if (!isListMedia) return;
         await rockIt.queueManager.addListToQueueTopAsync(media);
     };
 
-    const handleAddListRandomAsync = async () => {
+    const handleAddListRandomAsync = async (): Promise<void> => {
         if (!isListMedia) return;
         await rockIt.queueManager.addListToQueueRandomAsync(media);
     };
 
-    const handleAddListToBottomAsync = async () => {
+    const handleAddListToBottomAsync = async (): Promise<void> => {
         if (!isListMedia) return;
         await rockIt.queueManager.addListToQueueBottomAsync(media);
     };
 
-    const handleDownloadListZip = () => {
+    const handleDownloadListZip = (): void => {
         console.warn("TODO: Download ZIP");
     };
 
-    const handleRetryDownloadAsync = async () => {
+    const handleRetryDownloadAsync = async (): Promise<void> => {
         if (isSearch) return;
         rockIt.mediaManager.downloadMedia(media);
     };
 
-    const handleDownloadMediaAsync = async () => {
+    const handleDownloadMediaAsync = async (): Promise<void> => {
         if (isSearch || !isDownloadableMedia) return;
         rockIt.mediaManager.downloadMedia(media);
     };
@@ -135,7 +135,7 @@ export default function MediaContextMenu({
     const handleAddToPlaylistAsync = async (
         media: TMediaWithSearch,
         playlist: BasePlaylistWithoutMediasResponse
-    ) => {
+    ): Promise<void> => {
         if (isSearchResult(media)) {
             rockIt.playlistManager.addUrlToPlaylistAsync(
                 media.providerUrl,
@@ -181,16 +181,21 @@ export default function MediaContextMenu({
                         {$vocabulary.ADD_MEDIA_TO_PLAYLIST}
                     </SubContextMenuTrigger>
                     <SubContextMenuContent>
-                        {$playlists.map((playlist) => (
-                            <ContextMenuOption
-                                onClick={() =>
-                                    handleAddToPlaylistAsync(media, playlist)
-                                }
-                                key={playlist.publicId}
-                            >
-                                {playlist.name}
-                            </ContextMenuOption>
-                        ))}
+                        {$playlists.map(
+                            (playlist): JSX.Element => (
+                                <ContextMenuOption
+                                    onClick={(): Promise<void> =>
+                                        handleAddToPlaylistAsync(
+                                            media,
+                                            playlist
+                                        )
+                                    }
+                                    key={playlist.publicId}
+                                >
+                                    {playlist.name}
+                                </ContextMenuOption>
+                            )
+                        )}
                     </SubContextMenuContent>
                 </SubContextMenu>
 

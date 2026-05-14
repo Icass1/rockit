@@ -23,7 +23,7 @@ import { redirect, RedirectType } from "next/navigation";
 //     return HomeStatsResponseSchema.parse(await res.json());
 // }
 
-export default async function HomePage() {
+export default async function HomePage(): Promise<void> {
     redirect("/library", RedirectType.push);
 
     // const stats = await getHomeStats();

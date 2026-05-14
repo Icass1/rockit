@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type JSX } from "react";
 
 interface DownloadInputBarProps {
     onSubmit: (url: string) => Promise<void>;
 }
 
-export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {
+export default function DownloadInputBar({
+    onSubmit,
+}: DownloadInputBarProps): JSX.Element {
     const [url, setUrl] = useState("");
     const [isDownloading, setIsDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         if (!url.trim()) return;
 
@@ -37,7 +39,7 @@ export default function DownloadInputBar({ onSubmit }: DownloadInputBarProps) {
                     <input
                         type="url"
                         value={url}
-                        onChange={(e) => setUrl(e.target.value)}
+                        onChange={(e): void => setUrl(e.target.value)}
                         placeholder="Paste Spotify or YouTube URL..."
                         className="block w-full rounded-md border border-neutral-600 bg-neutral-800/50 px-4 py-2 text-sm text-white placeholder-neutral-400 focus:border-[#ee1086] focus:ring-2 focus:ring-[#ee1086]"
                     />

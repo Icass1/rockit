@@ -24,22 +24,22 @@ export class LibraryManager {
         return LibraryManager.#instance;
     }
 
-    init() {
+    init(): void {
         if (this._init) return;
         this._init = true;
 
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.LibraryMediaAdded,
-            (data) => this.libraryMediaAddedHandler(data.publicId)
+            (data): void => this.libraryMediaAddedHandler(data.publicId)
         );
 
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.LibraryMediaRemoved,
-            (data) => this.libraryMediaRemovedHandler(data.publicId)
+            (data): void => this.libraryMediaRemovedHandler(data.publicId)
         );
     }
 
-    async addMediaToLibrary(media: TMediaWithSearch) {
+    async addMediaToLibrary(media: TMediaWithSearch): Promise<void> {
         if (isSearchResult(media)) {
             const searchItem = media;
             const res = await Http.addFromUrl({
@@ -69,20 +69,20 @@ export class LibraryManager {
         }
     }
 
-    async removeMediaFromLibrary(media: TMedia) {
+    async removeMediaFromLibrary(media: TMedia): Promise<void> {
         const res = await Http.removeMediaFromLibrary(media.publicId);
         if (res.isNotOk()) {
             rockIt.notificationManager.notifyError(res.message);
         }
     }
 
-    private libraryMediaAddedHandler(publicId: string) {
+    private libraryMediaAddedHandler(publicId: string): void {
         rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToLibrary, {
             publicId: publicId,
         });
     }
 
-    private libraryMediaRemovedHandler(publicId: string) {
+    private libraryMediaRemovedHandler(publicId: string): void {
         rockIt.eventManager.dispatchEvent(EEvent.MediaRemovedFromLibrary, {
             publicId: publicId,
         });

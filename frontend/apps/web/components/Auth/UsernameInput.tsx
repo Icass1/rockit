@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, JSX, useEffect, useState } from "react";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;
@@ -17,10 +17,10 @@ export default function UsernameInput({
 }: {
     value: string;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-}) {
+}): JSX.Element {
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
+    useEffect((): void => {
         setError(validateUsername(value));
     }, [value]);
 

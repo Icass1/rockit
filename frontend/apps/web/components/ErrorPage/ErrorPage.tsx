@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -31,7 +32,7 @@ const ERROR_CONTENT: Record<
     },
 };
 
-export default function ErrorPage({ code }: { code: ErrorCode }) {
+export default function ErrorPage({ code }: { code: ErrorCode }): JSX.Element {
     const { title, subtitle, description } =
         ERROR_CONTENT[code] ?? ERROR_CONTENT[500];
 

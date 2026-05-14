@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { JSX, useRef, useState } from "react";
 import { BuildResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
@@ -27,7 +27,7 @@ interface AdminClientProps {
 
 export default function AdminClient({
     builds: initialBuilds,
-}: AdminClientProps) {
+}: AdminClientProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [builds, setBuilds] = useState<BuildResponse[]>(initialBuilds);
     const [activeTab, setActiveTab] = useState<EAdminClientTab>(
@@ -44,14 +44,14 @@ export default function AdminClient({
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const refreshBuilds = async () => {
+    const refreshBuilds = async (): Promise<void> => {
         const result = await Http.getAllBuilds();
         if (result.isOk()) {
             setBuilds(result.result.builds);
         }
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const file = e.target.files?.[0];
         if (file && file.name.endsWith(".apk")) {
             setSelectedFile(file);
@@ -65,7 +65,7 @@ export default function AdminClient({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [currentChunk, setCurrentChunk] = useState(0);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         if (!selectedFile) {
             setError($vocabulary.ADMIN_SELECT_APK);
@@ -108,7 +108,7 @@ export default function AdminClient({
         const fileReader = new FileReader();
         const blob = selectedFile.slice(0, fileSize);
 
-        fileReader.onload = async () => {
+        fileReader.onload = async (): Promise<void> => {
             const base64 = (fileReader.result as string).split(",")[1];
             const binaryString = atob(base64);
             const bytes = new Uint8Array(binaryString.length);
@@ -181,7 +181,7 @@ export default function AdminClient({
             setCurrentChunk(0);
         };
 
-        fileReader.onerror = () => {
+        fileReader.onerror = (): void => {
             setError($vocabulary.ADMIN_READ_FAILED);
             setUploading(false);
         };
@@ -217,20 +217,22 @@ export default function AdminClient({
             <div className="border-b border-neutral-800 bg-neutral-900/50">
                 <div className="mx-auto max-w-6xl px-4">
                     <div className="flex items-center gap-1 overflow-x-auto py-2">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                                    activeTab === tab.id
-                                        ? "bg-[#ee1086] text-white"
-                                        : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                                }`}
-                            >
-                                <tab.icon className="h-4 w-4" />
-                                {tab.label}
-                            </button>
-                        ))}
+                        {tabs.map(
+                            (tab): JSX.Element => (
+                                <button
+                                    key={tab.id}
+                                    onClick={(): void => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+                                        activeTab === tab.id
+                                            ? "bg-[#ee1086] text-white"
+                                            : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                                    }`}
+                                >
+                                    <tab.icon className="h-4 w-4" />
+                                    {tab.label}
+                                </button>
+                            )
+                        )}
                     </div>
                 </div>
             </div>
@@ -248,7 +250,9 @@ export default function AdminClient({
                                 </p>
                             </div>
                             <button
-                                onClick={() => setShowForm((v) => !v)}
+                                onClick={(): void =>
+                                    setShowForm((v): boolean => !v)
+                                }
                                 className="flex items-center gap-2 rounded-lg bg-[#ee1086] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#f53a76] disabled:opacity-50"
                             >
                                 {showForm ? (
@@ -286,7 +290,7 @@ export default function AdminClient({
                                             type="text"
                                             placeholder="e.g. 1.2.0"
                                             value={version}
-                                            onChange={(e) =>
+                                            onChange={(e): void =>
                                                 setVersion(e.target.value)
                                             }
                                             required
@@ -329,7 +333,7 @@ export default function AdminClient({
                                                 $vocabulary.ADMIN_DESCRIPTION_PLACEHOLDER
                                             }
                                             value={description}
-                                            onChange={(e) =>
+                                            onChange={(e): void =>
                                                 setDescription(e.target.value)
                                             }
                                             rows={3}
@@ -405,61 +409,67 @@ export default function AdminClient({
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {builds.map((build, i) => (
-                                    <div
-                                        key={build.id}
-                                        className="group relative rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition hover:border-neutral-700"
-                                    >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex flex-1 items-center gap-4">
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ee1086]/10">
-                                                    <Smartphone className="h-6 w-6 text-[#ee1086]" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="rounded-full bg-[#ee1086]/15 px-3 py-0.5 text-sm font-bold text-[#ee1086]">
-                                                            v{build.version}
-                                                        </span>
-                                                        {i === 0 && (
-                                                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                                {builds.map(
+                                    (build, i): JSX.Element => (
+                                        <div
+                                            key={build.id}
+                                            className="group relative rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition hover:border-neutral-700"
+                                        >
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex flex-1 items-center gap-4">
+                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ee1086]/10">
+                                                        <Smartphone className="h-6 w-6 text-[#ee1086]" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="rounded-full bg-[#ee1086]/15 px-3 py-0.5 text-sm font-bold text-[#ee1086]">
+                                                                v{build.version}
+                                                            </span>
+                                                            {i === 0 && (
+                                                                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                                                                    {
+                                                                        $vocabulary.ADMIN_LATEST
+                                                                    }
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {build.description && (
+                                                            <p className="mt-2 line-clamp-2 max-w-xl text-sm text-neutral-400">
                                                                 {
-                                                                    $vocabulary.ADMIN_LATEST
+                                                                    build.description
+                                                                }
+                                                            </p>
+                                                        )}
+                                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
+                                                            <span className="font-mono">
+                                                                {
+                                                                    build.apkFilename
                                                                 }
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                    {build.description && (
-                                                        <p className="mt-2 line-clamp-2 max-w-xl text-sm text-neutral-400">
-                                                            {build.description}
-                                                        </p>
-                                                    )}
-                                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
-                                                        <span className="font-mono">
-                                                            {build.apkFilename}
-                                                        </span>
-                                                        <span>
-                                                            {new Date(
-                                                                build.dateAdded
-                                                            ).toLocaleString()}
-                                                        </span>
+                                                            <span>
+                                                                {new Date(
+                                                                    build.dateAdded
+                                                                ).toLocaleString()}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex items-center gap-1.5 text-sm text-neutral-400">
-                                                    <Download className="h-4 w-4" />
-                                                    <span>
-                                                        {build.downloads}
-                                                    </span>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-1.5 text-sm text-neutral-400">
+                                                        <Download className="h-4 w-4" />
+                                                        <span>
+                                                            {build.downloads}
+                                                        </span>
+                                                    </div>
+                                                    <button className="rounded-lg p-2 text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-neutral-800 hover:text-red-400">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
                                                 </div>
-                                                <button className="rounded-lg p-2 text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-neutral-800 hover:text-red-400">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                )}
                             </div>
                         )}
                     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { JSX, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -28,7 +28,7 @@ const COVER_PX = 250;
 const COVER_SIZES = "(max-width: 640px) 50vw, 250px";
 
 /** Shared wrapper for every grid card — enforces the 250 px cap. */
-function CardShell({ children }: { children: React.ReactNode }) {
+function CardShell({ children }: { children: React.ReactNode }): JSX.Element {
     return <div className="mx-auto w-full max-w-62.5">{children}</div>;
 }
 
@@ -36,7 +36,7 @@ export function PlaylistCard({
     playlist,
 }: {
     playlist: BasePlaylistWithoutMediasResponse;
-}) {
+}): JSX.Element {
     return (
         <CardShell>
             <MediaContextMenu
@@ -70,7 +70,11 @@ export function PlaylistCard({
     );
 }
 
-export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
+export function AlbumCard({
+    album,
+}: {
+    album: BaseAlbumWithoutSongsResponse;
+}): JSX.Element {
     return (
         <CardShell>
             <MediaContextMenu
@@ -93,7 +97,7 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                         {album.name}
                     </p>
                     <p className="truncate text-center text-sm text-gray-400">
-                        {album.artists.map((a) => a.name).join(", ")}
+                        {album.artists.map((a): string => a.name).join(", ")}
                     </p>
                 </Link>
             </MediaContextMenu>
@@ -101,12 +105,16 @@ export function AlbumCard({ album }: { album: BaseAlbumWithoutSongsResponse }) {
     );
 }
 
-export function VideoCard({ video: _video }: { video: BaseVideoResponse }) {
+export function VideoCard({
+    video: _video,
+}: {
+    video: BaseVideoResponse;
+}): JSX.Element {
     const $video = useMedia(_video);
     const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
     const downloaded = !isDownloadable($video) || $video.downloaded;
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = (e: React.MouseEvent): void => {
         if (!downloaded) {
             openMenuRef.current?.(e.clientX, e.clientY);
             return;
@@ -150,12 +158,12 @@ export function SongCard({
     song: _song,
 }: {
     song: BaseSongWithoutAlbumResponse;
-}) {
+}): JSX.Element {
     const $song = useMedia(_song);
     const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
     const downloaded = !isDownloadable($song) || $song.downloaded;
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = (e: React.MouseEvent): void => {
         if (!downloaded) {
             openMenuRef.current?.(e.clientX, e.clientY);
             return;
@@ -188,8 +196,9 @@ export function SongCard({
                             {$song.name}
                         </p>
                         <p className="truncate text-center text-sm text-gray-400">
-                            {$song.artists?.map((a) => a.name).join(", ") ??
-                                "Unknown Artist"}
+                            {$song.artists
+                                ?.map((a): string => a.name)
+                                .join(", ") ?? "Unknown Artist"}
                         </p>
                     </div>
                     <DownloadStatusIcon
@@ -208,10 +217,10 @@ export function StationCard({
     station: _station,
 }: {
     station: BaseStationResponse;
-}) {
+}): JSX.Element {
     const $station = useMedia(_station);
 
-    const handlePlay = () => {
+    const handlePlay = (): void => {
         // rockIt.queueManager.setMedia([$station], $station.publicId);
         // rockIt.queueManager.moveToMedia($station.publicId);
         // rockIt.mediaPlayerManager.play();

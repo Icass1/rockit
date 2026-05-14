@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ReactNode, ReactPortal } from "react";
 import { createPortal } from "react-dom";
 import { usePopupMenu } from "@/components/PopupMenu/context";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
@@ -80,7 +80,7 @@ export default function PopupMenuContent({
     children,
 }: {
     children?: ReactNode;
-}) {
+}): ReactPortal | null {
     const { open, setOpen, pos, contentRef, triggerRef } = usePopupMenu();
 
     // Safety: this component is client-only (`"use client"`), pero reafirmamos.
@@ -98,7 +98,7 @@ export default function PopupMenuContent({
     // (PosAfterRenderDiv lo llamará después del render), por lo que NO leemos refs aquí.
     const handleDimensions = isMobile
         ? undefined
-        : (width: number, height: number) => {
+        : (width: number, height: number): [number, number] => {
               const triggerRect = triggerRef.current?.getBoundingClientRect();
               return calcPosition(pos, width, height, triggerRect);
           };
@@ -107,7 +107,7 @@ export default function PopupMenuContent({
         <PosAfterRenderDiv
             divRef={contentRef}
             onDimensionsCalculated={handleDimensions}
-            onClick={() => setOpen(false)}
+            onClick={(): void => setOpen(false)}
             style={{ display: open ? "block" : "none" }}
             className="fixed top-0 left-0 z-50 h-[calc(100%-4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
         >

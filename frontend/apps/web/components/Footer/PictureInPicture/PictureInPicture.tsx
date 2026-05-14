@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type JSX } from "react";
 import { PictureInPicture2 } from "lucide-react";
 import { createPortal } from "react-dom";
 import PiPContent from "@/components/PiP/PiPRoot";
@@ -20,13 +20,15 @@ function getDocumentPiP(): DocumentPiP | null {
     return null;
 }
 
-function copyStylesToPiPWindow(pipWin: Window) {
+function copyStylesToPiPWindow(pipWin: Window): void {
     // Copy all stylesheets from the main document to the PiP window
     // This makes Tailwind and any other CSS available inside PiP
-    [...document.styleSheets].forEach((sheet) => {
+    [...document.styleSheets].forEach((sheet): void => {
         try {
             const styleEl = document.createElement("style");
-            const rules = [...sheet.cssRules].map((r) => r.cssText).join("");
+            const rules = [...sheet.cssRules]
+                .map((r): string => r.cssText)
+                .join("");
             styleEl.textContent = rules;
             pipWin.document.head.appendChild(styleEl);
         } catch {
@@ -41,16 +43,16 @@ function copyStylesToPiPWindow(pipWin: Window) {
     });
 }
 
-export default function PictureInPicture() {
+export default function PictureInPicture(): JSX.Element | null {
     const [pipWindow, setPipWindow] = useState<Window | null>(null);
     const [isSupported, setIsSupported] = useState<boolean | null>(null);
 
-    useEffect(() => {
+    useEffect((): void => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSupported(!!getDocumentPiP());
     }, []);
 
-    const openPiP = useCallback(async () => {
+    const openPiP = useCallback(async (): Promise<void> => {
         const pip = getDocumentPiP();
         if (!pip) return;
 
@@ -73,12 +75,12 @@ export default function PictureInPicture() {
         }
     }, []);
 
-    const closePiP = useCallback(() => {
+    const closePiP = useCallback((): void => {
         pipWindow?.close();
         setPipWindow(null);
     }, [pipWindow]);
 
-    const togglePiP = useCallback(() => {
+    const togglePiP = useCallback((): void => {
         if (pipWindow) {
             closePiP();
         } else {
@@ -87,11 +89,11 @@ export default function PictureInPicture() {
     }, [pipWindow, closePiP, openPiP]);
 
     // Detect when the user closes the PiP window manually
-    useEffect(() => {
+    useEffect((): (() => void) | undefined => {
         if (!pipWindow) return;
-        const onClose = () => setPipWindow(null);
+        const onClose = (): void => setPipWindow(null);
         pipWindow.addEventListener("pagehide", onClose);
-        return () => pipWindow.removeEventListener("pagehide", onClose);
+        return (): void => pipWindow.removeEventListener("pagehide", onClose);
     }, [pipWindow]);
 
     // Not supported — don't render the button at all

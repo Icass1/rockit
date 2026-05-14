@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
@@ -16,11 +16,18 @@ interface DownloadItemProps {
     download: BaseSongWithAlbumResponse;
 }
 
-export default function DownloadItem({ download }: DownloadItemProps) {
+export default function DownloadItem({
+    download,
+}: DownloadItemProps): JSX.Element {
     const $download = useMedia(download);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(
-        () => ({
+        (): {
+            publicId: string;
+            message: string;
+            completed: number;
+            status: EDownloadInfoStatus.Downloading;
+        } => ({
             publicId: download.publicId,
             message: "",
             completed: 0,
@@ -28,9 +35,9 @@ export default function DownloadItem({ download }: DownloadItemProps) {
         })
     );
 
-    useEffect(() => {
-        const handleProgressUpdate = (progress: number) => {
-            setDownloadInfo((prev) => {
+    useEffect((): (() => void) => {
+        const handleProgressUpdate = (progress: number): void => {
+            setDownloadInfo((prev): DownloadInfo | null => {
                 if (!prev) return prev;
                 return {
                     ...prev,
@@ -52,7 +59,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
                 handleProgressUpdate
             );
 
-        return () => {
+        return (): void => {
             unsubscribe();
         };
     }, [download]);
@@ -76,7 +83,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
         return "#ee1086"; // pink for downloading
     };
 
-    const handleRetry = async () => {
+    const handleRetry = async (): Promise<void> => {
         try {
             await rockIt.downloaderManager.startDownloadAsync(
                 download.providerUrl,
@@ -87,7 +94,7 @@ export default function DownloadItem({ download }: DownloadItemProps) {
         }
     };
 
-    const handlePlay = () => {
+    const handlePlay = (): void => {
         if (downloadInfo?.completed === 100) {
             const playable = [$download].filter(isSongWithAlbum);
             if (playable.length > 0) {
@@ -126,14 +133,19 @@ export default function DownloadItem({ download }: DownloadItemProps) {
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-neutral-400">
-                    {$download.artists.map((artist, index) => (
-                        <>
-                            <span key={index} className="max-w-37.5 truncate">
-                                {artist.name}
-                            </span>
-                            {index < $download.artists.length - 1 && ", "}
-                        </>
-                    ))}
+                    {$download.artists.map(
+                        (artist, index): JSX.Element => (
+                            <>
+                                <span
+                                    key={index}
+                                    className="max-w-37.5 truncate"
+                                >
+                                    {artist.name}
+                                </span>
+                                {index < $download.artists.length - 1 && ", "}
+                            </>
+                        )
+                    )}
                 </div>
 
                 <div className="h-2.5 w-full rounded-full bg-neutral-700">

@@ -1,6 +1,7 @@
+import { JSX } from "react";
 import LoginModal from "@/components/Auth/LoginModal";
 
-export default function LoginPage() {
+export default function LoginPage(): JSX.Element {
     return (
         <div
             className="relative h-full w-full"

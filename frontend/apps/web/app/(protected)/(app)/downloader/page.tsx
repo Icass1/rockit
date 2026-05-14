@@ -1,9 +1,10 @@
+import { JSX } from "react";
 import { cookies } from "next/headers";
-import { SessionResponseSchema } from "@/dto";
+import { SessionResponse, SessionResponseSchema } from "@/dto";
 import { BACKEND_URL } from "@/environment";
 import DownloaderClient from "@/components/Downloader/DownloaderClient";
 
-async function getUserInServer() {
+async function getUserInServer(): Promise<SessionResponse | null> {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get("session_id")?.value;
 
@@ -20,7 +21,7 @@ async function getUserInServer() {
     return SessionResponseSchema.parse(await res.json());
 }
 
-export default async function DownloaderPage() {
+export default async function DownloaderPage(): Promise<JSX.Element> {
     const user = await getUserInServer();
     if (!user) return <div>Redirecting to login...</div>; // In real app, would redirect
 

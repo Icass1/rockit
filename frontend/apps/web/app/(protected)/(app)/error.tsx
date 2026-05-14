@@ -1,5 +1,6 @@
 "use client";
 
+import { JSX } from "react";
 import { EErrorCode } from "@/models/enums/errorCode";
 import { AppError } from "@/lib/errors/AppError";
 import ErrorPage from "@/components/ErrorPage/ErrorPage";
@@ -11,7 +12,12 @@ const VALID_CODES = [
     EErrorCode.INTERNAL_SERVER_ERROR,
 ] as const;
 
-export default function Error({ error }: { error: Error; reset: () => void }) {
+export default function Error({
+    error,
+}: {
+    error: Error;
+    reset: () => void;
+}): JSX.Element {
     const status = error instanceof AppError ? error.status : 500;
     const code = VALID_CODES.includes(status as (typeof VALID_CODES)[number])
         ? (status as (typeof VALID_CODES)[number])

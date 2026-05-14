@@ -5,7 +5,7 @@ export const SubContextMenuContext = createContext<SubContextMenuProps | null>(
     null
 );
 
-export function useSubContextMenu() {
+export function useSubContextMenu(): SubContextMenuProps {
     const ctx = useContext(SubContextMenuContext);
     if (!ctx)
         throw new Error("useSubContextMenu must be used inside SubContextMenu");

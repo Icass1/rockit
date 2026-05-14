@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { BellOff, Trash2 } from "lucide-react";
 
 interface Notification {
@@ -15,14 +15,16 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     { id: 3, message: "System update completed" },
 ];
 
-export default function NotificationMenu() {
+export default function NotificationMenu(): JSX.Element {
     const [notifications, setNotifications] =
         useState<Notification[]>(MOCK_NOTIFICATIONS);
 
-    const remove = (id: number) =>
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const remove = (id: number): void =>
+        setNotifications((prev): Notification[] =>
+            prev.filter((n): boolean => n.id !== id)
+        );
 
-    const clearAll = () => setNotifications([]);
+    const clearAll = (): void => setNotifications([]);
 
     return (
         <div className="absolute right-0 z-50 mt-2 w-72 rounded-lg bg-neutral-800 shadow-xl">
@@ -45,21 +47,23 @@ export default function NotificationMenu() {
                         <span>No notifications</span>
                     </li>
                 ) : (
-                    notifications.map((notif) => (
-                        <li
-                            key={notif.id}
-                            className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-white transition hover:bg-neutral-700"
-                        >
-                            <span className="flex-1">{notif.message}</span>
-                            <button
-                                aria-label="Remove notification"
-                                onClick={() => remove(notif.id)}
-                                className="shrink-0 text-gray-400 transition hover:text-red-500"
+                    notifications.map(
+                        (notif): JSX.Element => (
+                            <li
+                                key={notif.id}
+                                className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-white transition hover:bg-neutral-700"
                             >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </li>
-                    ))
+                                <span className="flex-1">{notif.message}</span>
+                                <button
+                                    aria-label="Remove notification"
+                                    onClick={(): void => remove(notif.id)}
+                                    className="shrink-0 text-gray-400 transition hover:text-red-500"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </li>
+                        )
+                    )
                 )}
             </ul>
         </div>

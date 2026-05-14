@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { BaseArtistResponse } from "@/dto";
 import { EMediaType, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
@@ -28,21 +28,21 @@ export default function RenderListClient({
     media: TMedia[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
-}) {
+}): JSX.Element {
     const [media, setMedia] = useState(initialMedia);
 
-    useEffect(() => {
+    useEffect((): void => {
         setMedia(initialMedia);
     }, [initialMedia]);
 
-    useEffect(() => {
+    useEffect((): (() => void) | undefined => {
         if (!publicId) return;
         if (type !== EMediaType.Playlist) return;
 
-        const handleMediaAdded = (data: IMediaAddedToPlaylistEvent) => {
-            Http.getMedia(data.publicId).then((data) => {
+        const handleMediaAdded = (data: IMediaAddedToPlaylistEvent): void => {
+            Http.getMedia(data.publicId).then((data): void => {
                 if (data.isOk())
-                    setMedia((prev) => [...prev, data.result.media]);
+                    setMedia((prev): TMedia[] => [...prev, data.result.media]);
                 else {
                     console.error(
                         "Failed to fetch media data for added media:",
@@ -58,7 +58,7 @@ export default function RenderListClient({
             handleMediaAdded
         );
 
-        return () => {
+        return (): void => {
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaAddedToPlaylist,
                 handleMediaAdded
@@ -66,7 +66,7 @@ export default function RenderListClient({
         };
     }, [publicId, type]);
 
-    const handleLinkDrop = (url: string) => {
+    const handleLinkDrop = (url: string): void => {
         if (type == EMediaType.Playlist)
             rockIt.playlistManager.addUrlToPlaylistAsync(url, publicId);
     };

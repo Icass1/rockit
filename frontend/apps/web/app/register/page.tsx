@@ -1,6 +1,7 @@
+import { JSX } from "react";
 import RegisterModal from "@/components/Auth/RegisterModal";
 
-export default function RegisterPage() {
+export default function RegisterPage(): JSX.Element {
     return (
         <div
             className="relative h-full w-full"

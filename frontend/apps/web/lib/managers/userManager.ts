@@ -1,7 +1,7 @@
 import { EQueueType, ERepeatMode } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom } from "@/lib/store";
+import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class UserManager {
     private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
@@ -12,12 +12,12 @@ export class UserManager {
     private _admin = createAtom<boolean>(false);
     private _currentTimeMs = createAtom<number | null>(null);
 
-    async init() {
+    async init(): Promise<void> {
         if (typeof window === "undefined") return;
         await this.updateAsync();
     }
 
-    async updateAsync() {
+    async updateAsync(): Promise<void> {
         const res = await Http.getSession();
 
         if (res.isOk()) {
@@ -38,7 +38,7 @@ export class UserManager {
         }
     }
 
-    toggleRandomQueue() {
+    toggleRandomQueue(): void {
         if (this._queueTypeAtom.get() === EQueueType.RANDOM)
             this._queueTypeAtom.set(EQueueType.SORTED);
         else if (this._queueTypeAtom.get() === EQueueType.SORTED)
@@ -51,17 +51,15 @@ export class UserManager {
         rockIt.queueManager.updateQueue();
     }
 
-    cycleRepeatMode() {
-        const modes: ERepeatMode[] = Object.values(ERepeatMode).map(
-            (a) => a[1]
-        );
+    cycleRepeatMode(): void {
+        const modes = [ERepeatMode.OFF, ERepeatMode.ONE, ERepeatMode.ALL];
         const current = this._repeatModeAtom.get();
         const currentIndex = modes.indexOf(current);
         const next = modes[(currentIndex + 1) % modes.length];
         this._repeatModeAtom.set(next);
     }
 
-    async setLangAsync(langCode: string) {
+    async setLangAsync(langCode: string): Promise<boolean> {
         const res = await Http.updateLang({ lang: langCode });
 
         if (res.isOk()) {
@@ -79,40 +77,38 @@ export class UserManager {
         return true;
     }
 
-    get queueTypeAtom() {
+    get queueTypeAtom(): ReadonlyAtom<EQueueType> {
         return this._queueTypeAtom.getReadonlyAtom();
     }
 
-    get repeatModeAtom() {
+    get repeatModeAtom(): ReadonlyAtom<ERepeatMode> {
         return this._repeatModeAtom.getReadonlyAtom();
     }
 
-    get loggedInAtom() {
+    get loggedInAtom(): ReadonlyAtom<boolean> {
         return this._loggedIn.getReadonlyAtom();
     }
 
-    get usernameAtom() {
+    get usernameAtom(): ReadonlyAtom<string> {
         return this._username.getReadonlyAtom();
     }
 
-    get imageAtom() {
+    get imageAtom(): ReadonlyAtom<string> {
         return this._image.getReadonlyAtom();
     }
 
-    get admin() {
+    get admin(): ReadonlyAtom<boolean> {
         return this._admin.getReadonlyAtom();
     }
 
-    get currentTimeMsAtom() {
+    get currentTimeMsAtom(): ReadonlyAtom<number | null> {
         return this._currentTimeMs.getReadonlyAtom();
     }
 
-    async signOut() {
+    async signOut(): Promise<void> {
         const response = await Http.logoutUser();
         if (response.isOk()) {
-            // this._userAtom.set(undefined);
             rockIt.searchManager.clearResults();
-            rockIt.currentListManager.clearCurrentList();
         } else {
             console.error(
                 "Error logging out",

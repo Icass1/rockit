@@ -1,9 +1,13 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { JSX, useRef, useState, type ReactNode } from "react";
 import { PopupMenuContext } from "@/components/PopupMenu/context";
 
-export default function PopupMenu({ children }: { children: ReactNode }) {
+export default function PopupMenu({
+    children,
+}: {
+    children: ReactNode;
+}): JSX.Element {
     const [open, setOpen] = useState(false);
     const [pos, setPos] = useState<[number, number]>([0, 0]);
     const contentRef = useRef<HTMLDivElement>(

@@ -6,7 +6,9 @@ export function filterBySearch<T extends { name?: string }>(
 ): T[] {
     if (!query.trim()) return items;
     const lower = query.toLowerCase();
-    return items.filter((item) => item.name?.toLowerCase().includes(lower));
+    return items.filter((item): boolean | undefined =>
+        item.name?.toLowerCase().includes(lower)
+    );
 }
 
 export function sortItems<T extends { name?: string }>(
@@ -14,7 +16,7 @@ export function sortItems<T extends { name?: string }>(
     mode: FilterMode
 ): T[] {
     if (mode === "default") return items;
-    return [...items].sort((a, b) => {
+    return [...items].sort((a, b): number => {
         const nameA = a.name?.toLowerCase() ?? "";
         const nameB = b.name?.toLowerCase() ?? "";
         return mode === "asc"

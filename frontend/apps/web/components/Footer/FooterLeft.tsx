@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
@@ -21,7 +22,11 @@ import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
 
-function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
+function FooterLeftForSong({
+    currentMedia,
+}: {
+    currentMedia: TPlayableMedia;
+}): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
 
@@ -38,7 +43,7 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
             {/* Album cover */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
-                onClick={() =>
+                onClick={(): void =>
                     rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia()
                 }
             >
@@ -78,7 +83,7 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
                                 <Link
                                     href={album.url}
                                     prefetch={false}
-                                    onClick={() =>
+                                    onClick={(): void =>
                                         rockIt.playerUIManager.hide()
                                     }
                                     className="hidden truncate md:inline-block md:hover:underline"
@@ -102,7 +107,11 @@ function FooterLeftForSong({ currentMedia }: { currentMedia: TPlayableMedia }) {
     );
 }
 
-function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
+function FooterLeftForStation({
+    currentStation,
+}: {
+    currentStation: Station;
+}): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
     return (
@@ -120,12 +129,16 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
                     {$playing ? (
                         <PauseIcon
                             className="h-6 w-6 cursor-pointer text-white"
-                            onClick={() => rockIt.mediaPlayerManager.pause()}
+                            onClick={(): void =>
+                                rockIt.mediaPlayerManager.pause()
+                            }
                         />
                     ) : (
                         <PlayIcon
                             className="h-6 w-6 cursor-pointer text-white"
-                            onClick={() => rockIt.mediaPlayerManager.play()}
+                            onClick={(): void =>
+                                rockIt.mediaPlayerManager.play()
+                            }
                         />
                     )}
                 </div>
@@ -147,7 +160,7 @@ function FooterLeftForStation({ currentStation }: { currentStation: Station }) {
     );
 }
 
-export default function FooterLeft() {
+export default function FooterLeft(): JSX.Element {
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 

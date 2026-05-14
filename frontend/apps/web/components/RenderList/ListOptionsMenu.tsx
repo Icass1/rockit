@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import {
     isDownloadable,
@@ -32,27 +33,27 @@ export default function ListOptionsMenu({
     media: TMedia[];
     listPublicId?: string;
     title: string;
-}) {
+}): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const playableMedia = media.filter(isPlayable);
     const notDownloadedMedia = media.filter(
-        (m) => isDownloadable(m) && m.downloaded !== true
+        (m): boolean => isDownloadable(m) && m.downloaded !== true
     );
 
-    const handlePlay = () => {
+    const handlePlay = (): void => {
         if (!listPublicId || !playableMedia.length) return;
         rockIt.queueManager.setMedia(
-            playableMedia.filter((m) => isQueueable(m)),
+            playableMedia.filter(isQueueable),
             listPublicId
         );
         rockIt.queueManager.setQueueMediaId(0);
         rockIt.mediaPlayerManager.play();
     };
 
-    const handleDownloadAll = () => {
+    const handleDownloadAll = (): void => {
         if (!notDownloadedMedia.length) return;
-        const ids = notDownloadedMedia.map((m) => m.publicId);
+        const ids = notDownloadedMedia.map((m): string => m.publicId);
         rockIt.downloaderManager.downloadMediaAsync(ids, title);
     };
 

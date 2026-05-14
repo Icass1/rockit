@@ -1,3 +1,4 @@
+import { JSX } from "react";
 import { EProviders } from "@rockit/packages/shared";
 import SpotifyProviderTag from "@/components/ProviderTag/Spotify";
 import YoutubeProviderTag from "@/components/ProviderTag/Youtube";
@@ -9,7 +10,7 @@ export default function ProviderTag({
 }: {
     name: string;
     className?: string;
-}) {
+}): JSX.Element {
     return (
         <div className={className}>
             <ProviderTagChild name={name}></ProviderTagChild>
@@ -17,7 +18,7 @@ export default function ProviderTag({
     );
 }
 
-function ProviderTagChild({ name }: { name: string }) {
+function ProviderTagChild({ name }: { name: string }): JSX.Element {
     if (name === EProviders.YoutubeMusic) return <YoutubeMusicProviderTag />;
     else if (name === EProviders.Youtube)
         return <YoutubeProviderTag theme="dark" />;

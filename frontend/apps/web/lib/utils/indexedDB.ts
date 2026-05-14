@@ -1,18 +1,18 @@
-function fillImageIndexedDB(imageStore: IDBObjectStore) {
+function fillImageIndexedDB(imageStore: IDBObjectStore): void {
     if (!imageStore.indexNames.contains("id"))
         imageStore.createIndex("id", "id", { unique: true });
     if (!imageStore.indexNames.contains("blob"))
         imageStore.createIndex("blob", "blob", { unique: false });
 }
 
-function fillSongIndexedDB(songsStore: IDBObjectStore) {
+function fillSongIndexedDB(songsStore: IDBObjectStore): void {
     if (!songsStore.indexNames.contains("id"))
         songsStore.createIndex("id", "id", { unique: true });
     if (!songsStore.indexNames.contains("value"))
         songsStore.createIndex("value", "value", { unique: false });
 }
 
-function fillLangIndexedDB(langStore: IDBObjectStore) {
+function fillLangIndexedDB(langStore: IDBObjectStore): void {
     if (!langStore.indexNames.contains("lang"))
         langStore.createIndex("lang", "lang", { unique: true });
     if (!langStore.indexNames.contains("langData"))
@@ -21,7 +21,7 @@ function fillLangIndexedDB(langStore: IDBObjectStore) {
         });
 }
 
-function fillUserIndexedDB(userStore: IDBObjectStore) {
+function fillUserIndexedDB(userStore: IDBObjectStore): void {
     if (!userStore.indexNames.contains("id"))
         userStore.createIndex("id", "id", { unique: true });
     if (!userStore.indexNames.contains("value"))
@@ -29,7 +29,7 @@ function fillUserIndexedDB(userStore: IDBObjectStore) {
             unique: false,
         });
 }
-function fillApiRequestsIndexedDB(apiStore: IDBObjectStore) {
+function fillApiRequestsIndexedDB(apiStore: IDBObjectStore): void {
     if (!apiStore.indexNames.contains("url"))
         apiStore.createIndex("url", "url", { unique: true });
     if (!apiStore.indexNames.contains("value"))
@@ -38,7 +38,7 @@ function fillApiRequestsIndexedDB(apiStore: IDBObjectStore) {
         });
 }
 
-function fillFileIndexedDB(fileStore: IDBObjectStore) {
+function fillFileIndexedDB(fileStore: IDBObjectStore): void {
     if (!fileStore.indexNames.contains("url"))
         fileStore.createIndex("url", "url", { unique: true });
     if (!fileStore.indexNames.contains("fileContent"))
@@ -51,7 +51,7 @@ function fillFileIndexedDB(fileStore: IDBObjectStore) {
         });
 }
 
-function fillRSCIndexedDB(rscStore: IDBObjectStore) {
+function fillRSCIndexedDB(rscStore: IDBObjectStore): void {
     if (!rscStore.indexNames.contains("url"))
         rscStore.createIndex("url", "url", { unique: true });
     if (!rscStore.indexNames.contains("fileContent"))
@@ -66,13 +66,13 @@ function fillRSCIndexedDB(rscStore: IDBObjectStore) {
 
 export function openRockItIndexedDB(): Promise<IDBDatabase> {
     if (typeof indexedDB === "undefined") {
-        return new Promise(() => undefined);
+        return new Promise((): undefined => undefined);
     }
 
     const dbOpenRequest = indexedDB.open("RockIt", 16);
 
-    return new Promise((resolve, reject) => {
-        dbOpenRequest.onupgradeneeded = function (event) {
+    return new Promise((resolve, reject): void => {
+        dbOpenRequest.onupgradeneeded = function (event): void {
             const db = dbOpenRequest.result;
 
             const transaction = (event?.target as IDBOpenDBRequest)
@@ -168,13 +168,13 @@ export function openRockItIndexedDB(): Promise<IDBDatabase> {
                 fillLangIndexedDB(transaction.objectStore("lang"));
             }
             // No manual transaction.commit() needed
-            transaction.oncomplete = () => {};
+            transaction.oncomplete = (): void => {};
         };
 
-        dbOpenRequest.onsuccess = function () {
+        dbOpenRequest.onsuccess = function (): void {
             resolve(dbOpenRequest.result);
         };
-        dbOpenRequest.onerror = function () {
+        dbOpenRequest.onerror = function (): void {
             reject(dbOpenRequest.error);
         };
     });

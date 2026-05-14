@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import {
     ArrowDownAZ,
@@ -19,7 +19,7 @@ import { LibraryFilters } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 import UploadModal from "@/components/Library/UploadModal";
 
-export default function LibraryClient() {
+export default function LibraryClient(): JSX.Element {
     const [filterMode, setFilterMode] = useState<EFilterMode>(
         EFilterMode.DEFAULT
     );
@@ -31,7 +31,8 @@ export default function LibraryClient() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const cycleSortMode = () => setFilterMode((m) => cycleEnum(EFilterMode, m));
+    const cycleSortMode = (): void =>
+        setFilterMode((m): EFilterMode => cycleEnum(EFilterMode, m));
 
     return (
         <div className="flex flex-col">
@@ -69,8 +70,10 @@ export default function LibraryClient() {
 
                     {/* View toggle */}
                     <button
-                        onClick={() =>
-                            setViewMode((v) => cycleEnum(EViewMode, v))
+                        onClick={(): void =>
+                            setViewMode(
+                                (v): EViewMode => cycleEnum(EViewMode, v)
+                            )
                         }
                         title={
                             viewMode === EViewMode.Grid
@@ -88,7 +91,7 @@ export default function LibraryClient() {
 
                     {/* Upload */}
                     <button
-                        onClick={() => setShowUploadModal(true)}
+                        onClick={(): void => setShowUploadModal(true)}
                         title={$vocabulary.UPLOAD}
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition select-none hover:text-white"
                     >
@@ -108,7 +111,9 @@ export default function LibraryClient() {
                             type="search"
                             placeholder={$vocabulary.SEARCH_LIBRARY}
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e): void =>
+                                setSearchQuery(e.target.value)
+                            }
                         />
                     </div>
                 </div>
@@ -129,10 +134,10 @@ export default function LibraryClient() {
                         type="search"
                         placeholder={$vocabulary.SEARCH_LIBRARY}
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e): void => setSearchQuery(e.target.value)}
                     />
                     <button
-                        onClick={() => setShowUploadModal(true)}
+                        onClick={(): void => setShowUploadModal(true)}
                         title={$vocabulary.UPLOAD}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition select-none hover:bg-neutral-700 hover:text-white"
                     >
@@ -156,7 +161,7 @@ export default function LibraryClient() {
 
             <UploadModal
                 isOpen={showUploadModal}
-                onClose={() => setShowUploadModal(false)}
+                onClose={(): void => setShowUploadModal(false)}
             />
         </div>
     );

@@ -1,11 +1,16 @@
 "use client";
 
+import { JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Station } from "@/models/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function RadioSection({ stations }: { stations: Station[] }) {
+export default function RadioSection({
+    stations,
+}: {
+    stations: Station[];
+}): JSX.Element | null {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     if (stations.length === 0) return null;
@@ -16,33 +21,35 @@ export default function RadioSection({ stations }: { stations: Station[] }) {
                 {$vocabulary.RADIO_STATIONS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {stations.map((station) => (
-                    <div
-                        className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
-                        key={station.stationuuid}
-                        onClick={() =>
-                            rockIt.stationManager.setAndPlayStation(station)
-                        }
-                    >
-                        <Image
-                            width={350}
-                            height={350}
-                            className="aspect-square w-full rounded-lg object-cover"
-                            src={
-                                station.favicon
-                                    ? `proxy?url=${encodeURIComponent(station.favicon)}`
-                                    : "/radio-placeholder.png"
+                {stations.map(
+                    (station): JSX.Element => (
+                        <div
+                            className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
+                            key={station.stationuuid}
+                            onClick={(): void =>
+                                rockIt.stationManager.setAndPlayStation(station)
                             }
-                            alt={`Radio station ${station.name}`}
-                        />
-                        <span className="mt-2 block truncate text-center font-semibold">
-                            {station.name}
-                        </span>
-                        <span className="block truncate text-center text-sm text-gray-400">
-                            {station.country}
-                        </span>
-                    </div>
-                ))}
+                        >
+                            <Image
+                                width={350}
+                                height={350}
+                                className="aspect-square w-full rounded-lg object-cover"
+                                src={
+                                    station.favicon
+                                        ? `proxy?url=${encodeURIComponent(station.favicon)}`
+                                        : "/radio-placeholder.png"
+                                }
+                                alt={`Radio station ${station.name}`}
+                            />
+                            <span className="mt-2 block truncate text-center font-semibold">
+                                {station.name}
+                            </span>
+                            <span className="block truncate text-center text-sm text-gray-400">
+                                {station.country}
+                            </span>
+                        </div>
+                    )
+                )}
             </div>
         </section>
     );

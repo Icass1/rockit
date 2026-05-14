@@ -27,13 +27,23 @@ export interface DownloadGroup {
     badgeColor: string;
 }
 
-export function useDownloads() {
+export function useDownloads(): {
+    downloads: DownloadInfo[];
+    groups: DownloadGroup[];
+    total: number;
+    active: DownloadInfo[];
+    completed: DownloadInfo[];
+    failed: DownloadInfo[];
+    startDownload: (url: string) => Promise<{ ok: boolean }>;
+    clearCompleted: () => Promise<void>;
+    clearFailed: () => Promise<void>;
+} {
     const [downloads, setDownloads] = useState<DownloadInfo[]>([]);
 
     // ---------------------------------------------------------------------
     // Fetch all download groups from the backend and flatten to a list
     // ---------------------------------------------------------------------
-    const fetchDownloads = useCallback(async () => {
+    const fetchDownloads = useCallback(async (): Promise<void> => {
         const response = await Http.getDownloads();
 
         if (!response.isOk()) {
@@ -66,27 +76,32 @@ export function useDownloads() {
     // ---------------------------------------------------------------------
     // Subscribe to real‑time progress updates via WebSocket
     // ---------------------------------------------------------------------
-    useEffect(() => {
+    useEffect((): (() => void) => {
         let cancelled = false;
 
-        const handleDownloadProgress = (data: DownloadProgressMessage) => {
+        const handleDownloadProgress = (
+            data: DownloadProgressMessage
+        ): void => {
             if (cancelled) return;
-            setDownloads((prev) => {
-                const existing = prev.find((d) => d.publicId === data.publicId);
+            setDownloads((prev): DownloadInfo[] => {
+                const existing = prev.find(
+                    (d): boolean => d.publicId === data.publicId
+                );
                 const message = data.progress >= 100 ? "Done" : data.message;
                 const completed = data.progress >= 100 ? 100 : data.progress;
                 if (existing) {
-                    return prev.map((d) =>
-                        d.publicId === data.publicId
-                            ? {
-                                  ...d,
-                                  title: data.title || d.title,
-                                  subtitle: data.subTitle || d.subtitle,
-                                  status: message,
-                                  completed,
-                                  message,
-                              }
-                            : d
+                    return prev.map(
+                        (d): DownloadInfo =>
+                            d.publicId === data.publicId
+                                ? {
+                                      ...d,
+                                      title: data.title || d.title,
+                                      subtitle: data.subTitle || d.subtitle,
+                                      status: message,
+                                      completed,
+                                      message,
+                                  }
+                                : d
                     );
                 }
                 // New download entry (unlikely but safe)
@@ -114,7 +129,7 @@ export function useDownloads() {
 
         fetchDownloads();
 
-        return () => {
+        return (): void => {
             cancelled = true;
             rockIt.webSocketManager.offMessage(
                 EWebSocketMessage.DownloadProgress,
@@ -126,7 +141,7 @@ export function useDownloads() {
     // ---------------------------------------------------------------------
     // Start a download – resolve URL then launch download group
     // ---------------------------------------------------------------------
-    const startDownload = async (url: string) => {
+    const startDownload = async (url: string): Promise<{ ok: boolean }> => {
         try {
             // Resolve the external URL to an internal publicId
             const mediaRes = await Http.addFromUrl({
@@ -175,41 +190,47 @@ export function useDownloads() {
     // ---------------------------------------------------------------------
     // Clear completed or failed groups (mark as seen)
     // ---------------------------------------------------------------------
-    const clearCompleted = async () => {
+    const clearCompleted = async (): Promise<void> => {
         const completedGroups = new Set(
             downloads
-                .filter((d) => d.completed === 100 && d.groupId)
-                .map((d) => d.groupId)
+                .filter((d): string | false => d.completed === 100 && d.groupId)
+                .map((d): string => d.groupId)
         );
         for (const groupId of completedGroups) {
             await Http.markDownloadSeen(groupId);
         }
-        setDownloads((prev) => prev.filter((d) => d.completed !== 100));
+        setDownloads((prev): DownloadInfo[] =>
+            prev.filter((d): boolean => d.completed !== 100)
+        );
     };
 
-    const clearFailed = async () => {
+    const clearFailed = async (): Promise<void> => {
         const failedGroups = new Set(
             downloads
-                .filter((d) => d.message === "Error" && d.groupId)
-                .map((d) => d.groupId)
+                .filter(
+                    (d): string | false => d.message === "Error" && d.groupId
+                )
+                .map((d): string => d.groupId)
         );
         for (const groupId of failedGroups) {
             await Http.markDownloadSeen(groupId);
         }
-        setDownloads((prev) => prev.filter((d) => d.message !== "Error"));
+        setDownloads((prev): DownloadInfo[] =>
+            prev.filter((d): boolean => d.message !== "Error")
+        );
     };
 
     // ---------------------------------------------------------------------
     // Derive grouped view for UI
     // ---------------------------------------------------------------------
     const active = downloads.filter(
-        (d) =>
+        (d): boolean =>
             d.completed < 100 && d.message !== "Error" && d.message !== "Done"
     );
     const completed = downloads.filter(
-        (d) => d.completed === 100 || d.message === "Done"
+        (d): boolean => d.completed === 100 || d.message === "Done"
     );
-    const failed = downloads.filter((d) => d.message === "Error");
+    const failed = downloads.filter((d): boolean => d.message === "Error");
 
     const groups: DownloadGroup[] = [
         {

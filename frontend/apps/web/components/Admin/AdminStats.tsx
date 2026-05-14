@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { type RequestLogStatsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
@@ -62,7 +62,7 @@ interface StatCardProps {
     sub?: string;
 }
 
-function StatCard({ icon, label, value, sub }: StatCardProps) {
+function StatCard({ icon, label, value, sub }: StatCardProps): JSX.Element {
     return (
         <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
             <div className="mb-2 flex items-center gap-2 text-sm text-neutral-500">
@@ -82,7 +82,7 @@ interface SectionHeaderProps {
     icon: React.ReactNode;
 }
 
-function SectionHeader({ title, icon }: SectionHeaderProps) {
+function SectionHeader({ title, icon }: SectionHeaderProps): JSX.Element {
     return (
         <div className="mb-4 flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ee1086]/10">
@@ -93,14 +93,14 @@ function SectionHeader({ title, icon }: SectionHeaderProps) {
     );
 }
 
-export default function AdminStats() {
+export default function AdminStats(): JSX.Element {
     const [data, setData] = useState<RequestLogStatsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    useEffect(() => {
-        const fetchStats = async () => {
+    useEffect((): void => {
+        const fetchStats = async (): Promise<void> => {
             setLoading(true);
             setError(null);
             const result = await Http.getRequestLogStats();
@@ -136,7 +136,7 @@ export default function AdminStats() {
                     {error || $vocabulary.ADMIN_NO_STATS}
                 </p>
                 <button
-                    onClick={() => window.location.reload()}
+                    onClick={(): void => window.location.reload()}
                     className="mt-4 rounded-lg bg-[#ee1086] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#f53a76]"
                 >
                     {$vocabulary.RETRY}
@@ -147,19 +147,23 @@ export default function AdminStats() {
 
     const timeSeriesReversed = [...data.timeSeries].reverse();
     const routeStatsSorted = [...data.routeStats].sort(
-        (a, b) => b.count - a.count
+        (a, b): number => b.count - a.count
     );
     const routeTop = routeStatsSorted.slice(0, 15);
-    const codeChartData = data.codeDistribution.map((c) => ({
-        name: `${c.code}`,
-        count: c.count,
-        fill: STATUS_COLORS[String(c.code)[0]] || NEUTRAL_600,
-    }));
-    const methodChartData = data.methodDistribution.map((m) => ({
-        name: m.method,
-        count: m.count,
-        avgTime: Math.round(m.avgTimeMs),
-    }));
+    const codeChartData = data.codeDistribution.map(
+        (c): { name: string; count: number; fill: string } => ({
+            name: `${c.code}`,
+            count: c.count,
+            fill: STATUS_COLORS[String(c.code)[0]] || NEUTRAL_600,
+        })
+    );
+    const methodChartData = data.methodDistribution.map(
+        (m): { name: string; count: number; avgTime: number } => ({
+            name: m.method,
+            count: m.count,
+            avgTime: Math.round(m.avgTimeMs),
+        })
+    );
     const noData = data.dailyStats.length === 0;
 
     if (noData) {
@@ -236,7 +240,7 @@ export default function AdminStats() {
                             <XAxis
                                 dataKey="timestamp"
                                 tick={{ fill: NEUTRAL_500, fontSize: 11 }}
-                                tickFormatter={(v: string) => {
+                                tickFormatter={(v: string): string => {
                                     const parts = v.split(" ");
                                     return parts.length > 1
                                         ? parts[1].substring(0, 5)
@@ -255,7 +259,9 @@ export default function AdminStats() {
                                     borderRadius: "8px",
                                     color: "#fff",
                                 }}
-                                labelFormatter={(label) => String(label)}
+                                labelFormatter={(label): string =>
+                                    String(label)
+                                }
                             />
                             <Area
                                 type="monotone"
@@ -289,7 +295,7 @@ export default function AdminStats() {
                                         fill: NEUTRAL_500,
                                         fontSize: 11,
                                     }}
-                                    tickFormatter={(v: string) => {
+                                    tickFormatter={(v: string): string => {
                                         const parts = v.split(" ");
                                         return parts.length > 1
                                             ? parts[1].substring(0, 5)
@@ -303,7 +309,9 @@ export default function AdminStats() {
                                         fontSize: 11,
                                     }}
                                     stroke={NEUTRAL_700}
-                                    tickFormatter={(v: number) => `${v}ms`}
+                                    tickFormatter={(v: number): string =>
+                                        `${v}ms`
+                                    }
                                 />
                                 <Tooltip
                                     contentStyle={{
@@ -312,7 +320,9 @@ export default function AdminStats() {
                                         borderRadius: "8px",
                                         color: "#fff",
                                     }}
-                                    formatter={(value: unknown) => [
+                                    formatter={(
+                                        value: unknown
+                                    ): [string, string] => [
                                         `${Math.round(Number(value))}ms`,
                                         $vocabulary.ADMIN_AVG_TIME,
                                     ]}
@@ -347,7 +357,9 @@ export default function AdminStats() {
                                         fill: NEUTRAL_500,
                                         fontSize: 11,
                                     }}
-                                    tickFormatter={(v: number) => `${v}h`}
+                                    tickFormatter={(v: number): string =>
+                                        `${v}h`
+                                    }
                                     stroke={NEUTRAL_700}
                                 />
                                 <YAxis
@@ -364,7 +376,7 @@ export default function AdminStats() {
                                         borderRadius: "8px",
                                         color: "#fff",
                                     }}
-                                    labelFormatter={(label: unknown) =>
+                                    labelFormatter={(label: unknown): string =>
                                         `${String(label)}:00`
                                     }
                                 />
@@ -416,15 +428,19 @@ export default function AdminStats() {
                                         borderRadius: "8px",
                                         color: "#fff",
                                     }}
-                                    formatter={(value: unknown) => [
+                                    formatter={(
+                                        value: unknown
+                                    ): [string, string] => [
                                         Number(value).toLocaleString(),
                                         $vocabulary.ADMIN_COUNT,
                                     ]}
                                 />
                                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                                    {codeChartData.map((entry, i) => (
-                                        <Cell key={i} fill={entry.fill} />
-                                    ))}
+                                    {codeChartData.map(
+                                        (entry, i): JSX.Element => (
+                                            <Cell key={i} fill={entry.fill} />
+                                        )
+                                    )}
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
@@ -508,33 +524,35 @@ export default function AdminStats() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {routeTop.map((r, i) => (
-                                    <tr
-                                        key={i}
-                                        className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
-                                    >
-                                        <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-white">
-                                            {r.normalizedRoute}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-medium text-neutral-300">
-                                                {r.method}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-white">
-                                            {r.count.toLocaleString()}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-neutral-400">
-                                            {formatMs(r.avgTimeMs)}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-neutral-500">
-                                            {formatMs(r.minTimeMs)}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-neutral-500">
-                                            {formatMs(r.maxTimeMs)}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {routeTop.map(
+                                    (r, i): JSX.Element => (
+                                        <tr
+                                            key={i}
+                                            className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                        >
+                                            <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-white">
+                                                {r.normalizedRoute}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-medium text-neutral-300">
+                                                    {r.method}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-white">
+                                                {r.count.toLocaleString()}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-neutral-400">
+                                                {formatMs(r.avgTimeMs)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-neutral-500">
+                                                {formatMs(r.minTimeMs)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-neutral-500">
+                                                {formatMs(r.maxTimeMs)}
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -564,23 +582,25 @@ export default function AdminStats() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.userActivity.map((u, i) => (
-                                        <tr
-                                            key={i}
-                                            className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
-                                        >
-                                            <td className="px-4 py-3 text-white">
-                                                {u.username ||
-                                                    $vocabulary.ADMIN_ANONYMOUS}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-white">
-                                                {u.requestCount.toLocaleString()}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-neutral-400">
-                                                {formatMs(u.avgTimeMs)}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {data.userActivity.map(
+                                        (u, i): JSX.Element => (
+                                            <tr
+                                                key={i}
+                                                className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                            >
+                                                <td className="px-4 py-3 text-white">
+                                                    {u.username ||
+                                                        $vocabulary.ADMIN_ANONYMOUS}
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-white">
+                                                    {u.requestCount.toLocaleString()}
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-neutral-400">
+                                                    {formatMs(u.avgTimeMs)}
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -610,19 +630,21 @@ export default function AdminStats() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.topIps.map((ip, i) => (
-                                        <tr
-                                            key={i}
-                                            className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
-                                        >
-                                            <td className="px-4 py-3 font-mono text-xs text-white">
-                                                {ip.ip}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-white">
-                                                {ip.count.toLocaleString()}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {data.topIps.map(
+                                        (ip, i): JSX.Element => (
+                                            <tr
+                                                key={i}
+                                                className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                            >
+                                                <td className="px-4 py-3 font-mono text-xs text-white">
+                                                    {ip.ip}
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-white">
+                                                    {ip.count.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
                                 </tbody>
                             </table>
                         </div>

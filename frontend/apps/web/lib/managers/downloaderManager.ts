@@ -3,7 +3,7 @@ import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { EEvent } from "@/models/enums/events";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createArrayAtom } from "@/lib/store";
+import { ArrayAtom, createArrayAtom } from "@/lib/store";
 
 export interface DownloadInfo {
     publicId: string;
@@ -16,7 +16,7 @@ export class DownloaderManager {
     private _downloadInfoAtom = createArrayAtom<DownloadInfo>([]);
     private _initialized = false;
 
-    async init() {
+    async init(): Promise<void> {
         if (this._initialized) {
             return;
         }
@@ -28,11 +28,11 @@ export class DownloaderManager {
         );
     }
 
-    get downloadInfoAtom() {
+    get downloadInfoAtom(): ArrayAtom<DownloadInfo> {
         return this._downloadInfoAtom;
     }
 
-    async startDownloadAsync(publicId: string, name: string) {
+    async startDownloadAsync(publicId: string, name: string): Promise<void> {
         try {
             const response = await Http.startDownload({
                 ids: [publicId], // The API expects an array of IDs/URLs
@@ -63,7 +63,7 @@ export class DownloaderManager {
     subscribeToDownloadProgress(
         publicId: string,
         callback: (progress: number) => void
-    ) {
+    ): () => void {
         // Return an unsubscribe function
         // In a real implementation, we would store the callback and call it when progress updates come in
         // For now, we'll return a simple unsubscribe function
@@ -74,7 +74,7 @@ export class DownloaderManager {
             publicId: string;
             completed: number;
             message: string;
-        }) => {
+        }): void => {
             if (data.publicId === publicId) {
                 callback(data.completed);
             }
@@ -85,7 +85,7 @@ export class DownloaderManager {
             handler
         );
 
-        return () => {
+        return (): void => {
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaDownloadStatus,
                 handler
@@ -93,7 +93,7 @@ export class DownloaderManager {
         };
     }
 
-    async downloadMediaAsync(publicIds: string[], name: string) {
+    async downloadMediaAsync(publicIds: string[], name: string): Promise<void> {
         const response = await Http.startDownload({
             ids: publicIds,
             title: name,
@@ -115,7 +115,7 @@ export class DownloaderManager {
         }
     }
 
-    updateDownloadProgress(data: DownloadProgressMessage) {
+    updateDownloadProgress(data: DownloadProgressMessage): void {
         // Map the data to our DownloadInfo format
         const downloadInfo: DownloadInfo = {
             publicId: data.publicId,
@@ -133,10 +133,11 @@ export class DownloaderManager {
         this._downloadInfoAtom.set(
             this._downloadInfoAtom
                 .get()
-                .map((item) =>
-                    item.publicId === data.publicId ? downloadInfo : item
+                .map(
+                    (item): DownloadInfo =>
+                        item.publicId === data.publicId ? downloadInfo : item
                 )
-                .filter((item) => item.publicId !== data.publicId)
+                .filter((item): boolean => item.publicId !== data.publicId)
                 .concat(downloadInfo)
         );
 

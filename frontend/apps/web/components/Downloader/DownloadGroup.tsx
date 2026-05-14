@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import type {
@@ -53,7 +53,10 @@ interface DownloadGroupProps {
     onClear?: () => void;
 }
 
-export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
+export default function DownloadGroup({
+    group,
+    onClear,
+}: DownloadGroupProps): JSX.Element | null {
     const [open, setOpen] = useState(group.isOpen);
 
     if (!group.items.length) return null;
@@ -61,7 +64,7 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
     const avgProgress =
         group.id === "active"
             ? Math.round(
-                  group.items.reduce((sum, i) => sum + i.completed, 0) /
+                  group.items.reduce((sum, i): number => sum + i.completed, 0) /
                       group.items.length
               )
             : null;
@@ -71,7 +74,7 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
             <button
                 type="button"
                 className="flex w-full items-center justify-between py-1"
-                onClick={() => setOpen(!open)}
+                onClick={(): void => setOpen(!open)}
             >
                 <div className="flex items-center gap-2">
                     {open ? (
@@ -91,7 +94,7 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
                     {onClear && (
                         <button
                             type="button"
-                            onClick={(e) => {
+                            onClick={(e): void => {
                                 e.stopPropagation();
                                 onClear();
                             }}
@@ -116,12 +119,14 @@ export default function DownloadGroup({ group, onClear }: DownloadGroupProps) {
 
             {open && (
                 <div className="mt-2 space-y-2">
-                    {group.items.map((item) => (
-                        <DownloadItem
-                            key={item.publicId}
-                            download={toBaseSong(item)}
-                        />
-                    ))}
+                    {group.items.map(
+                        (item): JSX.Element => (
+                            <DownloadItem
+                                key={item.publicId}
+                                download={toBaseSong(item)}
+                            />
+                        )
+                    )}
                 </div>
             )}
         </div>

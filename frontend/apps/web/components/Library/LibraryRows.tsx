@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -27,7 +27,9 @@ export function groupByArtist<T extends { artists?: { name: string }[] }>(
         const key = item.artists?.[0]?.name ?? "Unknown Artist";
         (groups[key] ??= []).push(item);
     }
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+    return Object.entries(groups).sort(([a], [b]): number =>
+        a.localeCompare(b)
+    );
 }
 
 /* ------------------------------------------------------- */
@@ -35,7 +37,7 @@ export function groupByArtist<T extends { artists?: { name: string }[] }>(
 /* ------------------------------------------------------- */
 
 /** Small square cover thumbnail used in every row. */
-function SquareCover({ src, alt }: { src: string; alt: string }) {
+function SquareCover({ src, alt }: { src: string; alt: string }): JSX.Element {
     return (
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
             <Image
@@ -50,7 +52,7 @@ function SquareCover({ src, alt }: { src: string; alt: string }) {
 }
 
 /** Wider 16:9 thumbnail for video rows. */
-function VideoCover({ src, alt }: { src: string; alt: string }) {
+function VideoCover({ src, alt }: { src: string; alt: string }): JSX.Element {
     return (
         <div className="relative h-12 w-21.25 shrink-0 overflow-hidden rounded-md">
             <Image
@@ -68,7 +70,11 @@ function VideoCover({ src, alt }: { src: string; alt: string }) {
 /* ROW COMPONENTS                                          */
 /* ------------------------------------------------------- */
 
-export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
+export function AlbumRow({
+    album,
+}: {
+    album: BaseAlbumWithoutSongsResponse;
+}): JSX.Element {
     return (
         <MediaContextMenu
             media={album}
@@ -88,7 +94,7 @@ export function AlbumRow({ album }: { album: BaseAlbumWithoutSongsResponse }) {
                         {album.name}
                     </p>
                     <p className="truncate text-sm text-neutral-400">
-                        {album.artists.map((a) => a.name).join(", ")}
+                        {album.artists.map((a): string => a.name).join(", ")}
                     </p>
                 </div>
             </Link>
@@ -100,7 +106,7 @@ export function PlaylistRow({
     playlist,
 }: {
     playlist: BasePlaylistWithoutMediasResponse;
-}) {
+}): JSX.Element {
     return (
         <MediaContextMenu
             media={playlist}
@@ -131,10 +137,14 @@ export function PlaylistRow({
     );
 }
 
-export function VideoRow({ video: _video }: { video: BaseVideoResponse }) {
+export function VideoRow({
+    video: _video,
+}: {
+    video: BaseVideoResponse;
+}): JSX.Element {
     const $video = useMedia(_video);
 
-    const handlePlay = () => {
+    const handlePlay = (): void => {
         rockIt.queueManager.setMedia([$video], $video.publicId);
         rockIt.queueManager.moveToMedia($video.publicId);
         rockIt.mediaPlayerManager.play();
@@ -165,10 +175,10 @@ export function SongRow({
     song: _song,
 }: {
     song: BaseSongWithoutAlbumResponse;
-}) {
+}): JSX.Element {
     const $song = useMedia(_song);
 
-    const handlePlay = () => {
+    const handlePlay = (): void => {
         rockIt.queueManager.setMedia([$song], $song.publicId);
         rockIt.queueManager.moveToMedia($song.publicId);
         rockIt.mediaPlayerManager.play();
@@ -192,7 +202,7 @@ export function SongRow({
                         {$song.name}
                     </p>
                     <p className="truncate text-sm text-neutral-400">
-                        {$song.artists?.map((a) => a.name).join(", ") ??
+                        {$song.artists?.map((a): string => a.name).join(", ") ??
                             "Unknown Artist"}
                     </p>
                 </div>
@@ -205,10 +215,10 @@ export function StationRow({
     station: _station,
 }: {
     station: BaseStationResponse;
-}) {
+}): JSX.Element {
     const $station = useMedia(_station);
 
-    const handlePlay = () => {
+    const handlePlay = (): void => {
         // rockIt.queueManager.setMedia(
         //     [$station as TPlayableMedia],
         //     $station.publicId
@@ -244,7 +254,7 @@ export function StationRow({
 /* ARTIST-GROUPED LIST VIEW (albums in list mode)         */
 /* ------------------------------------------------------- */
 
-function ArtistGroupHeader({ name }: { name: string }) {
+function ArtistGroupHeader({ name }: { name: string }): JSX.Element {
     return (
         <h3 className="mt-6 mb-1 px-1 text-xs font-semibold tracking-widest text-neutral-400 uppercase">
             {name}
@@ -256,19 +266,27 @@ export function AlbumListView({
     albums,
 }: {
     albums: BaseAlbumWithoutSongsResponse[];
-}) {
-    const groups = useMemo(() => groupByArtist(albums), [albums]);
+}): JSX.Element {
+    const groups = useMemo(
+        (): [string, BaseAlbumWithoutSongsResponse[]][] =>
+            groupByArtist(albums),
+        [albums]
+    );
 
     return (
         <div className="px-4">
-            {groups.map(([artist, artistAlbums]) => (
-                <div key={artist}>
-                    <ArtistGroupHeader name={artist} />
-                    {artistAlbums.map((album) => (
-                        <AlbumRow key={album.publicId} album={album} />
-                    ))}
-                </div>
-            ))}
+            {groups.map(
+                ([artist, artistAlbums]): JSX.Element => (
+                    <div key={artist}>
+                        <ArtistGroupHeader name={artist} />
+                        {artistAlbums.map(
+                            (album): JSX.Element => (
+                                <AlbumRow key={album.publicId} album={album} />
+                            )
+                        )}
+                    </div>
+                )
+            )}
         </div>
     );
 }

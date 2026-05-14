@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { TMedia } from "@/models/types/media";
@@ -21,7 +22,7 @@ export default function RenderList({
     showMediaIndex: boolean;
     showMediaImage: boolean;
     listPublicId?: string;
-}) {
+}): JSX.Element {
     return (
         <div className="grid h-full w-full grid-cols-[1fr_3fr] gap-4">
             <div className="z-1 h-full w-full max-w-full min-w-0">
@@ -66,18 +67,22 @@ export default function RenderList({
                 </div>
             </div>
             <div className="z-1 flex h-full w-full max-w-full min-w-0 flex-col gap-4 overflow-y-auto pr-1 pb-96">
-                {media.map((m, index) => (
-                    <Media
-                        key={m.publicId}
-                        index={index}
-                        media={m}
-                        allMedia={media}
-                        substractArtists={artists.map((artist) => artist.name)}
-                        showMediaImage={showMediaImage}
-                        showMediaIndex={showMediaIndex}
-                        listPublicId={listPublicId}
-                    />
-                ))}
+                {media.map(
+                    (m, index): JSX.Element => (
+                        <Media
+                            key={m.publicId}
+                            index={index}
+                            media={m}
+                            allMedia={media}
+                            substractArtists={artists.map(
+                                (artist): string => artist.name
+                            )}
+                            showMediaImage={showMediaImage}
+                            showMediaIndex={showMediaIndex}
+                            listPublicId={listPublicId}
+                        />
+                    )
+                )}
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function NewPlaylistButton() {
+export default function NewPlaylistButton(): JSX.Element {
     const [showModal, setShowModal] = useState(false);
     const [name, setName] = useState("");
     const [error, setError] = useState("");
@@ -17,7 +17,7 @@ export default function NewPlaylistButton() {
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const handleCreate = async () => {
+    const handleCreate = async (): Promise<void> => {
         if (!name.trim()) {
             setError($vocabulary.ENTER_NEW_PLAYLIST_NAME);
             return;
@@ -42,7 +42,7 @@ export default function NewPlaylistButton() {
         }
     };
 
-    const closeModal = () => {
+    const closeModal = (): void => {
         setShowModal(false);
         setName("");
         setError("");
@@ -55,8 +55,10 @@ export default function NewPlaylistButton() {
                 role="button"
                 tabIndex={0}
                 className="library-item flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col transition-transform md:hover:scale-110"
-                onClick={() => setShowModal(true)}
-                onKeyDown={(e) => e.key === "Enter" && setShowModal(true)}
+                onClick={(): void => setShowModal(true)}
+                onKeyDown={(e): false | void =>
+                    e.key === "Enter" && setShowModal(true)
+                }
             >
                 <div className="cover relative aspect-square h-auto w-full">
                     <Image
@@ -77,7 +79,7 @@ export default function NewPlaylistButton() {
             {showModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6"
-                    onClick={(e) => {
+                    onClick={(e): void => {
                         // Close on backdrop click
                         if (e.target === e.currentTarget) closeModal();
                     }}
@@ -102,11 +104,11 @@ export default function NewPlaylistButton() {
                             type="text"
                             autoFocus
                             placeholder={$vocabulary.PLACEHOLDER_PLAYLIST_NAME}
-                            onChange={(e) => {
+                            onChange={(e): void => {
                                 setName(e.target.value);
                                 setError("");
                             }}
-                            onKeyDown={(e) => {
+                            onKeyDown={(e): void => {
                                 if (e.key === "Enter") handleCreate();
                                 if (e.key === "Escape") closeModal();
                             }}

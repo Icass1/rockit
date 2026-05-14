@@ -1,11 +1,12 @@
 "use client";
 
+import { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function WorkInProgress() {
+export default function WorkInProgress(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (

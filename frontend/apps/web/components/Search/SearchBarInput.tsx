@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function SearchBarInput() {
+export default function SearchBarInput(): JSX.Element {
     const [value, setValue] = useState("");
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const pathname = usePathname();
@@ -18,12 +18,12 @@ export default function SearchBarInput() {
         null
     );
 
-    useEffect(() => {
-        searchDebounce.current = debounce((query: string) => {
+    useEffect((): (() => void | undefined) => {
+        searchDebounce.current = debounce((query: string): void => {
             rockIt.searchManager.search(query);
         }, 300);
 
-        return () => searchDebounce.current?.cancel();
+        return (): void | undefined => searchDebounce.current?.cancel();
     }, []);
 
     return (
@@ -32,7 +32,7 @@ export default function SearchBarInput() {
                 type="search"
                 id="search-bar"
                 value={value}
-                onChange={(e) => {
+                onChange={(e): void => {
                     const query = e.target.value;
                     setValue(query);
 
@@ -43,7 +43,7 @@ export default function SearchBarInput() {
                         searchDebounce.current?.(query);
                     }
                 }}
-                onClick={() => {
+                onClick={(): void => {
                     if (pathname !== "/search") router.push("/search");
                 }}
                 className="z-10 block h-10 w-full rounded-full bg-neutral-900 px-10 text-base font-semibold shadow focus:outline-0 md:z-50"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { PiPCover } from "@/components/PiP/PiPCover";
 import { PiPInfo } from "@/components/PiP/PiPInfo";
 
@@ -20,14 +20,14 @@ const S = {
     },
 } satisfies Record<string, React.CSSProperties>;
 
-export function PiPRoot() {
+export function PiPRoot(): JSX.Element {
     const [hover, setHover] = useState(false);
 
     return (
         <div
             style={S.root}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
+            onMouseEnter={(): void => setHover(true)}
+            onMouseLeave={(): void => setHover(false)}
         >
             <PiPCover showControls={hover} />
             <PiPInfo />

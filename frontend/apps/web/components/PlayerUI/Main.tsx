@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { isSong, isVideo, TPlayableMedia } from "@rockit/packages/shared";
@@ -10,18 +10,18 @@ export default function PlayerUIMain({
     currentMedia,
 }: {
     currentMedia: TPlayableMedia;
-}) {
+}): JSX.Element | undefined {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const [showIcon, setShowIcon] = useState(false);
     const videoContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    useEffect((): (() => void) | undefined => {
         if (!showIcon) return;
-        const t = setTimeout(() => setShowIcon(false), 800);
-        return () => clearTimeout(t);
+        const t = setTimeout((): void => setShowIcon(false), 800);
+        return (): void => clearTimeout(t);
     }, [showIcon]);
 
-    useEffect(() => {
+    useEffect((): void => {
         if (videoContainerRef.current && isVideo(currentMedia)) {
             rockIt.mediaPlayerManager.attachVideoToContainer(
                 videoContainerRef.current
@@ -29,7 +29,7 @@ export default function PlayerUIMain({
         }
     }, [currentMedia]);
 
-    const handleClick = () => {
+    const handleClick = (): void => {
         setShowIcon(true);
         rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia();
     };
@@ -95,5 +95,5 @@ export default function PlayerUIMain({
                 </div>
             </div>
         );
-    }
+    } else return undefined;
 }

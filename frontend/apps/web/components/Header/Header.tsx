@@ -1,12 +1,13 @@
 "use client";
 
+import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import HeaderRight from "@/components/Header/HeaderRight";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 
-export default function Header() {
+export default function Header(): JSX.Element {
     const pathname = usePathname();
     const isRadio = pathname?.startsWith("/radio");
 

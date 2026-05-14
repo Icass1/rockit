@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
 import UsernameInput from "@/components/Auth/UsernameInput";
 
-export default function SignupModal() {
+export default function SignupModal(): JSX.Element {
     const router = useRouter();
 
     const [username, setUsername] = useState("");
@@ -16,7 +16,7 @@ export default function SignupModal() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = useCallback(async () => {
+    const handleSubmit = useCallback(async (): Promise<void> => {
         setError("");
 
         if (loading) return;
@@ -49,15 +49,16 @@ export default function SignupModal() {
         router.refresh();
     }, [loading, password, repeatPassword, router, username]);
 
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
+    useEffect((): (() => void) => {
+        const handleKeyDown = (event: KeyboardEvent): void => {
             if (event.key === "Enter") {
                 handleSubmit();
             }
         };
 
         document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
+        return (): void =>
+            document.removeEventListener("keydown", handleKeyDown);
     }, [handleSubmit]);
 
     return (
@@ -89,13 +90,17 @@ export default function SignupModal() {
                 <div className="space-y-4">
                     <UsernameInput
                         value={username}
-                        onChange={(e) => setUsername(e.currentTarget.value)}
+                        onChange={(e): void =>
+                            setUsername(e.currentTarget.value)
+                        }
                     />
 
                     <input
                         type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.currentTarget.value)}
+                        onChange={(e): void =>
+                            setPassword(e.currentTarget.value)
+                        }
                         autoComplete="new-password"
                         className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                         placeholder="Password"
@@ -104,7 +109,7 @@ export default function SignupModal() {
                     <input
                         type="password"
                         value={repeatPassword}
-                        onChange={(e) =>
+                        onChange={(e): void =>
                             setRepeatPassword(e.currentTarget.value)
                         }
                         autoComplete="new-password"

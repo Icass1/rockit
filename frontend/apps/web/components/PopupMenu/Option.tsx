@@ -1,6 +1,6 @@
 "use client";
 
-import type { MouseEventHandler, ReactNode } from "react";
+import type { JSX, MouseEventHandler, ReactNode } from "react";
 import { usePopupMenu } from "@/components/PopupMenu/context";
 
 export default function PopupMenuOption({
@@ -15,12 +15,12 @@ export default function PopupMenuOption({
     disable?: boolean;
     closeOnClick?: boolean;
     className?: string;
-}) {
+}): JSX.Element {
     const { setOpen } = usePopupMenu();
 
     return (
         <div
-            onClick={(e) => {
+            onClick={(e): void => {
                 if (disable) return;
                 e.stopPropagation();
                 onClick?.(e);

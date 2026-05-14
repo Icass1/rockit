@@ -1,6 +1,6 @@
 import { type Station } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom } from "@/lib/store";
+import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class StationManager {
     private _currentStationAtom = createAtom<Station | undefined>();
@@ -16,7 +16,7 @@ export class StationManager {
         this._currentStationAtom.set(undefined);
     }
 
-    get currentStationAtom() {
+    get currentStationAtom(): ReadonlyAtom<Station | undefined> {
         return this._currentStationAtom.getReadonlyAtom();
     }
 }

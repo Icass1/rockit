@@ -19,6 +19,10 @@ const eslintConfig = defineConfig([
                     ],
                 },
             ],
+            "@typescript-eslint/explicit-function-return-type": [
+                "error",
+                { allowExpressions: true },
+            ],
         },
     },
     // Override default ignores of eslint-config-next.

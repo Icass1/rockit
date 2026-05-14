@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import { useContextMenu } from "@/lib/ContextMenuContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Loader2, Pause, Play, SkipForward } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 
 export const MINI_PLAYER_HEIGHT = 56;

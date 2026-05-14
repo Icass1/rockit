@@ -1,8 +1,10 @@
+import { JSX } from "react";
+
 export default function YoutubeProviderTag({
     theme,
 }: {
     theme: "light" | "dark";
-}) {
+}): JSX.Element {
     const textColor = theme === "dark" ? "white" : "#282828";
 
     return (

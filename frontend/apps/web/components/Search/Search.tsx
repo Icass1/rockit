@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -11,7 +12,7 @@ import PlaylistsSection from "@/components/Search/sections/PlaylistsSection";
 import SongsSection from "@/components/Search/sections/SongsSection";
 import VideosSection from "@/components/Search/sections/VideosSection";
 
-function EmptyState() {
+function EmptyState(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
@@ -36,7 +37,7 @@ function EmptyState() {
     );
 }
 
-function SearchResults() {
+function SearchResults(): JSX.Element {
     const { results, searching, query } = useSearchResults();
 
     if (!query) return <EmptyState />;
@@ -64,21 +65,29 @@ function SearchResults() {
     return (
         <div className="overflow-y-auto">
             <SongsSection
-                songs={mediaResults.filter((item) => item.type === "song")}
+                songs={mediaResults.filter(
+                    (item): boolean => item.type === "song"
+                )}
             />
             <AlbumsSection
-                albums={mediaResults.filter((item) => item.type === "album")}
+                albums={mediaResults.filter(
+                    (item): boolean => item.type === "album"
+                )}
             />
             <ArtistsSection
-                artists={mediaResults.filter((item) => item.type === "artist")}
+                artists={mediaResults.filter(
+                    (item): boolean => item.type === "artist"
+                )}
             />
             <PlaylistsSection
                 playlists={mediaResults.filter(
-                    (item) => item.type === "playlist"
+                    (item): boolean => item.type === "playlist"
                 )}
             />
             <VideosSection
-                videos={mediaResults.filter((item) => item.type === "video")}
+                videos={mediaResults.filter(
+                    (item): boolean => item.type === "video"
+                )}
             />
             {/* <RadioSection
                 stations={mediaResults.filter((item) => item.type === "radio")}
@@ -87,7 +96,7 @@ function SearchResults() {
     );
 }
 
-export default function Search() {
+export default function Search(): JSX.Element {
     return (
         <>
             <section className="mt-20 block h-28 px-5 md:hidden">

@@ -1,5 +1,6 @@
 "use client";
 
+import { JSX } from "react";
 import Image from "next/image";
 import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
@@ -16,7 +17,7 @@ export function QueueMedia({
 }: {
     media: QueueResponseItem;
     onClick?: () => void;
-}) {
+}): JSX.Element {
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );

@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -25,7 +26,7 @@ interface PiPProgressProps {
     show: boolean;
 }
 
-export function PiPProgress({ show }: PiPProgressProps) {
+export function PiPProgress({ show }: PiPProgressProps): JSX.Element | null {
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
@@ -47,7 +48,7 @@ export function PiPProgress({ show }: PiPProgressProps) {
                 max={getMediaDuration($currentSong) ?? 0}
                 step={0.001}
                 style={{ flexGrow: 1 }}
-                onChange={(e) =>
+                onChange={(e): void =>
                     rockIt.mediaPlayerManager.setCurrentTime(
                         Number(e.target.value)
                     )

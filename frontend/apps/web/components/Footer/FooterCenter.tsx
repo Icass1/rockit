@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { EQueueType, ERepeatMode } from "@rockit/packages/shared";
 import {
@@ -20,7 +21,7 @@ const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
 const ACTIVE = "text-[#ee1086]";
 
-export default function FooterCenter() {
+export default function FooterCenter(): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $loading = useStore(rockIt.mediaPlayerManager.loadingAtom);
@@ -52,7 +53,7 @@ export default function FooterCenter() {
                         $queueType ? "Disable shuffle" : "Enable shuffle"
                     }
                     aria-pressed={$queueType === EQueueType.RANDOM}
-                    onClick={() => rockIt.userManager.toggleRandomQueue()}
+                    onClick={(): void => rockIt.userManager.toggleRandomQueue()}
                 >
                     <Shuffle
                         className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${$queueType === EQueueType.RANDOM ? ACTIVE : "text-gray-400"}`}
@@ -61,7 +62,7 @@ export default function FooterCenter() {
 
                 <button
                     aria-label={$vocabulary.PREVIOUS_MEDIA}
-                    onClick={() => rockIt.queueManager.skipBack()}
+                    onClick={(): void => rockIt.queueManager.skipBack()}
                 >
                     <SkipBack
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}
@@ -73,7 +74,7 @@ export default function FooterCenter() {
                 ) : (
                     <button
                         aria-label={$playing ? "Pause" : "Play"}
-                        onClick={() =>
+                        onClick={(): void =>
                             $playing
                                 ? rockIt.mediaPlayerManager.pause()
                                 : rockIt.mediaPlayerManager.play()
@@ -89,7 +90,7 @@ export default function FooterCenter() {
 
                 <button
                     aria-label={$vocabulary.NEXT_MEDIA}
-                    onClick={() => rockIt.queueManager.skipForward()}
+                    onClick={(): void => rockIt.queueManager.skipForward()}
                 >
                     <SkipForward
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}
@@ -99,7 +100,7 @@ export default function FooterCenter() {
                 <button
                     aria-label={repeatLabel}
                     aria-pressed={isRepeatActive}
-                    onClick={() => rockIt.userManager.cycleRepeatMode()}
+                    onClick={(): void => rockIt.userManager.cycleRepeatMode()}
                 >
                     <RepeatIcon
                         className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${isRepeatActive ? ACTIVE : "text-gray-400"}`}
@@ -136,7 +137,7 @@ export default function FooterCenter() {
                     value={$currentTime}
                     min={0}
                     max={getMediaDuration($currentMedia)}
-                    onChange={(e) =>
+                    onChange={(e): void =>
                         rockIt.mediaPlayerManager.setCurrentTime(
                             Number(e.target.value)
                         )

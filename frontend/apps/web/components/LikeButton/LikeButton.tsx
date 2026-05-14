@@ -2,12 +2,18 @@
 
 import { rockIt } from "@/lib/rockit/rockIt";
 import "@/styles/LikeButton.css";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+    useSyncExternalStore,
+    type JSX,
+} from "react";
 import { useStore } from "@nanostores/react";
 
-const subscribe = () => () => {};
-const getSnapshot = () => true;
-const getServerSnapshot = () => false;
+const subscribe = (): (() => void) => (): void => {};
+const getSnapshot = (): boolean => true;
+const getServerSnapshot = (): boolean => false;
 
 type FlameState = "hidden" | "enter" | "visible" | "exit";
 
@@ -19,7 +25,7 @@ export default function LikeButton({
 }: {
     mediaPublicId: string;
     isLiked?: boolean;
-}) {
+}): JSX.Element {
     const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
     const mounted = useSyncExternalStore(
         subscribe,
@@ -41,36 +47,36 @@ export default function LikeButton({
 
     // React to like/unlike changes
 
-    useEffect(() => {
+    useEffect((): void => {
         if (prevLiked.current === isLiked) return;
         prevLiked.current = isLiked;
 
         if (isLiked) {
-            queueMicrotask(() => {
+            queueMicrotask((): void => {
                 setFlameState("enter");
             });
         }
     }, [isLiked]);
 
     // Auto-dismiss: once enter settles to "visible", start the countdown
-    useEffect(() => {
+    useEffect((): (() => void) | undefined => {
         if (flameState !== "visible") return;
 
-        dismissTimer.current = setTimeout(() => {
+        dismissTimer.current = setTimeout((): void => {
             setFlameState("exit");
         }, FLAME_DURATION_MS);
 
-        return () => {
+        return (): void => {
             if (dismissTimer.current) clearTimeout(dismissTimer.current);
         };
     }, [flameState]);
 
-    const handleFlameAnimationEnd = () => {
+    const handleFlameAnimationEnd = (): void => {
         if (flameState === "enter") setFlameState("visible");
         if (flameState === "exit") setFlameState("hidden");
     };
 
-    const handleClick = () => {
+    const handleClick = (): void => {
         setHandTilt(true);
         rockIt.mediaManager.toggleLikeMedia(mediaPublicId);
     };
@@ -116,7 +122,7 @@ export default function LikeButton({
                 aria-pressed={isLiked}
                 onClick={handleClick}
                 className={handTilt ? "hand-tilt" : undefined}
-                onAnimationEnd={() => setHandTilt(false)}
+                onAnimationEnd={(): void => setHandTilt(false)}
                 style={{
                     height: "22px",
                     width: "22px",
@@ -139,10 +145,10 @@ export default function LikeButton({
                         color: isLiked ? "#202020" : "#A1A1AA",
                         transition: "fill 0.2s ease, color 0.2s ease",
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={(e): void => {
                         e.currentTarget.style.color = "#FFFFFF";
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={(e): void => {
                         e.currentTarget.style.color = isLiked
                             ? "#202020"
                             : "#A1A1AA";

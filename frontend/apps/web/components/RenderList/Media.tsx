@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { isList, isPlayable, TMedia } from "@/models/types/media";
 import { ListMedia } from "@/components/RenderList/ListMedia";
 import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
@@ -18,7 +19,7 @@ export function Media({
     showMediaIndex: boolean;
     showMediaImage: boolean;
     listPublicId?: string;
-}) {
+}): JSX.Element {
     if (isPlayable(media)) {
         return (
             <PlayableMedia

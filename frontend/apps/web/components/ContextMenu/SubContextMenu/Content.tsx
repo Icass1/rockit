@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { JSX, ReactNode } from "react";
 import { useContextMenu } from "@/components/ContextMenu/context";
 import { useSubContextMenu } from "@/components/ContextMenu/SubContextMenu/context";
 import PosAfterRenderDiv from "@/components/PosAfterRenderDiv";
@@ -7,13 +7,13 @@ export default function SubContextMenuContent({
     children,
 }: {
     children: ReactNode[] | ReactNode;
-}) {
+}): JSX.Element | undefined {
     const { _contextMenuDivRef } = useContextMenu();
     const { _triggerRef, _hover, _setHover } = useSubContextMenu();
 
     const updatePos: (width: number, height: number) => [number, number] = (
         width: number
-    ) => {
+    ): [number, number] => {
         const triggerBoundaries = _triggerRef?.current?.getBoundingClientRect();
         const contextMenuBoundaries =
             _contextMenuDivRef?.current?.getBoundingClientRect();
@@ -42,17 +42,18 @@ export default function SubContextMenuContent({
             className="fixed top-0 left-0 h-[calc(100%-4rem)] w-full rounded-md bg-neutral-800/90 px-10 md:h-fit md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
             onDimensionsCalculated={
                 innerWidth > 768
-                    ? (width, height) => updatePos(width, height)
+                    ? (width, height): [number, number] =>
+                          updatePos(width, height)
                     : undefined
             }
-            onClick={(event) => {
+            onClick={(event): void => {
                 event.stopPropagation();
                 if (_setHover) _setHover(false);
             }}
-            onMouseEnter={() => {
+            onMouseEnter={(): void => {
                 if (_setHover) _setHover(true);
             }}
-            onMouseLeave={() => {
+            onMouseLeave={(): void => {
                 if (_setHover) {
                     _setHover(false);
                 }

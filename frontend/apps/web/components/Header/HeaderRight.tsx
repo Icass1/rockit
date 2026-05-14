@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Bell } from "lucide-react";
@@ -10,13 +10,13 @@ import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
 import HeaderUser from "@/components/Header/HeaderUser";
 import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
 
-export default function HeaderRight() {
+export default function HeaderRight(): JSX.Element {
     const [showNotifications, setShowNotifications] = useState(false);
     const [isUserLoaded, setIsUserLoaded] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
     const $loggedIn = useStore(rockIt.userManager.loggedInAtom);
 
-    useEffect(() => {
+    useEffect((): void => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsUserLoaded(true);
     }, []);
@@ -26,7 +26,7 @@ export default function HeaderRight() {
             .length;
 
     const closeNotifications = useCallback(
-        () => setShowNotifications(false),
+        (): void => setShowNotifications(false),
         []
     );
     useClickOutside(bellRef, closeNotifications);
@@ -38,7 +38,9 @@ export default function HeaderRight() {
             {/* Notifications */}
             <div ref={bellRef} className="relative">
                 <button
-                    onClick={() => setShowNotifications((prev) => !prev)}
+                    onClick={(): void =>
+                        setShowNotifications((prev): boolean => !prev)
+                    }
                     className="relative p-1 text-white transition md:hover:text-gray-300"
                     aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount} unread)` : ""}`}
                     aria-expanded={showNotifications}

@@ -15,16 +15,26 @@ export interface HomeData {
 
 function transformStats(dataResponse: HomeStatsResponse): HomeData {
     const songsByTimePlayed = dataResponse.songsByTimePlayed.map(
-        (song) => song
+        (song): BaseSongWithAlbumResponse => song
     );
     const randomSongsLastMonth = dataResponse.randomSongsLastMonth.map(
-        (song) => song
+        (song): BaseSongWithAlbumResponse => song
     );
-    const nostalgicMix = dataResponse.nostalgicMix.map((song) => song);
-    const hiddenGems = dataResponse.hiddenGems.map((song) => song);
-    const communityTop = dataResponse.communityTop.map((song) => song);
-    const monthlyTop = dataResponse.monthlyTop.map((song) => song);
-    const moodSongs = dataResponse.moodSongs.map((song) => song);
+    const nostalgicMix = dataResponse.nostalgicMix.map(
+        (song): BaseSongWithAlbumResponse => song
+    );
+    const hiddenGems = dataResponse.hiddenGems.map(
+        (song): BaseSongWithAlbumResponse => song
+    );
+    const communityTop = dataResponse.communityTop.map(
+        (song): BaseSongWithAlbumResponse => song
+    );
+    const monthlyTop = dataResponse.monthlyTop.map(
+        (song): BaseSongWithAlbumResponse => song
+    );
+    const moodSongs = dataResponse.moodSongs.map(
+        (song): BaseSongWithAlbumResponse => song
+    );
 
     const isEmpty =
         songsByTimePlayed.length === 0 &&

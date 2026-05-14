@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { EMediaContextLocation } from "@rockit/shared";
@@ -15,10 +15,10 @@ export default function QuickSelectionsSong({
 }: {
     song: BaseSongWithAlbumResponse;
     songs: BaseSongWithAlbumResponse[];
-}) {
+}): JSX.Element {
     const $song = useMedia(song);
 
-    const handleClick = useCallback(() => {
+    const handleClick = useCallback((): void => {
         // Set the queue with all songs
         const playableSongs = songs.filter(isSongWithAlbum);
         if (playableSongs.length > 0) {

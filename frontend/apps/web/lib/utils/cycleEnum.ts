@@ -9,7 +9,7 @@ export function cycleEnum<E extends Record<string, string | number>>(
 ): EnumValue<E> {
     // Extract only actual values (ignore numeric reverse mappings).
     const values = Object.values(enumObj).filter(
-        (v) => typeof v !== "number" || !enumObj[v]
+        (v): boolean => typeof v !== "number" || !enumObj[v]
     ) as EnumValue<E>[];
 
     const index = values.indexOf(current);

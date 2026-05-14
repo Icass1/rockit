@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { VocabularyResponse } from "@/dto";
@@ -16,8 +16,8 @@ export default function AppClientLayout({
 }: {
     vocabulary: VocabularyResponse;
     children: React.ReactNode;
-}) {
-    useEffect(() => {
+}): JSX.Element {
+    useEffect((): void => {
         rockIt.mediaManager.fetchLikedMedia();
         rockIt.vocabularyManager.setVocabulary(vocabulary);
     }, [vocabulary]);

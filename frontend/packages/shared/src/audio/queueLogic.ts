@@ -26,7 +26,7 @@ export function shuffleQueue<T extends QueueItem>(
     }
     if (currentId !== null) {
         const currentIndex = shuffled.findIndex(
-            (item) => item.queueMediaId === currentId
+            (item): boolean => item.queueMediaId === currentId
         );
         if (currentIndex > 0) {
             [shuffled[0], shuffled[currentIndex]] = [
@@ -47,7 +47,7 @@ export function getNextQueueMediaId<T extends QueueItem>(
 ): number | null {
     if (!queue.length || currentId === null) return null;
     const currentIndex = queue.findIndex(
-        (item) => item.queueMediaId === currentId
+        (item): boolean => item.queueMediaId === currentId
     );
     if (currentIndex === -1 || currentIndex + 1 >= queue.length) return null;
     return queue[currentIndex + 1].queueMediaId;
@@ -62,7 +62,7 @@ export function getPrevQueueMediaId<T extends QueueItem>(
 ): number | null {
     if (!queue.length || currentId === null) return null;
     const currentIndex = queue.findIndex(
-        (item) => item.queueMediaId === currentId
+        (item): boolean => item.queueMediaId === currentId
     );
     if (currentIndex <= 0) return null;
     return queue[currentIndex - 1].queueMediaId;

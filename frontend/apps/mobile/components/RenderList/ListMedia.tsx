@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Image } from "expo-image";
-import { ChevronDown, ChevronRight } from "lucide-react-native";
+import { COLORS } from "@/constants/theme";
 import {
     isAlbum,
     isAlbumWithSongs,
@@ -10,7 +8,9 @@ import {
     type TListMedia,
     type TMedia,
 } from "@rockit/shared";
-import { COLORS } from "@/constants/theme";
+import { Image } from "expo-image";
+import { ChevronDown, ChevronRight } from "lucide-react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { Media } from "./Media";
 

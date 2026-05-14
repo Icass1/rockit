@@ -8,7 +8,7 @@ async function update<T>(
     setData: Dispatch<SetStateAction<T | undefined>>,
     setLoading: Dispatch<SetStateAction<boolean>>,
     setError: Dispatch<SetStateAction<boolean | undefined>>
-) {
+): Promise<void> {
     setLoading(true);
     const response = await func.bind(Http)();
     setLoading(false);
@@ -29,13 +29,14 @@ export default function useFetch<T>(
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean | undefined>(undefined);
 
-    useEffect(() => {
+    useEffect((): void => {
         update(func, setData, setLoading, setError);
     }, [func]);
 
     return {
         data: data,
-        update: () => update(func, setData, setLoading, setError),
+        update: (): Promise<void> =>
+            update(func, setData, setLoading, setError),
         loading,
         error,
     };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore, type JSX } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -10,7 +10,7 @@ import SongScrollSection from "@/components/Home/sections/SongScrollSection";
 import LoadingComponent from "@/components/Loading";
 
 const MONTH_KEYS = [
-    "january",
+    "JANUARY",
     "february",
     "march",
     "april",
@@ -24,26 +24,38 @@ const MONTH_KEYS = [
     "december",
 ] as const;
 
-function getPreviousMonthKey() {
+function getPreviousMonthKey():
+    | "JANUARY"
+    | "february"
+    | "march"
+    | "april"
+    | "may"
+    | "june"
+    | "july"
+    | "august"
+    | "september"
+    | "october"
+    | "november"
+    | "december" {
     return MONTH_KEYS[(new Date().getMonth() + 11) % 12];
 }
 
 function useOnClient<T>(fn: () => T, initialValue: T): T {
     return useSyncExternalStore(
-        () => () => {},
+        (): (() => void) => (): void => {},
         fn,
-        () => initialValue
+        (): T => initialValue
     );
 }
 
-export default function HomeClient() {
+export default function HomeClient(): JSX.Element {
     const data = useHomeData();
     const router = useRouter();
     const previousMonthKey = useOnClient(getPreviousMonthKey, null);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    useEffect(() => {
+    useEffect((): void => {
         if (data?.isEmpty) router.push("/library");
     }, [data?.isEmpty, router]);
 

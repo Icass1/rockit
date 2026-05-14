@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type JSX, type ReactNode } from "react";
 import { usePopupMenu } from "@/components/PopupMenu/context";
 
 export default function PopupMenuTrigger({
@@ -9,29 +9,29 @@ export default function PopupMenuTrigger({
 }: {
     children: ReactNode;
     className?: string;
-}) {
+}): JSX.Element {
     const { open, setOpen, setPos, contentRef, triggerRef } = usePopupMenu();
 
-    const handleClick = () => {
+    const handleClick = (): void => {
         const boundaries = triggerRef.current?.getBoundingClientRect();
         if (!boundaries) return;
         setPos([boundaries.x + boundaries.width, boundaries.y]);
         setOpen(true);
     };
 
-    useEffect(() => {
+    useEffect((): (() => void) | undefined => {
         // Solo cerramos con click externo en desktop
         if (!open || typeof window === "undefined" || window.innerWidth < 768)
             return;
 
-        const handleClose = (e: MouseEvent | WheelEvent) => {
+        const handleClose = (e: MouseEvent | WheelEvent): void => {
             if (contentRef.current?.contains(e.target as Node)) return;
             setOpen(false);
         };
 
         document.addEventListener("mouseup", handleClose);
         document.addEventListener("wheel", handleClose);
-        return () => {
+        return (): void => {
             document.removeEventListener("mouseup", handleClose);
             document.removeEventListener("wheel", handleClose);
         };

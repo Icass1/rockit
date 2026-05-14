@@ -1,4 +1,4 @@
-import { createAtom } from "@/lib/store";
+import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class PlayerUIManager {
     // #region: Atoms
@@ -15,13 +15,13 @@ export class PlayerUIManager {
 
     // #region: Methods
 
-    show() {
+    show(): void {
         this._visibleAtom.set(true);
     }
-    hide() {
+    hide(): void {
         this._visibleAtom.set(false);
     }
-    toggle() {
+    toggle(): void {
         this._visibleAtom.set(!this._visibleAtom.get());
     }
 
@@ -29,7 +29,7 @@ export class PlayerUIManager {
 
     // #region: Getters
 
-    get visibleAtom() {
+    get visibleAtom(): ReadonlyAtom<boolean> {
         return this._visibleAtom.getReadonlyAtom();
     }
 

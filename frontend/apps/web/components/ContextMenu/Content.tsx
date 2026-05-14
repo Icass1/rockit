@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { JSX } from "react";
 import Image from "next/image";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useContextMenu } from "@/components/ContextMenu/context";
@@ -16,7 +17,7 @@ export default function ContextMenuContent({
     cover?: string | undefined;
     title?: string | undefined;
     description?: string | undefined;
-}) {
+}): JSX.Element | undefined {
     const {
         _contextMenuOpen,
         _contextMenuPos,
@@ -28,7 +29,7 @@ export default function ContextMenuContent({
         contextMenuPos: [number, number],
         width: number,
         height: number
-    ) => {
+    ): [number, number] => {
         const tempPos = [...contextMenuPos] as [number, number];
 
         if (
@@ -57,11 +58,13 @@ export default function ContextMenuContent({
             divRef={_contextMenuDivRef}
             onDimensionsCalculated={
                 innerWidth > 768
-                    ? (width, height) =>
+                    ? (width, height): [number, number] =>
                           updatePos(_contextMenuPos, width, height)
                     : undefined
             }
-            onClick={() => _setContextMenuOpen && _setContextMenuOpen(false)}
+            onClick={(): void | undefined =>
+                _setContextMenuOpen && _setContextMenuOpen(false)
+            }
             className="fixed top-0 left-0 z-50 h-[calc(100%_-_4rem)] w-full overflow-auto rounded-md bg-neutral-800/90 px-10 md:h-auto md:w-max md:p-1 md:shadow-[0px_0px_20px_3px_#0e0e0e]"
             style={{
                 display: _contextMenuOpen ? "block" : "none",

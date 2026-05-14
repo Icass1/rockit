@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import type { JSX } from "react";
 
 type PosAfterRenderDivProps = {
     className?: string;
@@ -24,11 +25,11 @@ class PosAfterRenderDiv extends Component<PosAfterRenderDivProps> {
         this.internalRef = React.createRef(); // Create an internal ref
     }
 
-    get currentRef() {
+    get currentRef(): React.RefObject<HTMLDivElement | null> {
         return this.props.divRef || this.internalRef; // Use external ref if provided, otherwise fallback
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         if (this.currentRef?.current && this.props.onDimensionsCalculated) {
             const { offsetWidth, offsetHeight } = this.currentRef.current;
             const pos = this.props.onDimensionsCalculated(
@@ -55,7 +56,7 @@ class PosAfterRenderDiv extends Component<PosAfterRenderDivProps> {
         }
     }
 
-    render() {
+    render(): JSX.Element {
         const {
             className,
             style,
@@ -80,7 +81,9 @@ class PosAfterRenderDiv extends Component<PosAfterRenderDivProps> {
     }
 }
 
-const PosAfterRenderDivWrapper = (props: PosAfterRenderDivProps) => {
+const PosAfterRenderDivWrapper = (
+    props: PosAfterRenderDivProps
+): JSX.Element => {
     return <PosAfterRenderDiv {...props} />;
 };
 

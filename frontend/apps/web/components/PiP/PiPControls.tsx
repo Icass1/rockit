@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import {
     CirclePause,
@@ -47,7 +48,7 @@ interface PiPControlsProps {
     show: boolean;
 }
 
-export function PiPControls({ show }: PiPControlsProps) {
+export function PiPControls({ show }: PiPControlsProps): JSX.Element | null {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
 
@@ -57,19 +58,19 @@ export function PiPControls({ show }: PiPControlsProps) {
         <div style={S.controls as React.CSSProperties}>
             <button
                 style={S.iconBtn}
-                onClick={() => rockIt.userManager.toggleRandomQueue()}
+                onClick={(): void => rockIt.userManager.toggleRandomQueue()}
             >
                 <Shuffle style={S.icon} color="white" />
             </button>
             <button
                 style={S.iconBtn}
-                onClick={() => rockIt.queueManager.skipBack()}
+                onClick={(): void => rockIt.queueManager.skipBack()}
             >
                 <SkipBack style={S.icon} color="white" fill="white" />
             </button>
             <button
                 style={S.iconBtn}
-                onClick={() =>
+                onClick={(): void =>
                     rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia()
                 }
                 aria-label={$playing ? "Pause" : "Play"}
@@ -82,13 +83,13 @@ export function PiPControls({ show }: PiPControlsProps) {
             </button>
             <button
                 style={S.iconBtn}
-                onClick={() => rockIt.queueManager.skipForward()}
+                onClick={(): void => rockIt.queueManager.skipForward()}
             >
                 <SkipForward style={S.icon} color="white" fill="white" />
             </button>
             <button
                 style={S.iconBtn}
-                onClick={() => rockIt.userManager.cycleRepeatMode()}
+                onClick={(): void => rockIt.userManager.cycleRepeatMode()}
             >
                 {$repeatMode === ERepeatMode.ONE ? (
                     <Repeat1 style={S.icon} color="white" />

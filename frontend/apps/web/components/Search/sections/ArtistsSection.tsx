@@ -1,5 +1,6 @@
 "use client";
 
+import { JSX } from "react";
 import Image from "next/image";
 import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
@@ -11,7 +12,7 @@ export default function ArtistsSection({
     artists,
 }: {
     artists: BaseSearchResultsItem[];
-}) {
+}): JSX.Element | null {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     if (artists.length === 0) return null;
@@ -22,26 +23,28 @@ export default function ArtistsSection({
                 {$vocabulary.ARTISTS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {artists.map((artist) => (
-                    <MediaContextMenu
-                        key={artist.providerUrl}
-                        media={artist}
-                        location={EMediaContextLocation.SEARCH}
-                    >
-                        <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
-                            <Image
-                                width={350}
-                                height={350}
-                                className="aspect-square w-full rounded-full object-cover"
-                                src={artist.imageUrl}
-                                alt={`Image of ${artist.name}`}
-                            />
-                            <span className="mt-2 block truncate text-center font-semibold">
-                                {artist.name}
-                            </span>
-                        </div>
-                    </MediaContextMenu>
-                ))}
+                {artists.map(
+                    (artist): JSX.Element => (
+                        <MediaContextMenu
+                            key={artist.providerUrl}
+                            media={artist}
+                            location={EMediaContextLocation.SEARCH}
+                        >
+                            <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
+                                <Image
+                                    width={350}
+                                    height={350}
+                                    className="aspect-square w-full rounded-full object-cover"
+                                    src={artist.imageUrl}
+                                    alt={`Image of ${artist.name}`}
+                                />
+                                <span className="mt-2 block truncate text-center font-semibold">
+                                    {artist.name}
+                                </span>
+                            </div>
+                        </MediaContextMenu>
+                    )
+                )}
             </div>
         </section>
     );

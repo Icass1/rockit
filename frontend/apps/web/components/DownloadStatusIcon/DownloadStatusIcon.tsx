@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { EEvent, IMediaDownloadStatus } from "@rockit/packages/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -12,11 +12,11 @@ export function DownloadStatusIcon({
     publicId: string;
     className?: string;
     stroke?: number;
-}) {
+}): JSX.Element | null {
     const [progress, setProgress] = useState<number | null>(null);
 
-    useEffect(() => {
-        const handler = (event: IMediaDownloadStatus) => {
+    useEffect((): (() => void) => {
+        const handler = (event: IMediaDownloadStatus): void => {
             if (event.publicId !== publicId) return;
             setProgress(event.completed < 100 ? event.completed : null);
         };
@@ -25,7 +25,7 @@ export function DownloadStatusIcon({
             EEvent.MediaDownloadStatus,
             handler
         );
-        return () => {
+        return (): void => {
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaDownloadStatus,
                 handler

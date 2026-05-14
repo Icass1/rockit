@@ -92,11 +92,9 @@ export function createAtom<T>(
             return baseAtom.subscribe(callback);
         },
         listen(listener) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return baseAtom.listen(listener);
         },
         notify(oldValue) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return baseAtom.notify(oldValue);
         },
         off() {
@@ -117,11 +115,9 @@ export function createAtom<T>(
                     return baseAtom.subscribe(callback);
                 },
                 listen(listener) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     return baseAtom.listen(listener);
                 },
                 notify(oldValue) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     return baseAtom.notify(oldValue);
                 },
                 off() {
@@ -174,11 +170,9 @@ export function createArrayAtom<T>(
             );
         },
         listen(listener) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return baseAtom.listen(listener);
         },
         notify(oldValue) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return baseAtom.notify(oldValue);
         },
         off() {
@@ -195,35 +189,35 @@ export function createArrayAtom<T>(
 
         push(...items: T[]): number {
             let newLength = 0;
-            setArray((arr) => {
+            setArray((arr): void => {
                 newLength = arr.push(...items);
             });
             return newLength;
         },
         pop(): T | undefined {
             let removed: T | undefined;
-            setArray((arr) => {
+            setArray((arr): void => {
                 removed = arr.pop();
             });
             return removed;
         },
         shift(): T | undefined {
             let removed: T | undefined;
-            setArray((arr) => {
+            setArray((arr): void => {
                 removed = arr.shift();
             });
             return removed;
         },
         unshift(...items: T[]): number {
             let newLength = 0;
-            setArray((arr) => {
+            setArray((arr): void => {
                 newLength = arr.unshift(...items);
             });
             return newLength;
         },
         splice(start: number, deleteCount?: number, ...items: T[]): T[] {
             let removed: T[] = [];
-            setArray((arr) => {
+            setArray((arr): void => {
                 removed = arr.splice(
                     start,
                     deleteCount ?? arr.length,
@@ -234,7 +228,7 @@ export function createArrayAtom<T>(
         },
         sort(compareFn?: (a: T, b: T) => number): T[] {
             let sorted: T[] = [];
-            setArray((arr) => {
+            setArray((arr): void => {
                 sorted = [...arr].sort(compareFn);
                 arr.splice(0, arr.length, ...sorted);
             });
@@ -242,7 +236,7 @@ export function createArrayAtom<T>(
         },
         reverse(): T[] {
             let reversed: T[] = [];
-            setArray((arr) => {
+            setArray((arr): void => {
                 reversed = arr.reverse();
             });
             return reversed;

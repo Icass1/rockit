@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
@@ -29,7 +29,7 @@ function getArtistNames(
 ): BaseArtistResponse[] {
     if (isSong(media) || isVideo(media)) {
         return media.artists.filter(
-            (artist) => !substractArtists.includes(artist.name)
+            (artist): boolean => !substractArtists.includes(artist.name)
         );
     }
     return [];
@@ -51,13 +51,13 @@ export function PlayableMedia({
     showMediaIndex: boolean;
     showMediaImage: boolean;
     listPublicId?: string;
-}) {
+}): JSX.Element {
     const $media = useMedia(_media);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const artists = getArtistNames($media, substractArtists);
 
-    const handleClick = useCallback(() => {
+    const handleClick = useCallback((): void => {
         if (isDownloadable($media) && $media.downloaded !== true) {
             rockIt.downloaderManager.downloadMediaAsync(
                 [$media.publicId],
@@ -76,7 +76,7 @@ export function PlayableMedia({
             const playableMedia = tempAllMedia.filter(isPlayable);
 
             rockIt.queueManager.setMedia(
-                playableMedia.filter((m) => isQueueable(m)),
+                playableMedia.filter(isQueueable),
                 listPublicId
             );
             rockIt.queueManager.moveToMedia($media.publicId);

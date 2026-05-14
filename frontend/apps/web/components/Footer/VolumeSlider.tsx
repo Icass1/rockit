@@ -1,14 +1,15 @@
 "use client";
 
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Volume1, Volume2, VolumeOff } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Slider from "@/components/Slider/Slider";
 
-function VolumeIcon({ volume }: { volume: number }) {
+function VolumeIcon({ volume }: { volume: number }): JSX.Element {
     const className =
         "h-5.5 w-5.5 cursor-pointer text-gray-400 md:hover:text-white";
-    const onClick = () => rockIt.mediaPlayerManager.toggleMute();
+    const onClick = (): void => rockIt.mediaPlayerManager.toggleMute();
 
     if (volume === 0)
         return <VolumeOff className={className} onClick={onClick} />;
@@ -17,7 +18,7 @@ function VolumeIcon({ volume }: { volume: number }) {
     return <Volume2 className={className} onClick={onClick} />;
 }
 
-export default function VolumeSlider() {
+export default function VolumeSlider(): JSX.Element {
     const $volume = useStore(rockIt.mediaPlayerManager.volumeAtom);
     const volume = $volume ?? 0;
 
@@ -31,7 +32,7 @@ export default function VolumeSlider() {
                 min={0}
                 max={1}
                 step={0.001}
-                onChange={(e) => {
+                onChange={(e): void => {
                     rockIt.mediaPlayerManager.volume =
                         Number(e.target.value) ** 2;
                 }}

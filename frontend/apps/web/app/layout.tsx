@@ -2,6 +2,7 @@ import "@/styles/animations.css";
 import "@/styles/base.css";
 import "@/styles/components.css";
 import "@/styles/globals.css";
+import { JSX } from "react";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
     children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{ children: React.ReactNode }>): JSX.Element {
     return (
         <html lang="en" suppressHydrationWarning>
             <head>

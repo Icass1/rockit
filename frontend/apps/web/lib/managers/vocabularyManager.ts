@@ -4,7 +4,7 @@ import {
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
-import { createAtom } from "@/lib/store";
+import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 function createVocabularyProxy(data: Record<string, string>): VocabularyType {
     return new Proxy(data, {
@@ -20,7 +20,7 @@ export class VocabularyManager {
     );
     private _langAtom = createAtom<string>("");
 
-    async init() {
+    async init(): Promise<void> {
         const data = await this.getVocabulary();
         if (data.isOk()) {
             this.setVocabulary(data.result);
@@ -41,24 +41,24 @@ export class VocabularyManager {
         else return await Http.getUserVocabulary();
     }
 
-    setVocabulary(data: VocabularyResponse) {
+    setVocabulary(data: VocabularyResponse): void {
         this._vocabularyAtom.set(createVocabularyProxy(data.vocabulary));
         this._langAtom.set(data.currentLang);
     }
 
-    get vocabularyAtom() {
+    get vocabularyAtom(): ReadonlyAtom<VocabularyType> {
         return this._vocabularyAtom.getReadonlyAtom();
     }
 
-    get vocabulary() {
+    get vocabulary(): VocabularyType {
         return this._vocabularyAtom.get();
     }
 
-    get langAtom() {
+    get langAtom(): ReadonlyAtom<string> {
         return this._langAtom.getReadonlyAtom();
     }
 
-    get lang() {
+    get lang(): string {
         return this._langAtom.get();
     }
 }

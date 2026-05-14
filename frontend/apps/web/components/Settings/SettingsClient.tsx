@@ -1,5 +1,6 @@
 "use client";
 
+import { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
@@ -18,7 +19,7 @@ function SettingsSection({
 }: {
     title: string;
     children: React.ReactNode;
-}) {
+}): JSX.Element {
     return (
         <div className="flex flex-col gap-3 rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-4 md:p-5">
             <h3 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
@@ -29,7 +30,7 @@ function SettingsSection({
     );
 }
 
-function ProfileSidebar() {
+function ProfileSidebar(): JSX.Element {
     const { username } = useSettingsUser();
 
     return (
@@ -74,7 +75,7 @@ function PasswordSection({
     vocabulary,
 }: {
     vocabulary: Record<string, string>;
-}) {
+}): JSX.Element {
     return (
         <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
@@ -115,7 +116,7 @@ function DisplayNameInput({
     vocabulary,
 }: {
     vocabulary: Record<string, string>;
-}) {
+}): JSX.Element {
     const { username, isAuthenticated } = useSettingsUser();
 
     return (
@@ -137,7 +138,7 @@ function DisplayNameInput({
     );
 }
 
-export default function SettingsClient() {
+export default function SettingsClient(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (

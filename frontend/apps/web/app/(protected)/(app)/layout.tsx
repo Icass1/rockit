@@ -1,3 +1,4 @@
+import { JSX } from "react";
 import { redirect } from "next/navigation";
 import { rockIt } from "@/lib/rockit/rockIt";
 import AppClientLayout from "@/components/Layout/AppClientLayout";
@@ -6,7 +7,7 @@ export default async function AppLayout({
     children,
 }: {
     children: React.ReactNode;
-}) {
+}): Promise<JSX.Element> {
     const vocabularyData = await rockIt.vocabularyManager.getVocabulary();
 
     if (vocabularyData.isNotOk()) {

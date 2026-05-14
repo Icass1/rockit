@@ -4,18 +4,18 @@ import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloade
 import { isSearchResult, TMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function useMedia<T extends TMedia>(media: T) {
+export default function useMedia<T extends TMedia>(media: T): T {
     const [_media, setMedia] = useState<T>(media);
 
-    useEffect(() => {
+    useEffect((): (() => void) | undefined => {
         if (isSearchResult(media)) return;
 
-        const handleDownloaded = (data: IMediaDownloadedEvent) => {
+        const handleDownloaded = (data: IMediaDownloadedEvent): void => {
             if (data.publicId != media.publicId) {
                 return;
             }
 
-            rockIt.mediaManager.getMedia(data.publicId).then((data) => {
+            rockIt.mediaManager.getMedia(data.publicId).then((data): void => {
                 if (data.isOk()) {
                     if (data.result.media.type === media.type)
                         setMedia(data.result.media as T);
@@ -33,7 +33,7 @@ export default function useMedia<T extends TMedia>(media: T) {
             EEvent.MediaDownloaded,
             handleDownloaded
         );
-        return () => {
+        return (): void => {
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaDownloaded,
                 handleDownloaded

@@ -1,4 +1,4 @@
-export function getTime(seconds: number) {
+export function getTime(seconds: number): string {
     seconds = Math.round(seconds);
 
     if (typeof seconds !== "number" || isNaN(seconds)) {
@@ -16,7 +16,7 @@ export function getTime(seconds: number) {
     return `${formattedMinutes}:${formattedSeconds}`;
 }
 
-export function getDate(timeStamp: number | string) {
+export function getDate(timeStamp: number | string): string {
     const date = new Date(timeStamp);
 
     const day = date.getDate();
@@ -29,13 +29,13 @@ export function getDate(timeStamp: number | string) {
     return `${day}${daySuffix} of ${month} of ${year}`;
 }
 
-export function getYear(date: string) {
+export function getYear(date: string): string {
     const dateSplit = date.split("-");
 
     return dateSplit[0];
 }
 
-function getDaySuffix(day: number) {
+function getDaySuffix(day: number): "th" | "st" | "nd" | "rd" {
     if (day >= 11 && day <= 13) return "th"; // Special case for 11, 12, 13
     switch (day % 10) {
         case 1:
@@ -49,7 +49,7 @@ function getDaySuffix(day: number) {
     }
 }
 
-export function getDateYYYYMMDD(date: string | number) {
+export function getDateYYYYMMDD(date: string | number): string {
     const d = new Date(date);
     const yearNumber = d.getFullYear();
     const monthNumber = d.getMonth() + 1; // Months start at 0!
@@ -64,7 +64,7 @@ export function getDateYYYYMMDD(date: string | number) {
     return yearNumber + "-" + monthString + "-" + dayString;
 }
 
-export function getDateDDMMYYYY(date: string | number | Date) {
+export function getDateDDMMYYYY(date: string | number | Date): string {
     const d = new Date(date);
     const yearNumber = d.getFullYear();
     const monthNumber = d.getMonth() + 1; // Months start at 0!
@@ -79,7 +79,7 @@ export function getDateDDMMYYYY(date: string | number | Date) {
     return dayString + "/" + monthString + "/" + yearNumber;
 }
 
-export function getMinutes(seconds: number) {
+export function getMinutes(seconds: number): string {
     seconds = Math.round(seconds);
 
     if (typeof seconds !== "number" || isNaN(seconds)) {
@@ -95,9 +95,11 @@ export function getMinutes(seconds: number) {
     return `${formattedMinutes}`;
 }
 
-export function getDatabaseDate(date?: Date | number | undefined | string) {
+export function getDatabaseDate(
+    date?: Date | number | undefined | string
+): string {
     if (date instanceof Date) {
-        const pad = (n: number) => n.toString().padStart(2, "0");
+        const pad = (n: number): string => n.toString().padStart(2, "0");
 
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     } else if (typeof date == "number" || typeof date == "string") {

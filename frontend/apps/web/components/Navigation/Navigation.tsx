@@ -1,7 +1,7 @@
 "use client";
 
 // import { Downloads } from "@/components/MusicDownloader";
-import { useRef, useState } from "react";
+import { useRef, useState, type JSX } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -19,20 +19,20 @@ import {
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function Navigation() {
+export default function Navigation(): JSX.Element {
     const [open, setOpen] = useState(false);
     const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const activePage = usePathname();
     const $admin = useStore(rockIt.userManager.admin);
 
-    const handleMouseEnter = () => {
-        hoverTimeout.current = setTimeout(() => {
+    const handleMouseEnter = (): void => {
+        hoverTimeout.current = setTimeout((): void => {
             setOpen(true);
         }, 500);
     };
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (): void => {
         if (hoverTimeout.current) {
             clearTimeout(hoverTimeout.current);
             hoverTimeout.current = null;
@@ -112,13 +112,13 @@ export default function Navigation() {
             <div className="flex h-full w-56 flex-col gap-4">
                 <div
                     className="mx-2 flex h-8 w-8 items-center justify-center rounded-md transition-all"
-                    onClick={() => {
-                        setOpen((value) => !value);
+                    onClick={(): void => {
+                        setOpen((value): boolean => !value);
                     }}
                 >
                     <Menu className="h-5 w-5" />
                 </div>
-                {pages.map((page) => {
+                {pages.map((page): JSX.Element => {
                     return (
                         <Link
                             key={page.href}

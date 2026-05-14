@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { JSX, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { Download, Loader2 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -9,12 +9,12 @@ import {
     downloadResources,
 } from "@/lib/utils/downloadResources";
 
-export default function DownloadAppButton() {
+export default function DownloadAppButton(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [resources, setResources] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const handleClick = async () => {
+    const handleClick = async (): Promise<void> => {
         setLoading(true);
         try {
             await clearResources();
@@ -42,14 +42,16 @@ export default function DownloadAppButton() {
 
             {resources.length > 0 && (
                 <div className="grid grid-cols-2 gap-x-2 rounded-xl bg-neutral-800/50 p-3">
-                    {resources.map((resource) => (
-                        <span
-                            key={resource}
-                            className="w-full max-w-full min-w-0 truncate text-xs text-neutral-400"
-                        >
-                            {resource}
-                        </span>
-                    ))}
+                    {resources.map(
+                        (resource): JSX.Element => (
+                            <span
+                                key={resource}
+                                className="w-full max-w-full min-w-0 truncate text-xs text-neutral-400"
+                            >
+                                {resource}
+                            </span>
+                        )
+                    )}
                 </div>
             )}
         </div>

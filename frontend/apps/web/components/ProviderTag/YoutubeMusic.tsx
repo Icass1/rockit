@@ -1,4 +1,6 @@
-export default function YoutubeMusicProviderTag() {
+import { JSX } from "react";
+
+export default function YoutubeMusicProviderTag(): JSX.Element {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"

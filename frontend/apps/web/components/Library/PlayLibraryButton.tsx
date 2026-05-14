@@ -1,8 +1,9 @@
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function PlayLibraryButton() {
+export default function PlayLibraryButton(): JSX.Element {
     let icon;
 
     const $queue = useStore(rockIt.queueManager.queueAtom);
@@ -11,7 +12,7 @@ export default function PlayLibraryButton() {
     );
 
     const playingLibrary = $queue?.find(
-        (queueSong) =>
+        (queueSong): boolean =>
             queueSong.queueMediaId == $currentQueueMediaId &&
             queueSong?.listPublicId == "library"
     )
@@ -39,7 +40,7 @@ export default function PlayLibraryButton() {
     return (
         <>
             <div
-                onClick={() => {
+                onClick={(): void => {
                     if (playingLibrary && $playing) {
                         rockIt.mediaPlayerManager.play();
                     } else if (playingLibrary) {

@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { JSX, useEffect, useRef, type ReactNode } from "react";
 import { useContextMenu } from "@/components/ContextMenu/context";
 
 export default function ContextMenuTrigger({
     children,
 }: {
     children: ReactNode;
-}) {
+}): JSX.Element {
     const {
         _setContextMenuOpen,
         _setContextMenuPos,
@@ -19,23 +19,23 @@ export default function ContextMenuTrigger({
 
     const handleContextMenu = (
         event: React.MouseEvent<HTMLDivElement, globalThis.MouseEvent>
-    ) => {
+    ): void => {
         if (!_setContextMenuOpen || !_setContextMenuPos) return;
 
         event.preventDefault();
 
         _setContextMenuPos([event.clientX, event.clientY]);
-        _setContextMenuOpen((value) => !value);
+        _setContextMenuOpen((value): boolean => !value);
     };
 
-    useEffect(() => {
+    useEffect((): (() => void) | undefined => {
         if (!_setContextMenuOpen || innerWidth < 768) return;
 
         const closeContextMenu = (
             event:
                 | MouseEvent
                 | React.MouseEvent<HTMLDivElement, globalThis.MouseEvent>
-        ) => {
+        ): void => {
             if (_contextMenuDivRef?.current?.contains(event.target as Node))
                 return;
             _setContextMenuOpen(false);
@@ -45,7 +45,7 @@ export default function ContextMenuTrigger({
             document.addEventListener("mouseup", closeContextMenu);
             document.addEventListener("wheel", closeContextMenu);
         }
-        return () => {
+        return (): void => {
             document.removeEventListener("mouseup", closeContextMenu);
             document.removeEventListener("wheel", closeContextMenu);
         };

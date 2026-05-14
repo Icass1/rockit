@@ -1,4 +1,5 @@
 import {
+    BACKEND_URL,
     CurrentMediaMessageRequest,
     CurrentQueueMessageRequest,
     CurrentTimeMessageRequest,
@@ -14,7 +15,6 @@ import {
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
-import { BACKEND_URL } from "@rockit/shared";
 import { getSessionCookie } from "@/lib/api";
 
 function getWsUrl(): string {

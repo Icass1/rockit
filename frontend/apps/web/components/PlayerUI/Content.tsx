@@ -1,7 +1,6 @@
 "use client";
 
-// import "@/styles/PlayerUI.css";
-import { useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import useWindowSize from "@/hooks/useWindowSize";
@@ -10,7 +9,7 @@ import PlayerUILyrics from "@/components/PlayerUI/Lyrics";
 import PlayerUIMain from "@/components/PlayerUI/Main";
 import PlayerUIQueue from "@/components/PlayerUI/Queue";
 
-export default function PlayerUIContent() {
+export default function PlayerUIContent(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
 
@@ -23,8 +22,8 @@ export default function PlayerUIContent() {
     const [selectedTab, setSelectedTab] = useState<"QUEUE" | "LYRICS">("QUEUE");
 
     // Close player when clicking outside
-    useEffect(() => {
-        const handleDocumentClick = (e: MouseEvent) => {
+    useEffect((): (() => void) => {
+        const handleDocumentClick = (e: MouseEvent): void => {
             const target = e.target as Node;
             const insidePlayer = divRef.current?.contains(target);
             const insideFooter = document
@@ -35,14 +34,16 @@ export default function PlayerUIContent() {
             }
         };
         document.addEventListener("click", handleDocumentClick);
-        return () => document.removeEventListener("click", handleDocumentClick);
+        return (): void =>
+            document.removeEventListener("click", handleDocumentClick);
     }, []);
 
     // Scroll queue to current song when player opens
-    useEffect(() => {
+    useEffect((): void => {
         if (!$isPlayerUIVisible) return;
         const index = rockIt.queueManager.queue?.findIndex(
-            (s) => s.queueMediaId === rockIt.queueManager.currentQueueMediaId
+            (s): boolean =>
+                s.queueMediaId === rockIt.queueManager.currentQueueMediaId
         );
         if (index == null || index === -1) return;
         const queueEl = divRef.current?.querySelector(
@@ -118,17 +119,21 @@ export default function PlayerUIContent() {
             ) : (
                 <div className="z-10 grid h-full max-h-full min-h-0 min-w-0 grid-rows-[min-content_1fr] gap-2">
                     <div className="flex flex-row justify-center gap-4">
-                        {["QUEUE", "LYRICS"].map((tab) => (
-                            <button
-                                key={tab}
-                                className={`text-lg font-semibold transition hover:text-white ${selectedTab === tab ? "border-b-2 border-white text-white" : "text-gray-400"}`}
-                                onClick={() =>
-                                    setSelectedTab(tab as "LYRICS" | "QUEUE")
-                                }
-                            >
-                                {$vocabulary[tab]}
-                            </button>
-                        ))}
+                        {["QUEUE", "LYRICS"].map(
+                            (tab): JSX.Element => (
+                                <button
+                                    key={tab}
+                                    className={`text-lg font-semibold transition hover:text-white ${selectedTab === tab ? "border-b-2 border-white text-white" : "text-gray-400"}`}
+                                    onClick={(): void =>
+                                        setSelectedTab(
+                                            tab as "LYRICS" | "QUEUE"
+                                        )
+                                    }
+                                >
+                                    {$vocabulary[tab as "LYRICS" | "QUEUE"]}
+                                </button>
+                            )
+                        )}
                     </div>
                     {selectedTab == "LYRICS" ? (
                         <div className="z-10 h-full max-h-full min-h-0 min-w-0">

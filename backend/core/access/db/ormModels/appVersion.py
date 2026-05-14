@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,17 +17,17 @@ class AppVersionRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpd
 
     version: Mapped[str] = mapped_column(String, nullable=False)
     apk_filename: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
     downloads: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     def __init__(
         self,
         version: str,
         apk_filename: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         downloads: int = 0,
     ):
-        kwargs: Dict[str, Optional[str] | int | str] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs["version"] = version
         kwargs["apk_filename"] = apk_filename
         kwargs["description"] = description

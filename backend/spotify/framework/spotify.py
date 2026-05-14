@@ -774,15 +774,7 @@ class Spotify:
             sid for sid in spotify_ids if sid not in existing_album_ids
         ]
 
-        a_result_missing = await Spotify.get_missing_album_ids(
-            session=session, spotify_ids=spotify_ids_to_fetch
-        )
-        if a_result_missing.is_not_ok():
-            return AResult(
-                code=a_result_missing.code(), message=a_result_missing.message()
-            )
-
-        missing_album_ids: List[str] = a_result_missing.result()
+        missing_album_ids: List[str] = spotify_ids_to_fetch
         if not missing_album_ids:
             return a_result_existing
 
@@ -873,8 +865,16 @@ class Spotify:
                 provider_id=provider_id,
             )
 
-        return await Spotify.get_albums_from_db(
-            session=session, spotify_ids=spotify_ids
+        a_result_new = await Spotify.get_albums_from_db(
+            session=session, spotify_ids=missing_album_ids
+        )
+        new_albums: List[AlbumRow] = (
+            a_result_new.result() if a_result_new.is_ok() else []
+        )
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=existing_albums + new_albums,
         )
 
     @staticmethod
@@ -931,19 +931,10 @@ class Spotify:
         )
 
         existing_track_ids: Set[str] = {t.spotify_id for t in existing_tracks}
-        spotify_ids_to_fetch: List[str] = [
+        missing_track_ids: List[str] = [
             sid for sid in spotify_ids if sid not in existing_track_ids
         ]
 
-        a_result_missing = await Spotify.get_missing_track_ids(
-            session=session, spotify_ids=spotify_ids_to_fetch
-        )
-        if a_result_missing.is_not_ok():
-            return AResult(
-                code=a_result_missing.code(), message=a_result_missing.message()
-            )
-
-        missing_track_ids: List[str] = a_result_missing.result()
         if not missing_track_ids:
             return a_result_existing
 
@@ -962,8 +953,16 @@ class Spotify:
         if album_ids:
             await Spotify.get_albums_async(session=session, spotify_ids=list(album_ids))
 
-        return await Spotify.get_tracks_from_db(
-            session=session, spotify_ids=spotify_ids
+        a_result_new = await Spotify.get_tracks_from_db(
+            session=session, spotify_ids=missing_track_ids
+        )
+        new_tracks: List[TrackRow] = (
+            a_result_new.result() if a_result_new.is_ok() else []
+        )
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=existing_tracks + new_tracks,
         )
 
     @staticmethod
@@ -1023,15 +1022,7 @@ class Spotify:
             sid for sid in spotify_ids if sid not in existing_artist_ids
         ]
 
-        a_result_missing = await Spotify.get_missing_artist_ids(
-            session=session, spotify_ids=spotify_ids_to_fetch
-        )
-        if a_result_missing.is_not_ok():
-            return AResult(
-                code=a_result_missing.code(), message=a_result_missing.message()
-            )
-
-        missing_artist_ids: List[str] = a_result_missing.result()
+        missing_artist_ids: List[str] = spotify_ids_to_fetch
         if not missing_artist_ids:
             return a_result_existing
 
@@ -1061,8 +1052,16 @@ class Spotify:
             if a_result_artist.is_ok():
                 artist_map[raw_artist.id] = a_result_artist.result()
 
-        return await Spotify.get_artists_from_db(
-            session=session, spotify_ids=spotify_ids
+        a_result_new = await Spotify.get_artists_from_db(
+            session=session, spotify_ids=missing_artist_ids
+        )
+        new_artists: List[ArtistRow] = (
+            a_result_new.result() if a_result_new.is_ok() else []
+        )
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=existing_artists + new_artists,
         )
 
     @staticmethod
@@ -1190,6 +1189,53 @@ class Spotify:
 
         return await Spotify.get_playlists_from_db(
             session=session, spotify_ids=spotify_ids
+        )
+
+    # ── Bulk public_id → spotify_id resolvers ────────────────────────────────
+
+    @staticmethod
+    async def get_tracks_spotify_id_from_public_ids_async(
+        session: AsyncSession, public_ids: List[str]
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for tracks."""
+        return await SpotifyAccess.get_tracks_spotify_id_from_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+
+    @staticmethod
+    async def get_artists_spotify_id_from_public_ids_async(
+        session: AsyncSession, public_ids: List[str]
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for artists."""
+        return await SpotifyAccess.get_artists_spotify_id_from_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+
+    @staticmethod
+    async def get_playlists_spotify_id_from_public_ids_async(
+        session: AsyncSession, public_ids: List[str]
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for playlists."""
+        return await SpotifyAccess.get_playlists_spotify_id_from_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+
+    @staticmethod
+    async def get_albums_spotify_id_from_public_ids_async(
+        session: AsyncSession, public_ids: List[str]
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for albums."""
+        return await SpotifyAccess.get_albums_spotify_id_from_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+
+    @staticmethod
+    async def get_album_rows_from_public_ids_async(
+        session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[AlbumRow]]:
+        """Fetch AlbumRows for multiple public_ids in one query."""
+        return await SpotifyAccess.get_album_rows_from_public_ids_async(
+            session=session, public_ids=public_ids
         )
 
     @staticmethod

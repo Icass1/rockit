@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import TIMESTAMP, Boolean, ForeignKey, String, Integer
 from sqlalchemy.orm import mapped_column, relationship, Mapped
+from sqlalchemy.dialects.postgresql import INET
 
 from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -27,6 +28,7 @@ class SessionRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
     expires_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, unique=True
     )
+    ip: Mapped[str | None] = mapped_column(INET, nullable=True)
 
     user: Mapped["UserRow"] = relationship(
         "UserRow", back_populates="sessions", foreign_keys=[user_id]
@@ -43,12 +45,14 @@ class SessionRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
         expires_at: datetime,
         platform_key: int,
         disabled: bool = False,
+        ip: str | None = None,
     ):
-        kwargs: Dict[str, bool | datetime | int | str] = {}
+        kwargs: Dict[str, None | bool | datetime | int | str] = {}
         kwargs["session_id"] = session_id
         kwargs["user_id"] = user_id
         kwargs["expires_at"] = expires_at
         kwargs["platform_key"] = platform_key
         kwargs["disabled"] = disabled
+        kwargs["ip"] = ip
         for k, v in kwargs.items():
             setattr(self, k, v)

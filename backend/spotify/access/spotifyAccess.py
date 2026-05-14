@@ -1315,6 +1315,140 @@ class SpotifyAccess:
                 message=f"Failed to get playlists by spotify ids: {e}",
             )
 
+    # ── Bulk public_id → spotify_id resolvers ────────────────────────────────
+
+    @staticmethod
+    @time_it
+    async def get_tracks_spotify_id_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for tracks in one query."""
+
+        try:
+            if not public_ids:
+                return AResult(code=AResultCode.OK, message="OK", result={})
+
+            stmt = (
+                select(CoreMediaRow.public_id, TrackRow.spotify_id)
+                .join(TrackRow, TrackRow.id == CoreMediaRow.id)
+                .where(
+                    CoreMediaRow.public_id.in_(public_ids),
+                    CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
+                )
+            )
+            result = await session.execute(stmt)
+            mapping: Dict[str, str] = {
+                row.public_id: row.spotify_id for row in result.all()
+            }
+            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+
+        except Exception as e:
+            logger.error(f"Failed to bulk-resolve track public_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to bulk-resolve track public_ids: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_artists_spotify_id_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for artists in one query."""
+
+        try:
+            if not public_ids:
+                return AResult(code=AResultCode.OK, message="OK", result={})
+
+            stmt = (
+                select(CoreMediaRow.public_id, ArtistRow.spotify_id)
+                .join(ArtistRow, ArtistRow.id == CoreMediaRow.id)
+                .where(
+                    CoreMediaRow.public_id.in_(public_ids),
+                    CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
+                )
+            )
+            result = await session.execute(stmt)
+            mapping: Dict[str, str] = {
+                row.public_id: row.spotify_id for row in result.all()
+            }
+            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+
+        except Exception as e:
+            logger.error(f"Failed to bulk-resolve artist public_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to bulk-resolve artist public_ids: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_playlists_spotify_id_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for playlists in one query."""
+
+        try:
+            if not public_ids:
+                return AResult(code=AResultCode.OK, message="OK", result={})
+
+            stmt = (
+                select(CoreMediaRow.public_id, PlaylistRow.spotify_id)
+                .join(PlaylistRow, PlaylistRow.id == CoreMediaRow.id)
+                .where(
+                    CoreMediaRow.public_id.in_(public_ids),
+                    CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
+                )
+            )
+            result = await session.execute(stmt)
+            mapping: Dict[str, str] = {
+                row.public_id: row.spotify_id for row in result.all()
+            }
+            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+
+        except Exception as e:
+            logger.error(f"Failed to bulk-resolve playlist public_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to bulk-resolve playlist public_ids: {e}",
+            )
+
+    @staticmethod
+    @time_it
+    async def get_albums_spotify_id_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to spotify_ids for albums in one query."""
+
+        try:
+            if not public_ids:
+                return AResult(code=AResultCode.OK, message="OK", result={})
+
+            stmt = (
+                select(CoreMediaRow.public_id, AlbumRow.spotify_id)
+                .join(AlbumRow, AlbumRow.id == CoreMediaRow.id)
+                .where(
+                    CoreMediaRow.public_id.in_(public_ids),
+                    CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
+                )
+            )
+            result = await session.execute(stmt)
+            mapping: Dict[str, str] = {
+                row.public_id: row.spotify_id for row in result.all()
+            }
+            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+
+        except Exception as e:
+            logger.error(f"Failed to bulk-resolve album public_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to bulk-resolve album public_ids: {e}",
+            )
+
     # ── Image download helpers ────────────────────────────────────────────────
 
     @staticmethod

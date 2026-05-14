@@ -32,6 +32,7 @@ class Session:
         platform: PlatformEnum,
         user_id: int,
         rembember_me: bool,
+        ip: str | None,
     ) -> AResultCode:
         session_duration = SESSION_DURATION
 
@@ -49,6 +50,7 @@ class Session:
             user_id=user_id,
             expires_at=expires_at,
             platform=platform,
+            ip=ip,
         )
         if a_result_sesion.is_not_ok():
             logger.error(f"Error creating session {a_result_sesion.info()}")

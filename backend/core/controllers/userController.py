@@ -61,6 +61,7 @@ router = APIRouter(
 @router.get("")
 async def get_user(request: Request) -> UserSettingsResponse:
     """Get user settings."""
+
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         raise HTTPException(

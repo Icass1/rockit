@@ -156,11 +156,18 @@ def add_init_to_orm():
             sort_parameters: List[Parameter] = []
 
             for k in parameters:
-                if not ((not k.default_value and k.nullable) or k.default_value):
+                k_types = k.type.replace(" ", "").split("|")
+                if not (
+                    (not k.default_value and k.nullable and "None" in k_types)
+                    or k.default_value
+                ):
                     sort_parameters.append(k)
 
             for k in parameters:
-                if (not k.default_value and k.nullable) or k.default_value:
+                k_types = k.type.replace(" ", "").split("|")
+                if (
+                    not k.default_value and k.nullable and "None" in k_types
+                ) or k.default_value:
                     sort_parameters.append(k)
 
             types_set: Set[str] = set()
@@ -177,7 +184,7 @@ def add_init_to_orm():
 
                 if k.default_value:
                     init_stmt += f"={k.default_value}"
-                elif k.nullable:
+                elif k.nullable and "None" in types_set:
                     init_stmt += "=None"
 
             types_list = list(types_set)

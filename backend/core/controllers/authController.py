@@ -3,16 +3,19 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.utils.logger import getLogger
+
 from backend.core.aResult import AResult, AResultCode
+
+from backend.core.middlewares.authMiddleware import AuthMiddleware
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from backend.core.middlewares.requestLogMiddleware import RequestLogMiddleware
+
+from backend.core.access.db.ormModels.user import UserRow
+
 from backend.core.framework.auth.password import Password
 from backend.core.framework.auth.register import Register
 from backend.core.framework.auth.session import Session
-from backend.core.middlewares.authMiddleware import AuthMiddleware
-from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-
-from backend.utils.logger import getLogger
-
-from backend.core.access.db.ormModels.user import UserRow
 
 from backend.core.requests.logInRequest import LoginRequest
 from backend.core.requests.registerRequest import RegisterRequest
@@ -54,12 +57,21 @@ async def login(
 
     user: UserRow = a_result_user.result()
 
+    a_result_ip: AResult[str] = RequestLogMiddleware.get_current_ip(request)
+    ip: str | None = None
+    if a_result_ip.is_not_ok():
+        logger.error(f"Error getting user ip. {a_result_ip.info()}")
+
+    else:
+        ip = a_result_ip.result()
+
     a_result_session: AResultCode = await Session.create_session_async(
         session=session,
         response=response,
         user_id=user.id,
         platform=payload.platform,
         rembember_me=payload.rememberMe,
+        ip=ip,
     )
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")
@@ -87,12 +99,21 @@ async def register(
 
     user: UserRow = a_result_user.result()
 
+    a_result_ip: AResult[str] = RequestLogMiddleware.get_current_ip(request)
+    ip: str | None = None
+    if a_result_ip.is_not_ok():
+        logger.error(f"Error getting user ip. {a_result_ip.info()}")
+
+    else:
+        ip = a_result_ip.result()
+
     a_result_session = await Session.create_session_async(
         session=session,
         response=response,
         user_id=user.id,
         platform=payload.platform,
         rembember_me=payload.rememberMe,
+        ip=ip,
     )
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")

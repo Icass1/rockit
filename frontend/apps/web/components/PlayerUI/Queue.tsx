@@ -54,11 +54,11 @@ export default function PlayerUIQueue() {
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, index)}
                     onDragEnd={handleDragLeave}
-                    className={
+                    className={`border-t-2 ${
                         dragOverIndex === index
-                            ? "border-t-2 border-[#ee1086]"
-                            : ""
-                    }
+                            ? "border-[#ee1086]"
+                            : "border-transparent"
+                    }`}
                 >
                     <MediaContextMenu
                         media={queueItem.media}
@@ -66,9 +66,7 @@ export default function PlayerUIQueue() {
                     >
                         <QueueMedia
                             media={queueItem}
-                            onClick={() =>
-                                handleClick(queueItem.queueMediaId)
-                            }
+                            onClick={() => handleClick(queueItem.queueMediaId)}
                         />
                     </MediaContextMenu>
                 </div>

@@ -5,9 +5,13 @@ from typing import Callable, Awaitable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.core.access.db.ormModels.requestLog import RequestLogRow
-from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.utils.logger import getLogger
+
+from backend.core.aResult import AResult, AResultCode
+
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+
+from backend.core.access.db.ormModels.requestLog import RequestLogRow
 
 logger = getLogger(__name__)
 
@@ -35,6 +39,8 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 logger.warning("Using client host instead.")
                 request_ip = request.client.host
 
+        request.state.request_ip = request_ip
+
         start_time: float = time.monotonic()
         timestamp: str = datetime.now(timezone.utc).isoformat()
 
@@ -44,7 +50,6 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
 
         user_id: int | None = None
         try:
-            # user = DBSessionMiddleware.get_session(request=request)
             if hasattr(request.state, "user") and request.state.user:
                 user_id = request.state.user.id
         except:
@@ -71,3 +76,11 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
             logger.error(f"Error logging request: {e}", exc_info=True)
 
         return response
+
+    @staticmethod
+    def get_current_ip(request: Request) -> AResult[str]:
+        try:
+            return AResult(code=AResultCode.OK, message="OK", result=request.state.ip)
+        except:
+            logger.error("IP not in request state")
+            return AResult(AResultCode.GENERAL_ERROR, message="IP not in request state")

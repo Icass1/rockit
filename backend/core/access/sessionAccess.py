@@ -25,6 +25,7 @@ class SessionAccess:
         user_id: int,
         platform: PlatformEnum,
         expires_at: datetime,
+        ip: str | None,
     ) -> AResult[SessionRow]:
         try:
             session_row = SessionRow(
@@ -32,6 +33,7 @@ class SessionAccess:
                 user_id=user_id,
                 expires_at=expires_at,
                 platform_key=platform.value,
+                ip=ip,
             )
 
             session.add(session_row)

@@ -136,30 +136,5 @@ export class PlaylistManager {
             );
             return;
         }
-
-        const media = mediaRes.result.data;
-
-        if (playlistPublicId) {
-            const addRes = await Http.addMediaToPlaylistAsync(
-                playlistPublicId,
-                {
-                    mediaPublicId: media.publicId,
-                }
-            );
-
-            if (addRes.isOk()) {
-                rockIt.notificationManager.notifyInfo(
-                    "Media added successfully!"
-                );
-                rockIt.eventManager.dispatchEvent(EEvent.MediaAddedToPlaylist, {
-                    publicId: media.publicId,
-                    playlistPublicId,
-                });
-            } else {
-                rockIt.notificationManager.notifyError("Failed to add media.");
-            }
-        } else {
-            rockIt.notificationManager.notifyInfo("Media added successfully!");
-        }
     }
 }

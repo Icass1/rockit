@@ -4,9 +4,11 @@ import Image from "next/image";
 import { QueueResponseItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { GripVertical, Pause, Play } from "lucide-react";
-import { getMediaArtists, getMediaDuration } from "@/models/types/media";
+import { getMediaDuration, isDownloadable } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import Artists from "@/components/Artists/Artists";
+import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export function QueueMedia({
     media,
@@ -25,11 +27,11 @@ export function QueueMedia({
     return (
         <div
             onClick={onClick}
-            className={`group flex cursor-grab items-center gap-x-2 p-2 active:cursor-grabbing ${
+            className={`group flex cursor-grab items-center gap-x-2 rounded p-2 active:cursor-grabbing ${
                 isCurrent
-                    ? "bg-[rgba(50,50,50,0.75)]"
-                    : "md:hover:bg-[rgba(75,75,75,0.75)]"
-            }`}
+                    ? "bg-[rgba(50,50,50,0.4)]"
+                    : "md:hover:bg-[rgba(75,75,75,0.4)]"
+            } ${isDownloadable(media.media) && !media.media.downloaded && "pointer-events-none opacity-50"}`}
         >
             <div className="flex cursor-grab items-center pr-1 active:cursor-grabbing">
                 <GripVertical className="h-4 w-4 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -61,11 +63,13 @@ export function QueueMedia({
                 <p className="truncate text-base font-semibold text-white">
                     {media.media.name}
                 </p>
-                <p className="truncate text-sm text-gray-300">
-                    {getMediaArtists(media.media)
-                        ?.map((a: { name: string }) => a.name)
-                        .join(", ")}
-                </p>
+                <div className="flex flex-row items-center gap-2">
+                    <ProviderTag name={media.media.provider} />
+                    <Artists
+                        className="w-fit text-left text-sm text-gray-300"
+                        artists={media.media.artists}
+                    />
+                </div>
             </div>
 
             <p className="shrink-0 px-2 text-sm text-gray-300">

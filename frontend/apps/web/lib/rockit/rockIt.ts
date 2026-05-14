@@ -52,14 +52,18 @@ export class RockIt {
         if (typeof window === "undefined") return;
         this.webSocketManager.init();
     }
+
+    async init() {
+        rockIt.queueManager.init();
+        rockIt.userManager.init();
+        rockIt.downloaderManager.init();
+        rockIt.libraryManager.init();
+        rockIt.playlistManager.init();
+    }
 }
 
 export const rockIt = new RockIt();
 
 if (typeof window !== "undefined") {
-    rockIt.queueManager.init();
-    rockIt.userManager.init();
-    rockIt.downloaderManager.init();
-    rockIt.libraryManager.init();
-    rockIt.playlistManager.init();
+    rockIt.init();
 }

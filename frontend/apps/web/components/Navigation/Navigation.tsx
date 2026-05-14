@@ -87,13 +87,16 @@ export default function Navigation() {
             href: "/downloader",
             icon: Download,
         },
-        {
-            name: "Admin",
-            title: "Admin",
-            href: "/admin",
-            icon: ShieldEllipsis,
-            disabled: !$admin,
-        },
+        ...($admin
+            ? [
+                  {
+                      name: "Admin" as const,
+                      title: "Admin",
+                      href: "/admin",
+                      icon: ShieldEllipsis,
+                  },
+              ]
+            : []),
     ];
 
     return (

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
+import PlayerUILyrics from "@/components/PlayerUI/Lyrics";
 import PlayerUIMain from "@/components/PlayerUI/Main";
 import PlayerUIQueue from "@/components/PlayerUI/Queue";
 
@@ -99,7 +100,7 @@ export default function PlayerUIContent() {
             {isLandscape ? (
                 <>
                     <div className="z-10 order-3 h-full max-h-full min-h-0">
-                        Lyrics
+                        <PlayerUILyrics />
                     </div>
                     <div className="z-10 order-1 h-full max-h-full min-h-0">
                         <PlayerUIQueue />
@@ -108,7 +109,7 @@ export default function PlayerUIContent() {
             ) : isPortrait ? (
                 <div className="grid min-h-0 grid-cols-[1fr_1fr] gap-4">
                     <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
-                        Lyrics
+                        <PlayerUILyrics />
                     </div>
                     <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
                         <PlayerUIQueue />
@@ -131,7 +132,7 @@ export default function PlayerUIContent() {
                     </div>
                     {selectedTab == "LYRICS" ? (
                         <div className="z-10 h-full max-h-full min-h-0 min-w-0">
-                            Lyrics
+                            <PlayerUILyrics />
                         </div>
                     ) : selectedTab == "QUEUE" ? (
                         <div className="z-10 h-full max-h-full min-h-0 min-w-0">

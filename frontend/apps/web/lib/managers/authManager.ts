@@ -1,4 +1,3 @@
-import { getUserInClient } from "@/lib/getUserInClient";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -26,7 +25,7 @@ export class AuthManager {
         });
 
         if (res.isOk()) {
-            await rockIt.userManager.updateAsync();
+            rockIt.init();
             return { success: true };
         } else if (res.isNotOk()) {
             return { success: false, error: res.detail.toString() };
@@ -50,7 +49,7 @@ export class AuthManager {
         });
 
         if (res.isOk()) {
-            await rockIt.userManager.updateAsync();
+            rockIt.init();
             return { success: true };
         } else if (res.isNotOk()) {
             return { success: false, error: res.detail.toString() };

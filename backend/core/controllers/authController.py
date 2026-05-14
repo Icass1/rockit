@@ -61,7 +61,6 @@ async def login(
     ip: str | None = None
     if a_result_ip.is_not_ok():
         logger.error(f"Error getting user ip. {a_result_ip.info()}")
-
     else:
         ip = a_result_ip.result()
 
@@ -78,6 +77,8 @@ async def login(
         raise HTTPException(
             status_code=a_result_session.code(), detail=a_result_session.message()
         )
+    else:
+        logger.info(f"Session created for user {user.username} from ip {ip}.")
 
     return LoginResponse(userId=user.public_id)
 
@@ -120,6 +121,8 @@ async def register(
         raise HTTPException(
             status_code=a_result_session.code(), detail=a_result_session.message()
         )
+    else:
+        logger.info(f"Session created for user {user.username} from ip {ip}.")
 
     return RegisterResponse(userId=user.public_id)
 

@@ -52,10 +52,13 @@ export default function PlayerUIMain({
     if (isVideo(currentMedia)) {
         return (
             <div
-                ref={videoContainerRef}
-                className="relative h-full max-h-full cursor-pointer items-center rounded-lg"
+                className="relative h-full max-h-full cursor-pointer items-center"
                 onClick={handleClick}
             >
+                <div
+                    ref={videoContainerRef}
+                    className="absolute top-0 h-full max-h-full cursor-pointer items-center rounded-lg"
+                />
                 {iconOverlay}
                 <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col p-4">
                     <label className="text-2xl font-bold">
@@ -78,7 +81,7 @@ export default function PlayerUIMain({
                     src={currentMedia.imageUrl}
                     fill
                     alt={currentMedia.name}
-                    className="object-contain"
+                    className="mask-[linear-gradient(to_bottom,rgba(0,0,0,1)_80%,rgba(0,0,0,0.05)_100%)] object-contain"
                 />
                 {iconOverlay}
                 <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col p-4">

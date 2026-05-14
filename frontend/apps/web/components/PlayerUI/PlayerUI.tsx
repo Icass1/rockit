@@ -16,9 +16,9 @@ export default function PlayerUI() {
 
     return (
         <div
-            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/80 pt-22 pb-24 pl-12 transition-all duration-300"
+            className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black/80 pb-24 pl-12 transition-all duration-300"
             style={{
-                top: $isPlayerUIVisible ? "0%" : "100%",
+                top: $isPlayerUIVisible ? "calc(0%)" : "100%",
                 height: "calc(100%)",
             }}
         >

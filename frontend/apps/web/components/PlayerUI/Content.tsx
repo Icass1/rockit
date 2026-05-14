@@ -62,7 +62,7 @@ export default function PlayerUIContent() {
 
     const aspectRatio = width / height;
     const defaultStyles =
-        "relative grid h-full w-full gap-4 bg-black px-2 text-white";
+        "relative grid h-full w-full gap-4 bg-black px-2 text-white pt-24";
 
     const isLandscape = aspectRatio > 1.5;
     const isPortrait = aspectRatio < 1 / 1.5;

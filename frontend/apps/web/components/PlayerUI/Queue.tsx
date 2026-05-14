@@ -43,7 +43,7 @@ export default function PlayerUIQueue() {
     return (
         <div
             data-queue-scroll
-            className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto"
+            className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto mask-t-from-90% mask-b-from-90% py-16"
         >
             {$queue.map((queueItem, index) => (
                 <div

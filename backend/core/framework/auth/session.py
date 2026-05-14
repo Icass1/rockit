@@ -45,7 +45,7 @@ class Session:
         )
 
         a_result_sesion: AResult[SessionRow] = await SessionAccess.create_session_async(
-            session,
+            session=session,
             session_id=session_id,
             user_id=user_id,
             expires_at=expires_at,
@@ -76,7 +76,7 @@ class Session:
             key=SESSION_COOKIE,
             value=session_id,
             httponly=True,
-            max_age=SESSION_DURATION,
+            max_age=session_duration,
             samesite="lax",
             secure=secure,
             domain=domain,

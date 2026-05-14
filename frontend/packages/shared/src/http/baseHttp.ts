@@ -200,14 +200,17 @@ export class BaseHttp {
         );
     }
 
-    static async getAllVocabulary() {
-        return this.apiGetAsync(`/vocabulary`, dto.VocabularyResponseSchema);
+    static async getVocabularyByCode(langCode: string) {
+        return this.apiGetAsync(
+            `/vocabulary/${langCode}`,
+            dto.VocabularyResponseSchema
+        );
     }
 
     static async getUserVocabulary() {
         return this.apiGetAsync(
             `/vocabulary/user`,
-            dto.UserVocabularyResponseSchema
+            dto.VocabularyResponseSchema
         );
     }
 

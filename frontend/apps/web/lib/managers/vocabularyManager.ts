@@ -1,5 +1,6 @@
 import {
-    UserVocabularyResponse,
+    HttpResult,
+    VocabularyResponse,
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
@@ -33,11 +34,14 @@ export class VocabularyManager {
         );
     }
 
-    async getVocabulary() {
-        return await Http.getUserVocabulary();
+    async getVocabulary(
+        lang?: string
+    ): Promise<HttpResult<VocabularyResponse>> {
+        if (lang) return await Http.getVocabularyByCode(lang);
+        else return await Http.getUserVocabulary();
     }
 
-    setVocabulary(data: UserVocabularyResponse) {
+    setVocabulary(data: VocabularyResponse) {
         this._vocabularyAtom.set(createVocabularyProxy(data.vocabulary));
         this._langAtom.set(data.currentLang);
     }

@@ -23,6 +23,10 @@ export default function LoginModal() {
         rockIt.authManager.isLoggedInAsync().then(setIsLoggedIn);
     }, [router]);
 
+    useEffect(() => {
+        rockIt.vocabularyManager.getVocabulary("en");
+    }, []);
+
     const handleSubmit = useCallback(async () => {
         if (loading) return;
 

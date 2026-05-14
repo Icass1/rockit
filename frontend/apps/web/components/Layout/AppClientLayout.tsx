@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { UserVocabularyResponse } from "@/dto";
+import { VocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
@@ -14,7 +14,7 @@ export default function AppClientLayout({
     vocabulary,
     children,
 }: {
-    vocabulary: UserVocabularyResponse;
+    vocabulary: VocabularyResponse;
     children: React.ReactNode;
 }) {
     useEffect(() => {

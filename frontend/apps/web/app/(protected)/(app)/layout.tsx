@@ -7,13 +7,7 @@ export default async function AppLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const t1 = new Date().getTime();
-
     const vocabularyData = await rockIt.vocabularyManager.getVocabulary();
-    console.log(
-        "rockIt.vocabularyManager.getVocabulary()",
-        new Date().getTime() - t1
-    );
 
     if (vocabularyData.isNotOk()) {
         if (vocabularyData.code === 401) {

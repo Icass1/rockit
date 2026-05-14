@@ -6,13 +6,9 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.db.ormModels.language import LanguageRow
-
 from backend.core.access.vocabularyAccess import VocabularyAccess
 from backend.core.access.languageAccess import LanguageAccess
 from backend.core.framework.models.vocabulary import (
-    LanguageVocabulary,
-    AllVocabulary,
     VocabularyImportData,
 )
 
@@ -20,53 +16,6 @@ logger: Logger = getLogger(__name__)
 
 
 class Vocabulary:
-    @staticmethod
-    async def get_all_vocabulary(
-        session: AsyncSession,
-    ) -> AResult[AllVocabulary]:
-        """Get all vocabulary organized by language."""
-
-        a_result_languages: AResult[List[LanguageRow]] = (
-            await LanguageAccess.get_all_languages(session=session)
-        )
-        if a_result_languages.is_not_ok():
-            logger.error(f"Error getting languages. {a_result_languages.info()}")
-            return AResult(
-                code=a_result_languages.code(), message=a_result_languages.message()
-            )
-
-        a_result_vocabulary = await VocabularyAccess.get_all_vocabulary(session=session)
-        if a_result_vocabulary.is_not_ok():
-            logger.error(f"Error getting vocabulary. {a_result_vocabulary.info()}")
-            return AResult(
-                code=a_result_vocabulary.code(), message=a_result_vocabulary.message()
-            )
-
-        languages_dict: dict[str, LanguageVocabulary] = {
-            lang.lang_code: LanguageVocabulary(lang_code=lang.lang_code)
-            for lang in a_result_languages.result()
-        }
-
-        for vocab in a_result_vocabulary.result():
-            lang_code = next(
-                (
-                    l.lang_code
-                    for l in a_result_languages.result()
-                    if l.id == vocab.lang_id
-                ),
-                None,
-            )
-            if lang_code and lang_code in languages_dict:
-                languages_dict[lang_code].translations[vocab.key] = vocab.value
-
-        all_vocabulary = AllVocabulary(languages=list(languages_dict.values()))
-
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=all_vocabulary,
-        )
-
     @staticmethod
     async def get_vocabulary_by_lang_id(
         session: AsyncSession, lang_id: int
@@ -87,6 +36,24 @@ class Vocabulary:
             code=AResultCode.OK,
             message="OK",
             result=a_result_vocabulary.result(),
+        )
+
+    @staticmethod
+    async def get_vocabulary_by_lang_code(
+        session: AsyncSession, lang_code: str
+    ) -> AResult[dict[str, str]]:
+        """Get vocabulary for a language by its language code."""
+
+        a_result_language = await LanguageAccess.get_language_from_code(
+            session=session, lang_code=lang_code
+        )
+        if a_result_language.is_not_ok():
+            return AResult(
+                code=a_result_language.code(), message=a_result_language.message()
+            )
+
+        return await Vocabulary.get_vocabulary_by_lang_id(
+            session=session, lang_id=a_result_language.result().id
         )
 
     @staticmethod

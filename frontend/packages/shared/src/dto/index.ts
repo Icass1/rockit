@@ -358,10 +358,6 @@ export {
     type UserStatsResponse,
 } from "./userStatsResponse";
 export {
-    UserVocabularyResponseSchema,
-    type UserVocabularyResponse,
-} from "./userVocabularyResponse";
-export {
     VocabularyResponseSchema,
     type VocabularyResponse,
 } from "./vocabularyResponse";

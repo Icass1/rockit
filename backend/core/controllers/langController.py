@@ -12,47 +12,51 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.framework.vocabulary import Vocabulary
-from backend.core.framework.models.vocabulary import AllVocabulary
 from backend.core.access.languageAccess import LanguageAccess
 
 from backend.core.access.db.ormModels.user import UserRow
 
 from backend.core.responses.languagesResponse import LanguageItem, LanguagesResponse
-from backend.core.responses.userVocabularyResponse import UserVocabularyResponse
 from backend.core.responses.vocabularyResponse import VocabularyResponse
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
     prefix="/vocabulary",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Core", "Lang"],
 )
 
 
-@router.get("")
-async def get_all_vocabulary(request: Request) -> VocabularyResponse:
-    """Get all available vocabulary."""
+@router.get("/{lang_code}")
+async def get_vocabulary_by_code(
+    request: Request, lang_code: str
+) -> VocabularyResponse:
+    """Get vocabulary for a specific language code."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_vocabulary: AResult[AllVocabulary] = await Vocabulary.get_all_vocabulary(
-        session=session
+    a_result_vocabulary: AResult[Dict[str, str]] = (
+        await Vocabulary.get_vocabulary_by_lang_code(
+            session=session, lang_code=lang_code
+        )
     )
 
     if a_result_vocabulary.is_not_ok():
-        logger.error(f"Error getting vocabulary. {a_result_vocabulary.info()}")
         raise HTTPException(
             status_code=a_result_vocabulary.get_http_code(),
             detail=a_result_vocabulary.message(),
         )
 
-    vocab = a_result_vocabulary.result()
-    vocab_dict = {lang.lang_code: lang.translations for lang in vocab.languages}
-    return VocabularyResponse(vocabulary=vocab_dict)
+    return VocabularyResponse(
+        vocabulary=a_result_vocabulary.result(),
+        currentLang=lang_code,
+    )
 
 
 @router.get("/user")
-async def get_user_vocabulary(request: Request) -> UserVocabularyResponse:
+async def get_user_vocabulary(
+    request: Request,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> VocabularyResponse:
     """Get vocabulary for the authenticated user's language."""
 
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
@@ -80,7 +84,7 @@ async def get_user_vocabulary(request: Request) -> UserVocabularyResponse:
             detail=a_result_vocabulary.message(),
         )
 
-    return UserVocabularyResponse(
+    return VocabularyResponse(
         vocabulary=a_result_vocabulary.result(),
         currentLang=a_result_user.result().language.lang_code,
     )

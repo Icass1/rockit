@@ -14,25 +14,6 @@ logger: Logger = getLogger(__name__)
 
 class VocabularyAccess:
     @staticmethod
-    async def get_all_vocabulary(
-        session: AsyncSession,
-    ) -> AResult[List[VocabularyRow]]:
-        try:
-            stmt: Select[Tuple[VocabularyRow]] = select(VocabularyRow)
-            result: Result[Tuple[VocabularyRow]] = await session.execute(statement=stmt)
-
-            vocabulary: List[VocabularyRow] = list(result.scalars().all())
-
-            return AResult(code=AResultCode.OK, message="OK", result=vocabulary)
-
-        except Exception as e:
-            logger.error(f"Error in get_all_vocabulary: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to get vocabulary: {e}",
-            )
-
-    @staticmethod
     async def get_vocabulary_by_lang_id(
         session: AsyncSession, lang_id: int
     ) -> AResult[List[VocabularyRow]]:

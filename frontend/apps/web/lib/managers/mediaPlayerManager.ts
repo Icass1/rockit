@@ -77,7 +77,7 @@ export class MediaPlayerManager {
             this.playVideo();
         } else if (isSong(currentMedia)) {
             this.playAudio();
-        } else if (currentMedia.type == "station") {
+        } else if (currentMedia.type === "station") {
             console.warn("Not implemented");
         }
     }
@@ -159,6 +159,7 @@ export class MediaPlayerManager {
         if (!this._audio) return;
         rockIt.queueManager.clearCurrentMedia();
         this._audio.src = url;
+        this._audio.currentTime = 0;
         this._audio.volume = this._volumeAtom.get();
         this._audio
             .play()
@@ -234,7 +235,8 @@ export class MediaPlayerManager {
     }
 
     setMedia(useSavedCurrentTime: boolean = false): void {
-        // console.log("MediaPlayerManager.setMedia");
+        console.log("MediaPlayerManager.setMedia", useSavedCurrentTime);
+
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
@@ -246,7 +248,7 @@ export class MediaPlayerManager {
     }
 
     private setAudio(useSavedCurrentTime: boolean = false): void {
-        // console.log("MediaPlayerManager.setAudio");
+        console.log("MediaPlayerManager.setAudio", useSavedCurrentTime);
 
         this.clearVideo();
         // console.log({
@@ -282,6 +284,7 @@ export class MediaPlayerManager {
         this._audio.volume = this._volumeAtom.get();
         // console.log(audioSrc);
         this._audio.src = audioSrc;
+        this._audio.currentTime = 0;
 
         if (useSavedCurrentTime) {
             const savedTimeMs = rockIt.userManager.currentTimeMsAtom.get() ?? 0;
@@ -296,7 +299,7 @@ export class MediaPlayerManager {
     }
 
     private setVideo(useSavedCurrentTime: boolean = false): void {
-        // console.log("MediaPlayerManager.setVideo");
+        console.log("MediaPlayerManager.setVideo", useSavedCurrentTime);
 
         this.clearAudio();
         if (!this._video) return;
@@ -309,6 +312,7 @@ export class MediaPlayerManager {
 
         this._video.volume = this._volumeAtom.get();
         this._video.src = videoSrc;
+        this._video.currentTime = 0;
 
         if (useSavedCurrentTime) {
             const savedTimeMs = rockIt.userManager.currentTimeMsAtom.get() ?? 0;

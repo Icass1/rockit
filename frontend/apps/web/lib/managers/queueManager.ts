@@ -71,7 +71,7 @@ export class QueueManager {
                 .get()
                 .find(
                     (media): boolean =>
-                        media.queueMediaId ==
+                        media.queueMediaId ===
                         this._currentQueueMediaIdAtom.get()
                 );
 
@@ -97,12 +97,11 @@ export class QueueManager {
             .get()
             .find(
                 (media): boolean =>
-                    media.queueMediaId == this._currentQueueMediaIdAtom.get()
+                    media.queueMediaId === this._currentQueueMediaIdAtom.get()
             );
 
         this._currentMediaAtom.set(currentMedia?.media);
         this._currentListAtom.set(currentMedia?.listPublicId);
-        rockIt.mediaPlayerManager.setMedia(true);
     }
 
     skipBack(): void {
@@ -197,7 +196,7 @@ export class QueueManager {
     moveToMedia(publicId: string): void {
         const media = this._queueAtom
             .get()
-            .find((media): boolean => media.media.publicId == publicId);
+            .find((media): boolean => media.media.publicId === publicId);
         if (!media) {
             rockIt.notificationManager.notifyError(
                 "(moveToMedia) Media not found in queue."
@@ -216,7 +215,7 @@ export class QueueManager {
         const queue = this._queueAtom.get();
 
         const media = queue.find(
-            (media): boolean => media.queueMediaId == queueMediaId
+            (media): boolean => media.queueMediaId === queueMediaId
         );
 
         if (!media) {
@@ -267,7 +266,7 @@ export class QueueManager {
     async playList(media: TListMedia): Promise<void> {
         const medias = await this.getListMediasAsync(media);
 
-        if (medias.length == 0) return;
+        if (medias.length === 0) return;
 
         rockIt.queueManager.setMedia(
             medias.filter(isQueueable),

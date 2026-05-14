@@ -92,7 +92,7 @@ export default function Navigation() {
             title: "Admin",
             href: "/admin",
             icon: ShieldEllipsis,
-            disabled: $admin,
+            disabled: !$admin,
         },
     ];
 

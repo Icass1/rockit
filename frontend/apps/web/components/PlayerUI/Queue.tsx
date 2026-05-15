@@ -14,10 +14,25 @@ export default function PlayerUIQueue(): JSX.Element {
     );
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const queueContainerRef = useRef<HTMLDivElement>(null);
+    const followTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const followDisabledRef = useRef(false);
 
     useEffect(() => {
-        console.log(`Should scroll to element ${$currentQueueMediaId}`);
+        if (!$currentQueueMediaId || !queueContainerRef.current) return;
+        if (followDisabledRef.current) return;
+        const el = queueContainerRef.current.querySelector(
+            `[data-queue-media-id="${$currentQueueMediaId}"]`
+        );
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, [$currentQueueMediaId]);
+
+    const handleScroll = (): void => {
+        followDisabledRef.current = true;
+        if (followTimerRef.current) clearTimeout(followTimerRef.current);
+        followTimerRef.current = setTimeout(() => {
+            followDisabledRef.current = false;
+        }, 60_000);
+    };
 
     const handleDragStart = (e: React.DragEvent, index: number): void => {
         e.dataTransfer.setData("text/plain", String(index));
@@ -52,12 +67,15 @@ export default function PlayerUIQueue(): JSX.Element {
         <div
             data-queue-scroll
             ref={queueContainerRef}
+            onScroll={handleScroll}
             className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto mask-t-from-90% mask-b-from-90% py-16"
+            style={{ scrollBehavior: "smooth" }}
         >
             {$queue.map(
                 (queueItem, index): JSX.Element => (
                     <div
                         key={queueItem.queueMediaId}
+                        data-queue-media-id={queueItem.queueMediaId}
                         draggable="true"
                         onDragStart={(e): void => handleDragStart(e, index)}
                         onDragOver={(e): void => handleDragOver(e, index)}

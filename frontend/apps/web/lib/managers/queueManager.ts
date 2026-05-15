@@ -118,7 +118,7 @@ export class QueueManager {
         );
 
         const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
-        this.setQueueMediaId(queue[prevIndex].queueMediaId);
+        this.setQueueMediaId(queue[prevIndex].queueMediaId, -1);
         rockIt.mediaPlayerManager.play();
     }
 
@@ -209,7 +209,7 @@ export class QueueManager {
         this._currentListAtom.set(media.listPublicId);
     }
 
-    setQueueMediaId(queueMediaId: number): void {
+    setQueueMediaId(queueMediaId: number, direction: 1 | -1 = 1): void {
         this._currentQueueMediaIdAtom.set(queueMediaId);
 
         const queue = this._queueAtom.get();
@@ -229,9 +229,13 @@ export class QueueManager {
             console.warn("Current media is not downloaded");
             const index = queue.indexOf(media);
             for (let i = 1; i < queue.length; i++) {
-                const nextIndex = (index + i) % queue.length;
+                const nextIndex =
+                    (index + direction * i + queue.length) % queue.length;
                 if (queue[nextIndex].media.downloaded) {
-                    this.setQueueMediaId(queue[nextIndex].queueMediaId);
+                    this.setQueueMediaId(
+                        queue[nextIndex].queueMediaId,
+                        direction
+                    );
                     return;
                 }
             }

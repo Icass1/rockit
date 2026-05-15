@@ -1,5 +1,6 @@
 import {
     BaseAlbumWithSongsResponse,
+    BaseArtistResponse,
     BasePlaylistWithMediasResponse,
     BaseSongWithAlbumResponse,
 } from "@/dto";
@@ -39,6 +40,19 @@ export async function getPlaylistAsync(
         return response.result;
     } else {
         console.error("Error getting album", response.message, response.detail);
+    }
+    return undefined;
+}
+
+export async function getArtistAsync(
+    publicId: string
+): Promise<BaseArtistResponse | undefined> {
+    const response = await Http.getArtist(publicId);
+
+    if (response.isOk()) {
+        return response.result;
+    } else {
+        console.error("Error getting artist", response.message, response.detail);
     }
     return undefined;
 }

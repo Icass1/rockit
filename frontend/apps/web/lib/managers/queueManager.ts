@@ -229,8 +229,9 @@ export class QueueManager {
             console.warn("Current media is not downloaded");
             const index = queue.indexOf(media);
             for (let i = 1; i < queue.length; i++) {
-                if (queue[(index + i) % queue.length].media.downloaded) {
-                    this.setQueueMediaId(index + i);
+                const nextIndex = (index + i) % queue.length;
+                if (queue[nextIndex].media.downloaded) {
+                    this.setQueueMediaId(queue[nextIndex].queueMediaId);
                     return;
                 }
             }

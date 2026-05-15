@@ -214,10 +214,12 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
 }
 
 export function getMediaArtists(
-    media: TPlayableMedia | undefined
+    media: TMedia | undefined
 ): BaseArtistResponse[] {
     if (!media) return [];
     if (isSong(media) || isVideo(media)) {
+        return media.artists;
+    } else if (isAlbum(media)) {
         return media.artists;
     }
     return [];

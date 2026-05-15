@@ -42,14 +42,27 @@ export default function RenderListClient({
         if (type !== EMediaType.Playlist) return;
 
         const handleMediaAdded = (data: IMediaAddedToPlaylistEvent): void => {
-            Http.getMedia(data.publicId).then((data): void => {
-                if (data.isOk())
-                    setMedia((prev): TMedia[] => [...prev, data.result.media]);
-                else {
+            if (data.playlistPublicId !== publicId) return;
+
+            Http.getMedia(data.publicId).then((res): void => {
+                if (res.isOk()) {
+                    const newMedia = res.result.media;
+                    setMedia((prev): TMedia[] => {
+                        const idx = prev.findIndex(
+                            (m) => m.publicId === data.publicId
+                        );
+                        if (idx !== -1) return prev;
+
+                        const insertAt = Math.min(data.position, prev.length);
+                        const copy = [...prev];
+                        copy.splice(insertAt, 0, newMedia);
+                        return copy;
+                    });
+                } else {
                     console.error(
                         "Failed to fetch media data for added media:",
-                        data.message,
-                        data.detail
+                        res.message,
+                        res.detail
                     );
                 }
             });

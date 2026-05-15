@@ -49,6 +49,9 @@ from backend.core.framework.websocket.sendToUser import SendToUser
 from backend.core.responses.playlistCreatedMessage import PlaylistCreatedMessage
 from backend.core.responses.playlistRenamedMessage import PlaylistRenamedMessage
 from backend.core.responses.playlistDeletedMessage import PlaylistDeletedMessage
+from backend.core.responses.mediaAddedToPlaylistMessage import (
+    MediaAddedToPlaylistMessage,
+)
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
@@ -416,7 +419,9 @@ class Playlist:
                 code=AResultCode.BAD_REQUEST, message="Only owner can delete playlist."
             )
 
-        playlist_public_id_to_delete: str = a_result_playlist.result().core_playlist.public_id
+        playlist_public_id_to_delete: str = (
+            a_result_playlist.result().core_playlist.public_id
+        )
 
         a_result: AResult[bool] = await PlaylistAccess.delete_playlist_async(
             session=session, playlist_id=playlist_id
@@ -514,6 +519,23 @@ class Playlist:
 
         playlist_media = a_result.result()
         media_type = MediaTypeEnum(media_row.media_type_key)
+
+        a_result_contributors: AResult[List[PlaylistContributorRow]] = (
+            await PlaylistAccess.get_contributors_async(
+                session=session, playlist_id=playlist_id
+            )
+        )
+        if a_result_contributors.is_ok():
+            message = MediaAddedToPlaylistMessage(
+                publicId=media_row.public_id,
+                playlistPublicId=playlist_public_id,
+                position=playlist_media.position,
+            )
+            for contributor in a_result_contributors.result():
+                await SendToUser.send_to_user(
+                    user_id=contributor.user_id, message=message
+                )
+
         return AResult(
             code=AResultCode.OK,
             message="OK",

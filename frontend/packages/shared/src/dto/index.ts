@@ -150,6 +150,10 @@ export {
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
 export {
+    MediaAddedToPlaylistMessageSchema,
+    type MediaAddedToPlaylistMessage,
+} from "./mediaAddedToPlaylistMessage";
+export {
     MediaClickedMessageRequestSchema,
     type MediaClickedMessageRequest,
 } from "./mediaClickedMessageRequest";

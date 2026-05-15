@@ -2,6 +2,7 @@ import type {
     DownloadProgressMessage,
     LibraryMediaAddedMessage,
     LibraryMediaRemovedMessage,
+    MediaAddedToPlaylistMessage,
     MediaListenedMessage,
     PlaylistCreatedMessage,
     PlaylistDeletedMessage,
@@ -14,6 +15,7 @@ export enum EWebSocketMessage {
     TestWebSocketMessage = "test_web_socket_message",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
+    MediaAddedToPlaylist = "media_added_to_playlist",
     MediaListened = "media_listened",
     PlaylistCreated = "playlist_created",
     PlaylistRenamed = "playlist_renamed",
@@ -25,6 +27,7 @@ export interface IWebSocketMessagePayloadMap {
     [EWebSocketMessage.TestWebSocketMessage]: TestWebSocketMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
     [EWebSocketMessage.LibraryMediaRemoved]: LibraryMediaRemovedMessage;
+    [EWebSocketMessage.MediaAddedToPlaylist]: MediaAddedToPlaylistMessage;
     [EWebSocketMessage.MediaListened]: MediaListenedMessage;
     [EWebSocketMessage.PlaylistCreated]: PlaylistCreatedMessage;
     [EWebSocketMessage.PlaylistRenamed]: PlaylistRenamedMessage;
@@ -36,6 +39,7 @@ export type TWebSocketIncomingMessage =
     | TestWebSocketMessage
     | LibraryMediaAddedMessage
     | LibraryMediaRemovedMessage
+    | MediaAddedToPlaylistMessage
     | MediaListenedMessage
     | PlaylistCreatedMessage
     | PlaylistRenamedMessage

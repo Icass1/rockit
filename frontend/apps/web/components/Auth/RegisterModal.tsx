@@ -4,11 +4,14 @@ import { JSX, useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import UsernameInput from "@/components/Auth/UsernameInput";
 
 export default function SignupModal(): JSX.Element {
     const router = useRouter();
+
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -16,18 +19,32 @@ export default function SignupModal(): JSX.Element {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        const language = navigator.language.split("-")[0] ?? "en";
+        const func = async (): Promise<void> => {
+            const b =
+                await rockIt.vocabularyManager.getVocabularyAsync(language);
+            if (b.isOk()) rockIt.vocabularyManager.setVocabulary(b.result);
+        };
+        func();
+    }, []);
+
     const handleSubmit = useCallback(async (): Promise<void> => {
         setError("");
 
         if (loading) return;
 
         if (!username || !password || !repeatPassword) {
-            setError("All fields are required");
+            setError(
+                rockIt.vocabularyManager.vocabulary.ALL_FIELDS_REQUIRED
+            );
             return;
         }
 
         if (password !== repeatPassword) {
-            setError("Passwords don't match");
+            setError(
+                rockIt.vocabularyManager.vocabulary.PASSWORDS_DONT_MATCH
+            );
             return;
         }
 
@@ -40,7 +57,10 @@ export default function SignupModal(): JSX.Element {
         );
 
         if (!result.success) {
-            setError(result.error || "Register failed");
+            setError(
+                result.error ||
+                    rockIt.vocabularyManager.vocabulary.ERROR_REGISTER
+            );
             setLoading(false);
             return;
         }
@@ -73,16 +93,15 @@ export default function SignupModal(): JSX.Element {
             />
 
             <h2 className="text-foreground mt-4 text-3xl font-extrabold">
-                Create an Account
+                {$vocabulary.CREATE_ACCOUNT}
             </h2>
 
             <p className="mt-2 text-sm">
-                Or{" "}
                 <Link
                     href="/login"
                     className="text-primary md:hover:text-primary/80 font-bold"
                 >
-                    log in with an existing account
+                    {$vocabulary.OR_LOG_IN}
                 </Link>
             </p>
 
@@ -103,7 +122,7 @@ export default function SignupModal(): JSX.Element {
                         }
                         autoComplete="new-password"
                         className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
-                        placeholder="Password"
+                        placeholder={$vocabulary.PASSWORD}
                     />
 
                     <input
@@ -114,7 +133,7 @@ export default function SignupModal(): JSX.Element {
                         }
                         autoComplete="new-password"
                         className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
-                        placeholder="Repeat password"
+                        placeholder={$vocabulary.REPEAT_PASSWORD}
                     />
                 </div>
 
@@ -130,7 +149,9 @@ export default function SignupModal(): JSX.Element {
                         disabled={loading}
                         className="flex h-8 w-1/3 items-center justify-center rounded-md bg-blue-600 font-bold disabled:opacity-50 md:hover:bg-blue-800"
                     >
-                        {loading ? "Creating..." : "Sign up"}
+                        {loading
+                            ? $vocabulary.CREATING
+                            : $vocabulary.SIGN_UP}
                     </button>
                 </div>
             </div>

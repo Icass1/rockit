@@ -24,8 +24,10 @@ export default function LoginModal(): JSX.Element {
     }, [router]);
 
     useEffect(() => {
+        const language = navigator.language.split("-")[0] ?? "en";
         const func = async (): Promise<void> => {
-            const b = await rockIt.vocabularyManager.getVocabularyAsync("en");
+            const b =
+                await rockIt.vocabularyManager.getVocabularyAsync(language);
             if (b.isOk()) rockIt.vocabularyManager.setVocabulary(b.result);
         };
         func();
@@ -37,7 +39,10 @@ export default function LoginModal(): JSX.Element {
         setError("");
 
         if (!username || !password) {
-            setError("Username and password are required");
+            setError(
+                rockIt.vocabularyManager.vocabulary
+                    .USER_NAME_AND_PASSWORD_REQUIRED
+            );
             return;
         }
 
@@ -50,7 +55,9 @@ export default function LoginModal(): JSX.Element {
         );
 
         if (!result.success) {
-            setError(result.error || "Login failed");
+            setError(
+                result.error || rockIt.vocabularyManager.vocabulary.ERROR_LOGIN
+            );
             setLoading(false);
             return;
         }
@@ -76,7 +83,7 @@ export default function LoginModal(): JSX.Element {
             <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
                 <div className="flex items-center justify-center space-x-2">
                     <h2 className="text-foreground text-3xl font-extrabold">
-                        You are already logged in
+                        {$vocabulary.ALREADY_LOGGED_IN}
                     </h2>
                 </div>
                 <div className="mt-5 flex justify-center">
@@ -85,7 +92,7 @@ export default function LoginModal(): JSX.Element {
                         onClick={(): void => router.push("/")}
                         className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold md:hover:bg-green-800"
                     >
-                        Go to Home
+                        {$vocabulary.GO_HOME}
                     </button>
                 </div>
             </div>
@@ -97,7 +104,7 @@ export default function LoginModal(): JSX.Element {
             <div id="login-form">
                 <div className="flex items-center justify-center space-x-2">
                     <h2 className="text-foreground text-3xl font-extrabold">
-                        Log in to
+                        {$vocabulary.LOG_IN_TO}
                     </h2>
                     <Image
                         width={1024}
@@ -110,12 +117,11 @@ export default function LoginModal(): JSX.Element {
                 </div>
 
                 <p className="mt-2 text-sm">
-                    Or{" "}
                     <Link
                         href="/register"
                         className="text-primary md:hover:text-primary/80 font-bold"
                     >
-                        create a new account
+                        {$vocabulary.OR_CREATE_ACCOUNT}
                     </Link>
                 </p>
 
@@ -123,7 +129,7 @@ export default function LoginModal(): JSX.Element {
                     <div className="space-y-4">
                         <input
                             type="text"
-                            placeholder="Username"
+                            placeholder={$vocabulary.USERNAME}
                             className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                             autoComplete="username"
                             value={username}
@@ -134,7 +140,7 @@ export default function LoginModal(): JSX.Element {
 
                         <input
                             type="password"
-                            placeholder="Password"
+                            placeholder={$vocabulary.PASSWORD}
                             className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
                             autoComplete="current-password"
                             value={password}
@@ -173,19 +179,11 @@ export default function LoginModal(): JSX.Element {
                             onClick={handleSubmit}
                             className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold disabled:opacity-50 md:hover:bg-green-800"
                         >
-                            {loading ? "Logging in..." : "Log in"}
+                            {loading
+                                ? $vocabulary.LOGGING_IN
+                                : $vocabulary.LOG_IN}
                         </button>
                     </div>
-
-                    {/* OAuth sigue funcionando porque redirige al backend
-                    <div className="pt-2">
-                        <a
-                            href={`${rockIt.BACKEND_URL}/auth/google`}
-                            className="text-sm text-blue-400 hover:underline"
-                        >
-                            Login with Google
-                        </a>
-                    </div> */}
                 </div>
             </div>
         </div>

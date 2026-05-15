@@ -77,6 +77,8 @@ export interface Vocabulary {
     ALBUMS: string;
     ALBUMS_SINGLES: string;
     ALL: string;
+    ALL_FIELDS_REQUIRED: string;
+    ALREADY_LOGGED_IN: string;
     APRIL: string;
     ARTIST: string;
     ARTISTS: string;
@@ -92,6 +94,7 @@ export interface Vocabulary {
     COPY_LIST_URL: string;
     COPY_SONG_URL: string;
     CREATE: string;
+    CREATE_ACCOUNT: string;
     CREATING: string;
     DATE_ADDED: string;
     DECEMBER: string;
@@ -123,6 +126,8 @@ export interface Vocabulary {
     ERROR_GETTING_QUEUE: string;
     ERROR_GETTING_USER: string;
     ERROR_LIKING_MEDIA: string;
+    ERROR_LOGIN: string;
+    ERROR_REGISTER: string;
     ERROR_SEARCHING: string;
     ERROR_STARTING_DOWNLOAD: string;
     ERROR_UNLIKING_MEDIA: string;
@@ -143,6 +148,7 @@ export interface Vocabulary {
     GENERAL_STATS: string;
     GET_INFO: string;
     GETTING_INFO: string;
+    GO_HOME: string;
     GO_TO_ALBUM: string;
     GO_TO_ARTIST: string;
     HIDDEN_GEMS: string;
@@ -158,7 +164,10 @@ export interface Vocabulary {
     LIBRARY: string;
     LIKE: string;
     LIKED_SONGS: string;
+    LOG_IN: string;
+    LOG_IN_TO: string;
     LOG_OUT: string;
+    LOGGING_IN: string;
     LYRICS: string;
     MARCH: string;
     MAY: string;
@@ -184,6 +193,7 @@ export interface Vocabulary {
     NO_ALBUMS: string;
     NO_DATA: string;
     NO_LYRICS: string;
+    NO_MEDIA_PLAYING: string;
     NO_PLAYLISTS: string;
     NO_REPEAT: string;
     NO_RESULTS: string;
@@ -196,7 +206,11 @@ export interface Vocabulary {
     OCTOBER: string;
     OPEN_LIST: string;
     OPEN_SONG: string;
+    OR_CREATE_ACCOUNT: string;
+    OR_LOG_IN: string;
     PARTY: string;
+    PASSWORD: string;
+    PASSWORDS_DONT_MATCH: string;
     PAUSE_SONG: string;
     PENDING_REQUESTS: string;
     PIN: string;
@@ -212,6 +226,7 @@ export interface Vocabulary {
     PLAY_SONG: string;
     PLAYLISTS: string;
     PREVIOUS_MEDIA: string;
+    QUEUE: string;
     QUICK_SELECTIONS: string;
     RADIO: string;
     RADIO_EMPTY1: string;
@@ -250,6 +265,7 @@ export interface Vocabulary {
     SHARED_2_YOU: string;
     SHARED_FROM: string;
     SHOWING_DATA: string;
+    SIGN_UP: string;
     SONG: string;
     SONGS: string;
     SONGS_FOR_YOU: string;
@@ -271,8 +287,10 @@ export interface Vocabulary {
     UPDATING: string;
     UPLOAD: string;
     USER: string;
+    USER_NAME_AND_PASSWORD_REQUIRED: string;
     USER_SETTINGS: string;
     USER_STATS: string;
+    USERNAME: string;
     USERS_FRIENDS: string;
     USERS_LIST: string;
     VIDEOS: string;
@@ -281,6 +299,4 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    QUEUE: string;
-    NO_MEDIA_PLAYING: string;
 }

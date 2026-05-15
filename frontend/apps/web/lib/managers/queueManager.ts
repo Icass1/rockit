@@ -104,6 +104,33 @@ export class QueueManager {
         this._currentListAtom.set(currentMedia?.listPublicId);
     }
 
+    private _sendCurrentQueue(): void {
+        rockIt.webSocketManager.sendCurrentQueue({
+            queue: [
+                ...this.sortedQueue.map(
+                    (item): CurrentQueueMessageRequestItem => {
+                        return {
+                            listPublicId: item.listPublicId,
+                            mediaPublicId: item.media.publicId,
+                            queueType: EQueueType.SORTED,
+                            queueMediaId: item.queueMediaId,
+                        };
+                    }
+                ),
+                ...this.randomQueue.map(
+                    (item): CurrentQueueMessageRequestItem => {
+                        return {
+                            listPublicId: item.listPublicId,
+                            mediaPublicId: item.media.publicId,
+                            queueType: EQueueType.RANDOM,
+                            queueMediaId: item.queueMediaId,
+                        };
+                    }
+                ),
+            ],
+        });
+    }
+
     skipBack(): void {
         if (this.currentMedia?.publicId)
             rockIt.webSocketManager.sendSkipClicked({
@@ -167,30 +194,7 @@ export class QueueManager {
 
         this.updateQueue();
 
-        rockIt.webSocketManager.sendCurrentQueue({
-            queue: [
-                ...this.sortedQueue.map(
-                    (item): CurrentQueueMessageRequestItem => {
-                        return {
-                            listPublicId: item.listPublicId,
-                            mediaPublicId: item.media.publicId,
-                            queueType: EQueueType.SORTED,
-                            queueMediaId: item.queueMediaId,
-                        };
-                    }
-                ),
-                ...this.randomQueue.map(
-                    (item): CurrentQueueMessageRequestItem => {
-                        return {
-                            listPublicId: item.listPublicId,
-                            mediaPublicId: item.media.publicId,
-                            queueType: EQueueType.RANDOM,
-                            queueMediaId: item.queueMediaId,
-                        };
-                    }
-                ),
-            ],
-        });
+        this._sendCurrentQueue();
     }
 
     moveToMedia(publicId: string): void {
@@ -317,6 +321,7 @@ export class QueueManager {
         this.randomQueue.splice(toIndex, 0, movedRandomItem);
 
         this.updateQueue();
+        this._sendCurrentQueue();
     }
 
     addMediaNext(media: TPlayableMedia): void {

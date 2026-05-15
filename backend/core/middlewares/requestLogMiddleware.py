@@ -34,9 +34,9 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         if x_forwarded_for:
             request_ip = x_forwarded_for.split(",")[0]
         else:
-            logger.warning("Unable to get x_forwarded_for")
+            logger.debug("Unable to get x_forwarded_for")
             if request.client:
-                logger.warning("Using client host instead.")
+                logger.debug("Using client host instead.")
                 request_ip = request.client.host
 
         request.state.request_ip = request_ip

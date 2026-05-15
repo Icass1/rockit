@@ -102,6 +102,14 @@ async def get_vocabulary_by_code(
     )
 
     if a_result_vocabulary.is_not_ok():
+        logger.warning(
+            f"Language code '{lang_code}' not found, falling back to 'en'. {a_result_vocabulary.info()}"
+        )
+        a_result_vocabulary = await Vocabulary.get_vocabulary_by_lang_code(
+            session=session, lang_code="en"
+        )
+
+    if a_result_vocabulary.is_not_ok():
         logger.error(f"Unable to get language from code. {a_result_vocabulary.info()}")
         raise HTTPException(
             status_code=a_result_vocabulary.get_http_code(),

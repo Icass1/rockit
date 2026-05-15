@@ -100,10 +100,10 @@ export default function PlayerUIContent(): JSX.Element {
 
             {isLandscape ? (
                 <>
-                    <div className="z-10 order-3 h-full max-h-full min-h-0">
+                    <div className="z-10 order-1 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
                         <PlayerUILyrics />
                     </div>
-                    <div className="z-10 order-1 h-full max-h-full min-h-0">
+                    <div className="z-10 order-3 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
                         <PlayerUIQueue />
                     </div>
                 </>

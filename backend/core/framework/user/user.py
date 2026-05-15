@@ -97,6 +97,11 @@ class User:
 
         queue_items: List[UserQueueRow] = a_result_queue.result()
 
+        # Track original order to restore after grouping
+        original_order: dict[int, int] = {
+            item.queue_media_id: idx for idx, item in enumerate(queue_items)
+        }
+
         # Group queue items by (provider_id, media_type_key)
         groups: dict[tuple[int, int], list[tuple[int, str, int]]] = defaultdict(list)
         for item in queue_items:
@@ -187,6 +192,9 @@ class User:
                             queueType=QueueTypeEnum(queue_type_key),
                         )
                     )
+
+        # Restore original database order
+        queue.sort(key=lambda item: original_order.get(item.queueMediaId, 0))
 
         return AResult(
             code=AResultCode.OK,

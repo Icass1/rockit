@@ -45,8 +45,7 @@ export class MediaPlayerManager {
         this._audio.onended = (): void => this._handleEnded();
         this._audio.onerror = (e): void => {
             console.error("MediaPlayerManager: audio error", e);
-            this._loadingAtom.set(false);
-            this._playingAtom.set(false);
+            this._handleMediaError();
         };
 
         this._video = document.createElement("video");
@@ -61,8 +60,7 @@ export class MediaPlayerManager {
         this._video.onended = (): void => this._handleEnded();
         this._video.onerror = (e): void => {
             console.error("MediaPlayerManager: video error", e);
-            this._loadingAtom.set(false);
-            this._playingAtom.set(false);
+            this._handleMediaError();
         };
 
         MediaPlayerManager.#instance = this;
@@ -382,6 +380,42 @@ export class MediaPlayerManager {
                 currentTimeMs: Math.round(time * 1000),
                 mediaPublicId: currentMedia.publicId,
             });
+        }
+    }
+
+    private _handleMediaError(): void {
+        this._loadingAtom.set(false);
+
+        const repeat = rockIt.userManager.repeatModeAtom.get();
+        const queue = rockIt.queueManager.queue;
+        const currentId = rockIt.queueManager.currentQueueMediaId;
+
+        rockIt.notificationManager.notifyError(
+            rockIt.vocabularyManager.vocabulary.ERROR_LOADING_MEDIA_FILE
+        );
+
+        const queueItems = queue.map(
+            (item): { publicId: string; queueMediaId: number } => ({
+                publicId: item.media.publicId,
+                queueMediaId: item.queueMediaId,
+            })
+        );
+
+        const { action, nextId } = resolveNextOnEnd(
+            queueItems,
+            currentId,
+            repeat
+        );
+
+        if (action === EQueueAction.REPLAY) {
+            this.setMedia();
+            this.play();
+        } else if (action === EQueueAction.PLAY && nextId !== null) {
+            rockIt.queueManager.setQueueMediaId(nextId);
+            this.setMedia();
+            this.play();
+        } else {
+            this._playingAtom.set(false);
         }
     }
 

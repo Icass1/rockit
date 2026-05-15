@@ -19,6 +19,7 @@ export default function RenderListClient({
     media: initialMedia,
     showMediaIndex,
     showMediaImage,
+    expandedByMediaId,
 }: {
     publicId?: string;
     type: EMediaType;
@@ -28,6 +29,7 @@ export default function RenderListClient({
     media: TMedia[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
+    expandedByMediaId?: Record<string, boolean>;
 }): JSX.Element {
     const [media, setMedia] = useState(initialMedia);
 
@@ -82,6 +84,7 @@ export default function RenderListClient({
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
                 listPublicId={publicId}
+                expandedByMediaId={expandedByMediaId}
             />
         </>
     );

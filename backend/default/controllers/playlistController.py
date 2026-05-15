@@ -167,7 +167,10 @@ async def get_default_playlist_async(
 
     a_result_response: AResult[BasePlaylistWithMediasResponse] = (
         await Playlist.build_playlist_response_async(
-            session=session, playlist=playlist, owner_name=owner_name
+            session=session,
+            playlist=playlist,
+            owner_name=owner_name,
+            user_id=user.result().id,
         )
     )
     if a_result_response.is_not_ok():
@@ -217,7 +220,10 @@ async def update_playlist_async(
 
         a_result_response: AResult[BasePlaylistWithMediasResponse] = (
             await Playlist.build_playlist_response_async(
-                session=session, playlist=playlist_details, owner_name=owner_name
+                session=session,
+                playlist=playlist_details,
+                owner_name=owner_name,
+                user_id=user.result().id,
             )
         )
         if a_result_response.is_not_ok():

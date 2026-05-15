@@ -10,6 +10,7 @@ from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRo
 
 from backend.core.types.playlistContributor import PlaylistContributor
 
+from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.mediaAccess import MediaAccess
 from backend.core.access.userAccess import UserAccess
 
@@ -859,6 +860,7 @@ class Playlist:
         session: AsyncSession,
         playlist: PlaylistWithDetailsModel,
         owner_name: str,
+        user_id: int,
         _visited_playlist_ids: set[str] | None = None,
     ) -> AResult[BasePlaylistWithMediasResponse]:
         """Build a BasePlaylistResponse from a PlaylistWithDetailsModel."""
@@ -871,11 +873,21 @@ class Playlist:
         else:
             _visited_playlist_ids = _visited_playlist_ids | {playlist.public_id}
 
+        # Fetch expanded states for this user + playlist
+        a_result_expanded: AResult[dict[int, bool]] = (
+            await PlaylistAccess.get_user_media_expanded_map_async(
+                session=session, user_id=user_id, playlist_id=playlist.id
+            )
+        )
+        expanded_map: dict[int, bool] = (
+            a_result_expanded.result() if a_result_expanded.is_ok() else {}
+        )
+
         # Group media items by (provider_id, media_type)
-        groups: dict[tuple[int, MediaTypeEnum], list[tuple[int, str]]] = {}
+        groups: dict[tuple[int, MediaTypeEnum], list[tuple[int, str, int]]] = {}
         for idx, media in enumerate(playlist.medias):
             key = (media.provider_id, media.media_type)
-            groups.setdefault(key, []).append((idx, media.media_id))
+            groups.setdefault(key, []).append((idx, media.media_id, media.id))
 
         # Map index -> PlaylistResponseItem
         result_map: dict[int, Any] = {}
@@ -886,17 +898,22 @@ class Playlist:
                 logger.error(f"Provider not found for provider_id {provider_id}")
                 continue
 
-            public_ids = [public_id for _, public_id in items]
-            indices = [idx for idx, _ in items]
+            public_ids = [public_id for _, public_id, _ in items]
+            playlist_media_ids = [pm_id for _, _, pm_id in items]
+            indices = [idx for idx, _, _ in items]
 
             if media_type == MediaTypeEnum.SONG:
                 a_result = await provider.get_songs_async(
                     session=session, public_ids=public_ids
                 )
                 if a_result.is_ok():
-                    for idx, resp in zip(indices, a_result.result()):
+                    for idx, resp, pm_id in zip(
+                        indices, a_result.result(), playlist_media_ids
+                    ):
                         result_map[idx] = PlaylistResponseItem(
-                            item=resp, addedAt=playlist.date_added
+                            item=resp,
+                            addedAt=playlist.date_added,
+                            expanded=expanded_map.get(pm_id, False),
                         )
 
             elif media_type == MediaTypeEnum.VIDEO:
@@ -904,9 +921,13 @@ class Playlist:
                     session=session, public_ids=public_ids
                 )
                 if a_result.is_ok():
-                    for idx, resp in zip(indices, a_result.result()):
+                    for idx, resp, pm_id in zip(
+                        indices, a_result.result(), playlist_media_ids
+                    ):
                         result_map[idx] = PlaylistResponseItem(
-                            item=resp, addedAt=playlist.date_added
+                            item=resp,
+                            addedAt=playlist.date_added,
+                            expanded=expanded_map.get(pm_id, False),
                         )
 
             elif media_type == MediaTypeEnum.ALBUM:
@@ -914,16 +935,21 @@ class Playlist:
                     session=session, public_ids=public_ids
                 )
                 if a_result.is_ok():
-                    for idx, resp in zip(indices, a_result.result()):
+                    for idx, resp, pm_id in zip(
+                        indices, a_result.result(), playlist_media_ids
+                    ):
                         result_map[idx] = PlaylistResponseItem(
-                            item=resp, addedAt=playlist.date_added
+                            item=resp,
+                            addedAt=playlist.date_added,
+                            expanded=expanded_map.get(pm_id, False),
                         )
 
             elif media_type == MediaTypeEnum.PLAYLIST:
                 # Filter out already-visited playlists to prevent circular recursion
                 non_visited_public_ids: list[str] = []
                 non_visited_indices: list[int] = []
-                for idx, pid in zip(indices, public_ids):
+                non_visited_pm_ids: list[int] = []
+                for idx, pid, pm_id in zip(indices, public_ids, playlist_media_ids):
                     if pid in _visited_playlist_ids:
                         logger.warning(
                             f"Skipping circular playlist reference: {pid} already in ancestor chain"
@@ -931,6 +957,7 @@ class Playlist:
                     else:
                         non_visited_public_ids.append(pid)
                         non_visited_indices.append(idx)
+                        non_visited_pm_ids.append(pm_id)
 
                 if non_visited_public_ids:
                     from backend.default.framework.provider.defaultProvider import (
@@ -951,7 +978,11 @@ class Playlist:
                             public_ids=non_visited_public_ids,
                         )
                     if a_result.is_ok():
-                        for idx, resp in zip(non_visited_indices, a_result.result()):
+                        for idx, resp, pm_id in zip(
+                            non_visited_indices,
+                            a_result.result(),
+                            non_visited_pm_ids,
+                        ):
                             playlist_for_playlist = BasePlaylistForPlaylistResponse(
                                 type=resp.type,
                                 provider=resp.provider,
@@ -967,7 +998,9 @@ class Playlist:
                                 contributors=resp.contributors,
                             )
                             result_map[idx] = PlaylistResponseItem(
-                                item=playlist_for_playlist, addedAt=playlist.date_added
+                                item=playlist_for_playlist,
+                                addedAt=playlist.date_added,
+                                expanded=expanded_map.get(pm_id, False),
                             )
 
         # Build medias list in original order
@@ -1016,4 +1049,65 @@ class Playlist:
                 imageUrl=playlist.image_url,
                 owner=owner_name,
             ),
+        )
+
+    @staticmethod
+    async def set_media_expanded_async(
+        session: AsyncSession,
+        user_id: int,
+        playlist_public_id: str,
+        media_public_id: str,
+        is_expanded: bool,
+    ) -> AResult[bool]:
+        """Set expanded state for a playlist media item."""
+
+        # Look up playlist internal id
+        a_result_playlist: AResult[PlaylistRow] = (
+            await PlaylistAccess.get_playlist_by_public_id_async(
+                session=session, public_id=playlist_public_id
+            )
+        )
+        if a_result_playlist.is_not_ok():
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Playlist not found.",
+            )
+        playlist: PlaylistRow = a_result_playlist.result()
+
+        # Look up media internal id
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=media_public_id,
+                media_type_keys=None,
+            )
+        )
+        if a_result_media.is_not_ok():
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Media not found.",
+            )
+        media: CoreMediaRow = a_result_media.result()
+
+        # Look up playlist_media.id
+        a_result_pm: AResult[PlaylistMediaRow] = (
+            await PlaylistAccess.get_playlist_media_by_media_id_async(
+                session=session,
+                playlist_id=playlist.id,
+                media_id=media.id,
+            )
+        )
+        if a_result_pm.is_not_ok():
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Playlist media not found.",
+            )
+        playlist_media: PlaylistMediaRow = a_result_pm.result()
+
+        return await PlaylistAccess.set_user_media_expanded_async(
+            session=session,
+            user_id=user_id,
+            playlist_id=playlist.id,
+            playlist_media_id=playlist_media.id,
+            is_expanded=is_expanded,
         )

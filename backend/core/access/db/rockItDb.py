@@ -5,13 +5,16 @@ from importlib import import_module
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar
 
+from sqlalchemy import Connection, Inspector, Table, text, inspect
+from sqlalchemy.engine.cursor import CursorResult
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy import Connection, Inspector, Table, text, inspect
+from sqlalchemy.sql.base import Executable
 
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import time_it
@@ -72,6 +75,42 @@ $$ LANGUAGE plpgsql;
 """
 
 
+class ResilientAsyncSession(AsyncSession):
+    """AsyncSession that auto-recovers from aborted transactions.
+
+    When a SQL query fails, the asyncpg transaction enters an aborted state
+    where all subsequent commands are rejected. ``is_active`` still returns
+    ``True`` because only the asyncpg-level transaction is invalidated — the
+    SQLAlchemy-level transaction object is not rolled back until explicitly
+    told to.
+
+    This subclass catches ``InFailedSQLTransactionError`` inside ``execute()``,
+    rolls back the aborted transaction, and retries the statement once so that
+    the calling code sees the *original* error (e.g. a constraint violation)
+    instead of a confusing cascaded failure.
+    """
+
+    async def execute(
+        self,
+        statement: Executable,
+        params: Any = None,
+        **kw: Any,
+    ) -> CursorResult[Any]:
+        if not self.is_active:
+            await self.rollback()
+        try:
+            return await super().execute(statement, params, **kw)  # type: ignore  # noqa: PGH003
+        except DBAPIError as e:
+            # Check if the underlying asyncpg transaction was aborted by a
+            # prior failed statement. If so, roll back and retry so the
+            # caller gets the original error instead of a confusing
+            # "current transaction is aborted" message.
+            if hasattr(e, "orig") and "current transaction is aborted" in str(e.orig):
+                await self.rollback()
+                return await super().execute(statement, params, **kw)  # type: ignore  # noqa: PGH003
+            raise
+
+
 class RockItDB:
     @time_it
     def __init__(
@@ -108,7 +147,9 @@ class RockItDB:
             await conn.run_sync(CoreBase.metadata.create_all)
 
         # Now set SessionLocal AFTER tables are created
-        self.SessionLocal = async_sessionmaker(bind=self.engine, expire_on_commit=False)
+        self.SessionLocal = async_sessionmaker(
+            bind=self.engine, class_=ResilientAsyncSession, expire_on_commit=False
+        )
 
         logger.info("SessionLocal initialized.")
 
@@ -242,7 +283,10 @@ class RockItDB:
         session: AsyncSession = self.get_session()
         try:
             yield session
-            await session.commit()
+            if session.is_active:
+                await session.commit()
+            else:
+                await session.rollback()
         except Exception as e:
             logger.error(f"Error executing query ({e}). Rolling back...")
             await session.rollback()

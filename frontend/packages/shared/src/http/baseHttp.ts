@@ -200,13 +200,6 @@ export class BaseHttp {
         );
     }
 
-    static async getVocabularyByCode(langCode: string) {
-        return this.apiGetAsync(
-            `/vocabulary/${langCode}`,
-            dto.VocabularyResponseSchema
-        );
-    }
-
     static async getUserVocabulary() {
         return this.apiGetAsync(
             `/vocabulary/user`,
@@ -218,6 +211,13 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/vocabulary/languages`,
             dto.LanguagesResponseSchema
+        );
+    }
+
+    static async getVocabularyByCode(langCode: string) {
+        return this.apiGetAsync(
+            `/vocabulary/${langCode}`,
+            dto.VocabularyResponseSchema
         );
     }
 

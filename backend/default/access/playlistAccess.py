@@ -23,6 +23,9 @@ from backend.default.access.db.ormModels.playlist_contributor import (
 from backend.default.access.db.ormModels.user_disabled_playlist_media import (
     UserDisabledPlaylistMediaRow,
 )
+from backend.default.access.db.ormModels.user_playlist_media_expanded import (
+    UserPlaylistMediaExpandedRow,
+)
 
 logger: Logger = getLogger(__name__)
 
@@ -455,6 +458,83 @@ class PlaylistAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to enable media for user: {e}",
+            )
+
+    @staticmethod
+    async def get_user_media_expanded_map_async(
+        session: AsyncSession, user_id: int, playlist_id: int
+    ) -> AResult[dict[int, bool]]:
+        try:
+            stmt: Select[Tuple[UserPlaylistMediaExpandedRow]] = (
+                select(UserPlaylistMediaExpandedRow)
+                .join(
+                    PlaylistMediaRow,
+                    UserPlaylistMediaExpandedRow.playlist_media_id
+                    == PlaylistMediaRow.id,
+                )
+                .where(
+                    UserPlaylistMediaExpandedRow.user_id == user_id,
+                    PlaylistMediaRow.playlist_id == playlist_id,
+                )
+            )
+            result: Result[Tuple[UserPlaylistMediaExpandedRow]] = await session.execute(
+                statement=stmt
+            )
+            rows: list[UserPlaylistMediaExpandedRow] = list(result.scalars().all())
+            expanded_map: dict[int, bool] = {
+                r.playlist_media_id: r.is_expanded for r in rows
+            }
+            return AResult(code=AResultCode.OK, message="OK", result=expanded_map)
+        except Exception as e:
+            logger.error(
+                f"Error in get_user_media_expanded_map_async: {e}", exc_info=True
+            )
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get expanded medias: {e}",
+            )
+
+    @staticmethod
+    async def set_user_media_expanded_async(
+        session: AsyncSession,
+        user_id: int,
+        playlist_id: int,
+        playlist_media_id: int,
+        is_expanded: bool,
+    ) -> AResult[bool]:
+        try:
+            stmt: Select[Tuple[UserPlaylistMediaExpandedRow]] = select(
+                UserPlaylistMediaExpandedRow
+            ).where(
+                UserPlaylistMediaExpandedRow.user_id == user_id,
+                UserPlaylistMediaExpandedRow.playlist_media_id == playlist_media_id,
+            )
+            result: Result[Tuple[UserPlaylistMediaExpandedRow]] = await session.execute(
+                statement=stmt
+            )
+            existing: UserPlaylistMediaExpandedRow | None = result.scalar_one_or_none()
+
+            if existing:
+                existing.is_expanded = is_expanded
+            else:
+                expanded_row = UserPlaylistMediaExpandedRow(
+                    user_id=user_id,
+                    playlist_id=playlist_id,
+                    playlist_media_id=playlist_media_id,
+                    is_expanded=is_expanded,
+                )
+                session.add(instance=expanded_row)
+
+            await session.commit()
+            return AResult(code=AResultCode.OK, message="OK", result=True)
+        except Exception as e:
+            logger.error(
+                f"Error in set_user_media_expanded_async: {e}", exc_info=True
+            )
+            await session.rollback()
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to set expanded state: {e}",
             )
 
     @staticmethod

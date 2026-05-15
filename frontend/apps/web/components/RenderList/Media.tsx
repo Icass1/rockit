@@ -11,6 +11,7 @@ export function Media({
     showMediaIndex,
     showMediaImage,
     listPublicId,
+    expandedByMediaId,
 }: {
     index: number;
     media: TMedia;
@@ -19,6 +20,7 @@ export function Media({
     showMediaIndex: boolean;
     showMediaImage: boolean;
     listPublicId?: string;
+    expandedByMediaId?: Record<string, boolean>;
 }): JSX.Element {
     if (isPlayable(media)) {
         return (
@@ -39,6 +41,7 @@ export function Media({
                 allMedia={allMedia}
                 substractArtists={substractArtists}
                 listPublicId={listPublicId}
+                defaultExpanded={expandedByMediaId?.[media.publicId] ?? false}
             />
         );
     }

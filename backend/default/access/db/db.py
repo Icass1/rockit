@@ -10,6 +10,9 @@ from backend.default.access.db.ormModels.playlist_contributor import (
 from backend.default.access.db.ormModels.user_disabled_playlist_media import (
     UserDisabledPlaylistMediaRow as UserDisabledPlaylistMediaRow,
 )
+from backend.default.access.db.ormModels.user_playlist_media_expanded import (
+    UserPlaylistMediaExpandedRow as UserPlaylistMediaExpandedRow,
+)
 
 schemas = ["default_schema"]
 base = DefaultBase

@@ -14,6 +14,7 @@ export default function RenderList({
     showMediaIndex,
     showMediaImage,
     listPublicId,
+    expandedByMediaId,
 }: {
     title: string;
     artists: BaseArtistResponse[];
@@ -22,6 +23,7 @@ export default function RenderList({
     showMediaIndex: boolean;
     showMediaImage: boolean;
     listPublicId?: string;
+    expandedByMediaId?: Record<string, boolean>;
 }): JSX.Element {
     return (
         <div className="grid h-full w-full grid-cols-[1fr_3fr] gap-4">
@@ -80,6 +82,7 @@ export default function RenderList({
                             showMediaImage={showMediaImage}
                             showMediaIndex={showMediaIndex}
                             listPublicId={listPublicId}
+                            expandedByMediaId={expandedByMediaId}
                         />
                     )
                 )}

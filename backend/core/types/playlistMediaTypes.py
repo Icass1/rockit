@@ -9,3 +9,4 @@ T = TypeVar("T")
 class PlaylistResponseItem(BaseModel, Generic[T]):
     item: T
     addedAt: datetime
+    expanded: bool = False

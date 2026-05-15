@@ -1,6 +1,8 @@
 from typing import TypeVar, ParamSpec, Awaitable, Callable, Union, overload
 import functools
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.aResult import AResult, AResultCode
 from backend.utils.logger import getLogger
 
@@ -36,6 +38,15 @@ def safe_async(
 
         except Exception as e:
             logger.exception(f"Exception in {func.__name__}: {e}")
+
+            # Roll back session to prevent cascading InFailedSQLTransactionError
+            for arg in args:
+                if isinstance(arg, AsyncSession):
+                    try:
+                        await arg.rollback()
+                    except Exception:
+                        pass
+                    break
 
             # Detect whether function returns AResult or AResultCode
             return_type = func.__annotations__.get("return")

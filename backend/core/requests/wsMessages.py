@@ -63,3 +63,9 @@ class SeekMessageRequest(BaseModel):
     mediaPublicId: str
     timeFrom: float
     timeTo: float
+
+
+class MediaExpandedMessageRequest(BaseModel):
+    mediaPublicId: str
+    playlistPublicId: str
+    expanded: bool

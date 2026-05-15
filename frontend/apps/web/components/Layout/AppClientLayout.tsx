@@ -45,9 +45,7 @@ export default function AppClientLayout({
             </div>
 
             {/* Desktop Player UI - only visible on md+ screens */}
-            <div className="hidden md:block">
-                <PlayerUI />
-            </div>
+            <PlayerUI />
 
             {/* Desktop Footer - only visible on md+ screens */}
             <div className="fixed right-0 bottom-0 left-0 z-40 hidden h-24 md:block">

@@ -99,6 +99,7 @@ class DefaultProvider(BaseProvider):
                     session=session,
                     playlist=playlist,
                     owner_name=owner_name,
+                    user_id=user_id,
                     _visited_playlist_ids=_visited_playlist_ids,
                 )
             )

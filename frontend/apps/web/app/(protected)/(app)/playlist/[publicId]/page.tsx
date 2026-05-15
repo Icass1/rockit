@@ -52,6 +52,10 @@ export default async function PlaylistPage({
     }
 
     const playlistMedia = playlistResponse.medias.map((m): TMedia => m.item);
+    const expandedByMediaId: Record<string, boolean> = {};
+    for (const m of playlistResponse.medias) {
+        expandedByMediaId[m.item.publicId] = m.expanded;
+    }
 
     return (
         <RenderListClient
@@ -63,6 +67,7 @@ export default async function PlaylistPage({
             image={playlistResponse.imageUrl}
             showMediaImage
             showMediaIndex={false}
+            expandedByMediaId={expandedByMediaId}
         />
     );
 }

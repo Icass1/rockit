@@ -30,6 +30,7 @@ from backend.core.requests.wsMessages import (
     MediaClickedMessageRequest,
     SkipClickedMessageRequest,
     SeekMessageRequest,
+    MediaExpandedMessageRequest,
 )
 
 logger = getLogger(__name__)
@@ -134,6 +135,8 @@ class WebSocketManager:
                 await self._handle_seek(session, user_id, data)
             elif message_type == "queue_type":
                 await self._handle_queue_type(session, user_id, data)
+            elif message_type == "media_expanded":
+                await self._handle_media_expanded(session, user_id, data)
             else:
                 logger.warning(f"Unknown message type: {message_type}")
 
@@ -447,6 +450,29 @@ class WebSocketManager:
         if a_result.is_not_ok():
             logger.error(
                 f"Error adding user current time seek for user {user_id}. {a_result.info()}"
+            )
+
+    async def _handle_media_expanded(
+        self, session: AsyncSession, user_id: int, data: Dict[str, Any]
+    ) -> None:
+        expanded_msg = MediaExpandedMessageRequest(**data)
+        logger.info(
+            f"User {user_id} media expanded: {expanded_msg.mediaPublicId} "
+            f"in playlist {expanded_msg.playlistPublicId}: {expanded_msg.expanded}"
+        )
+
+        from backend.default.framework.playlist import Playlist
+
+        a_result: AResult[bool] = await Playlist.set_media_expanded_async(
+            session=session,
+            user_id=user_id,
+            playlist_public_id=expanded_msg.playlistPublicId,
+            media_public_id=expanded_msg.mediaPublicId,
+            is_expanded=expanded_msg.expanded,
+        )
+        if a_result.is_not_ok():
+            logger.error(
+                f"Error setting expanded state. {a_result.info()}"
             )
 
 

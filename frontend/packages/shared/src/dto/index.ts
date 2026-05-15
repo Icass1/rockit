@@ -158,6 +158,10 @@ export {
     type MediaEndedMessageRequest,
 } from "./mediaEndedMessageRequest";
 export {
+    MediaExpandedMessageRequestSchema,
+    type MediaExpandedMessageRequest,
+} from "./mediaExpandedMessageRequest";
+export {
     MediaListenedMessageSchema,
     type MediaListenedMessage,
 } from "./mediaListenedMessage";

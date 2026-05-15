@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type JSX } from "react";
+import { useCallback, useMemo, useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -15,20 +15,37 @@ import {
 import useMedia from "@/hooks/useMedia";
 import Artists from "@/components/Artists/Artists";
 import { Media } from "@/components/RenderList/Media";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export function ListMedia({
     media: _media,
     allMedia,
     substractArtists = [],
     listPublicId,
+    defaultExpanded,
 }: {
     media: TListMedia;
     allMedia?: TMedia[];
     substractArtists?: string[];
     listPublicId?: string;
+    defaultExpanded?: boolean;
 }): JSX.Element {
     const $media = useMedia(_media);
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(defaultExpanded ?? false);
+
+    const handleToggle = useCallback((): void => {
+        setExpanded((prev): boolean => {
+            const newValue = !prev;
+            if (listPublicId) {
+                rockIt.webSocketManager.sendMediaExpanded({
+                    mediaPublicId: $media.publicId,
+                    playlistPublicId: listPublicId,
+                    expanded: newValue,
+                });
+            }
+            return newValue;
+        });
+    }, [listPublicId, $media.publicId]);
 
     const medias: TMedia[] = useMemo((): TMedia[] => {
         if (isAlbumWithSongs($media)) {
@@ -67,7 +84,7 @@ export function ListMedia({
                 </div>
                 <button
                     type="button"
-                    onClick={(): void => setExpanded((prev): boolean => !prev)}
+                    onClick={handleToggle}
                     className="shrink-0 cursor-pointer"
                 >
                     {expanded ? (

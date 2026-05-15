@@ -22,7 +22,7 @@ import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
 
-function FooterLeftForSong({
+function FooterLeftForMedia({
     currentMedia,
 }: {
     currentMedia: TPlayableMedia;
@@ -63,17 +63,17 @@ function FooterLeftForSong({
                 </div>
             </div>
 
-            {/* Song info */}
+            {/* Media info */}
             <div className="relative h-full w-full max-w-full min-w-0 overflow-hidden">
                 <div className="relative top-1/2 flex -translate-y-1/2 flex-col">
                     <span className="w-full max-w-full min-w-0 truncate font-semibold">
-                        {currentMedia.name || "Unknown song"}
+                        {currentMedia.name}
                     </span>
                     <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                         <div className="truncate">
                             <Artists
                                 artists={getMediaArtists(currentMedia) ?? []}
-                            ></Artists>
+                            />
                         </div>
                         {album && (
                             <>
@@ -88,7 +88,7 @@ function FooterLeftForSong({
                                     }
                                     className="hidden truncate md:inline-block md:hover:underline"
                                 >
-                                    {album.name}{" "}
+                                    {album.name}
                                 </Link>
                             </>
                         )}
@@ -161,16 +161,18 @@ function FooterLeftForStation({
 }
 
 export default function FooterLeft(): JSX.Element {
-    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    if ($currentSong) return <FooterLeftForSong currentMedia={$currentSong} />;
+    if ($currentMedia)
+        return <FooterLeftForMedia currentMedia={$currentMedia} />;
     if ($currentStation)
         return <FooterLeftForStation currentStation={$currentStation} />;
 
     return (
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 md:w-1/3">
-            Nothing playing
+            {$vocabulary.NO_MEDIA_PLAYING}
         </div>
     );
 }

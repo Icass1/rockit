@@ -17,7 +17,9 @@ export default function ArtistClient({
             <div className="flex w-full max-w-lg flex-col items-center gap-6">
                 <div className="relative h-64 w-64 overflow-hidden rounded-full shadow-lg">
                     <Image
-                        src={artist.imageUrl || rockIt.SONG_PLACEHOLDER_IMAGE_URL}
+                        src={
+                            artist.imageUrl || rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        }
                         alt={artist.name}
                         fill
                         className="object-cover"
@@ -34,9 +36,10 @@ export default function ArtistClient({
                         href={artist.providerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded-lg bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700"
+                        className="flex flex-row gap-1 rounded-lg bg-neutral-800 px-4 py-2 text-sm hover:bg-neutral-700"
                     >
-                        Open in {artist.provider}
+                        Open in
+                        <ProviderTag name={artist.provider}></ProviderTag>
                     </Link>
                 </div>
             </div>

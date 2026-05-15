@@ -12,26 +12,47 @@ export default function PlayerUIQueue(): JSX.Element {
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
+    const $playerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
+
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const queueContainerRef = useRef<HTMLDivElement>(null);
     const followTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const followDisabledRef = useRef(false);
+    const isUserScrollingRef = useRef(false);
+    const userScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        if (!$currentQueueMediaId || !queueContainerRef.current) return;
+        if (
+            !$currentQueueMediaId ||
+            !queueContainerRef.current ||
+            !$playerUIVisible
+        )
+            return;
         if (followDisabledRef.current) return;
         const el = queueContainerRef.current.querySelector(
             `[data-queue-media-id="${$currentQueueMediaId}"]`
         );
-        el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, [$currentQueueMediaId]);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }, [$currentQueueMediaId, $playerUIVisible]);
+
+    const markUserScrolling = (): void => {
+        isUserScrollingRef.current = true;
+        if (userScrollTimerRef.current) clearTimeout(userScrollTimerRef.current);
+        userScrollTimerRef.current = setTimeout(() => {
+            isUserScrollingRef.current = false;
+        }, 200);
+    };
 
     const handleScroll = (): void => {
-        followDisabledRef.current = true;
-        if (followTimerRef.current) clearTimeout(followTimerRef.current);
-        followTimerRef.current = setTimeout(() => {
-            followDisabledRef.current = false;
-        }, 60_000);
+        if (isUserScrollingRef.current) {
+            followDisabledRef.current = true;
+            if (followTimerRef.current) clearTimeout(followTimerRef.current);
+            followTimerRef.current = setTimeout(() => {
+                followDisabledRef.current = false;
+            }, 10_000);
+        }
     };
 
     const handleDragStart = (e: React.DragEvent, index: number): void => {
@@ -68,6 +89,8 @@ export default function PlayerUIQueue(): JSX.Element {
             data-queue-scroll
             ref={queueContainerRef}
             onScroll={handleScroll}
+            onWheel={markUserScrolling}
+            onTouchMove={markUserScrolling}
             className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto mask-t-from-90% mask-b-from-90% py-16"
             style={{ scrollBehavior: "smooth" }}
         >

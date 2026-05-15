@@ -11,7 +11,7 @@ export default function useMedia<T extends TMedia>(media: T): T {
         if (isSearchResult(media)) return;
 
         const handleDownloaded = (data: IMediaDownloadedEvent): void => {
-            if (data.publicId != media.publicId) {
+            if (data.publicId !== media.publicId) {
                 return;
             }
 

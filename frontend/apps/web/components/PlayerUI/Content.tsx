@@ -118,7 +118,7 @@ export default function PlayerUIContent(): JSX.Element {
                 </div>
             ) : (
                 <div className="z-10 grid h-full max-h-full min-h-0 min-w-0 grid-rows-[min-content_1fr] gap-2">
-                    <div className="flex flex-row justify-center gap-4">
+                    <div className="relative flex flex-row justify-center gap-4">
                         {["QUEUE", "LYRICS"].map(
                             (tab): JSX.Element => (
                                 <button
@@ -135,17 +135,24 @@ export default function PlayerUIContent(): JSX.Element {
                             )
                         )}
                     </div>
-                    {selectedTab === "LYRICS" ? (
-                        <div className="z-10 h-full max-h-full min-h-0 min-w-0">
+                    <div className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0 overflow-hidden">
+                        <div
+                            className="absolute z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0 transition-all"
+                            style={{
+                                left: selectedTab === "LYRICS" ? "0%" : "100%",
+                            }}
+                        >
                             <PlayerUILyrics />
                         </div>
-                    ) : selectedTab === "QUEUE" ? (
-                        <div className="z-10 h-full max-h-full min-h-0 min-w-0">
+                        <div
+                            className="absolute z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0 transition-all"
+                            style={{
+                                left: selectedTab === "LYRICS" ? "100%" : "0%",
+                            }}
+                        >
                             <PlayerUIQueue />
                         </div>
-                    ) : (
-                        <div>{selectedTab}</div>
-                    )}
+                    </div>
                 </div>
             )}
         </div>

@@ -57,7 +57,7 @@ export default function PlayerUIMain({
             >
                 <div
                     ref={videoContainerRef}
-                    className="absolute top-0 h-full max-h-full cursor-pointer items-center rounded-lg"
+                    className="absolute top-0 h-full max-h-full w-full cursor-pointer items-center rounded-lg"
                 />
                 {iconOverlay}
                 <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col p-4">

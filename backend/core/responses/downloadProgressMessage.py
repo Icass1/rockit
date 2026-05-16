@@ -1,15 +1,22 @@
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, field_serializer
 from typing import Literal
 
-from backend.core.framework.downloader.types import DownloadStatus
+from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 
 class DownloadProgressMessage(BaseModel):
     type: Literal["download_progress"] = "download_progress"
-    download_id: int
     publicId: str
-    title: str
-    subTitle: str
-    status: DownloadStatus
+    mediaPublicId: str
+    name: str
+    subtitle: str | None = None
+    status: DownloadStatusEnum
     progress: float
-    message: str
+    imageUrl: str | None = None
+    dateStarted: datetime
+    dateEnded: datetime | None
+
+    @field_serializer("status")
+    def serialize_repeat_mode(self, status: DownloadStatusEnum) -> str:
+        return status.name

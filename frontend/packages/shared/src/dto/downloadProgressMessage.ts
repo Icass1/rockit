@@ -7,19 +7,22 @@ export const DownloadProgressMessageSchema = z.object({
     type: z
         .union([z.literal("download_progress")])
         .default("download_progress"),
-    download_id: z.number(),
     publicId: z.string(),
-    title: z.string(),
-    subTitle: z.string(),
-    status: z.union([
-        z.literal("converting"),
-        z.literal("completed"),
-        z.literal("downloading"),
-        z.literal("error"),
-        z.literal("starting"),
+    mediaPublicId: z.string(),
+    name: z.string(),
+    subtitle: z.string().nullable(),
+    status: z.enum([
+        "PENDING",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "FAILED",
+        "FETCHING",
+        "WAITING_FOR_QUEUE_SETUP",
     ]),
     progress: z.number(),
-    message: z.string(),
+    imageUrl: z.string().nullable(),
+    dateStarted: z.iso.datetime(),
+    dateEnded: z.iso.datetime().nullable(),
 });
 
 export type DownloadProgressMessage = z.infer<

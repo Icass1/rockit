@@ -24,7 +24,11 @@ for root, dirs, files in os.walk("."):
     if "node_modules" in root:
         continue
     for dir in dirs:
-        if dir.endswith("responses") or dir.endswith("requests") or dir.endswith("types"):
+        if (
+            dir.endswith("responses")
+            or dir.endswith("requests")
+            or dir.endswith("types")
+        ):
             folders_to_process.append(os.path.join(root, dir))
 
 
@@ -328,8 +332,7 @@ def convert_type_to_ts(
             non_none = [a for a in args if a is not type(None)]
             has_none = any(a is type(None) for a in args)
             parts_ts: List[str] = [
-                convert_type_to_ts(a, known_types, known_type_objects)
-                for a in non_none
+                convert_type_to_ts(a, known_types, known_type_objects) for a in non_none
             ]
             result = " | ".join(parts_ts)
             if has_none:
@@ -385,8 +388,7 @@ def generate_zod_schema(
         return (f"export const {class_name}Schema = z.any();\n", schema_refs, False)
 
     has_self_ref = any(
-        f"z.lazy(() => {class_name}Schema)" in zod_type
-        for zod_type in fields.values()
+        f"z.lazy(() => {class_name}Schema)" in zod_type for zod_type in fields.values()
     )
 
     if has_self_ref:
@@ -395,13 +397,17 @@ def generate_zod_schema(
         lines.append(f"export type {class_name} = {{")
         for field_name, field_info in model.model_fields.items():
             field_type = field_info.annotation
-            ts_type = "unknown" if field_type is None else convert_type_to_ts(
-                field_type, known_types, known_type_objects
+            ts_type = (
+                "unknown"
+                if field_type is None
+                else convert_type_to_ts(field_type, known_types, known_type_objects)
             )
             lines.append(f"    {field_name}: {ts_type};")
         lines.append("};")
         lines.append("")
-        lines.append(f"export const {class_name}Schema: z.ZodType<{class_name}> = z.lazy(() =>")
+        lines.append(
+            f"export const {class_name}Schema: z.ZodType<{class_name}> = z.lazy(() =>"
+        )
         lines.append(f"    z.object({{")
         for field_name, zod_type in fields.items():
             lines.append(f"        {field_name}: {zod_type},")
@@ -412,7 +418,9 @@ def generate_zod_schema(
         for field_name, zod_type in fields.items():
             lines.append(f"    {field_name}: {zod_type},")
         lines.append("});")
-        lines.append(f"\nexport type {class_name} = z.infer<typeof {class_name}Schema>;")
+        lines.append(
+            f"\nexport type {class_name} = z.infer<typeof {class_name}Schema>;"
+        )
 
     return ("\n".join(lines), schema_refs, has_self_ref)
 

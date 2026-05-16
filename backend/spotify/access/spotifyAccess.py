@@ -402,7 +402,7 @@ class SpotifyAccess:
             if row:
                 return AResult(code=AResultCode.OK, message="OK", result=row)
             row = ExternalImageRow(
-                public_id=str(uuid.uuid4()), url=url, width=width, height=height
+                public_id=create_id(32), url=url, width=width, height=height
             )
             session.add(row)
             await session.flush()

@@ -103,6 +103,7 @@ export default function SearchSection({
                                 {
                                     publicId: result.result.data.publicId,
                                     playlistPublicId: pl.publicId,
+                                    position: 0,
                                 }
                             );
                         }

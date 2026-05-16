@@ -53,7 +53,7 @@ export class WebSocketManager {
             if (type === EWebSocketMessage.DownloadProgress) {
                 const msg = data as DownloadProgressMessage;
                 const eventManager = EventManager.getInstance();
-                if (msg.status === "completed") {
+                if (msg.status === "COMPLETED") {
                     eventManager.dispatchEvent(EEvent.MediaDownloaded, {
                         publicId: msg.publicId,
                     });
@@ -61,7 +61,7 @@ export class WebSocketManager {
                 eventManager.dispatchEvent(EEvent.MediaDownloadStatus, {
                     publicId: msg.publicId,
                     completed: msg.progress,
-                    message: msg.message,
+                    message: msg.status,
                 });
             }
         } catch (error) {

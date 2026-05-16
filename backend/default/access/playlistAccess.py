@@ -528,9 +528,7 @@ class PlaylistAccess:
             await session.commit()
             return AResult(code=AResultCode.OK, message="OK", result=True)
         except Exception as e:
-            logger.error(
-                f"Error in set_user_media_expanded_async: {e}", exc_info=True
-            )
+            logger.error(f"Error in set_user_media_expanded_async: {e}", exc_info=True)
             await session.rollback()
             return AResult(
                 code=AResultCode.GENERAL_ERROR,

@@ -49,6 +49,7 @@ export class BaseHttp {
 
         if (!res.ok) {
             const obj = json as { detail?: FastApiError["detail"] };
+            console.error(obj.detail ?? "Unknown error");
 
             return new HttpResult<T>({
                 ok: false,
@@ -67,6 +68,7 @@ export class BaseHttp {
                 result: parsed,
             });
         } catch (err) {
+            console.error("Validation error", err);
             return new HttpResult<T>({
                 ok: false,
                 code: res.status,

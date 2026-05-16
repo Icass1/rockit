@@ -1,21 +1,31 @@
-from pydantic import BaseModel
 from typing import List
+from datetime import datetime
+from pydantic import BaseModel, field_serializer
+
+from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 
 class DownloadItemResponse(BaseModel):
     publicId: str
+    mediaPublicId: str
     name: str
     subtitle: str | None = None
+    status: DownloadStatusEnum
+    progress: float
     imageUrl: str | None = None
-    completed: float
-    message: str
-    dateAdded: str = ""
+    dateStarted: datetime
+    dateEnded: datetime | None
+
+    @field_serializer("status")
+    def serialize_repeat_mode(self, status: DownloadStatusEnum) -> str:
+        return status.name
 
 
 class DownloadGroupResponse(BaseModel):
     publicId: str
-    title: str
-    dateStarted: str
+    name: str
+    dateStarted: datetime
+    dateEnded: datetime | None
     success: int
     fail: int
     items: List[DownloadItemResponse]

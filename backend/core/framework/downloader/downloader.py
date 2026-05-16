@@ -7,6 +7,7 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.mediaAccess import MediaAccess
@@ -128,16 +129,6 @@ class Downloader:
     ) -> AResult[DownloadsResponse]:
         """Get all download groups with their items for a user."""
 
-        STATUS_MESSAGES: dict[int, str] = {
-            1: "In queue",
-            2: "Downloading",
-            3: "Done",
-            4: "Error",
-            5: "Fetching",
-            6: "Starting",
-            7: "Waiting",
-        }
-
         a_result_groups: AResult[list[DownloadGroupRow]] = (
             await DownloadAccess.get_download_groups_by_user_id(
                 session=session, user_id=user_id
@@ -207,10 +198,6 @@ class Downloader:
                                 if video.artists:
                                     subtitle = video.artists[0].name
 
-                    status_message: str = STATUS_MESSAGES.get(
-                        download.status_key, "Unknown"
-                    )
-
                     completed_val: float = 0.0
                     if download.status_key == 3:
                         completed_val = 100.0
@@ -222,36 +209,26 @@ class Downloader:
                         ]
                         completed_val = float(last_status.completed)
 
-                    download_date: str = ""
-                    try:
-                        if download.download_status_list:
-                            last_status: DownloadStatusRow = (
-                                download.download_status_list[-1]
-                            )
-                            if last_status.date_added:
-                                download_date = last_status.date_added.isoformat()
-                    except Exception:
-                        pass
-
                     items.append(
                         DownloadItemResponse(
                             publicId=media.public_id,
+                            mediaPublicId=media.public_id,
                             name=media_name,
                             subtitle=subtitle,
+                            status=DownloadStatusEnum(download.status_key),
                             imageUrl=image_url,
-                            completed=completed_val,
-                            message=status_message,
-                            dateAdded=download_date,
+                            progress=completed_val,
+                            dateStarted=download.date_started,
+                            dateEnded=download.date_ended,
                         )
                     )
 
             result_groups.append(
                 DownloadGroupResponse(
                     publicId=group.public_id,
-                    title=group.title,
-                    dateStarted=(
-                        group.date_started.isoformat() if group.date_started else ""
-                    ),
+                    name=group.title,
+                    dateStarted=group.date_started,
+                    dateEnded=group.date_ended,
                     success=group.success or 0,
                     fail=group.fail or 0,
                     items=items,

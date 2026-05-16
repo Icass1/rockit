@@ -2,138 +2,98 @@
 
 import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
-import { BaseSongWithAlbumResponse } from "@/dto";
+import { DownloadItemResponse, DownloadProgressMessage } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EMediaContextLocation } from "@rockit/shared";
-import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
-import { isSongWithAlbum } from "@/models/types/media";
-import useMedia from "@/hooks/useMedia";
-import { DownloadInfo } from "@/lib/managers/downloaderManager";
+import { EWebSocketMessage } from "@rockit/packages/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
-
-interface DownloadItemProps {
-    download: BaseSongWithAlbumResponse;
-}
 
 export default function DownloadItem({
-    download,
-}: DownloadItemProps): JSX.Element {
-    const $download = useMedia(download);
+    download: _download,
+}: {
+    download: DownloadItemResponse;
+}): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(
-        (): {
-            publicId: string;
-            message: string;
-            completed: number;
-            status: EDownloadInfoStatus.Downloading;
-        } => ({
-            publicId: download.publicId,
-            message: "",
-            completed: 0,
-            status: EDownloadInfoStatus.Downloading,
-        })
-    );
+
+    const [downloadInfo, setDownloadInfo] = useState<DownloadProgressMessage>({
+        type: "download_progress",
+        ..._download,
+    });
 
     useEffect((): (() => void) => {
-        const handleProgressUpdate = (progress: number): void => {
-            setDownloadInfo((prev): DownloadInfo | null => {
-                if (!prev) return prev;
-                return {
-                    ...prev,
-                    completed: progress,
-                    status:
-                        progress === 100
-                            ? EDownloadInfoStatus.Completed
-                            : progress === -1
-                              ? EDownloadInfoStatus.Failed
-                              : EDownloadInfoStatus.Downloading,
-                };
-            });
+        const handleProgress = (e: DownloadProgressMessage): void => {
+            if (e.publicId === _download.publicId) setDownloadInfo(e as never);
         };
 
-        // Subscribe to download progress updates
-        const unsubscribe =
-            rockIt.downloaderManager.subscribeToDownloadProgress(
-                download.publicId,
-                handleProgressUpdate
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.DownloadProgress,
+            handleProgress
+        );
+
+        return () => {
+            rockIt.webSocketManager.offMessage(
+                EWebSocketMessage.DownloadProgress,
+                handleProgress
             );
-
-        return (): void => {
-            unsubscribe();
         };
-    }, [download]);
-
-    const getStatusText = (): string => {
-        if (!downloadInfo) return $vocabulary.STARTING;
-        if (downloadInfo.completed === 100) return $vocabulary.COMPLETED;
-        if (downloadInfo.completed === -1) return $vocabulary.FAILED;
-        if (downloadInfo.completed >= 0) {
-            const minutes = Math.floor(downloadInfo.completed / 60);
-            const seconds = downloadInfo.completed % 60;
-            return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-        }
-        return $vocabulary.DOWNLOADING;
-    };
+    }, [_download]);
 
     const getProgressColor = (): string => {
-        if (!downloadInfo) return "#ee1086"; // pink for downloading
-        if (downloadInfo.completed === 100) return "#1cad60"; // green
-        if (downloadInfo.completed === -1) return "#c72e2e"; // red
+        // if (!downloadInfo) return "#ee1086"; // pink for downloading
+        // if (downloadInfo.completed === 100) return "#1cad60"; // green
+        // if (downloadInfo.completed === -1) return "#c72e2e"; // red
         return "#ee1086"; // pink for downloading
     };
 
     const handleRetry = async (): Promise<void> => {
-        try {
-            await rockIt.downloaderManager.startDownloadAsync(
-                download.providerUrl,
-                download.name
-            );
-        } catch (err) {
-            console.error("Retry failed:", err);
-        }
+        // try {
+        //     await rockIt.downloaderManager.startDownloadAsync(
+        //         download.providerUrl,
+        //         download.name
+        //     );
+        // } catch (err) {
+        //     console.error("Retry failed:", err);
+        // }
     };
 
     const handlePlay = (): void => {
-        if (downloadInfo?.completed === 100) {
-            const playable = [$download].filter(isSongWithAlbum);
-            if (playable.length > 0) {
-                rockIt.queueManager.setMedia(playable, "");
-                rockIt.queueManager.moveToMedia($download.publicId);
-                rockIt.mediaPlayerManager.play();
-            }
-        }
+        // if (downloadInfo?.completed === 100) {
+        //     const playable = [$download].filter(isSongWithAlbum);
+        //     if (playable.length > 0) {
+        //         rockIt.queueManager.setMedia(playable, "");
+        //         rockIt.queueManager.moveToMedia($download.publicId);
+        //         rockIt.mediaPlayerManager.play();
+        //     }
+        // }
     };
 
     return (
         <div className="flex items-start gap-4 border-b border-neutral-700 py-3">
-            <MediaContextMenu
-                media={$download}
-                location={EMediaContextLocation.DOWNLOADS}
-            >
-                <div className="shrink-0">
+            <div className="shrink-0">
+                {downloadInfo.imageUrl ? (
                     <Image
                         width={300}
                         height={300}
                         className="h-12 w-12 rounded object-cover"
-                        src={$download.imageUrl}
-                        alt={`Cover of $download.name`}
+                        src={downloadInfo.imageUrl}
+                        alt={`Cover of ${downloadInfo.name}`}
                     />
-                </div>
-            </MediaContextMenu>
+                ) : (
+                    <div className="h-12 w-12 bg-red-400"></div>
+                )}
+            </div>
 
             <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex items-start justify-between">
                     <h3 className="max-w-50 truncate font-semibold text-white">
-                        {$download.name}
+                        {downloadInfo.name}
                     </h3>
                     <span className="text-xs text-neutral-400">
-                        {getStatusText()}
+                        {$vocabulary[downloadInfo.status]}
                     </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-neutral-400">
-                    {$download.artists.map(
+                {/* <div className="flex items-center gap-2 text-sm text-neutral-400">
+                    {download.artists.map(
                         (artist, index): JSX.Element => (
                             <>
                                 <span
@@ -142,20 +102,22 @@ export default function DownloadItem({
                                 >
                                     {artist.name}
                                 </span>
-                                {index < $download.artists.length - 1 && ", "}
+                                {index < $download.length - 1 && ", "}
                             </>
                         )
                     )}
-                </div>
+                </div> */}
 
                 <div className="h-2.5 w-full rounded-full bg-neutral-700">
                     <div
                         className={`h-2.5 bg-${getProgressColor().replace("#", "")} rounded-full transition-all duration-300`}
-                        style={{ width: `${downloadInfo?.completed || 0}%` }}
-                    ></div>
+                        style={{
+                            width: `${downloadInfo.progress}%`,
+                        }}
+                    />
                 </div>
 
-                {downloadInfo?.completed === -1 && (
+                {downloadInfo.progress === -1 && (
                     <button
                         onClick={handleRetry}
                         className="mt-2 text-xs text-[#ee1086] hover:underline"
@@ -164,7 +126,7 @@ export default function DownloadItem({
                     </button>
                 )}
 
-                {downloadInfo?.completed === 100 && (
+                {downloadInfo.progress >= 100 && (
                     <button
                         onClick={handlePlay}
                         className="mt-2 flex items-center gap-1 rounded bg-neutral-700/50 px-2 py-0.5 text-xs text-white hover:bg-neutral-700"

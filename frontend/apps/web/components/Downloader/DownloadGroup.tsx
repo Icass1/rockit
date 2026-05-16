@@ -1,55 +1,14 @@
 "use client";
 
 import { useState, type JSX } from "react";
-import type { BaseSongWithAlbumResponse } from "@/dto";
+import { DownloadGroupResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
-import type {
-    DownloadGroup as DownloadGroupType,
-    DownloadInfo,
-} from "@/hooks/useDownloads";
+import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadItem from "@/components/Downloader/DownloadItem";
 
-/** Convert a DownloadInfo into a mock BaseSongWithAlbumResponse for the existing UI */
-function toBaseSong(item: DownloadInfo): BaseSongWithAlbumResponse {
-    return {
-        type: "song",
-        provider: "unknown",
-        publicId: item.publicId,
-        providerUrl: "",
-        name: item.title,
-        artists: [
-            {
-                type: "artist",
-                provider: "unknown",
-                publicId: "unknown",
-                url: "",
-                providerUrl: "",
-                name: "Unknown Artist",
-                imageUrl: "",
-            },
-        ],
-        audioSrc: null,
-        downloaded: false,
-        imageUrl: item.imageUrl ?? "",
-        duration_ms: 0,
-        discNumber: 0,
-        trackNumber: 0,
-        album: {
-            type: "album",
-            provider: "unknown",
-            publicId: "unknown",
-            url: "",
-            providerUrl: "",
-            name: "Unknown Album",
-            artists: [],
-            releaseDate: "",
-            imageUrl: "",
-        },
-    };
-}
-
 interface DownloadGroupProps {
-    group: DownloadGroupType;
+    group: DownloadGroupResponse;
     onClear?: () => void;
 }
 
@@ -57,17 +16,10 @@ export default function DownloadGroup({
     group,
     onClear,
 }: DownloadGroupProps): JSX.Element | null {
-    const [open, setOpen] = useState(group.isOpen);
+    const [open, setOpen] = useState(false);
+    const [avgProgress, setAvgProgress] = useState(34);
 
-    if (!group.items.length) return null;
-
-    const avgProgress =
-        group.id === "active"
-            ? Math.round(
-                  group.items.reduce((sum, i): number => sum + i.completed, 0) /
-                      group.items.length
-              )
-            : null;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
         <div className="rounded border border-neutral-600 bg-neutral-900/30 p-2">
@@ -84,11 +36,16 @@ export default function DownloadGroup({
                     )}
                     <span
                         className="inline-block h-2 w-2 rounded-full"
-                        style={{ backgroundColor: group.color }}
+                        style={{
+                            backgroundColor:
+                                group.fail > 0
+                                    ? "#c72e2e"
+                                    : group.success > 0
+                                      ? "#1cad60"
+                                      : "#ee1086",
+                        }}
                     />
-                    <span className="font-medium text-white">
-                        {group.label}
-                    </span>
+                    <span className="font-medium text-white">{group.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     {onClear && (
@@ -103,10 +60,7 @@ export default function DownloadGroup({
                             <Trash2 size={14} />
                         </button>
                     )}
-                    <span
-                        className="rounded px-2 py-0.5 text-xs"
-                        style={{ backgroundColor: group.badgeColor }}
-                    >
+                    <span className="rounded bg-neutral-700 px-2 py-0.5 text-xs">
                         {group.items.length}
                     </span>
                     {avgProgress !== null && (
@@ -121,11 +75,11 @@ export default function DownloadGroup({
                 <div className="mt-2 space-y-2">
                     {group.items.map(
                         (item): JSX.Element => (
-                            <DownloadItem
-                                key={item.publicId}
-                                download={toBaseSong(item)}
-                            />
+                            <DownloadItem key={item.publicId} download={item} />
                         )
+                    )}
+                    {group.items.length === 0 && (
+                        <label>{$vocabulary.NO_DOWNLOADS}</label>
                     )}
                 </div>
             )}

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import subprocess
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from yt_dlp import YoutubeDL
@@ -13,7 +14,7 @@ from backend.core.access.db import rockit_db
 from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 
-from backend.core.framework.downloader.types import DownloadStatus
+from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
 
@@ -52,13 +53,16 @@ logger = getLogger(__name__)
 
 async def _insert_and_broadcast(
     download_id: int,
+    download_public_id: str,
     user_id: int,
     public_id: str,
     title: str,
     artist: str,
-    status: DownloadStatus,
+    status: DownloadStatusEnum,
     progress: float,
     message: str,
+    date_started: datetime,
+    date_ended: datetime | None,
 ) -> None:
     async with rockit_db.session_scope_async() as session:
         a_result: AResult[DownloadStatusRow] = (
@@ -74,13 +78,14 @@ async def _insert_and_broadcast(
 
     await ws_manager.broadcast_progress(
         user_id=user_id,
-        download_id=download_id,
-        public_id=public_id,
+        download_public_id=download_public_id,
+        media_public_id=public_id,
         title=title,
-        artist=artist,
+        subTitle=artist,
         status=status,
         progress=progress,
-        message=message,
+        date_started=date_started,
+        date_ended=date_ended,
     )
 
 
@@ -141,6 +146,19 @@ class YouTubeDownloader:
         format_type: str,
         height: int = 1080,
     ) -> AResult[Dict[str, Any]]:
+        async with rockit_db.session_scope_async() as session:
+            a_result_row = await DownloadAccess.get_download_by_id(
+                session=session, download_id=download_id
+            )
+            if a_result_row.is_not_ok():
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR,
+                    message=f"Download row {download_id} not found",
+                )
+            download_row = a_result_row.result()
+            download_public_id: str = download_row.public_id
+            date_started: datetime = download_row.date_started
+
         output_path: str = TEMP_PATH
         os.makedirs(output_path, exist_ok=True)
 
@@ -196,13 +214,16 @@ class YouTubeDownloader:
                         asyncio.create_task,
                         _insert_and_broadcast(
                             download_id=download_id,
+                            download_public_id=download_public_id,
                             user_id=user_id,
                             public_id=public_id,
                             title=title,
                             artist=artist,
-                            status="downloading",
+                            status=DownloadStatusEnum.IN_PROGRESS,
                             progress=percent,
                             message=f"Downloading: {percent / 0.8:.1f}%",
+                            date_started=date_started,
+                            date_ended=None,
                         ),
                     )
             elif status == "finished":
@@ -210,13 +231,16 @@ class YouTubeDownloader:
                     asyncio.create_task,
                     _insert_and_broadcast(
                         download_id=download_id,
+                        download_public_id=download_public_id,
                         user_id=user_id,
                         public_id=public_id,
                         title=title,
                         artist=artist,
-                        status="converting",
+                        status=DownloadStatusEnum.IN_PROGRESS,
                         progress=80,
                         message="Converting...",
+                        date_started=date_started,
+                        date_ended=None,
                     ),
                 )
 
@@ -225,13 +249,16 @@ class YouTubeDownloader:
         try:
             await _insert_and_broadcast(
                 download_id=download_id,
+                download_public_id=download_public_id,
                 user_id=user_id,
                 public_id=public_id,
                 title=title,
                 artist=artist,
-                status="starting",
+                status=DownloadStatusEnum.IN_PROGRESS,
                 progress=0,
                 message="Starting download...",
+                date_started=date_started,
+                date_ended=None,
             )
 
             await loop.run_in_executor(
@@ -261,13 +288,16 @@ class YouTubeDownloader:
             logger.error(f"Error downloading YouTube video: {e}", exc_info=True)
             await _insert_and_broadcast(
                 download_id=download_id,
+                download_public_id=download_public_id,
                 user_id=user_id,
                 public_id=public_id,
                 title=title,
                 artist=artist,
-                status="error",
+                status=DownloadStatusEnum.FAILED,
                 progress=0,
                 message=f"Error: {str(e)}",
+                date_started=date_started,
+                date_ended=datetime.now(timezone.utc),
             )
             return AResult(
                 code=AResultCode.GENERAL_ERROR,

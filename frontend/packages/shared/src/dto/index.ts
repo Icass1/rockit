@@ -390,6 +390,5 @@ export {
     type YoutubeVideoResponse,
 } from "./youtubeVideoResponse";
 export { DictSchema, type Dict } from "./dict";
-export { DownloadStatusSchema, type DownloadStatus } from "./downloadStatus";
 export { ListSchema, type List } from "./list";
 export { SequenceSchema, type Sequence } from "./sequence";

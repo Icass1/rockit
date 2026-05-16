@@ -123,9 +123,7 @@ class SpotifyProvider(BaseProvider):
             session=session, spotify_ids=spotify_ids
         )
         if a_result_all.is_not_ok():
-            return AResult(
-                code=a_result_all.code(), message=a_result_all.message()
-            )
+            return AResult(code=a_result_all.code(), message=a_result_all.message())
         a_result_tracks = a_result_all
 
         a_result_responses = await get_tracks_responses_async(

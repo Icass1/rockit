@@ -6,8 +6,9 @@ import { DownloadItemResponseSchema } from "./downloadItemResponse";
 
 export const DownloadGroupResponseSchema = z.object({
     publicId: z.string(),
-    title: z.string(),
-    dateStarted: z.string(),
+    name: z.string(),
+    dateStarted: z.iso.datetime(),
+    dateEnded: z.iso.datetime().nullable(),
     success: z.number(),
     fail: z.number(),
     items: z.array(z.lazy(() => DownloadItemResponseSchema)),

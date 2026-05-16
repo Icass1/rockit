@@ -1,6 +1,7 @@
 import json
 import time as time_module
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict, List, Set
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +16,7 @@ from backend.core.framework import providers
 from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
-from backend.core.framework.downloader.types import DownloadStatus
+from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.framework.websocket.sendToUser import SendToUser
 from backend.core.framework.models.queue import QueueItem
 
@@ -89,22 +90,24 @@ class WebSocketManager:
     async def broadcast_progress(
         self,
         user_id: int,
-        download_id: int,
-        public_id: str,
+        download_public_id: str,
+        media_public_id: str,
         title: str,
-        artist: str,
-        status: DownloadStatus,
+        subTitle: str,
+        status: DownloadStatusEnum,
         progress: float,
-        message: str,
+        date_started: datetime,
+        date_ended: datetime | None,
     ) -> None:
         download_message: DownloadProgressMessage = DownloadProgressMessage(
-            download_id=download_id,
-            publicId=public_id,
-            title=title,
-            subTitle=artist,
+            publicId=download_public_id,
+            mediaPublicId=media_public_id,
+            name=title,
+            subtitle=subTitle,
             status=status,
             progress=progress,
-            message=message,
+            dateStarted=date_started,
+            dateEnded=date_ended,
         )
         await self.send_to_user(user_id=user_id, message=download_message)
 
@@ -471,9 +474,7 @@ class WebSocketManager:
             is_expanded=expanded_msg.expanded,
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error setting expanded state. {a_result.info()}"
-            )
+            logger.error(f"Error setting expanded state. {a_result.info()}")
 
 
 ws_manager = WebSocketManager()

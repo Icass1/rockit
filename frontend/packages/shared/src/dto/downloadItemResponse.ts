@@ -5,12 +5,21 @@ import { z } from "zod";
 
 export const DownloadItemResponseSchema = z.object({
     publicId: z.string(),
+    mediaPublicId: z.string(),
     name: z.string(),
     subtitle: z.string().nullable(),
+    status: z.enum([
+        "PENDING",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "FAILED",
+        "FETCHING",
+        "WAITING_FOR_QUEUE_SETUP",
+    ]),
+    progress: z.number(),
     imageUrl: z.string().nullable(),
-    completed: z.number(),
-    message: z.string(),
-    dateAdded: z.string().default(""),
+    dateStarted: z.iso.datetime(),
+    dateEnded: z.iso.datetime().nullable(),
 });
 
 export type DownloadItemResponse = z.infer<typeof DownloadItemResponseSchema>;

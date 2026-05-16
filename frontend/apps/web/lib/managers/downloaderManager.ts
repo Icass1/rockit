@@ -1,6 +1,4 @@
-import { DownloadProgressMessage, EWebSocketMessage } from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
-import { EEvent } from "@/models/enums/events";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { ArrayAtom, createArrayAtom } from "@/lib/store";
@@ -22,10 +20,6 @@ export class DownloaderManager {
         }
         // console.log("DownloaderManager.init");
         this._initialized = true;
-        rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.DownloadProgress,
-            this.updateDownloadProgress.bind(this)
-        );
     }
 
     get downloadInfoAtom(): ArrayAtom<DownloadInfo> {
@@ -60,39 +54,6 @@ export class DownloaderManager {
         }
     }
 
-    subscribeToDownloadProgress(
-        publicId: string,
-        callback: (progress: number) => void
-    ): () => void {
-        // Return an unsubscribe function
-        // In a real implementation, we would store the callback and call it when progress updates come in
-        // For now, we'll return a simple unsubscribe function
-        console.log(`Subscribing to download progress for ${publicId}`);
-
-        // We'll use the event manager to listen for progress updates
-        const handler = (data: {
-            publicId: string;
-            completed: number;
-            message: string;
-        }): void => {
-            if (data.publicId === publicId) {
-                callback(data.completed);
-            }
-        };
-
-        rockIt.eventManager.addEventListener(
-            EEvent.MediaDownloadStatus,
-            handler
-        );
-
-        return (): void => {
-            rockIt.eventManager.removeEventListener(
-                EEvent.MediaDownloadStatus,
-                handler
-            );
-        };
-    }
-
     async downloadMediaAsync(publicIds: string[], name: string): Promise<void> {
         const response = await Http.startDownload({
             ids: publicIds,
@@ -113,43 +74,5 @@ export class DownloaderManager {
                 response.detail
             );
         }
-    }
-
-    updateDownloadProgress(data: DownloadProgressMessage): void {
-        // Map the data to our DownloadInfo format
-        const downloadInfo: DownloadInfo = {
-            publicId: data.publicId,
-            message: data.message,
-            completed: data.progress,
-            status:
-                data.progress === 100
-                    ? EDownloadInfoStatus.Completed
-                    : data.progress === -1
-                      ? EDownloadInfoStatus.Failed
-                      : EDownloadInfoStatus.Downloading,
-        };
-
-        // Update or add the download info
-        this._downloadInfoAtom.set(
-            this._downloadInfoAtom
-                .get()
-                .map(
-                    (item): DownloadInfo =>
-                        item.publicId === data.publicId ? downloadInfo : item
-                )
-                .filter((item): boolean => item.publicId !== data.publicId)
-                .concat(downloadInfo)
-        );
-
-        if (data.status === EDownloadInfoStatus.Completed) {
-            rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
-                publicId: data.publicId,
-            });
-        }
-        rockIt.eventManager.dispatchEvent(EEvent.MediaDownloadStatus, {
-            publicId: data.publicId,
-            completed: data.progress,
-            message: data.message,
-        });
     }
 }

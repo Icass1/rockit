@@ -214,6 +214,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                             {
                                 publicId: response.result.data.publicId,
                                 playlistPublicId: pl.publicId,
+                                position: 0,
                             }
                         );
                     },

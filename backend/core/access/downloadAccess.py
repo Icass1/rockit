@@ -78,8 +78,10 @@ class DownloadAccess:
             return AResult(code=AResultCode.OK, message="OK", result=existing_pending)
 
         row: DownloadRow = DownloadRow(
+            public_id=create_id(32),
             download_group_id=download_group_id,
             media_id=song_id,
+            date_started=datetime.now(timezone.utc),
         )
         session.add(row)
         await session.flush()

@@ -43,16 +43,18 @@ export function useDownloads() {
         const flatDownloads: DownloadInfo[] = [];
         for (const group of downloadGroups) {
             for (const item of group.items || []) {
+                const isDone = item.progress >= 100 || item.status === "COMPLETED";
+                const isError = item.status === "FAILED";
                 flatDownloads.push({
                     publicId: item.publicId,
                     groupId: group.publicId,
                     title: item.name,
                     subtitle: item.subtitle ?? null,
                     imageUrl: item.imageUrl ?? null,
-                    status: item.message,
-                    completed: item.message === "Done" ? 100 : item.completed,
-                    message: item.message,
-                    dateAdded: item.dateAdded ?? "",
+                    status: item.status,
+                    completed: item.progress,
+                    message: isDone ? "Done" : isError ? "Error" : item.status,
+                    dateAdded: item.dateStarted ?? "",
                 });
             }
         }
@@ -66,7 +68,7 @@ export function useDownloads() {
             if (cancelled) return;
             setDownloads((prev) => {
                 const existing = prev.find((d) => d.publicId === data.publicId);
-                const message = data.progress >= 100 ? "Done" : data.message;
+                const message = data.progress >= 100 ? "Done" : data.status === "FAILED" ? "Error" : data.status;
                 const completed = data.progress >= 100 ? 100 : data.progress;
 
                 if (existing) {
@@ -74,9 +76,9 @@ export function useDownloads() {
                         d.publicId === data.publicId
                             ? {
                                   ...d,
-                                  title: data.title || d.title,
-                                  subtitle: data.subTitle || d.subtitle,
-                                  status: message,
+                                  title: data.name || d.title,
+                                  subtitle: data.subtitle || d.subtitle,
+                                  status: data.status,
                                   completed,
                                   message,
                               }
@@ -89,10 +91,10 @@ export function useDownloads() {
                     {
                         publicId: data.publicId,
                         groupId: "",
-                        title: data.title || data.publicId,
-                        subtitle: data.subTitle || null,
+                        title: data.name || data.publicId,
+                        subtitle: data.subtitle || null,
                         imageUrl: null,
-                        status: message,
+                        status: data.status,
                         completed,
                         message,
                         dateAdded: "",

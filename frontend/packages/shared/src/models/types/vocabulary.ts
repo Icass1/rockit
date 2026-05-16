@@ -105,6 +105,11 @@ export interface Vocabulary {
     DOWNLOAD_APP: string;
     DOWNLOAD_INPUT_PLACEHOLDER: string;
     DOWNLOAD_LIST_TO_DEVICE: string;
+    PENDING: string;
+    IN_PROGRESS: string;
+    NO_DOWNLOADS: string;
+    FETCHING: string;
+    WAITING_FOR_QUEUE_SETUP: string;
     DOWNLOAD_LIST_TO_SERVER: string;
     DOWNLOAD_MEDIA_TO_DEVICE: string;
     DOWNLOAD_MP3: string;

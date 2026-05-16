@@ -1,6 +1,7 @@
 import asyncio
 import threading
 from collections import defaultdict
+from datetime import datetime, timezone
 from logging import Logger
 from typing import List, Tuple
 
@@ -9,7 +10,7 @@ from backend.core.aResult import AResultCode
 from backend.utils.logger import getLogger
 from backend.core.access.db import rockit_db
 from backend.core.access.downloadAccess import DownloadAccess
-from backend.core.access.userAccess import UserAccess
+from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
@@ -114,43 +115,55 @@ class DownloadsManager:
                                 download_id=d.download_id,
                                 status_key=status_key,
                             )
-                            if a_result.is_ok():
-                                a_result_download_row = (
-                                    await DownloadAccess.get_download_by_id(
-                                        session=session, download_id=d.download_id
-                                    )
-                                )
-                                if a_result_download_row.is_ok():
-                                    download_row = a_result_download_row.result()
-                                    # Disabled because icass doesn't like media to be added to library after download, it should have been added by user before.
-                                    if download_row.media_id and False:
-                                        a_result_library = (
-                                            await UserAccess.add_user_library_media(
-                                                session=session,
-                                                user_id=d.user_id,
-                                                media_id=download_row.media_id,
-                                            )
-                                        )
-                                        if a_result_library.is_ok():
-                                            logger.info(
-                                                f"Added media {download_row.media_id} to user library"
-                                            )
-                                        else:
-                                            logger.warning(
-                                                f"Could not add media to library: {a_result_library.message()}"
-                                            )
 
-                                await session.commit()
-                                await ws_manager.broadcast_progress(
-                                    user_id=d.user_id,
-                                    download_id=d.download_id,
-                                    public_id=d.public_id,
-                                    title=d.title,
-                                    artist=d.artist,
-                                    status="completed",
-                                    progress=100,
-                                    message="Download completed!",
+                            a_result_download_row = (
+                                await DownloadAccess.get_download_by_id(
+                                    session=session, download_id=d.download_id
                                 )
+                            )
+                            if a_result_download_row.is_not_ok():
+                                logger.error(
+                                    f"Error getting download row. {a_result_download_row.info()}"
+                                )
+                                return AResultCode(
+                                    code=a_result_download_row.code(),
+                                    message=a_result_download_row.message(),
+                                )
+
+                            download_row = a_result_download_row.result()
+                            download_public_id = download_row.public_id
+                            date_started = download_row.date_started
+                            download_row.date_ended = datetime.now(timezone.utc)
+                            date_ended = download_row.date_ended
+
+                            latest_status: DownloadStatusRow | None = (
+                                download_row.download_status_list[-1]
+                                if download_row.download_status_list
+                                else None
+                            )
+
+                            if not latest_status:
+                                logger.error(
+                                    f"Error getting latest status of download {download_public_id}"
+                                )
+
+                            progress: float = (
+                                float(latest_status.completed) if latest_status else 0
+                            )
+
+                            await session.commit()
+                            await ws_manager.broadcast_progress(
+                                user_id=d.user_id,
+                                download_public_id=download_public_id,
+                                media_public_id=d.public_id,
+                                title=d.title,
+                                subTitle=d.artist,
+                                status=DownloadStatusEnum(download_row.status_key),
+                                progress=progress,
+                                date_started=date_started,
+                                date_ended=date_ended,
+                            )
+
                             if a_result.is_not_ok():
                                 logger.error(
                                     f"Download {d.public_id} failed with error: {a_result.message()}"

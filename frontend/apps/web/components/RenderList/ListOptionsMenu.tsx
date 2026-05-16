@@ -3,8 +3,8 @@
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import {
+    getAllPlayableMedia,
     isDownloadable,
-    isPlayable,
     isQueueable,
     TMedia,
 } from "@rockit/packages/shared";
@@ -36,13 +36,14 @@ export default function ListOptionsMenu({
 }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const playableMedia = media.filter(isPlayable);
+    const playableMedia = getAllPlayableMedia(media);
     const notDownloadedMedia = media.filter(
         (m): boolean => isDownloadable(m) && m.downloaded !== true
     );
 
     const handlePlay = (): void => {
         if (!listPublicId || !playableMedia.length) return;
+
         rockIt.queueManager.setMedia(
             playableMedia.filter(isQueueable),
             listPublicId

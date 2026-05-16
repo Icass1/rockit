@@ -81,6 +81,10 @@ export class UserManager {
         return this._queueTypeAtom.getReadonlyAtom();
     }
 
+    get queueType(): EQueueType {
+        return this._queueTypeAtom.get();
+    }
+
     get repeatModeAtom(): ReadonlyAtom<ERepeatMode> {
         return this._repeatModeAtom.getReadonlyAtom();
     }

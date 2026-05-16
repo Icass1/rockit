@@ -38,7 +38,7 @@ export default function RenderList({
             playableMedia.filter(isQueueable),
             listPublicId
         );
-        rockIt.queueManager.setQueueMediaId(0);
+        rockIt.queueManager.setQueueMediaId();
         rockIt.mediaPlayerManager.play();
     }, [playableMedia, listPublicId]);
 

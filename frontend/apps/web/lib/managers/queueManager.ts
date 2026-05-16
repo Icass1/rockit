@@ -213,40 +213,55 @@ export class QueueManager {
         this._currentListAtom.set(media.listPublicId);
     }
 
-    setQueueMediaId(queueMediaId: number, direction: 1 | -1 = 1): void {
-        this._currentQueueMediaIdAtom.set(queueMediaId);
+    setQueueMediaId(): void;
+    setQueueMediaId(queueMediaId: number, direction?: 1 | -1): void;
+    setQueueMediaId(queueMediaId?: number, direction: 1 | -1 = 1): void {
+        if (typeof queueMediaId === "number") {
+            this._currentQueueMediaIdAtom.set(queueMediaId);
 
-        const queue = this._queueAtom.get();
+            const queue = this._queueAtom.get();
 
-        const media = queue.find(
-            (media): boolean => media.queueMediaId === queueMediaId
-        );
-
-        if (!media) {
-            rockIt.notificationManager.notifyError(
-                "(setIndex) Media not found in queue."
+            const media = queue.find(
+                (media): boolean => media.queueMediaId === queueMediaId
             );
-            return;
-        }
 
-        if (!media.media.downloaded) {
-            console.warn("Current media is not downloaded");
-            const index = queue.indexOf(media);
-            for (let i = 1; i < queue.length; i++) {
-                const nextIndex =
-                    (index + direction * i + queue.length) % queue.length;
-                if (queue[nextIndex].media.downloaded) {
-                    this.setQueueMediaId(
-                        queue[nextIndex].queueMediaId,
-                        direction
-                    );
-                    return;
+            if (!media) {
+                rockIt.notificationManager.notifyError(
+                    "(setIndex) Media not found in queue."
+                );
+                return;
+            }
+
+            if (!media.media.downloaded) {
+                console.warn("Current media is not downloaded");
+                const index = queue.indexOf(media);
+                for (let i = 1; i < queue.length; i++) {
+                    const nextIndex =
+                        (index + direction * i + queue.length) % queue.length;
+                    if (queue[nextIndex].media.downloaded) {
+                        this.setQueueMediaId(
+                            queue[nextIndex].queueMediaId,
+                            direction
+                        );
+                        return;
+                    }
                 }
             }
-        }
 
-        this._currentMediaAtom.set(media.media);
-        this._currentListAtom.set(media.listPublicId);
+            this._currentMediaAtom.set(media.media);
+            this._currentListAtom.set(media.listPublicId);
+        } else {
+            console.log(rockIt.userManager.queueType);
+            if (rockIt.userManager.queueType === EQueueType.RANDOM) {
+                this.setQueueMediaId(
+                    Math.floor(Math.random() * this.queue.length)
+                );
+            } else if (rockIt.userManager.queueType === EQueueType.SORTED) {
+                this.setQueueMediaId(0);
+            } else {
+                throw `Unkown queue type ${rockIt.userManager.queueType}`;
+            }
+        }
     }
 
     setCurrentList(currentList: string | undefined): void {

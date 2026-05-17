@@ -162,9 +162,8 @@ class WebSocketManager:
             await User.update_user_current_media(
                 session=session,
                 user_id=user_id,
-                queue_media_id=current_media_msg.queueMediaId,
+                queue_id=current_media_msg.queueMediaId,
                 media_public_id=current_media_msg.mediaPublicId,
-                queue_type=current_media_msg.queueType,
             )
         )
         if a_result_update_current_media.is_not_ok():
@@ -180,7 +179,12 @@ class WebSocketManager:
         a_result_medias: AResult[List[MediaModel]] = (
             await Media.get_medias_from_public_ids_async(
                 session=session,
-                public_ids=[item.mediaPublicId for item in current_queue_msg.queue],
+                public_ids=[item.mediaPublicId for item in current_queue_msg.queue]
+                + [
+                    item.listPublicId
+                    for item in current_queue_msg.queue
+                    if item.listPublicId
+                ],
                 media_type_keys=None,
             )
         )
@@ -197,6 +201,15 @@ class WebSocketManager:
                 None,
             )
 
+            list_id: int | None = next(
+                (
+                    row.id
+                    for row in a_result_medias.result()
+                    if row.public_id == item.listPublicId
+                ),
+                None,
+            )
+
             if item_id is None:
                 logger.error(
                     f"Item with public id {item.mediaPublicId} not found in media table"
@@ -207,8 +220,9 @@ class WebSocketManager:
                 QueueItem(
                     media_id=item_id,
                     queue_id=item.queueMediaId,
-                    queue_type=item.queueType,
-                    list_id=23,
+                    list_id=list_id,
+                    sorted_index=item.sortedIndex,
+                    random_index=item.randomIndex,
                 )
             )
 

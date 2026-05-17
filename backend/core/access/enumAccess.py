@@ -43,7 +43,7 @@ class EnumAccess:
             raise ValueError(
                 f"Key mismatch for {table.__name__}. "
                 f"DB keys={db_keys} do not match enum keys prefix={enum_keys[:len(db_keys)]}. "
-                "Only additions are allowed."
+                "Only additions automatic are allowed."
             )
 
         # --- CHECK 2: Prefix match of names ---
@@ -51,7 +51,7 @@ class EnumAccess:
             raise ValueError(
                 f"Enum name mismatch for {table.__name__}. "
                 f"DB values={db_values} do not match enum names prefix={enum_values[:len(db_values)]}. "
-                "Only additions are allowed."
+                "Only additions automatic are allowed."
             )
 
         # --- ADD MISSING VALUES ---

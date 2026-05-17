@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,7 +38,6 @@ from backend.spotify.access.db.ormModels.artist import ArtistRow
 from backend.spotify.access.db.ormModels.externalImage import ExternalImageRow
 from backend.spotify.access.db.ormModels.genre import GenreRow
 from backend.spotify.access.db.ormModels.playlist import PlaylistRow
-from backend.spotify.access.db.ormModels.playlist_tracks import PlaylistTrackRow
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.associationTables.song_artists import song_artists
 from backend.spotify.access.db.associationTables.artist_genres import artist_genres
@@ -46,6 +45,8 @@ from backend.spotify.access.db.associationTables.album_external_images import (
     album_external_images,
 )
 from backend.spotify.access.spotifyAccess import SpotifyAccess
+from backend.spotify.framework.models.playlistTrackLink import PlaylistTrackLink
+from backend.spotify.framework.models.trackWithCoreMedia import TrackWithCoreMedia
 from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
 from backend.spotify.responses.artistResponse import SpotifyArtistResponse
 from backend.spotify.responses.externalImageResponse import SpotifyExternalImageResponse
@@ -183,12 +184,12 @@ async def get_album_with_songs_response_async(
 ) -> AResult[SpotifyAlbumResponse]:
     """Convert an AlbumRow to a SpotifyAlbumResponse with all songs and external images."""
 
-    a_result_tracks: AResult[List[Tuple[TrackRow, CoreMediaRow]]] = (
+    a_result_tracks: AResult[List[TrackWithCoreMedia]] = (
         await SpotifyAccess.get_tracks_with_core_song_from_album_async(
             session=session, album_id=album_row.id
         )
     )
-    tracks_with_core: List[Tuple[TrackRow, CoreMediaRow]] = (
+    tracks_with_core: List[TrackWithCoreMedia] = (
         a_result_tracks.result() if a_result_tracks.is_ok() else []
     )
 
@@ -214,7 +215,8 @@ async def get_album_with_songs_response_async(
     ]
 
     song_responses: List[BaseSongWithoutAlbumResponse] = []
-    for track_row, _ in tracks_with_core:
+    for twc in tracks_with_core:
+        track_row = twc.track
         a_result_track_artists: AResult[List[ArtistRow]] = (
             await SpotifyAccess.get_artists_from_track_row_async(
                 session=session, track_row=track_row
@@ -328,17 +330,19 @@ async def get_playlist_with_medias_response_async(
 ) -> AResult[BasePlaylistWithMediasResponse]:
     """Convert a PlaylistRow to a BasePlaylistResponse with all songs."""
 
-    a_result_track_links: AResult[List[Tuple[PlaylistTrackRow, TrackRow]]] = (
+    a_result_track_links: AResult[List[PlaylistTrackLink]] = (
         await SpotifyAccess.get_playlist_track_links_async(
             session=session, playlist_id=playlist_row.id
         )
     )
-    playlist_track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = (
+    playlist_track_links: List[PlaylistTrackLink] = (
         a_result_track_links.result() if a_result_track_links.is_ok() else []
     )
 
     song_responses: List[PlaylistResponseItem[BaseSongWithAlbumResponse]] = []
-    for playlist_track_row, track_row in playlist_track_links:
+    for ptl in playlist_track_links:
+        track_row = ptl.track
+        playlist_track_row = ptl.playlist_track
         a_result_track: AResult[SpotifyTrackResponse] = await get_track_response_async(
             session=session, provider_name=provider_name, track_row=track_row
         )

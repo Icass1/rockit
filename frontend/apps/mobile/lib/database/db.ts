@@ -27,7 +27,7 @@ export async function initDatabase(): Promise<void> {
             provider_account_id TEXT,
             current_station TEXT,
             current_time_ms INTEGER,
-            current_queue_media_id INTEGER,
+            current_queue_id INTEGER,
             queue_type_key INTEGER NOT NULL DEFAULT 2,
             repeat_mode_key INTEGER NOT NULL DEFAULT 1,
             volume REAL NOT NULL DEFAULT 1,
@@ -113,7 +113,7 @@ export async function initDatabase(): Promise<void> {
             user_id INTEGER NOT NULL,
             media_id INTEGER NOT NULL,
             media_public_id TEXT NOT NULL,
-            queue_media_id INTEGER NOT NULL,
+            queue_id INTEGER NOT NULL,
             queue_type TEXT NOT NULL DEFAULT 'normal',
             position INTEGER NOT NULL,
             date_added INTEGER

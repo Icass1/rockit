@@ -41,7 +41,7 @@ class CoreMediaRow(
         "UserLibraryMediaRow", back_populates="media"
     )
     user_queues: Mapped[List["UserQueueRow"]] = relationship(
-        "UserQueueRow", back_populates="media"
+        "UserQueueRow", back_populates="media", foreign_keys="UserQueueRow.media_id"
     )
 
     def __init__(self, public_id: str, provider_id: int, media_type_key: int):

@@ -23,6 +23,7 @@ from backend.youtubeMusic.access.db.associationTables.track_album_artists import
     track_artists,
     album_artists,
 )
+from backend.youtubeMusic.framework.models.playlistTrackLink import PlaylistTrackLink
 
 if TYPE_CHECKING:
     from backend.youtubeMusic.utils.youtubeMusicApi import (
@@ -457,7 +458,7 @@ class YoutubeMusicAccess:
     async def get_playlist_track_links_async(
         session: AsyncSession,
         playlist_id: int,
-    ) -> AResult[List[Tuple[PlaylistTrackRow, TrackRow]]]:
+    ) -> AResult[List[PlaylistTrackLink]]:
         try:
             stmt: Select[Tuple[PlaylistTrackRow]] = select(PlaylistTrackRow).where(
                 PlaylistTrackRow.playlist_id == playlist_id
@@ -467,13 +468,15 @@ class YoutubeMusicAccess:
                 List[PlaylistTrackRow], result.scalars().all()
             )
 
-            track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
+            track_links: List[PlaylistTrackLink] = []
             for ptr in playlist_track_rows:
                 track_stmt = select(TrackRow).where(TrackRow.id == ptr.song_id)
                 track_result = await session.execute(track_stmt)
                 track: TrackRow | None = track_result.scalar_one_or_none()
                 if track:
-                    track_links.append((ptr, track))
+                    track_links.append(
+                        PlaylistTrackLink(playlist_track=ptr, track=track)
+                    )
 
             return AResult(code=AResultCode.OK, message="OK", result=track_links)
 

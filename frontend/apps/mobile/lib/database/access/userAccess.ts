@@ -40,7 +40,7 @@ export async function createUser(
     const db = getDb();
     const timestamp = now();
     const result = db.runSync(
-        `INSERT INTO users (public_id, username, password_hash, provider, provider_account_id, current_station, current_time_ms, current_queue_media_id, queue_type_key, repeat_mode_key, volume, cross_fade_ms, lang_id, admin, super_admin, image_id, date_updated, date_added)
+        `INSERT INTO users (public_id, username, password_hash, provider, provider_account_id, current_station, current_time_ms, current_queue_id, queue_type_key, repeat_mode_key, volume, cross_fade_ms, lang_id, admin, super_admin, image_id, date_updated, date_added)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         user.publicId ?? null,
         user.username ?? null,
@@ -101,7 +101,7 @@ export async function updateUser(userId: number, updates: any): Promise<void> {
         values.push(updates.currentTimeMs);
     }
     if (updates.currentQueueMediaId !== undefined) {
-        fields.push("current_queue_media_id = ?");
+        fields.push("current_queue_id = ?");
         values.push(updates.currentQueueMediaId);
     }
     if (updates.queueTypeKey !== undefined) {

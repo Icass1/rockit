@@ -45,6 +45,7 @@ from backend.default.framework.models.playlist import (
     PlaylistMediaAddModel,
     PlaylistContributorAddModel,
 )
+from backend.default.framework.models.playlistMediaItem import PlaylistMediaItem
 from backend.core.framework.websocket.sendToUser import SendToUser
 from backend.core.responses.playlistCreatedMessage import PlaylistCreatedMessage
 from backend.core.responses.playlistRenamedMessage import PlaylistRenamedMessage
@@ -906,10 +907,16 @@ class Playlist:
         )
 
         # Group media items by (provider_id, media_type)
-        groups: dict[tuple[int, MediaTypeEnum], list[tuple[int, str, int]]] = {}
+        groups: dict[tuple[int, MediaTypeEnum], list[PlaylistMediaItem]] = {}
         for idx, media in enumerate(playlist.medias):
             key = (media.provider_id, media.media_type)
-            groups.setdefault(key, []).append((idx, media.media_id, media.id))
+            groups.setdefault(key, []).append(
+                PlaylistMediaItem(
+                    index=idx,
+                    media_id=media.media_id,
+                    playlist_media_id=media.id,
+                )
+            )
 
         # Map index -> PlaylistResponseItem
         result_map: dict[int, Any] = {}
@@ -920,9 +927,9 @@ class Playlist:
                 logger.error(f"Provider not found for provider_id {provider_id}")
                 continue
 
-            public_ids = [public_id for _, public_id, _ in items]
-            playlist_media_ids = [pm_id for _, _, pm_id in items]
-            indices = [idx for idx, _, _ in items]
+            public_ids = [m.media_id for m in items]
+            playlist_media_ids = [m.playlist_media_id for m in items]
+            indices = [m.index for m in items]
 
             if media_type == MediaTypeEnum.SONG:
                 a_result = await provider.get_songs_async(

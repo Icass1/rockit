@@ -174,6 +174,8 @@ class Providers:
                 except Exception as e:
                     logger.error(f"Error loading {module_path}. Error {e}.")
 
+        logger.info("Done searching providers.")
+
         for provider_data in new_providers:
             self._providers.append(provider_data.provider)
 

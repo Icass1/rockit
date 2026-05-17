@@ -934,7 +934,7 @@ class YoutubeMusic:
         if a_result_artists_map.is_ok():
             artists_map = a_result_artists_map.result()
 
-        results: List[BaseSongWithAlbumResponse] = []
+        track_by_public_id: Dict[str, BaseSongWithAlbumResponse] = {}
         for db_track in db_tracks:
             artists_list: List[BaseArtistResponse] = []
             track_artists = artists_map.get(db_track.id, [])
@@ -974,7 +974,7 @@ class YoutubeMusic:
                 imageUrl=image_url,
             )
 
-            results.append(
+            track_by_public_id[db_track.core_song.public_id] = (
                 YoutubeMusicTrackResponse(
                     provider=YoutubeMusic.provider_name,
                     publicId=db_track.core_song.public_id,
@@ -991,6 +991,12 @@ class YoutubeMusic:
                     youtubeId=db_track.youtube_id,
                 )
             )
+
+        results: List[BaseSongWithAlbumResponse] = [
+            track_by_public_id[pid]
+            for pid in public_ids
+            if pid in track_by_public_id
+        ]
 
         return AResult(code=AResultCode.OK, message="OK", result=results)
 
@@ -1045,7 +1051,7 @@ class YoutubeMusic:
         if a_result_album_artists_map.is_ok():
             album_artists_map = a_result_album_artists_map.result()
 
-        results: List[BaseAlbumWithSongsResponse] = []
+        album_by_public_id: Dict[str, BaseAlbumWithSongsResponse] = {}
         for db_album in db_albums:
             album_artists_list: List[BaseArtistResponse] = []
             for artist in album_artists_map.get(db_album.id, []):
@@ -1122,7 +1128,7 @@ class YoutubeMusic:
             if db_album.image and db_album.image.public_id:
                 image_url = BACKEND_URL + "/media/image/" + db_album.image.public_id
 
-            results.append(
+            album_by_public_id[db_album.core_album.public_id] = (
                 YoutubeMusicAlbumResponse(
                     provider=YoutubeMusic.provider_name,
                     publicId=db_album.core_album.public_id,
@@ -1137,6 +1143,12 @@ class YoutubeMusic:
                     youtubeId=db_album.youtube_id,
                 )
             )
+
+        results: List[BaseAlbumWithSongsResponse] = [
+            album_by_public_id[pid]
+            for pid in public_ids
+            if pid in album_by_public_id
+        ]
 
         return AResult(code=AResultCode.OK, message="OK", result=results)
 

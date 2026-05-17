@@ -1,9 +1,8 @@
 import asyncio
-import threading
 from collections import defaultdict
 from datetime import datetime, timezone
 from logging import Logger
-from typing import List, Tuple
+from typing import List
 
 from backend.constants import DOWNLOAD_THREADS
 from backend.core.aResult import AResultCode
@@ -14,6 +13,7 @@ from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
+from backend.core.framework.models.ongoingDownload import OngoingDownload
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
 logger: Logger = getLogger(__name__)
@@ -24,8 +24,7 @@ class DownloadsManager:
     downloads: List[BaseDownload]
     """List of downloads."""
 
-    download_threads: List[Tuple[threading.Thread, BaseDownload]]
-    """TODO"""
+    download_threads: list[OngoingDownload]
 
     max_download_threads: int
     """Maximun number of concurrent downloads"""
@@ -64,20 +63,18 @@ class DownloadsManager:
         """Async download manager using download_method_async"""
         try:
             logger.info("Started async download manager.")
-            ongoing: List[Tuple[asyncio.Task[AResultCode], BaseDownload]] = []
-            group_tasks: dict[
-                int, List[Tuple[asyncio.Task[AResultCode], BaseDownload]]
-            ] = defaultdict(list)
+            ongoing: List[OngoingDownload] = []
+            group_tasks: dict[int, List[OngoingDownload]] = defaultdict(list)
 
             while True:
                 await asyncio.sleep(0.4)
 
-                still_ongoing: List[Tuple[asyncio.Task[AResultCode], BaseDownload]] = []
-                for task, download in ongoing:
-                    if task.done():
+                still_ongoing: List[OngoingDownload] = []
+                for od in ongoing:
+                    if od.task.done():
                         for group_id, tasks in group_tasks.items():
-                            for t, _download in tasks:
-                                if t == task:
+                            for gt in tasks:
+                                if gt.task == od.task:
                                     self.pending_per_group[group_id] -= 1
                                     remaining = self.pending_per_group[group_id]
                                     logger.info(
@@ -93,7 +90,7 @@ class DownloadsManager:
                                         )
                                     break
                     else:
-                        still_ongoing.append((task, download))
+                        still_ongoing.append(od)
                 ongoing = still_ongoing
 
                 while len(ongoing) < self.max_download_threads and len(self.queue) > 0:
@@ -175,8 +172,9 @@ class DownloadsManager:
                     task: asyncio.Task[AResultCode] = asyncio.create_task(
                         run_download(download)
                     )
-                    group_tasks[download.download_group_id].append((task, download))
-                    ongoing.append((task, download))
+                    od = OngoingDownload(task=task, download=download)
+                    group_tasks[download.download_group_id].append(od)
+                    ongoing.append(od)
 
         except Exception as e:
             logger.critical(f"Error in async download manager: {e}")

@@ -440,9 +440,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             webSocketManager.sendCurrentQueue({
                 queue: newQueue.map((m, i) => ({
                     mediaPublicId: m.publicId,
+                    listPublicId: null,
                     queueMediaId: i,
-                    listPublicId: "test",
-                    queueType: EQueueType.SORTED,
+                    randomIndex: i,
+                    sortedIndex: i,
                 })),
             });
         },

@@ -5,7 +5,7 @@ from importlib import import_module
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar
 
-from sqlalchemy import Connection, Inspector, Table, text, inspect
+from sqlalchemy import Connection, Inspector, Table, UniqueConstraint, text, inspect
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import (
@@ -191,6 +191,8 @@ class RockItDB:
     async def check_table_schema_async(self, table: Table):
         """Compare ORM Table definition vs actual database table for async engine."""
 
+        logger.debug(f"Comparing {table.name} ORM with database...")
+
         async with self.engine.begin() as conn:
 
             def do_check(sync_conn: Connection):
@@ -256,6 +258,32 @@ class RockItDB:
                 for fk in db_fks - orm_fks:
                     logger.error(
                         f"ForeignKey in DB but missing in ORM: {fk} in table '{table.schema}.{table.name}'"
+                    )
+
+                # Unique constraints
+                orm_uqs: Set[frozenset[str]] = set()
+                for col in table.columns:
+                    if col.unique:
+                        orm_uqs.add(frozenset([col.name]))
+                for constraint in table.constraints:
+                    if isinstance(constraint, UniqueConstraint):
+                        col_names = [c.name for c in constraint.columns]
+                        orm_uqs.add(frozenset(col_names))
+
+                db_uqs: Set[frozenset[str]] = {
+                    frozenset(uq["column_names"])
+                    for uq in inspector.get_unique_constraints(
+                        table_name, schema=schema
+                    )
+                }
+
+                for uq in orm_uqs - db_uqs:
+                    logger.error(
+                        f"Unique constraint in ORM but missing in DB: {sorted(uq)} in table '{table.schema}.{table.name}'"
+                    )
+                for uq in db_uqs - orm_uqs:
+                    logger.error(
+                        f"Unique constraint in DB but missing in ORM: {sorted(uq)} in table '{table.schema}.{table.name}'"
                     )
 
             # Run sync inspection inside async connection

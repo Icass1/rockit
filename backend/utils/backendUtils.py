@@ -265,7 +265,7 @@ def create_playlist_collage(output_path: str, urls: List[str] = []) -> None:
     sorted_urls: List[str] = [url for url, _ in url_counts.most_common(7)]
     target_indices: List[int] = [1, 0, 2, 5, 4, 3, 6]
 
-    indexed_images: List[tuple[int, Image.Image]] = []
+    indexed_images: list[tuple[int, Image.Image]] = []
 
     for i, url in enumerate(sorted_urls):
         if i >= 7:
@@ -280,7 +280,7 @@ def create_playlist_collage(output_path: str, urls: List[str] = []) -> None:
 
     # Sort the images by their intended indices and extract them
     indexed_images.sort(key=lambda x: x[0])
-    images: List[Image.Image] = [img for _, img in indexed_images]
+    images: list[Image.Image] = [img for _, img in indexed_images]
 
     # images.append( Image.new("RGB", (10, 10), "blue"))
     # images.append( Image.new("RGB", (10, 10), "red"))

@@ -205,6 +205,8 @@ async def get_youtube_video_async(
 async def get_chanel_async(request: Request, youtube_id: str) -> YoutubeChannelResponse:
     """TODO"""
 
-    a_result = AResultCode(code=AResultCode.NOT_IMPLEMENTED, message="TODO")
+    a_result = AResultCode(
+        code=AResultCode.NOT_IMPLEMENTED, message="get_chanel_async is not implemented."
+    )
 
     raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())

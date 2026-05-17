@@ -39,6 +39,9 @@ export class UserManager {
     }
 
     toggleRandomQueue(): void {
+        const togglingToRandom =
+            this._queueTypeAtom.get() === EQueueType.SORTED;
+
         if (this._queueTypeAtom.get() === EQueueType.RANDOM)
             this._queueTypeAtom.set(EQueueType.SORTED);
         else if (this._queueTypeAtom.get() === EQueueType.SORTED)
@@ -48,7 +51,7 @@ export class UserManager {
             queueType: this.queueTypeAtom.get(),
         });
 
-        rockIt.queueManager.updateQueue();
+        rockIt.queueManager.updateQueue(togglingToRandom);
     }
 
     cycleRepeatMode(): void {

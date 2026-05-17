@@ -12,13 +12,14 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
     from backend.core.access.db.ormModels.media import CoreMediaRow
-    from backend.core.access.db.ormEnums.queueTypeEnum import QueueTypeEnumRow
 
 
 class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
     __tablename__ = "user_queue"
     __table_args__ = (
-        UniqueConstraint("user_id", "queue_media_id", "queue_type_key"),
+        UniqueConstraint("user_id", "queue_id"),
+        UniqueConstraint("user_id", "sorted_index"),
+        UniqueConstraint("user_id", "random_index"),
         {"schema": "core", "extend_existing": True},
     )
 
@@ -28,22 +29,33 @@ class UserQueueRow(CoreBase, TableAutoincrementId, TableDateAdded):
     media_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), nullable=False
     )
-    queue_media_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    queue_type_key: Mapped[int] = mapped_column(
-        Integer, ForeignKey("core.queue_type_enum.key"), nullable=False
+    list_media_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("core.media.id"), nullable=True
     )
+    queue_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    sorted_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    random_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     user: Mapped["UserRow"] = relationship("UserRow", back_populates="user_queues")
-    media: Mapped["CoreMediaRow"] = relationship("CoreMediaRow")
-    queue_type_enum: Mapped["QueueTypeEnumRow"] = relationship("QueueTypeEnumRow")
+    media: Mapped["CoreMediaRow"] = relationship(
+        "CoreMediaRow", foreign_keys=[media_id]
+    )
 
     def __init__(
-        self, user_id: int, media_id: int, queue_media_id: int, queue_type_key: int
+        self,
+        user_id: int,
+        media_id: int,
+        queue_id: int,
+        sorted_index: int,
+        random_index: int,
+        list_media_id: int | None = None,
     ):
-        kwargs: Dict[str, int] = {}
+        kwargs: Dict[str, None | int] = {}
         kwargs["user_id"] = user_id
         kwargs["media_id"] = media_id
-        kwargs["queue_media_id"] = queue_media_id
-        kwargs["queue_type_key"] = queue_type_key
+        kwargs["queue_id"] = queue_id
+        kwargs["sorted_index"] = sorted_index
+        kwargs["random_index"] = random_index
+        kwargs["list_media_id"] = list_media_id
         for k, v in kwargs.items():
             setattr(self, k, v)

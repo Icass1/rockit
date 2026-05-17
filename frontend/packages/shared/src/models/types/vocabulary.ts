@@ -105,11 +105,6 @@ export interface Vocabulary {
     DOWNLOAD_APP: string;
     DOWNLOAD_INPUT_PLACEHOLDER: string;
     DOWNLOAD_LIST_TO_DEVICE: string;
-    PENDING: string;
-    IN_PROGRESS: string;
-    NO_DOWNLOADS: string;
-    FETCHING: string;
-    WAITING_FOR_QUEUE_SETUP: string;
     DOWNLOAD_LIST_TO_SERVER: string;
     DOWNLOAD_MEDIA_TO_DEVICE: string;
     DOWNLOAD_MP3: string;
@@ -131,6 +126,7 @@ export interface Vocabulary {
     ERROR_GETTING_QUEUE: string;
     ERROR_GETTING_USER: string;
     ERROR_LIKING_MEDIA: string;
+    ERROR_LOADING_MEDIA_FILE: string;
     ERROR_LOGIN: string;
     ERROR_REGISTER: string;
     ERROR_SEARCHING: string;
@@ -144,6 +140,7 @@ export interface Vocabulary {
     FEATURED_ALBUMS: string;
     FEATURED_LISTS: string;
     FEBRUARY: string;
+    FETCHING: string;
     FOCUS: string;
     FRIENDS: string;
     FRIENDS_LIST: string;
@@ -158,6 +155,7 @@ export interface Vocabulary {
     GO_TO_ARTIST: string;
     HIDDEN_GEMS: string;
     HOME: string;
+    IN_PROGRESS: string;
     JANUARY: string;
     JULY: string;
     JUNE: string;
@@ -197,6 +195,7 @@ export interface Vocabulary {
     NEXT_MEDIA: string;
     NO_ALBUMS: string;
     NO_DATA: string;
+    NO_DOWNLOADS: string;
     NO_LYRICS: string;
     NO_MEDIA_PLAYING: string;
     NO_PLAYLISTS: string;
@@ -217,6 +216,7 @@ export interface Vocabulary {
     PASSWORD: string;
     PASSWORDS_DONT_MATCH: string;
     PAUSE_SONG: string;
+    PENDING: string;
     PENDING_REQUESTS: string;
     PIN: string;
     PINNED_LISTS: string;
@@ -299,10 +299,10 @@ export interface Vocabulary {
     USERS_FRIENDS: string;
     USERS_LIST: string;
     VIDEOS: string;
+    WAITING_FOR_QUEUE_SETUP: string;
     YOU_MIGHT_LIKE: string;
     YOUR: string;
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    ERROR_LOADING_MEDIA_FILE: string;
 }

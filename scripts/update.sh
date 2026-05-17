@@ -4,6 +4,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/.."
+# Load nvm to make node available for pnpm commands
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm use default >/dev/null 2>&1 || true
+# Ensure pnpm global bin is in PATH for this script
+export PNPM_HOME="$HOME/.local/share/pnpm"
+export PATH="$PNPM_HOME/bin:$PATH"
 
 echo "=== Starting update process ==="
 
@@ -43,7 +50,7 @@ cd frontend
 pnpm install
 
 # Build web app
-pnpm --filter web build
+pnpm run build
 
 # =====================
 # MOBILE (optional)

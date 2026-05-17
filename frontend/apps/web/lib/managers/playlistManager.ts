@@ -1,11 +1,11 @@
 import {
+    BaseHttp,
     BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
     EEvent,
     EWebSocketMessage,
     HttpResult,
     TMedia,
-    UserPlaylistsResponse,
     type MediaAddedToPlaylistMessage,
     type PlaylistCreatedMessage,
     type PlaylistDeletedMessage,
@@ -88,7 +88,7 @@ export class PlaylistManager {
     };
 
     private async refreshPlaylistsAsync(): Promise<void> {
-        const result = await this.getUserPlaylistsAsync();
+        const result = await BaseHttp.getUserPlaylistsAsync();
         if (result.isOk()) {
             this._playlistsAtom.set(result.result.playlists);
         }
@@ -108,10 +108,6 @@ export class PlaylistManager {
         }
 
         rockIt.mediaPlayerManager.play();
-    }
-
-    async getUserPlaylistsAsync(): Promise<HttpResult<UserPlaylistsResponse>> {
-        return await Http.getUserPlaylistsAsync();
     }
 
     async addMediaToPlaylist(

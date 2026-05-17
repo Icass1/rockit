@@ -1,6 +1,6 @@
 import re
 from logging import Logger
-from typing import List, Any, Pattern
+from typing import List, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -11,6 +11,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.downloader.baseDownload import BaseDownload
+from backend.core.framework.models.urlPattern import UrlPattern
 
 from backend.core.responses.searchResponse import (
     ArtistSearchResultsItem,
@@ -29,30 +30,38 @@ from backend.youtube.responses.videoResponse import YoutubeVideoResponse
 
 logger: Logger = getLogger(__name__)
 
-YOUTUBE_URL_PATTERNS: list[tuple[Pattern[str], str]] = [
-    (
-        re.compile(r"https?://(?:www\.)?youtube\.com/watch\?v=([a-zA-Z0-9_-]{11})"),
-        "/youtube/video/{}",
+YOUTUBE_URL_PATTERNS: list[UrlPattern] = [
+    UrlPattern(
+        pattern=re.compile(
+            r"https?://(?:www\.)?youtube\.com/watch\?v=([a-zA-Z0-9_-]{11})"
+        ),
+        path_template="/youtube/video/{}",
     ),
-    (
-        re.compile(r"https?://(?:www\.)?youtube\.com/shorts/([a-zA-Z0-9_-]{11})"),
-        "/youtube/video/{}",
+    UrlPattern(
+        pattern=re.compile(
+            r"https?://(?:www\.)?youtube\.com/shorts/([a-zA-Z0-9_-]{11})"
+        ),
+        path_template="/youtube/video/{}",
     ),
-    (
-        re.compile(r"https?://(?:www\.)?youtu\.be/([a-zA-Z0-9_-]{11})"),
-        "/youtube/video/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://(?:www\.)?youtu\.be/([a-zA-Z0-9_-]{11})"),
+        path_template="/youtube/video/{}",
     ),
-    (
-        re.compile(r"https?://(?:www\.)?youtube\.com/channel/([a-zA-Z0-9_-]{21})"),
-        "/youtube/channel/{}",
+    UrlPattern(
+        pattern=re.compile(
+            r"https?://(?:www\.)?youtube\.com/channel/([a-zA-Z0-9_-]{21})"
+        ),
+        path_template="/youtube/channel/{}",
     ),
-    (
-        re.compile(r"https?://(?:www\.)?youtube\.com/@([a-zA-Z0-9_-]+)"),
-        "/youtube/channel/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://(?:www\.)?youtube\.com/@([a-zA-Z0-9_-]+)"),
+        path_template="/youtube/channel/{}",
     ),
-    (
-        re.compile(r"https?://(?:www\.)?youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)"),
-        "/youtube/playlist/{}",
+    UrlPattern(
+        pattern=re.compile(
+            r"https?://(?:www\.)?youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)"
+        ),
+        path_template="/youtube/playlist/{}",
     ),
 ]
 
@@ -105,10 +114,10 @@ class YoutubeProvider(BaseProvider):
 
     def match_url(self, url: str) -> str | None:
         """Check if the URL is a YouTube URL and return the internal path."""
-        for pattern, path_template in YOUTUBE_URL_PATTERNS:
-            match = pattern.match(url)
+        for up in YOUTUBE_URL_PATTERNS:
+            match = up.pattern.match(url)
             if match:
-                return path_template.format(match.group(1))
+                return up.path_template.format(match.group(1))
         return None
 
     async def add_from_url_async(
@@ -116,8 +125,8 @@ class YoutubeProvider(BaseProvider):
     ) -> AResult[AddFromUrlAResult]:
         """Add a YouTube video from URL to the database."""
         video_id: str | None = None
-        for pattern, _ in YOUTUBE_URL_PATTERNS:
-            match = pattern.match(url)
+        for up in YOUTUBE_URL_PATTERNS:
+            match = up.pattern.match(url)
             if match:
                 video_id = match.group(1)
                 break

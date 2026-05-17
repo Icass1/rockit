@@ -8,13 +8,14 @@ import { BaseVideoResponseSchema } from "./baseVideoResponse";
 
 export const QueueResponseItemSchema = z.object({
     queueMediaId: z.number(),
-    listPublicId: z.string(),
+    listPublicId: z.string().nullable(),
     media: z.union([
         z.lazy(() => BaseSongWithAlbumResponseSchema),
         z.lazy(() => BaseVideoResponseSchema),
         z.lazy(() => BaseSongWithoutAlbumResponseSchema),
     ]),
-    queueType: z.enum(["RANDOM", "SORTED"]),
+    randomIndex: z.number(),
+    sortedIndex: z.number(),
 });
 
 export type QueueResponseItem = z.infer<typeof QueueResponseItemSchema>;

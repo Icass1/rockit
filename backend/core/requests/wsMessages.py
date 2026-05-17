@@ -20,13 +20,10 @@ class CurrentMediaMessageRequest(BaseModel):
 
 class CurrentQueueMessageRequestItem(BaseModel):
     mediaPublicId: str
-    listPublicId: str
+    listPublicId: str | None
     queueMediaId: int
-    queueType: QueueTypeEnum
-
-    @field_validator("queueType", mode="before")
-    def convert_string_to_enum(cls, v: str) -> QueueTypeEnum:
-        return QueueTypeEnum[v]
+    randomIndex: int
+    sortedIndex: int
 
 
 class CurrentQueueMessageRequest(BaseModel):

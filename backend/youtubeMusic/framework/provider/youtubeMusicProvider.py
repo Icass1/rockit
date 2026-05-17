@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timezone
 from logging import Logger
-from typing import List, Tuple, Pattern
+from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +12,7 @@ from backend.utils.backendUtils import time_it
 # Core framework.
 from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
+from backend.core.framework.models.urlPattern import UrlPattern
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
 # Core responses.
@@ -52,40 +53,46 @@ from backend.youtubeMusic.framework.download.youtubeMusicDownload import (
 logger: Logger = getLogger(__name__)
 
 
-YOUTUBE_MUSIC_URL_PATTERNS: List[Tuple[Pattern[str], str]] = [
-    (
-        re.compile(r"https?://music\.youtube\.com/watch\?v=([a-zA-Z0-9_-]+)(?:&.*)?$"),
-        "/youtube-music/track/{}",
+YOUTUBE_MUSIC_URL_PATTERNS: List[UrlPattern] = [
+    UrlPattern(
+        pattern=re.compile(
+            r"https?://music\.youtube\.com/watch\?v=([a-zA-Z0-9_-]+)(?:&.*)?$"
+        ),
+        path_template="/youtube-music/track/{}",
     ),
-    (
-        re.compile(r"https?://music\.youtube\.com/track/([a-zA-Z0-9_-]+)"),
-        "/youtube-music/track/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://music\.youtube\.com/track/([a-zA-Z0-9_-]+)"),
+        path_template="/youtube-music/track/{}",
     ),
-    (
-        re.compile(r"https?://music\.youtube\.com/album/([a-zA-Z0-9_-]+)"),
-        "/youtube-music/album/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://music\.youtube\.com/album/([a-zA-Z0-9_-]+)"),
+        path_template="/youtube-music/album/{}",
     ),
-    (
-        re.compile(r"https?://music\.youtube\.com/artist/([a-zA-Z0-9_-]+)"),
-        "/youtube-music/artist/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://music\.youtube\.com/artist/([a-zA-Z0-9_-]+)"),
+        path_template="/youtube-music/artist/{}",
     ),
-    (
-        re.compile(
+    UrlPattern(
+        pattern=re.compile(
             r"https?://music\.youtube\.com/playlist\?list=([a-zA-Z0-9_-]+)(?:&.*)?$"
         ),
-        "/youtube-music/playlist/{}",
+        path_template="/youtube-music/playlist/{}",
     ),
-    (
-        re.compile(r"https?://music\.youtube\.com/browse/(MPREb_[a-zA-Z0-9_-]+)"),
-        "/youtube-music/album/{}",
+    UrlPattern(
+        pattern=re.compile(
+            r"https?://music\.youtube\.com/browse/(MPREb_[a-zA-Z0-9_-]+)"
+        ),
+        path_template="/youtube-music/album/{}",
     ),
-    (
-        re.compile(r"https?://music\.youtube\.com/browse/(RDCLAK[a-zA-Z0-9_-]+)"),
-        "/youtube-music/album/{}",
+    UrlPattern(
+        pattern=re.compile(
+            r"https?://music\.youtube\.com/browse/(RDCLAK[a-zA-Z0-9_-]+)"
+        ),
+        path_template="/youtube-music/album/{}",
     ),
-    (
-        re.compile(r"https?://music\.youtube\.com/browse/VL([a-zA-Z0-9_-]+)"),
-        "/youtube-music/playlist/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://music\.youtube\.com/browse/VL([a-zA-Z0-9_-]+)"),
+        path_template="/youtube-music/playlist/{}",
     ),
 ]
 
@@ -526,10 +533,10 @@ class YoutubeMusicProvider(BaseProvider):
 
     def match_url(self, url: str) -> str | None:
         """Check if the URL is a YouTube Music URL and return the internal path."""
-        for pattern, path_template in YOUTUBE_MUSIC_URL_PATTERNS:
-            match: re.Match[str] | None = pattern.match(url)
+        for up in YOUTUBE_MUSIC_URL_PATTERNS:
+            match: re.Match[str] | None = up.pattern.match(url)
             if match:
-                return path_template.format(match.group(1))
+                return up.path_template.format(match.group(1))
         return None
 
     async def get_media_duration_ms_async(

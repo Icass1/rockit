@@ -1,7 +1,6 @@
 import asyncio
 from collections import defaultdict
-from dataclasses import dataclass
-from typing import Any, Coroutine, List, Tuple, Union
+from typing import Any, List, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -33,6 +32,11 @@ from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 
 from backend.core.framework import providers
 from backend.core.framework.models.queue import QueueItem
+from backend.core.framework.models.queueTask import (
+    LibraryTask,
+    QueueGroupItem,
+    QueueTask,
+)
 from backend.core.framework.websocket.sendToUser import SendToUser
 from backend.core.framework.provider.baseProvider import BaseProvider
 
@@ -52,25 +56,6 @@ from backend.core.responses.basePlaylistWithoutMediasResponse import (
 logger = getLogger(__name__)
 
 
-@dataclass
-class QueueTask:
-    """Holds a coroutine task for queue processing with metadata."""
-
-    coroutine: Coroutine[Any, Any, AResult[Any]]
-    media_type: str
-    provider_id: int
-    items: List[Tuple[int, str, int]]
-
-
-@dataclass
-class LibraryTask:
-    """Holds a coroutine task for library processing with metadata."""
-
-    coroutine: Coroutine[Any, Any, AResult[Any]]
-    media_type: str
-    provider_id: int
-
-
 class User:
     @staticmethod
     async def get_user_queue_async(
@@ -86,7 +71,7 @@ class User:
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
         user: UserRow = a_result_user.result()
-        current_queue_media_id: int | None = user.current_queue_media_id
+        current_queue_id: int | None = user.current_queue_id
 
         a_result_queue: AResult[List[UserQueueRow]] = (
             await UserQueueAccess.get_all_user_queues(session=session, user_id=user_id)
@@ -99,15 +84,20 @@ class User:
 
         # Track original order to restore after grouping
         original_order: dict[int, int] = {
-            item.queue_media_id: idx for idx, item in enumerate(queue_items)
+            item.queue_id: idx for idx, item in enumerate(queue_items)
         }
 
         # Group queue items by (provider_id, media_type_key)
-        groups: dict[tuple[int, int], list[tuple[int, str, int]]] = defaultdict(list)
+        groups: dict[tuple[int, int], list[QueueGroupItem]] = defaultdict(list)
         for item in queue_items:
             media: CoreMediaRow = item.media
             groups[(media.provider_id, media.media_type_key)].append(
-                (item.queue_media_id, media.public_id, item.queue_type_key)
+                QueueGroupItem(
+                    queue_id=item.queue_id,
+                    public_id=media.public_id,
+                    sorted_index=item.sorted_index,
+                    random_index=item.random_index,
+                )
             )
 
         # Collect all coroutines to run in parallel
@@ -120,7 +110,7 @@ class User:
                 logger.error(f"No provider found for provider_id {provider_id}.")
                 continue
 
-            public_ids = [public_id for _, public_id, _ in items]
+            public_ids = [qi.public_id for qi in items]
 
             if media_type_key == MediaTypeEnum.VIDEO.value:
                 task = provider_instance.get_videos_async(
@@ -176,20 +166,21 @@ class User:
                 media_dict: dict[str, Any] = {
                     media.publicId: media for media in media_list
                 }
-                for queue_media_id, public_id, queue_type_key in task.items:
-                    media_item: Any = media_dict.get(public_id)
+                for qi in task.items:
+                    media_item: Any = media_dict.get(qi.public_id)
                     if media_item is None:
                         logger.warning(
-                            f"Media {public_id} not found in provider response."
+                            f"Media {qi.public_id} not found in provider response."
                         )
                         continue
 
                     queue.append(
                         QueueResponseItem(
-                            queueMediaId=queue_media_id,
-                            listPublicId="TODO",
+                            queueMediaId=qi.queue_id,
+                            listPublicId=None,
                             media=media_item,
-                            queueType=QueueTypeEnum(queue_type_key),
+                            sortedIndex=qi.sorted_index,
+                            randomIndex=qi.random_index,
                         )
                     )
 
@@ -200,7 +191,7 @@ class User:
             code=AResultCode.OK,
             message="OK",
             result=QueueResponse(
-                currentQueueMediaId=current_queue_media_id,
+                currentQueueMediaId=current_queue_id,
                 queue=queue,
                 queueType=QueueTypeEnum(user.queue_type_key),
             ),
@@ -221,7 +212,7 @@ class User:
         """Get all media in user's library."""
 
         a_result_medias: AResult[
-            List[Tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]
+            list[tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]
         ] = await UserAccess.get_user_library_medias(session=session, user_id=user_id)
 
         if a_result_medias.is_not_ok():
@@ -648,18 +639,16 @@ class User:
     async def update_user_current_media(
         session: AsyncSession,
         user_id: int,
-        queue_media_id: int,
+        queue_id: int,
         media_public_id: str,
-        queue_type: QueueTypeEnum,
     ) -> AResult[bool]:
         """Update user's current queue media after validating the public ID matches."""
 
         a_result_queue_item: AResult[UserQueueRow] = (
-            await UserQueueAccess.get_queue_item_by_queue_media_id(
+            await UserQueueAccess.get_queue_item_by_queue_id(
                 session=session,
                 user_id=user_id,
-                queue_media_id=queue_media_id,
-                queue_type=queue_type,
+                queue_id=queue_id,
             )
         )
         if a_result_queue_item.is_not_ok():
@@ -686,7 +675,7 @@ class User:
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
         user: UserRow = a_result_user.result()
-        user.current_queue_media_id = queue_media_id
+        user.current_queue_id = queue_id
 
         await session.commit()
 

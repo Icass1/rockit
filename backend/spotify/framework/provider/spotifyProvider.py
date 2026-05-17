@@ -1,6 +1,6 @@
 import re
 from logging import Logger
-from typing import Dict, List, Pattern
+from typing import Dict, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -12,6 +12,7 @@ from backend.core.access.enumAccess import EnumAccess
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.models.urlPattern import UrlPattern
 
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
@@ -42,22 +43,22 @@ from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
 
 logger: Logger = getLogger(__name__)
 
-SPOTIFY_URL_PATTERNS: list[tuple[Pattern[str], str]] = [
-    (
-        re.compile(r"https?://open\.spotify\.com/track/([a-zA-Z0-9]+)"),
-        "/spotify/track/{}",
+SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
+    UrlPattern(
+        pattern=re.compile(r"https?://open\.spotify\.com/track/([a-zA-Z0-9]+)"),
+        path_template="/spotify/track/{}",
     ),
-    (
-        re.compile(r"https?://open\.spotify\.com/album/([a-zA-Z0-9]+)"),
-        "/spotify/album/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://open\.spotify\.com/album/([a-zA-Z0-9]+)"),
+        path_template="/spotify/album/{}",
     ),
-    (
-        re.compile(r"https?://open\.spotify\.com/artist/([a-zA-Z0-9]+)"),
-        "/spotify/artist/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://open\.spotify\.com/artist/([a-zA-Z0-9]+)"),
+        path_template="/spotify/artist/{}",
     ),
-    (
-        re.compile(r"https?://open\.spotify\.com/playlist/([a-zA-Z0-9]+)"),
-        "/spotify/playlist/{}",
+    UrlPattern(
+        pattern=re.compile(r"https?://open\.spotify\.com/playlist/([a-zA-Z0-9]+)"),
+        path_template="/spotify/playlist/{}",
     ),
 ]
 
@@ -409,10 +410,10 @@ class SpotifyProvider(BaseProvider):
 
     def match_url(self, url: str) -> str | None:
         """Check if the URL is a Spotify URL and return the internal path."""
-        for pattern, path_template in SPOTIFY_URL_PATTERNS:
-            match = pattern.match(url)
+        for up in SPOTIFY_URL_PATTERNS:
+            match = up.pattern.match(url)
             if match:
-                return path_template.format(match.group(1))
+                return up.path_template.format(match.group(1))
         return None
 
     async def get_media_duration_ms_async(

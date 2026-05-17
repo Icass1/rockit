@@ -191,6 +191,8 @@ class RockItDB:
     async def check_table_schema_async(self, table: Table):
         """Compare ORM Table definition vs actual database table for async engine."""
 
+        logger.debug(f"Comparing {table.name} ORM with database...")
+
         async with self.engine.begin() as conn:
 
             def do_check(sync_conn: Connection):
@@ -270,7 +272,9 @@ class RockItDB:
 
                 db_uqs: Set[frozenset[str]] = {
                     frozenset(uq["column_names"])
-                    for uq in inspector.get_unique_constraints(table_name, schema=schema)
+                    for uq in inspector.get_unique_constraints(
+                        table_name, schema=schema
+                    )
                 }
 
                 for uq in orm_uqs - db_uqs:

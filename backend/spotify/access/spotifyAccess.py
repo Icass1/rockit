@@ -1,7 +1,8 @@
 import os
 import uuid
-import requests as req
 from datetime import datetime, timezone
+
+import requests as req
 from typing import Dict, List, Tuple, cast
 
 from sqlalchemy.future import select
@@ -55,6 +56,8 @@ from backend.spotify.spotifyApiTypes.rawSpotifyApiTrack import RawSpotifyApiTrac
 from backend.spotify.spotifyApiTypes.rawSpotifyApiArtist import RawSpotifyApiArtist
 from backend.spotify.spotifyApiTypes.rawSpotifyApiPlaylist import RawSpotifyApiPlaylist
 
+from backend.spotify.framework.models.playlistTrackLink import PlaylistTrackLink
+from backend.spotify.framework.models.trackWithCoreMedia import TrackWithCoreMedia
 
 from backend.constants import IMAGES_PATH
 
@@ -1030,7 +1033,7 @@ class SpotifyAccess:
     async def get_tracks_with_core_song_from_album_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[List[Tuple[TrackRow, CoreMediaRow]]]:
+    ) -> AResult[List[TrackWithCoreMedia]]:
         try:
             stmt = (
                 select(TrackRow, CoreMediaRow)
@@ -1044,10 +1047,12 @@ class SpotifyAccess:
                 .where(TrackRow.album_id == album_id)
             )
             result: Result[Tuple[TrackRow, CoreMediaRow]] = await session.execute(stmt)
-            tracks_with_core: List[Tuple[TrackRow, CoreMediaRow]] = []
+            tracks_with_core: List[TrackWithCoreMedia] = []
 
             for track_row, core_song_row in result.all():
-                tracks_with_core.append((track_row, core_song_row))
+                tracks_with_core.append(
+                    TrackWithCoreMedia(track=track_row, core_media=core_song_row)
+                )
 
             return AResult(code=AResultCode.OK, message="OK", result=tracks_with_core)
 
@@ -1116,7 +1121,7 @@ class SpotifyAccess:
     async def get_playlist_track_links_async(
         session: AsyncSession,
         playlist_id: int,
-    ) -> AResult[List[Tuple[PlaylistTrackRow, TrackRow]]]:
+    ) -> AResult[List[PlaylistTrackLink]]:
         try:
             stmt: Select[Tuple[PlaylistTrackRow]] = select(PlaylistTrackRow).where(
                 PlaylistTrackRow.playlist_id == playlist_id
@@ -1126,7 +1131,7 @@ class SpotifyAccess:
                 List[PlaylistTrackRow], result.scalars().all()
             )
 
-            track_links: List[Tuple[PlaylistTrackRow, TrackRow]] = []
+            track_links: List[PlaylistTrackLink] = []
             for ptr in playlist_track_rows:
                 track_stmt = (
                     select(TrackRow)
@@ -1138,7 +1143,9 @@ class SpotifyAccess:
                 )
                 track_row: TrackRow | None = track_result.scalar_one_or_none()
                 if track_row:
-                    track_links.append((ptr, track_row))
+                    track_links.append(
+                        PlaylistTrackLink(playlist_track=ptr, track=track_row)
+                    )
 
             return AResult(code=AResultCode.OK, message="OK", result=track_links)
 

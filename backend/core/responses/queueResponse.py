@@ -12,13 +12,10 @@ from backend.core.responses.baseSongWithoutAlbumResponse import (
 
 class QueueResponseItem(BaseModel):
     queueMediaId: int
-    listPublicId: str
+    listPublicId: str | None
     media: BaseSongWithAlbumResponse | BaseVideoResponse | BaseSongWithoutAlbumResponse
-    queueType: QueueTypeEnum
-
-    @field_serializer("queueType")
-    def serialize_queue_type(self, queue_type: QueueTypeEnum) -> str:
-        return queue_type.name
+    randomIndex: int
+    sortedIndex: int
 
 
 class QueueResponse(BaseModel):

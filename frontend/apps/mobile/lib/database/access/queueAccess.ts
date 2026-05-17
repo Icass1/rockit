@@ -50,7 +50,7 @@ export async function addToQueue(
     const position = (maxPosResult?.maxPos ?? -1) + 1;
 
     const result = db.runSync(
-        `INSERT INTO queue (user_id, media_id, media_public_id, queue_media_id, queue_type, position, date_added)
+        `INSERT INTO queue (user_id, media_id, media_public_id, queue_id, queue_type, position, date_added)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         queueItem.userId,
         queueItem.mediaId,
@@ -130,7 +130,7 @@ export async function addMediaNextToQueue(
     const position = (topResult?.minPos ?? 0) - 1;
 
     const result = db.runSync(
-        `INSERT INTO queue (user_id, media_id, media_public_id, queue_media_id, queue_type, position, date_added)
+        `INSERT INTO queue (user_id, media_id, media_public_id, queue_id, queue_type, position, date_added)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         queueItem.userId,
         queueItem.mediaId,

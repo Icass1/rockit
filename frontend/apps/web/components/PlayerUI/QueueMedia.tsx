@@ -2,7 +2,7 @@
 
 import { JSX } from "react";
 import Image from "next/image";
-import { QueueResponseItem } from "@/dto";
+import { QueueItem } from "@/models/interfaces/queue";
 import { useStore } from "@nanostores/react";
 import { GripVertical, Pause, Play } from "lucide-react";
 import { getMediaDuration, isDownloadable } from "@/models/types/media";
@@ -15,7 +15,7 @@ export function QueueMedia({
     media,
     onClick,
 }: {
-    media: QueueResponseItem;
+    media: QueueItem;
     onClick?: () => void;
 }): JSX.Element {
     const $currentQueueMediaId = useStore(

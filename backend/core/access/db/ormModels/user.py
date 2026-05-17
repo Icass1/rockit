@@ -35,7 +35,7 @@ class UserRow(
     provider_account_id: Mapped[str | None] = mapped_column(String, nullable=True)
     current_station: Mapped[str | None] = mapped_column(String, nullable=True)
     current_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    current_queue_media_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    current_queue_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     queue_type_key: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.queue_type_enum.key"), nullable=False, default=2
     )
@@ -91,7 +91,7 @@ class UserRow(
         provider_account_id: str | None = None,
         current_station: str | None = None,
         current_time_ms: int | None = None,
-        current_queue_media_id: int | None = None,
+        current_queue_id: int | None = None,
         queue_type_key: int = 2,
         repeat_mode_key: int = 1,
         volume: float = 1,
@@ -109,7 +109,7 @@ class UserRow(
         kwargs["provider_account_id"] = provider_account_id
         kwargs["current_station"] = current_station
         kwargs["current_time_ms"] = current_time_ms
-        kwargs["current_queue_media_id"] = current_queue_media_id
+        kwargs["current_queue_id"] = current_queue_id
         kwargs["queue_type_key"] = queue_type_key
         kwargs["repeat_mode_key"] = repeat_mode_key
         kwargs["volume"] = volume

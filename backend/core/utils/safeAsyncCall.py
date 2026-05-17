@@ -37,7 +37,8 @@ def safe_async(
             return await func(*args, **kwargs)
 
         except Exception as e:
-            logger.exception(f"Exception in {func.__name__}: {e}")
+            # logger.exception(f"Exception in {func.__name__}: {e}")
+            logger.error(f"Exception in {func.__name__}: {e}")
 
             # Roll back session to prevent cascading InFailedSQLTransactionError
             for arg in args:
@@ -58,13 +59,13 @@ def safe_async(
             ):
                 return AResult[T](
                     code=AResultCode.GENERAL_ERROR,
-                    message=f"Error in {func.__name__}: {e}",
+                    message=f"Error in {func.__name__}",
                 )
 
             # Case 2: AResultCode
             return AResultCode(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Error in {func.__name__}: {e}",
+                message=f"Error in {func.__name__}",
             )
 
     return wrapper

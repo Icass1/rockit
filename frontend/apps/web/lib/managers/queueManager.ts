@@ -1,4 +1,4 @@
-import { CurrentQueueMessageRequestItem, QueueResponseItem } from "@/dto";
+import { CurrentQueueMessageRequestItem } from "@/dto";
 import {
     EQueueType,
     isAlbum,
@@ -9,6 +9,7 @@ import {
     TPlayableMedia,
     TQueueMedia,
 } from "@rockit/shared";
+import { QueueItem } from "@/models/interfaces/queue";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getAlbumAsync } from "@/lib/services/mediaService";
@@ -18,6 +19,7 @@ import {
     ReadonlyArrayAtom,
     ReadonlyAtom,
 } from "@/lib/store";
+import { shuffle } from "@/lib/utils/arrayTools";
 
 export class QueueManager {
     // #region: Atoms
@@ -25,11 +27,11 @@ export class QueueManager {
     private _currentMediaAtom = createAtom<TPlayableMedia | undefined>();
     private _currentListAtom = createAtom<string | undefined>();
 
-    private _queueAtom = createArrayAtom<QueueResponseItem>([]);
+    private _queueAtom = createArrayAtom<QueueItem>([]);
     private _currentQueueMediaIdAtom = createAtom<number | null>(0);
 
-    private sortedQueue: QueueResponseItem[] = [];
-    private randomQueue: QueueResponseItem[] = [];
+    private sortedQueue: QueueItem[] = [];
+    private randomQueue: QueueItem[] = [];
 
     // #endregion: Atoms
 
@@ -55,12 +57,12 @@ export class QueueManager {
                 response.result.currentQueueMediaId
             );
 
-            this.randomQueue = response.result.queue.filter(
-                (item): boolean => item.queueType === "RANDOM"
-            );
-            this.sortedQueue = response.result.queue.filter(
-                (item): boolean => item.queueType === "SORTED"
-            );
+            this.sortedQueue = [...response.result.queue]
+                .sort((a, b): number => a.sortedIndex - b.sortedIndex)
+                .map(({ ...item }): QueueItem => item);
+            this.randomQueue = [...response.result.queue]
+                .sort((a, b): number => a.randomIndex - b.randomIndex)
+                .map(({ ...item }): QueueItem => item);
 
             if (response.result.queueType === "RANDOM")
                 this._queueAtom.set(this.randomQueue);
@@ -76,7 +78,7 @@ export class QueueManager {
                 );
 
             this._currentMediaAtom.set(currentMedia?.media);
-            this._currentListAtom.set(currentMedia?.listPublicId);
+            this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
             rockIt.mediaPlayerManager.setMedia(true);
         }
     }
@@ -85,12 +87,13 @@ export class QueueManager {
 
     // #region: Methods
 
-    updateQueue(): void {
+    updateQueue(shuffleRandom?: boolean): void {
         const queueType = rockIt.userManager.queueTypeAtom.get();
 
-        if (queueType === EQueueType.RANDOM)
+        if (queueType === EQueueType.RANDOM) {
+            if (shuffleRandom) this.randomQueue = shuffle(this.randomQueue);
             this._queueAtom.set([...this.randomQueue]);
-        else if (queueType === EQueueType.SORTED)
+        } else if (queueType === EQueueType.SORTED)
             this._queueAtom.set([...this.sortedQueue]);
 
         const currentMedia = this._queueAtom
@@ -101,33 +104,30 @@ export class QueueManager {
             );
 
         this._currentMediaAtom.set(currentMedia?.media);
-        this._currentListAtom.set(currentMedia?.listPublicId);
+        this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
     }
 
     private _sendCurrentQueue(): void {
+        const randomIndexByQueueMediaId = new Map<number, number>();
+        this.randomQueue.forEach((item, index): void => {
+            randomIndexByQueueMediaId.set(item.queueMediaId, index);
+        });
+
         rockIt.webSocketManager.sendCurrentQueue({
-            queue: [
-                ...this.sortedQueue.map(
-                    (item): CurrentQueueMessageRequestItem => {
-                        return {
-                            listPublicId: item.listPublicId,
-                            mediaPublicId: item.media.publicId,
-                            queueType: EQueueType.SORTED,
-                            queueMediaId: item.queueMediaId,
-                        };
-                    }
-                ),
-                ...this.randomQueue.map(
-                    (item): CurrentQueueMessageRequestItem => {
-                        return {
-                            listPublicId: item.listPublicId,
-                            mediaPublicId: item.media.publicId,
-                            queueType: EQueueType.RANDOM,
-                            queueMediaId: item.queueMediaId,
-                        };
-                    }
-                ),
-            ],
+            queue: this.sortedQueue.map(
+                (item, index): CurrentQueueMessageRequestItem => {
+                    const sortedIndex = index;
+                    const randomIndex =
+                        randomIndexByQueueMediaId.get(item.queueMediaId) ?? 0;
+                    return {
+                        listPublicId: item.listPublicId,
+                        mediaPublicId: item.media.publicId,
+                        queueMediaId: item.queueMediaId,
+                        randomIndex,
+                        sortedIndex,
+                    };
+                }
+            ),
         });
     }
 
@@ -168,25 +168,23 @@ export class QueueManager {
     }
 
     setMedia(medias: TQueueMedia[], listPublicId: string): void {
-        this.sortedQueue = medias.map((media, index): QueueResponseItem => {
+        this.sortedQueue = medias.map((media, index): QueueItem => {
             return {
                 media: media,
                 listPublicId: listPublicId,
-                queueType: EQueueType.SORTED,
                 queueMediaId: index,
             };
         });
 
-        this.randomQueue = medias.map((media, index): QueueResponseItem => {
+        this.randomQueue = medias.map((media, index): QueueItem => {
             return {
                 media: media,
                 listPublicId: listPublicId,
-                queueType: EQueueType.RANDOM,
                 queueMediaId: index,
             };
         });
 
-        const shuffle = (array: object[]): void => {
+        const shuffle = (array: QueueItem[]): void => {
             array.sort((): number => Math.random() - 0.5);
         };
 
@@ -210,7 +208,7 @@ export class QueueManager {
         rockIt.webSocketManager.sendMediaClicked({ mediaPublicId: publicId });
         this._currentQueueMediaIdAtom.set(media.queueMediaId);
         this._currentMediaAtom.set(media.media);
-        this._currentListAtom.set(media.listPublicId);
+        this._currentListAtom.set(media.listPublicId ?? undefined);
     }
 
     setQueueMediaId(): void;
@@ -249,7 +247,7 @@ export class QueueManager {
             }
 
             this._currentMediaAtom.set(media.media);
-            this._currentListAtom.set(media.listPublicId);
+            this._currentListAtom.set(media.listPublicId ?? undefined);
         } else {
             console.log(rockIt.userManager.queueType);
             if (rockIt.userManager.queueType === EQueueType.RANDOM) {
@@ -369,105 +367,11 @@ export class QueueManager {
         return this._currentListAtom.get();
     }
 
-    get queueAtom(): ReadonlyArrayAtom<{
-        queueMediaId: number;
-        listPublicId: string;
-        media: TQueueMedia;
-        queueType: "RANDOM" | "SORTED";
-    }> {
+    get queueAtom(): ReadonlyArrayAtom<QueueItem> {
         return this._queueAtom.getReadonlyAtom();
     }
 
-    get queue(): {
-        queueMediaId: number;
-        listPublicId: string;
-        media:
-            | {
-                  type: "song";
-                  provider: string;
-                  publicId: string;
-                  providerUrl: string;
-                  name: string;
-                  artists: {
-                      type: "artist";
-                      provider: string;
-                      publicId: string;
-                      url: string;
-                      providerUrl: string;
-                      name: string;
-                      imageUrl: string;
-                  }[];
-                  audioSrc: string | null;
-                  downloaded: boolean;
-                  imageUrl: string;
-                  duration_ms: number;
-                  discNumber: number;
-                  trackNumber: number;
-                  album: {
-                      type: "album";
-                      provider: string;
-                      publicId: string;
-                      url: string;
-                      providerUrl: string;
-                      name: string;
-                      artists: {
-                          type: "artist";
-                          provider: string;
-                          publicId: string;
-                          url: string;
-                          providerUrl: string;
-                          name: string;
-                          imageUrl: string;
-                      }[];
-                      releaseDate: string;
-                      imageUrl: string;
-                  };
-              }
-            | {
-                  type: "video";
-                  provider: string;
-                  publicId: string;
-                  providerUrl: string;
-                  name: string;
-                  videoSrc: string | null;
-                  audioSrc: string | null;
-                  imageUrl: string;
-                  duration_ms: number | null;
-                  artists: {
-                      type: "artist";
-                      provider: string;
-                      publicId: string;
-                      url: string;
-                      providerUrl: string;
-                      name: string;
-                      imageUrl: string;
-                  }[];
-                  downloaded: boolean;
-              }
-            | {
-                  type: "song";
-                  provider: string;
-                  publicId: string;
-                  providerUrl: string;
-                  name: string;
-                  artists: {
-                      type: "artist";
-                      provider: string;
-                      publicId: string;
-                      url: string;
-                      providerUrl: string;
-                      name: string;
-                      imageUrl: string;
-                  }[];
-                  audioSrc: string | null;
-                  downloaded: boolean;
-                  imageUrl: string;
-                  duration_ms: number;
-                  discNumber: number;
-                  trackNumber: number;
-              };
-        queueType: "RANDOM" | "SORTED";
-    }[] {
+    get queue(): QueueItem[] {
         return this._queueAtom.get();
     }
 

@@ -198,8 +198,14 @@ class SpotifyProvider(BaseProvider):
         if a_result.is_not_ok():
             return AResult(code=a_result.code(), message=a_result.message())
 
-        base_albums: List[BaseAlbumWithSongsResponse] = list(a_result.result())
-        return AResult(code=AResultCode.OK, message="OK", result=base_albums)
+        album_by_public_id: Dict[str, BaseAlbumWithSongsResponse] = {
+            r.publicId: r for r in a_result.result()
+        }
+
+        results: List[BaseAlbumWithSongsResponse] = [
+            album_by_public_id[pid] for pid in public_ids if pid in album_by_public_id
+        ]
+        return AResult(code=AResultCode.OK, message="OK", result=results)
 
     @time_it
     async def get_artists_async(

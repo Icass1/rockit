@@ -53,7 +53,7 @@ async def add_default_images(session: AsyncSession):
     """Move default images from backend/images to IMAGES_PATH and add to database."""
     source_dir = "backend/images"
     if not os.path.exists(source_dir):
-        logger.info(f"Source images directory does not exist: {source_dir}")
+        logger.error(f"Source images directory does not exist: {source_dir}")
         return
 
     os.makedirs(IMAGES_PATH, exist_ok=True)
@@ -61,21 +61,34 @@ async def add_default_images(session: AsyncSession):
     for filename in os.listdir(source_dir):
         source_path = os.path.join(source_dir, filename)
         dest_path = os.path.join(IMAGES_PATH, filename)
-        if os.path.isfile(source_path) and not os.path.exists(dest_path):
+
+        if not os.path.isfile(source_path):
+            continue
+
+        if os.path.exists(dest_path):
+            logger.info(f"Image already exists at destination: {dest_path}")
+        else:
             shutil.copy(source_path, dest_path)
             logger.info(f"Copied image: {filename}")
 
-            a_result = await ImageAccess.create_image_async(
-                session=session,
-                path=filename,
-                url=None,
+        a_result_image = await ImageAccess.get_image_from_path_async(
+            session=session, path=filename
+        )
+        if a_result_image.is_ok():
+            logger.info(f"Image already in database: {filename}")
+            continue
+
+        a_result = await ImageAccess.create_image_async(
+            session=session,
+            path=filename,
+            url=None,
+        )
+        if a_result.is_ok():
+            logger.info(f"Added image to database: {filename}")
+        else:
+            logger.error(
+                f"Error adding image to database: {filename} - {a_result.message()}"
             )
-            if a_result.is_ok():
-                logger.info(f"Added image to database: {filename}")
-            else:
-                logger.error(
-                    f"Error adding image to database: {filename} - {a_result.message()}"
-                )
 
 
 async def add_initial_content():

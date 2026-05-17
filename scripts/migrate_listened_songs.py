@@ -25,6 +25,12 @@ sys.path.append(".")
 from backend.core.access.db.db import *
 from backend.spotify.access.db.db import *
 
+# New database user id.
+USER_ID = 10
+
+# Old database username.
+USERNAME = "Nicorebo18"
+
 
 @dataclass
 class ConnectionInfo:
@@ -40,7 +46,7 @@ dst_connection_info = ConnectionInfo(
     password="admin",
     host="rockit",
     port=5432,
-    database="development_2",
+    database="production",
 )
 
 
@@ -104,7 +110,7 @@ async def process_last_played_song(
         for date_listened in dates_listened:
             values.append(
                 {
-                    "user_id": 2,
+                    "user_id": USER_ID,
                     "media_id": track_in_db.id,
                     "date_added": parse_date(date_listened),
                 }
@@ -122,7 +128,6 @@ async def process_last_played_song(
 
 
 async def main():
-    user = "icass"
     sqlite_file = "database.db"
 
     verbose = False
@@ -133,7 +138,7 @@ async def main():
 
     async with aiosqlite.connect(sqlite_file) as db:
         async with db.execute(
-            "SELECT lastPlayedSong FROM user WHERE username = ?", (user,)
+            "SELECT lastPlayedSong FROM user WHERE username = ?", (USERNAME,)
         ) as cursor:
             row = await cursor.fetchone()
 

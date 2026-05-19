@@ -27,8 +27,8 @@ import type { CrossfadeSettings } from "@/lib/audio/useAudioEngine";
 import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
-import { getMediaByPublicId } from "@/lib/database";
 import { Http } from "@/lib/http";
+import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { webSocketManager } from "@/lib/webSocketManager";
 
 const WS_TIME_SYNC_INTERVAL_MS = 1000;
@@ -296,10 +296,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     // Resolves the best URI for playback: local file → media cache → remote URL
     const resolveUri = async (media: TQueueMedia): Promise<string | null> => {
         try {
-            const dbMedia = await getMediaByPublicId(media.publicId);
-            if (dbMedia?.downloaded && dbMedia.localFilePath) {
-                return dbMedia.localFilePath;
-            }
+            const localUri = await mediaStorage.getSongUri(media.publicId);
+            if (localUri) return localUri;
         } catch {
             // Fall through to remote
         }

@@ -20,7 +20,6 @@ import {
     ContextMenuOption,
     useContextMenu,
 } from "@/lib/ContextMenuContext";
-import { createMediaFromDTO, markMediaDownloaded } from "@/lib/database";
 import { Http } from "@/lib/http";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
@@ -106,8 +105,6 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                 vocabulary.DOWNLOAD_STARTED
                             );
 
-                            const dbMedia = await createMediaFromDTO(media);
-
                             const url = isVideo(media)
                                 ? (media.audioSrc ?? media.videoSrc ?? null)
                                 : media.audioSrc;
@@ -130,10 +127,6 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                   );
 
                             if (localPath) {
-                                await markMediaDownloaded(
-                                    dbMedia.id,
-                                    localPath
-                                );
                                 toasterManager.notifySuccess(
                                     vocabulary.MEDIA_ADDED_TO_LIBRARY
                                 );

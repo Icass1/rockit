@@ -14,18 +14,20 @@ import {
     View,
 } from "react-native";
 import { Http } from "@/lib/http";
+import { useVocabulary } from "@/lib/vocabulary";
 
 function validateUsername(value: string): string | null {
     if (value === "") return null;
     if (value.length < 3 || value.length > 30)
-        return "Username must be between 3 and 30 characters"; // TODO: Use vocabulary
+        return "Username must be between 3 and 30 characters";
     if (!/^[a-zA-Z0-9_-]+$/.test(value))
-        return "Only letters, numbers, _ and - are allowed"; // TODO: Use vocabulary
+        return "Only letters, numbers, _ and - are allowed";
     return null;
 }
 
 export default function RegisterScreen() {
     const router = useRouter();
+    const { vocabulary, refreshVocabulary } = useVocabulary();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
@@ -44,7 +46,7 @@ export default function RegisterScreen() {
 
     async function handleRegister() {
         if (!username.trim() || !password.trim() || !repeatPassword.trim()) {
-            setError("Please fill in all fields");
+            setError(vocabulary.ALL_FIELDS_REQUIRED);
             return;
         }
 
@@ -55,7 +57,7 @@ export default function RegisterScreen() {
         }
 
         if (password !== repeatPassword) {
-            setError("Passwords do not match");
+            setError(vocabulary.PASSWORDS_DONT_MATCH);
             return;
         }
 
@@ -73,11 +75,12 @@ export default function RegisterScreen() {
 
             if (result.isOk()) {
                 router.replace("/");
+                refreshVocabulary();
             } else {
-                setError("Registration failed");
+                setError(vocabulary.ERROR_REGISTER);
             }
         } catch {
-            setError("Network error");
+            setError(vocabulary.ERROR);
         } finally {
             setLoading(false);
         }
@@ -101,14 +104,14 @@ export default function RegisterScreen() {
                 </View>
 
                 <View style={styles.form}>
-                    <Text style={styles.title}>Register</Text>
+                    <Text style={styles.title}>{vocabulary.CREATE_ACCOUNT}</Text>
 
                     <TextInput
                         style={[
                             styles.input,
                             usernameError ? styles.inputError : null,
                         ]}
-                        placeholder="Username"
+                        placeholder={vocabulary.USERNAME}
                         placeholderTextColor={COLORS.gray400}
                         value={username}
                         onChangeText={handleUsernameChange}
@@ -121,7 +124,7 @@ export default function RegisterScreen() {
 
                     <TextInput
                         style={styles.input}
-                        placeholder="Password"
+                        placeholder={vocabulary.PASSWORD}
                         placeholderTextColor={COLORS.gray400}
                         value={password}
                         onChangeText={setPassword}
@@ -132,7 +135,7 @@ export default function RegisterScreen() {
 
                     <TextInput
                         style={styles.input}
-                        placeholder="Repeat Password"
+                        placeholder={vocabulary.REPEAT_PASSWORD}
                         placeholderTextColor={COLORS.gray400}
                         value={repeatPassword}
                         onChangeText={setRepeatPassword}
@@ -155,7 +158,7 @@ export default function RegisterScreen() {
                             <ActivityIndicator color={COLORS.white} />
                         ) : (
                             <Text style={styles.buttonText}>
-                                Create Account
+                                {vocabulary.SIGN_UP}
                             </Text>
                         )}
                     </Pressable>
@@ -165,7 +168,7 @@ export default function RegisterScreen() {
                         onPress={() => router.push("/(auth)/login")}
                     >
                         <Text style={styles.linkText}>
-                            Already have an account? Login
+                            {vocabulary.OR_LOG_IN}
                         </Text>
                     </Pressable>
                 </View>

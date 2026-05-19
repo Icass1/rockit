@@ -12,8 +12,8 @@ export const UserStatsRequestSchema = z.object({
             z.literal("custom"),
         ])
         .default("7d"),
-    start: z.string().nullable(),
-    end: z.string().nullable(),
+    start: z.iso.datetime().nullable(),
+    end: z.iso.datetime().nullable(),
 });
 
 export type UserStatsRequest = z.infer<typeof UserStatsRequestSchema>;

@@ -3,9 +3,11 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useRef,
     useState,
     type ReactNode,
 } from "react";
+import { Platform, NativeModules } from "react-native";
 import { type Vocabulary } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
@@ -16,6 +18,25 @@ function createVocabularyProxy(data: Record<string, string>): Vocabulary {
             return target[prop] ?? prop;
         },
     }) as unknown as Vocabulary;
+}
+
+function getSystemLocale(): string {
+    try {
+        if (Platform.OS === "ios") {
+            const settings = NativeModules.SettingsManager?.settings;
+            const locale =
+                settings?.AppleLocale ??
+                settings?.AppleLanguages?.[0];
+            if (locale) return locale.substring(0, 2);
+        } else {
+            const locale =
+                NativeModules.I18nManager?.localeIdentifier;
+            if (locale) return locale.substring(0, 2);
+        }
+    } catch {
+        // ignore
+    }
+    return "en";
 }
 
 interface VocabularyContextType {
@@ -34,22 +55,36 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
     );
     const [lang, setLang] = useState("en");
     const [isLoading, setIsLoading] = useState(true);
+    const systemLocaleRef = useRef(getSystemLocale());
 
     const refreshVocabulary = useCallback(async () => {
         setIsLoading(true);
         const response = await Http.getUserVocabulary();
 
-        if (!response.isOk()) {
-            console.error(response.message, response.detail);
-            toasterManager.notifyError("Failed to load vocabulary");
+        if (response.isOk()) {
+            const res = response.result;
+            setVocabulary(createVocabularyProxy(res.vocabulary));
+            setLang(res.currentLang);
             setIsLoading(false);
             return;
         }
 
-        const res = response.result;
+        const fallback = await Http.getVocabularyByCode(
+            systemLocaleRef.current
+        );
 
-        setVocabulary(createVocabularyProxy(res.vocabulary));
-        setLang(res.currentLang);
+        if (fallback.isOk()) {
+            const res = fallback.result;
+            setVocabulary(createVocabularyProxy(res.vocabulary));
+            setLang(res.currentLang);
+        } else {
+            console.error(
+                "Failed to load vocabulary:",
+                response.message,
+                response.detail
+            );
+        }
+
         setIsLoading(false);
     }, []);
 

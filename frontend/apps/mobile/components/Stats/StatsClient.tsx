@@ -6,7 +6,8 @@ import DateTimePicker, {
 import { EPlatform } from "@rockit/shared";
 import { BarChart3, User, Users } from "lucide-react-native";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { useUserStats, type Range } from "@/hooks/useUserStats";
+import { Http } from "@/lib/http";
+import useFetch from "@/lib/useFetch";
 import { useVocabulary } from "@/lib/vocabulary";
 import UserStats from "./UserStats";
 
@@ -17,10 +18,12 @@ const RANGE_OPTIONS: { label: string; value: Range }[] = [
     { label: "Custom", value: "custom" },
 ];
 
+export type Range = "7d" | "30d" | "1y" | "custom";
+
 function getRangeLabel(
     range: Range,
-    customStart?: string,
-    customEnd?: string
+    customStart?: Date,
+    customEnd?: Date
 ): string {
     switch (range) {
         case "7d":
@@ -58,53 +61,34 @@ function LoadingSkeleton() {
 }
 
 export default function StatsClient() {
-    const { vocabulary } = useVocabulary();
+    const { vocabulary, lang } = useVocabulary();
     const [section, setSection] = useState<"user" | "general" | "friends">(
         "user"
     );
     const [range, setRange] = useState<Range>("7d");
-    const [customStart, setCustomStart] = useState("");
-    const [customEnd, setCustomEnd] = useState("");
+    const [customStart, setCustomStart] = useState<Date>();
+    const [customEnd, setCustomEnd] = useState<Date>();
     const [showStartPicker, setShowStartPicker] = useState(false);
     const [showEndPicker, setShowEndPicker] = useState(false);
     const [tempStartDate, setTempStartDate] = useState(new Date());
     const [tempEndDate, setTempEndDate] = useState(new Date());
 
-    const { data, loading, error } = useUserStats({
-        range,
-        customStart,
-        customEnd,
-    });
+    const { data, error, loading } = useFetch(() =>
+        Http.getUserStats({
+            range: range,
+            start: customStart?.toISOString() ?? null,
+            end: customEnd?.toISOString() ?? null,
+        })
+    );
 
-    function formatDateForApi(date: Date): string {
-        return date.toISOString().split("T")[0];
-    }
-
-    function formatDateForDisplay(dateStr: string): string {
-        if (!dateStr) return vocabulary.SHOWING_DATA;
-        const parts = dateStr.split("-");
-        if (parts.length !== 3) return dateStr;
-        const date = new Date(
-            parseInt(parts[0]),
-            parseInt(parts[1]) - 1,
-            parseInt(parts[2])
-        );
-        return date.toLocaleDateString("en-US", {
+    function formatDateForDisplay(dateStr: Date | undefined): string {
+        if (!dateStr) return "Select date";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(lang, {
+            year: "numeric",
             month: "short",
             day: "numeric",
-            year: "numeric",
         });
-    }
-
-    function parseApiDate(dateStr: string): Date {
-        if (!dateStr) return new Date();
-        const parts = dateStr.split("-");
-        if (parts.length !== 3) return new Date();
-        return new Date(
-            parseInt(parts[0]),
-            parseInt(parts[1]) - 1,
-            parseInt(parts[2])
-        );
     }
 
     function onStartDateChange(
@@ -116,7 +100,7 @@ export default function StatsClient() {
         }
         if (selectedDate) {
             setTempStartDate(selectedDate);
-            setCustomStart(formatDateForApi(selectedDate));
+            setCustomStart(selectedDate);
         }
     }
 
@@ -126,13 +110,13 @@ export default function StatsClient() {
         }
         if (selectedDate) {
             setTempEndDate(selectedDate);
-            setCustomEnd(formatDateForApi(selectedDate));
+            setCustomEnd(selectedDate);
         }
     }
 
     function openStartPicker() {
         if (customStart) {
-            setTempStartDate(parseApiDate(customStart));
+            setTempStartDate(customStart);
         } else {
             const d = new Date();
             d.setDate(d.getDate() - 7);
@@ -143,7 +127,7 @@ export default function StatsClient() {
 
     function openEndPicker() {
         if (customEnd) {
-            setTempEndDate(parseApiDate(customEnd));
+            setTempEndDate(customEnd);
         } else {
             setTempEndDate(new Date());
         }
@@ -153,8 +137,8 @@ export default function StatsClient() {
     function handleRangeChange(newRange: Range) {
         setRange(newRange);
         if (newRange !== "custom") {
-            setCustomStart("");
-            setCustomEnd("");
+            setCustomStart(new Date());
+            setCustomEnd(new Date());
         }
     }
 

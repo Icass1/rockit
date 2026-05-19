@@ -539,6 +539,39 @@ class YoutubeMusicProvider(BaseProvider):
                 return up.path_template.format(match.group(1))
         return None
 
+    def get_stats_media_info_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+        return f"""    SELECT t.id          AS media_id,
+           t.duration_ms AS duration_ms,
+           cm.public_id  AS public_id,
+           t.title       AS media_name,
+           ci.url        AS image_url,
+           {MediaTypeEnum.SONG.value} AS media_type_key
+    FROM   youtube_music.track t
+    JOIN   core.media          cm ON cm.id = t.id
+    JOIN   core.image          ci ON ci.id = t.image_id"""
+
+    def get_stats_artist_info_cte_fragment(self) -> str | None:
+        return """    SELECT t.id               AS media_id,
+           cm_a.public_id     AS artist_public_id,
+           a.name             AS artist_name,
+           ai.url             AS artist_image_url
+    FROM   youtube_music.track         t
+    JOIN   youtube_music.track_artists ta   ON ta.track_id  = t.id
+    JOIN   youtube_music.artist        a    ON a.id         = ta.artist_id
+    JOIN   core.media                  cm_a ON cm_a.id      = a.id
+    JOIN   core.image                  ai   ON ai.id        = a.image_id"""
+
+    def get_stats_album_info_cte_fragment(self) -> str | None:
+        return """    SELECT t.id              AS media_id,
+           cm_al.public_id   AS album_public_id,
+           al.title          AS album_name,
+           ai.url            AS album_image_url
+    FROM   youtube_music.track  t
+    JOIN   youtube_music.album  al    ON al.id    = t.album_id
+    JOIN   core.media           cm_al ON cm_al.id = al.id
+    JOIN   core.image           ai    ON ai.id    = al.image_id"""
+
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[int]:

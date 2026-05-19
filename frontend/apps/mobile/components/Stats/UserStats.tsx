@@ -2,7 +2,6 @@ import { COLORS } from "@/constants/theme";
 import type { UserStatsResponse } from "@rockit/shared";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
-import AlbumGrid from "./charts/AlbumGrid";
 import ListeningHeatmap from "./charts/ListeningHeatmap";
 import MinutesBarChart from "./charts/MinutesBarChart";
 import RankingList from "./charts/RankingList";
@@ -35,7 +34,7 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
                         <RankingList
                             items={data.topSongs}
                             showImages
-                            maxItems={10}
+                            maxItems={3}
                         />
                     </StatsSectionCard>
                 </View>
@@ -44,16 +43,32 @@ export default function UserStats({ data, rangeLabel }: UserStatsProps) {
                         <RankingList
                             items={data.topArtists}
                             showImages
-                            valueLabel="%"
-                            maxItems={8}
+                            maxItems={3}
                         />
                     </StatsSectionCard>
                 </View>
             </View>
 
-            <StatsSectionCard title={vocabulary.TOP_ALBUMS}>
-                <AlbumGrid albums={data.topAlbums} />
-            </StatsSectionCard>
+            <View style={isWide ? styles.row : styles.column}>
+                <View style={styles.flex1}>
+                    <StatsSectionCard title={vocabulary.TOP_VIDEOS}>
+                        <RankingList
+                            items={data.topVideos}
+                            showImages
+                            maxItems={3}
+                        />
+                    </StatsSectionCard>
+                </View>
+                <View style={styles.flex1}>
+                    <StatsSectionCard title={vocabulary.TOP_ALBUMS}>
+                        <RankingList
+                            items={data.topAlbums}
+                            showImages
+                            maxItems={3}
+                        />
+                    </StatsSectionCard>
+                </View>
+            </View>
 
             <StatsSectionCard title={vocabulary.MINUTES_LISTENED_PER_DAY}>
                 <ListeningHeatmap data={data.heatmap} />

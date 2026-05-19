@@ -1,71 +1,13 @@
-import { EQueueType, type SessionResponse } from "@rockit/shared";
+import { type SessionResponse } from "@rockit/shared";
 import { Http } from "@/lib/http";
-import {
-    createUser,
-    getFirstUser,
-    getUserByUsername,
-    updateUser,
-} from "./database/access/userAccess";
-import { checkNetworkConnection } from "./network";
-
-const QUEUE_TYPE_VALUES = Object.values(EQueueType);
-
-function queueTypeKeyToString(key: number): EQueueType {
-    return QUEUE_TYPE_VALUES[key - 1];
-}
-
-function queueTypeStringToKey(type: EQueueType): number {
-    return QUEUE_TYPE_VALUES.indexOf(type) + 1;
-}
-
-async function saveSessionToSqlite(session: SessionResponse): Promise<void> {
-    const queueTypeKey = queueTypeStringToKey(session.queueType as EQueueType);
-
-    const existing = await getUserByUsername(session.username);
-    if (existing) {
-        await updateUser(existing.id, {
-            admin: session.admin,
-            queueTypeKey,
-            currentTimeMs: session.currentTimeMs,
-        });
-    } else {
-        await createUser({
-            publicId: session.username,
-            username: session.username,
-            admin: session.admin,
-            queueTypeKey: queueTypeKey,
-            currentTimeMs: session.currentTimeMs ?? undefined,
-        });
-    }
-}
-
-async function getSessionFromSqlite(): Promise<SessionResponse | null> {
-    const user = await getFirstUser();
-    if (!user) return null;
-    return {
-        username: user.username,
-        image: "",
-        admin: user.admin,
-        queueType: queueTypeKeyToString(user.queueTypeKey),
-        repeatMode: "OFF",
-        currentTimeMs: user.currentTimeMs ?? null,
-    };
-}
 
 export async function getSession(): Promise<SessionResponse | null> {
-    const isOnline = await checkNetworkConnection();
+    const response = await Http.getSession();
 
-    if (isOnline) {
-        const response = await Http.getSession();
-
-        if (response.isOk()) {
-            saveSessionToSqlite(response.result).catch(console.error);
-            return response.result;
-        } else {
-            console.error(response.message, response.detail);
-            return null;
-        }
+    if (response.isOk()) {
+        return response.result;
     } else {
-        return getSessionFromSqlite();
+        console.error(response.message, response.detail);
+        return null;
     }
 }

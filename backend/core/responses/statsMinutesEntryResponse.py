@@ -1,5 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from backend.core.baseModel import BaseModel
 
 
 class StatsMinutesEntryResponse(BaseModel):

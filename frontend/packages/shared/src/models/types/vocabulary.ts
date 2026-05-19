@@ -284,6 +284,7 @@ export interface Vocabulary {
     TODO: string;
     TOP_ALBUMS: string;
     TOP_SONGS: string;
+    TOP_VIDEOS: string;
     UNPIN: string;
     UNREGISTER: string;
     UNREGISTERED: string;

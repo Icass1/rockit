@@ -12,6 +12,7 @@ class UserStatsResponse(BaseModel):
     summary: StatsSummaryResponse
     minutes: List[StatsMinutesEntryResponse]
     topSongs: List[StatsRankedItemResponse]
+    topVideos: List[StatsRankedItemResponse]
     topAlbums: List[StatsRankedItemResponse]
     topArtists: List[StatsRankedItemResponse]
     heatmap: List[StatsHeatmapCellResponse]

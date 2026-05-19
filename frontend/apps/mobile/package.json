@@ -1,7 +1,7 @@
 {
     "name": "mobile",
     "main": "expo-router/entry",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "scripts": {
         "start": "expo start",
         "start:lan": "REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME} expo start",
@@ -50,7 +50,6 @@
         "expo-router": "~6.0.23",
         "expo-secure-store": "^15.0.8",
         "expo-splash-screen": "~31.0.13",
-        "expo-sqlite": "~16.0.10",
         "expo-status-bar": "~3.0.9",
         "expo-symbols": "~1.0.8",
         "expo-system-ui": "~6.0.9",
@@ -58,7 +57,6 @@
         "expo-web-browser": "~15.0.10",
         "lucide-react-native": "^1.8.0",
         "nanostores": "^0.11.3",
-        "drizzle-orm": "^0.41.0",
         "react": "19.1.0",
         "react-dom": "19.1.0",
         "react-native": "0.81.5",

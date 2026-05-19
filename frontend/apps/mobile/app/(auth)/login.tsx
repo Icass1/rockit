@@ -29,7 +29,7 @@ export default function LoginScreen() {
 
     async function handleLogin() {
         if (!username.trim() || !password.trim()) {
-            setError("Please fill in all fields");
+            setError(vocabulary.ALL_FIELDS_REQUIRED);
             return;
         }
 
@@ -48,11 +48,11 @@ export default function LoginScreen() {
                 router.replace("/");
                 refreshVocabulary();
             } else {
-                setError("Login failed"); // TODO: Use vocabulary
+                setError(vocabulary.ERROR_LOGIN);
             }
         } catch (e: unknown) {
             const errMsg = e instanceof Error ? e.message : String(e);
-            setError("Network error: " + errMsg);
+            setError(`${vocabulary.ERROR}: ${errMsg}`);
         } finally {
             setLoading(false);
         }
@@ -76,11 +76,11 @@ export default function LoginScreen() {
                 </View>
 
                 <View style={styles.form}>
-                    <Text style={styles.title}>Login</Text>
-                    {/* TODO: Use vocabulary */}
+                    <Text style={styles.title}>{vocabulary.LOG_IN}</Text>
+
                     <TextInput
                         style={styles.input}
-                        placeholder="Username" // TODO: Use vocabulary
+                        placeholder={vocabulary.USERNAME}
                         placeholderTextColor={COLORS.gray400}
                         value={username}
                         onChangeText={setUsername}
@@ -89,7 +89,7 @@ export default function LoginScreen() {
                     />
                     <TextInput
                         style={styles.input}
-                        placeholder="Password" // TODO: Use vocabulary
+                        placeholder={vocabulary.PASSWORD}
                         placeholderTextColor={COLORS.gray400}
                         value={password}
                         onChangeText={setPassword}
@@ -128,7 +128,9 @@ export default function LoginScreen() {
                         {loading ? (
                             <ActivityIndicator color={COLORS.white} />
                         ) : (
-                            <Text style={styles.buttonText}>Login</Text> // TODO: Use vocabulary
+                            <Text style={styles.buttonText}>
+                                {vocabulary.LOG_IN}
+                            </Text>
                         )}
                     </Pressable>
                     <Pressable
@@ -136,8 +138,7 @@ export default function LoginScreen() {
                         onPress={() => router.push("/(auth)/register")}
                     >
                         <Text style={styles.linkText}>
-                            Don&apos;t have an account? Register // TODO: Use
-                            vocabulary
+                            {vocabulary.OR_CREATE_ACCOUNT}
                         </Text>
                     </Pressable>
                 </View>

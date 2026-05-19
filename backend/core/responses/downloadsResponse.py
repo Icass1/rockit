@@ -1,6 +1,8 @@
 from typing import List
 from datetime import datetime
-from pydantic import BaseModel, field_serializer
+from pydantic import field_serializer
+
+from backend.core.baseModel import BaseModel
 
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 

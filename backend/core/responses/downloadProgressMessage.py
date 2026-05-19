@@ -1,8 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, field_serializer
+from pydantic import field_serializer
+
 from typing import Literal
 
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
+from backend.core.baseModel import BaseModel
 
 
 class DownloadProgressMessage(BaseModel):

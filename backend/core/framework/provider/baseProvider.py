@@ -149,3 +149,22 @@ class BaseProvider:
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_media_duration_ms_async.",
         )
+
+    # ------------------------------------------------------------------
+    # Stats CTE fragments
+    # Each method returns a bare SELECT … block (no CTE name, no UNION ALL)
+    # that will be combined with other providers' fragments via UNION ALL.
+    # Return None if the provider has no contribution for that CTE.
+    # ------------------------------------------------------------------
+
+    def get_stats_media_info_cte_fragment(self) -> str | None:
+        """SELECT fragment for media_info (media_id, duration_ms, public_id, media_name, image_url, media_type_key)."""
+        return None
+
+    def get_stats_artist_info_cte_fragment(self) -> str | None:
+        """SELECT fragment for artist_info (media_id, artist_public_id, artist_name, artist_image_url)."""
+        return None
+
+    def get_stats_album_info_cte_fragment(self) -> str | None:
+        """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url)."""
+        return None

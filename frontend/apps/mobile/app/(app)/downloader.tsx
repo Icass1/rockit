@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     },
     groups: {
         gap: 8,
+        paddingBottom: 124,
     },
     clearButton: {
         flexDirection: "row",

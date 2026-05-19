@@ -11,6 +11,7 @@ export const UserStatsResponseSchema = z.object({
     summary: z.lazy(() => StatsSummaryResponseSchema),
     minutes: z.array(z.lazy(() => StatsMinutesEntryResponseSchema)),
     topSongs: z.array(z.lazy(() => StatsRankedItemResponseSchema)),
+    topVideos: z.array(z.lazy(() => StatsRankedItemResponseSchema)),
     topAlbums: z.array(z.lazy(() => StatsRankedItemResponseSchema)),
     topArtists: z.array(z.lazy(() => StatsRankedItemResponseSchema)),
     heatmap: z.array(z.lazy(() => StatsHeatmapCellResponseSchema)),

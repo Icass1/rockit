@@ -29,6 +29,8 @@ export default function useFetch<T>(
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | undefined>(undefined);
 
+    console.log("useFetch", func);
+
     useEffect((): void => {
         update(func, setData, setLoading, setError);
     }, [func]);

@@ -252,6 +252,29 @@ class YoutubeProvider(BaseProvider):
 
         return AResult(code=AResultCode.OK, message="OK", result=results)
 
+    def get_stats_media_info_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+        return f"""    SELECT v.id                                           AS media_id,
+           COALESCE(v.real_duration_ms, v.duration_ms)   AS duration_ms,
+           cm.public_id                                   AS public_id,
+           v.name                                         AS media_name,
+           ci.url                                         AS image_url,
+           {MediaTypeEnum.VIDEO.value}                    AS media_type_key
+    FROM   youtube.video v
+    JOIN   core.media    cm ON cm.id = v.id
+    JOIN   core.image    ci ON ci.id = v.image_id"""
+
+    def get_stats_artist_info_cte_fragment(self) -> str | None:
+        return """    SELECT v.id               AS media_id,
+           cm_ch.public_id    AS artist_public_id,
+           ch.name            AS artist_name,
+           ci.url             AS artist_image_url
+    FROM   youtube.video         v
+    JOIN   youtube.video_channel vc    ON vc.video_id   = v.id
+    JOIN   youtube.channel       ch    ON ch.id         = vc.channel_id
+    JOIN   core.media            cm_ch ON cm_ch.id      = ch.id
+    JOIN   core.image            ci    ON ci.id         = ch.image_id"""
+
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[int]:

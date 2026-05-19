@@ -5,7 +5,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { initDatabase } from "@/lib/database/db";
 import { PlayerProvider } from "@/lib/PlayerContext";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { syncManager } from "@/lib/syncManager";
@@ -28,7 +27,6 @@ export default function RootLayout() {
     useEffect(() => {
         async function init() {
             try {
-                await initDatabase();
                 await mediaStorage.init();
                 await syncManager.init();
                 await webSocketManager.init();

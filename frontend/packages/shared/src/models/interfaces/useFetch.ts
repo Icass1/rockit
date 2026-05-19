@@ -1,6 +1,6 @@
 export interface IUseFetch<T> {
     data: T | undefined;
     update: () => void;
-    error: boolean | undefined;
+    error: string | undefined;
     loading: boolean;
 }

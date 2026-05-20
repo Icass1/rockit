@@ -1,5 +1,4 @@
 import {
-    BaseHttp,
     BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
     EEvent,
@@ -89,7 +88,7 @@ export class PlaylistManager {
     };
 
     private async refreshPlaylistsAsync(): Promise<void> {
-        const result = await BaseHttp.getUserPlaylistsAsync();
+        const result = await Http.getUserPlaylistsAsync();
         if (result.isOk()) {
             this._playlistsAtom.set(result.result.playlists);
         }

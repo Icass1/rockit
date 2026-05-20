@@ -26,6 +26,7 @@ export class PlaylistManager {
     }
 
     async init(): Promise<void> {
+        console.log("PlaylistManager init", this._init);
         if (this._init) return;
         this._init = true;
 

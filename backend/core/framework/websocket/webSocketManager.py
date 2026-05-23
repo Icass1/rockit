@@ -330,7 +330,7 @@ class WebSocketManager:
                 return
 
             media_item: MediaModel = a_result_medias.result()[0]
-            provider = providers.find_provider(media_item.provider_id)
+            provider = providers.find_media_provider(media_item.provider_id)
 
             if not provider:
                 logger.debug(

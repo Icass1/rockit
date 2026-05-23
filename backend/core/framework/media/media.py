@@ -14,7 +14,7 @@ from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.core.framework import providers
 from backend.core.framework.models.media import MediaModel
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 
 from backend.core.responses.mediaResponse import MediaResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
@@ -115,7 +115,7 @@ class Media:
             return AResult(code=a_result_song.code(), message=a_result_song.message())
 
         song: CoreMediaRow = a_result_song.result()
-        provider: BaseProvider | None = providers.find_provider(
+        provider: BaseMediaProvider | None = providers.find_media_provider(
             provider_id=song.provider_id
         )
         if provider is None:
@@ -153,7 +153,7 @@ class Media:
             return AResult(code=a_result_album.code(), message=a_result_album.message())
 
         album: CoreMediaRow = a_result_album.result()
-        provider: BaseProvider | None = providers.find_provider(
+        provider: BaseMediaProvider | None = providers.find_media_provider(
             provider_id=album.provider_id
         )
         if provider is None:
@@ -193,7 +193,9 @@ class Media:
             )
 
         artist: CoreMediaRow = a_result_artist.result()
-        provider: BaseProvider | None = providers.find_provider(artist.provider_id)
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            artist.provider_id
+        )
         if provider is None:
             logger.error(f"No provider found for provider_id {artist.provider_id}.")
             return AResult(
@@ -231,7 +233,9 @@ class Media:
             )
 
         playlist: CoreMediaRow = a_result_playlist.result()
-        provider: BaseProvider | None = providers.find_provider(playlist.provider_id)
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            playlist.provider_id
+        )
         if provider is None:
             logger.error(f"No provider found for provider_id {playlist.provider_id}.")
             return AResult(
@@ -271,7 +275,9 @@ class Media:
             )
 
         playlist: CoreMediaRow = a_result_playlist.result()
-        provider: BaseProvider | None = providers.find_provider(playlist.provider_id)
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            playlist.provider_id
+        )
         if provider is None:
             logger.error(f"No provider found for provider_id {playlist.provider_id}.")
             return AResult(
@@ -299,7 +305,7 @@ class Media:
 
         tasks: List[asyncio.Task[AResult[List[BaseSearchResultsItem]]]] = []
 
-        for provider in providers.get_providers():
+        for provider in providers.get_media_providers():
             a_result_id: AResult[int] = provider.get_id()
             if a_result_id.is_not_ok():
                 logger.error(f"Skipping provider with no id. {a_result_id.info()}")
@@ -370,7 +376,9 @@ class Media:
             return AResult(code=a_result_video.code(), message=a_result_video.message())
 
         video: CoreMediaRow = a_result_video.result()
-        provider: BaseProvider | None = providers.find_provider(video.provider_id)
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            video.provider_id
+        )
         if provider is None:
             logger.error(f"No provider found for provider_id {video.provider_id}.")
             return AResult(
@@ -404,7 +412,9 @@ class Media:
             return AResult(code=a_result_media.code(), message=a_result_media.message())
 
         media: CoreMediaRow = a_result_media.result()
-        provider: BaseProvider | None = providers.find_provider(media.provider_id)
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            media.provider_id
+        )
         if provider is None:
             logger.error(f"No provider found for provider_id {media.provider_id}.")
             return AResult(

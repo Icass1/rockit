@@ -33,8 +33,7 @@ def _get_media_info_cte() -> str:
     from backend.core.framework import providers
 
     frags = [
-        p.get_stats_media_info_cte_fragment()
-        for p in providers.get_providers()
+        p.get_stats_media_info_cte_fragment() for p in providers.get_media_providers()
     ]
     frags = [f for f in frags if f]
     if not frags:
@@ -56,8 +55,7 @@ def _get_artist_info_cte() -> str:
     from backend.core.framework import providers
 
     frags = [
-        p.get_stats_artist_info_cte_fragment()
-        for p in providers.get_providers()
+        p.get_stats_artist_info_cte_fragment() for p in providers.get_media_providers()
     ]
     frags = [f for f in frags if f]
     if not frags:
@@ -77,8 +75,7 @@ def _get_album_info_cte() -> str:
     from backend.core.framework import providers
 
     frags = [
-        p.get_stats_album_info_cte_fragment()
-        for p in providers.get_providers()
+        p.get_stats_album_info_cte_fragment() for p in providers.get_media_providers()
     ]
     frags = [f for f in frags if f]
     if not frags:
@@ -261,8 +258,18 @@ class StatsAccess:
 
         elif group_by == "month":
             month_names = [
-                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
             ]
             cur = start.replace(day=1)
             while cur < end:

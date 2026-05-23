@@ -10,7 +10,7 @@ from backend.utils.logger import getLogger
 from backend.utils.backendUtils import time_it
 
 # Core framework.
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.models.urlPattern import UrlPattern
 from backend.core.framework.downloader.baseDownload import BaseDownload
@@ -97,7 +97,7 @@ YOUTUBE_MUSIC_URL_PATTERNS: List[UrlPattern] = [
 ]
 
 
-class YoutubeMusicProvider(BaseProvider):
+class YoutubeMusicProvider(BaseMediaProvider):
     def __init__(self) -> None:
         super().__init__()
 
@@ -108,7 +108,9 @@ class YoutubeMusicProvider(BaseProvider):
         YoutubeMusic.provider_name = provider_name
 
     @time_it
-    async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
+    async def search_media_async(
+        self, query: str
+    ) -> AResult[List[BaseSearchResultsItem]]:
         """Search YouTube Music and return songs, artists, albums and playlists."""
         import asyncio
 
@@ -541,6 +543,7 @@ class YoutubeMusicProvider(BaseProvider):
 
     def get_stats_media_info_cte_fragment(self) -> str | None:
         from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
         return f"""    SELECT t.id          AS media_id,
            t.duration_ms AS duration_ms,
            cm.public_id  AS public_id,

@@ -12,7 +12,7 @@ from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.userAccess import UserAccess
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 
@@ -31,7 +31,7 @@ from backend.default.framework.models.playlist import PlaylistWithDetailsModel
 logger: Logger = getLogger(__name__)
 
 
-class DefaultProvider(BaseProvider):
+class DefaultProvider(BaseMediaProvider):
     def __init__(self) -> None:
         super().__init__()
 

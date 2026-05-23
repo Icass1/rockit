@@ -38,7 +38,7 @@ from backend.core.framework.models.queueTask import (
     QueueTask,
 )
 from backend.core.framework.websocket.sendToUser import SendToUser
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 
 from backend.core.responses.queueResponse import QueueResponse, QueueResponseItem
 from backend.core.responses.libraryMediaAddedMessage import LibraryMediaAddedMessage
@@ -103,7 +103,7 @@ class User:
         # Collect all coroutines to run in parallel
         tasks: List[QueueTask] = []
         for (provider_id, media_type_key), items in groups.items():
-            provider_instance: BaseProvider | None = providers.find_provider(
+            provider_instance: BaseMediaProvider | None = providers.find_media_provider(
                 provider_id=provider_id
             )
             if provider_instance is None:
@@ -239,7 +239,7 @@ class User:
         # Collect all coroutines to run in parallel
         tasks: List[LibraryTask] = []
         for (provider_id, media_type_key), public_ids in groups.items():
-            provider_instance: BaseProvider | None = providers.find_provider(
+            provider_instance: BaseMediaProvider | None = providers.find_media_provider(
                 provider_id=provider_id
             )
             if provider_instance is None:
@@ -441,7 +441,9 @@ class User:
 
         album_media: CoreMediaRow = a_result_album_media.result()
 
-        provider: BaseProvider | None = providers.find_provider(album_media.provider_id)
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            album_media.provider_id
+        )
         if provider is None:
             logger.error(
                 f"No provider found for provider_id {album_media.provider_id}."
@@ -509,7 +511,9 @@ class User:
 
         album_media: CoreMediaRow = a_result_album_media.result()
 
-        provider: BaseProvider | None = providers.find_provider(album_media.provider_id)
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            album_media.provider_id
+        )
         if provider is None:
             logger.error(
                 f"No provider found for provider_id {album_media.provider_id}."

@@ -20,7 +20,7 @@ from backend.core.framework import providers
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.downloader import downloads_manager
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
 from backend.core.responses.startDownloadResponse import StartDownloadResponse
@@ -66,7 +66,7 @@ class Downloader:
                 continue
 
             song: MediaModel = a_result_song.result()
-            provider: BaseProvider | None = providers.find_provider(
+            provider: BaseMediaProvider | None = providers.find_media_provider(
                 provider_id=song.provider_id
             )
             if provider is None:
@@ -168,7 +168,7 @@ class Downloader:
                 if a_result_media.is_ok():
                     media: CoreMediaRow = a_result_media.result()
 
-                    provider: BaseProvider | None = providers.find_provider(
+                    provider: BaseMediaProvider | None = providers.find_media_provider(
                         provider_id=media.provider_id
                     )
 

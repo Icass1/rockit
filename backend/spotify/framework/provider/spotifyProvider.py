@@ -11,7 +11,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.enumAccess import EnumAccess
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.models.urlPattern import UrlPattern
 
 from backend.core.responses.searchResponse import BaseSearchResultsItem
@@ -63,7 +63,7 @@ SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
 ]
 
 
-class SpotifyProvider(BaseProvider):
+class SpotifyProvider(BaseMediaProvider):
     def __init__(self) -> None:
         super().__init__()
 
@@ -85,7 +85,9 @@ class SpotifyProvider(BaseProvider):
         )
 
     @time_it
-    async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
+    async def search_media_async(
+        self, query: str
+    ) -> AResult[List[BaseSearchResultsItem]]:
         """Search Spotify and return a list of search items."""
 
         return AResult(
@@ -430,6 +432,7 @@ class SpotifyProvider(BaseProvider):
 
     def get_stats_media_info_cte_fragment(self) -> str | None:
         from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
         return f"""    SELECT t.id                                           AS media_id,
            COALESCE(t.real_duration_ms, t.duration_ms)   AS duration_ms,
            cm.public_id                                   AS public_id,

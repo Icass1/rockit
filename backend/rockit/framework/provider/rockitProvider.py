@@ -2,7 +2,7 @@ import re
 from logging import Logger
 
 
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.models.urlPattern import UrlPattern
 from backend.utils.logger import getLogger
 
@@ -31,7 +31,7 @@ ROCKIT_URL_PATTERNS: list[UrlPattern] = [
 ]
 
 
-class RockItProvider(BaseProvider):
+class RockItProvider(BaseMediaProvider):
     def __init__(self) -> None:
         super().__init__()
         pass

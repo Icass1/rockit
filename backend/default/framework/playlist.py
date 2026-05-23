@@ -922,7 +922,7 @@ class Playlist:
         result_map: dict[int, Any] = {}
 
         for (provider_id, media_type), items in groups.items():
-            provider = provider_utils.find_provider(provider_id)
+            provider = provider_utils.find_media_provider(provider_id)
             if provider is None:
                 logger.error(f"Provider not found for provider_id {provider_id}")
                 continue

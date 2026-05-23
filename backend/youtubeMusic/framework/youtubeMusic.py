@@ -13,7 +13,7 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.image import ImageRow
 
-from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.media.image import Image
 
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
@@ -47,7 +47,7 @@ logger = getLogger(__name__)
 
 
 class YoutubeMusic:
-    provider: BaseProvider
+    provider: BaseMediaProvider
     provider_name: str
 
     @staticmethod

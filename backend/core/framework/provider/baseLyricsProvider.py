@@ -1,5 +1,7 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.aResult import AResult, AResultCode
-from backend.core.models.lyrics import DynamicLyrics, Lyrics
+from backend.core.models.lyrics import DynamicLyricsData, LyricsData
 
 from backend.core.framework.provider.baseProvider import BaseProvider
 
@@ -7,28 +9,32 @@ from backend.core.framework.provider.baseProvider import BaseProvider
 class BaseLyricsProvider(BaseProvider):
     """Marker base class for lyrics providers."""
 
-    def get_lyrics(self, media_ids: list[int]) -> AResult[dict[int, list[Lyrics]]]:
+    async def get_lyrics_async(
+        self, session: AsyncSession, media_ids: list[int]
+    ) -> AResult[dict[int, LyricsData]]:
         """Get lyrics for the given media IDs.
 
         Args:
+            session (AsyncSession): Database session.
             media_ids (list[int]): List of media IDs to get lyrics for.
         """
 
-        return AResult[dict[int, list[Lyrics]]](
+        return AResult[dict[int, LyricsData]](
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"get_lyrics is not implemented in provider {self._name}.",
         )
 
-    def get_dynamic_lyrics(
-        self, media_ids: list[int]
-    ) -> AResult[dict[int, list[DynamicLyrics]]]:
-        """Get lyrics for the given media IDs.
+    async def get_dynamic_lyrics_async(
+        self, session: AsyncSession, media_ids: list[int]
+    ) -> AResult[dict[int, DynamicLyricsData]]:
+        """Get dynamic (timed) lyrics for the given media IDs.
 
         Args:
-            media_ids (list[int]): List of media IDs to get lyrics for.
+            session (AsyncSession): Database session.
+            media_ids (list[int]): List of media IDs to get dynamic lyrics for.
         """
 
-        return AResult[dict[int, list[DynamicLyrics]]](
+        return AResult[dict[int, DynamicLyricsData]](
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"get_dynamic_lyrics is not implemented in provider {self._name}.",
         )

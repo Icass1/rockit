@@ -14,6 +14,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.providerAccess import ProviderAccess
 from backend.core.access.db.ormModels.provider import ProviderRow
 
+from backend.core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.provider.baseProvider import BaseProvider
@@ -35,6 +36,15 @@ class Providers:
 
     def get_media_providers(self) -> List[BaseMediaProvider]:
         return [p for p in self._providers if isinstance(p, BaseMediaProvider)]
+
+    def get_lyrics_providers(self) -> List[BaseLyricsProvider]:
+        return [p for p in self._providers if isinstance(p, BaseLyricsProvider)]
+
+    def match_lyrics_provider(self, provider_name: str) -> BaseLyricsProvider | None:
+        for p in self.get_lyrics_providers():
+            if p.get_name() == provider_name:
+                return p
+        return None
 
     async def async_init(self, session: AsyncSession):
         a_result_search_providers: AResultCode = await self.search_providers(

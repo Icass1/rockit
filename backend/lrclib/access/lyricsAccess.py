@@ -1,4 +1,3 @@
-import uuid
 from logging import Logger
 from typing import Dict, List, Tuple, cast
 
@@ -7,9 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import create_id
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.models.lyrics import DynamicLyrics, Lyrics
+
+from backend.core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics
+
 from backend.lrclib.access.db.ormModels.lyricsRow import LyricsRow
 from backend.lrclib.access.db.ormModels.lyricsLineRow import LyricsLineRow
 from backend.lrclib.access.db.ormModels.dynamicLyricsLineRow import (
@@ -23,7 +25,7 @@ class LyricsAccess:
     @staticmethod
     async def get_lyrics_by_media_ids_async(
         session: AsyncSession, media_ids: list[int]
-    ) -> AResult[Dict[int, Tuple[List[Lyrics] | None, List[DynamicLyrics] | None]]]:
+    ) -> AResult[Dict[int, Tuple[str, List[Lyrics] | None, DynamicLyricsData | None]]]:
         """Get lyrics for multiple media IDs from the database."""
 
         try:
@@ -39,7 +41,7 @@ class LyricsAccess:
             rows: List[LyricsRow] = cast(List[LyricsRow], result.scalars().all())
 
             result_map: Dict[
-                int, Tuple[List[Lyrics] | None, List[DynamicLyrics] | None]
+                int, Tuple[str, List[Lyrics] | None, DynamicLyricsData | None]
             ] = {}
             for row in rows:
                 plain_lines: List[Lyrics] | None = None
@@ -49,14 +51,22 @@ class LyricsAccess:
                         for l in sorted(row.lines, key=lambda x: x.line_number)
                     ]
 
-                dynamic_lines: List[DynamicLyrics] | None = None
+                dynamic_data: DynamicLyricsData | None = None
                 if row.dynamic_lines:
                     dynamic_lines = [
-                        DynamicLyrics(text=l.text, timestamp_s=l.timestamp_s)
+                        DynamicLyrics(
+                            text=l.text,
+                            timestamp_s=l.timestamp_s,
+                        )
                         for l in sorted(row.dynamic_lines, key=lambda x: x.line_number)
                     ]
+                    dynamic_data = DynamicLyricsData(
+                        public_id=row.public_id,
+                        lines=dynamic_lines,
+                        offset=row.offset,
+                    )
 
-                result_map[row.media_id] = (plain_lines, dynamic_lines)
+                result_map[row.media_id] = (row.public_id, plain_lines, dynamic_data)
 
             return AResult(
                 code=AResultCode.OK,
@@ -77,8 +87,9 @@ class LyricsAccess:
         media_id: int,
         lyrics: List[Lyrics] | None,
         dynamic_lyrics: List[DynamicLyrics] | None,
-    ) -> AResult[bool]:
-        """Save lyrics for a media item to the database."""
+        offset: float = 0.0,
+    ) -> AResult[str]:
+        """Save lyrics for a media item to the database. Returns the lyrics public_id."""
 
         try:
             existing_stmt = (
@@ -94,17 +105,20 @@ class LyricsAccess:
 
             if existing:
                 lyrics_row = existing
+                lyrics_row.offset = offset
             else:
                 lyrics_row = LyricsRow(
-                    public_id=str(uuid.uuid4()),
+                    public_id=create_id(32),
                     media_id=media_id,
+                    offset=offset,
                 )
                 session.add(lyrics_row)
                 await session.flush()
 
             if lyrics is not None:
-                for old_line in lyrics_row.lines:
-                    await session.delete(old_line)
+                if existing:
+                    for old_line in lyrics_row.lines:
+                        await session.delete(old_line)
 
                 for i, line in enumerate(lyrics):
                     new_line = LyricsLineRow(
@@ -115,22 +129,25 @@ class LyricsAccess:
                     session.add(new_line)
 
             if dynamic_lyrics is not None:
-                for old_line in lyrics_row.dynamic_lines:
-                    await session.delete(old_line)
+                if existing:
+                    for old_line in lyrics_row.dynamic_lines:
+                        await session.delete(old_line)
 
                 for i, line in enumerate(dynamic_lyrics):
                     new_line = DynamicLyricsLineRow(
                         lyrics_id=lyrics_row.id,
                         line_number=i,
                         text=line.text,
-                        timestamp_s=line.timestamp_s,
+                        timestamp_s=round(line.timestamp_s, 2),
                     )
                     session.add(new_line)
 
             await session.flush()
 
             return AResult(
-                code=AResultCode.OK, message="Lyrics saved successfully", result=True
+                code=AResultCode.OK,
+                message="Lyrics saved successfully",
+                result=lyrics_row.public_id,
             )
 
         except Exception as e:

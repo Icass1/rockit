@@ -104,7 +104,7 @@ export default function PlayerUIContent(): JSX.Element {
                         <PlayerUILyrics />
                     </div>
                     <div className="z-10 order-3 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
-                        <PlayerUIQueue />
+                        <PlayerUIQueue visible={true} />
                     </div>
                 </>
             ) : isPortrait ? (
@@ -113,7 +113,7 @@ export default function PlayerUIContent(): JSX.Element {
                         <PlayerUILyrics />
                     </div>
                     <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
-                        <PlayerUIQueue />
+                        <PlayerUIQueue visible={true} />
                     </div>
                 </div>
             ) : (
@@ -150,7 +150,7 @@ export default function PlayerUIContent(): JSX.Element {
                                 left: selectedTab === "LYRICS" ? "100%" : "0%",
                             }}
                         >
-                            <PlayerUIQueue />
+                            <PlayerUIQueue visible={selectedTab === "QUEUE"} />
                         </div>
                     </div>
                 </div>

@@ -25,7 +25,7 @@ router = APIRouter(prefix="/lrclib", tags=["LRCLIB"])
 
 
 @router.get("/lyrics/{public_id}")
-async def get_lyrics_async(
+async def get_lrclib_lyrics_async(
     request: Request,
     public_id: str,
 ) -> GetLyricsResponse:
@@ -59,23 +59,23 @@ async def get_lyrics_async(
     if lyrics_data is None:
         return GetLyricsResponse(lyrics=None, dynamicLyrics=None)
 
-    lyrics, dynamic_lyrics = lyrics_data
+    _, lyrics, dynamic_data = lyrics_data
 
     return GetLyricsResponse(
         lyrics=[LyricsItem(text=l.text) for l in lyrics] if lyrics else None,
         dynamicLyrics=(
             [
                 DynamicLyricsItem(text=l.text, timestamp_s=l.timestamp_s)
-                for l in dynamic_lyrics
+                for l in dynamic_data.lines
             ]
-            if dynamic_lyrics
+            if dynamic_data
             else None
         ),
     )
 
 
 @router.post("/lyrics")
-async def get_lyrics_batch_async(
+async def get_lrclib_lyrics_batch_async(
     request: Request,
     body: GetLyricsBatchRequest,
 ) -> GetLyricsBatchResponse:
@@ -113,15 +113,15 @@ async def get_lyrics_batch_async(
                 lyrics=None, dynamicLyrics=None
             )
         else:
-            lyrics, dynamic_lyrics = lyrics_data
+            _, lyrics, dynamic_data = lyrics_data
             lyrics_map[media.public_id] = GetLyricsResponse(
                 lyrics=[LyricsItem(text=l.text) for l in lyrics] if lyrics else None,
                 dynamicLyrics=(
                     [
                         DynamicLyricsItem(text=l.text, timestamp_s=l.timestamp_s)
-                        for l in dynamic_lyrics
+                        for l in dynamic_data.lines
                     ]
-                    if dynamic_lyrics
+                    if dynamic_data
                     else None
                 ),
             )
@@ -130,7 +130,7 @@ async def get_lyrics_batch_async(
 
 
 @router.patch("/lyrics/{public_id}/timestamps")
-async def update_lyrics_timestamps_async(
+async def update_lrclib_lyrics_timestamps_async(
     request: Request,
     public_id: str,
     body: UpdateTimestampsRequest,
@@ -169,16 +169,16 @@ async def update_lyrics_timestamps_async(
     if lyrics_data is None:
         return GetLyricsResponse(lyrics=None, dynamicLyrics=None)
 
-    lyrics, dynamic_lyrics = lyrics_data
+    _, lyrics, dynamic_data = lyrics_data
 
     return GetLyricsResponse(
         lyrics=[LyricsItem(text=l.text) for l in lyrics] if lyrics else None,
         dynamicLyrics=(
             [
                 DynamicLyricsItem(text=l.text, timestamp_s=l.timestamp_s)
-                for l in dynamic_lyrics
+                for l in dynamic_data.lines
             ]
-            if dynamic_lyrics
+            if dynamic_data
             else None
         ),
     )

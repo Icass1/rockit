@@ -42,6 +42,18 @@ export {
     type BaseArtistResponse,
 } from "./baseArtistResponse";
 export {
+    BaseDynamicLyricsItemSchema,
+    type BaseDynamicLyricsItem,
+} from "./baseDynamicLyricsItem";
+export {
+    BaseDynamicLyricsResponseSchema,
+    type BaseDynamicLyricsResponse,
+} from "./baseDynamicLyricsResponse";
+export {
+    BaseLyricsResponseSchema,
+    type BaseLyricsResponse,
+} from "./baseLyricsResponse";
+export {
     BasePlaylistForPlaylistResponseSchema,
     type BasePlaylistForPlaylistResponse,
 } from "./basePlaylistForPlaylistResponse";

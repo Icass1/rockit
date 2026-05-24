@@ -322,7 +322,7 @@ export class BaseHttp {
         );
     }
 
-    static async getLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
+    static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
         return this.apiPostAsync(
             `/lrclib/lyrics`,
             dto.GetLyricsBatchRequestSchema,
@@ -331,17 +331,31 @@ export class BaseHttp {
         );
     }
 
-    static async getLyricsAsync(publicId: string) {
+    static async getLrclibLyricsAsync(publicId: string) {
         return this.apiGetAsync(
             `/lrclib/lyrics/${publicId}`,
             dto.GetLyricsResponseSchema
         );
     }
 
-    static async updateLyricsTimestampsAsync(publicId: string) {
+    static async updateLrclibLyricsTimestampsAsync(publicId: string) {
         return this.apiPatchAsync(
             `/lrclib/lyrics/${publicId}/timestamps`,
             dto.GetLyricsResponseSchema
+        );
+    }
+
+    static async getDynamicLyricsAsync(publicId: string) {
+        return this.apiGetAsync(
+            `/lyrics/dynamic/${publicId}`,
+            dto.BaseDynamicLyricsResponseSchema
+        );
+    }
+
+    static async getLyricsAsync(publicId: string) {
+        return this.apiGetAsync(
+            `/lyrics/${publicId}`,
+            dto.BaseLyricsResponseSchema
         );
     }
 

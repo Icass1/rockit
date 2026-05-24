@@ -7,7 +7,11 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { QueueMedia } from "@/components/PlayerUI/QueueMedia";
 
-export default function PlayerUIQueue(): JSX.Element {
+export default function PlayerUIQueue({
+    visible,
+}: {
+    visible: boolean;
+}): JSX.Element {
     const $queue = useStore(rockIt.queueManager.queueAtom);
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
@@ -19,7 +23,9 @@ export default function PlayerUIQueue(): JSX.Element {
     const followTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const followDisabledRef = useRef(false);
     const isUserScrollingRef = useRef(false);
-    const userScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const userScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
 
     useEffect(() => {
         if (
@@ -32,14 +38,22 @@ export default function PlayerUIQueue(): JSX.Element {
         const el = queueContainerRef.current.querySelector(
             `[data-queue-media-id="${$currentQueueMediaId}"]`
         );
-        if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (el && visible) {
+            const container = queueContainerRef.current;
+            const element = el as HTMLElement;
+            const elementTop = element.offsetTop;
+            const elementHeight = element.offsetHeight;
+            const containerHeight = container.clientHeight;
+            const scrollTo =
+                elementTop + elementHeight / 2 - containerHeight / 2;
+            container.scrollTo({ top: scrollTo, behavior: "smooth" });
         }
-    }, [$currentQueueMediaId, $playerUIVisible]);
+    }, [$currentQueueMediaId, $playerUIVisible, visible]);
 
     const markUserScrolling = (): void => {
         isUserScrollingRef.current = true;
-        if (userScrollTimerRef.current) clearTimeout(userScrollTimerRef.current);
+        if (userScrollTimerRef.current)
+            clearTimeout(userScrollTimerRef.current);
         userScrollTimerRef.current = setTimeout(() => {
             isUserScrollingRef.current = false;
         }, 200);

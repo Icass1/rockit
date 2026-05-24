@@ -56,11 +56,15 @@ class BaseMediaProvider(BaseProvider):
             message=f"Provider '{self._name}' doesn't implement start_download_async method.",
         )
 
-    async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]:
-        logger.warning(f"Provider '{self._name} doesn't implement search method.'")
+    async def search_media_async(
+        self, query: str
+    ) -> AResult[List[BaseSearchResultsItem]]:
+        logger.warning(
+            f"Provider '{self._name} doesn't implement search_media_async method.'"
+        )
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
-            message=f"Provider '{self._name} doesn't implement search_async method.'",
+            message=f"Provider '{self._name} doesn't implement search_media_async method.'",
         )
 
     def match_url(self, url: str) -> str | None:

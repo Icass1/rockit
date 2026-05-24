@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development" || true;
 
 const nextConfig: NextConfig = {
+    output: "standalone",
+    outputFileTracingRoot: path.join(__dirname, "../.."),
     transpilePackages: ["@rockit/packages", "@rockit/shared"],
     webpack: (config) => {
         config.resolve.alias = {

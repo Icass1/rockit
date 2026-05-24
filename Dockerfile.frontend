@@ -6,35 +6,33 @@ WORKDIR /app
 
 FROM base AS deps
 WORKDIR /app
-COPY frontend/package.json frontend/pnpm-lock.yaml* ./
-COPY frontend/pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --ignore-scripts
+COPY frontend/package.json frontend/pnpm-lock.yaml* frontend/pnpm-workspace.yaml ./
+COPY frontend/apps/web/package.json ./apps/web/
+COPY frontend/apps/mobile/package.json ./apps/mobile/
+COPY frontend/packages/config/package.json ./packages/config/
+COPY frontend/packages/shared/package.json ./packages/shared/
+RUN --mount=type=cache,id=pnpm-frontend,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --ignore-scripts
 
 FROM base AS builder
 WORKDIR /app
 ARG NEXT_PUBLIC_BACKEND_URL
 ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/pnpm-workspace.yaml ./
 COPY frontend/ /app
-RUN pnpm install --frozen-lockfile --ignore-scripts
 RUN pnpm build
 
 FROM base AS runner
 WORKDIR /app
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/web/.next ./apps/web/.next
-COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/apps ./apps
-COPY --from=builder /app/pnpm-workspace.yaml ./
-COPY --from=builder /app/pnpm-lock.yaml ./
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
-CMD ["pnpm", "--filter", "frontend", "start"]
+ENV HOSTNAME="0.0.0.0"
+CMD ["node", "apps/web/server.js"]

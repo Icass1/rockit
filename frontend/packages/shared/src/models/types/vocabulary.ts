@@ -172,6 +172,7 @@ export interface Vocabulary {
     LOG_OUT: string;
     LOGGING_IN: string;
     LYRICS: string;
+    LYRICS_BY: string;
     MARCH: string;
     MAY: string;
     MEDIA_ADDED_TO_LIBRARY: string;

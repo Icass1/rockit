@@ -51,6 +51,7 @@ function Lyrics(): JSX.Element {
 function DynamicLyrics(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const [lyrics, setLyrics] = useState<
         BaseDynamicLyricsResponse | undefined
@@ -121,10 +122,18 @@ function DynamicLyrics(): JSX.Element {
                     {line.text}
                 </p>
             ))}
-            <div className="mt-24 flex flex-col items-center">
-                {lyrics?.provider && (
-                    <ProviderTag name={lyrics?.provider}></ProviderTag>
-                )}
+            <div className="mt-24 flex flex-col items-center gap-4">
+                <div className="flex flex-row items-center gap-4">
+                    <label className="text-lg font-semibold">
+                        {$vocabulary.LYRICS_BY}
+                    </label>
+                    {lyrics?.provider && (
+                        <ProviderTag
+                            className="h-10 w-10"
+                            name={lyrics?.provider}
+                        />
+                    )}
+                </div>
                 <p className="text-xs text-neutral-400">{lyrics?.publicId}</p>
             </div>
         </div>

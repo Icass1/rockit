@@ -9,7 +9,7 @@ from pathlib import Path
 from collections.abc import Sequence as ABCSequence
 from typing import Union, get_args, get_origin, Literal, Optional, Sequence, List, Dict
 
-from pydantic import BaseModel
+from pydantic import AwareDatetime, BaseModel
 
 from backend.utils.logger import getLogger
 
@@ -40,6 +40,7 @@ PYTHON_TYPE_TO_ZOD = {
     float: "z.number()",
     bool: "z.boolean()",
     datetime.datetime: "z.iso.datetime()",
+    AwareDatetime: "z.iso.datetime()",
     datetime.date: "z.iso.date()",
 }
 
@@ -49,6 +50,7 @@ PYTHON_TYPE_TO_TS = {
     float: "number",
     bool: "boolean",
     datetime.datetime: "string",
+    AwareDatetime: "string",
     datetime.date: "string",
 }
 

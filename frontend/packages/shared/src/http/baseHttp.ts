@@ -322,6 +322,29 @@ export class BaseHttp {
         );
     }
 
+    static async getLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
+        return this.apiPostAsync(
+            `/lrclib/lyrics`,
+            dto.GetLyricsBatchRequestSchema,
+            dto.GetLyricsBatchResponseSchema,
+            payload
+        );
+    }
+
+    static async getLyricsAsync(publicId: string) {
+        return this.apiGetAsync(
+            `/lrclib/lyrics/${publicId}`,
+            dto.GetLyricsResponseSchema
+        );
+    }
+
+    static async updateLyricsTimestampsAsync(publicId: string) {
+        return this.apiPatchAsync(
+            `/lrclib/lyrics/${publicId}/timestamps`,
+            dto.GetLyricsResponseSchema
+        );
+    }
+
     static async getAlbum(publicId: string) {
         return this.apiGetAsync(
             `/media/album/${publicId}`,

@@ -115,6 +115,22 @@ export {
     type DownloadsResponse,
 } from "./downloadsResponse";
 export {
+    DynamicLyricsItemSchema,
+    type DynamicLyricsItem,
+} from "./dynamicLyricsItem";
+export {
+    GetLyricsBatchRequestSchema,
+    type GetLyricsBatchRequest,
+} from "./getLyricsBatchRequest";
+export {
+    GetLyricsBatchResponseSchema,
+    type GetLyricsBatchResponse,
+} from "./getLyricsBatchResponse";
+export {
+    GetLyricsResponseSchema,
+    type GetLyricsResponse,
+} from "./getLyricsResponse";
+export {
     HomeStatsResponseSchema,
     type HomeStatsResponse,
 } from "./homeStatsResponse";
@@ -149,6 +165,7 @@ export {
 } from "./likedMediaResponse";
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
+export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
 export {
     MediaAddedToPlaylistMessageSchema,
     type MediaAddedToPlaylistMessage,
@@ -329,6 +346,14 @@ export {
     UpdatePlaylistRequestSchema,
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
+export {
+    UpdateTimestampItemSchema,
+    type UpdateTimestampItem,
+} from "./updateTimestampItem";
+export {
+    UpdateTimestampsRequestSchema,
+    type UpdateTimestampsRequest,
+} from "./updateTimestampsRequest";
 export {
     UploadApkRequestSchema,
     type UploadApkRequest,

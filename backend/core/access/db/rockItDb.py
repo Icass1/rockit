@@ -231,7 +231,12 @@ class RockItDB:
                 for col in orm_columns.keys() & db_columns.keys():
                     orm_type = str(orm_columns[col].type)
                     db_type = str(db_columns[col]["type"])
-                    if orm_type.lower() != db_type.lower():
+
+                    # Normalize common PostgreSQL type equivalences
+                    normalised_orm = orm_type.lower().replace("double precision", "float")
+                    normalised_db = db_type.lower().replace("double precision", "float")
+
+                    if normalised_orm != normalised_db:
                         logger.error(
                             f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.schema}.{table.name}'"
                         )

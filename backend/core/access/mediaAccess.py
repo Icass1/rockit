@@ -111,6 +111,34 @@ class MediaAccess:
             )
 
     @staticmethod
+    async def get_medias_from_ids_async(
+        session: AsyncSession,
+        ids: List[int],
+    ) -> AResult[List[CoreMediaRow]]:
+        """Get CoreMediaRow entries by internal IDs."""
+
+        try:
+            stmt: Select[Tuple[CoreMediaRow]] = select(CoreMediaRow).where(
+                CoreMediaRow.id.in_(ids)
+            )
+            result: Result[Tuple[CoreMediaRow]] = await session.execute(stmt)
+            rows: List[CoreMediaRow] = cast(List[CoreMediaRow], result.scalars().all())
+
+            if not rows:
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message=f"Media not found for ids: {ids}",
+                )
+
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
+
+        except Exception as e:
+            logger.error(f"Error getting media by ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting media"
+            )
+
+    @staticmethod
     async def get_image_from_public_id_async(
         session: AsyncSession,
         public_id: str,

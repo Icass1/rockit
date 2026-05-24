@@ -1,11 +1,7 @@
 FROM node:22-alpine
-RUN apk add --no-cache libc6-compat
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+RUN apk add --no-cache libc6-compat && \
+    corepack enable && corepack prepare pnpm@10.33.0 --activate
 ENV NEXT_TELEMETRY_DISABLED=1
-
-ARG EXPO_PUBLIC_BACKEND_URL
-ENV EXPO_PUBLIC_BACKEND_URL=${EXPO_PUBLIC_BACKEND_URL}
-ENV REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME:-rockit.rockhosting.lan}
 
 WORKDIR /app
 COPY frontend/package.json frontend/pnpm-lock.yaml* frontend/pnpm-workspace.yaml ./
@@ -18,6 +14,9 @@ RUN --mount=type=cache,id=pnpm-expo,target=/root/.local/share/pnpm/store \
 COPY frontend/apps/mobile ./apps/mobile
 COPY frontend/packages ./packages
 
+ARG EXPO_PUBLIC_BACKEND_URL
+ENV EXPO_PUBLIC_BACKEND_URL=${EXPO_PUBLIC_BACKEND_URL}
+ENV REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME:-rockit.rockhosting.lan}
 ENV NODE_ENV=development
 EXPOSE 9102
 WORKDIR /app/apps/mobile

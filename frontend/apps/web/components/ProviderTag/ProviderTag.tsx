@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import { EProviders } from "@rockit/packages/shared";
+import LrclibProviderTag from "@/components/ProviderTag/Lrclib";
 import SpotifyProviderTag from "@/components/ProviderTag/Spotify";
 import YoutubeProviderTag from "@/components/ProviderTag/Youtube";
 import YoutubeMusicProviderTag from "@/components/ProviderTag/YoutubeMusic";
@@ -27,6 +28,8 @@ function ProviderTagChild({
     name: string;
     iconOnly?: boolean;
 }): JSX.Element {
+    if (name === EProviders.LRCLIB)
+        return <LrclibProviderTag iconOnly={iconOnly} />;
     if (name === EProviders.YoutubeMusic)
         return <YoutubeMusicProviderTag iconOnly={iconOnly} />;
     else if (name === EProviders.Youtube)

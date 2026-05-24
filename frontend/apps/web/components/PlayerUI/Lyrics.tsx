@@ -5,6 +5,7 @@ import { BaseDynamicLyricsResponse, BaseLyricsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export default function PlayerUILyrics(): JSX.Element {
     const [lyricsTab, setLyricsTab] = useState<"STATIC" | "DYNAMIC">("DYNAMIC");
@@ -120,8 +121,12 @@ function DynamicLyrics(): JSX.Element {
                     {line.text}
                 </p>
             ))}
-            <p>{lyrics?.provider}</p>
-            <p>{lyrics?.publicId}</p>
+            <div className="mt-24 flex flex-col items-center">
+                {lyrics?.provider && (
+                    <ProviderTag name={lyrics?.provider}></ProviderTag>
+                )}
+                <p className="text-xs text-neutral-400">{lyrics?.publicId}</p>
+            </div>
         </div>
     );
 }

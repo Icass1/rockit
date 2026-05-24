@@ -2,11 +2,12 @@ from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, TIMESTAMP, Boolean, String
+from sqlalchemy import ForeignKey, Boolean, String
 
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
+    TZAwareTimestamp,
 )
 from backend.youtube.access.db.base import YoutubeBase
 
@@ -26,7 +27,7 @@ class PlaylistVideoRow(YoutubeBase, TableDateUpdated, TableDateAdded):
         ForeignKey("youtube.video.id"), primary_key=True
     )
     added_by: Mapped[str | None] = mapped_column(String, nullable=True)
-    added_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    added_at: Mapped[datetime] = mapped_column(TZAwareTimestamp, nullable=False)
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     playlist: Mapped["YoutubePlaylistRow"] = relationship(

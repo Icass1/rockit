@@ -1,16 +1,17 @@
-from sqlalchemy import TIMESTAMP, Column, func
+from sqlalchemy import Column, func
+from backend.core.access.db.ormModels.declarativeMixin import TZAwareTimestamp
 
 
 def date_added_column():
     return Column(
-        "date_added", TIMESTAMP(timezone=True), nullable=False, default=func.now()
+        "date_added", TZAwareTimestamp, nullable=False, default=func.now()
     )
 
 
 def date_updated_column():
     return Column(
         "date_updated",
-        TIMESTAMP(timezone=True),
+        TZAwareTimestamp,
         nullable=False,
         default=func.now(),
         onupdate=func.now(),

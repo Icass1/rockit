@@ -1,13 +1,33 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, List
 
 from sqlalchemy import TIMESTAMP, Integer, String, func, event
 from sqlalchemy.orm import mapped_column, declarative_mixin, Mapped, Mapper
 from sqlalchemy.schema import Table
+from sqlalchemy.types import TypeDecorator
 
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
+
+
+class TZAwareTimestamp(TypeDecorator[datetime]):
+    """TIMESTAMP WITH TIME ZONE that always returns timezone-aware datetimes.
+
+    asyncpg can return naive UTC datetimes for TIMESTAMPTZ columns; this
+    decorator ensures tzinfo=UTC is always present on the Python side.
+    """
+
+    impl = TIMESTAMP(timezone=True)
+    cache_ok = True
+
+    def process_result_value(
+        self, value: datetime | None, dialect: Any
+    ) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            logger.warning(f"TZAwareTimestamp value doesn't have tzinfo {value}")
+            return value.replace(tzinfo=timezone.utc)
+        return value
 
 
 triggers: List[str] = []
@@ -16,7 +36,7 @@ triggers: List[str] = []
 @declarative_mixin
 class TableDateUpdated:
     date_updated: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True),
+        TZAwareTimestamp,
         nullable=False,
         server_default=func.now(),
         server_onupdate=func.now(),
@@ -179,7 +199,7 @@ class TableDisableDelete:
 @declarative_mixin
 class TableDateAdded:
     date_added: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True),
+        TZAwareTimestamp,
         nullable=False,
         default=func.now(),
     )

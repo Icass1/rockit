@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
-from sqlalchemy import TIMESTAMP, ForeignKey, Integer
+from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -10,6 +10,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
     TablePublicId,
+    TZAwareTimestamp,
 )
 
 if TYPE_CHECKING:
@@ -34,12 +35,8 @@ class DownloadRow(
         Integer, ForeignKey("core.download_status_enum.key"), nullable=False, default=1
     )
 
-    date_started: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False
-    )
-    date_ended: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True
-    )
+    date_started: Mapped[datetime] = mapped_column(TZAwareTimestamp, nullable=False)
+    date_ended: Mapped[datetime | None] = mapped_column(TZAwareTimestamp, nullable=True)
 
     download_group: Mapped["DownloadGroupRow"] = relationship(
         "DownloadGroupRow", back_populates="downloads"

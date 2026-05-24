@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, Boolean, ForeignKey, String, Integer
+from sqlalchemy import Boolean, ForeignKey, String, Integer
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 from sqlalchemy.dialects.postgresql import INET
 
@@ -10,6 +10,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
     TableAutoincrementId,
+    TZAwareTimestamp,
 )
 
 if TYPE_CHECKING:
@@ -26,7 +27,7 @@ class SessionRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
     )
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     expires_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False, unique=True
+        TZAwareTimestamp, nullable=False, unique=True
     )
     ip: Mapped[str | None] = mapped_column(INET, nullable=True)
 

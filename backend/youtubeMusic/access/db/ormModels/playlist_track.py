@@ -2,12 +2,13 @@ from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, TIMESTAMP, Boolean
+from sqlalchemy import ForeignKey, Boolean
 from sqlalchemy import Integer
 
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
+    TZAwareTimestamp,
 )
 from backend.youtubeMusic.access.db.base import YoutubeMusicBase
 
@@ -27,7 +28,7 @@ class PlaylistTrackRow(YoutubeMusicBase, TableDateUpdated, TableDateAdded):
         ForeignKey("youtube_music.track.id"), primary_key=True
     )
     position: Mapped[int] = mapped_column(Integer, nullable=False)
-    added_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    added_at: Mapped[datetime] = mapped_column(TZAwareTimestamp, nullable=False)
     disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     playlist: Mapped["PlaylistRow"] = relationship(

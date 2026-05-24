@@ -1,6 +1,31 @@
 import { JSX } from "react";
 
-export default function YoutubeMusicProviderTag(): JSX.Element {
+export default function YoutubeMusicProviderTag({
+    iconOnly,
+}: {
+    iconOnly?: boolean;
+}): JSX.Element {
+    if (iconOnly) {
+        return (
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="1rem"
+                viewBox="0 0 26 26"
+                fill="none"
+            >
+                <path
+                    d="m13 26c7.176 0 13-5.824 13-13s-5.824-13-13-13-13 5.824-13 13 5.824 13 13 13z"
+                    fill="#f03"
+                />
+                <path
+                    d="m20.5 13c0 4.1439-3.3561 7.5-7.5 7.5-4.14386 0-7.5-3.3561-7.5-7.5 0-4.14386 3.35614-7.5 7.5-7.5 4.1439 0 7.5 3.35614 7.5 7.5z"
+                    stroke="#fff"
+                />
+                <path d="m17.75 13-7.5-4.25v8.5z" fill="#fff" />
+            </svg>
+        );
+    }
+
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"

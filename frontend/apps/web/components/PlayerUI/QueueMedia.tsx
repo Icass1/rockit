@@ -2,9 +2,9 @@
 
 import { JSX } from "react";
 import Image from "next/image";
-import { QueueItem } from "@/models/interfaces/queue";
 import { useStore } from "@nanostores/react";
 import { GripVertical, Pause, Play } from "lucide-react";
+import { QueueItem } from "@/models/interfaces/queue";
 import { getMediaDuration, isDownloadable } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -65,9 +65,9 @@ export function QueueMedia({
                     {media.media.name}
                 </p>
                 <div className="flex flex-row items-center gap-2">
-                    <ProviderTag name={media.media.provider} />
+                    <ProviderTag name={media.media.provider} iconOnly={true} />
                     <Artists
-                        className="w-fit text-left text-sm text-gray-300"
+                        className="w-fit max-w-full min-w-0 flex-nowrap overflow-x-hidden text-left text-sm text-gray-300"
                         artists={media.media.artists}
                     />
                 </div>

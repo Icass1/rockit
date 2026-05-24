@@ -7,21 +7,31 @@ import YoutubeMusicProviderTag from "@/components/ProviderTag/YoutubeMusic";
 export default function ProviderTag({
     name,
     className,
+    iconOnly,
 }: {
     name: string;
     className?: string;
+    iconOnly?: boolean;
 }): JSX.Element {
     return (
         <div className={className}>
-            <ProviderTagChild name={name}></ProviderTagChild>
+            <ProviderTagChild name={name} iconOnly={iconOnly}></ProviderTagChild>
         </div>
     );
 }
 
-function ProviderTagChild({ name }: { name: string }): JSX.Element {
-    if (name === EProviders.YoutubeMusic) return <YoutubeMusicProviderTag />;
+function ProviderTagChild({
+    name,
+    iconOnly,
+}: {
+    name: string;
+    iconOnly?: boolean;
+}): JSX.Element {
+    if (name === EProviders.YoutubeMusic)
+        return <YoutubeMusicProviderTag iconOnly={iconOnly} />;
     else if (name === EProviders.Youtube)
-        return <YoutubeProviderTag theme="dark" />;
-    else if (name === EProviders.Spotify) return <SpotifyProviderTag />;
+        return <YoutubeProviderTag theme="dark" iconOnly={iconOnly} />;
+    else if (name === EProviders.Spotify)
+        return <SpotifyProviderTag iconOnly={iconOnly} />;
     else return <div>{name}</div>;
 }

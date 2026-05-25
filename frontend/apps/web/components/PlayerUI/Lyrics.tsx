@@ -57,6 +57,8 @@ function DynamicLyrics(): JSX.Element {
         BaseDynamicLyricsResponse | undefined
     >();
 
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         if (!$currentMedia) return;
 
@@ -64,6 +66,7 @@ function DynamicLyrics(): JSX.Element {
             if (response.isOk()) {
                 setLyrics(response.result);
             }
+            setLoading(false);
         });
     }, [$currentMedia]);
 
@@ -105,6 +108,22 @@ function DynamicLyrics(): JSX.Element {
             rockIt.mediaPlayerManager.setCurrentTime(timeStamp);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex h-full w-full animate-pulse items-center justify-center">
+                <p className="text-lg text-neutral-400">Loading lyrics...</p>
+            </div>
+        );
+    }
+
+    if (!lyrics) {
+        return (
+            <div className="flex h-full w-full items-center justify-center">
+                <p className="text-lg text-neutral-400">No lyrics available</p>
+            </div>
+        );
+    }
 
     return (
         <div ref={containerRef} className="h-full w-full overflow-y-auto pb-24">

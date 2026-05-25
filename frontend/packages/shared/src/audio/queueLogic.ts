@@ -69,6 +69,36 @@ export function getPrevQueueMediaId<T extends QueueItem>(
 }
 
 /**
+ * Resolve which queueMediaId to play on media error based on repeat mode and direction.
+ * Uses direction to skip forward or backward, wrapping around at queue boundaries.
+ */
+export function resolveOnMediaError<T extends QueueItem>(
+    queue: T[],
+    currentId: number | null,
+    repeatMode: ERepeatMode,
+    direction: 1 | -1
+): { action: EQueueAction; nextId: number | null } {
+    if (repeatMode === ERepeatMode.ONE) {
+        return { action: EQueueAction.REPLAY, nextId: currentId };
+    }
+    const nextId =
+        direction === -1
+            ? getPrevQueueMediaId(queue, currentId)
+            : getNextQueueMediaId(queue, currentId);
+    if (nextId !== null) {
+        return { action: EQueueAction.PLAY, nextId };
+    }
+    if (queue.length > 0) {
+        const wrapId =
+            direction === -1
+                ? queue[queue.length - 1].queueMediaId
+                : queue[0].queueMediaId;
+        return { action: EQueueAction.PLAY, nextId: wrapId };
+    }
+    return { action: EQueueAction.STOP, nextId: null };
+}
+
+/**
  * Resolve which queueMediaId to play next based on repeat mode.
  * Loops back to beginning when reaching end.
  */

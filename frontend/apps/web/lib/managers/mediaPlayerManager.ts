@@ -4,6 +4,7 @@ import {
     isSong,
     isVideo,
     resolveNextOnEnd,
+    resolveOnMediaError,
     TPlayableMedia,
 } from "@rockit/shared";
 import { EQueueAction } from "@/models/enums/queueAction";
@@ -389,6 +390,7 @@ export class MediaPlayerManager {
         const repeat = rockIt.userManager.repeatModeAtom.get();
         const queue = rockIt.queueManager.queue;
         const currentId = rockIt.queueManager.currentQueueMediaId;
+        const direction = rockIt.queueManager.lastNavigationDirection;
 
         rockIt.notificationManager.notifyError(
             rockIt.vocabularyManager.vocabulary.ERROR_LOADING_MEDIA_FILE
@@ -401,17 +403,18 @@ export class MediaPlayerManager {
             })
         );
 
-        const { action, nextId } = resolveNextOnEnd(
+        const { action, nextId } = resolveOnMediaError(
             queueItems,
             currentId,
-            repeat
+            repeat,
+            direction
         );
 
         if (action === EQueueAction.REPLAY) {
             this.setMedia();
             this.play();
         } else if (action === EQueueAction.PLAY && nextId !== null) {
-            rockIt.queueManager.setQueueMediaId(nextId);
+            rockIt.queueManager.setQueueMediaId(nextId, direction);
             this.setMedia();
             this.play();
         } else {

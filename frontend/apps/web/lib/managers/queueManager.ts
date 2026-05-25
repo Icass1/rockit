@@ -30,6 +30,8 @@ export class QueueManager {
     private _queueAtom = createArrayAtom<QueueItem>([]);
     private _currentQueueMediaIdAtom = createAtom<number | null>(0);
 
+    private _lastNavigationDirection: 1 | -1 = 1;
+
     private sortedQueue: QueueItem[] = [];
     private randomQueue: QueueItem[] = [];
 
@@ -132,6 +134,7 @@ export class QueueManager {
     }
 
     skipBack(): void {
+        this._lastNavigationDirection = -1;
         if (this.currentMedia?.publicId)
             rockIt.webSocketManager.sendSkipClicked({
                 direction: "PREVIOUS",
@@ -150,6 +153,7 @@ export class QueueManager {
     }
 
     skipForward(): void {
+        this._lastNavigationDirection = 1;
         if (this.currentMedia?.publicId)
             rockIt.webSocketManager.sendSkipClicked({
                 direction: "NEXT",
@@ -381,6 +385,10 @@ export class QueueManager {
 
     get currentQueueMediaId(): number | null {
         return this._currentQueueMediaIdAtom.get();
+    }
+
+    get lastNavigationDirection(): 1 | -1 {
+        return this._lastNavigationDirection;
     }
 
     // #endregion: Getters

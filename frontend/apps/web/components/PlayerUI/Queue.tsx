@@ -38,14 +38,19 @@ export default function PlayerUIQueue({
         const el = queueContainerRef.current.querySelector(
             `[data-queue-media-id="${$currentQueueMediaId}"]`
         );
+        console.log("PlayerUIQueue", { el, visible });
         if (el && visible) {
             const container = queueContainerRef.current;
             const element = el as HTMLElement;
-            const elementTop = element.offsetTop;
             const elementHeight = element.offsetHeight;
             const containerHeight = container.clientHeight;
+            const containerRect = container.getBoundingClientRect();
+            const elementRect = element.getBoundingClientRect();
+            const relativeTop =
+                elementRect.top - containerRect.top + container.scrollTop;
             const scrollTo =
-                elementTop + elementHeight / 2 - containerHeight / 2;
+                relativeTop + elementHeight / 2 - containerHeight / 2;
+            console.log({ scrollTo });
             container.scrollTo({ top: scrollTo, behavior: "smooth" });
         }
     }, [$currentQueueMediaId, $playerUIVisible, visible]);

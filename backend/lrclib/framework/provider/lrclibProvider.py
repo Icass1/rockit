@@ -31,9 +31,7 @@ class LrclibProvider(BaseLyricsProvider):
         lyrics_map: dict[int, LyricsData] = {}
         for media_id, (public_id, lyrics, _) in result_map.items():
             if lyrics is not None:
-                lyrics_map[media_id] = LyricsData(
-                    public_id=public_id, lines=lyrics
-                )
+                lyrics_map[media_id] = LyricsData(public_id=public_id, lines=lyrics)
 
         return AResult[dict[int, LyricsData]](
             code=AResultCode.OK, message="OK", result=lyrics_map

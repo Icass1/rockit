@@ -993,9 +993,7 @@ class YoutubeMusic:
             )
 
         results: List[BaseSongWithAlbumResponse] = [
-            track_by_public_id[pid]
-            for pid in public_ids
-            if pid in track_by_public_id
+            track_by_public_id[pid] for pid in public_ids if pid in track_by_public_id
         ]
 
         return AResult(code=AResultCode.OK, message="OK", result=results)
@@ -1145,9 +1143,7 @@ class YoutubeMusic:
             )
 
         results: List[BaseAlbumWithSongsResponse] = [
-            album_by_public_id[pid]
-            for pid in public_ids
-            if pid in album_by_public_id
+            album_by_public_id[pid] for pid in public_ids if pid in album_by_public_id
         ]
 
         return AResult(code=AResultCode.OK, message="OK", result=results)

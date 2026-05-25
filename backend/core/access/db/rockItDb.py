@@ -233,7 +233,9 @@ class RockItDB:
                     db_type = str(db_columns[col]["type"])
 
                     # Normalize common PostgreSQL type equivalences
-                    normalised_orm = orm_type.lower().replace("double precision", "float")
+                    normalised_orm = orm_type.lower().replace(
+                        "double precision", "float"
+                    )
                     normalised_db = db_type.lower().replace("double precision", "float")
 
                     if normalised_orm != normalised_db:

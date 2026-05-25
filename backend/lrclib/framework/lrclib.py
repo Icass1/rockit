@@ -31,9 +31,7 @@ class Lrclib:
     @staticmethod
     async def get_lyrics_by_media_ids_async(
         session: AsyncSession, media_ids: List[int]
-    ) -> AResult[
-        dict[int, Tuple[str, List[Lyrics] | None, DynamicLyricsData | None]]
-    ]:
+    ) -> AResult[dict[int, Tuple[str, List[Lyrics] | None, DynamicLyricsData | None]]]:
         """Get lyrics for multiple media IDs. Checks DB first, then fetches missing from API.
         Returns dict mapping media_id -> (lyrics_public_id, plain_lyrics, dynamic_lyrics_data).
         """
@@ -78,9 +76,7 @@ class Lrclib:
     async def _fetch_and_save_lyrics_batch_async(
         session: AsyncSession,
         media_ids: List[int],
-    ) -> AResult[
-        dict[int, Tuple[str, List[Lyrics] | None, DynamicLyricsData | None]]
-    ]:
+    ) -> AResult[dict[int, Tuple[str, List[Lyrics] | None, DynamicLyricsData | None]]]:
         """Fetch lyrics from API for media IDs not in the database, save them, and return.
         Returns dict mapping media_id -> (lyrics_public_id, plain_lyrics, dynamic_lyrics_data).
         """
@@ -243,7 +239,7 @@ class Lrclib:
                 a_result_parsed = Lrclib.parse_timestamp(line)
 
                 if a_result_parsed.is_not_ok():
-                    logger.error("Error getting timestamp from line.")
+                    logger.error(f"Error getting timestamp from line. '{line}'")
                     continue
 
                 timestamp_s, clean_text = a_result_parsed.result()

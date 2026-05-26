@@ -7,8 +7,8 @@ import {
     useState,
     type ReactNode,
 } from "react";
-import { Platform, NativeModules } from "react-native";
 import { type Vocabulary } from "@rockit/shared";
+import { NativeModules, Platform } from "react-native";
 import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
 
@@ -25,12 +25,10 @@ function getSystemLocale(): string {
         if (Platform.OS === "ios") {
             const settings = NativeModules.SettingsManager?.settings;
             const locale =
-                settings?.AppleLocale ??
-                settings?.AppleLanguages?.[0];
+                settings?.AppleLocale ?? settings?.AppleLanguages?.[0];
             if (locale) return locale.substring(0, 2);
         } else {
-            const locale =
-                NativeModules.I18nManager?.localeIdentifier;
+            const locale = NativeModules.I18nManager?.localeIdentifier;
             if (locale) return locale.substring(0, 2);
         }
     } catch {

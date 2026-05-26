@@ -16,7 +16,10 @@ export default function ProviderTag({
 }): JSX.Element {
     return (
         <div className={className}>
-            <ProviderTagChild name={name} iconOnly={iconOnly}></ProviderTagChild>
+            <ProviderTagChild
+                name={name}
+                iconOnly={iconOnly}
+            ></ProviderTagChild>
         </div>
     );
 }

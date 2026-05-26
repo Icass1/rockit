@@ -35,16 +35,12 @@ export default function SignupModal(): JSX.Element {
         if (loading) return;
 
         if (!username || !password || !repeatPassword) {
-            setError(
-                rockIt.vocabularyManager.vocabulary.ALL_FIELDS_REQUIRED
-            );
+            setError(rockIt.vocabularyManager.vocabulary.ALL_FIELDS_REQUIRED);
             return;
         }
 
         if (password !== repeatPassword) {
-            setError(
-                rockIt.vocabularyManager.vocabulary.PASSWORDS_DONT_MATCH
-            );
+            setError(rockIt.vocabularyManager.vocabulary.PASSWORDS_DONT_MATCH);
             return;
         }
 
@@ -149,9 +145,7 @@ export default function SignupModal(): JSX.Element {
                         disabled={loading}
                         className="flex h-8 w-1/3 items-center justify-center rounded-md bg-blue-600 font-bold disabled:opacity-50 md:hover:bg-blue-800"
                     >
-                        {loading
-                            ? $vocabulary.CREATING
-                            : $vocabulary.SIGN_UP}
+                        {loading ? $vocabulary.CREATING : $vocabulary.SIGN_UP}
                     </button>
                 </div>
             </div>

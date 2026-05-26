@@ -143,6 +143,32 @@ class YouTubeAccess:
             return set()
 
     @staticmethod
+    async def get_downloaded_youtube_public_ids_async(
+        session: AsyncSession,
+        youtube_ids: List[str],
+    ) -> dict[str, str]:
+        """Return a mapping of youtube_id → public_id for downloaded videos."""
+
+        if not youtube_ids:
+            return {}
+
+        try:
+            stmt: Select[Tuple[str, str]] = (
+                select(VideoRow.youtube_id, CoreMediaRow.public_id)
+                .join(CoreMediaRow, VideoRow.id == CoreMediaRow.id)
+                .where(
+                    VideoRow.youtube_id.in_(youtube_ids),
+                    (VideoRow.video_path.isnot(None))
+                    | (VideoRow.audio_path.isnot(None)),
+                )
+            )
+            result: Result[Tuple[str, str]] = await session.execute(stmt)
+            return {row[0]: row[1] for row in result.all()}
+        except Exception as e:
+            logger.error(f"Failed to get downloaded youtube public ids: {e}")
+            return {}
+
+    @staticmethod
     async def _download_and_create_internal_image(
         session: AsyncSession,
         url: str,

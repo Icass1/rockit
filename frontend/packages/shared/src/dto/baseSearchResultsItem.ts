@@ -20,6 +20,7 @@ export const BaseSearchResultsItemSchema = z.object({
     artists: z.array(z.lazy(() => ArtistSearchResultsItemSchema)),
     provider: z.string(),
     downloaded: z.boolean().nullable(),
+    url: z.string().nullable(),
 });
 
 export type BaseSearchResultsItem = z.infer<typeof BaseSearchResultsItemSchema>;

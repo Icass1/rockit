@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { EWebSocketMessage } from "@rockit/shared";
 import type { DownloadProgressMessage } from "@rockit/shared";
+import { EWebSocketMessage } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
 import { useVocabulary } from "@/lib/vocabulary";
@@ -43,7 +43,8 @@ export function useDownloads() {
         const flatDownloads: DownloadInfo[] = [];
         for (const group of downloadGroups) {
             for (const item of group.items || []) {
-                const isDone = item.progress >= 100 || item.status === "COMPLETED";
+                const isDone =
+                    item.progress >= 100 || item.status === "COMPLETED";
                 const isError = item.status === "FAILED";
                 flatDownloads.push({
                     publicId: item.publicId,
@@ -68,7 +69,12 @@ export function useDownloads() {
             if (cancelled) return;
             setDownloads((prev) => {
                 const existing = prev.find((d) => d.publicId === data.publicId);
-                const message = data.progress >= 100 ? "Done" : data.status === "FAILED" ? "Error" : data.status;
+                const message =
+                    data.progress >= 100
+                        ? "Done"
+                        : data.status === "FAILED"
+                          ? "Error"
+                          : data.status;
                 const completed = data.progress >= 100 ? 100 : data.progress;
 
                 if (existing) {
@@ -124,6 +130,8 @@ export function useDownloads() {
         try {
             const addResponse = await Http.addFromUrl({
                 url,
+                addToLibrary: true,
+                addToPlaylist: false,
                 playlistPublicId: null,
             });
 

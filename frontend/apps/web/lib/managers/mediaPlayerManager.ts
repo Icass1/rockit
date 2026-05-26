@@ -174,8 +174,8 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
         this._seekFrom = isVideo(currentMedia)
-            ? this._video?.currentTime ?? 0
-            : this._audio?.currentTime ?? 0;
+            ? (this._video?.currentTime ?? 0)
+            : (this._audio?.currentTime ?? 0);
     }
 
     setCurrentTime(time: number, sendMessage: boolean = true): void {

@@ -33,6 +33,8 @@ Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (sing
 
 All framework and access functions return `AResult`, never raise exceptions internally.
 
+> **Rule:** You MUST always check `a_result.is_ok()` / `a_result.is_not_ok()` before calling `a_result.result()`. Never call `.result()` on an unchecked `AResult`. When `is_not_ok()`, always log the error with `logger.error(...)` and provide a sensible fallback default or early return.
+
 ```python
 from backend.core.aResult import AResult, AResultCode
 
@@ -80,6 +82,35 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
 | BAD_REQUEST     | 400  |
 | GENERAL_ERROR   | 500  |
 | NOT_IMPLEMENTED | 501  |
+
+### @safe_async Decorator (Access Layer)
+
+All methods in `access/` files MUST use the `@safe_async` decorator for automatic exception handling and session rollback.
+
+```python
+from backend.core.utils.safeAsyncCall import safe_async
+
+class SomeAccess:
+    @staticmethod
+    @safe_async
+    async def get_something_async(session: AsyncSession, id: int) -> AResult[SomethingRow]:
+        """Fetch something by id."""
+
+        stmt = select(SomethingRow).where(SomethingRow.id == id)
+        result = await session.execute(stmt)
+        row = result.scalar_one_or_none()
+
+        if not row:
+            return AResult(code=AResultCode.NOT_FOUND, message="Not found")
+
+        return AResult(code=AResultCode.OK, message="OK", result=row)
+```
+
+**Rules:**
+- `@safe_async` is the **outermost** decorator (above `@time_it` if both are used)
+- No manual `try/except` blocks — the decorator catches exceptions, rolls back the session, and returns an error `AResult`/`AResultCode`
+- All methods must return `AResult[T]` or `AResultCode` — never return raw `dict`, `list`, `set`, or scalar types
+- Early returns (e.g., empty input check) must still wrap the value in `AResult(code=AResultCode.OK, ...)`
 
 ### Database
 

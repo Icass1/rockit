@@ -205,6 +205,8 @@ Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (sing
 
 All framework and access functions return `AResult`, never raise exceptions internally.
 
+> **Rule:** You MUST always check `a_result.is_ok()` / `a_result.is_not_ok()` before calling `a_result.result()`. Never call `.result()` on an unchecked `AResult`. When `is_not_ok()`, always log the error with `logger.error(...)` and provide a sensible fallback default or early return.
+
 ```python
 from backend.core.aResult import AResult, AResultCode
 

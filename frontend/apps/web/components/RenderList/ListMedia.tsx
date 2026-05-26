@@ -13,9 +13,9 @@ import {
     TMedia,
 } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
+import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { Media } from "@/components/RenderList/Media";
-import { rockIt } from "@/lib/rockit/rockIt";
 
 export function ListMedia({
     media: _media,

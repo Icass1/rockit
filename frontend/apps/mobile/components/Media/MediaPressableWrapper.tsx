@@ -185,6 +185,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                         hide();
                         const response = await Http.addFromUrl({
                             url: item.providerUrl,
+                            addToPlaylist: true,
+                            addToLibrary: false,
                             playlistPublicId: pl.publicId,
                         });
                         if (response.isOk()) {

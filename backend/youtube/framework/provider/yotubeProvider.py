@@ -98,10 +98,8 @@ class YoutubeProvider(BaseMediaProvider):
         videos: List[RawYoutubeSearchResult] = a_result.result()
 
         youtube_ids: List[str] = [v.video_id for v in videos if v.video_id is not None]
-        downloaded_ids: set[str] = (
-            await YouTubeAccess.get_downloaded_youtube_ids_async(
-                session=session, youtube_ids=youtube_ids
-            )
+        downloaded_ids: set[str] = await YouTubeAccess.get_downloaded_youtube_ids_async(
+            session=session, youtube_ids=youtube_ids
         )
 
         result: List[BaseSearchResultsItem] = [
@@ -116,8 +114,9 @@ class YoutubeProvider(BaseMediaProvider):
                         url=f"/youtube/chanel/{v.channel_id}",
                     )
                 ],
-                provider="Youtube",
+                provider=self._name,
                 downloaded=v.video_id in downloaded_ids,
+                url=None,
             )
             for v in videos
         ]

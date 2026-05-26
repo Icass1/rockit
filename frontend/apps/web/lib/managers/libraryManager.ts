@@ -44,6 +44,8 @@ export class LibraryManager {
             const searchItem = media;
             const res = await Http.addFromUrl({
                 url: searchItem.providerUrl,
+                addToPlaylist: false,
+                addToLibrary: true,
                 playlistPublicId: null,
             });
 

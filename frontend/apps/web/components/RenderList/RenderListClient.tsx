@@ -21,7 +21,7 @@ export default function RenderListClient({
     showMediaImage,
     expandedByMediaId,
 }: {
-    publicId?: string;
+    publicId: string;
     type: EMediaType;
     title: string;
     artists: BaseArtistResponse[];

@@ -1,0 +1,38 @@
+/* ─────────────────────────────────────────────
+   layout.css — Propiedades de layout y dimensiones
+   ───────────────────────────────────────────── */
+
+/* Altura dinámica completa del viewport (dvh) para evitar
+   “100vh” hiccups en iOS/Android y respetar barra de navegación.
+   ───────────────────────────────────────────── */
+html,
+body {
+    height: 100dvh;
+    scroll-behavior: smooth;
+    overflow-x: hidden;               /* previene scroll horizontal */
+}
+
+/* Evita overscroll chaining y pull‑to‑refresh en móviles */
+html {
+    overscroll-behavior: contain;
+}
+
+/* Compensa el indicador de navegación en iOS y la barra de gestos en Android */
+.body--has-bottom-inset {
+    padding-bottom: calc(
+        env(safe-area-inset-bottom, 0px) + 12px
+    );
+}
+
+/* Contenedores que requieren scroll interno pueden usar la clase
+   .scrollable con overflow‑y: auto y -webkit-overflow-scrolling: touch */
+.scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Utilidad para limitar ancho máximo del contenido principal */
+.container {
+    max-width: 1200px;
+    margin-inline: auto;
+}

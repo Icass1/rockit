@@ -11,11 +11,11 @@ export default function LrclibProviderTag({}: {
                 x="200"
                 y="175"
                 fill="#ffffff"
-                font-family="Arial, Helvetica, sans-serif"
-                font-weight="bold"
-                font-size="135"
-                text-anchor="middle"
-                letter-spacing="4"
+                fontFamily="Arial, Helvetica, sans-serif"
+                fontWeight="bold"
+                fontSize="135"
+                textAnchor="middle"
+                letterSpacing="4"
             >
                 LRC
             </text>
@@ -24,11 +24,11 @@ export default function LrclibProviderTag({}: {
                 x="220"
                 y="330"
                 fill="#ffffff"
-                font-family="Arial, Helvetica, sans-serif"
-                font-weight="bold"
-                font-size="135"
-                text-anchor="middle"
-                letter-spacing="35"
+                fontFamily="Arial, Helvetica, sans-serif"
+                fontWeight="bold"
+                fontSize="135"
+                textAnchor="middle"
+                letterSpacing="35"
             >
                 LIB
             </text>

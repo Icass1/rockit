@@ -1,0 +1,13 @@
+:root {
+  /* Escala de espaciado basada en 4‑point system */
+  --gap-0: 0;
+  --gap-1: 0.25rem;   /* 4px */
+  --gap-2: 0.5rem;    /* 8px */
+  --gap-3: 0.75rem;   /* 12px */
+  --gap-4: 1rem;      /* 16px */
+  --gap-5: 1.5rem;    /* 24px */
+  --gap-6: 2rem;      /* 32px */
+  --gap-8: 2rem;      /* 32px (alias) */
+  --gap-10: 2.5rem;   /* 40px */
+  --gap-12: 3rem;     /* 48px */
+}

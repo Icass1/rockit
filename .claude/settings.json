@@ -1,5 +1,3 @@
 {
-  "enabledPlugins": {
-    "caveman@caveman": true
-  }
+    "enabledPlugins": {}
 }

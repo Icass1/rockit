@@ -313,7 +313,7 @@ class Media:
 
             # Schedule provider search
             task: asyncio.Task[AResult[List[BaseSearchResultsItem]]] = (
-                asyncio.create_task(provider.search_media_async(query))
+                asyncio.create_task(provider.search_media_async(session=session, query=query))
             )
             tasks.append(task)
 

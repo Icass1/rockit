@@ -104,7 +104,9 @@ export default function RegisterScreen() {
                 </View>
 
                 <View style={styles.form}>
-                    <Text style={styles.title}>{vocabulary.CREATE_ACCOUNT}</Text>
+                    <Text style={styles.title}>
+                        {vocabulary.CREATE_ACCOUNT}
+                    </Text>
 
                     <TextInput
                         style={[

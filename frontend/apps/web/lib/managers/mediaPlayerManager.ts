@@ -29,6 +29,8 @@ export class MediaPlayerManager {
     private _muted = false;
     private _mutePreviousVolume?: number;
     private _lastWsSyncTime = 0;
+    private _isSeeking = false;
+    private _seekFrom: number = 0;
 
     constructor() {
         if (typeof window === "undefined") return;
@@ -167,7 +169,16 @@ export class MediaPlayerManager {
             );
     }
 
-    setCurrentTime(time: number): void {
+    beginSeek(): void {
+        this._isSeeking = true;
+        const currentMedia = rockIt.queueManager.currentMedia;
+        if (!currentMedia) return;
+        this._seekFrom = isVideo(currentMedia)
+            ? (this._video?.currentTime ?? 0)
+            : (this._audio?.currentTime ?? 0);
+    }
+
+    setCurrentTime(time: number, sendMessage: boolean = true): void {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
@@ -175,13 +186,35 @@ export class MediaPlayerManager {
             if (!this._video) return;
             const timeFrom = this._video.currentTime;
             this._video.currentTime = time;
-            this._sendSeek(currentMedia.publicId, timeFrom, time);
+            if (sendMessage) {
+                this._sendSeek(currentMedia.publicId, timeFrom, time);
+            }
         } else {
             if (!this._audio) return;
             const timeFrom = this._audio.currentTime;
             this._audio.currentTime = time;
-            this._sendSeek(currentMedia.publicId, timeFrom, time);
+            if (sendMessage) {
+                this._sendSeek(currentMedia.publicId, timeFrom, time);
+            }
         }
+        this._currentTimeAtom.set(time);
+    }
+
+    endSeek(time: number): void {
+        this._isSeeking = false;
+        const currentMedia = rockIt.queueManager.currentMedia;
+        if (!currentMedia) return;
+
+        if (isVideo(currentMedia)) {
+            if (!this._video) return;
+            this._video.currentTime = time;
+            this._currentTimeAtom.set(time);
+        } else {
+            if (!this._audio) return;
+            this._audio.currentTime = time;
+            this._currentTimeAtom.set(time);
+        }
+        this._sendSeek(currentMedia.publicId, this._seekFrom, time);
     }
 
     private _sendSeek(
@@ -360,6 +393,8 @@ export class MediaPlayerManager {
     }
 
     private _handleTimeUpdate(): void {
+        if (this._isSeeking) return;
+
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 

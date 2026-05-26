@@ -15,6 +15,8 @@ class BaseSearchResultsItem(BaseModel):
     imageUrl: str
     artists: List[ArtistSearchResultsItem]
     provider: str
+    downloaded: bool | None
+    url: str | None
 
 
 class SearchResultsResponse(BaseModel):

@@ -109,9 +109,10 @@ class YoutubeMusicProvider(BaseMediaProvider):
 
     @time_it
     async def search_media_async(
-        self, query: str
+        self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
         """Search YouTube Music and return songs, artists, albums and playlists."""
+
         import asyncio
 
         (
@@ -129,7 +130,21 @@ class YoutubeMusicProvider(BaseMediaProvider):
         result: List[BaseSearchResultsItem] = []
 
         if a_tracks.is_ok():
-            for track in a_tracks.result():
+            tracks = a_tracks.result()
+            downloaded_a: AResult[set[str]] = (
+                await YoutubeMusicAccess.get_downloaded_youtube_ids_async(
+                    session=session,
+                    youtube_ids=[t.youtube_id for t in tracks],
+                )
+            )
+            if downloaded_a.is_not_ok():
+                logger.error(
+                    f"Error getting downloaded YouTube IDs. {downloaded_a.info()}"
+                )
+                downloaded_ids: set[str] = set()
+            else:
+                downloaded_ids: set[str] = downloaded_a.result()
+            for track in tracks:
                 result.append(
                     BaseSearchResultsItem(
                         type="song",
@@ -140,14 +155,31 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             ArtistSearchResultsItem(name=name, url="")
                             for name in track.artists
                         ],
-                        provider="YouTube Music",
+                        provider=YoutubeMusic.provider_name,
+                        downloaded=track.youtube_id in downloaded_ids,
+                        url=None,
                     )
                 )
+
         else:
             logger.error(f"YouTube Music track search error: {a_tracks.info()}")
 
         if a_artists.is_ok():
-            for artist in a_artists.result():
+            artists_result = a_artists.result()
+            artist_a: AResult[dict[str, str]] = (
+                await YoutubeMusicAccess.get_artist_public_ids_by_youtube_ids_async(
+                    session=session,
+                    youtube_ids=[a.youtube_id for a in artists_result],
+                )
+            )
+            if artist_a.is_not_ok():
+                logger.error(
+                    f"Error getting artist public IDs. {artist_a.info()}"
+                )
+                artist_public_ids: dict[str, str] = {}
+            else:
+                artist_public_ids: dict[str, str] = artist_a.result()
+            for artist in artists_result:
                 result.append(
                     BaseSearchResultsItem(
                         type="artist",
@@ -155,14 +187,34 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                         imageUrl=artist.thumbnail_url,
                         artists=[],
-                        provider="YouTube Music",
+                        provider=YoutubeMusic.provider_name,
+                        downloaded=None,
+                        url=(
+                            f"/artist/{artist_public_ids[artist.youtube_id]}"
+                            if artist.youtube_id in artist_public_ids
+                            else None
+                        ),
                     )
                 )
         else:
             logger.error(f"YouTube Music artist search error: {a_artists.info()}")
 
         if a_albums.is_ok():
-            for album in a_albums.result():
+            albums_result = a_albums.result()
+            album_a: AResult[dict[str, str]] = (
+                await YoutubeMusicAccess.get_album_public_ids_by_youtube_ids_async(
+                    session=session,
+                    youtube_ids=[al.youtube_id for al in albums_result],
+                )
+            )
+            if album_a.is_not_ok():
+                logger.error(
+                    f"Error getting album public IDs. {album_a.info()}"
+                )
+                album_public_ids: dict[str, str] = {}
+            else:
+                album_public_ids: dict[str, str] = album_a.result()
+            for album in albums_result:
                 result.append(
                     BaseSearchResultsItem(
                         type="album",
@@ -173,14 +225,34 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             ArtistSearchResultsItem(name=name, url="")
                             for name in album.artists
                         ],
-                        provider="YouTube Music",
+                        provider=YoutubeMusic.provider_name,
+                        downloaded=None,
+                        url=(
+                            f"/album/{album_public_ids[album.youtube_id]}"
+                            if album.youtube_id in album_public_ids
+                            else None
+                        ),
                     )
                 )
         else:
             logger.error(f"YouTube Music album search error: {a_albums.info()}")
 
         if a_playlists.is_ok():
-            for playlist in a_playlists.result():
+            playlists_result = a_playlists.result()
+            playlist_a: AResult[dict[str, str]] = (
+                await YoutubeMusicAccess.get_playlist_public_ids_by_youtube_ids_async(
+                    session=session,
+                    youtube_ids=[p.youtube_id for p in playlists_result],
+                )
+            )
+            if playlist_a.is_not_ok():
+                logger.error(
+                    f"Error getting playlist public IDs. {playlist_a.info()}"
+                )
+                playlist_public_ids: dict[str, str] = {}
+            else:
+                playlist_public_ids: dict[str, str] = playlist_a.result()
+            for playlist in playlists_result:
                 result.append(
                     BaseSearchResultsItem(
                         type="playlist",
@@ -192,7 +264,13 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             if playlist.author
                             else []
                         ),
-                        provider="YouTube Music",
+                        provider=YoutubeMusic.provider_name,
+                        downloaded=None,
+                        url=(
+                            f"/playlist/{playlist_public_ids[playlist.youtube_id]}"
+                            if playlist.youtube_id in playlist_public_ids
+                            else None
+                        ),
                     )
                 )
         else:
@@ -226,7 +304,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
             for track in playlist.tracks:
                 artists_list: List[BaseArtistResponse] = [
                     BaseArtistResponse(
-                        provider="YouTube Music",
+                        provider=YoutubeMusic.provider_name,
                         publicId="",
                         url="",
                         providerUrl="",
@@ -237,7 +315,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                 ]
 
                 album_response = BaseAlbumWithoutSongsResponse(
-                    provider="YouTube Music",
+                    provider=YoutubeMusic.provider_name,
                     publicId="",
                     url="",
                     providerUrl="",
@@ -250,7 +328,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                 song_responses.append(
                     PlaylistResponseItem(
                         item=BaseSongWithAlbumResponse(
-                            provider="YouTube Music",
+                            provider=YoutubeMusic.provider_name,
                             publicId=track.youtube_id,
                             providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                             name=track.title,
@@ -271,7 +349,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                 BasePlaylistWithMediasResponse(
                     type="playlist",
                     description=playlist.description,
-                    provider="YouTube Music",
+                    provider=YoutubeMusic.provider_name,
                     publicId=public_id,
                     url=f"/youtube-music/playlist/{public_id}",
                     providerUrl=f"https://music.youtube.com/playlist?list={public_id}",
@@ -308,7 +386,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                 BasePlaylistWithoutMediasResponse(
                     type="playlist",
                     description=playlist.description,
-                    provider="YouTube Music",
+                    provider=YoutubeMusic.provider_name,
                     publicId=public_id,
                     url=f"/youtube-music/playlist/{public_id}",
                     providerUrl=f"https://music.youtube.com/playlist?list={public_id}",

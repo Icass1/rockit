@@ -139,7 +139,16 @@ export default function FooterCenter(): JSX.Element {
                     max={getMediaDuration($currentMedia)}
                     onChange={(e): void =>
                         rockIt.mediaPlayerManager.setCurrentTime(
-                            Number(e.target.value)
+                            Number(e.target.value),
+                            false
+                        )
+                    }
+                    onPointerDown={(): void =>
+                        rockIt.mediaPlayerManager.beginSeek()
+                    }
+                    onPointerUp={(e): void =>
+                        rockIt.mediaPlayerManager.endSeek(
+                            Number(e.currentTarget.value)
                         )
                     }
                 />

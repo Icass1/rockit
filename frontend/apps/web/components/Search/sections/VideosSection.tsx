@@ -26,7 +26,9 @@ export default function VideosSection({
                             media={video}
                             location={EMediaContextLocation.SEARCH}
                         >
-                            <div className="w-64 flex-none cursor-pointer transition md:w-80 md:hover:scale-105">
+                            <div
+                                className={`w-64 flex-none cursor-pointer transition md:w-80 md:hover:scale-105 ${video.downloaded === false && "opacity-50"}`}
+                            >
                                 <Image
                                     width={350}
                                     height={197}

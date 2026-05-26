@@ -131,11 +131,13 @@ export class PlaylistManager {
 
     async addUrlToPlaylistAsync(
         url: string,
-        playlistPublicId?: string
+        playlistPublicId: string
     ): Promise<void> {
         const mediaRes = await Http.addFromUrl({
             url,
-            playlistPublicId: playlistPublicId ?? null,
+            addToPlaylist: true,
+            addToLibrary: false,
+            playlistPublicId: playlistPublicId,
         });
 
         if (!mediaRes.isOk()) {

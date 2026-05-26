@@ -308,21 +308,27 @@ async def add_from_url(
 
     user: UserRow = a_result_user.result()
 
-    if payload.playlistPublicId:
+    if payload.addToPlaylist and payload.playlistPublicId:
         from backend.default.framework.playlist import Playlist
 
-        await Playlist.add_media_to_playlist_async(
+        a_result_add_to_playlist = await Playlist.add_media_to_playlist_async(
             session=session,
             playlist_public_id=payload.playlistPublicId,
             user_id=user.id,
             media_public_id=media.publicId,
         )
-    else:
 
-        await User.add_media_to_library(
+        if a_result_add_to_playlist.is_not_ok():
+            logger.error("Error adding media to playlist.")
+
+    if payload.addToLibrary:
+        a_result_add_to_library = await User.add_media_to_library(
             session=session,
             user_id=user.id,
             media_public_id=media.publicId,
         )
+
+        if a_result_add_to_library.is_not_ok():
+            logger.error("Error adding media to library.")
 
     return AddFromUrlResponse(data=media)

@@ -5,8 +5,10 @@ import { useContextMenu } from "@/components/ContextMenu/context";
 
 export default function ContextMenuTrigger({
     children,
+    openOnLeftClick,
 }: {
     children: ReactNode;
+    openOnLeftClick?: boolean;
 }): JSX.Element {
     const {
         _setContextMenuOpen,
@@ -51,8 +53,22 @@ export default function ContextMenuTrigger({
         };
     }, [_contextMenuOpen, _contextMenuDivRef, _setContextMenuOpen]);
 
+    const handleClick = (
+        event: React.MouseEvent<HTMLDivElement, globalThis.MouseEvent>
+    ): void => {
+        if (!openOnLeftClick || !_setContextMenuOpen || !_setContextMenuPos)
+            return;
+
+        _setContextMenuPos([event.clientX, event.clientY]);
+        _setContextMenuOpen((value): boolean => !value);
+    };
+
     return (
-        <div ref={divRef} onContextMenu={handleContextMenu}>
+        <div
+            ref={divRef}
+            onContextMenu={handleContextMenu}
+            onClick={handleClick}
+        >
             {children}
         </div>
     );

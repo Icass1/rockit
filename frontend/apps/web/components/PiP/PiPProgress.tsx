@@ -50,7 +50,16 @@ export function PiPProgress({ show }: PiPProgressProps): JSX.Element | null {
                 style={{ flexGrow: 1 }}
                 onChange={(e): void =>
                     rockIt.mediaPlayerManager.setCurrentTime(
-                        Number(e.target.value)
+                        Number(e.target.value),
+                        false
+                    )
+                }
+                onPointerDown={(): void =>
+                    rockIt.mediaPlayerManager.beginSeek()
+                }
+                onPointerUp={(e): void =>
+                    rockIt.mediaPlayerManager.endSeek(
+                        Number(e.currentTarget.value)
                     )
                 }
             />

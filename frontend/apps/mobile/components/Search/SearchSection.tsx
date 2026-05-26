@@ -41,6 +41,8 @@ export default function SearchSection({
                         hide();
                         const result = await Http.addFromUrl({
                             url: item.providerUrl,
+                            addToLibrary: true,
+                            addToPlaylist: false,
                             playlistPublicId: null,
                         });
                         if (result.isOk() && result.result?.data) {
@@ -90,6 +92,8 @@ export default function SearchSection({
                         hide();
                         const result = await Http.addFromUrl({
                             url: item.providerUrl,
+                            addToLibrary: false,
+                            addToPlaylist: true,
                             playlistPublicId: pl.publicId,
                         });
                         if (result.isOk() && result.result?.data) {

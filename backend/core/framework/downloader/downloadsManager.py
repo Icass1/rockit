@@ -144,7 +144,7 @@ class DownloadsManager:
                                     f"Error getting latest status of download {download_public_id}"
                                 )
 
-                            progress: float = (
+                            progress: float = 100.0 if status_key == DownloadStatusEnum.COMPLETED.value else (
                                 float(latest_status.completed) if latest_status else 0
                             )
 

@@ -20,6 +20,7 @@ from backend.core.responses.searchResponse import (
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 
 from backend.youtube.access.db.ormModels.video import VideoRow
+from backend.youtube.access.youtubeAccess import YouTubeAccess
 
 from backend.youtube.framework.video import Video
 from backend.youtube.framework.youtube import YouTube
@@ -83,7 +84,7 @@ class YoutubeProvider(BaseMediaProvider):
 
     @time_it
     async def search_media_async(
-        self, query: str
+        self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
         """TODO"""
 
@@ -95,6 +96,12 @@ class YoutubeProvider(BaseMediaProvider):
             return AResult(code=AResultCode.GENERAL_ERROR, message="OK")
 
         videos: List[RawYoutubeSearchResult] = a_result.result()
+
+        youtube_ids: List[str] = [v.video_id for v in videos if v.video_id is not None]
+        downloaded_ids: set[str] = await YouTubeAccess.get_downloaded_youtube_ids_async(
+            session=session, youtube_ids=youtube_ids
+        )
+
         result: List[BaseSearchResultsItem] = [
             BaseSearchResultsItem(
                 type="video",
@@ -107,7 +114,9 @@ class YoutubeProvider(BaseMediaProvider):
                         url=f"/youtube/chanel/{v.channel_id}",
                     )
                 ],
-                provider="Youtube",
+                provider=self._name,
+                downloaded=v.video_id in downloaded_ids,
+                url=None,
             )
             for v in videos
         ]

@@ -30,7 +30,9 @@ export default function PlaylistsSection({
                             media={playlist}
                             location={EMediaContextLocation.SEARCH}
                         >
-                            <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
+                            <div
+                                className={`w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${playlist.downloaded === false && "opacity-50"}`}
+                            >
                                 <Image
                                     width={350}
                                     height={350}

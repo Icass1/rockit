@@ -1,3 +1,4 @@
+import { EEvent, EWebSocketMessage } from "@rockit/packages/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -18,6 +19,22 @@ export class DownloaderManager {
         if (this._initialized) {
             return;
         }
+
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.DownloadProgress,
+            (data) => {
+                rockIt.eventManager.dispatchEvent(EEvent.MediaDownloadStatus, {
+                    publicId: data.mediaPublicId,
+                    completed: data.progress,
+                    message: data.status,
+                });
+                if (data.progress === 100)
+                    rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
+                        publicId: data.mediaPublicId,
+                    });
+            }
+        );
+
         // console.log("DownloaderManager.init");
         this._initialized = true;
     }

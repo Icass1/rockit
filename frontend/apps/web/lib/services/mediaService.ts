@@ -52,7 +52,11 @@ export async function getArtistAsync(
     if (response.isOk()) {
         return response.result;
     } else {
-        console.error("Error getting artist", response.message, response.detail);
+        console.error(
+            "Error getting artist",
+            response.message,
+            response.detail
+        );
     }
     return undefined;
 }

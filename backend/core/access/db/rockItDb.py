@@ -323,7 +323,7 @@ class RockItDB:
             else:
                 await session.rollback()
         except Exception as e:
-            logger.error(f"Error executing query ({e}). Rolling back...")
+            logger.exception(f"Error executing query ({e}). Rolling back...")
             await session.rollback()
             raise
         finally:

@@ -1045,6 +1045,7 @@ class SpotifyAccess:
                     ),
                 )
                 .where(TrackRow.album_id == album_id)
+                .order_by(TrackRow.disc_number, TrackRow.track_number)
             )
             result: Result[Tuple[TrackRow, CoreMediaRow]] = await session.execute(stmt)
             tracks_with_core: List[TrackWithCoreMedia] = []

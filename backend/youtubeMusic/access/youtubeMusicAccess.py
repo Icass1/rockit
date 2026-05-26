@@ -879,3 +879,24 @@ class YoutubeMusicAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get tracks by album_ids: {e}",
             )
+
+    @staticmethod
+    async def get_downloaded_youtube_ids_async(
+        session: AsyncSession,
+        youtube_ids: List[str],
+    ) -> set[str]:
+        """Return the subset of youtube_ids whose path is not null."""
+
+        if not youtube_ids:
+            return set()
+
+        try:
+            stmt: Select[Tuple[str]] = select(TrackRow.youtube_id).where(
+                TrackRow.youtube_id.in_(youtube_ids),
+                TrackRow.path.isnot(None),
+            )
+            result: Result[Tuple[str]] = await session.execute(stmt)
+            return {row[0] for row in result.all()}
+        except Exception as e:
+            logger.error(f"Failed to get downloaded youtube ids: {e}")
+            return set()

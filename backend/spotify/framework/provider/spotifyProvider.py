@@ -86,7 +86,7 @@ class SpotifyProvider(BaseMediaProvider):
 
     @time_it
     async def search_media_async(
-        self, query: str
+        self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
         """Search Spotify and return a list of search items."""
 

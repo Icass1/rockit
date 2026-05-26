@@ -94,6 +94,7 @@ class Spotify:
                         imageUrl=track_image_url,
                         artists=track_artists,
                         provider=Spotify.provider_name,
+                        downloaded=False,
                     )
                 )
 
@@ -117,6 +118,7 @@ class Spotify:
                         imageUrl=album_image_url,
                         artists=album_artists,
                         provider=Spotify.provider_name,
+                        downloaded=None,
                     )
                 )
 
@@ -135,6 +137,7 @@ class Spotify:
                         imageUrl=artist_image_url,
                         artists=[],
                         provider=Spotify.provider_name,
+                        downloaded=None,
                     )
                 )
 
@@ -153,6 +156,7 @@ class Spotify:
                         imageUrl=playlist_image_url,
                         artists=[],
                         provider=Spotify.provider_name,
+                        downloaded=None,
                     )
                 )
 

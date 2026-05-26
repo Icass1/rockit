@@ -57,7 +57,7 @@ class BaseMediaProvider(BaseProvider):
         )
 
     async def search_media_async(
-        self, query: str
+        self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
         logger.warning(
             f"Provider '{self._name} doesn't implement search_media_async method.'"

@@ -109,9 +109,10 @@ class YoutubeMusicProvider(BaseMediaProvider):
 
     @time_it
     async def search_media_async(
-        self, query: str
+        self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
         """Search YouTube Music and return songs, artists, albums and playlists."""
+
         import asyncio
 
         (
@@ -129,7 +130,14 @@ class YoutubeMusicProvider(BaseMediaProvider):
         result: List[BaseSearchResultsItem] = []
 
         if a_tracks.is_ok():
-            for track in a_tracks.result():
+            tracks = a_tracks.result()
+            downloaded_ids: set[str] = (
+                await YoutubeMusicAccess.get_downloaded_youtube_ids_async(
+                    session=session,
+                    youtube_ids=[t.youtube_id for t in tracks],
+                )
+            )
+            for track in tracks:
                 result.append(
                     BaseSearchResultsItem(
                         type="song",
@@ -141,8 +149,10 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             for name in track.artists
                         ],
                         provider="YouTube Music",
+                        downloaded=track.youtube_id in downloaded_ids,
                     )
                 )
+
         else:
             logger.error(f"YouTube Music track search error: {a_tracks.info()}")
 
@@ -156,6 +166,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         imageUrl=artist.thumbnail_url,
                         artists=[],
                         provider="YouTube Music",
+                        downloaded=None,
                     )
                 )
         else:
@@ -174,6 +185,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             for name in album.artists
                         ],
                         provider="YouTube Music",
+                        downloaded=None,
                     )
                 )
         else:
@@ -193,6 +205,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             else []
                         ),
                         provider="YouTube Music",
+                        downloaded=None,
                     )
                 )
         else:

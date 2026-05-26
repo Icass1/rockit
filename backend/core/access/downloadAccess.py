@@ -286,7 +286,9 @@ class DownloadAccess:
         """Get a download row by its id."""
 
         result = await session.execute(
-            select(DownloadRow).where(DownloadRow.id == download_id)
+            select(DownloadRow)
+            .options(selectinload(DownloadRow.download_status_list))
+            .where(DownloadRow.id == download_id)
         )
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:

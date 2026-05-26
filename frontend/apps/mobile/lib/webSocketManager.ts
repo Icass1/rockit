@@ -55,11 +55,11 @@ export class WebSocketManager {
                 const eventManager = EventManager.getInstance();
                 if (msg.status === "COMPLETED") {
                     eventManager.dispatchEvent(EEvent.MediaDownloaded, {
-                        publicId: msg.publicId,
+                        publicId: msg.mediaPublicId,
                     });
                 }
                 eventManager.dispatchEvent(EEvent.MediaDownloadStatus, {
-                    publicId: msg.publicId,
+                    publicId: msg.mediaPublicId,
                     completed: msg.progress,
                     message: msg.status,
                 });

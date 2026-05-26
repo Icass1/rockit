@@ -266,8 +266,10 @@ class YoutubeMusicAccess:
         album_id: int,
     ) -> AResult[List[TrackRow]]:
         try:
-            stmt: Select[Tuple[TrackRow]] = select(TrackRow).where(
-                TrackRow.album_id == album_id
+            stmt: Select[Tuple[TrackRow]] = (
+                select(TrackRow)
+                .where(TrackRow.album_id == album_id)
+                .order_by(TrackRow.disc_number, TrackRow.track_number)
             )
             result: Result[Tuple[TrackRow]] = await session.execute(stmt)
             tracks_list: List[TrackRow] = cast(List[TrackRow], result.scalars().all())
@@ -864,6 +866,7 @@ class YoutubeMusicAccess:
                     selectinload(TrackRow.image),
                     selectinload(TrackRow.core_song),
                 )
+                .order_by(TrackRow.album_id, TrackRow.disc_number, TrackRow.track_number)
             )
             result: Result[Tuple[TrackRow]] = await session.execute(stmt)
             tracks: List[TrackRow] = cast(List[TrackRow], result.scalars().all())

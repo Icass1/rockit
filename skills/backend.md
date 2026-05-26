@@ -172,6 +172,7 @@ No file headers (copyright, etc.) unless required by law.
 8. **ALWAYS** run `black` after every edit
 9. **NEVER** edit files in `packages/shared/src/dto/` manually — they are auto-generated
 10. **ALWAYS** follow the AResult pattern in framework and access layers
+11. **NEVER** make single database queries inside a for/while loop (N+1 problem). Instead, make a single batch query (e.g. `WHERE id IN (...)`) to fetch all data at once, then process the results in memory. The number of DB queries must not depend on the number of items being processed.
 
 ### Key Files
 

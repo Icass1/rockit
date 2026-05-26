@@ -159,7 +159,9 @@ export default function MediaContextMenu({
 
     return (
         <ContextMenu>
-            <ContextMenuTrigger>{children}</ContextMenuTrigger>
+            <ContextMenuTrigger openOnLeftClick={isSearch}>
+                {children}
+            </ContextMenuTrigger>
             <ContextMenuContent
                 cover={getMediaCover(media)}
                 title={media.name}

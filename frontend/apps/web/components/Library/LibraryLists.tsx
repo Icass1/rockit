@@ -44,7 +44,7 @@ import LoadingComponent from "@/components/Loading";
  * Each cell wraps a card that is internally capped at max-w-[250px].
  */
 const GRID_CLASS =
-    "grid grid-cols-2 gap-x-4 gap-y-5 px-4 py-4 " +
+    "grid grid-cols-[repeat(auto-fit,_minmax(250px,1fr))] gap-x-4 gap-y-5 px-4 py-4 " +
     "sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
 
 /** Vertical list of compact rows. */

@@ -35,7 +35,7 @@ export default function LibraryClient(): JSX.Element {
         setFilterMode((m): EFilterMode => cycleEnum(EFilterMode, m));
 
     return (
-        <div className="flex flex-col">
+        <div className="mx-4 flex flex-col">
             {/* DESKTOP HEADER */}
             <header className="mb-6 hidden items-center gap-3 py-4 md:flex">
                 {/* Left: title + pills */}

@@ -39,26 +39,13 @@ import LoadingComponent from "@/components/Loading";
 /* LAYOUT CONSTANTS                                        */
 /* ------------------------------------------------------- */
 
-/**
- * Standard responsive grid.
- * Each cell wraps a card that is internally capped at max-w-[250px].
- */
 const GRID_CLASS =
-    "grid grid-cols-[repeat(auto-fit,_minmax(250px,1fr))] gap-x-4 gap-y-5 px-4 py-4 " +
-    "sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+    "grid grid-cols-[repeat(auto-fit,_minmax(250px,1fr))] gap-x-4 gap-y-5 px-4 py-4";
 
-/** Vertical list of compact rows. */
 const ROW_LIST_CLASS = "flex flex-col px-4";
 
-/**
- * CSS-columns masonry — no JS, no layout shifts.
- * Works on all browsers including iOS Safari.
- * Items with different aspect ratios (square vs 16:9) create natural height
- * variation that makes masonry look great.
- */
 const MASONRY_CLASS =
-    "columns-2 gap-4 px-4 py-4 " +
-    "sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6";
+    "grid grid-cols-[repeat(auto-fit,_minmax(250px,1fr))] gap-4 gap-x-4 gap-y-5 px-4 py-4";
 
 /* ------------------------------------------------------- */
 /* SHARED UI PRIMITIVES                                    */
@@ -91,11 +78,6 @@ function EmptyState({ message }: { message: string }): JSX.Element {
 /* MASONRY — ERepeatMode.ALL TAB                                     */
 /* ------------------------------------------------------- */
 
-/**
- * A discriminated union so we can render all content types in one flat list
- * while keeping TypeScript happy without casting.
- */
-
 function MasonryAllGrid({
     albums,
     playlists,
@@ -109,59 +91,44 @@ function MasonryAllGrid({
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
 }): JSX.Element | null {
-    /**
-     * Interleave content types so the masonry looks varied rather than showing
-     * all albums first, then all playlists, etc.
-     * Strategy: zip by index across all arrays, cycling until exhausted.
-     */
     const items = useMemo<ILibraryMasonryItem[]>((): ILibraryMasonryItem[] => {
         const buckets: ILibraryMasonryItem[][] = [
             albums.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.ALBUM;
-                    data: BaseAlbumWithoutSongsResponse;
-                } => ({ kind: EContentKind.ALBUM, data: d })
+                (d): ILibraryMasonryItem => ({
+                    kind: EContentKind.ALBUM,
+                    data: d,
+                })
             ),
             playlists.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.PLAYLIST;
-                    data: BasePlaylistWithoutMediasResponse;
-                } => ({ kind: EContentKind.PLAYLIST, data: d })
+                (d): ILibraryMasonryItem => ({
+                    kind: EContentKind.PLAYLIST,
+                    data: d,
+                })
             ),
             videos.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.VIDEO;
-                    data: BaseVideoResponse;
-                } => ({ kind: EContentKind.VIDEO, data: d })
+                (d): ILibraryMasonryItem => ({
+                    kind: EContentKind.VIDEO,
+                    data: d,
+                })
             ),
             songs.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.SONG;
-                    data: BaseSongWithoutAlbumResponse;
-                } => ({ kind: EContentKind.SONG, data: d })
+                (d): ILibraryMasonryItem => ({
+                    kind: EContentKind.SONG,
+                    data: d,
+                })
             ),
             stations.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.STATION;
+                (d): ILibraryMasonryItem => ({
+                    kind: EContentKind.STATION,
                     data: {
-                        type: "station";
-                        provider: string;
-                        publicId: string;
-                        providerUrl: string;
-                        name: string;
-                        imageUrl: string;
-                    };
-                } => ({ kind: EContentKind.STATION, data: d })
+                        type: "station",
+                        provider: string,
+                        publicId: string,
+                        providerUrl: string,
+                        name: string,
+                        imageUrl: string,
+                    },
+                })
             ),
         ];
 
@@ -182,10 +149,6 @@ function MasonryAllGrid({
     return (
         <div className={MASONRY_CLASS}>
             {items.map((item): JSX.Element | undefined => {
-                /**
-                 * break-inside-avoid prevents a card from being split across
-                 * two columns. mb-4 gives consistent spacing between cards.
-                 */
                 const wrapClass = "break-inside-avoid mb-4";
 
                 switch (item.kind) {

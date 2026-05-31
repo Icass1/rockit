@@ -9,11 +9,9 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EContentKind } from "@/models/enums/contentKind";
 import { EContentType } from "@/models/enums/contentType";
 import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
-import { ILibraryMasonryItem } from "@/models/types/masonryItem";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { Http } from "@/lib/http";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
@@ -25,7 +23,6 @@ import {
     VideoCard,
 } from "@/components/Library/LibraryCards";
 import {
-    AlbumListView,
     AlbumRow,
     PlaylistRow,
     SongRow,
@@ -44,12 +41,10 @@ import { Heart, Disc3, History } from "lucide-react";
 /* ------------------------------------------------------- */
 
 const GRID_CLASS =
-    "grid grid-cols-[repeat(auto-fit,_minmax(250px,1fr))] gap-x-4 gap-y-5 px-4 py-4";
+    "grid grid-cols-[repeat(auto-fill,_250px)] gap-x-4 gap-y-5 px-4 py-4";
 
-const ROW_LIST_CLASS = "flex flex-col px-4";
-
-const MASONRY_CLASS =
-    "grid grid-cols-[repeat(auto-fit,_minmax(250px,1fr))] gap-4 gap-x-4 gap-y-5 px-4 py-4";
+const CHIP_GRID_CLASS =
+    "grid grid-cols-[repeat(auto-fit,_minmax(200px,250px))] justify-start gap-0.5 px-2 py-1";
 
 /* ------------------------------------------------------- */
 /* SHARED UI PRIMITIVES                                    */
@@ -79,10 +74,10 @@ function EmptyState({ message }: { message: string }): JSX.Element {
 }
 
 /* ------------------------------------------------------- */
-/* MASONRY — ERepeatMode.ALL TAB                                     */
+/* ALL TAB — GRID (grouped by type)                        */
 /* ------------------------------------------------------- */
 
-function MasonryAllGrid({
+function SectionedAllGrid({
     albums,
     playlists,
     videos,
@@ -94,116 +89,35 @@ function MasonryAllGrid({
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
-}): JSX.Element | null {
-    const items = useMemo<ILibraryMasonryItem[]>((): ILibraryMasonryItem[] => {
-        const buckets: ILibraryMasonryItem[][] = [
-            albums.map(
-                (d): ILibraryMasonryItem => ({
-                    kind: EContentKind.ALBUM,
-                    data: d,
-                })
-            ),
-            playlists.map(
-                (d): ILibraryMasonryItem => ({
-                    kind: EContentKind.PLAYLIST,
-                    data: d,
-                })
-            ),
-            videos.map(
-                (d): ILibraryMasonryItem => ({
-                    kind: EContentKind.VIDEO,
-                    data: d,
-                })
-            ),
-            songs.map(
-                (d): ILibraryMasonryItem => ({
-                    kind: EContentKind.SONG,
-                    data: d,
-                })
-            ),
-            stations.map(
-                (d): ILibraryMasonryItem => ({
-                    kind: EContentKind.STATION,
-                    data: {
-                        type: "station",
-                        provider: d.provider,
-                        publicId: d.publicId,
-                        providerUrl: d.providerUrl,
-                        name: d.name,
-                        imageUrl: d.imageUrl,
-                    },
-                })
-            ),
-        ];
-
-        const result: ILibraryMasonryItem[] = [];
-        const maxLen = Math.max(...buckets.map((b): number => b.length));
-
-        for (let i = 0; i < maxLen; i++) {
-            for (const bucket of buckets) {
-                if (i < bucket.length) result.push(bucket[i]);
-            }
-        }
-
-        return result;
-    }, [albums, playlists, videos, songs, stations]);
-
+}): JSX.Element {
     return (
-        <div className={MASONRY_CLASS}>
-            <div className="break-inside-avoid mb-4">
-                <NewPlaylistButton />
-            </div>
-            {items.map((item): JSX.Element | undefined => {
-                const wrapClass = "break-inside-avoid mb-4";
-
-                switch (item.kind) {
-                    case EContentKind.ALBUM:
-                        return (
-                            <div
-                                key={`album-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <AlbumCard album={item.data} />
-                            </div>
-                        );
-                    case EContentKind.PLAYLIST:
-                        return (
-                            <div
-                                key={`playlist-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <PlaylistCard playlist={item.data} />
-                            </div>
-                        );
-                    case EContentKind.VIDEO:
-                        return (
-                            <div
-                                key={`video-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <VideoCard video={item.data} />
-                            </div>
-                        );
-                    case EContentKind.SONG:
-                        return (
-                            <div
-                                key={`song-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <SongCard song={item.data} />
-                            </div>
-                        );
-                    case EContentKind.STATION:
-                        return (
-                            <div
-                                key={`station-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <StationCard station={item.data} />
-                            </div>
-                        );
-                }
-            })}
+        <div className={GRID_CLASS}>
+            <NewPlaylistButton />
+            {playlists.map(
+                (pl): JSX.Element => (
+                    <PlaylistCard key={pl.publicId} playlist={pl} />
+                )
+            )}
+            {albums.map(
+                (al): JSX.Element => (
+                    <AlbumCard key={al.publicId} album={al} />
+                )
+            )}
+            {videos.map(
+                (v): JSX.Element => (
+                    <VideoCard key={v.publicId} video={v} />
+                )
+            )}
+            {songs.map(
+                (s): JSX.Element => (
+                    <SongCard key={s.publicId} song={s} />
+                )
+            )}
+            {stations.map(
+                (st): JSX.Element => (
+                    <StationCard key={st.publicId} station={st} />
+                )
+            )}
         </div>
     );
 }
@@ -228,68 +142,54 @@ function SectionedAllList({
     return (
         <div>
             {playlists.length > 0 && (
-                <section>
-                    <SectionHeader title="PLAYLISTS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {playlists.map(
-                            (pl): JSX.Element => (
-                                <PlaylistRow key={pl.publicId} playlist={pl} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    <NewPlaylistButton />
+                    {playlists.map(
+                        (pl): JSX.Element => (
+                            <PlaylistRow key={pl.publicId} playlist={pl} />
+                        )
+                    )}
+                </div>
             )}
 
             {albums.length > 0 && (
-                <section>
-                    <SectionHeader title="ALBUMS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {albums.map(
-                            (al): JSX.Element => (
-                                <AlbumRow key={al.publicId} album={al} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {albums.map(
+                        (al): JSX.Element => (
+                            <AlbumRow key={al.publicId} album={al} />
+                        )
+                    )}
+                </div>
             )}
 
             {songs.length > 0 && (
-                <section>
-                    <SectionHeader title="SONGS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {songs.map(
-                            (s): JSX.Element => (
-                                <SongRow key={s.publicId} song={s} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {songs.map(
+                        (s): JSX.Element => (
+                            <SongRow key={s.publicId} song={s} />
+                        )
+                    )}
+                </div>
             )}
 
             {videos.length > 0 && (
-                <section>
-                    <SectionHeader title="VIDEOS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {videos.map(
-                            (v): JSX.Element => (
-                                <VideoRow key={v.publicId} video={v} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {videos.map(
+                        (v): JSX.Element => (
+                            <VideoRow key={v.publicId} video={v} />
+                        )
+                    )}
+                </div>
             )}
 
             {stations.length > 0 && (
-                <section>
-                    <SectionHeader title="RADIO_STATIONS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {stations.map(
-                            (st): JSX.Element => (
-                                <StationRow key={st.publicId} station={st} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {stations.map(
+                        (st): JSX.Element => (
+                            <StationRow key={st.publicId} station={st} />
+                        )
+                    )}
+                </div>
             )}
         </div>
     );
@@ -468,7 +368,7 @@ export function LibraryLists({
                             stations={filtered.stations}
                         />
                     ) : (
-                        <MasonryAllGrid
+                        <SectionedAllGrid
                             albums={filtered.albums}
                             playlists={filtered.playlists}
                             videos={filtered.videos}
@@ -483,89 +383,137 @@ export function LibraryLists({
             {activeType === EContentType.Albums &&
                 (filtered.albums.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_ALBUMS} />
-                ) : viewMode === EViewMode.List ? (
-                    <AlbumListView albums={filtered.albums} />
                 ) : (
-                    <div className={GRID_CLASS}>
-                        {filtered.albums.map(
-                            (al): JSX.Element => (
-                                <AlbumCard key={al.publicId} album={al} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.ALBUMS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.albums.map(
+                                    (al): JSX.Element => (
+                                        <AlbumRow key={al.publicId} album={al} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.albums.map(
+                                    (al): JSX.Element => (
+                                        <AlbumCard key={al.publicId} album={al} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
             {/* ── PLAYLISTS tab ─────────────────────────────────────────── */}
             {activeType === EContentType.Playlists &&
                 (filtered.playlists.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_PLAYLISTS} />
-                ) : viewMode === EViewMode.List ? (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.playlists.map(
-                            (pl): JSX.Element => (
-                                <PlaylistRow key={pl.publicId} playlist={pl} />
-                            )
-                        )}
-                    </div>
                 ) : (
-                    <div className={GRID_CLASS}>
-                        <NewPlaylistButton />
-                        {filtered.playlists.map(
-                            (pl): JSX.Element => (
-                                <PlaylistCard key={pl.publicId} playlist={pl} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.PLAYLISTS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                <NewPlaylistButton />
+                                {filtered.playlists.map(
+                                    (pl): JSX.Element => (
+                                        <PlaylistRow key={pl.publicId} playlist={pl} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                <NewPlaylistButton />
+                                {filtered.playlists.map(
+                                    (pl): JSX.Element => (
+                                        <PlaylistCard key={pl.publicId} playlist={pl} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
-            {/* ── SONGS (always rows — grid adds nothing for songs) ─────── */}
+            {/* ── SONGS tab ─────────────────────────────────────────────── */}
             {activeType === EContentType.Songs &&
                 (filtered.songs.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.songs.map(
-                            (s): JSX.Element => (
-                                <SongRow key={s.publicId} song={s} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.SONGS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.songs.map(
+                                    (s): JSX.Element => (
+                                        <SongRow key={s.publicId} song={s} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.songs.map(
+                                    (s): JSX.Element => (
+                                        <SongCard key={s.publicId} song={s} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
             {/* ── VIDEOS tab ────────────────────────────────────────────── */}
             {activeType === EContentType.Videos &&
                 (filtered.videos.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_VIDEOS} />
-                ) : viewMode === EViewMode.List ? (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.videos.map(
-                            (v): JSX.Element => (
-                                <VideoRow key={v.publicId} video={v} />
-                            )
-                        )}
-                    </div>
                 ) : (
-                    <div className={GRID_CLASS}>
-                        {filtered.videos.map(
-                            (v): JSX.Element => (
-                                <VideoCard key={v.publicId} video={v} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.VIDEOS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoRow key={v.publicId} video={v} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoCard key={v.publicId} video={v} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
-            {/* ── STATIONS (always rows) ────────────────────────────────── */}
+            {/* ── STATIONS tab ──────────────────────────────────────────── */}
             {activeType === EContentType.Stations &&
                 (filtered.stations.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_STATIONS} />
                 ) : (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.stations.map(
-                            (st): JSX.Element => (
-                                <StationRow key={st.publicId} station={st} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.RADIO_STATIONS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.stations.map(
+                                    (st): JSX.Element => (
+                                        <StationRow key={st.publicId} station={st} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.stations.map(
+                                    (st): JSX.Element => (
+                                        <StationCard key={st.publicId} station={st} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
         </section>
     );

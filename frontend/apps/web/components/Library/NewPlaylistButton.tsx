@@ -51,15 +51,16 @@ export default function NewPlaylistButton(): JSX.Element {
     return (
         <>
             {/* Tile */}
-            <div
-                role="button"
-                tabIndex={0}
-                className="library-item flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col transition-transform md:hover:scale-110"
-                onClick={(): void => setShowModal(true)}
-                onKeyDown={(e): false | void =>
-                    e.key === "Enter" && setShowModal(true)
-                }
-            >
+            <div className="mx-auto w-full max-w-62.5">
+                <div
+                    role="button"
+                    tabIndex={0}
+                    className="library-item flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col transition-transform md:hover:scale-110"
+                    onClick={(): void => setShowModal(true)}
+                    onKeyDown={(e): false | void =>
+                        e.key === "Enter" && setShowModal(true)
+                    }
+                >
                 <div className="cover relative aspect-square h-auto w-full">
                     <Image
                         alt=""
@@ -73,6 +74,7 @@ export default function NewPlaylistButton(): JSX.Element {
                 <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
                     {$vocabulary.NEW_PLAYLIST}
                 </label>
+            </div>
             </div>
 
             {/* Modal */}

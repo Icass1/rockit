@@ -7,10 +7,11 @@ export function cycleEnum<E extends Record<string, string | number>>(
     enumObj: E,
     current: EnumValue<E>
 ): EnumValue<E> {
-    // Extract only actual values (ignore numeric reverse mappings).
-    const values = Object.values(enumObj).filter(
-        (v): boolean => typeof v !== "number" || !enumObj[v]
-    ) as EnumValue<E>[];
+    const allValues = Object.values(enumObj);
+    const hasNumeric = allValues.some((v): boolean => typeof v === "number");
+    const values = (hasNumeric
+        ? allValues.filter((v): boolean => typeof v === "number")
+        : allValues) as EnumValue<E>[];
 
     const index = values.indexOf(current);
     if (index === -1) throw new Error("Current value is not part of the enum.");

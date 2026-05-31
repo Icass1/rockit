@@ -163,9 +163,16 @@ export function VideoRow({
                     src={$video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
                     alt={$video.name}
                 />
-                <p className="min-w-0 flex-1 truncate font-medium text-white">
-                    {$video.name}
-                </p>
+                <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-white">
+                        {$video.name}
+                    </p>
+                    <p className="truncate text-sm text-neutral-400">
+                        {$video.artists
+                            ?.map((a): string => a.name)
+                            .join(", ") ?? ""}
+                    </p>
+                </div>
             </div>
         </MediaContextMenu>
     );

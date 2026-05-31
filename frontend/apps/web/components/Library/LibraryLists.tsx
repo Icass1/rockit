@@ -63,9 +63,9 @@ function SectionHeader({
     rightElement?: ReactNode;
 }): JSX.Element {
     return (
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="flex items-center px-4 pt-4 pb-3">
             <h2 className="text-3xl font-bold">{title}</h2>
-            {rightElement}
+            {rightElement && <div className="ml-4">{rightElement}</div>}
         </div>
     );
 }

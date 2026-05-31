@@ -180,7 +180,7 @@ export function SongCard({
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
-                    className={`library-item relative flex cursor-pointer flex-col`}
+                    className={`library-item relative flex cursor-pointer flex-col transition-transform md:hover:scale-105`}
                     onClick={handleClick}
                 >
                     <div className={`${!downloaded && "opacity-50"}`}>
@@ -233,7 +233,7 @@ export function StationCard({
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
-                    className="library-item flex cursor-pointer flex-col"
+                    className="library-item flex cursor-pointer flex-col transition-transform md:hover:scale-105"
                     onClick={handlePlay}
                 >
                     <Image

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, type JSX } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState, type JSX } from "react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -15,6 +15,7 @@ import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
 import { ILibraryMasonryItem } from "@/models/types/masonryItem";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { Http } from "@/lib/http";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
 import {
     AlbumCard,
@@ -34,6 +35,9 @@ import {
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 import LoadingComponent from "@/components/Loading";
+import Link from "next/link";
+import Image from "next/image";
+import { Heart, Disc3, History } from "lucide-react";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -122,11 +126,11 @@ function MasonryAllGrid({
                     kind: EContentKind.STATION,
                     data: {
                         type: "station",
-                        provider: string,
-                        publicId: string,
-                        providerUrl: string,
-                        name: string,
-                        imageUrl: string,
+                        provider: d.provider,
+                        publicId: d.publicId,
+                        providerUrl: d.providerUrl,
+                        name: d.name,
+                        imageUrl: d.imageUrl,
                     },
                 })
             ),
@@ -144,10 +148,11 @@ function MasonryAllGrid({
         return result;
     }, [albums, playlists, videos, songs, stations]);
 
-    if (items.length === 0) return null;
-
     return (
         <div className={MASONRY_CLASS}>
+            <div className="break-inside-avoid mb-4">
+                <NewPlaylistButton />
+            </div>
             {items.map((item): JSX.Element | undefined => {
                 const wrapClass = "break-inside-avoid mb-4";
 
@@ -303,17 +308,150 @@ export function LibraryLists({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
+    const lastMonthDate = useMemo(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d;
+    }, []);
+
+    const lastMonthName = new Intl.DateTimeFormat("en", {
+        month: "long",
+    }).format(lastMonthDate);
+
+    const lastMonthKey = lastMonthName.toUpperCase();
+
+    const recapImageUrl = `/recap-covers/${lastMonthName.toLowerCase()}.png`;
+
+    const TOP_LIMIT = 10;
+    const [topAlbums, setTopAlbums] = useState<Array<{ publicId: string; name: string; href: string; imageUrl: string | null; subtitle: string | null }>>([]);
+
+    const fetchStats = useCallback(
+        () => Http.getUserStats({ range: "30d", start: null, end: null }),
+        []
+    );
+
+    useEffect(() => {
+        fetchStats().then((res) => {
+            if (res.isOk()) setTopAlbums(res.result.topAlbums);
+        });
+    }, [fetchStats]);
+
     const showAll = activeType === EContentType.All;
 
     if (loading) return <LoadingComponent />;
 
     return (
         <section>
-            {/* ── ALL tab ───────────────────────────────────────────────
-                Grid mode  → masonry mixing every content type.
-                List mode  → sectioned rows grouped by content type.
-                The grid/list toggle is hidden in LibraryClient when
-                activeType === "all" — this view always shows both.       */}
+            {/* Recommended by Rockit Section */}
+            <SectionHeader title={$vocabulary.FEATURED_LISTS} />
+            <div className="flex gap-4 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent py-2 pb-2 mb-4">
+                <Link
+                    href="/playlist/liked"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage:
+                                "url(/rockit-background.png)",
+                        }}
+                    >
+                        <Heart
+                            className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                            fill="white"
+                        />
+                    </div>
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary.LIKED_SONGS}
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                <Link
+                    href="/playlist/most-listened"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage:
+                                "url(/rockit-background.png)",
+                        }}
+                    >
+                        <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary.MOST_LISTENED}
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                <Link
+                    href="/playlist/recent-mix"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage:
+                                "url(/rockit-background.png)",
+                        }}
+                    >
+                        <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary.RECENT_MIX}
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                <Link
+                    href="/playlist/last-month"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage: `url(${recapImageUrl})`,
+                        }}
+                    />
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary[lastMonthKey as keyof typeof $vocabulary]} Recap
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                {topAlbums.slice(0, TOP_LIMIT).map((album) => (
+                    <Link
+                        key={album.publicId}
+                        href={album.href}
+                        className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                    >
+                        <Image
+                            alt={album.name}
+                            src={album.imageUrl ?? "/song-placeholder.png"}
+                            width={160}
+                            height={160}
+                            className="aspect-square w-full rounded-md object-cover"
+                        />
+                        <p className="mt-1 truncate text-center font-semibold">
+                            {album.name}
+                        </p>
+                        <p className="truncate text-center text-sm text-gray-400">
+                            {album.subtitle}
+                        </p>
+                    </Link>
+                ))}
+            </div>
+
             {showAll && (
                 <>
                     <SectionHeader
@@ -330,21 +468,13 @@ export function LibraryLists({
                             stations={filtered.stations}
                         />
                     ) : (
-                        <>
-                            {/* NewPlaylistButton sits above the masonry */}
-                            <div className="px-4 py-2">
-                                <div className="w-full max-w-62.5">
-                                    <NewPlaylistButton />
-                                </div>
-                            </div>
-                            <MasonryAllGrid
-                                albums={filtered.albums}
-                                playlists={filtered.playlists}
-                                videos={filtered.videos}
-                                songs={filtered.songs}
-                                stations={filtered.stations}
-                            />
-                        </>
+                        <MasonryAllGrid
+                            albums={filtered.albums}
+                            playlists={filtered.playlists}
+                            videos={filtered.videos}
+                            songs={filtered.songs}
+                            stations={filtered.stations}
+                        />
                     )}
                 </>
             )}

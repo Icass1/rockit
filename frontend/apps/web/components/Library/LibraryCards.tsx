@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useRef } from "react";
+import { JSX, ReactNode, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,10 +10,16 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { EMediaContextLocation } from "@rockit/shared";
+import { useStore } from "@nanostores/react";
+import {
+    EMediaContextLocation,
+    TMediaWithSearch,
+    Vocabulary,
+} from "@rockit/shared";
 import { isDownloadable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
@@ -28,9 +34,134 @@ const COVER_PX = 250;
 const COVER_SIZES = "(max-width: 640px) 50vw, 250px";
 
 /** Shared wrapper for every grid card — enforces the 250 px cap. */
-function CardShell({ children }: { children: React.ReactNode }): JSX.Element {
+function CardShell({ children }: { children: ReactNode }): JSX.Element {
     return <div className="mx-auto w-full max-w-62.5">{children}</div>;
 }
+
+/* ------------------------------------------------------- */
+/* GENERIC CARD                                            */
+/* ------------------------------------------------------- */
+
+interface LibraryCardProps {
+    media: TMediaWithSearch;
+    location?: EMediaContextLocation;
+    imageUrl: string;
+    aspectRatio?: "square" | "video";
+    badge: keyof Vocabulary;
+    name: string;
+    subtitle?: ReactNode;
+    href?: string;
+    onClick?: (e: React.MouseEvent) => void;
+    /** Applied to the outer link/div wrapper. */
+    className?: string;
+    /** Applied to an inner wrapper around image + name + subtitle (not children). */
+    contentClassName?: string;
+    children?: ReactNode;
+}
+
+function LibraryCard({
+    media,
+    location = EMediaContextLocation.LIBRARY,
+    imageUrl,
+    aspectRatio = "square",
+    badge,
+    name,
+    subtitle,
+    href,
+    onClick,
+    className = "",
+    contentClassName,
+    children,
+}: LibraryCardProps): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const linkClass = `library-item relative flex flex-col transition-transform md:hover:scale-105 ${className}`;
+    const isVideo = aspectRatio === "video";
+
+    const imageBlock = (
+        <div
+            className={
+                isVideo
+                    ? "relative aspect-video w-full overflow-hidden rounded-md"
+                    : "relative"
+            }
+        >
+            {isVideo ? (
+                <Image
+                    alt={name}
+                    src={imageUrl}
+                    fill
+                    sizes={COVER_SIZES}
+                    className="object-cover"
+                />
+            ) : (
+                <Image
+                    alt={name}
+                    src={imageUrl}
+                    width={COVER_PX}
+                    height={COVER_PX}
+                    sizes={COVER_SIZES}
+                    className="aspect-square w-full rounded-md object-cover"
+                />
+            )}
+            <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                {$vocabulary[badge].toUpperCase()}
+            </span>
+        </div>
+    );
+
+    const textBlock = (
+        <>
+            <p className="mt-1 truncate text-center font-semibold">{name}</p>
+            {subtitle !== undefined &&
+                (typeof subtitle === "string" ? (
+                    <p className="truncate text-center text-sm text-gray-400">
+                        {subtitle}
+                    </p>
+                ) : (
+                    <div className="text-center text-sm text-gray-400">
+                        {subtitle}
+                    </div>
+                ))}
+        </>
+    );
+
+    const inner = contentClassName ? (
+        <div className={contentClassName}>
+            {imageBlock}
+            {textBlock}
+        </div>
+    ) : (
+        <>
+            {imageBlock}
+            {textBlock}
+        </>
+    );
+
+    return (
+        <CardShell>
+            <MediaContextMenu media={media} location={location}>
+                {href ? (
+                    <Link href={href} className={linkClass}>
+                        {inner}
+                        {children}
+                    </Link>
+                ) : (
+                    <div
+                        className={`${linkClass} cursor-pointer`}
+                        onClick={onClick}
+                    >
+                        {inner}
+                        {children}
+                    </div>
+                )}
+            </MediaContextMenu>
+        </CardShell>
+    );
+}
+
+/* ------------------------------------------------------- */
+/* EXPORTED CARD COMPONENTS                                */
+/* ------------------------------------------------------- */
 
 export function PlaylistCard({
     playlist,
@@ -38,40 +169,14 @@ export function PlaylistCard({
     playlist: BasePlaylistWithoutMediasResponse;
 }): JSX.Element {
     return (
-        <CardShell>
-            <MediaContextMenu
-                media={playlist}
-                location={EMediaContextLocation.LIBRARY}
-            >
-                <Link
-                    href={playlist.url}
-                    className="library-item flex flex-col transition-transform md:hover:scale-105"
-                >
-                    <div className="relative">
-                        <Image
-                            alt={playlist.name}
-                            src={
-                                playlist.imageUrl ??
-                                rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
-                            }
-                            width={COVER_PX}
-                            height={COVER_PX}
-                            sizes={COVER_SIZES}
-                            className="aspect-square w-full rounded-md object-cover"
-                        />
-                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
-                            PLAYLIST
-                        </span>
-                    </div>
-                    <p className="mt-1 truncate text-center font-semibold">
-                        {playlist.name}
-                    </p>
-                    <p className="truncate text-center text-sm text-gray-400">
-                        {playlist.owner}
-                    </p>
-                </Link>
-            </MediaContextMenu>
-        </CardShell>
+        <LibraryCard
+            media={playlist}
+            imageUrl={playlist.imageUrl}
+            badge="PLAYLIST"
+            name={playlist.name}
+            subtitle={playlist.owner}
+            href={playlist.url}
+        />
     );
 }
 
@@ -81,37 +186,19 @@ export function AlbumCard({
     album: BaseAlbumWithoutSongsResponse;
 }): JSX.Element {
     return (
-        <CardShell>
-            <MediaContextMenu
-                media={album}
-                location={EMediaContextLocation.LIBRARY}
-            >
-                <Link
-                    href={album.url}
-                    className="library-item flex flex-col transition-transform md:hover:scale-105"
-                >
-                    <div className="relative">
-                        <Image
-                            alt={album.name}
-                            src={album.imageUrl}
-                            width={COVER_PX}
-                            height={COVER_PX}
-                            sizes={COVER_SIZES}
-                            className="aspect-square w-full rounded-md object-cover"
-                        />
-                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
-                            ALBUM
-                        </span>
-                    </div>
-                    <p className="mt-1 truncate text-center font-semibold">
-                        {album.name}
-                    </p>
-                    <p className="truncate text-center text-sm text-gray-400">
-                        {album.artists.map((a): string => a.name).join(", ")}
-                    </p>
-                </Link>
-            </MediaContextMenu>
-        </CardShell>
+        <LibraryCard
+            media={album}
+            imageUrl={album.imageUrl}
+            badge="ALBUM"
+            name={album.name}
+            subtitle={
+                <Artists
+                    artists={album.artists}
+                    className="text-sm text-gray-400"
+                />
+            }
+            href={album.url}
+        />
     );
 }
 
@@ -135,39 +222,21 @@ export function VideoCard({
     };
 
     return (
-        <CardShell>
-            <MediaContextMenu
-                media={$video}
-                location={EMediaContextLocation.LIBRARY}
-            >
-                <div
-                    className={`library-item flex cursor-pointer flex-col transition-transform md:hover:scale-105 ${!downloaded && "opacity-50"}`}
-                    onClick={handleClick}
-                >
-                    {/* 16:9 aspect ratio for video thumbnails */}
-                    <div className="relative aspect-video w-full overflow-hidden rounded-md">
-                        <Image
-                            src={$video.imageUrl}
-                            alt={$video.name}
-                            fill
-                            sizes={COVER_SIZES}
-                            className="object-cover"
-                        />
-                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
-                            VIDEO
-                        </span>
-                    </div>
-                    <p className="mt-1 truncate text-center font-semibold">
-                        {$video.name}
-                    </p>
-                    <p className="truncate text-center text-sm text-gray-400">
-                        {$video.artists
-                            ?.map((a): string => a.name)
-                            .join(", ") ?? ""}
-                    </p>
-                </div>
-            </MediaContextMenu>
-        </CardShell>
+        <LibraryCard
+            media={$video}
+            imageUrl={$video.imageUrl}
+            aspectRatio="video"
+            badge="VIDEO"
+            name={$video.name}
+            subtitle={
+                <Artists
+                    artists={$video.artists}
+                    className="text-sm text-gray-400"
+                />
+            }
+            onClick={handleClick}
+            className={!downloaded ? "opacity-50" : ""}
+        />
     );
 }
 
@@ -192,46 +261,26 @@ export function SongCard({
     };
 
     return (
-        <CardShell>
-            <MediaContextMenu
-                media={$song}
-                location={EMediaContextLocation.LIBRARY}
-            >
-                <div
-                    className={`library-item relative flex cursor-pointer flex-col transition-transform md:hover:scale-105`}
-                    onClick={handleClick}
-                >
-                    <div className={`${!downloaded && "opacity-50"}`}>
-                        <div className="relative">
-                            <Image
-                                alt={$song.name}
-                                src={$song.imageUrl}
-                                width={COVER_PX}
-                                height={COVER_PX}
-                                sizes={COVER_SIZES}
-                                className="aspect-square w-full rounded-md object-cover"
-                            />
-                            <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
-                                SONG
-                            </span>
-                        </div>
-                        <p className="mt-1 truncate text-center font-semibold">
-                            {$song.name}
-                        </p>
-                        <p className="truncate text-center text-sm text-gray-400">
-                            {$song.artists
-                                ?.map((a): string => a.name)
-                                .join(", ") ?? "Unknown Artist"}
-                        </p>
-                    </div>
-                    <DownloadStatusIcon
-                        stroke={0.8}
-                        publicId={$song.publicId}
-                        className="absolute h-full w-full"
-                    />
-                </div>
-            </MediaContextMenu>
-        </CardShell>
+        <LibraryCard
+            media={$song}
+            imageUrl={$song.imageUrl}
+            badge="SONG"
+            name={$song.name}
+            subtitle={
+                <Artists
+                    artists={$song.artists}
+                    className="text-sm text-gray-400"
+                />
+            }
+            onClick={handleClick}
+            contentClassName={!downloaded ? "opacity-50" : ""}
+        >
+            <DownloadStatusIcon
+                stroke={0.8}
+                publicId={$song.publicId}
+                className="absolute h-full w-full"
+            />
+        </LibraryCard>
     );
 }
 
@@ -241,6 +290,7 @@ export function StationCard({
 }: {
     station: BaseStationResponse;
 }): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {
@@ -250,36 +300,13 @@ export function StationCard({
     };
 
     return (
-        <CardShell>
-            <MediaContextMenu
-                media={$station}
-                location={EMediaContextLocation.LIBRARY}
-            >
-                <div
-                    className="library-item flex cursor-pointer flex-col transition-transform md:hover:scale-105"
-                    onClick={handlePlay}
-                >
-                    <div className="relative">
-                        <Image
-                            alt={$station.name}
-                            src={$station.imageUrl}
-                            width={COVER_PX}
-                            height={COVER_PX}
-                            sizes={COVER_SIZES}
-                            className="aspect-square w-full rounded-md object-cover"
-                        />
-                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
-                            STATION
-                        </span>
-                    </div>
-                    <p className="mt-1 truncate text-center font-semibold">
-                        {$station.name}
-                    </p>
-                    <p className="truncate text-center text-sm text-gray-400">
-                        Radio Station
-                    </p>
-                </div>
-            </MediaContextMenu>
-        </CardShell>
+        <LibraryCard
+            media={$station}
+            imageUrl={$station.imageUrl}
+            badge="RADIO_STATION"
+            name={$station.name}
+            subtitle={$vocabulary.RADIO_STATION}
+            onClick={handlePlay}
+        />
     );
 }

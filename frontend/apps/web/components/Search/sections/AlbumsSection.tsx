@@ -46,7 +46,7 @@ export default function AlbumsSection({
                                 <span className="block truncate text-center text-sm text-gray-400">
                                     {album.artists.map(
                                         (artist, i): JSX.Element => (
-                                            <span key={artist.url}>
+                                            <span key={artist.id + '-' + i}>
                                                 {artist.name}
                                                 {i < album.artists.length - 1
                                                     ? ", "

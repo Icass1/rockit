@@ -47,17 +47,22 @@ export function PlaylistCard({
                     href={playlist.url}
                     className="library-item flex flex-col transition-transform md:hover:scale-105"
                 >
-                    <Image
-                        alt={playlist.name}
-                        src={
-                            playlist.imageUrl ??
-                            rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
-                        }
-                        width={COVER_PX}
-                        height={COVER_PX}
-                        sizes={COVER_SIZES}
-                        className="aspect-square w-full rounded-md object-cover"
-                    />
+                    <div className="relative">
+                        <Image
+                            alt={playlist.name}
+                            src={
+                                playlist.imageUrl ??
+                                rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
+                            }
+                            width={COVER_PX}
+                            height={COVER_PX}
+                            sizes={COVER_SIZES}
+                            className="aspect-square w-full rounded-md object-cover"
+                        />
+                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                            PLAYLIST
+                        </span>
+                    </div>
                     <p className="mt-1 truncate text-center font-semibold">
                         {playlist.name}
                     </p>
@@ -85,14 +90,19 @@ export function AlbumCard({
                     href={album.url}
                     className="library-item flex flex-col transition-transform md:hover:scale-105"
                 >
-                    <Image
-                        alt={album.name}
-                        src={album.imageUrl}
-                        width={COVER_PX}
-                        height={COVER_PX}
-                        sizes={COVER_SIZES}
-                        className="aspect-square w-full rounded-md object-cover"
-                    />
+                    <div className="relative">
+                        <Image
+                            alt={album.name}
+                            src={album.imageUrl}
+                            width={COVER_PX}
+                            height={COVER_PX}
+                            sizes={COVER_SIZES}
+                            className="aspect-square w-full rounded-md object-cover"
+                        />
+                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                            ALBUM
+                        </span>
+                    </div>
                     <p className="mt-1 truncate text-center font-semibold">
                         {album.name}
                     </p>
@@ -143,9 +153,17 @@ export function VideoCard({
                             sizes={COVER_SIZES}
                             className="object-cover"
                         />
+                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                            VIDEO
+                        </span>
                     </div>
                     <p className="mt-1 truncate text-center font-semibold">
                         {$video.name}
+                    </p>
+                    <p className="truncate text-center text-sm text-gray-400">
+                        {$video.artists
+                            ?.map((a): string => a.name)
+                            .join(", ") ?? ""}
                     </p>
                 </div>
             </MediaContextMenu>
@@ -180,18 +198,23 @@ export function SongCard({
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
-                    className={`library-item relative flex cursor-pointer flex-col`}
+                    className={`library-item relative flex cursor-pointer flex-col transition-transform md:hover:scale-105`}
                     onClick={handleClick}
                 >
                     <div className={`${!downloaded && "opacity-50"}`}>
-                        <Image
-                            alt={$song.name}
-                            src={$song.imageUrl}
-                            width={COVER_PX}
-                            height={COVER_PX}
-                            sizes={COVER_SIZES}
-                            className="aspect-square w-full rounded-md object-cover"
-                        />
+                        <div className="relative">
+                            <Image
+                                alt={$song.name}
+                                src={$song.imageUrl}
+                                width={COVER_PX}
+                                height={COVER_PX}
+                                sizes={COVER_SIZES}
+                                className="aspect-square w-full rounded-md object-cover"
+                            />
+                            <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                                SONG
+                            </span>
+                        </div>
                         <p className="mt-1 truncate text-center font-semibold">
                             {$song.name}
                         </p>
@@ -233,17 +256,22 @@ export function StationCard({
                 location={EMediaContextLocation.LIBRARY}
             >
                 <div
-                    className="library-item flex cursor-pointer flex-col"
+                    className="library-item flex cursor-pointer flex-col transition-transform md:hover:scale-105"
                     onClick={handlePlay}
                 >
-                    <Image
-                        alt={$station.name}
-                        src={$station.imageUrl}
-                        width={COVER_PX}
-                        height={COVER_PX}
-                        sizes={COVER_SIZES}
-                        className="aspect-square w-full rounded-md object-cover"
-                    />
+                    <div className="relative">
+                        <Image
+                            alt={$station.name}
+                            src={$station.imageUrl}
+                            width={COVER_PX}
+                            height={COVER_PX}
+                            sizes={COVER_SIZES}
+                            className="aspect-square w-full rounded-md object-cover"
+                        />
+                        <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                            STATION
+                        </span>
+                    </div>
                     <p className="mt-1 truncate text-center font-semibold">
                         {$station.name}
                     </p>

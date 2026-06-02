@@ -1,0 +1,28 @@
+html {
+  /* Base background y superficie */
+  --color-bg:          #0b0b0b;
+  --color-surface:     #151515;
+
+  /* Textos */
+  --color-text:        #e0e0e0;
+  --color-muted:       #a0a0a0;
+
+  /* Colores de acento (provenientes de globals.css) */
+  --color-accent:      rgb(136, 58, 234);
+  --color-accent-light: rgb(224, 204, 250);
+  --color-accent-dark:  rgb(49, 10, 101);
+  --color-accent-gradient: linear-gradient(
+    45deg,
+    rgb(var(--color-accent)),
+    rgb(var(--color-accent-light)) 30%,
+    white 60%
+  );
+
+  /* Colores Rockit específicos */
+  --color-rockit-pink:          #ee1086;
+  --color-rockit-pink-mid:       #f53a76;
+  --color-rockit-pink-light:     #fb6467;
+
+  /* Otros colores auxiliares (si se necesitan) */
+  --color-primary:   #00ffea;   /* Cian neón para glow */
+}

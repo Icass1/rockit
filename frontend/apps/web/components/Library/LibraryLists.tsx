@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, type JSX } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState, type JSX } from "react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -9,12 +9,11 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EContentKind } from "@/models/enums/contentKind";
 import { EContentType } from "@/models/enums/contentType";
 import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
-import { ILibraryMasonryItem } from "@/models/types/masonryItem";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { Http } from "@/lib/http";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
 import {
     AlbumCard,
@@ -24,7 +23,6 @@ import {
     VideoCard,
 } from "@/components/Library/LibraryCards";
 import {
-    AlbumListView,
     AlbumRow,
     PlaylistRow,
     SongRow,
@@ -34,31 +32,19 @@ import {
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 import LoadingComponent from "@/components/Loading";
+import Link from "next/link";
+import Image from "next/image";
+import { Heart, Disc3, History } from "lucide-react";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
 /* ------------------------------------------------------- */
 
-/**
- * Standard responsive grid.
- * Each cell wraps a card that is internally capped at max-w-[250px].
- */
 const GRID_CLASS =
-    "grid grid-cols-2 gap-x-4 gap-y-5 px-4 py-4 " +
-    "sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+    "grid grid-cols-[repeat(auto-fill,_250px)] gap-x-4 gap-y-5 px-4 py-4";
 
-/** Vertical list of compact rows. */
-const ROW_LIST_CLASS = "flex flex-col px-4";
-
-/**
- * CSS-columns masonry — no JS, no layout shifts.
- * Works on all browsers including iOS Safari.
- * Items with different aspect ratios (square vs 16:9) create natural height
- * variation that makes masonry look great.
- */
-const MASONRY_CLASS =
-    "columns-2 gap-4 px-4 py-4 " +
-    "sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6";
+const CHIP_GRID_CLASS =
+    "grid grid-cols-[repeat(auto-fit,_minmax(200px,250px))] justify-start gap-0.5 px-2 py-1";
 
 /* ------------------------------------------------------- */
 /* SHARED UI PRIMITIVES                                    */
@@ -72,9 +58,9 @@ function SectionHeader({
     rightElement?: ReactNode;
 }): JSX.Element {
     return (
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="flex items-center px-4 pt-4 pb-3">
             <h2 className="text-3xl font-bold">{title}</h2>
-            {rightElement}
+            {rightElement && <div className="ml-4">{rightElement}</div>}
         </div>
     );
 }
@@ -88,15 +74,10 @@ function EmptyState({ message }: { message: string }): JSX.Element {
 }
 
 /* ------------------------------------------------------- */
-/* MASONRY — ERepeatMode.ALL TAB                                     */
+/* ALL TAB — GRID (grouped by type)                        */
 /* ------------------------------------------------------- */
 
-/**
- * A discriminated union so we can render all content types in one flat list
- * while keeping TypeScript happy without casting.
- */
-
-function MasonryAllGrid({
+function SectionedAllGrid({
     albums,
     playlists,
     videos,
@@ -108,134 +89,35 @@ function MasonryAllGrid({
     videos: BaseVideoResponse[];
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
-}): JSX.Element | null {
-    /**
-     * Interleave content types so the masonry looks varied rather than showing
-     * all albums first, then all playlists, etc.
-     * Strategy: zip by index across all arrays, cycling until exhausted.
-     */
-    const items = useMemo<ILibraryMasonryItem[]>((): ILibraryMasonryItem[] => {
-        const buckets: ILibraryMasonryItem[][] = [
-            albums.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.ALBUM;
-                    data: BaseAlbumWithoutSongsResponse;
-                } => ({ kind: EContentKind.ALBUM, data: d })
-            ),
-            playlists.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.PLAYLIST;
-                    data: BasePlaylistWithoutMediasResponse;
-                } => ({ kind: EContentKind.PLAYLIST, data: d })
-            ),
-            videos.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.VIDEO;
-                    data: BaseVideoResponse;
-                } => ({ kind: EContentKind.VIDEO, data: d })
-            ),
-            songs.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.SONG;
-                    data: BaseSongWithoutAlbumResponse;
-                } => ({ kind: EContentKind.SONG, data: d })
-            ),
-            stations.map(
-                (
-                    d
-                ): {
-                    kind: EContentKind.STATION;
-                    data: {
-                        type: "station";
-                        provider: string;
-                        publicId: string;
-                        providerUrl: string;
-                        name: string;
-                        imageUrl: string;
-                    };
-                } => ({ kind: EContentKind.STATION, data: d })
-            ),
-        ];
-
-        const result: ILibraryMasonryItem[] = [];
-        const maxLen = Math.max(...buckets.map((b): number => b.length));
-
-        for (let i = 0; i < maxLen; i++) {
-            for (const bucket of buckets) {
-                if (i < bucket.length) result.push(bucket[i]);
-            }
-        }
-
-        return result;
-    }, [albums, playlists, videos, songs, stations]);
-
-    if (items.length === 0) return null;
-
+}): JSX.Element {
     return (
-        <div className={MASONRY_CLASS}>
-            {items.map((item): JSX.Element | undefined => {
-                /**
-                 * break-inside-avoid prevents a card from being split across
-                 * two columns. mb-4 gives consistent spacing between cards.
-                 */
-                const wrapClass = "break-inside-avoid mb-4";
-
-                switch (item.kind) {
-                    case EContentKind.ALBUM:
-                        return (
-                            <div
-                                key={`album-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <AlbumCard album={item.data} />
-                            </div>
-                        );
-                    case EContentKind.PLAYLIST:
-                        return (
-                            <div
-                                key={`playlist-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <PlaylistCard playlist={item.data} />
-                            </div>
-                        );
-                    case EContentKind.VIDEO:
-                        return (
-                            <div
-                                key={`video-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <VideoCard video={item.data} />
-                            </div>
-                        );
-                    case EContentKind.SONG:
-                        return (
-                            <div
-                                key={`song-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <SongCard song={item.data} />
-                            </div>
-                        );
-                    case EContentKind.STATION:
-                        return (
-                            <div
-                                key={`station-${item.data.publicId}`}
-                                className={wrapClass}
-                            >
-                                <StationCard station={item.data} />
-                            </div>
-                        );
-                }
-            })}
+        <div className={GRID_CLASS}>
+            <NewPlaylistButton />
+            {playlists.map(
+                (pl): JSX.Element => (
+                    <PlaylistCard key={pl.publicId} playlist={pl} />
+                )
+            )}
+            {albums.map(
+                (al): JSX.Element => (
+                    <AlbumCard key={al.publicId} album={al} />
+                )
+            )}
+            {videos.map(
+                (v): JSX.Element => (
+                    <VideoCard key={v.publicId} video={v} />
+                )
+            )}
+            {songs.map(
+                (s): JSX.Element => (
+                    <SongCard key={s.publicId} song={s} />
+                )
+            )}
+            {stations.map(
+                (st): JSX.Element => (
+                    <StationCard key={st.publicId} station={st} />
+                )
+            )}
         </div>
     );
 }
@@ -260,68 +142,54 @@ function SectionedAllList({
     return (
         <div>
             {playlists.length > 0 && (
-                <section>
-                    <SectionHeader title="PLAYLISTS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {playlists.map(
-                            (pl): JSX.Element => (
-                                <PlaylistRow key={pl.publicId} playlist={pl} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    <NewPlaylistButton />
+                    {playlists.map(
+                        (pl): JSX.Element => (
+                            <PlaylistRow key={pl.publicId} playlist={pl} />
+                        )
+                    )}
+                </div>
             )}
 
             {albums.length > 0 && (
-                <section>
-                    <SectionHeader title="ALBUMS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {albums.map(
-                            (al): JSX.Element => (
-                                <AlbumRow key={al.publicId} album={al} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {albums.map(
+                        (al): JSX.Element => (
+                            <AlbumRow key={al.publicId} album={al} />
+                        )
+                    )}
+                </div>
             )}
 
             {songs.length > 0 && (
-                <section>
-                    <SectionHeader title="SONGS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {songs.map(
-                            (s): JSX.Element => (
-                                <SongRow key={s.publicId} song={s} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {songs.map(
+                        (s): JSX.Element => (
+                            <SongRow key={s.publicId} song={s} />
+                        )
+                    )}
+                </div>
             )}
 
             {videos.length > 0 && (
-                <section>
-                    <SectionHeader title="VIDEOS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {videos.map(
-                            (v): JSX.Element => (
-                                <VideoRow key={v.publicId} video={v} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {videos.map(
+                        (v): JSX.Element => (
+                            <VideoRow key={v.publicId} video={v} />
+                        )
+                    )}
+                </div>
             )}
 
             {stations.length > 0 && (
-                <section>
-                    <SectionHeader title="RADIO_STATIONS" />
-                    <div className={ROW_LIST_CLASS}>
-                        {stations.map(
-                            (st): JSX.Element => (
-                                <StationRow key={st.publicId} station={st} />
-                            )
-                        )}
-                    </div>
-                </section>
+                <div className={CHIP_GRID_CLASS}>
+                    {stations.map(
+                        (st): JSX.Element => (
+                            <StationRow key={st.publicId} station={st} />
+                        )
+                    )}
+                </div>
             )}
         </div>
     );
@@ -340,17 +208,150 @@ export function LibraryLists({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
+    const lastMonthDate = useMemo(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d;
+    }, []);
+
+    const lastMonthName = new Intl.DateTimeFormat("en", {
+        month: "long",
+    }).format(lastMonthDate);
+
+    const lastMonthKey = lastMonthName.toUpperCase();
+
+    const recapImageUrl = `/recap-covers/${lastMonthName.toLowerCase()}.png`;
+
+    const TOP_LIMIT = 10;
+    const [topAlbums, setTopAlbums] = useState<Array<{ publicId: string; name: string; href: string; imageUrl: string | null; subtitle: string | null }>>([]);
+
+    const fetchStats = useCallback(
+        () => Http.getUserStats({ range: "30d", start: null, end: null }),
+        []
+    );
+
+    useEffect(() => {
+        fetchStats().then((res) => {
+            if (res.isOk()) setTopAlbums(res.result.topAlbums);
+        });
+    }, [fetchStats]);
+
     const showAll = activeType === EContentType.All;
 
     if (loading) return <LoadingComponent />;
 
     return (
         <section>
-            {/* ── ALL tab ───────────────────────────────────────────────
-                Grid mode  → masonry mixing every content type.
-                List mode  → sectioned rows grouped by content type.
-                The grid/list toggle is hidden in LibraryClient when
-                activeType === "all" — this view always shows both.       */}
+            {/* Recommended by Rockit Section */}
+            <SectionHeader title={$vocabulary.FEATURED_LISTS} />
+            <div className="flex gap-4 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent py-2 pb-2 mb-4">
+                <Link
+                    href="/playlist/liked"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage:
+                                "url(/rockit-background.png)",
+                        }}
+                    >
+                        <Heart
+                            className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                            fill="white"
+                        />
+                    </div>
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary.LIKED_SONGS}
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                <Link
+                    href="/playlist/most-listened"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage:
+                                "url(/rockit-background.png)",
+                        }}
+                    >
+                        <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary.MOST_LISTENED}
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                <Link
+                    href="/playlist/recent-mix"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage:
+                                "url(/rockit-background.png)",
+                        }}
+                    >
+                        <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary.RECENT_MIX}
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                <Link
+                    href="/playlist/last-month"
+                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage: `url(${recapImageUrl})`,
+                        }}
+                    />
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {$vocabulary[lastMonthKey as keyof typeof $vocabulary]} Recap
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                {topAlbums.slice(0, TOP_LIMIT).map((album) => (
+                    <Link
+                        key={album.publicId}
+                        href={album.href}
+                        className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                    >
+                        <Image
+                            alt={album.name}
+                            src={album.imageUrl ?? "/song-placeholder.png"}
+                            width={160}
+                            height={160}
+                            className="aspect-square w-full rounded-md object-cover"
+                        />
+                        <p className="mt-1 truncate text-center font-semibold">
+                            {album.name}
+                        </p>
+                        <p className="truncate text-center text-sm text-gray-400">
+                            {album.subtitle}
+                        </p>
+                    </Link>
+                ))}
+            </div>
+
             {showAll && (
                 <>
                     <SectionHeader
@@ -367,21 +368,13 @@ export function LibraryLists({
                             stations={filtered.stations}
                         />
                     ) : (
-                        <>
-                            {/* NewPlaylistButton sits above the masonry */}
-                            <div className="px-4 py-2">
-                                <div className="w-full max-w-62.5">
-                                    <NewPlaylistButton />
-                                </div>
-                            </div>
-                            <MasonryAllGrid
-                                albums={filtered.albums}
-                                playlists={filtered.playlists}
-                                videos={filtered.videos}
-                                songs={filtered.songs}
-                                stations={filtered.stations}
-                            />
-                        </>
+                        <SectionedAllGrid
+                            albums={filtered.albums}
+                            playlists={filtered.playlists}
+                            videos={filtered.videos}
+                            songs={filtered.songs}
+                            stations={filtered.stations}
+                        />
                     )}
                 </>
             )}
@@ -390,89 +383,137 @@ export function LibraryLists({
             {activeType === EContentType.Albums &&
                 (filtered.albums.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_ALBUMS} />
-                ) : viewMode === EViewMode.List ? (
-                    <AlbumListView albums={filtered.albums} />
                 ) : (
-                    <div className={GRID_CLASS}>
-                        {filtered.albums.map(
-                            (al): JSX.Element => (
-                                <AlbumCard key={al.publicId} album={al} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.ALBUMS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.albums.map(
+                                    (al): JSX.Element => (
+                                        <AlbumRow key={al.publicId} album={al} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.albums.map(
+                                    (al): JSX.Element => (
+                                        <AlbumCard key={al.publicId} album={al} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
             {/* ── PLAYLISTS tab ─────────────────────────────────────────── */}
             {activeType === EContentType.Playlists &&
                 (filtered.playlists.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_PLAYLISTS} />
-                ) : viewMode === EViewMode.List ? (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.playlists.map(
-                            (pl): JSX.Element => (
-                                <PlaylistRow key={pl.publicId} playlist={pl} />
-                            )
-                        )}
-                    </div>
                 ) : (
-                    <div className={GRID_CLASS}>
-                        <NewPlaylistButton />
-                        {filtered.playlists.map(
-                            (pl): JSX.Element => (
-                                <PlaylistCard key={pl.publicId} playlist={pl} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.PLAYLISTS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                <NewPlaylistButton />
+                                {filtered.playlists.map(
+                                    (pl): JSX.Element => (
+                                        <PlaylistRow key={pl.publicId} playlist={pl} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                <NewPlaylistButton />
+                                {filtered.playlists.map(
+                                    (pl): JSX.Element => (
+                                        <PlaylistCard key={pl.publicId} playlist={pl} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
-            {/* ── SONGS (always rows — grid adds nothing for songs) ─────── */}
+            {/* ── SONGS tab ─────────────────────────────────────────────── */}
             {activeType === EContentType.Songs &&
                 (filtered.songs.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.songs.map(
-                            (s): JSX.Element => (
-                                <SongRow key={s.publicId} song={s} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.SONGS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.songs.map(
+                                    (s): JSX.Element => (
+                                        <SongRow key={s.publicId} song={s} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.songs.map(
+                                    (s): JSX.Element => (
+                                        <SongCard key={s.publicId} song={s} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
             {/* ── VIDEOS tab ────────────────────────────────────────────── */}
             {activeType === EContentType.Videos &&
                 (filtered.videos.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_VIDEOS} />
-                ) : viewMode === EViewMode.List ? (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.videos.map(
-                            (v): JSX.Element => (
-                                <VideoRow key={v.publicId} video={v} />
-                            )
-                        )}
-                    </div>
                 ) : (
-                    <div className={GRID_CLASS}>
-                        {filtered.videos.map(
-                            (v): JSX.Element => (
-                                <VideoCard key={v.publicId} video={v} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.VIDEOS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoRow key={v.publicId} video={v} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoCard key={v.publicId} video={v} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
 
-            {/* ── STATIONS (always rows) ────────────────────────────────── */}
+            {/* ── STATIONS tab ──────────────────────────────────────────── */}
             {activeType === EContentType.Stations &&
                 (filtered.stations.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_STATIONS} />
                 ) : (
-                    <div className={ROW_LIST_CLASS}>
-                        {filtered.stations.map(
-                            (st): JSX.Element => (
-                                <StationRow key={st.publicId} station={st} />
-                            )
+                    <>
+                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.RADIO_STATIONS}`} />
+                        {viewMode === EViewMode.List ? (
+                            <div className={CHIP_GRID_CLASS}>
+                                {filtered.stations.map(
+                                    (st): JSX.Element => (
+                                        <StationRow key={st.publicId} station={st} />
+                                    )
+                                )}
+                            </div>
+                        ) : (
+                            <div className={GRID_CLASS}>
+                                {filtered.stations.map(
+                                    (st): JSX.Element => (
+                                        <StationCard key={st.publicId} station={st} />
+                                    )
+                                )}
+                            </div>
                         )}
-                    </div>
+                    </>
                 ))}
         </section>
     );

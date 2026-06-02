@@ -275,18 +275,126 @@ export class QueueManager {
     }
 
     async addListToQueueTopAsync(media: TListMedia): Promise<void> {
-        console.log(media);
-        throw "(addListToQueueTopAsync) Not implemented method";
+        const medias = await this.getListMediasAsync(media);
+        if (medias.length === 0) return;
+
+        const queueableMedias = medias.filter(isQueueable);
+        if (queueableMedias.length === 0) return;
+
+        const currentMaxId = this.sortedQueue.reduce(
+            (max, item): number => Math.max(max, item.queueMediaId),
+            0
+        );
+
+        const newItems = queueableMedias.map(
+            (media, index): QueueItem => ({
+                media,
+                listPublicId: media.publicId,
+                queueMediaId: currentMaxId + 1 + index,
+            })
+        );
+
+        this.sortedQueue = [...newItems, ...this.sortedQueue];
+        this.randomQueue = [...shuffle(newItems), ...this.randomQueue];
+
+        this.updateQueue();
+        this._sendCurrentQueue();
     }
 
     async addListToQueueRandomAsync(media: TListMedia): Promise<void> {
-        console.log(media);
-        throw "(addListToQueueRandomAsync) Not implemented method";
+        const medias = await this.getListMediasAsync(media);
+        if (medias.length === 0) return;
+
+        const queueableMedias = medias.filter(isQueueable);
+        if (queueableMedias.length === 0) return;
+
+        const shuffledMedias = shuffle(queueableMedias);
+
+        const currentQueueMediaId = this._currentQueueMediaIdAtom.get();
+
+        const sortedInsertBase = this.sortedQueue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+        const sortedStart =
+            sortedInsertBase >= 0
+                ? sortedInsertBase + 1
+                : this.sortedQueue.length;
+
+        const randomInsertBase = this.randomQueue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+        const randomStart =
+            randomInsertBase >= 0
+                ? randomInsertBase + 1
+                : this.randomQueue.length;
+
+        const currentMaxId = this.sortedQueue.reduce(
+            (max, item): number => Math.max(max, item.queueMediaId),
+            0
+        );
+
+        shuffledMedias.forEach((media, index): void => {
+            const newItem: QueueItem = {
+                media,
+                listPublicId: media.publicId,
+                queueMediaId: currentMaxId + 1 + index,
+            };
+
+            const si =
+                sortedStart +
+                Math.floor(
+                    Math.random() *
+                        (this.sortedQueue.length - sortedStart)
+                );
+            this.sortedQueue.splice(si, 0, newItem);
+        });
+
+        const reshuffled = shuffle(queueableMedias);
+        reshuffled.forEach((media, index): void => {
+            const newItem: QueueItem = {
+                media,
+                listPublicId: media.publicId,
+                queueMediaId: currentMaxId + 1 + index,
+            };
+
+            const ri =
+                randomStart +
+                Math.floor(
+                    Math.random() *
+                        (this.randomQueue.length - randomStart)
+                );
+            this.randomQueue.splice(ri, 0, newItem);
+        });
+
+        this.updateQueue();
+        this._sendCurrentQueue();
     }
 
     async addListToQueueBottomAsync(media: TListMedia): Promise<void> {
-        console.log(media);
-        throw "(addListToQueueBottomAsync) Not implemented method";
+        const medias = await this.getListMediasAsync(media);
+        if (medias.length === 0) return;
+
+        const queueableMedias = medias.filter(isQueueable);
+        if (queueableMedias.length === 0) return;
+
+        const currentMaxId = this.sortedQueue.reduce(
+            (max, item): number => Math.max(max, item.queueMediaId),
+            0
+        );
+
+        const newItems = queueableMedias.map(
+            (media, index): QueueItem => ({
+                media,
+                listPublicId: media.publicId,
+                queueMediaId: currentMaxId + 1 + index,
+            })
+        );
+
+        this.sortedQueue = [...this.sortedQueue, ...newItems];
+        this.randomQueue = [...this.randomQueue, ...shuffle(newItems)];
+
+        this.updateQueue();
+        this._sendCurrentQueue();
     }
 
     async playList(media: TListMedia): Promise<void> {

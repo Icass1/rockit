@@ -18,6 +18,10 @@ from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
 
+def _retry_sleep(n: int) -> int:
+    return 2 ** min(n, 5)
+
+
 def _create_youtube_dl(opts: Dict[str, Any]) -> YoutubeDL:
     return YoutubeDL(opts)  # type: ignore[arg-type]
 
@@ -178,6 +182,11 @@ class YouTubeDownloader:
                 ],
                 "quiet": True,
                 "no_warnings": True,
+                "retries": 15,
+                "fragment_retries": 15,
+                "retry_sleep": _retry_sleep,
+                "socket_timeout": 30,
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
             }
             expected_ext = "mp3"
         else:
@@ -196,6 +205,11 @@ class YouTubeDownloader:
                 ],
                 "quiet": True,
                 "no_warnings": True,
+                "retries": 15,
+                "fragment_retries": 15,
+                "retry_sleep": _retry_sleep,
+                "socket_timeout": 30,
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
             }
             expected_ext = "mp4"
 
@@ -260,6 +274,11 @@ class YouTubeDownloader:
                 date_started=date_started,
                 date_ended=None,
             )
+
+            # Clean up stale .part files from previous failed attempts
+            for f in os.listdir(output_path):
+                if f.startswith(filename) and f.endswith(".part"):
+                    os.remove(os.path.join(output_path, f))
 
             await loop.run_in_executor(
                 None,

@@ -12,6 +12,7 @@ logger = getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--env", type=str, help="Path to env file to load")
+parser.add_argument("--lrc-lib-path", type=str, default="../lrclib-db-dump-20260519T172012Z.sqlite3", help="Path to LRCLIB SQLite dump")
 parser.add_argument("command", nargs="?", help="Command to run")
 args, _ = parser.parse_known_args()
 command_to_run = args.command if args.command else ""
@@ -311,6 +312,22 @@ async def main() -> None:
                             error_count += 1
 
                     logger.info(f"Updated {updated_count} videos, {error_count} errors")
+
+            elif command == "import-lrc-lib":
+                from backend.lrclib.framework.importLrcLib import (
+                    import_lrc_lib_from_dump_async,
+                )
+
+                lrc_lib_path = args.lrc_lib_path
+                if not os.path.exists(lrc_lib_path):
+                    logger.error(f"LRCLIB SQLite dump not found: {lrc_lib_path}")
+                    continue
+
+                async with rockit_db.session_scope_async() as session:
+                    await import_lrc_lib_from_dump_async(
+                        sqlite_path=lrc_lib_path,
+                        session=session,
+                    )
 
             else:
                 print("Command not found.")

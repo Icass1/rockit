@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import {
-    EllipsisVertical,
+    Ellipsis,
     Pause,
     PauseIcon,
     Play,
@@ -39,7 +39,7 @@ function FooterLeftForMedia({
     const album = getMediaAlbum(currentMedia);
 
     return (
-        <div className="grid w-full max-w-full min-w-0 grid-cols-[min-content_1fr_min-content] items-center gap-x-4 pr-2 md:w-1/3">
+        <div className="grid w-full max-w-full min-w-0 grid-cols-[min-content_1fr] items-center gap-x-4 pr-2 md:w-1/3">
             {/* Album cover */}
             <div
                 className="group relative h-9 w-9 cursor-pointer rounded-md md:h-16 md:w-16"
@@ -64,44 +64,42 @@ function FooterLeftForMedia({
             </div>
 
             {/* Media info */}
-            <div className="relative h-full w-full max-w-full min-w-0 overflow-hidden">
-                <div className="relative top-1/2 flex -translate-y-1/2 flex-col">
-                    <span className="w-full max-w-full min-w-0 truncate font-semibold">
-                        {currentMedia.name}
-                    </span>
-                    <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
-                        <div className="truncate">
-                            <Artists
-                                artists={getMediaArtists(currentMedia) ?? []}
-                            />
+            <div className="group/left relative h-full w-full max-w-full min-w-0 overflow-hidden">
+                <div className="relative top-1/2 flex -translate-y-1/2 flex-row items-center gap-x-5 pr-3">
+                    <div className="flex min-w-0 flex-col">
+                        <span className="flex w-full max-w-full min-w-0 items-center gap-3 font-semibold">
+                            <span className="truncate">{currentMedia.name}</span>
+                            <MediaPopupMenu media={currentMedia}>
+                                <Ellipsis className="h-6 w-5 shrink-0 text-gray-400 opacity-0 transition group-hover/left:opacity-100 md:hover:scale-105 md:hover:text-white" />
+                            </MediaPopupMenu>
+                        </span>
+                        <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
+                            <div className="truncate">
+                                <Artists
+                                    artists={getMediaArtists(currentMedia) ?? []}
+                                />
+                            </div>
+                            {album && (
+                                <>
+                                    <span className="hidden select-none md:block">
+                                        •
+                                    </span>
+                                    <Link
+                                        href={album.url}
+                                        prefetch={false}
+                                        onClick={(): void =>
+                                            rockIt.playerUIManager.hide()
+                                        }
+                                        className="hidden truncate md:inline-block md:hover:underline"
+                                    >
+                                        {album.name}
+                                    </Link>
+                                </>
+                            )}
                         </div>
-                        {album && (
-                            <>
-                                <span className="hidden select-none md:block">
-                                    •
-                                </span>
-                                <Link
-                                    href={album.url}
-                                    prefetch={false}
-                                    onClick={(): void =>
-                                        rockIt.playerUIManager.hide()
-                                    }
-                                    className="hidden truncate md:inline-block md:hover:underline"
-                                >
-                                    {album.name}
-                                </Link>
-                            </>
-                        )}
                     </div>
+                    <LikeButton mediaPublicId={currentMedia.publicId} />
                 </div>
-            </div>
-
-            {/* Actions */}
-            <div className="hidden flex-row items-center gap-1 md:flex">
-                <LikeButton mediaPublicId={currentMedia.publicId} />
-                <MediaPopupMenu media={currentMedia}>
-                    <EllipsisVertical className="h-6 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white" />
-                </MediaPopupMenu>
             </div>
         </div>
     );
@@ -154,7 +152,7 @@ function FooterLeftForStation({
             </div>
 
             <div className="hidden flex-row pr-4 md:flex">
-                <EllipsisVertical className="h-6 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white" />
+                <Ellipsis className="h-6 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white" />
             </div>
         </div>
     );

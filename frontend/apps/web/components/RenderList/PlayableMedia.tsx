@@ -92,7 +92,7 @@ export function PlayableMedia({
             location={EMediaContextLocation.PLAYLIST}
         >
             <div
-                className="group flex cursor-pointer flex-row items-center gap-3 pr-3"
+                className="group flex cursor-pointer flex-row items-center gap-1.5"
                 onClick={handleClick}
             >
                 {showMediaIndex && (
@@ -109,11 +109,11 @@ export function PlayableMedia({
                         height={50}
                     />
                 )}
-                <div className={`relative flex w-full flex-col`}>
-                    <div className="flex items-center gap-1.5">
+                <div className={`relative flex w-full min-w-0 flex-col`}>
+                    <div className="flex min-w-0 items-center gap-1.5">
                         <DownloadStatusIcon publicId={$media.publicId} />
                         <p
-                            className={`text-md font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
+                            className={`truncate text-md font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
                         >
                             {$media.name}
                         </p>
@@ -127,7 +127,7 @@ export function PlayableMedia({
                             <div className="w-fit">
                                 <Artists
                                     artists={artists}
-                                    className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-transparent"}`}
+                                    className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
                                 />
                             </div>
                         )}

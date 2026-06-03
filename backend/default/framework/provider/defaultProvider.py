@@ -7,15 +7,18 @@ from backend.utils.backendUtils import time_it
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.userAccess import UserAccess
+
+from backend.core.framework.core import Core
+from backend.core.framework.media.image import Image
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 
-from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
-
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
 )
@@ -98,7 +101,14 @@ class DefaultProvider(BaseMediaProvider):
                 await Playlist.build_playlist_response_async(
                     session=session,
                     playlist=playlist,
-                    owner_name=owner_name,
+                    owner=BaseArtistResponse(
+                        provider=Core.provider_name,
+                        publicId=owner.public_id,
+                        url=f"/user/{owner.public_id}",
+                        providerUrl="",
+                        name=owner_name,
+                        imageUrl=Image.get_internal_image_url(owner.image),
+                    ),
                     user_id=user_id,
                     _visited_playlist_ids=_visited_playlist_ids,
                 )
@@ -182,7 +192,14 @@ class DefaultProvider(BaseMediaProvider):
                     name=playlist.name,
                     contributors=contributor_responses,
                     imageUrl=playlist.image_url,
-                    owner=owner_name,
+                    owner=BaseArtistResponse(
+                        provider=Core.provider_name,
+                        publicId=owner.public_id,
+                        url=f"/user/{owner.public_id}",
+                        providerUrl="",
+                        name=owner_name,
+                        imageUrl=Image.get_internal_image_url(owner.image),
+                    ),
                 )
             )
 

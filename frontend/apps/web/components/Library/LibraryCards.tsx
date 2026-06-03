@@ -56,6 +56,8 @@ interface LibraryCardProps {
     className?: string;
     /** Applied to an inner wrapper around image + name + subtitle (not children). */
     contentClassName?: string;
+    /** Number of undownloaded items (shown as a small badge for albums/playlists). */
+    undownloadedCount?: number;
     children?: ReactNode;
 }
 
@@ -71,6 +73,7 @@ function LibraryCard({
     onClick,
     className = "",
     contentClassName,
+    undownloadedCount,
     children,
 }: LibraryCardProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -103,9 +106,16 @@ function LibraryCard({
                     className="aspect-square w-full rounded-md object-cover"
                 />
             )}
-            <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
-                {$vocabulary[badge].toUpperCase()}
-            </span>
+            <div className="absolute top-1 left-1 flex gap-1">
+                <span className="rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                    {$vocabulary[badge].toUpperCase()}
+                </span>
+                {undownloadedCount !== undefined && undownloadedCount > 0 && (
+                    <span className="flex items-center gap-0.5 rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                        ↓{undownloadedCount}
+                    </span>
+                )}
+            </div>
         </div>
     );
 
@@ -213,6 +223,7 @@ export function AlbumCard({
                 />
             }
             href={album.url}
+            undownloadedCount={album.undownloadedCount}
         />
     );
 }

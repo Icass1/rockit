@@ -43,7 +43,7 @@ export default function RenderList({
     }, [playableMedia, listPublicId]);
 
     return (
-        <div className="mx-auto grid h-[calc(100vh-12rem)] w-full max-w-7xl grid-cols-[1fr_2fr] gap-12 px-8">
+        <div className="mx-auto grid h-[calc(100vh-12rem)] w-full max-w-7xl grid-cols-[1fr_2fr] gap-20 px-8">
             <div className="z-1 flex items-center justify-center">
                 <div className="flex flex-col gap-4">
                     {/* Blurred glow layer */}
@@ -54,7 +54,7 @@ export default function RenderList({
                             aria-hidden="true"
                             width={600}
                             height={600}
-                            className="absolute inset-0 -z-10 scale-105 rounded-lg opacity-70 blur-3xl saturate-150"
+                            className="absolute inset-0 -z-10 scale-150 rounded-lg opacity-80 blur-[100px] saturate-150"
                         />
                         {/* Main image */}
                         <Image
@@ -90,8 +90,8 @@ export default function RenderList({
                     ></Artists>
                 </div>
             </div>
-            <div className="z-1 overflow-y-auto pr-4">
-                <div className="flex flex-col gap-2 pt-16">
+            <div className="z-1 scroll-on-hover overflow-y-auto pr-4">
+                <div className="flex flex-col gap-2 py-16">
                     {media.map(
                         (m, index): JSX.Element => (
                             <Media

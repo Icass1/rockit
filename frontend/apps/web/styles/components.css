@@ -71,6 +71,17 @@
     background-color: transparent;
 }
 
+/* ── Scrollbar visible solo en hover ──────────
+   Usar en paneles donde la scrollbar debe aparecer
+   únicamente cuando el usuario pasa el ratón.
+   ─────────────────────────────────────────── */
+.scroll-on-hover::-webkit-scrollbar-thumb {
+    background-color: transparent;
+}
+.scroll-on-hover:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(100, 100, 100);
+}
+
 /* ── Slider de progreso ───────────────────────
    Slider custom usado en FooterCenter y MobilePlayerUI.
    El thumb es invisible por defecto y aparece al hacer hover

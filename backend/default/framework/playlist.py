@@ -16,6 +16,7 @@ from backend.core.access.userAccess import UserAccess
 
 from backend.core.framework.media.image import Image
 
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseAlbumWithSongsResponse import (
     BaseAlbumWithSongsResponse,
 )
@@ -882,7 +883,7 @@ class Playlist:
     async def build_playlist_response_async(
         session: AsyncSession,
         playlist: PlaylistWithDetailsModel,
-        owner_name: str,
+        owner: BaseArtistResponse,
         user_id: int,
         _visited_playlist_ids: set[str] | None = None,
     ) -> AResult[BasePlaylistWithMediasResponse]:
@@ -1020,7 +1021,7 @@ class Playlist:
                                 providerUrl=resp.providerUrl,
                                 name=resp.name,
                                 imageUrl=resp.imageUrl,
-                                owner=resp.owner,
+                                owner=resp.owner.name,
                                 description=resp.description,
                                 itemCount=len(resp.medias),
                                 medias=resp.medias,
@@ -1076,7 +1077,7 @@ class Playlist:
                 medias=medias,
                 contributors=contributor_responses,
                 imageUrl=playlist.image_url,
-                owner=owner_name,
+                owner=owner,
             ),
         )
 

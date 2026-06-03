@@ -1,7 +1,6 @@
 import { cache, JSX } from "react";
 import { notFound } from "next/navigation";
 import {
-    BaseArtistResponse,
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
@@ -58,26 +57,12 @@ export default async function PlaylistPage({
         expandedByMediaId[m.item.publicId] = m.expanded;
     }
 
-    const ownerArtist: BaseArtistResponse[] = playlistResponse.owner
-        ? [
-              {
-                  type: "artist",
-                  provider: "",
-                  publicId: `playlist-${publicId}-owner`,
-                  url: "",
-                  providerUrl: "",
-                  name: playlistResponse.owner,
-                  imageUrl: "",
-              },
-          ]
-        : [];
-
     return (
         <RenderListClient
             publicId={publicId}
             type={EMediaType.Playlist}
             title={playlistResponse.name}
-            artists={ownerArtist}
+            artists={[playlistResponse.owner]}
             media={playlistMedia}
             image={playlistResponse.imageUrl}
             showMediaImage

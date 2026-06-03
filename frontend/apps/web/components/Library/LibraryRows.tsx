@@ -129,7 +129,7 @@ export function PlaylistRow({
                         {playlist.name}
                     </p>
                     <p className="truncate text-sm text-neutral-400">
-                        {playlist.owner}
+                        {playlist.owner.name}
                     </p>
                 </div>
             </Link>

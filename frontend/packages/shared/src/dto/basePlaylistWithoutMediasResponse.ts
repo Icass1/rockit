@@ -2,6 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
 import { PlaylistContributorSchema } from "./playlistContributor";
 
 export const BasePlaylistWithoutMediasResponseSchema = z.object({
@@ -14,7 +15,7 @@ export const BasePlaylistWithoutMediasResponseSchema = z.object({
     name: z.string(),
     contributors: z.array(z.lazy(() => PlaylistContributorSchema)),
     imageUrl: z.string(),
-    owner: z.string(),
+    owner: z.lazy(() => BaseArtistResponseSchema),
 });
 
 export type BasePlaylistWithoutMediasResponse = z.infer<

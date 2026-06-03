@@ -1,7 +1,7 @@
 import aiosqlite
 from dataclasses import dataclass
 from logging import Logger
-from typing import Dict, List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession

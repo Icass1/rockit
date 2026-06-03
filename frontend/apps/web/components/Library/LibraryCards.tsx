@@ -1,8 +1,8 @@
 "use client";
 
-import { JSX, ReactNode, useRef } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import Artists from "@/components/Artists/Artists";
+import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -10,18 +10,18 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
+import useMedia from "@/hooks/useMedia";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { isDownloadable } from "@/models/types/media";
 import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
     TMediaWithSearch,
     Vocabulary,
 } from "@rockit/shared";
-import { isDownloadable } from "@/models/types/media";
-import useMedia from "@/hooks/useMedia";
-import { rockIt } from "@/lib/rockit/rockIt";
-import Artists from "@/components/Artists/Artists";
-import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
-import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import Image from "next/image";
+import Link from "next/link";
+import { JSX, ReactNode, useRef } from "react";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -199,7 +199,7 @@ export function PlaylistCard({
             imageUrl={playlist.imageUrl}
             badge="PLAYLIST"
             name={playlist.name}
-            subtitle={playlist.owner}
+            subtitle={playlist.owner.name}
             href={playlist.url}
         />
     );

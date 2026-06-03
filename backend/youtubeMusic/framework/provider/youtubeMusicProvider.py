@@ -357,7 +357,14 @@ class YoutubeMusicProvider(BaseMediaProvider):
                     medias=song_responses,
                     contributors=[],
                     imageUrl=playlist.thumbnail_url,
-                    owner="",
+                    owner=BaseArtistResponse(
+                        provider=YoutubeMusic.provider_name,
+                        publicId="",
+                        url="",
+                        providerUrl="",
+                        name="",
+                        imageUrl="",
+                    ),
                 )
             )
 
@@ -393,7 +400,14 @@ class YoutubeMusicProvider(BaseMediaProvider):
                     name=playlist.title,
                     contributors=[],
                     imageUrl=playlist.thumbnail_url,
-                    owner="",
+                    owner=BaseArtistResponse(
+                        provider=YoutubeMusic.provider_name,
+                        publicId="",
+                        url="",
+                        providerUrl="",
+                        name="",
+                        imageUrl="",
+                    ),
                 )
             )
 

@@ -3,6 +3,7 @@ from typing import List, Literal, Optional, TypeVar
 from pydantic import BaseModel
 
 from backend.core.types.playlistContributor import PlaylistContributor
+from backend.core.responses.baseArtistResponse import BaseArtistResponse
 
 T = TypeVar("T")
 
@@ -17,4 +18,4 @@ class BasePlaylistWithoutMediasResponse(BaseModel):
     name: str
     contributors: List[PlaylistContributor]
     imageUrl: str
-    owner: str
+    owner: BaseArtistResponse

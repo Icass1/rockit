@@ -318,7 +318,14 @@ async def get_playlist_without_medias_response_async(
             name=playlist_row.name,
             contributors=[],
             imageUrl=Image.get_internal_image_url(image=playlist_row.image),
-            owner=playlist_row.owner,
+            owner=BaseArtistResponse(
+                provider=provider_name,
+                publicId="",
+                url="",
+                providerUrl="",
+                name=playlist_row.owner,
+                imageUrl="",
+            ),
         ),
     )
 
@@ -401,7 +408,14 @@ async def get_playlist_with_medias_response_async(
             medias=song_responses,
             contributors=[],
             imageUrl=Image.get_internal_image_url(image=playlist_row.image),
-            owner=playlist_row.owner,
+            owner=BaseArtistResponse(
+                provider=provider_name,
+                publicId="",
+                url="",
+                providerUrl="",
+                name=playlist_row.owner,
+                imageUrl="",
+            ),
         ),
     )
 

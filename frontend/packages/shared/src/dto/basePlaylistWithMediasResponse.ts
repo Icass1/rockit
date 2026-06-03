@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import { BaseAlbumWithSongsResponseSchema } from "./baseAlbumWithSongsResponse";
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
 import { BasePlaylistForPlaylistResponseSchema } from "./basePlaylistForPlaylistResponse";
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
 import { BaseStationResponseSchema } from "./baseStationResponse";
@@ -20,7 +21,7 @@ export const BasePlaylistWithMediasResponseSchema = z.object({
     name: z.string(),
     contributors: z.array(z.lazy(() => PlaylistContributorSchema)),
     imageUrl: z.string(),
-    owner: z.string(),
+    owner: z.lazy(() => BaseArtistResponseSchema),
     medias: z.array(
         z.union([
             z

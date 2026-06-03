@@ -133,7 +133,7 @@ export function PlayableMedia({
                         )}
                     </div>
                     {!downloaded && (
-                        <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded px-2 py-1 text-sm font-semibold text-white group-hover:block">
+                        <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border border-white bg-black px-2 py-1 text-sm font-semibold text-white group-hover:block">
                             {$vocabulary.CLICK_TO_DOWNLOAD}
                         </p>
                     )}

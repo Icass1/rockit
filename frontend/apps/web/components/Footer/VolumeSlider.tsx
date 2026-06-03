@@ -27,7 +27,7 @@ export default function VolumeSlider(): JSX.Element {
             <VolumeIcon volume={volume} />
             <Slider
                 id="default-slider"
-                className="h-1 w-16 bg-neutral-700"
+                className="h-1 w-28 bg-neutral-700"
                 value={Math.sqrt(volume)}
                 min={0}
                 max={1}

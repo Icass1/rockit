@@ -45,7 +45,7 @@ export default function RenderList({
     return (
         <div className="mx-auto grid h-[calc(100vh-12rem)] w-full max-w-7xl grid-cols-[1fr_2fr] gap-20 px-8">
             <div className="z-1 flex items-center justify-center">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
                     {/* Blurred glow layer */}
                     <div className="group relative">
                         <Image
@@ -74,19 +74,21 @@ export default function RenderList({
                             <Play className="ml-0.5 h-6 w-6" fill="white" />
                         </button>
                     </div>
-                    <div className="flex items-center justify-center gap-2 px-2">
-                        <span className="text-center text-2xl font-bold">
+                    <div className="relative w-full px-2">
+                        <h1 className="text-center text-2xl font-bold text-balance pr-2">
                             {title}
-                        </span>
-                        <ListOptionsMenu
-                            media={media}
-                            listPublicId={listPublicId}
-                            title={title}
-                        />
+                        </h1>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2">
+                            <ListOptionsMenu
+                                media={media}
+                                listPublicId={listPublicId}
+                                title={title}
+                            />
+                        </div>
                     </div>
                     <Artists
                         artists={artists}
-                        className="font-semibold"
+                        className="text-neutral-400 font-semibold text-balance"
                     ></Artists>
                 </div>
             </div>

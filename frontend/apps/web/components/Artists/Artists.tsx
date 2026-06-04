@@ -13,7 +13,7 @@ export default function Artists({
 }): JSX.Element {
     return (
         <div
-            className={`${className || ""} flex flex-row flex-wrap justify-center gap-1`}
+            className={`flex flex-row flex-wrap justify-center gap-1 ${className || ""}`}
         >
             {artists.map(
                 (artist, index): JSX.Element => (

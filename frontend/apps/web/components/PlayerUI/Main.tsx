@@ -13,7 +13,10 @@ export default function PlayerUIMain({
 }): JSX.Element | undefined {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const [showIcon, setShowIcon] = useState(false);
+    const [titleVisible, setTitleVisible] = useState(true);
+    const [songHover, setSongHover] = useState(false);
     const videoContainerRef = useRef<HTMLDivElement>(null);
+    const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
     useEffect((): (() => void) | undefined => {
         if (!showIcon) return;
@@ -28,6 +31,24 @@ export default function PlayerUIMain({
             );
         }
     }, [currentMedia]);
+
+    useEffect((): (() => void) | undefined => {
+        if (!isVideo(currentMedia)) return;
+        const t = setTimeout((): void => setTitleVisible(false), 1000);
+        return (): void => clearTimeout(t);
+    }, [currentMedia]);
+
+    const handleVideoMouseEnter = (): void => {
+        if (hideTitleTimerRef.current) clearTimeout(hideTitleTimerRef.current);
+        setTitleVisible(true);
+    };
+
+    const handleVideoMouseLeave = (): void => {
+        hideTitleTimerRef.current = setTimeout(
+            (): void => setTitleVisible(false),
+            1500
+        );
+    };
 
     const handleClick = (): void => {
         setShowIcon(true);
@@ -53,45 +74,71 @@ export default function PlayerUIMain({
         return (
             <div
                 className="relative h-full max-h-full cursor-pointer items-center"
-                onClick={handleClick}
+                onMouseEnter={handleVideoMouseEnter}
+                onMouseLeave={handleVideoMouseLeave}
             >
-                <div
-                    ref={videoContainerRef}
-                    className="absolute top-0 h-full max-h-full w-full cursor-pointer items-center rounded-lg"
-                />
-                {iconOverlay}
-                <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col p-4">
-                    <label className="text-2xl font-bold">
-                        {currentMedia.name}
-                    </label>
-                    <Artists
-                        className="text-md w-fit text-left font-semibold"
-                        artists={currentMedia.artists}
-                    />
+                <div className="flex h-full w-full items-center justify-center">
+                    <div
+                        className="relative h-[95%] w-[95%] overflow-hidden"
+                        onClick={handleClick}
+                    >
+                        <div
+                            ref={videoContainerRef}
+                            className="absolute inset-0 overflow-hidden rounded-xl"
+                        />
+                        {iconOverlay}
+                        <div
+                            className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col p-4 transition-opacity duration-300 ${
+                                titleVisible
+                                    ? "opacity-100"
+                                    : "pointer-events-none opacity-0"
+                            }`}
+                        >
+                            <label className="truncate text-2xl font-bold">
+                                {currentMedia.name}
+                            </label>
+                            <Artists
+                                className="text-md w-fit flex-nowrap truncate text-left font-semibold"
+                                artists={currentMedia.artists}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     } else if (isSong(currentMedia)) {
         return (
             <div
-                className="relative flex h-full w-full cursor-pointer items-center justify-center overflow-hidden"
-                onClick={handleClick}
+                className="relative flex h-full w-full items-center justify-center"
+                onMouseEnter={(): void => setSongHover(true)}
+                onMouseLeave={(): void => setSongHover(false)}
             >
-                <Image
-                    src={currentMedia.imageUrl}
-                    fill
-                    alt={currentMedia.name}
-                    className="mask-[linear-gradient(to_bottom,rgba(0,0,0,1)_80%,rgba(0,0,0,0.05)_100%)] object-contain"
-                />
-                {iconOverlay}
-                <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col p-4">
-                    <label className="text-2xl font-bold">
-                        {currentMedia.name}
-                    </label>
-                    <Artists
-                        className="text-md w-fit text-left font-semibold"
-                        artists={currentMedia.artists}
+                <div
+                    className="relative aspect-square h-[93%] cursor-pointer overflow-hidden rounded-xl"
+                    onClick={handleClick}
+                >
+                    <Image
+                        src={currentMedia.imageUrl}
+                        fill
+                        alt={currentMedia.name}
+                        className="object-cover"
                     />
+                    {iconOverlay}
+                    <div
+                        className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
+                            songHover
+                                ? "opacity-100"
+                                : "pointer-events-none opacity-0"
+                        }`}
+                    >
+                        <label className="truncate text-2xl font-bold">
+                            {currentMedia.name}
+                        </label>
+                        <Artists
+                            className="text-md w-fit flex-nowrap truncate text-left font-semibold"
+                            artists={currentMedia.artists}
+                        />
+                    </div>
                 </div>
             </div>
         );

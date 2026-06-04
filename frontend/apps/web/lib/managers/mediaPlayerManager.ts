@@ -558,7 +558,5 @@ export class MediaPlayerManager {
         this._video.style.width = "100%";
         this._video.style.height = "100%";
         this._video.style.objectFit = "contain";
-        this._video.style.maskImage =
-            "linear-gradient(to bottom, rgb(0 0 0) 80%, rgb(0 0 0 / 23%) 100%)";
     }
 }

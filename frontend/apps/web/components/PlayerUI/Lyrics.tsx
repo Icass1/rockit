@@ -38,7 +38,7 @@ function Lyrics(): JSX.Element {
     }, [$currentMedia]);
 
     return (
-        <div className="overflow-y-auto scrollbar-none scroll-smooth">
+        <div className="scrollbar-none overflow-y-auto scroll-smooth pl-7">
             {lyrics?.lines.map((line, index) => (
                 <p key={index} className="px-4 py-2 text-lg">
                     {line}
@@ -48,7 +48,11 @@ function Lyrics(): JSX.Element {
     );
 }
 
-function smoothScrollTo(element: HTMLElement, targetY: number, duration: number = 600): void {
+function smoothScrollTo(
+    element: HTMLElement,
+    targetY: number,
+    duration: number = 600
+): void {
     const startY = element.scrollTop;
     const diff = targetY - startY;
     if (Math.abs(diff) < 1) return;
@@ -144,14 +148,17 @@ function DynamicLyrics(): JSX.Element {
     }
 
     return (
-        <div ref={containerRef} className="h-full w-full overflow-y-auto pb-24 pr-20 scrollbar-none scroll-smooth">
+        <div
+            ref={containerRef}
+            className="scrollbar-none h-full w-full overflow-y-auto scroll-smooth pr-20 pb-24 pl-10"
+        >
             {lyrics?.lines.map((line, index) => (
                 <p
                     onClick={() => goToLine(index)}
                     key={index}
-                    className={`cursor-pointer pl-4 pr-8 py-2 font-semibold text-balance text-lg transition-all duration-300 ${
+                    className={`cursor-pointer py-2 pr-8 pl-4 text-lg font-semibold text-balance transition-all duration-300 ${
                         currentIndex === index
-                            ? "text-white scale-[1.25] origin-left"
+                            ? "origin-left scale-[1.25] text-white"
                             : "text-neutral-400 hover:text-neutral-300"
                     }`}
                     id={`dynamic-lyric-line-${index}`}

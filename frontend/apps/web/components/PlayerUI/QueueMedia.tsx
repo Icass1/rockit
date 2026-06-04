@@ -66,10 +66,15 @@ export function QueueMedia({
                 </p>
                 <div className="flex flex-row items-center gap-2">
                     <ProviderTag name={media.media.provider} iconOnly={true} />
-                    <Artists
+                    {/* <Artists
                         className="w-fit max-w-full min-w-0 flex-nowrap overflow-x-hidden text-left text-sm text-gray-300"
                         artists={media.media.artists}
-                    />
+                    /> */}
+                    {media.media.artists.map((artist, index) => (
+                        <span key={artist.publicId} className="text-sm text-gray-300">
+                            {artist.name}{index !== media.media.artists.length - 1 && <span>, </span>}
+                        </span>
+                    ))}
                 </div>
             </div>
 

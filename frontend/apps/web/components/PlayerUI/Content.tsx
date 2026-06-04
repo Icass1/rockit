@@ -3,6 +3,7 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
+import { isVideo } from "@rockit/shared";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlayerUILyrics from "@/components/PlayerUI/Lyrics";
@@ -68,8 +69,12 @@ export default function PlayerUIContent(): JSX.Element {
     const isLandscape = aspectRatio > 1.5;
     const isPortrait = aspectRatio < 1 / 1.5;
 
+    const showLyrics = !($currentMedia && isVideo($currentMedia));
+
     const gridClass = isLandscape
-        ? "grid-cols-[2fr_4fr_2fr]"
+        ? `transition-all duration-500 ease-in-out ${
+              showLyrics ? "grid-cols-[2fr_4fr_2fr]" : "grid-cols-[0fr_6fr_2fr]"
+          }`
         : isPortrait
           ? "grid-rows-[1fr_1fr]"
           : "grid-cols-[3fr_1fr]";
@@ -95,12 +100,18 @@ export default function PlayerUIContent(): JSX.Element {
                     (isLandscape ? " order-2" : "")
                 }
             >
-                <PlayerUIMain currentMedia={$currentMedia} />
+                <PlayerUIMain key={$currentMedia?.publicId} currentMedia={$currentMedia} />
             </div>
 
             {isLandscape ? (
                 <>
-                    <div className="z-10 order-1 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
+                    <div
+                        className={`z-10 order-1 overflow-hidden transition-all duration-500 ease-in-out ${
+                            showLyrics
+                                ? "max-w-full opacity-100 translate-x-0"
+                                : "max-w-0 opacity-0 -translate-x-8"
+                        }`}
+                    >
                         <PlayerUILyrics />
                     </div>
                     <div className="z-10 order-3 h-full max-h-full min-h-0 w-full max-w-full min-w-0">

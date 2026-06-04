@@ -1,6 +1,6 @@
 import { JSX } from "react";
-import WorkInProgress from "@/components/WorkInProgress/WorkInProgress";
+import { StatsClient } from "@/components/Stats";
 
-export default function Stats(): JSX.Element {
-    return <WorkInProgress />;
+export default function StatsPage(): JSX.Element {
+    return <StatsClient />;
 }

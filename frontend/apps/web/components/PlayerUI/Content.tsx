@@ -72,8 +72,10 @@ export default function PlayerUIContent(): JSX.Element {
     const showLyrics = !($currentMedia && isVideo($currentMedia));
 
     const gridClass = isLandscape
-        ? `transition-all duration-500 ease-in-out ${
-              showLyrics ? "grid-cols-[2fr_4fr_2fr]" : "grid-cols-[0fr_6fr_2fr]"
+        ? `transition-all ease-in-out ${
+              showLyrics
+                  ? "grid-cols-[2fr_4fr_2fr] duration-500"
+                  : "grid-cols-[0fr_6fr_2fr] duration-0"
           }`
         : isPortrait
           ? "grid-rows-[1fr_1fr]"
@@ -106,10 +108,10 @@ export default function PlayerUIContent(): JSX.Element {
             {isLandscape ? (
                 <>
                     <div
-                        className={`z-10 order-1 overflow-hidden transition-all duration-500 ease-in-out ${
+                        className={`z-10 order-1 overflow-hidden transition-all ease-in-out ${
                             showLyrics
-                                ? "max-w-full opacity-100 translate-x-0"
-                                : "max-w-0 opacity-0 -translate-x-8"
+                                ? "max-w-full opacity-100 translate-x-0 duration-500"
+                                : "max-w-0 opacity-0 -translate-x-8 duration-0"
                         }`}
                     >
                         <PlayerUILyrics />

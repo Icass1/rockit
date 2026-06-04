@@ -69,7 +69,7 @@ export default function PlayerUIContent(): JSX.Element {
     const isPortrait = aspectRatio < 1 / 1.5;
 
     const gridClass = isLandscape
-        ? "grid-cols-[1fr_4fr_1fr]"
+        ? "grid-cols-[2fr_4fr_2fr]"
         : isPortrait
           ? "grid-rows-[1fr_1fr]"
           : "grid-cols-[3fr_1fr]";

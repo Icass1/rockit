@@ -557,6 +557,6 @@ export class MediaPlayerManager {
         container.appendChild(this._video);
         this._video.style.width = "100%";
         this._video.style.height = "100%";
-        this._video.style.objectFit = "contain";
+        this._video.style.objectFit = "cover";
     }
 }

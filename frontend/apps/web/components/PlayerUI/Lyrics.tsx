@@ -8,7 +8,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export default function PlayerUILyrics(): JSX.Element {
-    const [lyricsTab, setLyricsTab] = useState<"STATIC" | "DYNAMIC">("DYNAMIC");
+    const [lyricsTab] = useState<"STATIC" | "DYNAMIC">("DYNAMIC");
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
 
     return (

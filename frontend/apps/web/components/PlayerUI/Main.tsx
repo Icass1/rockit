@@ -73,35 +73,33 @@ export default function PlayerUIMain({
     if (isVideo(currentMedia)) {
         return (
             <div
-                className="relative h-full max-h-full cursor-pointer items-center"
+                className="relative flex h-full w-full items-center justify-center"
                 onMouseEnter={handleVideoMouseEnter}
                 onMouseLeave={handleVideoMouseLeave}
             >
-                <div className="flex h-full w-full items-center justify-center">
+                <div
+                    className="relative h-[90%] aspect-video max-w-full cursor-pointer overflow-hidden rounded-xl"
+                    onClick={handleClick}
+                >
                     <div
-                        className="relative h-[95%] w-[95%] overflow-hidden"
-                        onClick={handleClick}
+                        ref={videoContainerRef}
+                        className="absolute inset-0"
+                    />
+                    {iconOverlay}
+                    <div
+                        className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
+                            titleVisible
+                                ? "opacity-100"
+                                : "pointer-events-none opacity-0"
+                        }`}
                     >
-                        <div
-                            ref={videoContainerRef}
-                            className="absolute inset-0 overflow-hidden rounded-xl"
+                        <label className="truncate text-2xl font-bold">
+                            {currentMedia.name}
+                        </label>
+                        <Artists
+                            className="text-md w-fit flex-nowrap truncate text-left font-semibold"
+                            artists={currentMedia.artists}
                         />
-                        {iconOverlay}
-                        <div
-                            className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col p-4 transition-opacity duration-300 ${
-                                titleVisible
-                                    ? "opacity-100"
-                                    : "pointer-events-none opacity-0"
-                            }`}
-                        >
-                            <label className="truncate text-2xl font-bold">
-                                {currentMedia.name}
-                            </label>
-                            <Artists
-                                className="text-md w-fit flex-nowrap truncate text-left font-semibold"
-                                artists={currentMedia.artists}
-                            />
-                        </div>
                     </div>
                 </div>
             </div>

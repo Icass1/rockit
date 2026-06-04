@@ -154,20 +154,8 @@ function LibraryCard({
                     <>
                         <Link href={href} className={linkClass}>
                             {imageBlock}
-                            <p className="mt-1 truncate text-center font-semibold">
-                                {name}
-                            </p>
+                            {textBlock}
                         </Link>
-                        {subtitle !== undefined &&
-                            (typeof subtitle === "string" ? (
-                                <p className="truncate text-center text-sm text-gray-400">
-                                    {subtitle}
-                                </p>
-                            ) : (
-                                <div className="text-center text-sm text-gray-400">
-                                    {subtitle}
-                                </div>
-                            ))}
                         {children}
                     </>
                 ) : (

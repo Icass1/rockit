@@ -45,7 +45,7 @@ export default function RenderList({
     return (
         <div className="mx-auto grid h-[calc(100vh-12rem)] w-full max-w-7xl grid-cols-[1fr_2fr] gap-20 px-8">
             <div className="z-1 flex items-center justify-center">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
                     {/* Blurred glow layer */}
                     <div className="group relative">
                         <Image
@@ -75,7 +75,7 @@ export default function RenderList({
                         </button>
                     </div>
                     <div className="relative w-full px-2">
-                        <h1 className="text-center text-2xl font-bold text-balance pr-2">
+                        <h1 className="pt-2 pr-2 text-center text-2xl font-bold text-balance">
                             {title}
                         </h1>
                         <div className="absolute top-1/2 right-0 -translate-y-1/2">
@@ -88,11 +88,14 @@ export default function RenderList({
                     </div>
                     <Artists
                         artists={artists}
-                        className="text-neutral-400 font-semibold text-balance"
-                    ></Artists>
+                        className="text-lg font-semibold text-balance text-neutral-400"
+                    />
+                    <p className="text-center font-semibold text-balance text-neutral-400">
+                        {playableMedia.length} {playableMedia.length === 1 ? "song" : "songs"}
+                    </p>
                 </div>
             </div>
-            <div className="z-1 scroll-on-hover overflow-y-auto pr-4">
+            <div className="scroll-on-hover z-1 overflow-y-auto pr-4">
                 <div className="flex flex-col gap-2 py-16">
                     {media.map(
                         (m, index): JSX.Element => (

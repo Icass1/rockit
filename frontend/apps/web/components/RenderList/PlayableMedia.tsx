@@ -96,7 +96,7 @@ export function PlayableMedia({
                 onClick={handleClick}
             >
                 {showMediaIndex && (
-                    <p className="h-fit w-6 text-right text-gray-400">
+                    <p className="h-fit w-6 pr-1 text-right text-gray-400">
                         {index + 1}
                     </p>
                 )}
@@ -113,7 +113,7 @@ export function PlayableMedia({
                     <div className="flex min-w-0 items-center gap-1.5">
                         <DownloadStatusIcon publicId={$media.publicId} />
                         <p
-                            className={`truncate text-md font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
+                            className={`text-md truncate font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
                         >
                             {$media.name}
                         </p>

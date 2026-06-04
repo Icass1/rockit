@@ -77,9 +77,11 @@
    ─────────────────────────────────────────── */
 .scroll-on-hover::-webkit-scrollbar-thumb {
     background-color: transparent;
+    transition: background-color 0.4s ease;
 }
 .scroll-on-hover:hover::-webkit-scrollbar-thumb {
     background-color: rgb(100, 100, 100);
+    transition: background-color 0.1s ease;
 }
 
 /* ── Slider de progreso ───────────────────────

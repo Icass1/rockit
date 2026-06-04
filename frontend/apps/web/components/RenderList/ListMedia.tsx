@@ -58,7 +58,7 @@ export function ListMedia({
     }, [$media]);
 
     return (
-        <div className="flex flex-col rounded-[0.67rem] border border-neutral-800">
+        <div className="flex flex-col rounded-[0.67rem]">
             <div className="flex h-fit w-full items-center gap-2 rounded-[0.6rem] bg-neutral-900 p-1.5 text-left">
                 <Image
                     src={$media.imageUrl}
@@ -101,7 +101,7 @@ export function ListMedia({
                 </button>
             </div>
             {expanded && medias.length > 0 && (
-                <div className="my-1 flex flex-col gap-1 px-1">
+                <div className="my-1 flex flex-col gap-1 pr-1 pl-9">
                     {medias.map(
                         (media, i): JSX.Element => (
                             <Media

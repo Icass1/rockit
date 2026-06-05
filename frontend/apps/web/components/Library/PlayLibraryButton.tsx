@@ -50,7 +50,7 @@ export default function PlayLibraryButton(): JSX.Element {
                     }
                 }}
                 title="Play albums in library"
-                className="h-6 w-6 cursor-pointer rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:h-8 md:w-8 md:hover:scale-105"
+                className="h-8 w-8 cursor-pointer rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
             >
                 {icon}
             </div>

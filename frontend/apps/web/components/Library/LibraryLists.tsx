@@ -1,6 +1,15 @@
 "use client";
 
-import { ReactNode, useCallback, useEffect, useMemo, useState, type JSX } from "react";
+import {
+    ReactNode,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    type JSX,
+} from "react";
+import Image from "next/image";
+import Link from "next/link";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -9,11 +18,12 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { Disc3, Heart, History } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
 import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
 import {
     AlbumCard,
@@ -32,16 +42,13 @@ import {
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
 import LoadingComponent from "@/components/Loading";
-import Link from "next/link";
-import Image from "next/image";
-import { Heart, Disc3, History } from "lucide-react";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
 /* ------------------------------------------------------- */
 
 const GRID_CLASS =
-    "grid grid-cols-[repeat(auto-fill,_250px)] gap-x-4 gap-y-5 px-4 py-4";
+    "grid grid-cols-2 gap-x-3 gap-y-4 px-4 py-4 md:grid-cols-[repeat(auto-fill,_250px)] md:gap-x-4 md:gap-y-5";
 
 const CHIP_GRID_CLASS =
     "grid grid-cols-[repeat(auto-fit,_minmax(200px,250px))] justify-start gap-0.5 px-2 py-1";
@@ -62,7 +69,7 @@ function interleaveGridItems(
     albums: BaseAlbumWithoutSongsResponse[],
     videos: BaseVideoResponse[],
     songs: BaseSongWithoutAlbumResponse[],
-    stations: BaseStationResponse[],
+    stations: BaseStationResponse[]
 ): AllGridItem[] {
     const sources: AllGridItem[][] = [
         playlists.map((p) => ({ kind: "playlist" as const, item: p })),
@@ -94,7 +101,9 @@ function SectionHeader({
 }): JSX.Element {
     return (
         <div className="flex items-center px-4 pt-4 pb-3">
-            <h2 className="text-3xl font-bold">{title}</h2>
+            <h2 className="text-2xl font-bold text-balance md:text-3xl">
+                {title}
+            </h2>
             {rightElement && <div className="ml-4">{rightElement}</div>}
         </div>
     );
@@ -127,28 +136,40 @@ function SectionedAllGrid({
 }): JSX.Element {
     const mixed = useMemo(
         () => interleaveGridItems(playlists, albums, videos, songs, stations),
-        [playlists, albums, videos, songs, stations],
+        [playlists, albums, videos, songs, stations]
     );
 
     return (
         <div className={GRID_CLASS}>
             <NewPlaylistButton variant="card" />
-            {mixed.map(
-                (m): JSX.Element => {
-                    switch (m.kind) {
-                        case "playlist":
-                            return <PlaylistCard key={m.item.publicId} playlist={m.item} />;
-                        case "album":
-                            return <AlbumCard key={m.item.publicId} album={m.item} />;
-                        case "video":
-                            return <VideoCard key={m.item.publicId} video={m.item} />;
-                        case "song":
-                            return <SongCard key={m.item.publicId} song={m.item} />;
-                        case "station":
-                            return <StationCard key={m.item.publicId} station={m.item} />;
-                    }
+            {mixed.map((m): JSX.Element => {
+                switch (m.kind) {
+                    case "playlist":
+                        return (
+                            <PlaylistCard
+                                key={m.item.publicId}
+                                playlist={m.item}
+                            />
+                        );
+                    case "album":
+                        return (
+                            <AlbumCard key={m.item.publicId} album={m.item} />
+                        );
+                    case "video":
+                        return (
+                            <VideoCard key={m.item.publicId} video={m.item} />
+                        );
+                    case "song":
+                        return <SongCard key={m.item.publicId} song={m.item} />;
+                    case "station":
+                        return (
+                            <StationCard
+                                key={m.item.publicId}
+                                station={m.item}
+                            />
+                        );
                 }
-            )}
+            })}
         </div>
     );
 }
@@ -171,28 +192,40 @@ function SectionedAllList({
 }): JSX.Element {
     const mixed = useMemo(
         () => interleaveGridItems(playlists, albums, videos, songs, stations),
-        [playlists, albums, videos, songs, stations],
+        [playlists, albums, videos, songs, stations]
     );
 
     return (
         <div className={CHIP_GRID_CLASS}>
             <NewPlaylistButton variant="row" />
-            {mixed.map(
-                (m): JSX.Element => {
-                    switch (m.kind) {
-                        case "playlist":
-                            return <PlaylistRow key={m.item.publicId} playlist={m.item} />;
-                        case "album":
-                            return <AlbumRow key={m.item.publicId} album={m.item} />;
-                        case "video":
-                            return <VideoRow key={m.item.publicId} video={m.item} />;
-                        case "song":
-                            return <SongRow key={m.item.publicId} song={m.item} />;
-                        case "station":
-                            return <StationRow key={m.item.publicId} station={m.item} />;
-                    }
+            {mixed.map((m): JSX.Element => {
+                switch (m.kind) {
+                    case "playlist":
+                        return (
+                            <PlaylistRow
+                                key={m.item.publicId}
+                                playlist={m.item}
+                            />
+                        );
+                    case "album":
+                        return (
+                            <AlbumRow key={m.item.publicId} album={m.item} />
+                        );
+                    case "video":
+                        return (
+                            <VideoRow key={m.item.publicId} video={m.item} />
+                        );
+                    case "song":
+                        return <SongRow key={m.item.publicId} song={m.item} />;
+                    case "station":
+                        return (
+                            <StationRow
+                                key={m.item.publicId}
+                                station={m.item}
+                            />
+                        );
                 }
-            )}
+            })}
         </div>
     );
 }
@@ -225,7 +258,15 @@ export function LibraryLists({
     const recapImageUrl = `/recap-covers/${lastMonthName.toLowerCase()}.png`;
 
     const TOP_LIMIT = 10;
-    const [topAlbums, setTopAlbums] = useState<Array<{ publicId: string; name: string; href: string; imageUrl: string | null; subtitle: string | null }>>([]);
+    const [topAlbums, setTopAlbums] = useState<
+        Array<{
+            publicId: string;
+            name: string;
+            href: string;
+            imageUrl: string | null;
+            subtitle: string | null;
+        }>
+    >([]);
 
     const fetchStats = useCallback(
         () => Http.getUserStats({ range: "30d", start: null, end: null }),
@@ -246,16 +287,15 @@ export function LibraryLists({
         <section>
             {/* Recommended by Rockit Section */}
             <SectionHeader title={$vocabulary.FEATURED_LISTS} />
-            <div className="flex gap-4 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent py-2 pb-2 mb-4">
+            <div className="scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent mb-4 flex gap-4 overflow-x-auto px-4 py-2 pb-2">
                 <Link
                     href="/playlist/liked"
-                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
                         style={{
-                            backgroundImage:
-                                "url(/rockit-background.png)",
+                            backgroundImage: "url(/rockit-background.png)",
                         }}
                     >
                         <Heart
@@ -273,13 +313,12 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/most-listened"
-                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
                         style={{
-                            backgroundImage:
-                                "url(/rockit-background.png)",
+                            backgroundImage: "url(/rockit-background.png)",
                         }}
                     >
                         <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
@@ -294,13 +333,12 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/recent-mix"
-                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
                         style={{
-                            backgroundImage:
-                                "url(/rockit-background.png)",
+                            backgroundImage: "url(/rockit-background.png)",
                         }}
                     >
                         <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
@@ -315,7 +353,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/last-month"
-                    className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -324,7 +362,8 @@ export function LibraryLists({
                         }}
                     />
                     <p className="mt-2 block truncate text-center font-semibold">
-                        {$vocabulary[lastMonthKey as keyof typeof $vocabulary]} Recap
+                        {$vocabulary[lastMonthKey as keyof typeof $vocabulary]}{" "}
+                        Recap
                     </p>
                     <p className="block truncate text-center text-sm text-gray-400">
                         {$vocabulary.BY} Rock It!
@@ -335,7 +374,7 @@ export function LibraryLists({
                     <Link
                         key={album.publicId}
                         href={album.href}
-                        className="flex-none w-40 transition duration-75 md:hover:scale-105"
+                        className="w-40 flex-none transition duration-75 md:hover:scale-105"
                     >
                         <Image
                             alt={album.name}
@@ -387,12 +426,17 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_ALBUMS} />
                 ) : (
                     <>
-                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.ALBUMS}`} />
+                        <SectionHeader
+                            title={`${$vocabulary.YOUR} ${$vocabulary.ALBUMS}`}
+                        />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
                                 {filtered.albums.map(
                                     (al): JSX.Element => (
-                                        <AlbumRow key={al.publicId} album={al} />
+                                        <AlbumRow
+                                            key={al.publicId}
+                                            album={al}
+                                        />
                                     )
                                 )}
                             </div>
@@ -400,7 +444,10 @@ export function LibraryLists({
                             <div className={GRID_CLASS}>
                                 {filtered.albums.map(
                                     (al): JSX.Element => (
-                                        <AlbumCard key={al.publicId} album={al} />
+                                        <AlbumCard
+                                            key={al.publicId}
+                                            album={al}
+                                        />
                                     )
                                 )}
                             </div>
@@ -414,13 +461,18 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_PLAYLISTS} />
                 ) : (
                     <>
-                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.PLAYLISTS}`} />
+                        <SectionHeader
+                            title={`${$vocabulary.YOUR} ${$vocabulary.PLAYLISTS}`}
+                        />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
                                 <NewPlaylistButton variant="row" />
                                 {filtered.playlists.map(
                                     (pl): JSX.Element => (
-                                        <PlaylistRow key={pl.publicId} playlist={pl} />
+                                        <PlaylistRow
+                                            key={pl.publicId}
+                                            playlist={pl}
+                                        />
                                     )
                                 )}
                             </div>
@@ -429,7 +481,10 @@ export function LibraryLists({
                                 <NewPlaylistButton variant="card" />
                                 {filtered.playlists.map(
                                     (pl): JSX.Element => (
-                                        <PlaylistCard key={pl.publicId} playlist={pl} />
+                                        <PlaylistCard
+                                            key={pl.publicId}
+                                            playlist={pl}
+                                        />
                                     )
                                 )}
                             </div>
@@ -443,7 +498,9 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (
                     <>
-                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.SONGS}`} />
+                        <SectionHeader
+                            title={`${$vocabulary.YOUR} ${$vocabulary.SONGS}`}
+                        />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
                                 {filtered.songs.map(
@@ -470,7 +527,9 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_VIDEOS} />
                 ) : (
                     <>
-                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.VIDEOS}`} />
+                        <SectionHeader
+                            title={`${$vocabulary.YOUR} ${$vocabulary.VIDEOS}`}
+                        />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
                                 {filtered.videos.map(
@@ -497,12 +556,17 @@ export function LibraryLists({
                     <EmptyState message={$vocabulary.NO_STATIONS} />
                 ) : (
                     <>
-                        <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.RADIO_STATIONS}`} />
+                        <SectionHeader
+                            title={`${$vocabulary.YOUR} ${$vocabulary.RADIO_STATIONS}`}
+                        />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
                                 {filtered.stations.map(
                                     (st): JSX.Element => (
-                                        <StationRow key={st.publicId} station={st} />
+                                        <StationRow
+                                            key={st.publicId}
+                                            station={st}
+                                        />
                                     )
                                 )}
                             </div>
@@ -510,7 +574,10 @@ export function LibraryLists({
                             <div className={GRID_CLASS}>
                                 {filtered.stations.map(
                                     (st): JSX.Element => (
-                                        <StationCard key={st.publicId} station={st} />
+                                        <StationCard
+                                            key={st.publicId}
+                                            station={st}
+                                        />
                                     )
                                 )}
                             </div>

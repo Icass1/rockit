@@ -1061,4 +1061,13 @@ See `skills/backend.md` for detailed conventions, patterns, and best practices f
 - Key files reference
 - Running the project commands
 
+### 12.4 Frontend Design Skill
+
+See `.opencode/skills/frontend-design/SKILL.md` for guidance on creating distinctive, production-grade frontend interfaces with bold aesthetic direction, covering:
+
+- Design Thinking methodology (purpose, tone, constraints, differentiation)
+- Typography, color, motion, spatial composition, and visual details
+- Avoiding generic AI-generated aesthetics
+- Choosing and committing to a clear conceptual direction
+
 ---

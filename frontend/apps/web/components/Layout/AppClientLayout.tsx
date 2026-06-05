@@ -8,6 +8,8 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import Navigation from "@/components/Navigation/Navigation";
+import MiniPlayer from "@/components/MiniPlayer/MiniPlayer";
+import MobileBottomNav from "@/components/Navigation/MobileBottomNav";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
 
 export default function AppClientLayout({
@@ -38,7 +40,7 @@ export default function AppClientLayout({
             </div>
 
             {/* Main content area */}
-            <div className="fixed inset-0 bg-[#0b0b0b] pb-20 md:left-12 md:pb-0">
+            <div className="fixed inset-0 bg-[#0b0b0b] pb-[140px] md:left-12 md:pb-0">
                 <div className="webkit-scroll h-full w-full overflow-y-auto py-24">
                     {children}
                 </div>
@@ -61,6 +63,12 @@ export default function AppClientLayout({
             <div className="fixed z-40 hidden md:top-0 md:bottom-24 md:left-0 md:block">
                 <Navigation />
             </div>
+
+            {/* Mobile Mini Player - only visible on small screens */}
+            <MiniPlayer />
+
+            {/* Mobile Bottom Navigation - only visible on small screens */}
+            <MobileBottomNav />
         </>
     );
 }

@@ -75,6 +75,10 @@ export default function PlayerUIQueue({
     };
 
     const handleDragStart = (e: React.DragEvent, index: number): void => {
+        if ((e.target as HTMLElement).closest("[data-queue-play-toggle]")) {
+            e.preventDefault();
+            return;
+        }
         e.dataTransfer.setData("text/plain", String(index));
         e.dataTransfer.effectAllowed = "move";
     };

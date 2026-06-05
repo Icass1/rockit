@@ -4,11 +4,11 @@ import { JSX } from "react";
 import type { UserStatsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import StatsSection from "./StatsSection";
-import SummaryCards from "./SummaryCards";
-import RankingList from "./RankingList";
-import MinutesBarChart from "./Charts/MinutesBarChart";
-import ListeningHeatmap from "./Charts/ListeningHeatmap";
+import StatsSection from "@/components/Stats/StatsSection";
+import SummaryCards from "@/components/Stats/SummaryCards";
+import RankingList from "@/components/Stats/RankingList";
+import MinutesBarChart from "@/components/Stats/Charts/MinutesBarChart";
+import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
 
 interface UserStatsProps {
     data: UserStatsResponse;
@@ -21,65 +21,65 @@ export default function UserStats({
 }: UserStatsProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const topSongImage =
-        data.topSongs.length > 0 ? data.topSongs[0].imageUrl : undefined;
-    const topAlbumImage =
-        data.topAlbums.length > 0 ? data.topAlbums[0].imageUrl : undefined;
-
     return (
-        <div className="flex flex-col gap-12 md:gap-16">
+        <div className="flex flex-col gap-[5.25rem] md:gap-[7.5rem]">
             <SummaryCards summary={data.summary} />
 
             <StatsSection
                 title={`${$vocabulary.MINUTES_LISTEND ?? "Minutes Listened"} — ${rangeLabel}`}
+                stagger={1}
             >
                 <MinutesBarChart data={data.minutes} />
             </StatsSection>
 
-            <div className="grid gap-12 md:grid-cols-2 md:gap-8">
-                <StatsSection
-                    title={$vocabulary.TOP_SONGS ?? "Top Songs"}
-                    backgroundImage={topSongImage ?? undefined}
-                >
-                    <RankingList
-                        items={data.topSongs}
-                        showImages
-                        maxItems={5}
-                    />
-                </StatsSection>
+            <div className="flex flex-col gap-8 md:gap-10">
+                <div className="grid gap-8 md:grid-cols-2 md:gap-20">
+                    <StatsSection
+                        title={$vocabulary.TOP_SONGS ?? "Top Songs"}
+                        stagger={2}
+                    >
+                        <RankingList
+                            items={data.topSongs}
+                            showImages
+                            maxItems={5}
+                        />
+                    </StatsSection>
 
-                <StatsSection
-                    title={$vocabulary.MOST_LISTENED_ARTISTS ?? "Top Artists"}
-                >
-                    <RankingList
-                        items={data.topArtists}
-                        showImages
-                        maxItems={5}
-                    />
-                </StatsSection>
-            </div>
+                    <StatsSection
+                        title={$vocabulary.MOST_LISTENED_ARTISTS ?? "Top Artists"}
+                        stagger={3}
+                    >
+                        <RankingList
+                            items={data.topArtists}
+                            showImages
+                            maxItems={5}
+                        />
+                    </StatsSection>
+                </div>
 
-            <div className="grid gap-12 md:grid-cols-2 md:gap-8">
-                <StatsSection
-                    title={$vocabulary.TOP_VIDEOS ?? "Top Videos"}
-                >
-                    <RankingList
-                        items={data.topVideos}
-                        showImages
-                        maxItems={5}
-                    />
-                </StatsSection>
+                <div className="grid gap-8 md:grid-cols-2 md:gap-20">
+                    <StatsSection
+                        title={$vocabulary.TOP_VIDEOS ?? "Top Videos"}
+                        stagger={4}
+                    >
+                        <RankingList
+                            items={data.topVideos}
+                            showImages
+                            maxItems={5}
+                        />
+                    </StatsSection>
 
-                <StatsSection
-                    title={$vocabulary.TOP_ALBUMS ?? "Top Albums"}
-                    backgroundImage={topAlbumImage ?? undefined}
-                >
-                    <RankingList
-                        items={data.topAlbums}
-                        showImages
-                        maxItems={5}
-                    />
-                </StatsSection>
+                    <StatsSection
+                        title={$vocabulary.TOP_ALBUMS ?? "Top Albums"}
+                        stagger={5}
+                    >
+                        <RankingList
+                            items={data.topAlbums}
+                            showImages
+                            maxItems={5}
+                        />
+                    </StatsSection>
+                </div>
             </div>
 
             <StatsSection
@@ -87,6 +87,7 @@ export default function UserStats({
                     $vocabulary.MINUTES_LISTENED_PER_DAY ??
                     "Listening Heatmap"
                 }
+                stagger={6}
             >
                 <ListeningHeatmap data={data.heatmap} />
             </StatsSection>

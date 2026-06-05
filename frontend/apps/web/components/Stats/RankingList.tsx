@@ -1,8 +1,8 @@
 "use client";
 
 import { JSX, useMemo } from "react";
-import type { StatsRankedItemResponse } from "@/dto";
 import Link from "next/link";
+import type { StatsRankedItemResponse } from "@/dto";
 
 interface RankingListProps {
     items: StatsRankedItemResponse[];
@@ -10,6 +10,8 @@ interface RankingListProps {
     valueLabel?: string;
     maxItems?: number;
 }
+
+const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
 
 export default function RankingList({
     items,
@@ -26,14 +28,14 @@ export default function RankingList({
 
     if (displayItems.length === 0) {
         return (
-            <p className="py-8 text-center text-sm text-neutral-600">
-                No data available
-            </p>
+            <div className="flex items-center justify-center py-12">
+                <p className="text-sm text-neutral-600">No data available</p>
+            </div>
         );
     }
 
     return (
-        <div className="flex flex-col">
+        <div className="divide-y divide-white/[0.04]">
             {displayItems.map((item, index) => (
                 <RankingRow
                     key={item.publicId}
@@ -62,19 +64,32 @@ function RankingRow({
     valueLabel: string;
 }): JSX.Element {
     const progressPercent = (item.value / maxValue) * 100;
-    const rowContent = (
-        <>
-            <span className="w-6 shrink-0 text-right text-sm font-medium tabular-nums text-neutral-600 md:text-base">
+    const isTop3 = index < 3;
+
+    const content = (
+        <div className="flex items-center gap-3 py-1 md:gap-4 md:py-1.5">
+            <span
+                className={`w-6 shrink-0 text-center text-sm leading-none font-bold tabular-nums md:w-8 md:text-base ${
+                    isTop3 ? RANK_COLORS[index] : "text-neutral-600"
+                }`}
+            >
                 {index + 1}
             </span>
 
-            {showImages && item.imageUrl && (
-                <img
-                    src={item.imageUrl}
-                    alt=""
-                    className="h-10 w-10 shrink-0 rounded object-cover md:h-12 md:w-12"
-                    aria-hidden
-                />
+            {showImages && (
+                <div className="h-10 w-10 shrink-0 overflow-hidden rounded md:h-12 md:w-12">
+                    {item.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                            src={item.imageUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            aria-hidden
+                        />
+                    ) : (
+                        <div className="h-full w-full bg-neutral-800" />
+                    )}
+                </div>
             )}
 
             <div className="min-w-0 flex-1">
@@ -82,36 +97,37 @@ function RankingRow({
                     {item.name}
                 </p>
                 {item.subtitle && (
-                    <p className="truncate text-xs text-neutral-500 md:text-sm">
+                    <p className="mt-0.5 truncate text-xs text-neutral-500 md:text-sm">
                         {item.subtitle}
                     </p>
                 )}
             </div>
 
-            <div className="hidden h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-28">
-                <div
-                    className="h-full rounded-full bg-[#ee1086] transition-all duration-500"
-                    style={{ width: `${progressPercent}%` }}
-                />
-            </div>
+            <div className="flex shrink-0 items-center gap-2 md:gap-3">
+                <div className="hidden h-1 w-16 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-24">
+                    <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
 
-            <span className="w-10 shrink-0 text-right text-sm font-medium tabular-nums text-neutral-500 md:text-base">
-                {item.value}
-                {valueLabel}
-            </span>
-        </>
+                <span className="w-5 text-right text-sm font-medium text-neutral-400 tabular-nums md:w-5 md:text-base">
+                    {item.value}
+                    {valueLabel}
+                </span>
+            </div>
+        </div>
     );
 
-    const className =
-        "group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-white/[0.03] md:gap-4 md:py-3";
+    const className = "group transition-all duration-200 hover:bg-white/[0.02]";
 
     if (item.href) {
         return (
             <Link href={item.href} className={className}>
-                {rowContent}
+                {content}
             </Link>
         );
     }
 
-    return <div className={className}>{rowContent}</div>;
+    return <div className={className}>{content}</div>;
 }

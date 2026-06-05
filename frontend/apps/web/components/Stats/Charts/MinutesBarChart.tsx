@@ -1,61 +1,56 @@
 "use client";
 
-import { JSX, useMemo, useRef, useState } from "react";
+import { JSX } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
 }
 
-const CHART_HEIGHT = 280;
-const LEFT_PAD = 52;
-const RIGHT_PAD = 12;
-const BOTTOM_PAD = 40;
-const BAR_GAP = 8;
-const MIN_BAR_W = 28;
-const MAX_BAR_W = 72;
+const PINK = "#ee1086";
+const PINK_LIGHT = "#fb6467";
+const NEUTRAL_700 = "#404040";
 
-interface TooltipState {
-    x: number;
-    label: string;
-    value: number;
+function CustomTooltip({
+    active,
+    payload,
+}: {
+    active?: boolean;
+    payload?: { value: number; payload: StatsMinutesEntryResponse }[];
+    label?: string;
+}): JSX.Element | null {
+    if (!active || !payload || payload.length === 0) return null;
+
+    const entry = payload[0].payload;
+    const start = new Date(entry.start);
+    const end = new Date(entry.end);
+    const range = `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} — ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+
+    return (
+        <div className="rounded-xl border border-neutral-800/60 bg-neutral-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
+            <p className="whitespace-nowrap text-xs text-neutral-400">{range}</p>
+            <p className="mt-0.5 whitespace-nowrap text-lg font-bold text-white">
+                {payload[0].value.toFixed(1)}
+                <span className="ml-1 text-sm font-medium text-neutral-400">
+                    min
+                </span>
+            </p>
+        </div>
+    );
 }
 
 export default function MinutesBarChart({
     data,
 }: MinutesBarChartProps): JSX.Element {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-    const { maxVal, bars, yLabels, svgWidth, svgHeight } = useMemo(() => {
-        const maxVal = Math.max(...data.map((d) => d.minutes), 1);
-        const count = data.length;
-
-        const containerW =
-            containerRef.current?.clientWidth ?? 600;
-        const availW = containerW - LEFT_PAD - RIGHT_PAD;
-        const rawW = (availW - (count - 1) * BAR_GAP) / count;
-        const barW = Math.min(MAX_BAR_W, Math.max(MIN_BAR_W, rawW));
-        const totalW = LEFT_PAD + count * (barW + BAR_GAP) + RIGHT_PAD;
-
-        const svgW = Math.max(totalW, containerW);
-        const svgH = CHART_HEIGHT + BOTTOM_PAD;
-
-        const yLabels = [0, 0.25, 0.5, 0.75, 1].map(
-            (f) => Math.round(maxVal * f)
-        );
-
-        const bars = data.map((entry, i) => {
-            const barH = (entry.minutes / maxVal) * CHART_HEIGHT;
-            const x = LEFT_PAD + i * (barW + BAR_GAP);
-            const y = CHART_HEIGHT - barH;
-            return { x, y, barH, barW, entry, index: i };
-        });
-
-        return { maxVal, bars, yLabels, svgWidth: svgW, svgHeight: svgH };
-    }, [data]);
-
     if (data.length === 0) {
         return (
             <div className="flex h-[280px] items-center justify-center">
@@ -65,96 +60,72 @@ export default function MinutesBarChart({
     }
 
     return (
-        <div ref={containerRef} className="relative">
-            {tooltip && (
-                <div
-                    className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-lg border border-neutral-800/60 bg-neutral-900/90 px-4 py-2.5 shadow-lg backdrop-blur-md"
-                    style={{ left: tooltip.x, top: -10 }}
-                >
-                    <p className="whitespace-nowrap text-xs text-neutral-400">
-                        {tooltip.label}
-                    </p>
-                    <p className="whitespace-nowrap text-base font-bold text-white">
-                        {tooltip.value.toFixed(1)} min
-                    </p>
-                </div>
-            )}
-
-            <svg
-                width="100%"
-                height={svgHeight}
-                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                className="overflow-visible"
+        <ResponsiveContainer width="100%" height={320}>
+            <BarChart
+                data={data}
+                margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
             >
-                {yLabels.map((val, i) => (
-                    <g key={`y-${i}`}>
-                        <text
-                            x={LEFT_PAD - 10}
-                            y={CHART_HEIGHT - (i / (yLabels.length - 1)) * CHART_HEIGHT + 5}
-                            fill="#737373"
-                            fontSize={12}
-                            textAnchor="end"
-                            className="tabular-nums"
-                        >
-                            {val}
-                        </text>
-                        <line
-                            x1={LEFT_PAD}
-                            y1={CHART_HEIGHT - (i / (yLabels.length - 1)) * CHART_HEIGHT}
-                            x2={svgWidth - RIGHT_PAD}
-                            y2={CHART_HEIGHT - (i / (yLabels.length - 1)) * CHART_HEIGHT}
-                            stroke="rgba(38,38,38,0.4)"
-                            strokeWidth={1}
+                <defs>
+                    <linearGradient
+                        id="barGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                    >
+                        <stop
+                            offset="0%"
+                            stopColor={PINK_LIGHT}
+                            stopOpacity={1}
                         />
-                    </g>
-                ))}
-
-                {bars.map((bar) => (
-                    <g key={bar.index}>
-                        <rect
-                            x={bar.x}
-                            y={bar.y}
-                            width={bar.barW}
-                            height={bar.barH}
-                            rx={4}
-                            ry={4}
-                            fill={
-                                hoveredIndex === bar.index
-                                    ? "#ee1086"
-                                    : hoveredIndex !== null
-                                        ? "rgba(238,16,134,0.2)"
-                                        : "rgba(238,16,134,0.6)"
-                            }
-                            className="transition-[fill] duration-200"
-                            onMouseEnter={() => {
-                                setHoveredIndex(bar.index);
-                                const startDate = new Date(bar.entry.start);
-                                const endDate = new Date(bar.entry.end);
-                                const label = `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
-                                setTooltip({
-                                    x: bar.x + bar.barW / 2,
-                                    label,
-                                    value: bar.entry.minutes,
-                                });
-                            }}
-                            onMouseLeave={() => {
-                                setHoveredIndex(null);
-                                setTooltip(null);
-                            }}
-                            style={{ cursor: "pointer" }}
+                        <stop
+                            offset="100%"
+                            stopColor={PINK}
+                            stopOpacity={0.85}
                         />
-                        <text
-                            x={bar.x + bar.barW / 2}
-                            y={CHART_HEIGHT + 18}
-                            fill="#737373"
-                            fontSize={10}
-                            textAnchor="middle"
-                        >
-                            {bar.entry.label}
-                        </text>
-                    </g>
-                ))}
-            </svg>
-        </div>
+                    </linearGradient>
+                </defs>
+                <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={NEUTRAL_700}
+                    strokeOpacity={0.2}
+                    vertical={false}
+                />
+                <XAxis
+                    dataKey="label"
+                    tick={{
+                        fill: "#ffffff",
+                        fontSize: 12,
+                        fontWeight: 500,
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                    minTickGap={20}
+                />
+                <YAxis
+                    tick={{
+                        fill: "#ffffff",
+                        fontSize: 12,
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={40}
+                />
+                <Tooltip
+                    content={<CustomTooltip />}
+                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
+                />
+                <Bar
+                    dataKey="minutes"
+                    fill="url(#barGradient)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={64}
+                    animationBegin={200}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                />
+            </BarChart>
+        </ResponsiveContainer>
     );
 }

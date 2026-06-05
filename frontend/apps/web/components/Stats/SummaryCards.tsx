@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import type { StatsSummaryResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -26,6 +26,37 @@ function formatDuration(minutes: number): string {
     return parts.join(" ");
 }
 
+function AnimatedNumber({ value, format }: { value: number; format?: (n: number) => string }): JSX.Element {
+    const [display, setDisplay] = useState(0);
+    const ref = useRef<number>(0);
+    const raf = useRef<number>(0);
+
+    useEffect(() => {
+        const duration = 1200;
+        const start = performance.now();
+        const from = ref.current;
+
+        function tick(now: number): void {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(from + (value - from) * eased);
+            setDisplay(current);
+            ref.current = current;
+
+            if (progress < 1) {
+                raf.current = requestAnimationFrame(tick);
+            }
+        }
+
+        raf.current = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf.current);
+    }, [value]);
+
+    const formatted = format ? format(display) : display.toLocaleString();
+    return <>{formatted}</>;
+}
+
 interface SummaryCardsProps {
     summary: StatsSummaryResponse;
 }
@@ -41,51 +72,44 @@ export default function SummaryCards({
         : formatDuration(summary.minutesListened);
 
     return (
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-10 lg:gap-16">
-            <button
-                type="button"
-                className="group relative cursor-default text-left"
-            >
-                <div className="absolute -inset-8 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(238,16,134,0.1)_0%,transparent_70%)] opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
-                <div className="relative">
-                    <p className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                        {formatNumber(summary.songsListened)}
-                    </p>
-                    <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-sm">
-                        {$vocabulary.SONGS_LISTENED ?? "Songs Listened"}
-                    </p>
-                </div>
-            </button>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 md:gap-x-10 md:gap-y-0">
+            <div>
+                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+                    <AnimatedNumber value={summary.songsListened} format={formatNumber} />
+                </p>
+                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
+                    {$vocabulary.SONGS_LISTENED ?? "Songs Listened"}
+                </p>
+            </div>
 
             <button
                 type="button"
-                className="group relative cursor-pointer text-left"
                 onClick={() => setShowMinutes(!showMinutes)}
+                className="cursor-pointer text-left"
             >
-                <div className="relative">
-                    <p className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                        {minutesDisplay}
-                    </p>
-                    <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-sm">
-                        {$vocabulary.MINUTES_LISTEND ?? "Minutes Listened"}
-                    </p>
-                </div>
+                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+                    {minutesDisplay}
+                </p>
+                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
+                    {$vocabulary.MINUTES_LISTEND ?? "Minutes Listened"}
+                </p>
             </button>
 
-            <div className="relative">
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+            <div>
+                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
                     {summary.avgMinutesPerSong.toFixed(2)}
                 </p>
-                <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-sm">
+                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
                     {$vocabulary.AVERAGE_MINUTES_PER_SONG ?? "Avg / Song"}
                 </p>
             </div>
 
-            <div className="relative">
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                    {summary.currentStreak}d
+            <div>
+                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+                    {summary.currentStreak}
+                    <span className="ml-1 text-2xl text-[#ee1086] md:text-3xl">d</span>
                 </p>
-                <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-sm">
+                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
                     {$vocabulary.LEVEL_ABBR ?? "Streak"}
                 </p>
             </div>

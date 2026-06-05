@@ -5,7 +5,7 @@ import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
-import UserStats from "./UserStats";
+import UserStats from "@/components/Stats/UserStats";
 
 type Range = "7d" | "30d" | "1y" | "custom";
 
@@ -36,19 +36,23 @@ function getRangeLabel(range: Range, customStart?: string, customEnd?: string): 
 
 function LoadingSkeleton(): JSX.Element {
     return (
-        <div className="flex flex-col gap-12 md:gap-16">
-            <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+        <div className="flex flex-col gap-10 md:gap-14">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 md:gap-x-10">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="flex flex-col gap-2">
-                        <div className="skeleton h-9 w-24 rounded" />
+                    <div key={i}>
+                        <div className="skeleton mb-2 h-8 w-24 rounded md:h-9 lg:h-10" />
                         <div className="skeleton h-3 w-20 rounded" />
                     </div>
                 ))}
             </div>
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex flex-col gap-4">
-                    <div className="skeleton h-3 w-32 rounded" />
-                    <div className="skeleton h-[200px] w-full rounded-lg" />
+                    <div className="flex items-center gap-4">
+                        <div className="skeleton h-px flex-1 rounded" />
+                        <div className="skeleton h-3 w-40 rounded" />
+                        <div className="skeleton h-px flex-1 rounded" />
+                    </div>
+                    <div className="skeleton h-[300px] w-full rounded" />
                 </div>
             ))}
         </div>
@@ -84,15 +88,20 @@ export default function StatsClient(): JSX.Element {
     }
 
     return (
-        <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 md:px-8 md:pt-10">
-            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <h1 className="text-4xl font-bold text-white md:text-5xl">
+        <div className="mx-auto w-full max-w-[1600px] px-4 pb-24 pt-6 md:px-8 md:pt-10">
+            <div
+                className="animate-fade-in-up mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between"
+                style={{ animationDelay: "50ms" }}
+            >
+                <div className="min-w-0">
+                    <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
                         {$vocabulary.STATS ?? "Stats"}
                     </h1>
                     <p className="mt-1.5 text-sm text-neutral-500 md:text-base">
                         Showing stats for{" "}
-                        <span className="text-neutral-400">{rangeLabel}</span>
+                        <span className="font-medium text-neutral-400">
+                            {rangeLabel}
+                        </span>
                     </p>
                 </div>
 
@@ -102,10 +111,10 @@ export default function StatsClient(): JSX.Element {
                             key={opt.value}
                             type="button"
                             onClick={() => handleRangeChange(opt.value)}
-                            className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
+                            className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300 ${
                                 range === opt.value
-                                    ? "bg-[#ee1086] text-white shadow-[0_0_20px_rgba(238,16,134,0.4)]"
-                                    : "bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white"
+                                    ? "bg-[#ee1086] text-white"
+                                    : "text-neutral-500 hover:bg-white/[0.06] hover:text-white"
                             }`}
                         >
                             {opt.label}
@@ -115,7 +124,7 @@ export default function StatsClient(): JSX.Element {
             </div>
 
             {range === "custom" && (
-                <div className="mb-6 flex items-center gap-3">
+                <div className="animate-fade-in-up mb-6 flex items-center justify-end gap-3">
                     <div className="relative">
                         <label
                             htmlFor="stats-start"
@@ -153,7 +162,7 @@ export default function StatsClient(): JSX.Element {
             {loading && <LoadingSkeleton />}
 
             {error && (
-                <div className="mt-8 rounded-xl border border-red-900/50 bg-red-950/20 px-5 py-4">
+                <div className="animate-fade-in-up mt-8">
                     <p className="text-sm text-red-400">
                         Error loading stats: {error}
                     </p>

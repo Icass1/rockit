@@ -47,6 +47,41 @@ const CHIP_GRID_CLASS =
     "grid grid-cols-[repeat(auto-fit,_minmax(200px,250px))] justify-start gap-0.5 px-2 py-1";
 
 /* ------------------------------------------------------- */
+/* INTERLEAVE UTILITY                                      */
+/* ------------------------------------------------------- */
+
+type AllGridItem =
+    | { kind: "playlist"; item: BasePlaylistWithoutMediasResponse }
+    | { kind: "album"; item: BaseAlbumWithoutSongsResponse }
+    | { kind: "video"; item: BaseVideoResponse }
+    | { kind: "song"; item: BaseSongWithoutAlbumResponse }
+    | { kind: "station"; item: BaseStationResponse };
+
+function interleaveGridItems(
+    playlists: BasePlaylistWithoutMediasResponse[],
+    albums: BaseAlbumWithoutSongsResponse[],
+    videos: BaseVideoResponse[],
+    songs: BaseSongWithoutAlbumResponse[],
+    stations: BaseStationResponse[],
+): AllGridItem[] {
+    const sources: AllGridItem[][] = [
+        playlists.map((p) => ({ kind: "playlist" as const, item: p })),
+        albums.map((a) => ({ kind: "album" as const, item: a })),
+        videos.map((v) => ({ kind: "video" as const, item: v })),
+        songs.map((s) => ({ kind: "song" as const, item: s })),
+        stations.map((s) => ({ kind: "station" as const, item: s })),
+    ];
+    const maxLen = Math.max(...sources.map((a) => a.length));
+    const result: AllGridItem[] = [];
+    for (let i = 0; i < maxLen; i++) {
+        for (const arr of sources) {
+            if (i < arr.length) result.push(arr[i]);
+        }
+    }
+    return result;
+}
+
+/* ------------------------------------------------------- */
 /* SHARED UI PRIMITIVES                                    */
 /* ------------------------------------------------------- */
 
@@ -90,41 +125,36 @@ function SectionedAllGrid({
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
 }): JSX.Element {
+    const mixed = useMemo(
+        () => interleaveGridItems(playlists, albums, videos, songs, stations),
+        [playlists, albums, videos, songs, stations],
+    );
+
     return (
         <div className={GRID_CLASS}>
-            <NewPlaylistButton />
-            {playlists.map(
-                (pl): JSX.Element => (
-                    <PlaylistCard key={pl.publicId} playlist={pl} />
-                )
-            )}
-            {albums.map(
-                (al): JSX.Element => (
-                    <AlbumCard key={al.publicId} album={al} />
-                )
-            )}
-            {videos.map(
-                (v): JSX.Element => (
-                    <VideoCard key={v.publicId} video={v} />
-                )
-            )}
-            {songs.map(
-                (s): JSX.Element => (
-                    <SongCard key={s.publicId} song={s} />
-                )
-            )}
-            {stations.map(
-                (st): JSX.Element => (
-                    <StationCard key={st.publicId} station={st} />
-                )
+            <NewPlaylistButton variant="card" />
+            {mixed.map(
+                (m): JSX.Element => {
+                    switch (m.kind) {
+                        case "playlist":
+                            return <PlaylistCard key={m.item.publicId} playlist={m.item} />;
+                        case "album":
+                            return <AlbumCard key={m.item.publicId} album={m.item} />;
+                        case "video":
+                            return <VideoCard key={m.item.publicId} video={m.item} />;
+                        case "song":
+                            return <SongCard key={m.item.publicId} song={m.item} />;
+                        case "station":
+                            return <StationCard key={m.item.publicId} station={m.item} />;
+                    }
+                }
             )}
         </div>
     );
 }
 
 /**
- * "All" tab in list mode: sections with a small header per content type,
- * each rendered as compact rows.
+ * "All" tab in list mode: all items interleaved in a single grid of rows.
  */
 function SectionedAllList({
     albums,
@@ -139,57 +169,29 @@ function SectionedAllList({
     songs: BaseSongWithoutAlbumResponse[];
     stations: BaseStationResponse[];
 }): JSX.Element {
+    const mixed = useMemo(
+        () => interleaveGridItems(playlists, albums, videos, songs, stations),
+        [playlists, albums, videos, songs, stations],
+    );
+
     return (
-        <div>
-            {playlists.length > 0 && (
-                <div className={CHIP_GRID_CLASS}>
-                    <NewPlaylistButton />
-                    {playlists.map(
-                        (pl): JSX.Element => (
-                            <PlaylistRow key={pl.publicId} playlist={pl} />
-                        )
-                    )}
-                </div>
-            )}
-
-            {albums.length > 0 && (
-                <div className={CHIP_GRID_CLASS}>
-                    {albums.map(
-                        (al): JSX.Element => (
-                            <AlbumRow key={al.publicId} album={al} />
-                        )
-                    )}
-                </div>
-            )}
-
-            {songs.length > 0 && (
-                <div className={CHIP_GRID_CLASS}>
-                    {songs.map(
-                        (s): JSX.Element => (
-                            <SongRow key={s.publicId} song={s} />
-                        )
-                    )}
-                </div>
-            )}
-
-            {videos.length > 0 && (
-                <div className={CHIP_GRID_CLASS}>
-                    {videos.map(
-                        (v): JSX.Element => (
-                            <VideoRow key={v.publicId} video={v} />
-                        )
-                    )}
-                </div>
-            )}
-
-            {stations.length > 0 && (
-                <div className={CHIP_GRID_CLASS}>
-                    {stations.map(
-                        (st): JSX.Element => (
-                            <StationRow key={st.publicId} station={st} />
-                        )
-                    )}
-                </div>
+        <div className={CHIP_GRID_CLASS}>
+            <NewPlaylistButton variant="row" />
+            {mixed.map(
+                (m): JSX.Element => {
+                    switch (m.kind) {
+                        case "playlist":
+                            return <PlaylistRow key={m.item.publicId} playlist={m.item} />;
+                        case "album":
+                            return <AlbumRow key={m.item.publicId} album={m.item} />;
+                        case "video":
+                            return <VideoRow key={m.item.publicId} video={m.item} />;
+                        case "song":
+                            return <SongRow key={m.item.publicId} song={m.item} />;
+                        case "station":
+                            return <StationRow key={m.item.publicId} station={m.item} />;
+                    }
+                }
             )}
         </div>
     );
@@ -415,7 +417,7 @@ export function LibraryLists({
                         <SectionHeader title={`${$vocabulary.YOUR} ${$vocabulary.PLAYLISTS}`} />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                <NewPlaylistButton />
+                                <NewPlaylistButton variant="row" />
                                 {filtered.playlists.map(
                                     (pl): JSX.Element => (
                                         <PlaylistRow key={pl.publicId} playlist={pl} />
@@ -424,7 +426,7 @@ export function LibraryLists({
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                <NewPlaylistButton />
+                                <NewPlaylistButton variant="card" />
                                 {filtered.playlists.map(
                                     (pl): JSX.Element => (
                                         <PlaylistCard key={pl.publicId} playlist={pl} />

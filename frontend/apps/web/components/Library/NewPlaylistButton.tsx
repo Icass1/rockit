@@ -8,7 +8,11 @@ import { Plus } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export default function NewPlaylistButton(): JSX.Element {
+export default function NewPlaylistButton({
+    variant = "card",
+}: {
+    variant?: "card" | "row";
+}): JSX.Element {
     const [showModal, setShowModal] = useState(false);
     const [name, setName] = useState("");
     const [error, setError] = useState("");
@@ -48,41 +52,65 @@ export default function NewPlaylistButton(): JSX.Element {
         setError("");
     };
 
+    const triggerProps = {
+        role: "button" as const,
+        tabIndex: 0,
+        onClick: (): void => setShowModal(true),
+        onKeyDown: (e: React.KeyboardEvent): false | void =>
+            e.key === "Enter" && setShowModal(true),
+    };
+
     return (
         <>
-            {/* Tile */}
-            <div className="mx-auto w-full max-w-62.5">
+            {variant === "row" ? (
                 <div
-                    role="button"
-                    tabIndex={0}
-                    className="library-item flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col transition-transform md:hover:scale-110"
-                    onClick={(): void => setShowModal(true)}
-                    onKeyDown={(e): false | void =>
-                        e.key === "Enter" && setShowModal(true)
-                    }
+                    {...triggerProps}
+                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
                 >
-                <div className="cover relative aspect-square h-auto w-full">
-                    <Image
-                        alt=""
-                        className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
-                        src="/rockit-background.png"
-                        width={600}
-                        height={600}
-                    />
-                    <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
+                        <Image
+                            alt=""
+                            src="/rockit-background.png"
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                        />
+                        <Plus className="absolute inset-0 h-full w-full p-2" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-white">
+                            {$vocabulary.NEW_PLAYLIST}
+                        </p>
+                    </div>
                 </div>
-                <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
-                    {$vocabulary.NEW_PLAYLIST}
-                </label>
-            </div>
-            </div>
+            ) : (
+                <div className="mx-auto w-full max-w-62.5">
+                    <div
+                        {...triggerProps}
+                        className="library-item flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col transition-transform md:hover:scale-110"
+                    >
+                        <div className="cover relative aspect-square h-auto w-full">
+                            <Image
+                                alt=""
+                                className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md"
+                                src="/rockit-background.png"
+                                width={600}
+                                height={600}
+                            />
+                            <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
+                        </div>
+                        <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
+                            {$vocabulary.NEW_PLAYLIST}
+                        </label>
+                    </div>
+                </div>
+            )}
 
             {/* Modal */}
             {showModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6"
                     onClick={(e): void => {
-                        // Close on backdrop click
                         if (e.target === e.currentTarget) closeModal();
                     }}
                 >

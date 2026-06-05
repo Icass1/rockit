@@ -110,7 +110,7 @@ export default function SummaryCards({
                     <span className="ml-1 text-2xl text-[#ee1086] md:text-3xl">d</span>
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.LEVEL_ABBR ?? "Streak"}
+                    {$vocabulary.LEVEL_ABBR ?? "Current Streak"}
                 </p>
             </div>
         </div>

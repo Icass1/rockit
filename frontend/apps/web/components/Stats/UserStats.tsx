@@ -12,11 +12,13 @@ import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
 
 interface UserStatsProps {
     data: UserStatsResponse;
+    range: string;
     rangeLabel: string;
 }
 
 export default function UserStats({
     data,
+    range,
     rangeLabel,
 }: UserStatsProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -29,7 +31,7 @@ export default function UserStats({
                 title={`${$vocabulary.MINUTES_LISTEND ?? "Minutes Listened"} — ${rangeLabel}`}
                 stagger={1}
             >
-                <MinutesBarChart data={data.minutes} />
+                <MinutesBarChart data={data.minutes} range={range} />
             </StatsSection>
 
             <div className="flex flex-col gap-8 md:gap-10">

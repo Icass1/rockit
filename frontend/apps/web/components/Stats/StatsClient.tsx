@@ -69,8 +69,14 @@ export default function StatsClient(): JSX.Element {
         () =>
             Http.getUserStats({
                 range,
-                start: range === "custom" ? (customStart || null) : null,
-                end: range === "custom" ? (customEnd || null) : null,
+                start:
+                    range === "custom" && customStart
+                        ? new Date(customStart).toISOString()
+                        : null,
+                end:
+                    range === "custom" && customEnd
+                        ? new Date(customEnd).toISOString()
+                        : null,
             }),
         [range, customStart, customEnd]
     );
@@ -169,7 +175,7 @@ export default function StatsClient(): JSX.Element {
                 </div>
             )}
 
-            {data && <UserStats data={data} rangeLabel={rangeLabel} />}
+            {data && <UserStats data={data} range={range} rangeLabel={rangeLabel} />}
         </div>
     );
 }

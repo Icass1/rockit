@@ -14,6 +14,7 @@ import {
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
+    range?: string;
 }
 
 const PINK = "#ee1086";
@@ -23,21 +24,27 @@ const NEUTRAL_700 = "#404040";
 function CustomTooltip({
     active,
     payload,
+    range,
 }: {
     active?: boolean;
     payload?: { value: number; payload: StatsMinutesEntryResponse }[];
     label?: string;
+    range?: string;
 }): JSX.Element | null {
     if (!active || !payload || payload.length === 0) return null;
 
     const entry = payload[0].payload;
     const start = new Date(entry.start);
     const end = new Date(entry.end);
-    const range = `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} — ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+
+    const isDaily = range === "7d";
+    const label = isDaily
+        ? start.toLocaleDateString("en-US", { weekday: "long" })
+        : `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} — ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 
     return (
         <div className="rounded-xl border border-neutral-800/60 bg-neutral-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
-            <p className="whitespace-nowrap text-xs text-neutral-400">{range}</p>
+            <p className="whitespace-nowrap text-xs text-neutral-400">{label}</p>
             <p className="mt-0.5 whitespace-nowrap text-lg font-bold text-white">
                 {payload[0].value.toFixed(1)}
                 <span className="ml-1 text-sm font-medium text-neutral-400">
@@ -50,6 +57,7 @@ function CustomTooltip({
 
 export default function MinutesBarChart({
     data,
+    range = "30d",
 }: MinutesBarChartProps): JSX.Element {
     if (data.length === 0) {
         return (
@@ -113,7 +121,7 @@ export default function MinutesBarChart({
                     width={40}
                 />
                 <Tooltip
-                    content={<CustomTooltip />}
+                    content={<CustomTooltip range={range} />}
                     cursor={{ fill: "rgba(255,255,255,0.03)" }}
                 />
                 <Bar

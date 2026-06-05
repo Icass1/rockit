@@ -17,7 +17,7 @@ export default function DownloadGroup({
     onClear,
 }: DownloadGroupProps): JSX.Element | null {
     const [open, setOpen] = useState(false);
-    const [avgProgress, setAvgProgress] = useState(34);
+    const avgProgress = 34;
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 

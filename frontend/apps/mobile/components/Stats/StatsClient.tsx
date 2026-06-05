@@ -61,7 +61,7 @@ function LoadingSkeleton() {
 }
 
 export default function StatsClient() {
-    const { vocabulary, lang } = useVocabulary();
+    const { lang } = useVocabulary();
     const [section, setSection] = useState<"user" | "general" | "friends">(
         "user"
     );

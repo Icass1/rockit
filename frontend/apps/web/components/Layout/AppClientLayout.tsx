@@ -7,9 +7,9 @@ import { VocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
-import Navigation from "@/components/Navigation/Navigation";
 import MiniPlayer from "@/components/MiniPlayer/MiniPlayer";
 import MobileBottomNav from "@/components/Navigation/MobileBottomNav";
+import Navigation from "@/components/Navigation/Navigation";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
 
 export default function AppClientLayout({
@@ -40,8 +40,8 @@ export default function AppClientLayout({
             </div>
 
             {/* Main content area */}
-            <div className="fixed inset-0 bg-[#0b0b0b] pb-[140px] md:left-12 md:pb-0">
-                <div className="webkit-scroll h-full w-full overflow-y-auto py-24">
+            <div className="fixed inset-0 bg-[#0b0b0b] pb-35 md:left-12 md:pb-0">
+                <div className="webkit-scroll h-full w-full overflow-y-auto pt-24 md:pb-24">
                     {children}
                 </div>
             </div>

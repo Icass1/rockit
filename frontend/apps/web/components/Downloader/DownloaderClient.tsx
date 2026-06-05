@@ -3,6 +3,7 @@
 import { type JSX } from "react";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadGroup from "@/components/Downloader/DownloadGroup";
 import DownloadInputBar from "@/components/Downloader/DownloadInputBar";
 
@@ -10,18 +11,21 @@ export default function DownloaderClient(): JSX.Element {
     const { data, loading } = useFetch(Http.getDownloads);
 
     const startDownload = async (url: string): Promise<void> => {
-        // const mediaRes = await Http.addFromUrl({ url, playlistPublicId: null });
-        // if (!mediaRes.isOk()) {
-        //     rockIt.notificationManager.notifyError(
-        //         rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
-        //     );
-        //     return;
-        // }
-        // const publicId = mediaRes.result.data.publicId;
-        // await rockIt.downloaderManager.startDownloadAsync(publicId, "Download");
+        const mediaRes = await Http.addFromUrl({
+            url,
+            addToLibrary: false,
+            addToPlaylist: false,
+            playlistPublicId: null,
+        });
+        if (!mediaRes.isOk()) {
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
+            );
+            return;
+        }
+        const publicId = mediaRes.result.data.publicId;
+        await rockIt.downloaderManager.startDownloadAsync(publicId, "Download");
     };
-
-    console.log(data);
 
     if (!data || loading) return <div>Loading</div>;
 

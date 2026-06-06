@@ -9,6 +9,7 @@ from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.baseStationResponse import BaseStationResponse
 
 
 class MediaResponse(BaseModel):
@@ -18,4 +19,5 @@ class MediaResponse(BaseModel):
         BaseArtistResponse,
         BasePlaylistWithoutMediasResponse,
         BaseVideoResponse,
+        BaseStationResponse,
     ]

@@ -2,6 +2,7 @@ import {
     getMediaAudioSrc,
     getMediaVideoSrc,
     isSong,
+    isStation,
     isVideo,
     resolveNextOnEnd,
     resolveOnMediaError,
@@ -78,8 +79,8 @@ export class MediaPlayerManager {
             this.playVideo();
         } else if (isSong(currentMedia)) {
             this.playAudio();
-        } else if (currentMedia.type === "station") {
-            console.warn("Not implemented");
+        } else if (isStation(currentMedia)) {
+            this.playStream(getMediaAudioSrc(currentMedia) ?? "");
         }
     }
 

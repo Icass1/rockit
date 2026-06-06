@@ -10,6 +10,12 @@ export const BaseStationResponseSchema = z.object({
     providerUrl: z.string(),
     name: z.string(),
     imageUrl: z.string(),
+    streamUrl: z.string().nullable(),
+    country: z.string().nullable(),
+    codec: z.string().nullable(),
+    bitrate: z.number().nullable(),
+    tags: z.string().nullable(),
+    homepage: z.string().nullable(),
 });
 
 export type BaseStationResponse = z.infer<typeof BaseStationResponseSchema>;

@@ -7,9 +7,11 @@ import { BaseArtistResponse } from "@/dto";
 export default function Artists({
     artists,
     className,
+    linkable = true,
 }: {
     artists: BaseArtistResponse[];
     className?: string;
+    linkable?: boolean;
 }): JSX.Element {
     return (
         <div
@@ -18,12 +20,16 @@ export default function Artists({
             {artists.map(
                 (artist, index): JSX.Element => (
                     <div key={artist.publicId} className="flex flex-nowrap">
-                        <Link
-                            href={artist.url}
-                            className="truncate hover:underline"
-                        >
-                            {artist.name}
-                        </Link>
+                        {linkable ? (
+                            <Link
+                                href={artist.url}
+                                className="truncate hover:underline"
+                            >
+                                {artist.name}
+                            </Link>
+                        ) : (
+                            <span className="truncate">{artist.name}</span>
+                        )}
                         {index !== artists.length - 1 && <span>,</span>}
                     </div>
                 )

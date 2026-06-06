@@ -396,6 +396,13 @@ export class BaseHttp {
         );
     }
 
+    static async getStationAsync(publicId: string) {
+        return this.apiGetAsync(
+            `/media/station/${publicId}`,
+            dto.BaseStationResponseSchema
+        );
+    }
+
     static async addFromUrl(payload: dto.AddFromUrlRequest) {
         return this.apiPostAsync(
             `/media/url/add`,
@@ -418,6 +425,13 @@ export class BaseHttp {
 
     static async getMedia(publicId: string) {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
+    }
+
+    static async getStation(publicId: string) {
+        return this.apiGetAsync(
+            `/radio/station/${publicId}`,
+            dto.BaseStationResponseSchema
+        );
     }
 
     static async getAlbumAsync(spotifyId: string) {

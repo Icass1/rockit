@@ -208,6 +208,7 @@ export function AlbumCard({
                 <Artists
                     artists={album.artists}
                     className="text-sm text-gray-400"
+                    linkable={false}
                 />
             }
             href={album.url}
@@ -308,9 +309,9 @@ export function StationCard({
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {
-        // rockIt.queueManager.setMedia([$station], $station.publicId);
-        // rockIt.queueManager.moveToMedia($station.publicId);
-        // rockIt.mediaPlayerManager.play();
+        rockIt.queueManager.setMedia([$station], $station.publicId);
+        rockIt.queueManager.moveToMedia($station.publicId);
+        rockIt.mediaPlayerManager.play();
     };
 
     return (

@@ -1,6 +1,7 @@
 import {
     BaseSongWithAlbumResponse,
     BaseSongWithoutAlbumResponse,
+    BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
 
@@ -10,5 +11,6 @@ export interface QueueItem {
     media:
         | BaseSongWithAlbumResponse
         | BaseSongWithoutAlbumResponse
-        | BaseVideoResponse;
+        | BaseVideoResponse
+        | BaseStationResponse;
 }

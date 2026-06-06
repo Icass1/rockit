@@ -136,7 +136,7 @@ export default function MiniPlayer(): JSX.Element {
                         <Image
                             width={36}
                             height={36}
-                            src={$currentStation.favicon}
+                            src={$currentStation.imageUrl}
                             alt={$currentStation.name}
                             className="h-9 w-9 rounded-md object-cover"
                         />

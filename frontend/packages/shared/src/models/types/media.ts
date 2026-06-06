@@ -21,7 +21,8 @@ export type TPlayableMedia =
 export type TQueueMedia =
     | BaseSongWithAlbumResponse
     | BaseSongWithoutAlbumResponse
-    | BaseVideoResponse;
+    | BaseVideoResponse
+    | BaseStationResponse;
 
 export type TListMedia =
     | BasePlaylistWithMediasResponse
@@ -48,6 +49,8 @@ export function isQueueable(media: TMedia): media is TQueueMedia {
         case "song":
             return true;
         case "video":
+            return true;
+        case "station":
             return true;
     }
     return false;
@@ -167,7 +170,7 @@ export function isVideo(media: TMedia): media is BaseVideoResponse {
     return media.type === "video";
 }
 
-export function isStation(media: TPlayableMedia): media is BaseStationResponse {
+export function isStation(media: TMedia): media is BaseStationResponse {
     return media.type === "station";
 }
 
@@ -209,6 +212,8 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
         return media.description ?? "";
     } else if (isVideo(media)) {
         return media.artists.map((artist): string => artist.name).join(", ");
+    } else if (isStation(media)) {
+        return media.country ?? media.tags ?? "Radio Station";
     }
     return "Not supported subtitle";
 }
@@ -244,6 +249,9 @@ export function getMediaAudioSrc(
     }
     if (isVideo(media)) {
         return media.audioSrc ?? undefined;
+    }
+    if (isStation(media)) {
+        return media.streamUrl ?? undefined;
     }
     return undefined;
 }

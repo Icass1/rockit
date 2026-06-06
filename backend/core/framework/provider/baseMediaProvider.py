@@ -14,6 +14,7 @@ from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
 
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.baseStationResponse import BaseStationResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
@@ -116,6 +117,14 @@ class BaseMediaProvider(BaseProvider):
         return AResult(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_videos_async.",
+        )
+
+    async def get_stations_async(
+        self, session: AsyncSession, public_ids: List[str]
+    ) -> AResult[List[BaseStationResponse]]:
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name}' doesn't implement get_stations_async.",
         )
 
     async def add_from_url_async(

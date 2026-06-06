@@ -1,6 +1,6 @@
 import { JSX } from "react";
-import WorkInProgress from "@/components/WorkInProgress/WorkInProgress";
+import RadioClient from "@/components/Radio/RadioClient";
 
-export default function Stats(): JSX.Element {
-    return <WorkInProgress />;
+export default function RadioPage(): JSX.Element {
+    return <RadioClient />;
 }

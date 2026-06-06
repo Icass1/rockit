@@ -11,6 +11,7 @@ import ArtistsSection from "@/components/Search/sections/ArtistsSection";
 import PlaylistsSection from "@/components/Search/sections/PlaylistsSection";
 import SongsSection from "@/components/Search/sections/SongsSection";
 import VideosSection from "@/components/Search/sections/VideosSection";
+import RadioSection from "@/components/Search/sections/RadioSection";
 
 function EmptyState(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -89,9 +90,11 @@ function SearchResults(): JSX.Element {
                     (item): boolean => item.type === "video"
                 )}
             />
-            {/* <RadioSection
-                stations={mediaResults.filter((item) => item.type === "radio")}
-            /> */}
+            <RadioSection
+                stations={mediaResults.filter(
+                    (item): boolean => item.type === "radio"
+                )}
+            />
         </div>
     );
 }

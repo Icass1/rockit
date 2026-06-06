@@ -17,7 +17,7 @@ import {
     getMediaArtists,
     TPlayableMedia,
 } from "@/models/types/media";
-import { Station } from "@/models/types/station";
+import type { BaseStationResponse } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
@@ -113,7 +113,7 @@ function FooterLeftForMedia({
 function FooterLeftForStation({
     currentStation,
 }: {
-    currentStation: Station;
+    currentStation: BaseStationResponse;
 }): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
@@ -124,7 +124,7 @@ function FooterLeftForStation({
                 <Image
                     width={64}
                     height={64}
-                    src={currentStation.favicon}
+                    src={currentStation.imageUrl}
                     alt={currentStation.name}
                     className="absolute h-full w-full object-cover select-none"
                 />

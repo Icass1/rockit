@@ -427,24 +427,17 @@ export class BaseHttp {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
     }
 
-    static async getStation(publicId: string) {
+    static async getRockitAlbum(publicId: string) {
         return this.apiGetAsync(
-            `/radio/station/${publicId}`,
-            dto.BaseStationResponseSchema
+            `/rockit/album/${publicId}`,
+            dto.BaseAlbumWithSongsResponseSchema
         );
     }
 
-    static async getStationsByCountry(country: string) {
+    static async getRockitSong(publicId: string) {
         return this.apiGetAsync(
-            `/radio/stations/by-country/${encodeURIComponent(country)}`,
-            dto.ListSchema
-        );
-    }
-
-    static async getStationsWithGeo(limit = 1000, offset = 0) {
-        return this.apiGetAsync(
-            `/radio/stations/geo?limit=${limit}&offset=${offset}`,
-            dto.ListSchema
+            `/rockit/song/${publicId}`,
+            dto.BaseSongWithAlbumResponseSchema
         );
     }
 
@@ -485,6 +478,33 @@ export class BaseHttp {
             `/stats/user`,
             dto.UserStatsRequestSchema,
             dto.UserStatsResponseSchema,
+            payload
+        );
+    }
+
+    static async startAlbumUpload(payload: dto.UploadAlbumRequest) {
+        return this.apiPostAsync(
+            `/upload/album/start`,
+            dto.UploadAlbumRequestSchema,
+            dto.StartUploadResponseSchema,
+            payload
+        );
+    }
+
+    static async startSongUpload(payload: dto.UploadSongRequest) {
+        return this.apiPostAsync(
+            `/upload/song/start`,
+            dto.UploadSongRequestSchema,
+            dto.StartUploadResponseSchema,
+            payload
+        );
+    }
+
+    static async startVideoUpload(payload: dto.UploadVideoRequest) {
+        return this.apiPostAsync(
+            `/upload/video/start`,
+            dto.UploadVideoRequestSchema,
+            dto.StartUploadResponseSchema,
             payload
         );
     }

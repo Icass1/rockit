@@ -16,6 +16,7 @@ from backend.core.access.db.ormModels.provider import ProviderRow
 
 from backend.core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
+from backend.core.framework.provider.baseUploadProvider import BaseUploadProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.provider.baseProvider import BaseProvider
 
@@ -39,6 +40,9 @@ class Providers:
 
     def get_lyrics_providers(self) -> List[BaseLyricsProvider]:
         return [p for p in self._providers if isinstance(p, BaseLyricsProvider)]
+
+    def get_upload_providers(self) -> List[BaseUploadProvider]:
+        return [p for p in self._providers if isinstance(p, BaseUploadProvider)]
 
     def match_lyrics_provider(self, provider_name: str) -> BaseLyricsProvider | None:
         for p in self.get_lyrics_providers():

@@ -322,6 +322,10 @@ export {
     type StartDownloadResponse,
 } from "./startDownloadResponse";
 export {
+    StartUploadResponseSchema,
+    type StartUploadResponse,
+} from "./startUploadResponse";
+export {
     StatsHeatmapCellResponseSchema,
     type StatsHeatmapCellResponse,
 } from "./statsHeatmapCellResponse";
@@ -367,6 +371,10 @@ export {
     type UpdateTimestampsRequest,
 } from "./updateTimestampsRequest";
 export {
+    UploadAlbumRequestSchema,
+    type UploadAlbumRequest,
+} from "./uploadAlbumRequest";
+export {
     UploadApkRequestSchema,
     type UploadApkRequest,
 } from "./uploadApkRequest";
@@ -382,6 +390,15 @@ export {
     UploadChunkResponseSchema,
     type UploadChunkResponse,
 } from "./uploadChunkResponse";
+export { UploadResponseSchema, type UploadResponse } from "./uploadResponse";
+export {
+    UploadSongRequestSchema,
+    type UploadSongRequest,
+} from "./uploadSongRequest";
+export {
+    UploadVideoRequestSchema,
+    type UploadVideoRequest,
+} from "./uploadVideoRequest";
 export {
     UrlMatchResponseSchema,
     type UrlMatchResponse,

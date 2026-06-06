@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi.routing import APIRoute
+from pydantic import BaseModel
 
 
 def snake_to_pascal(string: str) -> str:
@@ -65,7 +66,13 @@ async def http_methods_generator():
                 print("Path", route.path, "has multiple request body")
                 continue
 
-            request_model = body_params[0].type_.__name__
+            body_type = body_params[0].type_
+
+            if not isinstance(body_type, type) or not issubclass(body_type, BaseModel):
+                print(f"Path {route.path}: body param is not a Pydantic BaseModel, skipping")
+                continue
+
+            request_model = body_type.__name__
 
             params.append(f"payload: dto.{request_model}")
 

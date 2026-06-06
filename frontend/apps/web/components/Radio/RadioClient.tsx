@@ -7,6 +7,7 @@ import { useStore } from "@nanostores/react";
 import {
     type BaseSearchResultsItem,
     type BaseStationResponse,
+    EMediaContextLocation,
     type LibraryMediasResponse,
 } from "@rockit/shared";
 import type { DebouncedFunc } from "lodash";
@@ -17,6 +18,7 @@ import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { StationCard } from "@/components/Library/LibraryCards";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import LoadingComponent from "@/components/Loading";
 
 const RadioMap = dynamic(() => import("@/components/Radio/RadioMap"), {
@@ -43,22 +45,28 @@ function StationSearchCard({
     };
 
     return (
-        <div
-            className="w-full cursor-pointer transition md:hover:scale-105"
-            onClick={handlePlay}
+        <MediaContextMenu
+            media={station}
+            location={EMediaContextLocation.SEARCH}
+            openOnLeftClick={false}
         >
-            <Image
-                width={250}
-                height={250}
-                className="aspect-square w-full rounded-lg object-cover"
-                src={imgSrc}
-                alt={station.name}
-                onError={(): void => setImgSrc("/radio-placeholder.png")}
-            />
-            <span className="mt-2 block truncate text-center font-semibold text-white">
-                {station.name}
-            </span>
-        </div>
+            <div
+                className="w-full cursor-pointer transition md:hover:scale-105"
+                onClick={handlePlay}
+            >
+                <Image
+                    width={250}
+                    height={250}
+                    className="aspect-square w-full rounded-lg object-cover"
+                    src={imgSrc}
+                    alt={station.name}
+                    onError={(): void => setImgSrc("/radio-placeholder.png")}
+                />
+                <span className="mt-2 block truncate text-center font-semibold text-white">
+                    {station.name}
+                </span>
+            </div>
+        </MediaContextMenu>
     );
 }
 
@@ -79,22 +87,28 @@ function StationSearchRow({
     };
 
     return (
-        <div
-            className="flex cursor-pointer items-center gap-3 rounded p-2 transition md:hover:bg-[rgba(75,75,75,0.4)]"
-            onClick={handlePlay}
+        <MediaContextMenu
+            media={station}
+            location={EMediaContextLocation.SEARCH}
+            openOnLeftClick={false}
         >
-            <Image
-                width={48}
-                height={48}
-                className="h-12 w-12 shrink-0 rounded object-cover"
-                src={imgSrc}
-                alt={station.name}
-                onError={(): void => setImgSrc("/radio-placeholder.png")}
-            />
-            <span className="truncate text-sm font-semibold text-white">
-                {station.name}
-            </span>
-        </div>
+            <div
+                className="flex cursor-pointer items-center gap-3 rounded p-2 transition md:hover:bg-[rgba(75,75,75,0.4)]"
+                onClick={handlePlay}
+            >
+                <Image
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 shrink-0 rounded object-cover"
+                    src={imgSrc}
+                    alt={station.name}
+                    onError={(): void => setImgSrc("/radio-placeholder.png")}
+                />
+                <span className="truncate text-sm font-semibold text-white">
+                    {station.name}
+                </span>
+            </div>
+        </MediaContextMenu>
     );
 }
 

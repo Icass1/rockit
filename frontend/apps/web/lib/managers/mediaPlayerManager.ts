@@ -159,7 +159,6 @@ export class MediaPlayerManager {
 
     playStream(url: string): void {
         if (!this._audio) return;
-        rockIt.queueManager.clearCurrentMedia();
         this._audio.src = url;
         this._audio.currentTime = 0;
         this._audio.volume = this._volumeAtom.get();
@@ -168,6 +167,10 @@ export class MediaPlayerManager {
             .catch((err): void =>
                 console.warn("MediaPlayerManager: stream failed", err)
             );
+        const currentMedia = rockIt.queueManager.currentMedia;
+        if (currentMedia) {
+            this._sendCurrentMedia(currentMedia);
+        }
     }
 
     beginSeek(): void {

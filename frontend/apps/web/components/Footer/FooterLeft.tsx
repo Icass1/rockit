@@ -11,7 +11,7 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
-import { EMediaContextLocation } from "@rockit/shared";
+import { EMediaContextLocation, isStation } from "@rockit/shared";
 import {
     getMediaAlbum,
     getMediaArtists,
@@ -165,13 +165,16 @@ function FooterLeftForStation({
 
 export default function FooterLeft(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    if ($currentMedia)
+    if ($currentMedia) {
+        if (isStation($currentMedia)) {
+            return (
+                <FooterLeftForStation currentStation={$currentMedia} />
+            );
+        }
         return <FooterLeftForMedia currentMedia={$currentMedia} />;
-    if ($currentStation)
-        return <FooterLeftForStation currentStation={$currentStation} />;
+    }
 
     return (
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 md:w-1/3">

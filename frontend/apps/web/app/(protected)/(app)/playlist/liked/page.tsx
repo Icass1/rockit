@@ -4,9 +4,11 @@ import { JSX, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { BaseSongWithAlbumResponse } from "@/dto";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 export default function LikedPlaylistPage(): JSX.Element {
     const router = useRouter();
@@ -41,25 +43,31 @@ export default function LikedPlaylistPage(): JSX.Element {
             ) : (
                 <div className="flex flex-col gap-2">
                     {songs.map((song) => (
-                        <div
+                        <MediaContextMenu
                             key={song.publicId}
-                            className="flex cursor-pointer items-center gap-4 rounded-md p-2 transition hover:bg-neutral-800"
-                            onClick={() => router.push(`/song/${song.publicId}`)}
+                            media={song}
+                            location={EMediaContextLocation.PLAYLIST}
+                            listPublicId="liked"
                         >
-                            <Image
-                                src={song.imageUrl ?? "/song-placeholder.png"}
-                                alt={song.name}
-                                width={48}
-                                height={48}
-                                className="h-12 w-12 rounded object-cover"
-                            />
-                            <div className="flex-1 truncate">
-                                <p className="font-semibold">{song.name}</p>
-                                <p className="text-sm text-neutral-400">
-                                    {song.artists.map((a) => a.name).join(", ")}
-                                </p>
+                            <div
+                                className="flex cursor-pointer items-center gap-4 rounded-md p-2 transition hover:bg-neutral-800"
+                                onClick={() => router.push(`/song/${song.publicId}`)}
+                            >
+                                <Image
+                                    src={song.imageUrl ?? "/song-placeholder.png"}
+                                    alt={song.name}
+                                    width={48}
+                                    height={48}
+                                    className="h-12 w-12 rounded object-cover"
+                                />
+                                <div className="flex-1 truncate">
+                                    <p className="font-semibold">{song.name}</p>
+                                    <p className="text-sm text-neutral-400">
+                                        {song.artists.map((a) => a.name).join(", ")}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        </MediaContextMenu>
                     ))}
                 </div>
             )}

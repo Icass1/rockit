@@ -11,6 +11,7 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
+import { EMediaContextLocation } from "@rockit/shared";
 import {
     getMediaAlbum,
     getMediaArtists,
@@ -20,7 +21,7 @@ import { Station } from "@/models/types/station";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
-import MediaPopupMenu from "@/components/PopupMenus/MediaPopupMenu";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 function FooterLeftForMedia({
     currentMedia,
@@ -69,9 +70,13 @@ function FooterLeftForMedia({
                     <div className="flex min-w-0 flex-col">
                         <span className="flex w-full max-w-full min-w-0 items-center gap-3 font-semibold">
                             <span className="truncate">{currentMedia.name}</span>
-                            <MediaPopupMenu media={currentMedia}>
+                            <MediaContextMenu
+                                media={currentMedia}
+                                location={EMediaContextLocation.QUEUE}
+                                openOnLeftClick={true}
+                            >
                                 <Ellipsis className="h-6 w-5 shrink-0 text-gray-400 opacity-0 transition group-hover/left:opacity-100 md:hover:scale-105 md:hover:text-white" />
-                            </MediaPopupMenu>
+                            </MediaContextMenu>
                         </span>
                         <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                             <div className="truncate">

@@ -90,6 +90,7 @@ export function PlayableMedia({
         <MediaContextMenu
             media={$media}
             location={EMediaContextLocation.PLAYLIST}
+            listPublicId={listPublicId}
         >
             <div
                 className="group flex cursor-pointer flex-row items-center gap-1.5"

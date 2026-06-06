@@ -26,6 +26,7 @@ export default function PlayerUIContent(): JSX.Element {
     useEffect((): (() => void) => {
         const handleDocumentClick = (e: MouseEvent): void => {
             const target = e.target as Node;
+            if (target instanceof Element && target.closest(".context-menu-option")) return;
             const insidePlayer = divRef.current?.contains(target);
             const insideFooter = document
                 .getElementById("app-footer")

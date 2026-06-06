@@ -129,6 +129,20 @@ export class PlaylistManager {
         );
     }
 
+    async removeMediaFromPlaylistByPublicId(
+        mediaPublicId: string,
+        playlistPublicId: string
+    ): Promise<HttpResult<{ status: string }>> {
+        const res = await Http.removeMediaFromPlaylistAsync(
+            playlistPublicId,
+            mediaPublicId
+        );
+        if (res.isNotOk()) {
+            rockIt.notificationManager.notifyError(res.message);
+        }
+        return res;
+    }
+
     async addUrlToPlaylistAsync(
         url: string,
         playlistPublicId: string

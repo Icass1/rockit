@@ -449,14 +449,158 @@ export class QueueManager {
         this._sendCurrentQueue();
     }
 
+    removeMediaFromQueue(media: TPlayableMedia): void {
+        const currentQueueMediaId = this._currentQueueMediaIdAtom.get();
+
+        const sortedIndex = this.sortedQueue.findIndex(
+            (item): boolean => item.media.publicId === media.publicId
+        );
+        if (sortedIndex === -1) return;
+
+        const removed = this.sortedQueue[sortedIndex];
+        const isCurrent = removed.queueMediaId === currentQueueMediaId;
+
+        this.sortedQueue.splice(sortedIndex, 1);
+
+        const randomIndex = this.randomQueue.findIndex(
+            (item): boolean => item.media.publicId === media.publicId
+        );
+        if (randomIndex !== -1) {
+            this.randomQueue.splice(randomIndex, 1);
+        }
+
+        if (isCurrent) {
+            if (this.sortedQueue.length > 0) {
+                const nextIndex = Math.min(sortedIndex, this.sortedQueue.length - 1);
+                this._currentQueueMediaIdAtom.set(
+                    this.sortedQueue[nextIndex].queueMediaId
+                );
+                this._currentMediaAtom.set(this.sortedQueue[nextIndex].media);
+            } else {
+                this._currentQueueMediaIdAtom.set(null);
+                this._currentMediaAtom.set(undefined);
+                rockIt.mediaPlayerManager.pause();
+            }
+        }
+
+        this.updateQueue();
+        this._sendCurrentQueue();
+    }
+
     addMediaNext(media: TPlayableMedia): void {
-        console.log(media);
-        throw "(addMediaNext) Not implemented method";
+        if (!isQueueable(media)) return;
+
+        const currentQueueMediaId = this._currentQueueMediaIdAtom.get();
+
+        const currentSortedIndex = this.sortedQueue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+
+        const currentMaxId = this.sortedQueue.reduce(
+            (max, item): number => Math.max(max, item.queueMediaId),
+            0
+        );
+
+        const newItem: QueueItem = {
+            media,
+            listPublicId: media.publicId,
+            queueMediaId: currentMaxId + 1,
+        };
+
+        const insertIndex =
+            currentSortedIndex >= 0
+                ? currentSortedIndex + 1
+                : this.sortedQueue.length;
+
+        this.sortedQueue.splice(insertIndex, 0, newItem);
+
+        const currentRandomIndex = this.randomQueue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+        const randomInsertIndex =
+            currentRandomIndex >= 0
+                ? currentRandomIndex + 1
+                : this.randomQueue.length;
+        this.randomQueue.splice(randomInsertIndex, 0, {
+            ...newItem,
+            queueMediaId: currentMaxId + 2,
+        });
+
+        this.updateQueue();
+        this._sendCurrentQueue();
     }
 
     addMediaToEnd(media: TPlayableMedia): void {
-        console.log(media);
-        throw "(addMediaToEnd) Not implemented method";
+        if (!isQueueable(media)) return;
+
+        const currentMaxId = this.sortedQueue.reduce(
+            (max, item): number => Math.max(max, item.queueMediaId),
+            0
+        );
+
+        const newItem: QueueItem = {
+            media,
+            listPublicId: media.publicId,
+            queueMediaId: currentMaxId + 1,
+        };
+
+        this.sortedQueue.push(newItem);
+        this.randomQueue.push({ ...newItem, queueMediaId: currentMaxId + 2 });
+
+        this.updateQueue();
+        this._sendCurrentQueue();
+    }
+
+    addMediaRandom(media: TPlayableMedia): void {
+        if (!isQueueable(media)) return;
+
+        const currentQueueMediaId = this._currentQueueMediaIdAtom.get();
+
+        const currentSortedIndex = this.sortedQueue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+
+        const currentMaxId = this.sortedQueue.reduce(
+            (max, item): number => Math.max(max, item.queueMediaId),
+            0
+        );
+
+        const newItem: QueueItem = {
+            media,
+            listPublicId: media.publicId,
+            queueMediaId: currentMaxId + 1,
+        };
+
+        const sortedStart =
+            currentSortedIndex >= 0
+                ? currentSortedIndex + 1
+                : this.sortedQueue.length;
+        const sortedInsertIndex =
+            sortedStart +
+            Math.floor(
+                Math.random() * (this.sortedQueue.length - sortedStart + 1)
+            );
+        this.sortedQueue.splice(sortedInsertIndex, 0, newItem);
+
+        const currentRandomIndex = this.randomQueue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+        const randomStart =
+            currentRandomIndex >= 0
+                ? currentRandomIndex + 1
+                : this.randomQueue.length;
+        const randomInsertIndex =
+            randomStart +
+            Math.floor(
+                Math.random() * (this.randomQueue.length - randomStart + 1)
+            );
+        this.randomQueue.splice(randomInsertIndex, 0, {
+            ...newItem,
+            queueMediaId: currentMaxId + 2,
+        });
+
+        this.updateQueue();
+        this._sendCurrentQueue();
     }
 
     // #endregion: Methods

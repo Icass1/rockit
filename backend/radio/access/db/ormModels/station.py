@@ -1,6 +1,6 @@
 from typing import Dict
 
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -33,6 +33,8 @@ class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
     bitrate: Mapped[int | None] = mapped_column(Integer, nullable=True)
     tags: Mapped[str | None] = mapped_column(String, nullable=True)
     votes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    geo_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    geo_long: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     core_station: Mapped["CoreMediaRow"] = relationship(
         CoreMediaRow, lazy="selectin", uselist=False
@@ -55,8 +57,10 @@ class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
         bitrate: int | None = None,
         tags: str | None = None,
         votes: int | None = None,
+        geo_lat: float | None = None,
+        geo_long: float | None = None,
     ):
-        kwargs: Dict[str, None | int | str] = {}
+        kwargs: Dict[str, None | float | int | str] = {}
         kwargs["id"] = id
         kwargs["radio_id"] = radio_id
         kwargs["name"] = name
@@ -72,5 +76,7 @@ class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
         kwargs["bitrate"] = bitrate
         kwargs["tags"] = tags
         kwargs["votes"] = votes
+        kwargs["geo_lat"] = geo_lat
+        kwargs["geo_long"] = geo_long
         for k, v in kwargs.items():
             setattr(self, k, v)

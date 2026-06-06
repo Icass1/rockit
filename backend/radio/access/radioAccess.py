@@ -1,7 +1,7 @@
 import uuid
 import os
 import requests as req
-from typing import Dict, List, Tuple, cast
+from typing import List, Tuple
 
 from sqlalchemy import Result, Select, and_, select
 from sqlalchemy.exc import IntegrityError
@@ -121,6 +121,46 @@ class RadioAccess:
             )
 
     @staticmethod
+    async def get_stations_with_geo_async(
+        session: AsyncSession,
+        limit: int = 1000,
+        offset: int = 0,
+    ) -> AResult[List[StationRow]]:
+        """Get stations that have geo coordinates."""
+
+        try:
+            stmt: Select[Tuple[StationRow]] = (
+                select(StationRow)
+                .join(
+                    CoreMediaRow,
+                    and_(
+                        CoreMediaRow.id == StationRow.id,
+                        CoreMediaRow.media_type_key == MediaTypeEnum.RADIO.value,
+                    ),
+                )
+                .where(
+                    and_(
+                        StationRow.geo_lat.isnot(None),
+                        StationRow.geo_long.isnot(None),
+                    )
+                )
+                .options(selectinload(StationRow.core_station))
+                .offset(offset)
+                .limit(limit)
+            )
+            result: Result[Tuple[StationRow]] = await session.execute(stmt)
+            stations: List[StationRow] = list(result.scalars().all())
+
+            return AResult(code=AResultCode.OK, message="OK", result=stations)
+
+        except Exception as e:
+            logger.error(f"Failed to get stations with geo: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to get stations with geo: {e}",
+            )
+
+    @staticmethod
     @time_it
     async def _download_and_create_internal_image_async(
         session: AsyncSession,
@@ -193,6 +233,8 @@ class RadioAccess:
         bitrate: int | None = None,
         tags: str | None = None,
         votes: int | None = None,
+        geo_lat: float | None = None,
+        geo_long: float | None = None,
     ) -> AResult[StationRow]:
         """Get an existing station or create a new one."""
 
@@ -233,6 +275,8 @@ class RadioAccess:
                         bitrate=bitrate,
                         tags=tags,
                         votes=votes,
+                        geo_lat=geo_lat,
+                        geo_long=geo_long,
                     )
                     session.add(station_row)
                     await session.flush()

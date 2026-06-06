@@ -2,7 +2,7 @@ import re
 import httpx
 from urllib.parse import quote
 from logging import Logger
-from typing import List
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -12,11 +12,9 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
-from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.core.framework.models.urlPattern import UrlPattern
 
 from backend.core.responses.searchResponse import (
-    ArtistSearchResultsItem,
     BaseSearchResultsItem,
 )
 from backend.core.responses.baseStationResponse import BaseStationResponse
@@ -89,24 +87,38 @@ class RadioProvider(BaseMediaProvider):
                 stream_url = raw.get("url_resolved") or raw.get("url", "")
                 favicon = raw.get("favicon", "")
 
+                geo_lat: Optional[float] = None
+                geo_long: Optional[float] = None
+                try:
+                    raw_lat = raw.get("geo_lat")
+                    raw_long = raw.get("geo_long")
+                    if raw_lat is not None:
+                        geo_lat = float(raw_lat)
+                    if raw_long is not None:
+                        geo_long = float(raw_long)
+                except (ValueError, TypeError):
+                    pass
+
                 a_result_station = await RadioAccess.get_or_create_station_async(
-                    session=session,
-                    radio_id=radio_id,
-                    name=name,
-                    stream_url=stream_url,
-                    provider_id=self._id,
-                    homepage=raw.get("homepage"),
-                    favicon_url=favicon,
-                    country=raw.get("country"),
-                    country_code=raw.get("countrycode"),
-                    state=raw.get("state"),
-                    language=raw.get("language"),
-                    language_codes=raw.get("languagecodes"),
-                    codec=raw.get("codec"),
-                    bitrate=raw.get("bitrate"),
-                    tags=raw.get("tags"),
-                    votes=raw.get("votes"),
-                )
+                        session=session,
+                        radio_id=radio_id,
+                        name=name,
+                        stream_url=stream_url,
+                        provider_id=self._id,
+                        homepage=raw.get("homepage"),
+                        favicon_url=favicon,
+                        country=raw.get("country"),
+                        country_code=raw.get("countrycode"),
+                        state=raw.get("state"),
+                        language=raw.get("language"),
+                        language_codes=raw.get("languagecodes"),
+                        codec=raw.get("codec"),
+                        bitrate=raw.get("bitrate"),
+                        tags=raw.get("tags"),
+                        votes=raw.get("votes"),
+                        geo_lat=geo_lat,
+                        geo_long=geo_long,
+                    )
                 if a_result_station.is_not_ok():
                     continue
 
@@ -209,6 +221,18 @@ class RadioProvider(BaseMediaProvider):
                     message="Invalid response from Radio Browser",
                 )
 
+            geo_lat: Optional[float] = None
+            geo_long: Optional[float] = None
+            try:
+                raw_lat = raw.get("geo_lat")
+                raw_long = raw.get("geo_long")
+                if raw_lat is not None:
+                    geo_lat = float(raw_lat)
+                if raw_long is not None:
+                    geo_long = float(raw_long)
+            except (ValueError, TypeError):
+                pass
+
             a_result_station = await RadioAccess.get_or_create_station_async(
                 session=session,
                 radio_id=raw.get("stationuuid", radio_uuid),
@@ -226,6 +250,8 @@ class RadioProvider(BaseMediaProvider):
                 bitrate=raw.get("bitrate"),
                 tags=raw.get("tags"),
                 votes=raw.get("votes"),
+                geo_lat=geo_lat,
+                geo_long=geo_long,
             )
             if a_result_station.is_not_ok():
                 return AResult(
@@ -247,10 +273,13 @@ class RadioProvider(BaseMediaProvider):
                     imageUrl=station.favicon_url or "",
                     streamUrl=station.stream_url,
                     country=station.country,
+                    countryCode=station.country_code,
                     codec=station.codec,
                     bitrate=station.bitrate,
                     tags=station.tags,
                     homepage=station.homepage,
+                    geoLat=station.geo_lat,
+                    geoLong=station.geo_long,
                 ),
             )
 
@@ -266,6 +295,115 @@ class RadioProvider(BaseMediaProvider):
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Error adding radio station from URL: {e}",
             )
+
+    @time_it
+    async def get_stations_by_country_async(
+        self, session: AsyncSession, country: str
+    ) -> AResult[List[BaseStationResponse]]:
+        """Get radio stations by country via Radio Browser API."""
+
+        if not country.strip():
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        try:
+            url = f"{RADIO_BROWSER_BASE}/stations/bycountry/{quote(country)}"
+            params = {
+                "limit": SEARCH_LIMIT,
+                "offset": 0,
+                "hidebroken": "true",
+                "order": "clickcount",
+                "reverse": "true",
+            }
+
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                response = await client.get(url, params=params)
+                response.raise_for_status()
+                raw_stations = response.json()
+
+            if not raw_stations:
+                return AResult(code=AResultCode.OK, message="OK", result=[])
+
+            results: List[BaseStationResponse] = []
+
+            for raw in raw_stations:
+                if not isinstance(raw, dict):
+                    continue
+
+                radio_id = raw.get("stationuuid", "")
+                if not radio_id:
+                    continue
+
+                name = raw.get("name", "Unknown Station")
+                stream_url = raw.get("url_resolved") or raw.get("url", "")
+                favicon = raw.get("favicon", "")
+
+                geo_lat: Optional[float] = None
+                geo_long: Optional[float] = None
+                try:
+                    raw_lat = raw.get("geo_lat")
+                    raw_long = raw.get("geo_long")
+                    if raw_lat is not None:
+                        geo_lat = float(raw_lat)
+                    if raw_long is not None:
+                        geo_long = float(raw_long)
+                except (ValueError, TypeError):
+                    pass
+
+                a_result_station = await RadioAccess.get_or_create_station_async(
+                    session=session,
+                    radio_id=radio_id,
+                    name=name,
+                    stream_url=stream_url,
+                    provider_id=self._id,
+                    homepage=raw.get("homepage"),
+                    favicon_url=favicon,
+                    country=raw.get("country"),
+                    country_code=raw.get("countrycode"),
+                    state=raw.get("state"),
+                    language=raw.get("language"),
+                    language_codes=raw.get("languagecodes"),
+                    codec=raw.get("codec"),
+                    bitrate=raw.get("bitrate"),
+                    tags=raw.get("tags"),
+                    votes=raw.get("votes"),
+                    geo_lat=geo_lat,
+                    geo_long=geo_long,
+                )
+                if a_result_station.is_not_ok():
+                    continue
+
+                station: StationRow = a_result_station.result()
+                public_id = (
+                    station.core_station.public_id if station.core_station else ""
+                )
+
+                results.append(
+                    BaseStationResponse(
+                        provider=Radio.provider_name,
+                        publicId=public_id,
+                        providerUrl=f"/radio/station/{public_id}",
+                        name=station.name,
+                        imageUrl=station.favicon_url or "",
+                        streamUrl=station.stream_url,
+                        country=station.country,
+                        countryCode=station.country_code,
+                        codec=station.codec,
+                        bitrate=station.bitrate,
+                        tags=station.tags,
+                        homepage=station.homepage,
+                        geoLat=station.geo_lat,
+                        geoLong=station.geo_long,
+                    )
+                )
+
+            return AResult(code=AResultCode.OK, message="OK", result=results)
+
+        except httpx.TimeoutException:
+            logger.warning(f"Radio Browser API timeout for country: {country}")
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+        except Exception as e:
+            logger.error(f"Error getting stations by country {country}: {e}")
+            return AResult(code=AResultCode.OK, message="OK", result=[])
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str

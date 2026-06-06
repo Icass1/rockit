@@ -434,6 +434,20 @@ export class BaseHttp {
         );
     }
 
+    static async getStationsByCountry(country: string) {
+        return this.apiGetAsync(
+            `/radio/stations/by-country/${encodeURIComponent(country)}`,
+            dto.ListSchema
+        );
+    }
+
+    static async getStationsWithGeo(limit = 1000, offset = 0) {
+        return this.apiGetAsync(
+            `/radio/stations/geo?limit=${limit}&offset=${offset}`,
+            dto.ListSchema
+        );
+    }
+
     static async getAlbumAsync(spotifyId: string) {
         return this.apiGetAsync(
             `/spotify/album/${spotifyId}`,

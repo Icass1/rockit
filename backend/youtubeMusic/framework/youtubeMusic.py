@@ -1067,9 +1067,7 @@ class YoutubeMusic:
                     )
 
             album_tracks = tracks_by_album.get(db_album.id, [])
-            undownloaded_count = sum(
-                1 for t in album_tracks if t.path is None
-            )
+            undownloaded_count = sum(1 for t in album_tracks if t.path is None)
             songs_list: List[YoutubeMusicTrackResponse] = []
             for track in album_tracks:
                 track_artists = track_artists_map.get(track.id, [])

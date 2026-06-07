@@ -315,9 +315,7 @@ class YoutubeMusicAccess:
             logger.error("Playlist not found")
             return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
 
-        return AResult(
-            code=AResultCode.OK, message="OK", result=playlist.youtube_id
-        )
+        return AResult(code=AResultCode.OK, message="OK", result=playlist.youtube_id)
 
     @staticmethod
     @safe_async
@@ -344,9 +342,7 @@ class YoutubeMusicAccess:
         track_id: int,
         path: str,
     ) -> AResultCode:
-        stmt: Select[Tuple[TrackRow]] = select(TrackRow).where(
-            TrackRow.id == track_id
-        )
+        stmt: Select[Tuple[TrackRow]] = select(TrackRow).where(TrackRow.id == track_id)
         result: Result[Tuple[TrackRow]] = await session.execute(stmt)
         track_row: TrackRow | None = result.scalar_one_or_none()
         if not track_row:
@@ -379,9 +375,7 @@ class YoutubeMusicAccess:
             track_result = await session.execute(track_stmt)
             track: TrackRow | None = track_result.scalar_one_or_none()
             if track:
-                track_links.append(
-                    PlaylistTrackLink(playlist_track=ptr, track=track)
-                )
+                track_links.append(PlaylistTrackLink(playlist_track=ptr, track=track))
 
         return AResult(code=AResultCode.OK, message="OK", result=track_links)
 
@@ -573,9 +567,7 @@ class YoutubeMusicAccess:
         result = await session.execute(stmt)
         rows = result.all()
 
-        track_artists_map: Dict[int, List[ArtistRow]] = {
-            tid: [] for tid in track_ids
-        }
+        track_artists_map: Dict[int, List[ArtistRow]] = {tid: [] for tid in track_ids}
         for artist_row, track_id in rows:
             track_artists_map[track_id].append(artist_row)
 
@@ -621,9 +613,7 @@ class YoutubeMusicAccess:
         result = await session.execute(stmt)
         rows = result.all()
 
-        album_artists_map: Dict[int, List[ArtistRow]] = {
-            aid: [] for aid in album_ids
-        }
+        album_artists_map: Dict[int, List[ArtistRow]] = {aid: [] for aid in album_ids}
         for artist_row, album_id in rows:
             album_artists_map[album_id].append(artist_row)
 
@@ -644,9 +634,7 @@ class YoutubeMusicAccess:
                 selectinload(TrackRow.image),
                 selectinload(TrackRow.core_song),
             )
-            .order_by(
-                TrackRow.album_id, TrackRow.disc_number, TrackRow.track_number
-            )
+            .order_by(TrackRow.album_id, TrackRow.disc_number, TrackRow.track_number)
         )
         result: Result[Tuple[TrackRow]] = await session.execute(stmt)
         tracks: List[TrackRow] = cast(List[TrackRow], result.scalars().all())
@@ -671,7 +659,9 @@ class YoutubeMusicAccess:
         )
         result: Result[Tuple[str, str]] = await session.execute(stmt)
         return AResult(
-            code=AResultCode.OK, message="OK", result={row[0]: row[1] for row in result.all()}
+            code=AResultCode.OK,
+            message="OK",
+            result={row[0]: row[1] for row in result.all()},
         )
 
     @staticmethod
@@ -692,7 +682,9 @@ class YoutubeMusicAccess:
         )
         result: Result[Tuple[str, str]] = await session.execute(stmt)
         return AResult(
-            code=AResultCode.OK, message="OK", result={row[0]: row[1] for row in result.all()}
+            code=AResultCode.OK,
+            message="OK",
+            result={row[0]: row[1] for row in result.all()},
         )
 
     @staticmethod
@@ -713,7 +705,9 @@ class YoutubeMusicAccess:
         )
         result: Result[Tuple[str, str]] = await session.execute(stmt)
         return AResult(
-            code=AResultCode.OK, message="OK", result={row[0]: row[1] for row in result.all()}
+            code=AResultCode.OK,
+            message="OK",
+            result={row[0]: row[1] for row in result.all()},
         )
 
     @staticmethod
@@ -757,5 +751,7 @@ class YoutubeMusicAccess:
         )
         result: Result[Tuple[str, str]] = await session.execute(stmt)
         return AResult(
-            code=AResultCode.OK, message="OK", result={row[0]: row[1] for row in result.all()}
+            code=AResultCode.OK,
+            message="OK",
+            result={row[0]: row[1] for row in result.all()},
         )

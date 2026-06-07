@@ -12,7 +12,12 @@ logger = getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--env", type=str, help="Path to env file to load")
-parser.add_argument("--lrc-lib-path", type=str, default="../lrclib-db-dump-20260519T172012Z.sqlite3", help="Path to LRCLIB SQLite dump")
+parser.add_argument(
+    "--lrc-lib-path",
+    type=str,
+    default="../lrclib-db-dump-20260519T172012Z.sqlite3",
+    help="Path to LRCLIB SQLite dump",
+)
 parser.add_argument("command", nargs="?", help="Command to run")
 args, _ = parser.parse_known_args()
 command_to_run = args.command if args.command else ""

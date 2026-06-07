@@ -35,8 +35,7 @@ async def import_lrc_lib_from_dump_async(
 
     logger.info("Fetching Spotify tracks from PostgreSQL...")
 
-    rows = await session.execute(
-        text("""
+    rows = await session.execute(text("""
             SELECT DISTINCT ON (t.id)
                 t.id,
                 t.name,
@@ -48,10 +47,11 @@ async def import_lrc_lib_from_dump_async(
             JOIN spotify.track_artist ta ON ta.track_id = t.id
             JOIN spotify.artist a ON a.id = ta.artist_id
             ORDER BY t.id, ta.artist_id
-        """)
-    )
+        """))
     tracks: List[TrackInfo] = [
-        TrackInfo(id=r[0], name=r[1], duration_ms=r[2], album_name=r[3], artist_name=r[4])
+        TrackInfo(
+            id=r[0], name=r[1], duration_ms=r[2], album_name=r[3], artist_name=r[4]
+        )
         for r in rows
     ]
     logger.info(f"Found {len(tracks)} Spotify tracks")
@@ -90,9 +90,7 @@ async def import_lrc_lib_from_dump_async(
             await session.commit()
 
             batch_num = i // BATCH_SIZE + 1
-            total_batches = (
-                len(tracks_to_process) + BATCH_SIZE - 1
-            ) // BATCH_SIZE
+            total_batches = (len(tracks_to_process) + BATCH_SIZE - 1) // BATCH_SIZE
             logger.info(
                 f"Batch {batch_num}/{total_batches}: "
                 f"imported={imported}, no_match={no_match}, errors={errors} "
@@ -141,9 +139,7 @@ async def _process_track_async(
             a_parsed = Lrclib.parse_timestamp(sync_line)
             if a_parsed.is_ok():
                 timestamp_s, text = a_parsed.result()
-                dynamic_lines.append(
-                    DynamicLyrics(text=text, timestamp_s=timestamp_s)
-                )
+                dynamic_lines.append(DynamicLyrics(text=text, timestamp_s=timestamp_s))
 
     save_result = await LyricsAccess.save_lyrics_async(
         session=session,

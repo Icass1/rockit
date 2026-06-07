@@ -173,9 +173,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                 )
             )
             if artist_a.is_not_ok():
-                logger.error(
-                    f"Error getting artist public IDs. {artist_a.info()}"
-                )
+                logger.error(f"Error getting artist public IDs. {artist_a.info()}")
                 artist_public_ids: dict[str, str] = {}
             else:
                 artist_public_ids: dict[str, str] = artist_a.result()
@@ -208,9 +206,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                 )
             )
             if album_a.is_not_ok():
-                logger.error(
-                    f"Error getting album public IDs. {album_a.info()}"
-                )
+                logger.error(f"Error getting album public IDs. {album_a.info()}")
                 album_public_ids: dict[str, str] = {}
             else:
                 album_public_ids: dict[str, str] = album_a.result()
@@ -246,9 +242,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                 )
             )
             if playlist_a.is_not_ok():
-                logger.error(
-                    f"Error getting playlist public IDs. {playlist_a.info()}"
-                )
+                logger.error(f"Error getting playlist public IDs. {playlist_a.info()}")
                 playlist_public_ids: dict[str, str] = {}
             else:
                 playlist_public_ids: dict[str, str] = playlist_a.result()

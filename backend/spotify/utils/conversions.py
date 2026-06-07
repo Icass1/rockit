@@ -741,9 +741,7 @@ async def get_albums_with_songs_responses_async(
                 for img in ext_image_map.get(album_row.id, [])
             ]
 
-            undownloaded_count = sum(
-                1 for track in album_tracks if track.path is None
-            )
+            undownloaded_count = sum(1 for track in album_tracks if track.path is None)
 
             responses.append(
                 SpotifyAlbumResponse(

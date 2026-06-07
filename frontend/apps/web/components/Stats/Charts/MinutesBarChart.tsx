@@ -132,6 +132,11 @@ export default function MinutesBarChart({
                     animationBegin={200}
                     animationDuration={800}
                     animationEasing="ease-out"
+                    shape={(props: unknown) => {
+                        const { value } = props as { value: number };
+                        if (value <= 0) return null;
+                        return <rect {...(props as Record<string, unknown>)} rx={6} ry={6} />;
+                    }}
                 />
             </BarChart>
         </ResponsiveContainer>

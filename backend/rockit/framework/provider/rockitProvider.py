@@ -184,6 +184,7 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             artist_name=", ".join(request.artistName),
             song_titles=[s.title for s in request.songs],
             song_files=song_files,
+            cover_data=cover_data,
         )
 
     async def upload_video_async(

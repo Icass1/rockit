@@ -1,5 +1,6 @@
 from typing import List
 from logging import Logger
+import os
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select as SA_Select
@@ -58,6 +59,8 @@ class Rockit:
             file_ext: str = "mp3"
             file_name: str = f"{create_id(32)}.{file_ext}"
             file_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
+
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
             import aiofiles
 
@@ -120,11 +123,23 @@ class Rockit:
         artist_name: str,
         song_titles: List[str],
         song_files: dict[str, bytes],
+        cover_data: bytes | None = None,
     ) -> AResult[UploadResponse]:
         """Upload an album with multiple songs."""
 
         try:
-            image_path: str = f"{MEDIA_PATH}/rockit/images/default_album.png"
+            if cover_data:
+                image_file_name: str = f"{create_id(32)}.jpg"
+                image_path: str = f"{MEDIA_PATH}/rockit/images/{image_file_name}"
+
+                os.makedirs(os.path.dirname(image_path), exist_ok=True)
+
+                import aiofiles
+
+                async with aiofiles.open(image_path, "wb") as f:
+                    await f.write(cover_data)
+            else:
+                image_path = f"{MEDIA_PATH}/rockit/images/default_album.png"
             image_url: str | None = None
 
             a_result_album: AResult[RockitAlbumRow] = (
@@ -155,6 +170,8 @@ class Rockit:
                 file_ext: str = "mp3"
                 file_name: str = f"{create_id(32)}.{file_ext}"
                 file_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
+
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
                 import aiofiles
 
@@ -231,6 +248,8 @@ class Rockit:
             file_ext: str = "mp4"
             file_name: str = f"{create_id(32)}.{file_ext}"
             file_path: str = f"{MEDIA_PATH}/rockit/videos/{file_name}"
+
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
             import aiofiles
 
@@ -643,7 +662,7 @@ class Rockit:
         )
         if a_result_songs.is_ok() and a_result_songs.result():
             duration_ms: int | None = a_result_songs.result()[0].duration_ms
-            return AResult(code=AResultCode.OK, message="OK", result=duration_ms or 0)
+            return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
 
         a_result_videos: AResult[List[RockitVideoRow]] = (
             await RockitAccess.get_videos_from_public_ids_async(
@@ -652,7 +671,7 @@ class Rockit:
         )
         if a_result_videos.is_ok() and a_result_videos.result():
             duration_ms = a_result_videos.result()[0].duration_ms
-            return AResult(code=AResultCode.OK, message="OK", result=duration_ms or 0)
+            return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
 
         return AResult(code=AResultCode.NOT_FOUND, message="RockIt media not found")
 
@@ -762,7 +781,7 @@ class Rockit:
                     audioSrc=audio_src,
                     downloaded=True,
                     imageUrl=image_url,
-                    duration_ms=song.duration_ms or 0,
+                    duration_ms=song.duration_ms,
                     discNumber=song.disc_number,
                     trackNumber=song.track_number,
                     album=album_response,
@@ -864,7 +883,7 @@ class Rockit:
                             audioSrc=audio_src,
                             downloaded=True,
                             imageUrl=song_image_url,
-                            duration_ms=song.duration_ms or 0,
+                            duration_ms=song.duration_ms,
                             discNumber=song.disc_number,
                             trackNumber=song.track_number,
                         )
@@ -939,7 +958,7 @@ class Rockit:
                     videoSrc=video_src,
                     audioSrc=None,
                     imageUrl=image_url,
-                    duration_ms=video.duration_ms or 0,
+                    duration_ms=video.duration_ms,
                     artists=video_artists,
                     downloaded=True,
                 ),

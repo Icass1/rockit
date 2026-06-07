@@ -24,7 +24,7 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
         Integer, ForeignKey("core.media.id"), primary_key=True
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
-    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
     file_path: Mapped[str | None] = mapped_column(String, nullable=True)
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
@@ -32,8 +32,8 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
     album_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("rockit.album.id"), nullable=True
     )
-    disc_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    track_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    track_number: Mapped[int] = mapped_column(Integer, nullable=False)
 
     album: Mapped["RockitAlbumRow"] = relationship(
         "RockitAlbumRow", back_populates="songs"
@@ -49,21 +49,21 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
         self,
         id: int,
         name: str,
+        duration_ms: int,
         image_id: int,
-        duration_ms: int | None = None,
+        disc_number: int,
+        track_number: int,
         file_path: str | None = None,
         album_id: int | None = None,
-        disc_number: int = 1,
-        track_number: int = 1,
     ):
         kwargs: Dict[str, None | int | str] = {}
         kwargs["id"] = id
         kwargs["name"] = name
-        kwargs["image_id"] = image_id
         kwargs["duration_ms"] = duration_ms
-        kwargs["file_path"] = file_path
-        kwargs["album_id"] = album_id
+        kwargs["image_id"] = image_id
         kwargs["disc_number"] = disc_number
         kwargs["track_number"] = track_number
+        kwargs["file_path"] = file_path
+        kwargs["album_id"] = album_id
         for k, v in kwargs.items():
             setattr(self, k, v)

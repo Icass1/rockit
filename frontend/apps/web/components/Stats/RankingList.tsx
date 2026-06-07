@@ -45,7 +45,7 @@ export default function RankingList({
     }
 
     return (
-        <div className="divide-y divide-white/[0.04]">
+        <div className="max-w-full divide-y divide-white/4 overflow-hidden md:overflow-visible">
             {displayItems.map((item, index) => (
                 <RankingRow
                     key={item.publicId}
@@ -126,7 +126,7 @@ function RankingRow({
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <div className="hidden h-1 w-16 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-24">
                     <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
+                        className="bg-lineal-to-r h-full rounded-full from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
                         style={{ width: `${progressPercent}%` }}
                     />
                 </div>
@@ -139,7 +139,7 @@ function RankingRow({
         </div>
     );
 
-    const className = "group transition-all duration-200 hover:bg-white/[0.02]";
+    const className = "group transition-all duration-200 hover:bg-white/2";
 
     if (item.href) {
         return (

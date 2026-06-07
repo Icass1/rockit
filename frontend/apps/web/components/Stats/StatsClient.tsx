@@ -3,9 +3,9 @@
 import { JSX, useCallback, useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { EWebSocketMessage } from "@rockit/shared";
-import { rockIt } from "@/lib/rockit/rockIt";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import UserStats from "@/components/Stats/UserStats";
 
 type Range = "7d" | "30d" | "1y" | "all" | "custom";
@@ -18,7 +18,11 @@ const RANGE_OPTIONS: { label: string; value: Range }[] = [
     { label: "Custom", value: "custom" },
 ];
 
-function getRangeLabel(range: Range, customStart?: string, customEnd?: string): string {
+function getRangeLabel(
+    range: Range,
+    customStart?: string,
+    customEnd?: string
+): string {
     switch (range) {
         case "7d":
             return "last 7 days";
@@ -56,7 +60,7 @@ function LoadingSkeleton(): JSX.Element {
                         <div className="skeleton h-3 w-40 rounded" />
                         <div className="skeleton h-px flex-1 rounded" />
                     </div>
-                    <div className="skeleton h-[300px] w-full rounded" />
+                    <div className="skeleton h-75 w-full rounded" />
                 </div>
             ))}
         </div>
@@ -91,9 +95,15 @@ export default function StatsClient(): JSX.Element {
         const handler = (): void => {
             update();
         };
-        rockIt.webSocketManager.onMessage(EWebSocketMessage.MediaListened, handler);
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.MediaListened,
+            handler
+        );
         return () => {
-            rockIt.webSocketManager.offMessage(EWebSocketMessage.MediaListened, handler);
+            rockIt.webSocketManager.offMessage(
+                EWebSocketMessage.MediaListened,
+                handler
+            );
         };
     }, [update]);
 
@@ -108,7 +118,7 @@ export default function StatsClient(): JSX.Element {
     }
 
     return (
-        <div className="mx-auto w-full max-w-[1600px] px-4 pb-24 pt-6 md:px-8 md:pt-10">
+        <div className="mx-auto w-full max-w-400 overflow-x-hidden px-4 pt-6 pb-24 md:overflow-visible md:px-8 md:pt-10">
             <div
                 className="animate-fade-in-up mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between"
                 style={{ animationDelay: "50ms" }}
@@ -134,7 +144,7 @@ export default function StatsClient(): JSX.Element {
                             className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300 ${
                                 range === opt.value
                                     ? "bg-[#ee1086] text-white"
-                                    : "text-neutral-500 hover:bg-white/[0.06] hover:text-white"
+                                    : "text-neutral-500 hover:bg-white/6 hover:text-white"
                             }`}
                         >
                             {opt.label}
@@ -189,7 +199,9 @@ export default function StatsClient(): JSX.Element {
                 </div>
             )}
 
-            {data && <UserStats data={data} range={range} rangeLabel={rangeLabel} />}
+            {data && (
+                <UserStats data={data} range={range} rangeLabel={rangeLabel} />
+            )}
         </div>
     );
 }

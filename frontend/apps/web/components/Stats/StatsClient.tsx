@@ -1,7 +1,8 @@
 "use client";
 
-import { JSX, useCallback, useState } from "react";
+import { JSX, useCallback, useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
+import { EWebSocketMessage } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
@@ -81,7 +82,17 @@ export default function StatsClient(): JSX.Element {
         [range, customStart, customEnd]
     );
 
-    const { data, loading, error } = useFetch(fetchStats);
+    const { data, loading, error, update } = useFetch(fetchStats);
+
+    useEffect(() => {
+        const handler = (): void => {
+            update();
+        };
+        rockIt.webSocketManager.onMessage(EWebSocketMessage.MediaListened, handler);
+        return () => {
+            rockIt.webSocketManager.offMessage(EWebSocketMessage.MediaListened, handler);
+        };
+    }, [update]);
 
     const rangeLabel = getRangeLabel(range, customStart, customEnd);
 

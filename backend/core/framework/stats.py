@@ -24,20 +24,27 @@ def _parse_range(
     custom_start: datetime | None = None,
     custom_end: datetime | None = None,
 ) -> tuple[datetime, datetime]:
-    end_date = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    end_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+
     if range_value == "7d":
-        start_date = end_date - timedelta(days=7)
+        start_date = end_of_today - timedelta(days=7)
+        end_date = end_of_today
     elif range_value == "30d":
-        start_date = end_date - timedelta(days=30)
+        start_date = end_of_today - timedelta(days=30)
+        end_date = end_of_today
     elif range_value == "1y":
-        start_date = end_date - timedelta(days=365)
+        start_date = end_of_today - timedelta(days=365)
+        end_date = end_of_today
     elif range_value == "custom" and custom_start and custom_end:
         start_date = custom_start
         end_date = custom_end
     elif range_value == "all":
-        start_date = end_date
+        start_date = now
+        end_date = end_of_today
     else:
-        start_date = end_date - timedelta(days=7)
+        start_date = end_of_today - timedelta(days=7)
+        end_date = end_of_today
 
     return start_date, end_date
 

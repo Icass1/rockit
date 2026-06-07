@@ -1,6 +1,5 @@
 import { cache, JSX } from "react";
 import { notFound } from "next/navigation";
-import { Disc3 } from "lucide-react";
 import {
     BasePlaylistWithMediasResponse,
     EMediaType,
@@ -11,20 +10,23 @@ import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
     async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
-        return getFeaturedListAsync("most-listened").catch(
+        return getFeaturedListAsync("year-recap").catch(
             (): undefined => undefined
         );
     }
 );
 
+const lastYear = new Date().getFullYear() - 1;
+const yearDigits = String(lastYear).split("");
+
 export async function generateMetadata(): Promise<{ title: string }> {
     const playlist = await getFeatured();
     return {
-        title: playlist?.name ?? "Most Listened",
+        title: playlist?.name ?? `${lastYear} Recap`,
     };
 }
 
-export default async function MostListenedPage(): Promise<JSX.Element> {
+export default async function YearRecapPage(): Promise<JSX.Element> {
     const playlistResponse = await getFeatured();
 
     if (!playlistResponse) {
@@ -39,7 +41,7 @@ export default async function MostListenedPage(): Promise<JSX.Element> {
 
     return (
         <RenderListClient
-            publicId="most-listened"
+            publicId="year-recap"
             type={EMediaType.Playlist}
             title={playlistResponse.name}
             artists={[playlistResponse.owner]}
@@ -49,7 +51,19 @@ export default async function MostListenedPage(): Promise<JSX.Element> {
             showMediaIndex={false}
             expandedByMediaId={expandedByMediaId}
             coverOverlay={
-                <Disc3 className="h-1/2 w-1/2" />
+                <div
+                    className="flex items-center justify-center gap-1 leading-none text-white"
+                    style={{
+                        fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
+                        fontWeight: 900,
+                        fontSize: "clamp(2rem, 8vw, 4rem)",
+                        letterSpacing: "-0.04em",
+                    }}
+                >
+                    {yearDigits.map((digit, i) => (
+                        <span key={i}>{digit}</span>
+                    ))}
+                </div>
             }
         />
     );

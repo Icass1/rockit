@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useEffect, useState } from "react";
+import { JSX, ReactNode, useEffect, useState } from "react";
 import { BaseArtistResponse } from "@/dto";
 import { EMediaType, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
@@ -20,6 +20,7 @@ export default function RenderListClient({
     showMediaIndex,
     showMediaImage,
     expandedByMediaId,
+    coverOverlay,
 }: {
     publicId: string;
     type: EMediaType;
@@ -30,6 +31,7 @@ export default function RenderListClient({
     showMediaIndex: boolean;
     showMediaImage: boolean;
     expandedByMediaId?: Record<string, boolean>;
+    coverOverlay?: ReactNode;
 }): JSX.Element {
     const [media, setMedia] = useState(initialMedia);
 
@@ -98,6 +100,7 @@ export default function RenderListClient({
                 showMediaImage={showMediaImage}
                 listPublicId={publicId}
                 expandedByMediaId={expandedByMediaId}
+                coverOverlay={coverOverlay}
             />
         </>
     );

@@ -607,3 +607,38 @@ class StatsAccess:
                 break
 
         return AResult(code=AResultCode.OK, message="OK", result=streak)
+
+    @staticmethod
+    async def get_recently_played_songs_async(
+        session: AsyncSession,
+        user_id: int,
+        limit: int = 50,
+    ) -> AResult[list[str]]:
+        """Get recently played song public_ids ordered by date_added DESC."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) DESC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )

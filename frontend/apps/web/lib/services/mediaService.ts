@@ -60,3 +60,33 @@ export async function getArtistAsync(
     }
     return undefined;
 }
+
+export async function getFeaturedListAsync(
+    type: "liked" | "most-listened" | "recent-mix" | "last-month" | "year-recap"
+): Promise<BasePlaylistWithMediasResponse | undefined> {
+    let response;
+    switch (type) {
+        case "liked":
+            response = await Http.getFeaturedLiked();
+            break;
+        case "most-listened":
+            response = await Http.getFeaturedMostListened();
+            break;
+        case "recent-mix":
+            response = await Http.getFeaturedRecentMix();
+            break;
+        case "last-month":
+            response = await Http.getFeaturedLastMonth();
+            break;
+        case "year-recap":
+            response = await Http.getFeaturedYearRecap();
+            break;
+    }
+
+    if (response.isOk()) {
+        return response.result;
+    } else {
+        console.error("Error getting featured list", response.message, response.detail);
+    }
+    return undefined;
+}

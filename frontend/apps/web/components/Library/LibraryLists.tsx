@@ -257,6 +257,9 @@ export function LibraryLists({
 
     const recapImageUrl = `/recap-covers/${lastMonthName.toLowerCase()}.png`;
 
+    const lastYear = useMemo(() => new Date().getFullYear() - 1, []);
+    const lastYearDigits = String(lastYear).split("");
+
     const TOP_LIMIT = 10;
     const [topAlbums, setTopAlbums] = useState<
         Array<{
@@ -345,6 +348,38 @@ export function LibraryLists({
                     </div>
                     <p className="mt-2 block truncate text-center font-semibold">
                         {$vocabulary.RECENT_MIX}
+                    </p>
+                    <p className="block truncate text-center text-sm text-gray-400">
+                        {$vocabulary.BY} Rock It!
+                    </p>
+                </Link>
+
+                <Link
+                    href="/playlist/year-recap"
+                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
+                >
+                    <div
+                        className="relative aspect-square w-full rounded-lg bg-cover"
+                        style={{
+                            backgroundImage: "url(/rockit-background.png)",
+                        }}
+                    >
+                        <div
+                            className="absolute inset-0 flex items-center justify-center gap-1 text-white"
+                            style={{
+                                fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
+                                fontWeight: 900,
+                                fontSize: "clamp(1.2rem, 5vw, 2.5rem)",
+                                letterSpacing: "-0.04em",
+                            }}
+                        >
+                            {lastYearDigits.map((digit, i) => (
+                                <span key={i}>{digit}</span>
+                            ))}
+                        </div>
+                    </div>
+                    <p className="mt-2 block truncate text-center font-semibold">
+                        {lastYear} Recap
                     </p>
                     <p className="block truncate text-center text-sm text-gray-400">
                         {$vocabulary.BY} Rock It!

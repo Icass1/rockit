@@ -621,4 +621,39 @@ export class BaseHttp {
             dto.YoutubeVideoResponseSchema
         );
     }
+
+    static async getFeaturedLiked() {
+        return this.apiGetAsync(
+            `/featured/liked`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedMostListened() {
+        return this.apiGetAsync(
+            `/featured/most-listened`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedRecentMix() {
+        return this.apiGetAsync(
+            `/featured/recent-mix`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedLastMonth() {
+        return this.apiGetAsync(
+            `/featured/last-month`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedYearRecap() {
+        return this.apiGetAsync(
+            `/featured/year-recap`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
 }

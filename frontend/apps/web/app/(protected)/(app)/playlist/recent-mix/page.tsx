@@ -1,63 +1,56 @@
-"use client";
+import { cache, JSX } from "react";
+import { notFound } from "next/navigation";
+import { History } from "lucide-react";
+import {
+    BasePlaylistWithMediasResponse,
+    EMediaType,
+    TMedia,
+} from "@rockit/packages/shared";
+import { getFeaturedListAsync } from "@/lib/services/mediaService";
+import RenderListClient from "@/components/RenderList/RenderListClient";
 
-import { JSX, useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { useStore } from "@nanostores/react";
-import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { type StatsRankedItemResponse } from "@/dto";
+const getFeatured = cache(
+    async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
+        return getFeaturedListAsync("recent-mix").catch(
+            (): undefined => undefined
+        );
+    }
+);
 
-export default function RecentMixPlaylistPage(): JSX.Element {
-    const router = useRouter();
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [topSongs, setTopSongs] = useState<StatsRankedItemResponse[]>([]);
-    const [loading, setLoading] = useState(true);
+export async function generateMetadata(): Promise<{ title: string }> {
+    const playlist = await getFeatured();
+    return {
+        title: playlist?.name ?? "Recent Mix",
+    };
+}
 
-    const fetchStats = useCallback(
-        () => Http.getUserStats({ range: "7d", start: null, end: null }),
-        []
-    );
+export default async function RecentMixPage(): Promise<JSX.Element> {
+    const playlistResponse = await getFeatured();
 
-    useEffect(() => {
-        fetchStats().then((res) => {
-            if (res.isOk()) setTopSongs(res.result.topSongs);
-            setLoading(false);
-        });
-    }, [fetchStats]);
+    if (!playlistResponse) {
+        notFound();
+    }
 
-    if (loading) return <div className="p-8 text-center">Loading...</div>;
+    const playlistMedia = playlistResponse.medias.map((m): TMedia => m.item);
+    const expandedByMediaId: Record<string, boolean> = {};
+    for (const m of playlistResponse.medias) {
+        expandedByMediaId[m.item.publicId] = m.expanded;
+    }
 
     return (
-        <div className="p-6">
-            <h1 className="mb-6 text-3xl font-bold">{$vocabulary.RECENT_MIX}</h1>
-            {topSongs.length === 0 ? (
-                <p className="text-neutral-400">{$vocabulary.NO_DATA}</p>
-            ) : (
-                <div className="flex flex-col gap-2">
-                    {topSongs.map((item) => (
-                        <div
-                            key={item.publicId}
-                            className="flex cursor-pointer items-center gap-4 rounded-md p-2 transition hover:bg-neutral-800"
-                            onClick={() => router.push(item.href)}
-                        >
-                            <Image
-                                src={item.imageUrl ?? "/song-placeholder.png"}
-                                alt={item.name}
-                                width={48}
-                                height={48}
-                                className="h-12 w-12 rounded object-cover"
-                            />
-                            <div className="flex-1 truncate">
-                                <p className="font-semibold">{item.name}</p>
-                                <p className="text-sm text-neutral-400">
-                                    {item.subtitle}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+        <RenderListClient
+            publicId="recent-mix"
+            type={EMediaType.Playlist}
+            title={playlistResponse.name}
+            artists={[playlistResponse.owner]}
+            media={playlistMedia}
+            image={playlistResponse.imageUrl}
+            showMediaImage
+            showMediaIndex={false}
+            expandedByMediaId={expandedByMediaId}
+            coverOverlay={
+                <History className="h-1/2 w-1/2" />
+            }
+        />
     );
 }

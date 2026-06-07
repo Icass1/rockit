@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, type JSX } from "react";
+import { useCallback, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { Play } from "lucide-react";
@@ -19,6 +19,7 @@ export default function RenderList({
     showMediaImage,
     listPublicId,
     expandedByMediaId,
+    coverOverlay,
 }: {
     title: string;
     artists: BaseArtistResponse[];
@@ -28,6 +29,7 @@ export default function RenderList({
     showMediaImage: boolean;
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
+    coverOverlay?: ReactNode;
 }): JSX.Element {
     const playableMedia = getAllPlayableMedia(media);
 
@@ -64,6 +66,11 @@ export default function RenderList({
                             height={600}
                             className="relative w-full h-auto rounded-lg"
                         />
+                        {coverOverlay && (
+                            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                {coverOverlay}
+                            </div>
+                        )}
                         {/* Play button overlay */}
                         <button
                             type="button"

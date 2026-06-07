@@ -34,6 +34,8 @@ def _parse_range(
     elif range_value == "custom" and custom_start and custom_end:
         start_date = custom_start
         end_date = custom_end
+    elif range_value == "all":
+        start_date = end_date
     else:
         start_date = end_date - timedelta(days=7)
 
@@ -46,6 +48,8 @@ def _get_group_by(range_value: str) -> str:
     elif range_value == "30d":
         return "week"
     elif range_value == "1y":
+        return "month"
+    elif range_value == "all":
         return "month"
     return "week"
 
@@ -81,6 +85,13 @@ class Stats:
         start_date, end_date = _parse_range(range_value, custom_start, custom_end)
         group_by: str = _get_group_by(range_value)
 
+        if range_value == "all":
+            a_first = await StatsAccess.get_first_listen_date_async(
+                session=session, user_id=user_id
+            )
+            if a_first.is_ok() and a_first.result() is not None:
+                start_date = a_first.result()
+
         try:
             summary_result: AResult[dict[str, Any]] = (
                 await StatsAccess.get_summary_async(
@@ -113,7 +124,7 @@ class Stats:
                     user_id=user_id,
                     start_date=start_date,
                     end_date=end_date,
-                    limit=3,
+                    limit=25,
                 )
             )
             top_videos_result: AResult[list[StatsRankedItemResponse]] = (
@@ -122,7 +133,7 @@ class Stats:
                     user_id=user_id,
                     start_date=start_date,
                     end_date=end_date,
-                    limit=3,
+                    limit=25,
                 )
             )
             top_artists_result: AResult[list[StatsRankedItemResponse]] = (
@@ -131,7 +142,7 @@ class Stats:
                     user_id=user_id,
                     start_date=start_date,
                     end_date=end_date,
-                    limit=3,
+                    limit=25,
                 )
             )
             top_albums_result: AResult[list[StatsRankedItemResponse]] = (
@@ -140,7 +151,7 @@ class Stats:
                     user_id=user_id,
                     start_date=start_date,
                     end_date=end_date,
-                    limit=3,
+                    limit=25,
                 )
             )
             heatmap_result: AResult[list[StatsHeatmapCellResponse]] = (

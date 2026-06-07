@@ -4,11 +4,11 @@ import { JSX } from "react";
 import type { UserStatsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
+import MinutesBarChart from "@/components/Stats/Charts/MinutesBarChart";
+import RankingList from "@/components/Stats/RankingList";
 import StatsSection from "@/components/Stats/StatsSection";
 import SummaryCards from "@/components/Stats/SummaryCards";
-import RankingList from "@/components/Stats/RankingList";
-import MinutesBarChart from "@/components/Stats/Charts/MinutesBarChart";
-import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
 
 interface UserStatsProps {
     data: UserStatsResponse;
@@ -24,11 +24,11 @@ export default function UserStats({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
-        <div className="flex flex-col gap-[5.25rem] md:gap-[7.5rem]">
+        <div className="flex flex-col gap-21 md:gap-30">
             <SummaryCards summary={data.summary} />
 
             <StatsSection
-                title={`${$vocabulary.MINUTES_LISTEND ?? "Minutes Listened"} — ${rangeLabel}`}
+                title={`${$vocabulary.MINUTES_LISTEND ?? "Time Listened"} — ${rangeLabel}`}
                 stagger={1}
             >
                 <MinutesBarChart data={data.minutes} range={range} />
@@ -40,22 +40,16 @@ export default function UserStats({
                         title={$vocabulary.TOP_SONGS ?? "Top Songs"}
                         stagger={2}
                     >
-                        <RankingList
-                            items={data.topSongs}
-                            showImages
-                            maxItems={5}
-                        />
+                        <RankingList items={data.topSongs} showImages />
                     </StatsSection>
 
                     <StatsSection
-                        title={$vocabulary.MOST_LISTENED_ARTISTS ?? "Top Artists"}
+                        title={
+                            $vocabulary.MOST_LISTENED_ARTISTS ?? "Top Artists"
+                        }
                         stagger={3}
                     >
-                        <RankingList
-                            items={data.topArtists}
-                            showImages
-                            maxItems={5}
-                        />
+                        <RankingList items={data.topArtists} showImages />
                     </StatsSection>
                 </div>
 
@@ -64,30 +58,21 @@ export default function UserStats({
                         title={$vocabulary.TOP_VIDEOS ?? "Top Videos"}
                         stagger={4}
                     >
-                        <RankingList
-                            items={data.topVideos}
-                            showImages
-                            maxItems={5}
-                        />
+                        <RankingList items={data.topVideos} showImages />
                     </StatsSection>
 
                     <StatsSection
                         title={$vocabulary.TOP_ALBUMS ?? "Top Albums"}
                         stagger={5}
                     >
-                        <RankingList
-                            items={data.topAlbums}
-                            showImages
-                            maxItems={5}
-                        />
+                        <RankingList items={data.topAlbums} showImages />
                     </StatsSection>
                 </div>
             </div>
 
             <StatsSection
                 title={
-                    $vocabulary.MINUTES_LISTENED_PER_DAY ??
-                    "Listening Heatmap"
+                    $vocabulary.MINUTES_LISTENED_PER_DAY ?? "Listening Heatmap"
                 }
                 stagger={6}
             >

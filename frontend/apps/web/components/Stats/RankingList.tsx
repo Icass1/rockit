@@ -1,32 +1,42 @@
 "use client";
 
-import { JSX, useMemo } from "react";
+import { JSX, useMemo, useState } from "react";
 import Link from "next/link";
 import type { StatsRankedItemResponse } from "@/dto";
+import { ChevronDown } from "lucide-react";
 
 interface RankingListProps {
     items: StatsRankedItemResponse[];
     showImages?: boolean;
     valueLabel?: string;
-    maxItems?: number;
+    initialVisible?: number;
 }
 
 const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
+const EXPAND_STEP = 10;
 
 export default function RankingList({
     items,
     showImages = false,
     valueLabel = "",
-    maxItems,
+    initialVisible = 5,
 }: RankingListProps): JSX.Element {
-    const displayItems = useMemo(() => {
-        const sorted = [...items].sort((a, b) => b.value - a.value);
-        return maxItems ? sorted.slice(0, maxItems) : sorted;
-    }, [items, maxItems]);
+    const [visibleCount, setVisibleCount] = useState(initialVisible);
+
+    const sorted = useMemo(() => {
+        return [...items].sort((a, b) => b.value - a.value);
+    }, [items]);
+
+    const displayItems = sorted.slice(0, visibleCount);
+    const hasMore = visibleCount < sorted.length;
 
     const maxValue = displayItems[0]?.value || 1;
 
-    if (displayItems.length === 0) {
+    const handleShowMore = (): void => {
+        setVisibleCount((prev) => Math.min(prev + EXPAND_STEP, sorted.length));
+    };
+
+    if (sorted.length === 0) {
         return (
             <div className="flex items-center justify-center py-12">
                 <p className="text-sm text-neutral-600">No data available</p>
@@ -46,6 +56,16 @@ export default function RankingList({
                     valueLabel={valueLabel}
                 />
             ))}
+            {hasMore && (
+                <button
+                    type="button"
+                    onClick={handleShowMore}
+                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 py-3 text-sm font-medium text-neutral-500 transition-colors hover:text-white"
+                >
+                    <ChevronDown className="h-4 w-4" />
+                    Show more
+                </button>
+            )}
         </div>
     );
 }

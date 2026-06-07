@@ -121,10 +121,10 @@ class YoutubeMusicProvider(BaseMediaProvider):
             a_albums,
             a_playlists,
         ) = await asyncio.gather(
-            YoutubeMusicApi.search_track_async(query=query, max_results=5),
-            YoutubeMusicApi.search_artists_async(query=query, max_results=5),
-            YoutubeMusicApi.search_albums_async(query=query, max_results=5),
-            YoutubeMusicApi.search_playlists_async(query=query, max_results=5),
+            YoutubeMusicApi.search_track_async(query=query, max_results=15),
+            YoutubeMusicApi.search_artists_async(query=query, max_results=15),
+            YoutubeMusicApi.search_albums_async(query=query, max_results=15),
+            YoutubeMusicApi.search_playlists_async(query=query, max_results=15),
         )
 
         result: List[BaseSearchResultsItem] = []

@@ -9,6 +9,7 @@ export const UserStatsRequestSchema = z.object({
             z.literal("7d"),
             z.literal("30d"),
             z.literal("1y"),
+            z.literal("all"),
             z.literal("custom"),
         ])
         .default("7d"),

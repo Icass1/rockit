@@ -8,12 +8,13 @@ import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import UserStats from "@/components/Stats/UserStats";
 
-type Range = "7d" | "30d" | "1y" | "custom";
+type Range = "7d" | "30d" | "1y" | "all" | "custom";
 
 const RANGE_OPTIONS: { label: string; value: Range }[] = [
     { label: "7 days", value: "7d" },
     { label: "30 days", value: "30d" },
     { label: "1 year", value: "1y" },
+    { label: "All", value: "all" },
     { label: "Custom", value: "custom" },
 ];
 
@@ -25,6 +26,8 @@ function getRangeLabel(range: Range, customStart?: string, customEnd?: string): 
             return "last 30 days";
         case "1y":
             return "last year";
+        case "all":
+            return "all time";
         case "custom":
             if (customStart && customEnd) {
                 const s = new Date(customStart).toLocaleDateString();

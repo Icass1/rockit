@@ -91,7 +91,7 @@ export default function SummaryCards({
                     {minutesDisplay}
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.MINUTES_LISTEND ?? "Minutes Listened"}
+                    {$vocabulary.MINUTES_LISTEND ?? "Time Listened"}
                 </p>
             </button>
 

@@ -92,7 +92,7 @@ class YoutubeMusicPlaylist:
 class YoutubeMusicApi:
     @staticmethod
     async def search_track_async(
-        query: str, max_results: int = 5
+        query: str, max_results: int = 15
     ) -> AResult[List[YoutubeMusicTrack]]:
         try:
             from ytmusicapi import YTMusic
@@ -195,7 +195,7 @@ class YoutubeMusicApi:
 
     @staticmethod
     async def search_artists_async(
-        query: str, max_results: int = 5
+        query: str, max_results: int = 15
     ) -> AResult[List[YoutubeMusicArtistResult]]:
         try:
             from ytmusicapi import YTMusic
@@ -255,7 +255,7 @@ class YoutubeMusicApi:
 
     @staticmethod
     async def search_albums_async(
-        query: str, max_results: int = 5
+        query: str, max_results: int = 15
     ) -> AResult[List[YoutubeMusicAlbumResult]]:
         try:
             from ytmusicapi import YTMusic
@@ -330,7 +330,7 @@ class YoutubeMusicApi:
 
     @staticmethod
     async def search_playlists_async(
-        query: str, max_results: int = 5
+        query: str, max_results: int = 15
     ) -> AResult[List[YoutubeMusicPlaylistResult]]:
         try:
             from ytmusicapi import YTMusic

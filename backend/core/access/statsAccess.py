@@ -557,6 +557,24 @@ class StatsAccess:
         return AResult(code=AResultCode.OK, message="OK", result=cells)
 
     @staticmethod
+    @staticmethod
+    async def get_first_listen_date_async(
+        session: AsyncSession,
+        user_id: int,
+    ) -> AResult[datetime | None]:
+        sql = text("""
+        SELECT MIN(date_added) AS first_date
+        FROM   core.user_media_listened
+        WHERE  user_id = :user_id
+        """)
+        row = (await session.execute(sql, {"user_id": user_id})).fetchone()
+        if row is None or row.first_date is None:
+            return AResult(code=AResultCode.OK, message="OK", result=None)
+        return AResult(
+            code=AResultCode.OK, message="OK", result=_utc(row.first_date)
+        )
+
+    @staticmethod
     async def get_current_streak_async(
         session: AsyncSession,
         user_id: int,

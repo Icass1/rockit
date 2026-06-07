@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 from sqlalchemy import Result, Select, and_, select
 from sqlalchemy.exc import IntegrityError
@@ -192,6 +192,259 @@ class RadioAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get stations with geo: {e}",
             )
+
+    @staticmethod
+    async def batch_get_existing_radio_ids_async(
+        session: AsyncSession,
+        radio_ids: List[str],
+    ) -> AResult[Set[str]]:
+        """Given a list of radio_ids, return the subset that already exist in DB."""
+
+        if not radio_ids:
+            return AResult(code=AResultCode.OK, message="OK", result=set())
+
+        try:
+            stmt = select(StationRow.radio_id).where(StationRow.radio_id.in_(radio_ids))
+            result = await session.execute(stmt)
+            existing: Set[str] = {row[0] for row in result.all()}
+            return AResult(code=AResultCode.OK, message="OK", result=existing)
+        except Exception as e:
+            logger.error(f"Failed to batch-check existing radio_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to batch-check existing radio_ids: {e}",
+            )
+
+    @staticmethod
+    async def batch_get_stations_by_radio_ids_async(
+        session: AsyncSession,
+        radio_ids: List[str],
+    ) -> AResult[Dict[str, StationRow]]:
+        """Load multiple stations by their radio_ids in a single query."""
+
+        if not radio_ids:
+            return AResult(code=AResultCode.OK, message="OK", result={})
+
+        try:
+            stmt = (
+                select(StationRow)
+                .where(StationRow.radio_id.in_(radio_ids))
+                .options(
+                    selectinload(StationRow.core_station),
+                    selectinload(StationRow.tags_rel),
+                    selectinload(StationRow.language_codes_rel),
+                    selectinload(StationRow.country_rel),
+                    selectinload(StationRow.state_rel),
+                    selectinload(StationRow.codec_rel),
+                )
+            )
+            result = await session.execute(stmt)
+            stations: Dict[str, StationRow] = {
+                s.radio_id: s for s in result.scalars().all()
+            }
+            return AResult(code=AResultCode.OK, message="OK", result=stations)
+        except Exception as e:
+            logger.error(f"Failed to batch-get stations by radio_ids: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to batch-get stations by radio_ids: {e}",
+            )
+
+    @staticmethod
+    async def batch_get_or_create_all_async(
+        session: AsyncSession,
+        stations_data: List[Dict[str, Any]],
+        provider_id: int,
+    ) -> AResult[Dict[str, StationRow]]:
+        """Batch get or create multiple stations at once.
+
+        1. Single query to find which radio_ids already exist
+        2. Batch-load existing stations
+        3. Batch-create new stations (no per-station existence checks)
+        """
+
+        if not stations_data:
+            return AResult(code=AResultCode.OK, message="OK", result={})
+
+        try:
+            radio_ids: List[str] = [sd["radio_id"] for sd in stations_data]
+
+            a_existing = await RadioAccess.batch_get_existing_radio_ids_async(
+                session=session, radio_ids=radio_ids
+            )
+            if a_existing.is_not_ok():
+                return AResult(code=a_existing.code(), message=a_existing.message())
+            existing_ids: Set[str] = a_existing.result()
+
+            result_map: Dict[str, StationRow] = {}
+
+            if existing_ids:
+                a_loaded = await RadioAccess.batch_get_stations_by_radio_ids_async(
+                    session=session, radio_ids=list(existing_ids)
+                )
+                if a_loaded.is_ok():
+                    result_map.update(a_loaded.result())
+
+            new_data = [
+                sd for sd in stations_data if sd["radio_id"] not in existing_ids
+            ]
+
+            if not new_data:
+                return AResult(code=AResultCode.OK, message="OK", result=result_map)
+
+            await RadioAccess._batch_create_new_stations_async(
+                session=session,
+                stations_data=new_data,
+                provider_id=provider_id,
+                result_map=result_map,
+            )
+
+            return AResult(code=AResultCode.OK, message="OK", result=result_map)
+
+        except Exception as e:
+            logger.error(f"Failed to batch get-or-create stations: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to batch get-or-create stations: {e}",
+            )
+
+    @staticmethod
+    async def _batch_create_new_stations_async(
+        session: AsyncSession,
+        stations_data: List[Dict[str, Any]],
+        provider_id: int,
+        result_map: Dict[str, StationRow],
+    ) -> None:
+        """Create multiple new stations in bulk (no per-station existence checks)."""
+
+        all_tags: Set[str] = set()
+        all_lc: Set[str] = set()
+        country_name_code: Dict[str, str] = {}
+        all_states: Set[str] = set()
+        all_codecs: Set[str] = set()
+
+        for sd in stations_data:
+            if sd.get("tags"):
+                all_tags.update(t for t in sd["tags"] if t.strip())
+            if sd.get("language_codes"):
+                all_lc.update(lc for lc in sd["language_codes"] if lc.strip())
+            if sd.get("country") and sd.get("country_code"):
+                country_name_code[sd["country"]] = sd["country_code"]
+            if sd.get("state"):
+                all_states.add(sd["state"])
+            if sd.get("codec"):
+                all_codecs.add(sd["codec"])
+
+        tag_map: Dict[str, TagRow] = {}
+        for tag_name in sorted(all_tags):
+            a_r = await RadioAccess.get_or_create_tag_async(
+                session=session, tag_name=tag_name
+            )
+            if a_r.is_ok():
+                tag_map[tag_name] = a_r.result()
+
+        lc_map: Dict[str, LanguageCodeRow] = {}
+        for lc in sorted(all_lc):
+            a_r = await RadioAccess.get_or_create_language_code_async(
+                session=session, language_code=lc
+            )
+            if a_r.is_ok():
+                lc_map[lc] = a_r.result()
+
+        country_map: Dict[str, CountryRow] = {}
+        for name in sorted(country_name_code.keys()):
+            a_r = await RadioAccess.get_or_create_country_async(
+                session=session, name=name, country_code=country_name_code[name]
+            )
+            if a_r.is_ok():
+                country_map[name] = a_r.result()
+
+        codec_map: Dict[str, CodecRow] = {}
+        for name in sorted(all_codecs):
+            a_r = await RadioAccess.get_or_create_codec_async(
+                session=session, name=name
+            )
+            if a_r.is_ok():
+                codec_map[name] = a_r.result()
+
+        for sd in stations_data:
+            country_name = sd.get("country")
+            country_id = (
+                country_map[country_name].id if country_name in country_map else None
+            )
+
+            if sd.get("state") and country_id:
+                a_r = await RadioAccess.get_or_create_state_async(
+                    session=session, name=sd["state"], country_id=country_id
+                )
+                state_id = a_r.result().id if a_r.is_ok() else None
+            else:
+                state_id = None
+
+            codec_name = sd.get("codec")
+            codec_id = codec_map[codec_name].id if codec_name in codec_map else None
+
+            core = CoreMediaRow(
+                public_id=create_id(32),
+                provider_id=provider_id,
+                media_type_key=MediaTypeEnum.RADIO.value,
+            )
+            session.add(core)
+            await session.flush()
+
+            station = StationRow(
+                id=core.id,
+                radio_id=sd["radio_id"],
+                name=sd["name"],
+                stream_url=sd["stream_url"],
+                homepage=sd.get("homepage"),
+                favicon_url=sd.get("favicon_url"),
+                language=sd.get("language"),
+                bitrate=sd.get("bitrate"),
+                votes=sd.get("votes"),
+                geo_lat=sd.get("geo_lat"),
+                geo_long=sd.get("geo_long"),
+                country_id=country_id,
+                state_id=state_id,
+                codec_id=codec_id,
+            )
+            session.add(station)
+            await session.flush()
+
+            if sd.get("tags"):
+                for tag_name in sd["tags"]:
+                    tag_name = tag_name.strip()
+                    if not tag_name or tag_name not in tag_map:
+                        continue
+                    junction = StationTagRow(
+                        station_id=station.id, tag_id=tag_map[tag_name].id
+                    )
+                    session.add(junction)
+
+            if sd.get("language_codes"):
+                for lc in sd["language_codes"]:
+                    lc = lc.strip()
+                    if not lc or lc not in lc_map:
+                        continue
+                    junction = StationLanguageCodeRow(
+                        station_id=station.id, language_code_id=lc_map[lc].id
+                    )
+                    session.add(junction)
+
+            await session.flush()
+            await session.refresh(
+                station,
+                [
+                    "core_station",
+                    "tags_rel",
+                    "language_codes_rel",
+                    "country_rel",
+                    "state_rel",
+                    "codec_rel",
+                ],
+            )
+
+            result_map[station.radio_id] = station
 
     @staticmethod
     @time_it

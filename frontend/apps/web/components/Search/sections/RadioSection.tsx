@@ -20,7 +20,7 @@ function RadioStationCard({
     return (
         <div
             className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
-            onClick={(): Promise<void> => onPlay(station)}
+            onClick={(): void => { void onPlay(station); }}
         >
             <Image
                 width={350}
@@ -28,6 +28,8 @@ function RadioStationCard({
                 className="aspect-square w-full rounded-lg object-cover"
                 src={imgSrc}
                 alt={`Radio station ${station.name}`}
+                loading="lazy"
+                unoptimized
                 onError={(): void => setImgSrc("/radio-placeholder.png")}
             />
             <span className="mt-2 block truncate text-center font-semibold">
@@ -59,7 +61,9 @@ export default function RadioSection({
                 {$vocabulary.RADIO_STATIONS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {stations.map(
+                {[...stations]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(
                     (station): JSX.Element => (
                         <RadioStationCard
                             key={station.providerUrl + station.name}

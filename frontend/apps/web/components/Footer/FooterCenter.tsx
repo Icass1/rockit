@@ -2,7 +2,7 @@
 
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { EQueueType, ERepeatMode } from "@rockit/packages/shared";
+import { EQueueType, ERepeatMode, isStation } from "@rockit/packages/shared";
 import {
     CirclePause,
     CirclePlay,
@@ -28,11 +28,11 @@ export default function FooterCenter(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
     const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
-    const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const isLiveStation = $currentMedia && isStation($currentMedia);
 
-    if ($currentStation) return <div className="hidden w-1/3 md:block" />;
+    if (!$currentMedia) return <div className="hidden w-1/3 md:block" />;
 
     const RepeatIcon = $repeatMode === ERepeatMode.ONE ? Repeat1 : Repeat;
     const isRepeatActive =
@@ -113,47 +113,29 @@ export default function FooterCenter(): JSX.Element {
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
                     {getTime($currentTime ?? 0)}
                 </span>
-                {/* <div className="relative h-1 w-full max-w-full min-w-0 rounded-full bg-neutral-700">
-                    <input
-                        type="range"
-                        id="default-slider"
-                        aria-label={$vocabulary.MEDIA_PROGRESS}
-                        aria-valuetext={`${getTime($currentTime ?? 0)} of ${getTime(getMediaDuration($currentMedia) ?? 0)}`}
-                        className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
-                        value={$currentTime ?? 0}
-                        min={0}
-                        max={getMediaDuration($currentMedia)}
-                        step={0.001}
-                        onChange={(e) =>
-                            rockIt.mediaPlayerManager.setCurrentTime(
-                                Number(e.target.value)
-                            )
-                        }
-                    />
-                </div> */}
                 <Slider
                     id="default-slider"
                     className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
                     value={$currentTime}
                     min={0}
-                    max={getMediaDuration($currentMedia)}
-                    onChange={(e): void =>
+                    max={isLiveStation ? 3600 : getMediaDuration($currentMedia)}
+                    onChange={isLiveStation ? undefined : (e): void =>
                         rockIt.mediaPlayerManager.setCurrentTime(
                             Number(e.target.value),
                             false
                         )
                     }
-                    onPointerDown={(): void =>
+                    onPointerDown={isLiveStation ? undefined : (): void =>
                         rockIt.mediaPlayerManager.beginSeek()
                     }
-                    onPointerUp={(e): void =>
+                    onPointerUp={isLiveStation ? undefined : (e): void =>
                         rockIt.mediaPlayerManager.endSeek(
                             Number(e.currentTarget.value)
                         )
                     }
                 />
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
-                    {getTime(getMediaDuration($currentMedia) ?? 0)}
+                    {getTime(isLiveStation ? $currentTime ?? 0 : (getMediaDuration($currentMedia) ?? 0))}
                 </span>
             </div>
         </div>

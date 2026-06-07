@@ -12,3 +12,12 @@ class BaseStationResponse(BaseModel):
     providerUrl: str
     name: str
     imageUrl: str
+    streamUrl: str | None = None
+    country: str | None = None
+    countryCode: str | None = None
+    codec: str | None = None
+    bitrate: int | None = None
+    tags: str | None = None
+    homepage: str | None = None
+    geoLat: float | None = None
+    geoLong: float | None = None

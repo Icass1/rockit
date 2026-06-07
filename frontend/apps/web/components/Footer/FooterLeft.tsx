@@ -11,13 +11,13 @@ import {
     Play,
     PlayIcon,
 } from "lucide-react";
-import { EMediaContextLocation } from "@rockit/shared";
+import { EMediaContextLocation, isStation } from "@rockit/shared";
 import {
     getMediaAlbum,
     getMediaArtists,
     TPlayableMedia,
 } from "@/models/types/media";
-import { Station } from "@/models/types/station";
+import type { BaseStationResponse } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
@@ -113,7 +113,7 @@ function FooterLeftForMedia({
 function FooterLeftForStation({
     currentStation,
 }: {
-    currentStation: Station;
+    currentStation: BaseStationResponse;
 }): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
@@ -124,7 +124,7 @@ function FooterLeftForStation({
                 <Image
                     width={64}
                     height={64}
-                    src={currentStation.favicon}
+                    src={currentStation.imageUrl}
                     alt={currentStation.name}
                     className="absolute h-full w-full object-cover select-none"
                 />
@@ -165,13 +165,16 @@ function FooterLeftForStation({
 
 export default function FooterLeft(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    if ($currentMedia)
+    if ($currentMedia) {
+        if (isStation($currentMedia)) {
+            return (
+                <FooterLeftForStation currentStation={$currentMedia} />
+            );
+        }
         return <FooterLeftForMedia currentMedia={$currentMedia} />;
-    if ($currentStation)
-        return <FooterLeftForStation currentStation={$currentStation} />;
+    }
 
     return (
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 text-sm text-gray-400 md:w-1/3">

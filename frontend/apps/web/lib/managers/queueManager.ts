@@ -5,6 +5,7 @@ import {
     isAlbumWithSongs,
     isPlaylist,
     isQueueable,
+    isStation,
     TListMedia,
     TPlayableMedia,
     TQueueMedia,
@@ -234,13 +235,14 @@ export class QueueManager {
                 return;
             }
 
-            if (!media.media.downloaded) {
+            if (!isStation(media.media) && !media.media.downloaded) {
                 console.warn("Current media is not downloaded");
                 const index = queue.indexOf(media);
                 for (let i = 1; i < queue.length; i++) {
                     const nextIndex =
                         (index + direction * i + queue.length) % queue.length;
-                    if (queue[nextIndex].media.downloaded) {
+                    const nextMedia = queue[nextIndex].media;
+                    if (isStation(nextMedia) || "downloaded" in nextMedia && nextMedia.downloaded) {
                         this.setQueueMediaId(
                             queue[nextIndex].queueMediaId,
                             direction

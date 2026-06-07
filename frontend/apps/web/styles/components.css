@@ -161,6 +161,7 @@
 .webkit-scroll {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 /* ── Safe area bottom ─────────────────────
@@ -176,4 +177,32 @@
     -webkit-backdrop-filter: blur(10px);
     will-change: backdrop-filter;
     contain: paint;
+}
+
+/* ── Radio Map ────────────────────────────
+   Leaflet map container and tooltip overrides
+   for dark mode
+   ─────────────────────────────────────── */
+.radio-map-container .leaflet-container {
+    background: #0b0b0b;
+    outline: none;
+}
+
+.radio-map-container .leaflet-tile-pane {
+    filter: brightness(0.8) contrast(1.2);
+}
+
+.radio-country-tooltip {
+    background: rgba(238, 16, 134, 0.9) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: white !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.radio-country-tooltip::before {
+    border-top-color: rgba(238, 16, 134, 0.9) !important;
 }

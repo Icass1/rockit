@@ -1,7 +1,7 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { isSong, isVideo, TPlayableMedia } from "@rockit/packages/shared";
+import { isSong, isStation, isVideo, TPlayableMedia } from "@rockit/packages/shared";
 import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
@@ -136,6 +136,41 @@ export default function PlayerUIMain({
                             className="text-md w-fit flex-nowrap truncate text-left font-semibold"
                             artists={currentMedia.artists}
                         />
+                    </div>
+                </div>
+            </div>
+        );
+    } else if (isStation(currentMedia)) {
+        return (
+            <div
+                className="relative flex h-full w-full items-center justify-center"
+                onMouseEnter={(): void => setSongHover(true)}
+                onMouseLeave={(): void => setSongHover(false)}
+            >
+                <div
+                    className="relative aspect-square h-[93%] cursor-pointer overflow-hidden rounded-xl"
+                    onClick={handleClick}
+                >
+                    <Image
+                        src={currentMedia.imageUrl}
+                        fill
+                        alt={currentMedia.name}
+                        className="object-cover"
+                    />
+                    {iconOverlay}
+                    <div
+                        className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
+                            songHover
+                                ? "opacity-100"
+                                : "pointer-events-none opacity-0"
+                        }`}
+                    >
+                        <label className="truncate text-2xl font-bold">
+                            {currentMedia.name}
+                        </label>
+                        <label className="text-md w-fit flex-nowrap truncate text-left font-semibold text-neutral-400">
+                            {currentMedia.country ?? "Radio Station"}
+                        </label>
                     </div>
                 </div>
             </div>

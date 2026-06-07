@@ -18,6 +18,7 @@ from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 
 from backend.core.responses.mediaResponse import MediaResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.baseStationResponse import BaseStationResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
@@ -313,7 +314,9 @@ class Media:
 
             # Schedule provider search
             task: asyncio.Task[AResult[List[BaseSearchResultsItem]]] = (
-                asyncio.create_task(provider.search_media_async(session=session, query=query))
+                asyncio.create_task(
+                    provider.search_media_async(session=session, query=query)
+                )
             )
             tasks.append(task)
 
@@ -390,6 +393,46 @@ class Media:
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting video. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+
+    @staticmethod
+    async def get_station_async(
+        session: AsyncSession, public_id: str
+    ) -> AResult[BaseStationResponse]:
+        """Get a station by public_id, dispatching to the matched provider."""
+
+        a_result_station: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_keys=[MediaTypeEnum.RADIO],
+            )
+        )
+        if a_result_station.is_not_ok():
+            logger.error(
+                f"Error getting station from database for public id {public_id}. {a_result_station.info()}"
+            )
+            return AResult(
+                code=a_result_station.code(), message=a_result_station.message()
+            )
+
+        station: CoreMediaRow = a_result_station.result()
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            station.provider_id
+        )
+        if provider is None:
+            logger.error(f"No provider found for provider_id {station.provider_id}.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Provider not found for station"
+            )
+
+        a_result: AResult[List[BaseStationResponse]] = (
+            await provider.get_stations_async(session=session, public_ids=[public_id])
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Provider error getting station. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
@@ -473,6 +516,18 @@ class Media:
 
         elif media_type == MediaTypeEnum.VIDEO:
             a_result = await provider.get_videos_async(
+                session=session, public_ids=[public_id]
+            )
+            if a_result.is_not_ok():
+                return AResult(code=a_result.code(), message=a_result.message())
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaResponse(media=a_result.result()[0]),
+            )
+
+        elif media_type == MediaTypeEnum.RADIO:
+            a_result = await provider.get_stations_async(
                 session=session, public_ids=[public_id]
             )
             if a_result.is_not_ok():

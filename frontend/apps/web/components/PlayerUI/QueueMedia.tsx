@@ -24,6 +24,11 @@ export function QueueMedia({
 
     const isCurrent = media.queueMediaId === $currentQueueMediaId;
 
+    const m = media.media;
+    const artists = "artists" in m
+        ? (m as { artists: { publicId: string; name: string }[] }).artists
+        : undefined;
+
     return (
         <div
             onClick={onClick}
@@ -31,7 +36,7 @@ export function QueueMedia({
                 isCurrent
                     ? "bg-[rgba(50,50,50,0.4)]"
                     : "md:hover:bg-[rgba(75,75,75,0.4)]"
-            } ${isDownloadable(media.media) && !media.media.downloaded && "pointer-events-none opacity-50"}`}
+            } ${isDownloadable(media.media) && "downloaded" in media.media && !media.media.downloaded && "pointer-events-none opacity-50"}`}
         >
             <div className="flex cursor-grab items-center active:cursor-grabbing">
                 <GripVertical
@@ -86,13 +91,13 @@ export function QueueMedia({
                         className="w-fit max-w-full min-w-0 flex-nowrap overflow-x-hidden text-left text-sm text-gray-300"
                         artists={media.media.artists}
                     /> */}
-                    {media.media.artists.map((artist, index) => (
+                    {artists && artists.map((artist, index) => (
                         <span
                             key={artist.publicId}
                             className="text-sm text-gray-300"
                         >
                             {artist.name}
-                            {index !== media.media.artists.length - 1 && (
+                            {index !== artists.length - 1 && (
                                 <span>, </span>
                             )}
                         </span>

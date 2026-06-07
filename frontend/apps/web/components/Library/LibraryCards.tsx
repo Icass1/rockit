@@ -21,7 +21,7 @@ import {
 } from "@rockit/shared";
 import Image from "next/image";
 import Link from "next/link";
-import { JSX, ReactNode, useRef } from "react";
+import { JSX, ReactNode, useRef, useState } from "react";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -79,6 +79,9 @@ function LibraryCard({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const linkClass = `library-item relative flex flex-col transition-transform md:hover:scale-105 ${className}`;
     const isVideo = aspectRatio === "video";
+    const [cardImgSrc, setCardImgSrc] = useState(
+        imageUrl || "/radio-placeholder.png"
+    );
 
     const imageBlock = (
         <div
@@ -91,19 +94,21 @@ function LibraryCard({
             {isVideo ? (
                 <Image
                     alt={name}
-                    src={imageUrl}
+                    src={cardImgSrc}
                     fill
                     sizes={COVER_SIZES}
                     className="object-cover"
+                    onError={(): void => setCardImgSrc("/radio-placeholder.png")}
                 />
             ) : (
                 <Image
                     alt={name}
-                    src={imageUrl}
+                    src={cardImgSrc}
                     width={COVER_PX}
                     height={COVER_PX}
                     sizes={COVER_SIZES}
                     className="aspect-square w-full rounded-md object-cover"
+                    onError={(): void => setCardImgSrc("/radio-placeholder.png")}
                 />
             )}
             <div className="absolute top-1 left-1 flex gap-1">
@@ -208,6 +213,7 @@ export function AlbumCard({
                 <Artists
                     artists={album.artists}
                     className="text-sm text-gray-400"
+                    linkable={false}
                 />
             }
             href={album.url}
@@ -308,9 +314,9 @@ export function StationCard({
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {
-        // rockIt.queueManager.setMedia([$station], $station.publicId);
-        // rockIt.queueManager.moveToMedia($station.publicId);
-        // rockIt.mediaPlayerManager.play();
+        rockIt.queueManager.setMedia([$station], $station.publicId);
+        rockIt.queueManager.moveToMedia($station.publicId);
+        rockIt.mediaPlayerManager.play();
     };
 
     return (

@@ -28,6 +28,7 @@ from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
 from backend.core.responses.mediaResponse import MediaResponse
 from backend.core.responses.urlMatchResponse import UrlMatchResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.baseStationResponse import BaseStationResponse
 from backend.core.responses.searchResponse import SearchResultsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
@@ -128,6 +129,22 @@ async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[BaseVideoResponse] = await Media.get_video_async(
+        session=session, public_id=public_id
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.get("/station/{public_id}")
+async def get_station_async(request: Request, public_id: str) -> BaseStationResponse:
+    """Get a station by its public_id."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result: AResult[BaseStationResponse] = await Media.get_station_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():

@@ -1,22 +1,31 @@
-import { type Station } from "@rockit/shared";
+import { Http } from "@/lib/http";
+import { BaseStationResponse } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class StationManager {
-    private _currentStationAtom = createAtom<Station | undefined>();
+    private _currentStationAtom = createAtom<BaseStationResponse | undefined>();
 
-    setAndPlayStation(station: Station): void {
+    async setAndPlayStation(station: BaseStationResponse): Promise<void> {
         this._currentStationAtom.set(station);
 
-        const streamUrl = station.url_resolved || station.url;
-        rockIt.mediaPlayerManager.playStream(streamUrl);
+        rockIt.queueManager.setMedia([station], station.publicId);
+        rockIt.queueManager.moveToMedia(station.publicId);
+        rockIt.mediaPlayerManager.play();
+    }
+
+    async playStationByPublicId(publicId: string): Promise<void> {
+        const result = await Http.getStation(publicId);
+        if (result.isOk()) {
+            await this.setAndPlayStation(result.result);
+        }
     }
 
     clearStation(): void {
         this._currentStationAtom.set(undefined);
     }
 
-    get currentStationAtom(): ReadonlyAtom<Station | undefined> {
+    get currentStationAtom(): ReadonlyAtom<BaseStationResponse | undefined> {
         return this._currentStationAtom.getReadonlyAtom();
     }
 }

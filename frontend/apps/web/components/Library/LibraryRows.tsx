@@ -226,12 +226,9 @@ export function StationRow({
     const $station = useMedia(_station);
 
     const handlePlay = (): void => {
-        // rockIt.queueManager.setMedia(
-        //     [$station as TPlayableMedia],
-        //     $station.publicId
-        // );
-        // rockIt.queueManager.moveToMedia($station.publicId);
-        // rockIt.mediaPlayerManager.play();
+        rockIt.queueManager.setMedia([$station], $station.publicId);
+        rockIt.queueManager.moveToMedia($station.publicId);
+        rockIt.mediaPlayerManager.play();
     };
 
     return (

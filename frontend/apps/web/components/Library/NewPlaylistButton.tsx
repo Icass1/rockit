@@ -74,6 +74,7 @@ export default function NewPlaylistButton({
                             fill
                             sizes="48px"
                             className="object-cover"
+                            priority
                         />
                         <Plus className="absolute inset-0 h-full w-full p-2" />
                     </div>
@@ -96,6 +97,7 @@ export default function NewPlaylistButton({
                                 src="/rockit-background.png"
                                 width={600}
                                 height={600}
+                                priority
                             />
                             <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6" />
                         </div>

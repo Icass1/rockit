@@ -35,6 +35,7 @@ export default function AppClientLayout({
                         className="mx-auto my-2 aspect-2048/614 h-14 object-contain"
                         width={2048}
                         height={614}
+                        priority
                     />
                 </Link>
             </div>

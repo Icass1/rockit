@@ -141,8 +141,8 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": _naive_utc(start_date),
-                    "end_date": _naive_utc(end_date),
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                 },
             )
         ).fetchone()
@@ -194,7 +194,7 @@ class StatsAccess:
               AND  uml.date_added <  :end_date
               AND  cm.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
         )
-        SELECT DATE_TRUNC('{pg_period}', l.date_added)           AS period_start,
+        SELECT DATE_TRUNC('{pg_period}', l.date_added AT TIME ZONE 'UTC') AS period_start,
                SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 AS minutes
         FROM   listens l
         LEFT JOIN media_info mi ON mi.media_id = l.media_id
@@ -206,8 +206,8 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": _naive_utc(start_date),
-                    "end_date": _naive_utc(end_date),
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                 },
             )
         ).fetchall()
@@ -329,8 +329,8 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": _naive_utc(start_date),
-                    "end_date": _naive_utc(end_date),
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                     "limit": limit,
                 },
             )
@@ -391,8 +391,8 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": _naive_utc(start_date),
-                    "end_date": _naive_utc(end_date),
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                     "limit": limit,
                 },
             )
@@ -441,8 +441,8 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": _naive_utc(start_date),
-                    "end_date": _naive_utc(end_date),
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                     "limit": limit,
                 },
             )
@@ -491,8 +491,8 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": _naive_utc(start_date),
-                    "end_date": _naive_utc(end_date),
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                     "limit": limit,
                 },
             )
@@ -537,8 +537,8 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
-                    "start_date": _naive_utc(start_date),
-                    "end_date": _naive_utc(end_date),
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                 },
             )
         ).fetchall()

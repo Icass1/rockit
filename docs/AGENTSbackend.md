@@ -133,6 +133,7 @@ async def get_user(request, user_id):
     a_result = await UserFramework.get_user_async(session, user_id)
 
     if a_result.is_not_ok():
+        logger.error(f"Error. {a_result.info()}")
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
     return a_result.result()

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, TYPE_CHECKING
 
 from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -11,10 +11,19 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 )
 from backend.core.access.db.ormModels.media import CoreMediaRow
 
+if TYPE_CHECKING:
+    from backend.radioBrowser.access.db.ormModels.tag import TagRow
+    from backend.radioBrowser.access.db.ormModels.languageCode import (
+        LanguageCodeRow,
+    )
+    from backend.radioBrowser.access.db.ormModels.country import CountryRow
+    from backend.radioBrowser.access.db.ormModels.state import StateRow
+    from backend.radioBrowser.access.db.ormModels.codec import CodecRow
+
 
 class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "station"
-    __table_args__ = ({"schema": "radio", "extend_existing": True},)
+    __table_args__ = ({"schema": "radio_browser", "extend_existing": True},)
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True
@@ -24,20 +33,51 @@ class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
     stream_url: Mapped[str] = mapped_column(String, nullable=False)
     homepage: Mapped[str | None] = mapped_column(String, nullable=True)
     favicon_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    country: Mapped[str | None] = mapped_column(String, nullable=True)
-    country_code: Mapped[str | None] = mapped_column(String, nullable=True)
-    state: Mapped[str | None] = mapped_column(String, nullable=True)
     language: Mapped[str | None] = mapped_column(String, nullable=True)
-    language_codes: Mapped[str | None] = mapped_column(String, nullable=True)
-    codec: Mapped[str | None] = mapped_column(String, nullable=True)
     bitrate: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    tags: Mapped[str | None] = mapped_column(String, nullable=True)
     votes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     geo_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     geo_long: Mapped[float | None] = mapped_column(Float, nullable=True)
 
+    country_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("radio_browser.country.id"), nullable=True
+    )
+    state_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("radio_browser.state.id"), nullable=True
+    )
+    codec_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("radio_browser.codec.id"), nullable=True
+    )
+
     core_station: Mapped["CoreMediaRow"] = relationship(
         CoreMediaRow, lazy="selectin", uselist=False
+    )
+    tags_rel: Mapped[List["TagRow"]] = relationship(
+        "TagRow",
+        secondary="radio_browser.station_tag",
+        back_populates="stations",
+        lazy="selectin",
+    )
+    language_codes_rel: Mapped[List["LanguageCodeRow"]] = relationship(
+        "LanguageCodeRow",
+        secondary="radio_browser.station_language_code",
+        back_populates="stations",
+        lazy="selectin",
+    )
+    country_rel: Mapped["CountryRow | None"] = relationship(
+        "CountryRow",
+        back_populates="stations",
+        lazy="selectin",
+    )
+    state_rel: Mapped["StateRow | None"] = relationship(
+        "StateRow",
+        back_populates="stations",
+        lazy="selectin",
+    )
+    codec_rel: Mapped["CodecRow | None"] = relationship(
+        "CodecRow",
+        back_populates="stations",
+        lazy="selectin",
     )
 
     def __init__(
@@ -48,17 +88,14 @@ class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
         stream_url: str,
         homepage: str | None = None,
         favicon_url: str | None = None,
-        country: str | None = None,
-        country_code: str | None = None,
-        state: str | None = None,
         language: str | None = None,
-        language_codes: str | None = None,
-        codec: str | None = None,
         bitrate: int | None = None,
-        tags: str | None = None,
         votes: int | None = None,
         geo_lat: float | None = None,
         geo_long: float | None = None,
+        country_id: int | None = None,
+        state_id: int | None = None,
+        codec_id: int | None = None,
     ):
         kwargs: Dict[str, None | float | int | str] = {}
         kwargs["id"] = id
@@ -67,16 +104,13 @@ class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdde
         kwargs["stream_url"] = stream_url
         kwargs["homepage"] = homepage
         kwargs["favicon_url"] = favicon_url
-        kwargs["country"] = country
-        kwargs["country_code"] = country_code
-        kwargs["state"] = state
         kwargs["language"] = language
-        kwargs["language_codes"] = language_codes
-        kwargs["codec"] = codec
         kwargs["bitrate"] = bitrate
-        kwargs["tags"] = tags
         kwargs["votes"] = votes
         kwargs["geo_lat"] = geo_lat
         kwargs["geo_long"] = geo_long
+        kwargs["country_id"] = country_id
+        kwargs["state_id"] = state_id
+        kwargs["codec_id"] = codec_id
         for k, v in kwargs.items():
             setattr(self, k, v)

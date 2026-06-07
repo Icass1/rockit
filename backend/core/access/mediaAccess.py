@@ -68,7 +68,7 @@ class MediaAccess:
 
         if a_result_media.is_not_ok():
             logger.error(
-                f"Error getting medias from public id {public_id}. {a_result_media.info()}"
+                f"Error getting medias from public id {public_id} with media type {media_type_keys}."
             )
             return AResult(code=a_result_media.code(), message=a_result_media.message())
 

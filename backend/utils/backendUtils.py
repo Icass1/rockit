@@ -6,7 +6,7 @@ from datetime import timezone
 from collections import Counter
 from contextvars import ContextVar
 from PIL import Image, ImageDraw, ImageFilter
-from typing import Any, Callable, List, TypeVar
+from typing import Any, Callable, List, ParamSpec, TypeVar
 
 import requests
 import random
@@ -22,9 +22,10 @@ logger = getLogger(__name__)
 
 
 T = TypeVar("T")
+P = ParamSpec("P")
 
 
-def time_it(func: Callable[..., T]) -> Callable[..., T]:
+def time_it(func: Callable[P, T]) -> Callable[P, T]:
     # Get file and line number once at decoration time
     file = inspect.getsourcefile(func)
     line = inspect.getsourcelines(func)[1]

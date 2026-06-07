@@ -67,6 +67,7 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
     session = DBSessionMiddleware.get_session(request=request)
     a_result = await UserFramework.get_user_async(session=session, user_id=user_id)
     if a_result.is_not_ok():
+        logger.error(f"Error getting user. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message()
@@ -199,10 +200,11 @@ No file headers (copyright, etc.) unless required by law.
 4. **NEVER** write raw SQL in framework or controller layers — SQL can only live in `access/` files
 5. **NEVER** return `dict` or raw types from endpoints — always use a Pydantic `BaseModel`
 6. **NEVER** send the internal `id` to the client — always use `public_id`
-7. **ALWAYS** use keyword arguments in Python function calls
-8. **ALWAYS** run `black` after every edit
-9. **NEVER** edit files in `packages/shared/src/dto/` manually — they are auto-generated
-10. **ALWAYS** follow the AResult pattern in framework and access layers
+7. **ALWAYS** log with `logger.error(...)` or `logger.warning(...)` before raising `HTTPException` or returning a non-OK `AResult`
+8. **ALWAYS** use keyword arguments in Python function calls
+9. **ALWAYS** run `black` after every edit
+10. **NEVER** edit files in `packages/shared/src/dto/` manually — they are auto-generated
+11. **ALWAYS** follow the AResult pattern in framework and access layers
 11. **NEVER** make single database queries inside a for/while loop (N+1 problem). Instead, make a single batch query (e.g. `WHERE id IN (...)`) to fetch all data at once, then process the results in memory. The number of DB queries must not depend on the number of items being processed.
 
 ### Key Files

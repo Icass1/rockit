@@ -243,6 +243,7 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
     a_result = await UserFramework.get_user_async(session=session, user_id=user_id)
 
     if a_result.is_not_ok():
+        logger.error(f"Error getting user. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message()
@@ -912,6 +913,7 @@ if (typeof window !== "undefined") { ... }
 - Never write raw SQL in framework or controller layers — SQL can only live in `access/` files
 - Never return `dict` or raw types from endpoints — always use a Pydantic `BaseModel`
 - Never send the internal `id` to the client — always use `public_id`
+- **ALWAYS** log with `logger.error(...)` or `logger.warning(...)` before raising `HTTPException` or returning a non-OK `AResult`
 
 ### Frontend
 

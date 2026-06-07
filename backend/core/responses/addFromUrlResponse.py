@@ -7,6 +7,7 @@ from backend.core.responses.basePlaylistWithoutMediasResponse import (
 )
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.baseStationResponse import BaseStationResponse
 
 
 class AddFromUrlResponse(BaseModel):
@@ -16,4 +17,5 @@ class AddFromUrlResponse(BaseModel):
         | BasePlaylistWithoutMediasResponse
         | BaseAlbumWithSongsResponse
         | BaseArtistResponse
+        | BaseStationResponse
     )

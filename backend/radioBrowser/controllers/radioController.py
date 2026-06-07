@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import List, cast
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,7 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 from backend.core.responses.baseStationResponse import BaseStationResponse
 
-from backend.radio.framework.radio import Radio
+from backend.radioBrowser.framework.radio import Radio
 
 logger: Logger = getLogger(__name__)
 
@@ -36,6 +36,7 @@ async def get_station(request: Request, public_id: str) -> BaseStationResponse:
         )
     )
     if a_result.is_not_ok():
+        logger.error("TODO")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
@@ -59,6 +60,7 @@ async def get_stations_with_geo(
         )
     )
     if a_result.is_not_ok():
+        logger.error("TODO")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
@@ -75,19 +77,14 @@ async def get_stations_by_country(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    provider = Radio.provider
-    if provider is None:
-        raise HTTPException(status_code=500, detail="Radio provider not initialized")
-
-    from backend.radio.framework.provider.radioProvider import RadioProvider
-    radio_provider = cast(RadioProvider, provider)
-
     a_result: AResult[List[BaseStationResponse]] = (
-        await radio_provider.get_stations_by_country_async(
-            session=session, country=country
+        await Radio.get_stations_by_country_async(
+            session=session,
+            country=country,
         )
     )
     if a_result.is_not_ok():
+        logger.error("TODO")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

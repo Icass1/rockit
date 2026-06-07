@@ -1,10 +1,43 @@
 "use client";
 
-import { JSX } from "react";
+import { JSX, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
+
+function RadioStationCard({
+    station,
+    onPlay,
+}: {
+    station: BaseSearchResultsItem;
+    onPlay: (station: BaseSearchResultsItem) => void;
+}): JSX.Element {
+    const [imgSrc, setImgSrc] = useState(
+        station.imageUrl || "/radio-placeholder.png"
+    );
+
+    return (
+        <div
+            className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
+            onClick={(): void => { void onPlay(station); }}
+        >
+            <Image
+                width={350}
+                height={350}
+                className="aspect-square w-full rounded-lg object-cover"
+                src={imgSrc}
+                alt={`Radio station ${station.name}`}
+                loading="lazy"
+                unoptimized
+                onError={(): void => setImgSrc("/radio-placeholder.png")}
+            />
+            <span className="mt-2 block truncate text-center font-semibold">
+                {station.name}
+            </span>
+        </div>
+    );
+}
 
 export default function RadioSection({
     stations,
@@ -28,28 +61,15 @@ export default function RadioSection({
                 {$vocabulary.RADIO_STATIONS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {stations.map(
+                {[...stations]
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(
                     (station): JSX.Element => (
-                        <div
-                            className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
+                        <RadioStationCard
                             key={station.providerUrl + station.name}
-                            onClick={(): Promise<void> => handlePlay(station)}
-                        >
-                            <Image
-                                width={350}
-                                height={350}
-                                className="aspect-square w-full rounded-lg object-cover"
-                                src={
-                                    station.imageUrl
-                                        ? station.imageUrl
-                                        : "/radio-placeholder.png"
-                                }
-                                alt={`Radio station ${station.name}`}
-                            />
-                            <span className="mt-2 block truncate text-center font-semibold">
-                                {station.name}
-                            </span>
-                        </div>
+                            station={station}
+                            onPlay={handlePlay}
+                        />
                     )
                 )}
             </div>

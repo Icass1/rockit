@@ -60,6 +60,8 @@ function StationSearchCard({
                     className="aspect-square w-full rounded-lg object-cover"
                     src={imgSrc}
                     alt={station.name}
+                    loading="lazy"
+                    unoptimized
                     onError={(): void => setImgSrc("/radio-placeholder.png")}
                 />
                 <span className="mt-2 block truncate text-center font-semibold text-white">
@@ -102,6 +104,8 @@ function StationSearchRow({
                     className="h-12 w-12 shrink-0 rounded object-cover"
                     src={imgSrc}
                     alt={station.name}
+                    loading="lazy"
+                    unoptimized
                     onError={(): void => setImgSrc("/radio-placeholder.png")}
                 />
                 <span className="truncate text-sm font-semibold text-white">
@@ -213,7 +217,9 @@ export default function RadioClient(): JSX.Element {
     }, [loadingCountry, countryStations]);
 
     const displayedStations: (BaseStationResponse | BaseSearchResultsItem)[] =
-        countryStations ?? searchResults ?? libraryStations;
+        (countryStations ?? searchResults ?? libraryStations).slice().sort(
+            (a, b) => a.name.localeCompare(b.name)
+        );
 
     const showEmptyState =
         !loading &&

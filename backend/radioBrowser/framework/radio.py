@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import uuid
 from logging import Logger
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -83,6 +83,32 @@ class Radio:
         return AResult(code=AResultCode.OK, message="OK", result=stations)
 
     @staticmethod
+    def _raw_to_station_data(
+        raw: RadioBrowserStationResponse,
+    ) -> Dict[str, Any]:
+        """Convert a RadioBrowserStationResponse to a dict for batch_create."""
+
+        geo_lat, geo_long = Radio._parse_geo(raw_lat=raw.geo_lat, raw_long=raw.geo_long)
+        return {
+            "radio_id": raw.stationuuid,
+            "name": raw.name,
+            "stream_url": raw.url_resolved or raw.url,
+            "homepage": raw.homepage,
+            "favicon_url": raw.favicon,
+            "country": raw.country,
+            "country_code": raw.countrycode,
+            "state": raw.state,
+            "language": raw.language,
+            "codec": raw.codec,
+            "bitrate": raw.bitrate,
+            "votes": raw.votes,
+            "geo_lat": geo_lat,
+            "geo_long": geo_long,
+            "tags": Radio._split_tags(raw.tags),
+            "language_codes": Radio._split_language_codes(raw.languagecodes),
+        }
+
+    @staticmethod
     async def search_media_async(
         session: AsyncSession,
         query: str,
@@ -97,53 +123,38 @@ class Radio:
         if not raw_stations:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
+        a_result_provider_id = Radio.provider.get_id()
+        if a_result_provider_id.is_not_ok():
+            return AResult(code=AResultCode.GENERAL_ERROR, message="No provider ID")
+        provider_id: int = a_result_provider_id.result()
+
+        stations_data: List[Dict[str, Any]] = [
+            Radio._raw_to_station_data(raw) for raw in raw_stations
+        ]
+
+        a_batch = await RadioAccess.batch_get_or_create_all_async(
+            session=session, stations_data=stations_data, provider_id=provider_id
+        )
+        if a_batch.is_not_ok():
+            logger.error(f"Batch station creation failed: {a_batch.info()}")
+            return AResult(code=a_batch.code(), message=a_batch.message())
+
+        station_map: Dict[str, StationRow] = a_batch.result()
+
         results: List[BaseSearchResultsItem] = []
-
-        for raw in raw_stations:
-            geo_lat, geo_long = Radio._parse_geo(
-                raw_lat=raw.geo_lat, raw_long=raw.geo_long
-            )
-
-            tags_list = Radio._split_tags(raw.tags)
-            language_codes_list = Radio._split_language_codes(raw.languagecodes)
-
-            a_result_provider_id = Radio.provider.get_id()
-            if a_result_provider_id.is_not_ok():
+        for sd in stations_data:
+            station = station_map.get(sd["radio_id"])
+            if not station:
                 continue
-            provider_id: int = a_result_provider_id.result()
-
-            a_result_station = await RadioAccess.get_or_create_station_async(
-                session=session,
-                radio_id=raw.stationuuid,
-                name=raw.name,
-                stream_url=raw.url_resolved or raw.url,
-                provider_id=provider_id,
-                homepage=raw.homepage,
-                favicon_url=raw.favicon,
-                country=raw.country,
-                country_code=raw.countrycode,
-                state=raw.state,
-                language=raw.language,
-                codec=raw.codec,
-                bitrate=raw.bitrate,
-                votes=raw.votes,
-                geo_lat=geo_lat,
-                geo_long=geo_long,
-                tags=tags_list,
-                language_codes=language_codes_list,
-            )
-            if a_result_station.is_not_ok():
-                continue
-
-            station: StationRow = a_result_station.result()
             public_id = station.core_station.public_id if station.core_station else ""
-
+            if not public_id:
+                continue
             results.append(
                 BaseSearchResultsItem(
                     type="radio",
-                    name=raw.name,
+                    name=sd["name"],
                     providerUrl=f"/radio/station/{public_id}",
-                    imageUrl=raw.favicon or "",
+                    imageUrl=sd.get("favicon_url") or "",
                     artists=[],
                     provider=Radio.provider_name,
                     downloaded=None,
@@ -170,47 +181,32 @@ class Radio:
         if not raw_stations:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
+        a_result_provider_id = Radio.provider.get_id()
+        if a_result_provider_id.is_not_ok():
+            return AResult(code=AResultCode.GENERAL_ERROR, message="No provider ID")
+        provider_id: int = a_result_provider_id.result()
+
+        stations_data: List[Dict[str, Any]] = [
+            Radio._raw_to_station_data(raw) for raw in raw_stations
+        ]
+
+        a_batch = await RadioAccess.batch_get_or_create_all_async(
+            session=session, stations_data=stations_data, provider_id=provider_id
+        )
+        if a_batch.is_not_ok():
+            logger.error(f"Batch station creation failed: {a_batch.info()}")
+            return AResult(code=a_batch.code(), message=a_batch.message())
+
+        station_map: Dict[str, StationRow] = a_batch.result()
+
         results: List[BaseStationResponse] = []
-
-        for raw in raw_stations:
-            geo_lat, geo_long = Radio._parse_geo(
-                raw_lat=raw.geo_lat, raw_long=raw.geo_long
-            )
-
-            tags_list = Radio._split_tags(raw.tags)
-            language_codes_list = Radio._split_language_codes(raw.languagecodes)
-
-            a_result_provider_id = Radio.provider.get_id()
-            if a_result_provider_id.is_not_ok():
+        for sd in stations_data:
+            station = station_map.get(sd["radio_id"])
+            if not station:
                 continue
-            provider_id: int = a_result_provider_id.result()
-
-            a_result_station = await RadioAccess.get_or_create_station_async(
-                session=session,
-                radio_id=raw.stationuuid,
-                name=raw.name,
-                stream_url=raw.url_resolved or raw.url,
-                provider_id=provider_id,
-                homepage=raw.homepage,
-                favicon_url=raw.favicon,
-                country=raw.country,
-                country_code=raw.countrycode,
-                state=raw.state,
-                language=raw.language,
-                codec=raw.codec,
-                bitrate=raw.bitrate,
-                votes=raw.votes,
-                geo_lat=geo_lat,
-                geo_long=geo_long,
-                tags=tags_list,
-                language_codes=language_codes_list,
-            )
-            if a_result_station.is_not_ok():
-                continue
-
-            station: StationRow = a_result_station.result()
             public_id = station.core_station.public_id if station.core_station else ""
-
+            if not public_id:
+                continue
             results.append(Radio._build_station_response_known(station, public_id))
 
         return AResult(code=AResultCode.OK, message="OK", result=results)

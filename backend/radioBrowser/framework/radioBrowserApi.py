@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import httpx
 from urllib.parse import quote
 from logging import Logger
@@ -18,10 +19,67 @@ logger: Logger = getLogger(__name__)
 
 RADIO_BROWSER_BASE = "https://de1.api.radio-browser.info/json"
 SEARCH_LIMIT = 25
+COUNTRY_LIMIT = 100
+USER_AGENT = "RockIt/1.0 (self-hosted music player)"
+REQUESTS_PER_SECOND = 2
+
+
+class RateLimiter:
+    """Simple rate limiter — ensures at most N requests per second."""
+
+    def __init__(self, rate: int = REQUESTS_PER_SECOND) -> None:
+        self.interval: float = 1.0 / rate
+        self._last_call: float = 0.0
+
+    async def wait(self) -> None:
+        now: float = asyncio.get_event_loop().time()
+        elapsed: float = now - self._last_call
+        if elapsed < self.interval:
+            await asyncio.sleep(self.interval - elapsed)
+        self._last_call = asyncio.get_event_loop().time()
+
+
+_limiter = RateLimiter()
 
 
 class RadioBrowserApi:
     """API client for the Radio Browser API (radio-browser.info)."""
+
+    @staticmethod
+    async def _request(
+        url: str, params: Dict[str, Any] | None = None
+    ) -> AResult[List[Dict[str, Any]]]:
+        """Make an HTTP GET request with rate limiting and User-Agent."""
+
+        await _limiter.wait()
+        try:
+            headers: Dict[str, str] = {"User-Agent": USER_AGENT}
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                response = await client.get(url, params=params, headers=headers)
+                response.raise_for_status()
+                raw_data: List[Dict[str, Any]] = response.json()
+            return AResult(code=AResultCode.OK, message="OK", result=raw_data)
+
+        except httpx.TimeoutException:
+            logger.warning(f"Radio Browser API timeout: {url}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Radio Browser API timed out",
+            )
+        except Exception as e:
+            logger.error(f"Radio Browser API error: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Radio Browser API error: {e}",
+            )
+
+    @staticmethod
+    def _parse_stations(
+        raw_data: List[Dict[str, Any]],
+    ) -> List[RadioBrowserStationResponse]:
+        """Parse raw API response into station response models."""
+
+        return [RadioBrowserStationResponse.model_validate(item) for item in raw_data]
 
     @staticmethod
     @time_it
@@ -33,43 +91,28 @@ class RadioBrowserApi:
         if not query.strip():
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
-        try:
-            url = f"{RADIO_BROWSER_BASE}/stations/byname/{quote(query)}"
-            params: Dict[str, Any] = {
-                "limit": SEARCH_LIMIT,
-                "offset": 0,
-                "hidebroken": "true",
-                "order": "clickcount",
-                "reverse": "true",
-            }
+        url = f"{RADIO_BROWSER_BASE}/stations/byname/{quote(query)}"
+        params: Dict[str, Any] = {
+            "limit": SEARCH_LIMIT,
+            "offset": 0,
+            "hidebroken": "true",
+            "order": "clickcount",
+            "reverse": "true",
+        }
 
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                response = await client.get(url, params=params)
-                response.raise_for_status()
-                raw_data: List[Dict[str, Any]] = response.json()
+        a_result = await RadioBrowserApi._request(url=url, params=params)
+        if a_result.is_not_ok():
+            return AResult(code=a_result.code(), message=a_result.message())
 
-            if not raw_data:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+        raw_data: List[Dict[str, Any]] = a_result.result()
+        if not raw_data:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
 
-            stations: List[RadioBrowserStationResponse] = [
-                RadioBrowserStationResponse.model_validate(item) for item in raw_data
-            ]
-
-            return AResult(code=AResultCode.OK, message="OK", result=stations)
-
-        except httpx.TimeoutException:
-            logger.warning(f"Radio Browser API timeout for query: {query}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message="Radio Browser API timed out",
-            )
-
-        except Exception as e:
-            logger.error(f"Error searching radio stations: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Error searching radio stations: {e}",
-            )
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=RadioBrowserApi._parse_stations(raw_data),
+        )
 
     @staticmethod
     @time_it
@@ -81,45 +124,28 @@ class RadioBrowserApi:
         if not country.strip():
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
-        try:
-            url = f"{RADIO_BROWSER_BASE}/stations/bycountry/{quote(country)}"
-            params: Dict[str, Any] = {
-                "limit": SEARCH_LIMIT,
-                "offset": 0,
-                "hidebroken": "true",
-                "order": "clickcount",
-                "reverse": "true",
-            }
+        url = f"{RADIO_BROWSER_BASE}/stations/bycountry/{quote(country)}"
+        params: Dict[str, Any] = {
+            "limit": COUNTRY_LIMIT,
+            "offset": 0,
+            "hidebroken": "true",
+            "order": "clickcount",
+            "reverse": "true",
+        }
 
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                response = await client.get(url, params=params)
-                response.raise_for_status()
-                raw_data: List[Dict[str, Any]] = response.json()
+        a_result = await RadioBrowserApi._request(url=url, params=params)
+        if a_result.is_not_ok():
+            return AResult(code=a_result.code(), message=a_result.message())
 
-            if not raw_data:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+        raw_data: List[Dict[str, Any]] = a_result.result()
+        if not raw_data:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
 
-            stations: List[RadioBrowserStationResponse] = [
-                RadioBrowserStationResponse.model_validate(item) for item in raw_data
-            ]
-
-            return AResult(code=AResultCode.OK, message="OK", result=stations)
-
-        except httpx.TimeoutException:
-            logger.warning(f"Radio Browser API timeout for country: {country}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message="Radio Browser API timed out",
-            )
-
-        except Exception as e:
-            logger.error(
-                f"Error getting stations by country {country}: {e}", exc_info=True
-            )
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Error getting stations by country {country}: {e}",
-            )
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=RadioBrowserApi._parse_stations(raw_data),
+        )
 
     @staticmethod
     @time_it
@@ -128,33 +154,21 @@ class RadioBrowserApi:
     ) -> AResult[RadioBrowserStationResponse]:
         """Get a station by its Radio Browser UUID."""
 
-        try:
-            url = f"{RADIO_BROWSER_BASE}/stations/byuuid/{uuid}"
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-                raw_data: List[Dict[str, Any]] = response.json()
+        url = f"{RADIO_BROWSER_BASE}/stations/byuuid/{uuid}"
 
-            if not raw_data or len(raw_data) == 0:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
-                    message="Station not found on Radio Browser",
-                )
+        a_result = await RadioBrowserApi._request(url=url)
+        if a_result.is_not_ok():
+            return AResult(code=a_result.code(), message=a_result.message())
 
-            station = RadioBrowserStationResponse.model_validate(raw_data[0])
-
-            return AResult(code=AResultCode.OK, message="OK", result=station)
-
-        except httpx.TimeoutException:
-            logger.warning(f"Radio Browser API timeout for UUID: {uuid}")
+        raw_data: List[Dict[str, Any]] = a_result.result()
+        if not raw_data:
             return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message="Radio Browser API timed out",
+                code=AResultCode.NOT_FOUND,
+                message="Station not found on Radio Browser",
             )
 
-        except Exception as e:
-            logger.error(f"Error getting station by UUID {uuid}: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Error getting station by UUID: {e}",
-            )
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=RadioBrowserStationResponse.model_validate(raw_data[0]),
+        )

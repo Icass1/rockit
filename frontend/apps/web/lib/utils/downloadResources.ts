@@ -93,7 +93,6 @@ export async function downloadResources({
 }): Promise<void> {
     const database = await openRockItIndexedDB();
 
-    downloadFile("/", database, setResources);
     downloadFile("/library", database, setResources);
     downloadFile("/settings", database);
     downloadFile("/stats", database);

@@ -25,7 +25,7 @@ export default function StatsSection({
             {showDivider && (
                 <div className="mb-8 flex items-center gap-4">
                     <div className="h-px flex-1 bg-gradient-to-r from-white/5 to-transparent" />
-                    <h3 className="shrink-0 text-base font-bold tracking-[0.25em] text-neutral-500 uppercase">
+                    <h3 className="shrink-0 text-base font-bold tracking-[0.25em] text-neutral-500 uppercase break-words">
                         {title}
                     </h3>
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/5" />

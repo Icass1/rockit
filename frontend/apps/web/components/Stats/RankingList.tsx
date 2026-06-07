@@ -111,7 +111,7 @@ function RankingRow({
                     />
                 </div>
 
-                <span className="w-5 text-right text-sm font-medium text-neutral-400 tabular-nums md:w-5 md:text-base">
+                <span className="text-right text-sm font-medium text-neutral-400 tabular-nums md:w-5 md:text-base">
                     {item.value}
                     {valueLabel}
                 </span>

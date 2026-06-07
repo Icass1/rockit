@@ -42,7 +42,10 @@ export default function AppClientLayout({
 
             {/* Main content area */}
             <div className="fixed inset-0 bg-[#0b0b0b] pb-0 md:left-12">
-                <div id="main-scroll-container" className="webkit-scroll h-full w-full overflow-y-auto pt-24 md:pb-24">
+                <div
+                    id="main-scroll-container"
+                    className="webkit-scroll h-full w-full overflow-y-auto pt-24 pb-40 md:pb-24"
+                >
                     {children}
                 </div>
             </div>

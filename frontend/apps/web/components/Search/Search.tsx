@@ -9,9 +9,9 @@ import SearchBarInput from "@/components/Search/SearchBarInput";
 import AlbumsSection from "@/components/Search/sections/AlbumsSection";
 import ArtistsSection from "@/components/Search/sections/ArtistsSection";
 import PlaylistsSection from "@/components/Search/sections/PlaylistsSection";
+import RadioSection from "@/components/Search/sections/RadioSection";
 import SongsSection from "@/components/Search/sections/SongsSection";
 import VideosSection from "@/components/Search/sections/VideosSection";
-import RadioSection from "@/components/Search/sections/RadioSection";
 
 function EmptyState(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -102,7 +102,7 @@ function SearchResults(): JSX.Element {
 export default function Search(): JSX.Element {
     return (
         <>
-            <section className="mt-20 block h-28 px-5 md:hidden">
+            <section className="mt-0 block h-28 px-5 md:mt-20 md:hidden">
                 <SearchBarInput />
             </section>
             <SearchResults />

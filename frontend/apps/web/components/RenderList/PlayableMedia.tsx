@@ -93,7 +93,7 @@ export function PlayableMedia({
             listPublicId={listPublicId}
         >
             <div
-                className="group flex cursor-pointer flex-row items-center gap-1.5"
+                className="group flex min-w-0 cursor-pointer flex-row items-center gap-1.5"
                 onClick={handleClick}
             >
                 {showMediaIndex && (
@@ -119,13 +119,13 @@ export function PlayableMedia({
                             {$media.name}
                         </p>
                     </div>
-                    <div className="flex flex-row items-center gap-1">
+                    <div className="flex min-w-0 flex-row items-center gap-1">
                         <ProviderTag
                             name={$media.provider}
                             className={`${!downloaded && "opacity-65"}`}
                         />
                         {artists.length > 0 && (
-                            <div className="w-fit">
+                            <div className="min-w-0 overflow-hidden">
                                 <Artists
                                     artists={artists}
                                     className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}

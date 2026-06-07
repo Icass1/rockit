@@ -43,11 +43,11 @@ export default function RenderList({
     }, [playableMedia, listPublicId]);
 
     return (
-        <div className="mx-auto grid h-[calc(100vh-12rem)] w-full max-w-7xl grid-cols-[1fr_2fr] gap-20 px-8">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 md:h-[calc(100vh-12rem)] md:grid-cols-[1fr_2fr] md:gap-20 md:px-8">
             <div className="z-1 flex items-center justify-center">
                 <div className="flex flex-col gap-1">
                     {/* Blurred glow layer */}
-                    <div className="group relative">
+                    <div className="group relative w-full max-w-64 md:max-w-none">
                         <Image
                             src={image}
                             alt=""
@@ -62,7 +62,7 @@ export default function RenderList({
                             alt={title}
                             width={600}
                             height={600}
-                            className="relative rounded-lg"
+                            className="relative w-full h-auto rounded-lg"
                         />
                         {/* Play button overlay */}
                         <button
@@ -95,8 +95,8 @@ export default function RenderList({
                     </p>
                 </div>
             </div>
-            <div className="scroll-on-hover z-1 overflow-y-auto pr-4">
-                <div className="flex flex-col gap-2 py-16">
+            <div className="scroll-on-hover z-1 md:overflow-y-auto md:pr-4">
+                <div className="flex flex-col gap-2 py-4 md:py-16">
                     {media.map(
                         (m, index): JSX.Element => (
                             <Media

@@ -19,7 +19,7 @@ export default function Artists({
         >
             {artists.map(
                 (artist, index): JSX.Element => (
-                    <div key={artist.publicId} className="flex flex-nowrap">
+                    <div key={artist.publicId} className="flex min-w-0 flex-nowrap overflow-hidden">
                         {linkable ? (
                             <Link
                                 href={artist.url}

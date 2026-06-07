@@ -141,7 +141,7 @@ export default function StatsClient(): JSX.Element {
             </div>
 
             {range === "custom" && (
-                <div className="animate-fade-in-up mb-6 flex items-center justify-end gap-3">
+                <div className="animate-fade-in-up mb-6 flex flex-wrap items-center justify-end gap-3">
                     <div className="relative">
                         <label
                             htmlFor="stats-start"

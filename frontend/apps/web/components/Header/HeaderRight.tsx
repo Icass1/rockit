@@ -7,6 +7,7 @@ import { Bell } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import NotificationMenu from "@/components/Header/HeaderNotificationMenu";
 import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
+import StreakIndicator from "@/components/Header/HeaderStreakIndicator";
 import HeaderUser from "@/components/Header/HeaderUser";
 import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
 
@@ -33,6 +34,7 @@ export default function HeaderRight(): JSX.Element {
 
     return (
         <div className="relative ml-auto flex items-center gap-5">
+            <StreakIndicator />
             <OnlineUserIndicator />
 
             {/* Notifications */}

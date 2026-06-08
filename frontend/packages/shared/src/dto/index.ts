@@ -350,6 +350,7 @@ export {
     StatsSummaryResponseSchema,
     type StatsSummaryResponse,
 } from "./statsSummaryResponse";
+export { StreakResponseSchema, type StreakResponse } from "./streakResponse";
 export {
     TestWebSocketMessageSchema,
     type TestWebSocketMessage,

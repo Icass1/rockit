@@ -3,7 +3,7 @@
 import { JSX, useMemo, useState } from "react";
 import Link from "next/link";
 import type { StatsRankedItemResponse } from "@/dto";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface RankingListProps {
     items: StatsRankedItemResponse[];
@@ -13,7 +13,6 @@ interface RankingListProps {
 }
 
 const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
-const EXPAND_STEP = 10;
 
 export default function RankingList({
     items,
@@ -29,11 +28,16 @@ export default function RankingList({
 
     const displayItems = sorted.slice(0, visibleCount);
     const hasMore = visibleCount < sorted.length;
+    const canShowLess = visibleCount > initialVisible;
 
     const maxValue = displayItems[0]?.value || 1;
 
     const handleShowMore = (): void => {
-        setVisibleCount((prev) => Math.min(prev + EXPAND_STEP, sorted.length));
+        setVisibleCount(sorted.length);
+    };
+
+    const handleShowLess = (): void => {
+        setVisibleCount(initialVisible);
     };
 
     if (sorted.length === 0) {
@@ -56,16 +60,28 @@ export default function RankingList({
                     valueLabel={valueLabel}
                 />
             ))}
-            {hasMore && (
-                <button
-                    type="button"
-                    onClick={handleShowMore}
-                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 py-3 text-sm font-medium text-neutral-500 transition-colors hover:text-white"
-                >
-                    <ChevronDown className="h-4 w-4" />
-                    Show more
-                </button>
-            )}
+            <div className="flex justify-center gap-4">
+                {canShowLess && (
+                    <button
+                        type="button"
+                        onClick={handleShowLess}
+                        className="flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium text-neutral-500 transition-colors hover:text-white"
+                    >
+                        <ChevronUp className="h-4 w-4" />
+                        Show less
+                    </button>
+                )}
+                {hasMore && (
+                    <button
+                        type="button"
+                        onClick={handleShowMore}
+                        className="flex cursor-pointer items-center gap-1.5 py-3 text-sm font-medium text-neutral-500 transition-colors hover:text-white"
+                    >
+                        <ChevronDown className="h-4 w-4" />
+                        Show more
+                    </button>
+                )}
+            </div>
         </div>
     );
 }

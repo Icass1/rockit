@@ -537,6 +537,10 @@ export class BaseHttp {
         return this.apiGetAsync(`/stats/home`, dto.HomeStatsResponseSchema);
     }
 
+    static async getStreak() {
+        return this.apiGetAsync(`/stats/streak`, dto.StreakResponseSchema);
+    }
+
     static async getUserStats(payload: dto.UserStatsRequest) {
         return this.apiPostAsync(
             `/stats/user`,

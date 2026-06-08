@@ -25,9 +25,10 @@ export function QueueMedia({
     const isCurrent = media.queueMediaId === $currentQueueMediaId;
 
     const m = media.media;
-    const artists = "artists" in m
-        ? (m as { artists: { publicId: string; name: string }[] }).artists
-        : undefined;
+    const artists =
+        "artists" in m
+            ? (m as { artists: { publicId: string; name: string }[] }).artists
+            : undefined;
 
     return (
         <div
@@ -91,17 +92,18 @@ export function QueueMedia({
                         className="w-fit max-w-full min-w-0 flex-nowrap overflow-x-hidden text-left text-sm text-gray-300"
                         artists={media.media.artists}
                     /> */}
-                    {artists && artists.map((artist, index) => (
-                        <span
-                            key={artist.publicId}
-                            className="text-sm text-gray-300"
-                        >
-                            {artist.name}
-                            {index !== artists.length - 1 && (
-                                <span>, </span>
-                            )}
-                        </span>
-                    ))}
+                    {artists &&
+                        artists.map((artist, index) => (
+                            <span
+                                key={artist.publicId}
+                                className="text-sm text-gray-300"
+                            >
+                                {artist.name}
+                                {index !== artists.length - 1 && (
+                                    <span>, </span>
+                                )}
+                            </span>
+                        ))}
                 </div>
             </div>
 

@@ -1,19 +1,17 @@
 import { cache, JSX } from "react";
 import { notFound } from "next/navigation";
-import { Heart } from "lucide-react";
 import {
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
 } from "@rockit/packages/shared";
+import { Heart } from "lucide-react";
 import { getFeaturedListAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getFeatured = cache(
     async (): Promise<BasePlaylistWithMediasResponse | undefined> => {
-        return getFeaturedListAsync("liked").catch(
-            (): undefined => undefined
-        );
+        return getFeaturedListAsync("liked").catch((): undefined => undefined);
     }
 );
 
@@ -48,9 +46,7 @@ export default async function LikedPage(): Promise<JSX.Element> {
             showMediaImage
             showMediaIndex={false}
             expandedByMediaId={expandedByMediaId}
-            coverOverlay={
-                <Heart className="h-1/2 w-1/2" fill="white" />
-            }
+            coverOverlay={<Heart className="h-1/2 w-1/2" fill="white" />}
         />
     );
 }

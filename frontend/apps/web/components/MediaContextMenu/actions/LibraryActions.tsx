@@ -1,9 +1,9 @@
 import type { JSX } from "react";
-import { Library } from "lucide-react";
 import { isSearchResult } from "@rockit/shared";
+import { Library } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import type { ActionComponentProps } from "./ActionProps";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export function AddToLibraryAction({
     media,

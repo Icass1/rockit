@@ -1,9 +1,9 @@
 import type { JSX } from "react";
+import { isQueueable, isSearchResult } from "@rockit/shared";
 import { Play } from "lucide-react";
-import { isDownloadable, isQueueable, isSearchResult } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import type { ActionComponentProps } from "./ActionProps";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export default function PlayAction({
     media,
@@ -17,8 +17,8 @@ export default function PlayAction({
         }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const disablePlay = isDownloadable(media as any) && !(media as any).downloaded;
+    const disablePlay =
+        !isSearchResult(media) && "downloaded" in media && !media.downloaded;
 
     return (
         <ContextMenuOption onClick={play} disable={disablePlay}>

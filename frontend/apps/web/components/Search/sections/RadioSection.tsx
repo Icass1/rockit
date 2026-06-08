@@ -20,7 +20,9 @@ function RadioStationCard({
     return (
         <div
             className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
-            onClick={(): void => { void onPlay(station); }}
+            onClick={(): void => {
+                void onPlay(station);
+            }}
         >
             <Image
                 width={350}
@@ -48,7 +50,9 @@ export default function RadioSection({
 
     if (stations.length === 0) return null;
 
-    const handlePlay = async (station: BaseSearchResultsItem): Promise<void> => {
+    const handlePlay = async (
+        station: BaseSearchResultsItem
+    ): Promise<void> => {
         const publicId = station.url?.split("/").pop();
         if (publicId) {
             await rockIt.stationManager.playStationByPublicId(publicId);
@@ -62,16 +66,16 @@ export default function RadioSection({
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {[...stations]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map(
-                    (station): JSX.Element => (
-                        <RadioStationCard
-                            key={station.providerUrl + station.name}
-                            station={station}
-                            onPlay={handlePlay}
-                        />
-                    )
-                )}
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(
+                        (station): JSX.Element => (
+                            <RadioStationCard
+                                key={station.providerUrl + station.name}
+                                station={station}
+                                onPlay={handlePlay}
+                            />
+                        )
+                    )}
             </div>
         </section>
     );

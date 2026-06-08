@@ -1,9 +1,9 @@
 import type { JSX } from "react";
-import { PlayCircle, ListStart, Shuffle, ListEnd } from "lucide-react";
-import { isSearchResult, isList } from "@rockit/shared";
+import { isList, isSearchResult } from "@rockit/shared";
+import { ListEnd, ListStart, PlayCircle, Shuffle } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import type { ActionComponentProps } from "./ActionProps";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export function PlayListAction({
     media,

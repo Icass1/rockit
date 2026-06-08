@@ -1,17 +1,16 @@
 import type { JSX } from "react";
-import { HardDriveDownload, RefreshCw } from "lucide-react";
 import { isSearchResult } from "@rockit/shared";
+import { HardDriveDownload, RefreshCw } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import type { ActionComponentProps } from "./ActionProps";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export function DownloadAction({
     media,
     vocabulary,
 }: ActionComponentProps): JSX.Element {
     const download = (): void => {
-        if (!isSearchResult(media))
-            rockIt.mediaManager.downloadMedia(media);
+        if (!isSearchResult(media)) rockIt.mediaManager.downloadMedia(media);
     };
 
     return (
@@ -27,8 +26,7 @@ export function RetryDownloadAction({
     vocabulary,
 }: ActionComponentProps): JSX.Element {
     const retryDownload = (): void => {
-        if (!isSearchResult(media))
-            rockIt.mediaManager.downloadMedia(media);
+        if (!isSearchResult(media)) rockIt.mediaManager.downloadMedia(media);
     };
 
     return (

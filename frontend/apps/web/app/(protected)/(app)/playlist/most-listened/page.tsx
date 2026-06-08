@@ -1,11 +1,11 @@
 import { cache, JSX } from "react";
 import { notFound } from "next/navigation";
-import { Disc3 } from "lucide-react";
 import {
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
 } from "@rockit/packages/shared";
+import { Disc3 } from "lucide-react";
 import { getFeaturedListAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
@@ -48,9 +48,7 @@ export default async function MostListenedPage(): Promise<JSX.Element> {
             showMediaImage
             showMediaIndex={false}
             expandedByMediaId={expandedByMediaId}
-            coverOverlay={
-                <Disc3 className="h-1/2 w-1/2" />
-            }
+            coverOverlay={<Disc3 className="h-1/2 w-1/2" />}
         />
     );
 }

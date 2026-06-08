@@ -1,4 +1,8 @@
-import { EMediaContextLocation, EMediaType, isDownloadable } from "@rockit/shared";
+import {
+    EMediaContextLocation,
+    EMediaType,
+    isDownloadable,
+} from "@rockit/shared";
 import {
     ExternalLink,
     HardDriveDownload,
@@ -306,8 +310,7 @@ export function getActionsForMedia(
     media: TMediaWithSearch,
     location: EMediaContextLocation
 ): (ActionDef | { type: "separator" })[] {
-    const blueprint =
-        MEDIA_BLUEPRINTS[media.type as EMediaType] ?? [];
+    const blueprint = MEDIA_BLUEPRINTS[media.type as EMediaType] ?? [];
 
     const raw = blueprint.map(
         (entry): ActionDef | { type: "separator" } | null => {
@@ -319,27 +322,19 @@ export function getActionsForMedia(
     );
 
     const visible = raw.filter(
-        (
-            item
-        ): item is ActionDef | { type: "separator" } => {
+        (item): item is ActionDef | { type: "separator" } => {
             if (!item) return false;
             if (item.type === "separator") return true;
-            if (
-                !item.mediaTypes.includes(media.type as EMediaType)
-            )
+            if (!item.mediaTypes.includes(media.type as EMediaType))
                 return false;
-            if (
-                item.locations &&
-                !item.locations.includes(location)
-            )
+            if (item.locations && !item.locations.includes(location))
                 return false;
             if (
                 item.excludeLocations &&
                 item.excludeLocations.includes(location)
             )
                 return false;
-            if (item.condition && !item.condition(media))
-                return false;
+            if (item.condition && !item.condition(media)) return false;
             return true;
         }
     );

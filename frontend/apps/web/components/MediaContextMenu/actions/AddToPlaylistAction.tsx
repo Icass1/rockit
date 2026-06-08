@@ -1,10 +1,10 @@
 import type { JSX } from "react";
 import { ListIcon } from "lucide-react";
-import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
-import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
-import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import type { ActionComponentProps } from "./ActionProps";
+import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export default function AddToPlaylistAction({
     vocabulary,

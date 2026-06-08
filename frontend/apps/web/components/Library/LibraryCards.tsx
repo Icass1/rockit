@@ -1,8 +1,8 @@
 "use client";
 
-import Artists from "@/components/Artists/Artists";
-import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
-import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { JSX, ReactNode, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -10,18 +10,18 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import useMedia from "@/hooks/useMedia";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { isDownloadable } from "@/models/types/media";
 import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
     TMediaWithSearch,
     Vocabulary,
 } from "@rockit/shared";
-import Image from "next/image";
-import Link from "next/link";
-import { JSX, ReactNode, useRef, useState } from "react";
+import { isDownloadable } from "@/models/types/media";
+import useMedia from "@/hooks/useMedia";
+import { rockIt } from "@/lib/rockit/rockIt";
+import Artists from "@/components/Artists/Artists";
+import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -98,7 +98,9 @@ function LibraryCard({
                     fill
                     sizes={COVER_SIZES}
                     className="object-cover"
-                    onError={(): void => setCardImgSrc("/radio-placeholder.png")}
+                    onError={(): void =>
+                        setCardImgSrc("/radio-placeholder.png")
+                    }
                 />
             ) : (
                 <Image
@@ -108,11 +110,13 @@ function LibraryCard({
                     height={COVER_PX}
                     sizes={COVER_SIZES}
                     className="aspect-square w-full rounded-md object-cover"
-                    onError={(): void => setCardImgSrc("/radio-placeholder.png")}
+                    onError={(): void =>
+                        setCardImgSrc("/radio-placeholder.png")
+                    }
                 />
             )}
             <div className="absolute top-1 left-1 flex gap-1">
-                <span className="rounded bg-black/60 px-1 text-[10px] leading-4 text-white font-semibold">
+                <span className="rounded bg-black/60 px-1 text-[10px] leading-4 font-semibold text-white">
                     {$vocabulary[badge].toUpperCase()}
                 </span>
                 {undownloadedCount !== undefined && undownloadedCount > 0 && (

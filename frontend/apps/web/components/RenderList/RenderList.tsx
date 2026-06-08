@@ -64,7 +64,7 @@ export default function RenderList({
                             alt={title}
                             width={600}
                             height={600}
-                            className="relative w-full h-auto rounded-lg"
+                            className="relative h-auto w-full rounded-lg"
                         />
                         {coverOverlay && (
                             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -98,7 +98,8 @@ export default function RenderList({
                         className="text-lg font-semibold text-balance text-neutral-400"
                     />
                     <p className="text-center font-semibold text-balance text-neutral-400">
-                        {playableMedia.length} {playableMedia.length === 1 ? "song" : "songs"}
+                        {playableMedia.length}{" "}
+                        {playableMedia.length === 1 ? "song" : "songs"}
                     </p>
                 </div>
             </div>

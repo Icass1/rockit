@@ -25,7 +25,7 @@ export default function StatsSection({
             {showDivider && (
                 <div className="mb-8 flex items-center gap-4">
                     <div className="h-px flex-1 bg-gradient-to-r from-white/5 to-transparent" />
-                    <h3 className="shrink-0 text-base font-bold tracking-[0.25em] text-neutral-500 uppercase break-words">
+                    <h3 className="shrink-0 text-base font-bold tracking-[0.25em] break-words text-neutral-500 uppercase">
                         {title}
                     </h3>
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/5" />
@@ -39,7 +39,7 @@ export default function StatsSection({
                         <img
                             src={backgroundImage}
                             alt=""
-                            className="h-full w-full object-cover blur-[120px] opacity-[0.08] saturate-150"
+                            className="h-full w-full object-cover opacity-[0.08] blur-[120px] saturate-150"
                             aria-hidden
                         />
                     </div>

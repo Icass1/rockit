@@ -35,7 +35,7 @@ type SearchableItem = {
 
 function filterBySearch<T extends SearchableItem>(
     items: T[],
-    query: string,
+    query: string
 ): T[] {
     if (!query.trim()) return items;
     const q = query.toLowerCase();
@@ -48,7 +48,7 @@ function filterBySearch<T extends SearchableItem>(
         const ownerStr =
             typeof item.owner === "string"
                 ? item.owner
-                : item.owner?.name ?? "";
+                : (item.owner?.name ?? "");
         if (ownerStr.toLowerCase().includes(q)) return true;
         return false;
     });
@@ -188,9 +188,8 @@ export function useLibraryData({
     const filtered = useMemo((): TFilteredLibrary => {
         if (!libraryData) return EMPTY;
 
-        const apply = <T extends SearchableItem>(
-            arr: T[]
-        ): T[] => sortItems(filterBySearch(arr, searchQuery), filterMode);
+        const apply = <T extends SearchableItem>(arr: T[]): T[] =>
+            sortItems(filterBySearch(arr, searchQuery), filterMode);
 
         return {
             albums: apply(libraryData.albums),

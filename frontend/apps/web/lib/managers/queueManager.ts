@@ -242,7 +242,10 @@ export class QueueManager {
                     const nextIndex =
                         (index + direction * i + queue.length) % queue.length;
                     const nextMedia = queue[nextIndex].media;
-                    if (isStation(nextMedia) || "downloaded" in nextMedia && nextMedia.downloaded) {
+                    if (
+                        isStation(nextMedia) ||
+                        ("downloaded" in nextMedia && nextMedia.downloaded)
+                    ) {
                         this.setQueueMediaId(
                             queue[nextIndex].queueMediaId,
                             direction
@@ -345,8 +348,7 @@ export class QueueManager {
             const si =
                 sortedStart +
                 Math.floor(
-                    Math.random() *
-                        (this.sortedQueue.length - sortedStart)
+                    Math.random() * (this.sortedQueue.length - sortedStart)
                 );
             this.sortedQueue.splice(si, 0, newItem);
         });
@@ -362,8 +364,7 @@ export class QueueManager {
             const ri =
                 randomStart +
                 Math.floor(
-                    Math.random() *
-                        (this.randomQueue.length - randomStart)
+                    Math.random() * (this.randomQueue.length - randomStart)
                 );
             this.randomQueue.splice(ri, 0, newItem);
         });
@@ -473,7 +474,10 @@ export class QueueManager {
 
         if (isCurrent) {
             if (this.sortedQueue.length > 0) {
-                const nextIndex = Math.min(sortedIndex, this.sortedQueue.length - 1);
+                const nextIndex = Math.min(
+                    sortedIndex,
+                    this.sortedQueue.length - 1
+                );
                 this._currentQueueMediaIdAtom.set(
                     this.sortedQueue[nextIndex].queueMediaId
                 );

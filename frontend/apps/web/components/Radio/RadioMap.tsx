@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type JSX } from "react";
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
-import type {
-    Feature,
-    FeatureCollection,
-    Polygon,
-    MultiPolygon,
-    Position,
-} from "geojson";
-import type { Topology } from "topojson-specification";
+import { useEffect, useMemo, useRef, type JSX } from "react";
+import type { Feature, FeatureCollection, Position } from "geojson";
 import L from "leaflet";
+import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import { feature } from "topojson-client";
+import type { Topology } from "topojson-specification";
 import worldData from "world-atlas/countries-110m.json";
 import "leaflet/dist/leaflet.css";
 
@@ -56,7 +50,8 @@ interface CrossPt {
 function buildCrossings(ring: Position[]): CrossPt[] {
     const n = ring.length;
     const out: CrossPt[] = [];
-    const isMeridian = (v: number): boolean => Math.abs(Math.abs(v) - 180) < 1e-8;
+    const isMeridian = (v: number): boolean =>
+        Math.abs(Math.abs(v) - 180) < 1e-8;
     for (let i = 0; i < n; i++) {
         const curr = ring[i];
         const next = ring[(i + 1) % n];
@@ -65,21 +60,34 @@ function buildCrossings(ring: Position[]): CrossPt[] {
 
         if (crossesMeridian(cLon, nLon)) {
             const diff = nLon - cLon;
-            const shortDiff = diff > 180 ? diff - 360 : diff < -180 ? diff + 360 : diff;
+            const shortDiff =
+                diff > 180 ? diff - 360 : diff < -180 ? diff + 360 : diff;
             if (Math.abs(shortDiff) < 1e-10) continue;
             const side = shortDiff > 0 ? 180 : -180;
             const t = (side - cLon) / shortDiff;
-            out.push({ segIdx: i, pos: [side, curr[1] + t * (next[1] - curr[1])], side });
+            out.push({
+                segIdx: i,
+                pos: [side, curr[1] + t * (next[1] - curr[1])],
+                side,
+            });
             continue;
         }
 
         if (isMeridian(cLon) && !isMeridian(nLon)) {
-            out.push({ segIdx: i, pos: [cLon, curr[1]], side: cLon > 0 ? 180 : -180 });
+            out.push({
+                segIdx: i,
+                pos: [cLon, curr[1]],
+                side: cLon > 0 ? 180 : -180,
+            });
             continue;
         }
 
         if (!isMeridian(cLon) && isMeridian(nLon)) {
-            out.push({ segIdx: i, pos: [nLon, next[1]], side: nLon > 0 ? 180 : -180 });
+            out.push({
+                segIdx: i,
+                pos: [nLon, next[1]],
+                side: nLon > 0 ? 180 : -180,
+            });
             continue;
         }
     }
@@ -152,9 +160,7 @@ function splitFeatureAtAntimeridian(feature: Feature): Feature[] {
     return [feature];
 }
 
-function splitCollection(
-    collection: FeatureCollection
-): FeatureCollection {
+function splitCollection(collection: FeatureCollection): FeatureCollection {
     return {
         type: "FeatureCollection",
         features: collection.features.flatMap(splitFeatureAtAntimeridian),
@@ -168,7 +174,7 @@ function getCountryStyle(
 ): (f: GeoJSON.Feature | undefined) => L.PathOptions {
     return (f: GeoJSON.Feature | undefined): L.PathOptions => {
         const props = f?.properties as CountryProperties | undefined;
-        const isSelected = props?.name != null && props.name === selected;
+        const isSelected = props?.name === selected;
 
         return {
             fillColor: isSelected ? "#ee1086" : "transparent",
@@ -226,10 +232,7 @@ export default function RadioMap({
     onCountryClick,
     selectedCountry,
 }: RadioMapProps): JSX.Element {
-    const [countries, setCountries] =
-        useState<FeatureCollection | null>(null);
-
-    useEffect(() => {
+    const countries: FeatureCollection | null = useMemo(() => {
         try {
             const topology = worldData as unknown as Topology;
             if (topology.objects?.countries) {
@@ -237,11 +240,12 @@ export default function RadioMap({
                     topology,
                     topology.objects.countries
                 ) as unknown as FeatureCollection;
-                setCountries(splitCollection(geojson));
+                return splitCollection(geojson);
             }
         } catch (e) {
             console.error("Failed to load world data:", e);
         }
+        return null;
     }, []);
 
     return (

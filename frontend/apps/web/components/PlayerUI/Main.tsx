@@ -1,7 +1,12 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { isSong, isStation, isVideo, TPlayableMedia } from "@rockit/packages/shared";
+import {
+    isSong,
+    isStation,
+    isVideo,
+    TPlayableMedia,
+} from "@rockit/packages/shared";
 import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
@@ -78,13 +83,10 @@ export default function PlayerUIMain({
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className="relative h-[90%] aspect-video max-w-full cursor-pointer overflow-hidden rounded-xl"
+                    className="relative aspect-video h-[90%] max-w-full cursor-pointer overflow-hidden rounded-xl"
                     onClick={handleClick}
                 >
-                    <div
-                        ref={videoContainerRef}
-                        className="absolute inset-0"
-                    />
+                    <div ref={videoContainerRef} className="absolute inset-0" />
                     {iconOverlay}
                     <div
                         className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${

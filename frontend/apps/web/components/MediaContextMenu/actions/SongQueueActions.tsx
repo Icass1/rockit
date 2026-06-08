@@ -1,9 +1,9 @@
 import type { JSX } from "react";
-import { ListStart, Shuffle, ListEnd, X } from "lucide-react";
-import { isSearchResult, isQueueable } from "@rockit/shared";
+import { isQueueable, isSearchResult } from "@rockit/shared";
+import { ListEnd, ListStart, Shuffle, X } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
-import type { ActionComponentProps } from "./ActionProps";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export function AddSongToQueueTopAction({
     media,

@@ -312,7 +312,9 @@ class YouTubeDownloader:
                     final_path = os.path.join(output_path, matching[0])
                     final_filename = matching[0]
 
-            real_duration_ms: Optional[int] = _get_duration_with_ffprobe(final_path)
+            real_duration_ms: Optional[int] = (
+                _get_duration_with_ffprobe(final_path) if final_path else None
+            )
 
             return AResult(
                 code=AResultCode.OK,

@@ -4,20 +4,14 @@ import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import {
-    Ellipsis,
-    Pause,
-    PauseIcon,
-    Play,
-    PlayIcon,
-} from "lucide-react";
 import { EMediaContextLocation, isStation } from "@rockit/shared";
+import type { BaseStationResponse } from "@rockit/shared";
+import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
 import {
     getMediaAlbum,
     getMediaArtists,
     TPlayableMedia,
 } from "@/models/types/media";
-import type { BaseStationResponse } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
@@ -69,7 +63,9 @@ function FooterLeftForMedia({
                 <div className="relative top-1/2 flex -translate-y-1/2 flex-row items-center gap-x-5 pr-3">
                     <div className="flex min-w-0 flex-col">
                         <span className="flex w-full max-w-full min-w-0 items-center gap-3 font-semibold">
-                            <span className="truncate">{currentMedia.name}</span>
+                            <span className="truncate">
+                                {currentMedia.name}
+                            </span>
                             <MediaContextMenu
                                 media={currentMedia}
                                 location={EMediaContextLocation.QUEUE}
@@ -81,7 +77,9 @@ function FooterLeftForMedia({
                         <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                             <div className="truncate">
                                 <Artists
-                                    artists={getMediaArtists(currentMedia) ?? []}
+                                    artists={
+                                        getMediaArtists(currentMedia) ?? []
+                                    }
                                 />
                             </div>
                             {album && (
@@ -169,9 +167,7 @@ export default function FooterLeft(): JSX.Element {
 
     if ($currentMedia) {
         if (isStation($currentMedia)) {
-            return (
-                <FooterLeftForStation currentStation={$currentMedia} />
-            );
+            return <FooterLeftForStation currentStation={$currentMedia} />;
         }
         return <FooterLeftForMedia currentMedia={$currentMedia} />;
     }

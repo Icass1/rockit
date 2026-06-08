@@ -5,9 +5,9 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import {
+    EMediaContextLocation,
     type BaseSearchResultsItem,
     type BaseStationResponse,
-    EMediaContextLocation,
     type LibraryMediasResponse,
 } from "@rockit/shared";
 import type { DebouncedFunc } from "lodash";
@@ -18,8 +18,8 @@ import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { StationCard } from "@/components/Library/LibraryCards";
-import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import LoadingComponent from "@/components/Loading";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 const RadioMap = dynamic(() => import("@/components/Radio/RadioMap"), {
     ssr: false,
@@ -165,14 +165,6 @@ export default function RadioClient(): JSX.Element {
         (data as LibraryMediasResponse | undefined)?.stations ?? [];
 
     const isSearching = query.trim().length > 0;
-    const hasSearchResults =
-        isSearching && searchResults && searchResults.length > 0;
-    const showLibrary = !isSearching && !selectedCountry;
-    const hasCountryResults = countryStations && countryStations.length > 0;
-    const showMap =
-        viewMode === "map" ||
-        viewMode === EViewMode.Grid ||
-        viewMode === EViewMode.List;
 
     const handleClear = (): void => {
         setQuery("");
@@ -216,10 +208,13 @@ export default function RadioClient(): JSX.Element {
         }
     }, [loadingCountry, countryStations]);
 
-    const displayedStations: (BaseStationResponse | BaseSearchResultsItem)[] =
-        (countryStations ?? searchResults ?? libraryStations).slice().sort(
-            (a, b) => a.name.localeCompare(b.name)
-        );
+    const displayedStations: (BaseStationResponse | BaseSearchResultsItem)[] = (
+        countryStations ??
+        searchResults ??
+        libraryStations
+    )
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name));
 
     const showEmptyState =
         !loading &&

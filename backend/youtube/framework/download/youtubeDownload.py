@@ -97,7 +97,9 @@ class YoutubeDownload(BaseDownload):
             final_relative_dir: str = os.path.join("youtube")
             final_dir: str = os.path.join(MEDIA_PATH, "youtube")
             _, actual_ext = os.path.splitext(downloaded_filename)
-            final_path: str = os.path.join(final_dir, f"{self.youtube_video_id}{actual_ext}")
+            final_path: str = os.path.join(
+                final_dir, f"{self.youtube_video_id}{actual_ext}"
+            )
             final_relative_path: str = os.path.join(
                 final_relative_dir, f"{self.youtube_video_id}{actual_ext}"
             )

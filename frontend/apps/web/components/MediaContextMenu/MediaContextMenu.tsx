@@ -12,40 +12,39 @@ import {
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import {
     getActionsForMedia,
-    type ActionId,
     type ActionDef,
+    type ActionId,
 } from "@/components/ContextMenu/mediaContextMenuActions";
-
-import PlayAction from "./actions/PlayAction";
-import NavigateAction from "./actions/NavigateAction";
+import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
+import {
+    DownloadAction,
+    DownloadZipAction,
+    RetryDownloadAction,
+} from "@/components/MediaContextMenu/actions/DownloadActions";
 import {
     AddToLibraryAction,
     RemoveFromLibraryAction,
-} from "./actions/LibraryActions";
+} from "@/components/MediaContextMenu/actions/LibraryActions";
 import {
-    PlayListAction,
-    AddToQueueTopAction,
     AddQueueRandomAction,
     AddToQueueBottomAction,
-} from "./actions/ListQueueActions";
+    AddToQueueTopAction,
+    PlayListAction,
+} from "@/components/MediaContextMenu/actions/ListQueueActions";
+import NavigateAction from "@/components/MediaContextMenu/actions/NavigateAction";
+import PlayAction from "@/components/MediaContextMenu/actions/PlayAction";
+import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/RemoveFromPlaylistAction";
 import {
-    AddSongToQueueTopAction,
     AddSongQueueRandomAction,
     AddSongToQueueBottomAction,
+    AddSongToQueueTopAction,
     RemoveFromQueueAction,
-} from "./actions/SongQueueActions";
-import {
-    DownloadAction,
-    RetryDownloadAction,
-    DownloadZipAction,
-} from "./actions/DownloadActions";
-import RemoveFromPlaylistAction from "./actions/RemoveFromPlaylistAction";
-import AddToPlaylistAction from "./actions/AddToPlaylistAction";
-import type { ActionComponentProps } from "./actions/ActionProps";
+} from "@/components/MediaContextMenu/actions/SongQueueActions";
 
 const actionComponents: Partial<
     Record<ActionId, React.ComponentType<ActionComponentProps>>
@@ -93,24 +92,17 @@ export default function MediaContextMenu({
     const visibleActions = getActionsForMedia(media, location);
 
     const isSearch =
-        openOnLeftClick !== undefined
-            ? openOnLeftClick
-            : isSearchResult(media);
+        openOnLeftClick !== undefined ? openOnLeftClick : isSearchResult(media);
 
     const handleAddToPlaylist = useCallback(
-        async (
-            playlist: BasePlaylistWithoutMediasResponse
-        ): Promise<void> => {
+        async (playlist: BasePlaylistWithoutMediasResponse): Promise<void> => {
             if (isSearchResult(media)) {
                 rockIt.playlistManager.addUrlToPlaylistAsync(
                     media.providerUrl,
                     playlist.publicId
                 );
             } else {
-                rockIt.playlistManager.addMediaToPlaylist(
-                    media,
-                    playlist
-                );
+                rockIt.playlistManager.addMediaToPlaylist(media, playlist);
             }
         },
         [media]
@@ -138,23 +130,14 @@ export default function MediaContextMenu({
             >
                 {visibleActions.map((item, index) => {
                     if (item.type === "separator") {
-                        return (
-                            <ContextMenuSplitter
-                                key={`sep-${index}`}
-                            />
-                        );
+                        return <ContextMenuSplitter key={`sep-${index}`} />;
                     }
 
                     const action = item as ActionDef;
                     const Component = actionComponents[action.id];
                     if (!Component) return null;
 
-                    return (
-                        <Component
-                            key={action.id}
-                            {...actionProps}
-                        />
-                    );
+                    return <Component key={action.id} {...actionProps} />;
                 })}
             </ContextMenuContent>
         </ContextMenu>

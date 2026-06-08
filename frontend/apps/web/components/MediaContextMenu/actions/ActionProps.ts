@@ -1,4 +1,7 @@
-import type { BasePlaylistWithoutMediasResponse, Vocabulary } from "@rockit/shared";
+import type {
+    BasePlaylistWithoutMediasResponse,
+    Vocabulary,
+} from "@rockit/shared";
 import type { TMediaWithSearch } from "@/models/types/media";
 
 export type ActionComponentProps = {

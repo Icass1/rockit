@@ -119,23 +119,35 @@ export default function FooterCenter(): JSX.Element {
                     value={$currentTime}
                     min={0}
                     max={isLiveStation ? 3600 : getMediaDuration($currentMedia)}
-                    onChange={isLiveStation ? undefined : (e): void =>
-                        rockIt.mediaPlayerManager.setCurrentTime(
-                            Number(e.target.value),
-                            false
-                        )
+                    onChange={
+                        isLiveStation
+                            ? undefined
+                            : (e): void =>
+                                  rockIt.mediaPlayerManager.setCurrentTime(
+                                      Number(e.target.value),
+                                      false
+                                  )
                     }
-                    onPointerDown={isLiveStation ? undefined : (): void =>
-                        rockIt.mediaPlayerManager.beginSeek()
+                    onPointerDown={
+                        isLiveStation
+                            ? undefined
+                            : (): void => rockIt.mediaPlayerManager.beginSeek()
                     }
-                    onPointerUp={isLiveStation ? undefined : (e): void =>
-                        rockIt.mediaPlayerManager.endSeek(
-                            Number(e.currentTarget.value)
-                        )
+                    onPointerUp={
+                        isLiveStation
+                            ? undefined
+                            : (e): void =>
+                                  rockIt.mediaPlayerManager.endSeek(
+                                      Number(e.currentTarget.value)
+                                  )
                     }
                 />
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
-                    {getTime(isLiveStation ? $currentTime ?? 0 : (getMediaDuration($currentMedia) ?? 0))}
+                    {getTime(
+                        isLiveStation
+                            ? ($currentTime ?? 0)
+                            : (getMediaDuration($currentMedia) ?? 0)
+                    )}
                 </span>
             </div>
         </div>

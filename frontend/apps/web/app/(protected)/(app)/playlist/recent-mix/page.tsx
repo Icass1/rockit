@@ -1,11 +1,11 @@
 import { cache, JSX } from "react";
 import { notFound } from "next/navigation";
-import { History } from "lucide-react";
 import {
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
 } from "@rockit/packages/shared";
+import { History } from "lucide-react";
 import { getFeaturedListAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
@@ -48,9 +48,7 @@ export default async function RecentMixPage(): Promise<JSX.Element> {
             showMediaImage
             showMediaIndex={false}
             expandedByMediaId={expandedByMediaId}
-            coverOverlay={
-                <History className="h-1/2 w-1/2" />
-            }
+            coverOverlay={<History className="h-1/2 w-1/2" />}
         />
     );
 }

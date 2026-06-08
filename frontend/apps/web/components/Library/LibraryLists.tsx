@@ -367,7 +367,8 @@ export function LibraryLists({
                         <div
                             className="absolute inset-0 flex items-center justify-center gap-1 text-white"
                             style={{
-                                fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
+                                fontFamily:
+                                    "'Nunito', 'Segoe UI', system-ui, sans-serif",
                                 fontWeight: 900,
                                 fontSize: "clamp(1.2rem, 5vw, 2.5rem)",
                                 letterSpacing: "-0.04em",

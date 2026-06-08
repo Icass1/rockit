@@ -26,7 +26,13 @@ function formatDuration(minutes: number): string {
     return parts.join(" ");
 }
 
-function AnimatedNumber({ value, format }: { value: number; format?: (n: number) => string }): JSX.Element {
+function AnimatedNumber({
+    value,
+    format,
+}: {
+    value: number;
+    format?: (n: number) => string;
+}): JSX.Element {
     const [display, setDisplay] = useState(0);
     const ref = useRef<number>(0);
     const raf = useRef<number>(0);
@@ -75,7 +81,10 @@ export default function SummaryCards({
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 md:gap-x-10 md:gap-y-0">
             <div>
                 <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-                    <AnimatedNumber value={summary.songsListened} format={formatNumber} />
+                    <AnimatedNumber
+                        value={summary.songsListened}
+                        format={formatNumber}
+                    />
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
                     {$vocabulary.SONGS_LISTENED ?? "Songs Listened"}
@@ -107,7 +116,9 @@ export default function SummaryCards({
             <div>
                 <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
                     {summary.currentStreak}
-                    <span className="ml-1 text-2xl text-[#ee1086] md:text-3xl">d</span>
+                    <span className="ml-1 text-2xl text-[#ee1086] md:text-3xl">
+                        d
+                    </span>
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
                     {$vocabulary.LEVEL_ABBR ?? "Current Streak"}

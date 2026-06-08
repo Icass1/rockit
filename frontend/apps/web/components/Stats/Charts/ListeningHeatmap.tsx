@@ -58,7 +58,7 @@ export default function ListeningHeatmap({
         <div className="relative flex justify-center pt-2">
             {tooltip && (
                 <div
-                    className="pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-lg border border-neutral-800/60 bg-neutral-900/95 px-3 py-1.5 shadow-xl backdrop-blur-md"
+                    className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-lg border border-neutral-800/60 bg-neutral-900/95 px-3 py-1.5 whitespace-nowrap shadow-xl backdrop-blur-md"
                     style={{
                         left: tooltip.x,
                         top: tooltip.y - 36,
@@ -124,11 +124,8 @@ export default function ListeningHeatmap({
                     Array.from({ length: numHours }, (_, hourOffset) => {
                         const hour = HOURS_START + hourOffset;
                         const x =
-                            LEFT_PAD +
-                            hourOffset * (CELL_SIZE + CELL_GAP);
-                        const y =
-                            TOP_PAD +
-                            day * (CELL_SIZE + CELL_GAP);
+                            LEFT_PAD + hourOffset * (CELL_SIZE + CELL_GAP);
+                        const y = TOP_PAD + day * (CELL_SIZE + CELL_GAP);
                         const value = getVal(hour, day);
                         const key = `${hour}-${day}`;
 
@@ -149,8 +146,7 @@ export default function ListeningHeatmap({
                                         e.currentTarget as SVGRectElement
                                     ).getBoundingClientRect();
                                     const parent =
-                                        e.currentTarget
-                                            .closest("div")!;
+                                        e.currentTarget.closest("div")!;
                                     const parentRect =
                                         parent.getBoundingClientRect();
                                     setTooltip({

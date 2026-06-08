@@ -54,7 +54,8 @@ export default async function YearRecapPage(): Promise<JSX.Element> {
                 <div
                     className="flex items-center justify-center gap-1 leading-none text-white"
                     style={{
-                        fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
+                        fontFamily:
+                            "'Nunito', 'Segoe UI', system-ui, sans-serif",
                         fontWeight: 900,
                         fontSize: "clamp(2rem, 8vw, 4rem)",
                         letterSpacing: "-0.04em",

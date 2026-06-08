@@ -1,9 +1,9 @@
 import type { JSX } from "react";
 import { useRouter } from "next/navigation";
+import { EMediaType, isList, isSearchResult } from "@rockit/shared";
 import { ExternalLink } from "lucide-react";
-import { EMediaType, isSearchResult, isList } from "@rockit/shared";
-import type { ActionComponentProps } from "./ActionProps";
 import ContextMenuOption from "@/components/ContextMenu/Option";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export default function NavigateAction({
     media,
@@ -19,7 +19,10 @@ export default function NavigateAction({
               : vocabulary.OPEN_LIST;
 
     const navigate = (): void => {
-        if (!isSearchResult(media) && (isList(media) || media.type === EMediaType.Artist)) {
+        if (
+            !isSearchResult(media) &&
+            (isList(media) || media.type === EMediaType.Artist)
+        ) {
             router.push(media.url);
         }
     };

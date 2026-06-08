@@ -3,13 +3,13 @@
 import { JSX } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
 import {
-    BarChart,
     Bar,
+    BarChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
     XAxis,
     YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
 } from "recharts";
 
 interface MinutesBarChartProps {
@@ -44,8 +44,10 @@ function CustomTooltip({
 
     return (
         <div className="rounded-xl border border-neutral-800/60 bg-neutral-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
-            <p className="whitespace-nowrap text-xs text-neutral-400">{label}</p>
-            <p className="mt-0.5 whitespace-nowrap text-lg font-bold text-white">
+            <p className="text-xs whitespace-nowrap text-neutral-400">
+                {label}
+            </p>
+            <p className="mt-0.5 text-lg font-bold whitespace-nowrap text-white">
                 {payload[0].value.toFixed(1)}
                 <span className="ml-1 text-sm font-medium text-neutral-400">
                     min
@@ -135,7 +137,13 @@ export default function MinutesBarChart({
                     shape={(props: unknown) => {
                         const { value } = props as { value: number };
                         if (value <= 0) return null;
-                        return <rect {...(props as Record<string, unknown>)} rx={6} ry={6} />;
+                        return (
+                            <rect
+                                {...(props as Record<string, unknown>)}
+                                rx={6}
+                                ry={6}
+                            />
+                        );
                     }}
                 />
             </BarChart>

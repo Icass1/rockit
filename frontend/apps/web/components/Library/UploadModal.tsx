@@ -116,7 +116,7 @@ function uploadFormDataWithProgress(
     });
 }
 
-// Chunked upload.
+// Upload helpers — fast path with chunked fallback.
 
 const MEDIA_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per chunk — safely under Cloudflare's 100 MB proxy limit
 
@@ -152,6 +152,35 @@ async function uploadFileChunked(
     );
     if (!res.ok) throw new Error(`Assemble failed: ${res.status}`);
     UploadResponseSchema.parse(await res.json());
+}
+
+// Try the original single-request upload (fast). On any network failure, automatically
+// retry with chunks from byte 0 using the same uploadId — the pending record and any
+// partial temp file on the server survive a mid-transfer connection reset.
+async function uploadFileWithFallback(
+    uploadId: string,
+    file: File,
+    imageFile: File | null,
+    onProgress: (loaded: number) => void
+): Promise<void> {
+    const fd = new FormData();
+    fd.append("file", file);
+    if (imageFile) fd.append("image", imageFile);
+    try {
+        const res = await uploadFormDataWithProgress(
+            `${BACKEND_URL}/upload/${uploadId}/file`,
+            fd,
+            onProgress
+        );
+        if (!res.ok) throw new Error(`${res.status}`);
+        UploadResponseSchema.parse(await res.json());
+        return;
+    } catch {
+        // Single request failed (connection reset / timeout) — reset progress bar and
+        // retry with 5 MB chunks so each request completes well within any proxy timeout.
+        onProgress(0);
+    }
+    await uploadFileChunked(uploadId, file, imageFile, onProgress);
 }
 
 // Constants.
@@ -372,7 +401,7 @@ export default function UploadModal({
             const cumulativeBytes = files
                 .slice(0, i)
                 .reduce((sum, sf) => sum + sf.file.size, 0);
-            await uploadFileChunked(
+            await uploadFileWithFallback(
                 uploadId,
                 f.file,
                 f.imageFile,
@@ -471,7 +500,7 @@ export default function UploadModal({
             throw new Error(`Start video upload failed: ${startResult.code}`);
         const { uploadId } = startResult.result;
 
-        await uploadFileChunked(
+        await uploadFileWithFallback(
             uploadId,
             videoFile,
             videoImageFile,

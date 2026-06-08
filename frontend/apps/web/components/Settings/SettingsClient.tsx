@@ -4,6 +4,7 @@ import { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
+import { Vocabulary } from "@rockit/packages/shared";
 import { ChartLine, ImageUp, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
@@ -74,7 +75,7 @@ function ProfileSidebar(): JSX.Element {
 function PasswordSection({
     vocabulary,
 }: {
-    vocabulary: Record<string, string>;
+    vocabulary: Vocabulary;
 }): JSX.Element {
     return (
         <div className="flex flex-col gap-3">
@@ -83,7 +84,7 @@ function PasswordSection({
                     htmlFor="new-password"
                     className="text-sm font-medium text-neutral-400"
                 >
-                    {vocabulary.NEW_PASSWORD ?? "New password"}
+                    {vocabulary.NEW_PASSWORD}
                 </label>
                 <input
                     id="new-password"
@@ -115,7 +116,7 @@ function PasswordSection({
 function DisplayNameInput({
     vocabulary,
 }: {
-    vocabulary: Record<string, string>;
+    vocabulary: Vocabulary;
 }): JSX.Element {
     const { username, isAuthenticated } = useSettingsUser();
 
@@ -158,11 +159,7 @@ export default function SettingsClient(): JSX.Element {
                     <SettingsSection
                         title={$vocabulary.DISPLAY_NAME ?? "Account"}
                     >
-                        <DisplayNameInput
-                            vocabulary={
-                                $vocabulary as unknown as Record<string, string>
-                            }
-                        />
+                        <DisplayNameInput vocabulary={$vocabulary} />
                     </SettingsSection>
 
                     <SettingsSection title={$vocabulary.LANGUAGE ?? "Language"}>
@@ -178,11 +175,7 @@ export default function SettingsClient(): JSX.Element {
                                 Leave blank to keep current password
                             </span>
                         </div>
-                        <PasswordSection
-                            vocabulary={
-                                $vocabulary as unknown as Record<string, string>
-                            }
-                        />
+                        <PasswordSection vocabulary={$vocabulary} />
                     </SettingsSection>
 
                     <SettingsSection title="Audio">

@@ -7,6 +7,7 @@ import { VocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
+import KeyboardHandler from "@/components/KeyboardHandler/KeyboardHandler";
 import MiniPlayer from "@/components/MiniPlayer/MiniPlayer";
 import MobileBottomNav from "@/components/Navigation/MobileBottomNav";
 import Navigation from "@/components/Navigation/Navigation";
@@ -26,6 +27,8 @@ export default function AppClientLayout({
 
     return (
         <>
+            <KeyboardHandler />
+
             {/* Mobile Header - only visible on small screens */}
             <div className="fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-linear-to-b from-black to-black/0 md:hidden">
                 <Link href="/" className="text-2xl font-bold text-white">

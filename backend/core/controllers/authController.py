@@ -7,6 +7,8 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 
+from backend.core.enums.platformEnum import PlatformEnum
+
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.requestLogMiddleware import RequestLogMiddleware
@@ -82,7 +84,9 @@ async def login(
     else:
         logger.info(f"Session created for user {user.username} from ip {ip}.")
 
-    session_id = a_result_session.result() if payload.platform == "MOBILE" else None
+    session_id = (
+        a_result_session.result() if payload.platform == PlatformEnum.MOBILE else None
+    )
     return LoginResponse(userId=user.public_id, sessionId=session_id)
 
 
@@ -128,7 +132,9 @@ async def register(
     else:
         logger.info(f"Session created for user {user.username} from ip {ip}.")
 
-    session_id = a_result_session.result() if payload.platform == "MOBILE" else None
+    session_id = (
+        a_result_session.result() if payload.platform == PlatformEnum.MOBILE else None
+    )
     return RegisterResponse(userId=user.public_id, sessionId=session_id)
 
 

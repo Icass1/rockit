@@ -55,7 +55,8 @@ class Session:
         if a_result_sesion.is_not_ok():
             logger.error(f"Error creating session {a_result_sesion.info()}")
             return AResult(
-                code=a_result_sesion.code(), message=a_result_sesion.message(), result=None
+                code=a_result_sesion.code(),
+                message=a_result_sesion.message(),
             )
 
         if ENVIRONMENT == "DEV":

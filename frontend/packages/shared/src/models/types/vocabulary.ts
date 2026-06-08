@@ -332,4 +332,5 @@ export interface Vocabulary {
     DELETE_ERROR: string;
     DELETE: string;
     DELETE_SUCCESS: string;
+    REDOWNLOAD: string;
 }

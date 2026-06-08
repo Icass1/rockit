@@ -22,6 +22,7 @@ import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
+import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAction";
 import {
     DownloadAction,
     DownloadZipAction,
@@ -68,6 +69,7 @@ const actionComponents: Partial<
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
     [EMediaContextAction.Delete]: DeleteAction,
+    [EMediaContextAction.Redownload]: RedownloadAction,
 };
 
 function getMediaCover(media: TMediaWithSearch): string | undefined {

@@ -17,4 +17,5 @@ export enum EMediaContextAction {
     AddMediaToQueueBottom = "addSongToQueueBottom",
     RemoveFromPlaylist = "removeFromPlaylist",
     Delete = "delete",
+    Redownload = "redownload",
 }

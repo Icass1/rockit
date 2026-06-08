@@ -196,6 +196,15 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
+        id: EMediaContextAction.Redownload,
+        type: "action",
+        icon: HardDriveDownload,
+        labelKey: "REDOWNLOAD",
+        mediaTypes: [EMediaType.Song, EMediaType.Video],
+        condition: (m) =>
+            !isSearchResult(m) && isDownloadable(m) && Boolean(m.downloaded),
+    },
+    {
         id: EMediaContextAction.Delete,
         type: "action",
         icon: Trash2,
@@ -237,6 +246,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         "---",
         EMediaContextAction.Download,
         EMediaContextAction.RetryDownload,
+        EMediaContextAction.Redownload,
         EMediaContextAction.Delete,
         EMediaContextAction.RemoveFromQueue,
         EMediaContextAction.RemoveFromPlaylist,
@@ -254,6 +264,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         "---",
         EMediaContextAction.Download,
         EMediaContextAction.RetryDownload,
+        EMediaContextAction.Redownload,
         EMediaContextAction.Delete,
         EMediaContextAction.RemoveFromQueue,
         EMediaContextAction.RemoveFromPlaylist,

@@ -205,6 +205,38 @@ export class BaseHttp {
         );
     }
 
+    static async createBookmark(payload: dto.CreateBookmarkRequest) {
+        return this.apiPostAsync(
+            `/bookmark`,
+            dto.CreateBookmarkRequestSchema,
+            dto.BookmarkResponseSchema,
+            payload
+        );
+    }
+
+    static async getBookmarks(payload: dto.GetBookmarksRequest) {
+        return this.apiPostAsync(
+            `/bookmark/list`,
+            dto.GetBookmarksRequestSchema,
+            dto.BookmarkListResponseSchema,
+            payload
+        );
+    }
+
+    static async deleteBookmark(publicId: string) {
+        return this.apiDeleteAsync(
+            `/bookmark/${publicId}`,
+            dto.OkResponseSchema
+        );
+    }
+
+    static async updateBookmark(publicId: string) {
+        return this.apiPatchAsync(
+            `/bookmark/${publicId}`,
+            dto.BookmarkResponseSchema
+        );
+    }
+
     static async getUserPlaylistsAsync() {
         return this.apiGetAsync(
             `/default/playlist`,

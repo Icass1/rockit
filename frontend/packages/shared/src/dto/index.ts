@@ -85,11 +85,23 @@ export {
     BaseVideoResponseSchema,
     type BaseVideoResponse,
 } from "./baseVideoResponse";
+export {
+    BookmarkListResponseSchema,
+    type BookmarkListResponse,
+} from "./bookmarkListResponse";
+export {
+    BookmarkResponseSchema,
+    type BookmarkResponse,
+} from "./bookmarkResponse";
 export { BuildResponseSchema, type BuildResponse } from "./buildResponse";
 export {
     CompleteChunkedUploadRequestSchema,
     type CompleteChunkedUploadRequest,
 } from "./completeChunkedUploadRequest";
+export {
+    CreateBookmarkRequestSchema,
+    type CreateBookmarkRequest,
+} from "./createBookmarkRequest";
 export {
     CreatePlaylistRequestSchema,
     type CreatePlaylistRequest,
@@ -130,6 +142,10 @@ export {
     DynamicLyricsItemSchema,
     type DynamicLyricsItem,
 } from "./dynamicLyricsItem";
+export {
+    GetBookmarksRequestSchema,
+    type GetBookmarksRequest,
+} from "./getBookmarksRequest";
 export {
     GetLyricsBatchRequestSchema,
     type GetLyricsBatchRequest,
@@ -355,6 +371,10 @@ export {
     TestWebSocketMessageSchema,
     type TestWebSocketMessage,
 } from "./testWebSocketMessage";
+export {
+    UpdateBookmarkRequestSchema,
+    type UpdateBookmarkRequest,
+} from "./updateBookmarkRequest";
 export {
     UpdateCrossfadeRequestSchema,
     type UpdateCrossfadeRequest,

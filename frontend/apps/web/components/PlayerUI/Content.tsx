@@ -26,7 +26,11 @@ export default function PlayerUIContent(): JSX.Element {
     useEffect((): (() => void) => {
         const handleDocumentClick = (e: MouseEvent): void => {
             const target = e.target as Node;
-            if (target instanceof Element && target.closest(".context-menu-option")) return;
+            if (
+                target instanceof Element &&
+                target.closest(".context-menu-option")
+            )
+                return;
             const insidePlayer = divRef.current?.contains(target);
             const insideFooter = document
                 .getElementById("app-footer")
@@ -99,11 +103,14 @@ export default function PlayerUIContent(): JSX.Element {
 
             <div
                 className={
-                    "h-full max-h-full min-h-0" +
+                    "h-full max-h-full min-h-0 min-w-0" +
                     (isLandscape ? " order-2" : "")
                 }
             >
-                <PlayerUIMain key={$currentMedia?.publicId} currentMedia={$currentMedia} />
+                <PlayerUIMain
+                    key={$currentMedia?.publicId}
+                    currentMedia={$currentMedia}
+                />
             </div>
 
             {isLandscape ? (
@@ -111,8 +118,8 @@ export default function PlayerUIContent(): JSX.Element {
                     <div
                         className={`z-10 order-1 overflow-hidden transition-all ease-in-out ${
                             showLyrics
-                                ? "max-w-full opacity-100 translate-x-0 duration-500"
-                                : "max-w-0 opacity-0 -translate-x-8 duration-0"
+                                ? "max-w-full translate-x-0 opacity-100 duration-500"
+                                : "max-w-0 -translate-x-8 opacity-0 duration-0"
                         }`}
                     >
                         <PlayerUILyrics />

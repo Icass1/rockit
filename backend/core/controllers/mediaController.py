@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from backend.constants import IMAGES_PATH
 from backend.utils.logger import getLogger
-from backend.core.aResult import AResult
+from backend.core.aResult import AResult, AResultCode
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
@@ -289,13 +289,13 @@ async def generate_image_async(request: Request, public_id: str):
 
 @router.delete(
     path="/{public_id}",
-    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    dependencies=[Depends(dependency=AuthMiddleware.admin_dependency)],
 )
 async def delete_media(request: Request, public_id: str) -> OkResponse:
     """Delete the media file for a media item so it can be downloaded again."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[None] = await Media.delete_media_async(
+    a_result: AResultCode = await Media.delete_media_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -305,6 +305,8 @@ async def delete_media(request: Request, public_id: str) -> OkResponse:
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
+
+    logger.info("TODO")
 
     return OkResponse()
 

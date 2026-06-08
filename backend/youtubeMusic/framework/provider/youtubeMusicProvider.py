@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime, timezone
 from logging import Logger
@@ -43,6 +44,7 @@ from backend.youtubeMusic.utils.youtubeMusicApi import (
 # Youtube Music access.
 from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 from backend.youtubeMusic.access.db.ormModels.track import TrackRow
+from backend.constants import MEDIA_PATH
 
 # Youtube Music framework.
 from backend.youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music
@@ -687,6 +689,41 @@ class YoutubeMusicProvider(BaseMediaProvider):
         duration_ms = track.duration_ms or 0
 
         return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+
+    async def delete_media_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResultCode:
+        """Remove the media file for a YouTube Music track and reset its path in the database."""
+
+        a_result_track: AResult[TrackRow] = (
+            await YoutubeMusicAccess.get_track_by_public_id_async(
+                session=session, public_id=public_id
+            )
+        )
+        if a_result_track.is_not_ok():
+            logger.error(
+                f"Error getting track for public id {public_id}. {a_result_track.info()}"
+            )
+            return AResultCode(
+                code=a_result_track.code(), message=a_result_track.message()
+            )
+
+        track: TrackRow = a_result_track.result()
+
+        if track.path:
+            full_path: str = os.path.join(MEDIA_PATH, track.path)
+            self._rename_file_to_backup(full_path)
+
+        a_result_clear: AResultCode = await YoutubeMusicAccess.update_track_path_async(
+            session=session, track_id=track.id, path=None
+        )
+        if a_result_clear.is_not_ok():
+            logger.error(f"Error clearing track path. {a_result_clear.info()}")
+            return AResultCode(
+                code=a_result_clear.code(), message=a_result_clear.message()
+            )
+
+        return AResultCode(code=AResultCode.OK, message="OK")
 
 
 provider = YoutubeMusicProvider()

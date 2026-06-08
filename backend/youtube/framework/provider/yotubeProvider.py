@@ -1,3 +1,4 @@
+import os
 import re
 from logging import Logger
 from typing import List, Any
@@ -28,6 +29,7 @@ from backend.youtube.framework.download.youtubeDownload import YoutubeDownload
 from backend.youtube.framework.youtubeApi import RawYoutubeSearchResult, youtube_api
 
 from backend.youtube.responses.videoResponse import YoutubeVideoResponse
+from backend.constants import MEDIA_PATH
 
 logger: Logger = getLogger(__name__)
 
@@ -303,6 +305,43 @@ class YoutubeProvider(BaseMediaProvider):
         )
 
         return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+
+    async def delete_media_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResultCode:
+        """Remove the media files for a YouTube video and reset its paths in the database."""
+
+        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_video.is_not_ok():
+            logger.error(
+                f"Error getting video for public id {public_id}. {a_result_video.info()}"
+            )
+            return AResultCode(
+                code=a_result_video.code(), message=a_result_video.message()
+            )
+
+        video: VideoRow = a_result_video.result()
+
+        if video.audio_path:
+            full_audio_path: str = os.path.join(MEDIA_PATH, video.audio_path)
+            self._rename_file_to_backup(full_audio_path)
+
+        if video.video_path:
+            full_video_path: str = os.path.join(MEDIA_PATH, video.video_path)
+            self._rename_file_to_backup(full_video_path)
+
+        a_result_clear: AResultCode = await Video.clear_video_paths_async(
+            session=session, video_id=video.id
+        )
+        if a_result_clear.is_not_ok():
+            logger.error(f"Error clearing video paths. {a_result_clear.info()}")
+            return AResultCode(
+                code=a_result_clear.code(), message=a_result_clear.message()
+            )
+
+        return AResultCode(code=AResultCode.OK, message="OK")
 
 
 provider = YoutubeProvider()

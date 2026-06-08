@@ -26,6 +26,21 @@ class Video:
         return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
+    async def clear_video_paths_async(
+        session: AsyncSession, video_id: int
+    ) -> AResultCode:
+
+        a_result: AResultCode = await VideoAccess.clear_video_paths_async(
+            session=session, video_id=video_id
+        )
+
+        if a_result.is_not_ok():
+            logger.error(f"Error clearing video paths. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
     async def update_video_real_duration_async(
         session: AsyncSession, video_id: int, real_duration_ms: int | None
     ) -> AResultCode:

@@ -341,9 +341,7 @@ class Media:
         )
 
     @staticmethod
-    async def delete_media_async(
-        session: AsyncSession, public_id: str
-    ) -> AResult[None]:
+    async def delete_media_async(session: AsyncSession, public_id: str) -> AResultCode:
         """Delete the media file for a media item so it can be downloaded again."""
 
         a_result_media: AResult[CoreMediaRow] = (
@@ -355,7 +353,9 @@ class Media:
             logger.error(
                 f"Error getting media from database for public id {public_id}. {a_result_media.info()}"
             )
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return AResultCode(
+                code=a_result_media.code(), message=a_result_media.message()
+            )
 
         media: CoreMediaRow = a_result_media.result()
         provider: BaseMediaProvider | None = providers.find_media_provider(
@@ -363,18 +363,18 @@ class Media:
         )
         if provider is None:
             logger.error(f"No provider found for provider_id {media.provider_id}.")
-            return AResult(
+            return AResultCode(
                 code=AResultCode.NOT_FOUND, message="Provider not found for media"
             )
 
-        a_result: AResult[None] = await provider.delete_media_async(
+        a_result: AResultCode = await provider.delete_media_async(
             session=session, public_id=public_id
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error deleting media. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return AResultCode(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=None)
+        return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
     async def get_image_async(

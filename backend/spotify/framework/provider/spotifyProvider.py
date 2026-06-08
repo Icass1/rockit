@@ -1,3 +1,4 @@
+import os
 import re
 from logging import Logger
 from typing import Dict, List
@@ -40,6 +41,8 @@ from backend.spotify.framework.spotify import Spotify
 from backend.spotify.framework.download.spotifyDownload import SpotifyDownload
 
 from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
+from backend.constants import MEDIA_PATH
+from backend.spotify.access.trackAccess import TrackAccess
 
 logger: Logger = getLogger(__name__)
 
@@ -493,6 +496,52 @@ class SpotifyProvider(BaseMediaProvider):
 
         duration_ms = a_result_tracks.result()[0].duration_ms or 0
         return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+
+    async def delete_media_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResultCode:
+        """Remove the media file for a Spotify track and reset its path in the database."""
+
+        a_result_mapping = await Spotify.get_tracks_spotify_id_from_public_ids_async(
+            session=session, public_ids=[public_id]
+        )
+        if a_result_mapping.is_not_ok():
+            logger.error(f"Error resolving public_id. {a_result_mapping.info()}")
+            return AResultCode(
+                code=a_result_mapping.code(), message=a_result_mapping.message()
+            )
+
+        mapping = a_result_mapping.result()
+        spotify_id = mapping.get(public_id)
+        if not spotify_id:
+            logger.error(f"No spotify_id found for public_id {public_id}")
+            return AResultCode(code=AResultCode.NOT_FOUND, message="Track not found")
+
+        a_result_tracks = await Spotify.get_tracks_from_db(
+            session=session, spotify_ids=[spotify_id]
+        )
+        if a_result_tracks.is_not_ok() or not a_result_tracks.result():
+            logger.error(f"Error getting track from DB. {a_result_tracks.info()}")
+            return AResultCode(
+                code=a_result_tracks.code(), message=a_result_tracks.message()
+            )
+
+        track = a_result_tracks.result()[0]
+
+        if track.path:
+            full_path: str = os.path.join(MEDIA_PATH, track.path)
+            self._rename_file_to_backup(full_path)
+
+        a_result_clear = await TrackAccess.clear_track_path_async(
+            session=session, track_id=track.id
+        )
+        if a_result_clear.is_not_ok():
+            logger.error(f"Error clearing track path. {a_result_clear.info()}")
+            return AResultCode(
+                code=a_result_clear.code(), message=a_result_clear.message()
+            )
+
+        return AResultCode(code=AResultCode.OK, message="OK")
 
 
 provider = SpotifyProvider()

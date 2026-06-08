@@ -340,7 +340,7 @@ class YoutubeMusicAccess:
     async def update_track_path_async(
         session: AsyncSession,
         track_id: int,
-        path: str,
+        path: str | None,
     ) -> AResultCode:
         stmt: Select[Tuple[TrackRow]] = select(TrackRow).where(TrackRow.id == track_id)
         result: Result[Tuple[TrackRow]] = await session.execute(stmt)

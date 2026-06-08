@@ -74,6 +74,40 @@ class TrackAccess:
             )
 
     @staticmethod
+    async def clear_track_path_async(
+        session: AsyncSession,
+        track_id: int,
+    ) -> AResultCode:
+        """Set the track's path to None so it can be re-downloaded."""
+
+        try:
+            stmt = select(TrackRow).where(TrackRow.id == track_id)
+            result = await session.execute(stmt)
+            track: TrackRow | None = result.scalar_one_or_none()
+
+            if not track:
+                logger.error(f"Track with id {track_id} not found.")
+                return AResultCode(
+                    code=AResultCode.NOT_FOUND, message="Track not found."
+                )
+
+            track.path = None
+
+            await session.commit()
+
+            await session.refresh(track)
+            session.expunge(track)
+
+            return AResultCode(code=AResultCode.OK, message="Track path cleared.")
+
+        except Exception as e:
+            logger.error(f"Failed to clear track path: {e}")
+            return AResultCode(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to clear track path: {e}",
+            )
+
+    @staticmethod
     async def update_track_path_async(
         session: AsyncSession,
         track_id: int,

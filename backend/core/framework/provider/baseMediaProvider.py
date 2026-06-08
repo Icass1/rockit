@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from logging import Logger
 from typing import TYPE_CHECKING, List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -143,26 +144,42 @@ class BaseMediaProvider(BaseProvider):
             message=f"Provider '{self._name}' doesn't implement get_media_duration_ms_async.",
         )
 
-    # ------------------------------------------------------------------
-    # Stats CTE fragments
-    # Each method returns a bare SELECT … block (no CTE name, no UNION ALL)
-    # that will be combined with other providers' fragments via UNION ALL.
-    # Return None if the provider has no contribution for that CTE.
-    # ------------------------------------------------------------------
-
     async def delete_media_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[None]:
+    ) -> AResultCode:
         """Remove the audio file for a media item and reset its path in the database
         so it can be downloaded again."""
 
         logger.warning(
             f"Provider '{self._name}' doesn't implement delete_media_async method."
         )
-        return AResult(
+        return AResultCode(
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement delete_media_async method.",
         )
+
+    @staticmethod
+    def _rename_file_to_backup(file_path: str) -> None:
+        """Rename a file by appending .bak<n> where n is the next available number.
+
+        If the file does not exist, this is a no-op.
+        """
+
+        if not os.path.exists(file_path):
+            return
+
+        n: int = 1
+        while os.path.exists(f"{file_path}.bak{n}"):
+            n += 1
+
+        os.rename(file_path, f"{file_path}.bak{n}")
+
+    # ------------------------------------------------------------------
+    # Stats CTE fragments
+    # Each method returns a bare SELECT … block (no CTE name, no UNION ALL)
+    # that will be combined with other providers' fragments via UNION ALL.
+    # Return None if the provider has no contribution for that CTE.
+    # ------------------------------------------------------------------
 
     def get_stats_media_info_cte_fragment(self) -> str | None:
         """SELECT fragment for media_info (media_id, duration_ms, public_id, media_name, image_url, media_type_key)."""

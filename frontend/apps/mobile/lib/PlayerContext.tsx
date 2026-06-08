@@ -7,8 +7,7 @@ import {
     useState,
 } from "react";
 import type {
-    BaseSongWithoutAlbumResponse,
-    BaseVideoResponse,
+    CurrentQueueMessageRequestItem,
     QueueResponseItem,
     TQueueMedia,
 } from "@rockit/shared";
@@ -78,9 +77,7 @@ interface PlayerContextType {
 
 const PlayerContext = createContext<PlayerContextType | null>(null);
 
-function hasVideoSource(
-    media: BaseSongWithoutAlbumResponse | BaseVideoResponse | null
-): boolean {
+function hasVideoSource(media: TQueueMedia | null | undefined): boolean {
     if (!media) return false;
     return "videoSrc" in media && !!media.videoSrc;
 }
@@ -91,11 +88,36 @@ function getLockScreenMetadata(
 ): LockScreenMetadata {
     return {
         title: media.name,
-        artist: media.artists?.[0]?.name,
+        artist: ("artists" in media ? media.artists?.[0]?.name : undefined),
         albumTitle: "album" in media ? media.album?.name : undefined,
         artworkUrl: media.imageUrl,
         duration: duration > 0 ? duration : undefined,
     };
+}
+
+function buildQueuePayload(
+    currentQueue: TQueueMedia[],
+    originalQueue: TQueueMedia[],
+    isShuffle: boolean
+): CurrentQueueMessageRequestItem[] {
+    if (!isShuffle || originalQueue.length === 0) {
+        return currentQueue.map((m, i) => ({
+            mediaPublicId: m.publicId,
+            listPublicId: null,
+            queueMediaId: i,
+            sortedIndex: i,
+            randomIndex: i,
+        }));
+    }
+    // currentQueue is the random order; originalQueue is the sorted order
+    const sortedIndexMap = new Map(originalQueue.map((m, i) => [m.publicId, i]));
+    return currentQueue.map((m, i) => ({
+        mediaPublicId: m.publicId,
+        listPublicId: null,
+        queueMediaId: i,
+        sortedIndex: sortedIndexMap.get(m.publicId) ?? i,
+        randomIndex: i,
+    }));
 }
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
@@ -170,7 +192,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             // Keep Android Auto in sync with the current track
             NativeMediaBridge.updateNowPlaying(
                 queue.currentMedia.name,
-                queue.currentMedia.artists?.[0]?.name ?? "",
+                ("artists" in queue.currentMedia ? queue.currentMedia.artists?.[0]?.name ?? "" : ""),
                 "album" in queue.currentMedia
                     ? (queue.currentMedia.album?.name ?? "")
                     : "",
@@ -195,7 +217,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         const autoQueue: AutoQueueItem[] = queue.queue.map((m) => ({
             mediaId: m.publicId,
             title: m.name,
-            artist: m.artists?.[0]?.name ?? "",
+            artist: ("artists" in m ? m.artists?.[0]?.name ?? "" : ""),
             album: "album" in m ? (m.album?.name ?? "") : "",
             artworkUrl: m.imageUrl ?? "",
             duration:
@@ -256,12 +278,22 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 );
                 if (!currentItem) return;
 
-                const queueMedia = queueResponse.result.queue.map(
-                    (item: QueueResponseItem) => item.media
-                );
+                const isShuffle = queueResponse.result.queueType === "RANDOM";
+                const sortedQueue = [...queueResponse.result.queue]
+                    .sort(
+                        (a: QueueResponseItem, b: QueueResponseItem) =>
+                            a.sortedIndex - b.sortedIndex
+                    )
+                    .map((item: QueueResponseItem) => item.media);
+                const randomQueue = [...queueResponse.result.queue]
+                    .sort(
+                        (a: QueueResponseItem, b: QueueResponseItem) =>
+                            a.randomIndex - b.randomIndex
+                    )
+                    .map((item: QueueResponseItem) => item.media);
                 const currentMedia = currentItem.media;
 
-                queue.setQueueAndPlay(currentMedia, queueMedia);
+                queue.restoreQueue(sortedQueue, randomQueue, currentMedia, isShuffle);
 
                 const uri = getUri(currentMedia);
                 if (!uri) return;
@@ -283,14 +315,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const getUri = (
-        media: BaseSongWithoutAlbumResponse | BaseVideoResponse | undefined
-    ): string | null => {
+    const getUri = (media: TQueueMedia | undefined): string | null => {
         if (!media) return null;
         if (isVideo(media)) {
             return media.audioSrc ?? media.videoSrc ?? null;
         }
-        return media.audioSrc;
+        if ("audioSrc" in media) {
+            return media.audioSrc;
+        }
+        return null;
     };
 
     // Resolves the best URI for playback: local file → media cache → remote URL
@@ -371,7 +404,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                     webSocketManager.sendCurrentMedia({
                         mediaPublicId: nextMedia.publicId,
                         queueMediaId: index,
-                        queueType: "SORTED",
+                        queueType: queueRef.current.shuffle
+                            ? "RANDOM"
+                            : "SORTED",
                     });
                 }
             } else {
@@ -413,7 +448,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 if (outgoingUri) mediaCacheManager.deleteCached(outgoingUri);
             }
 
-            const index = queue.setQueueAndPlay(media, newQueue);
+            const isShuffle = queue.shuffle;
+            const { index, queue: displayQueue } = queue.setQueueAndPlay(
+                media,
+                newQueue
+            );
             setCurrentTime(0);
             currentTimeRef.current = 0;
             setDuration(0);
@@ -433,16 +472,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             webSocketManager.sendCurrentMedia({
                 mediaPublicId: media.publicId,
                 queueMediaId: index,
-                queueType: EQueueType.SORTED,
+                queueType: isShuffle ? EQueueType.RANDOM : EQueueType.SORTED,
             });
+            // newQueue is always the caller-supplied sorted order;
+            // displayQueue is the actual post-shuffle order
             webSocketManager.sendCurrentQueue({
-                queue: newQueue.map((m, i) => ({
-                    mediaPublicId: m.publicId,
-                    listPublicId: null,
-                    queueMediaId: i,
-                    randomIndex: i,
-                    sortedIndex: i,
-                })),
+                queue: buildQueuePayload(
+                    displayQueue,
+                    isShuffle ? newQueue : [],
+                    isShuffle
+                ),
             });
         },
         [mediaEngine, queue]
@@ -489,6 +528,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             if (outgoingUri) mediaCacheManager.deleteCached(outgoingUri);
         }
 
+        webSocketManager.sendSkipClicked({
+            direction: "NEXT",
+            mediaPublicId: queue.currentMedia?.publicId ?? nextMedia.publicId,
+        });
         queue.setCurrentIndex(nextIndex);
         setCurrentTime(0);
         const playUri = await resolveUri(nextMedia);
@@ -501,7 +544,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         webSocketManager.sendCurrentMedia({
             mediaPublicId: nextMedia.publicId,
             queueMediaId: nextIndex,
-            queueType: EQueueType.SORTED,
+            queueType: queue.shuffle ? EQueueType.RANDOM : EQueueType.SORTED,
         });
     }, [mediaEngine, queue]);
 
@@ -527,6 +570,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             if (outgoingUri) mediaCacheManager.deleteCached(outgoingUri);
         }
 
+        webSocketManager.sendSkipClicked({
+            direction: "PREVIOUS",
+            mediaPublicId: queue.currentMedia?.publicId ?? prevMedia.publicId,
+        });
         queue.setCurrentIndex(prevIndex);
         setCurrentTime(0);
         const playUri = await resolveUri(prevMedia);
@@ -539,9 +586,132 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         webSocketManager.sendCurrentMedia({
             mediaPublicId: prevMedia.publicId,
             queueMediaId: prevIndex,
-            queueType: EQueueType.SORTED,
+            queueType: queue.shuffle ? EQueueType.RANDOM : EQueueType.SORTED,
         });
     }, [currentTime, mediaEngine, queue, seekTo]);
+
+    const toggleShuffle = useCallback(() => {
+        const currentQBeforeToggle = queueRef.current.queue;
+        const { newShuffle, newQueue, originalQueue } =
+            queueRef.current.toggleShuffle();
+
+        Http.toggleRandomQueue();
+
+        const newQueueType = newShuffle ? "RANDOM" : "SORTED";
+        webSocketManager.sendQueueType({ queueType: newQueueType });
+
+        // When turning ON: newQueue=shuffled, originalQueue=sorted (currentQBeforeToggle)
+        // When turning OFF: newQueue=sorted, originalQueue=[] (no longer shuffled)
+        const sortedQ = newShuffle ? currentQBeforeToggle : [];
+        webSocketManager.sendCurrentQueue({
+            queue: buildQueuePayload(newQueue, sortedQ, newShuffle),
+        });
+
+        const currentMedia = queueRef.current.currentMedia;
+        if (currentMedia?.publicId) {
+            const newIdx = newQueue.findIndex(
+                (m) => m.publicId === currentMedia.publicId
+            );
+            webSocketManager.sendCurrentMedia({
+                mediaPublicId: currentMedia.publicId,
+                queueMediaId: Math.max(0, newIdx),
+                queueType: newQueueType,
+            });
+        }
+    }, []);
+
+    const removeFromQueue = useCallback((index: number) => {
+        const newQueue = queueRef.current.queue.filter((_, i) => i !== index);
+        queueRef.current.removeFromQueue(index);
+        webSocketManager.sendCurrentQueue({
+            queue: buildQueuePayload(
+                newQueue,
+                queueRef.current.originalQueue,
+                queueRef.current.shuffle
+            ),
+        });
+    }, []);
+
+    const reorderQueue = useCallback((fromIndex: number, toIndex: number) => {
+        const newQ = [...queueRef.current.queue];
+        const [moved] = newQ.splice(fromIndex, 1);
+        newQ.splice(toIndex, 0, moved);
+        queueRef.current.reorderQueue(fromIndex, toIndex);
+        webSocketManager.sendCurrentQueue({
+            queue: buildQueuePayload(
+                newQ,
+                queueRef.current.originalQueue,
+                queueRef.current.shuffle
+            ),
+        });
+    }, []);
+
+    const addToQueueEnd = useCallback(
+        (media: TQueueMedia | TQueueMedia[]) => {
+            const items = Array.isArray(media) ? media : [media];
+            const newQueue = [...queueRef.current.queue, ...items];
+            queueRef.current.addToQueueEnd(media);
+            // originalQueueRef is updated synchronously inside addToQueueEnd
+            webSocketManager.sendCurrentQueue({
+                queue: buildQueuePayload(
+                    newQueue,
+                    queueRef.current.originalQueue,
+                    queueRef.current.shuffle
+                ),
+            });
+        },
+        []
+    );
+
+    const addToQueueNext = useCallback(
+        (media: TQueueMedia | TQueueMedia[]) => {
+            const items = Array.isArray(media) ? media : [media];
+            const nextIndex = queueRef.current.currentIndex + 1;
+            const newQ = [...queueRef.current.queue];
+            newQ.splice(nextIndex, 0, ...items);
+            queueRef.current.addToQueueNext(media);
+            webSocketManager.sendCurrentQueue({
+                queue: buildQueuePayload(
+                    newQ,
+                    queueRef.current.originalQueue,
+                    queueRef.current.shuffle
+                ),
+            });
+        },
+        []
+    );
+
+    const playNext = useCallback(
+        async (media: TQueueMedia, newQueue: TQueueMedia[]) => {
+            const isShuffle = queueRef.current.shuffle;
+            const { index, queue: displayQueue } =
+                queueRef.current.setQueueAndPlay(media, newQueue);
+            const rawUri = getUri(media);
+            const shouldHaveVideo = hasVideoSource(media);
+            const playUri = await resolveUri(media);
+            if (!playUri) return;
+            await mediaEngine.loadTrack(playUri, shouldHaveVideo);
+            if (rawUri && !shouldHaveVideo && playUri === rawUri) {
+                mediaCacheManager.downloadToCache(rawUri, media.publicId);
+            }
+            webSocketManager.sendMediaClicked({
+                mediaPublicId: media.publicId,
+            });
+            webSocketManager.sendCurrentMedia({
+                mediaPublicId: media.publicId,
+                queueMediaId: index,
+                queueType: isShuffle ? EQueueType.RANDOM : EQueueType.SORTED,
+            });
+            webSocketManager.sendCurrentQueue({
+                queue: buildQueuePayload(
+                    displayQueue,
+                    isShuffle ? newQueue : [],
+                    isShuffle
+                ),
+            });
+        },
+        [mediaEngine]
+    );
 
     const showPlayer = useCallback(() => setIsPlayerVisible(true), []);
     const hidePlayer = useCallback(() => setIsPlayerVisible(false), []);
@@ -571,19 +741,22 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                 videoOpacity: mediaEngine.videoOpacity,
                 hasVideo: mediaEngine.hasVideo,
                 playMedia,
-                playNext: queue.playNext,
+                playNext,
                 pause,
                 play,
                 togglePlayPause,
                 seekTo,
                 skipForward,
                 skipBack,
-                toggleShuffle: queue.toggleShuffle,
-                cycleRepeat: queue.cycleRepeat,
-                removeFromQueue: queue.removeFromQueue,
-                reorderQueue: queue.reorderQueue,
-                addToQueueEnd: queue.addToQueueEnd,
-                addToQueueNext: queue.addToQueueNext,
+                toggleShuffle,
+                cycleRepeat: () => {
+                    queue.cycleRepeat();
+                    Http.cycleRepeatMode();
+                },
+                removeFromQueue,
+                reorderQueue,
+                addToQueueEnd,
+                addToQueueNext,
                 showPlayer,
                 hidePlayer,
             }}

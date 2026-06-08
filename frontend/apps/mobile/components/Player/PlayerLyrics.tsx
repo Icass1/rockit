@@ -61,7 +61,7 @@ export default function PlayerLyrics() {
                 {currentMedia && (
                     <Text style={styles.headerSubtitle} numberOfLines={1}>
                         {currentMedia.name}
-                        {currentMedia.artists[0]?.name
+                        {"artists" in currentMedia && currentMedia.artists[0]?.name
                             ? ` — ${currentMedia.artists[0].name}`
                             : ""}
                     </Text>

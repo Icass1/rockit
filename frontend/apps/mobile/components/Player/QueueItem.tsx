@@ -88,7 +88,7 @@ export default function QueueItem({
                         {media.name}
                     </Text>
                     <Text style={styles.artist} numberOfLines={1}>
-                        {media.artists[0]?.name ?? ""}
+                        {"artists" in media ? (media.artists[0]?.name ?? "") : ""}
                     </Text>
                 </View>
 

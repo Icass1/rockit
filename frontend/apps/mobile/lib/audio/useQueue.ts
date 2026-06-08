@@ -8,20 +8,36 @@ import {
     shuffleQueue,
 } from "@rockit/shared";
 
+interface ToggleShuffleResult {
+    newShuffle: boolean;
+    newQueue: TQueueMedia[];
+    originalQueue: TQueueMedia[];
+}
+
 interface UseQueueReturn {
     queue: TQueueMedia[];
     currentIndex: number;
     currentMedia: TQueueMedia | undefined;
     shuffle: boolean;
     repeatMode: ERepeatMode;
-    setQueueAndPlay: (media: TQueueMedia, newQueue: TQueueMedia[]) => number;
+    originalQueue: TQueueMedia[];
+    setQueueAndPlay: (
+        media: TQueueMedia,
+        newQueue: TQueueMedia[]
+    ) => { index: number; queue: TQueueMedia[] };
+    restoreQueue: (
+        sortedQueue: TQueueMedia[],
+        randomQueue: TQueueMedia[],
+        currentMedia: TQueueMedia,
+        isShuffle: boolean
+    ) => number;
     getNextIndex: () => number | null;
     getPrevIndex: () => number | null;
     resolveOnEnd: () => {
         action: "replay" | "play" | "stop";
         index: number | null;
     };
-    toggleShuffle: () => void;
+    toggleShuffle: () => ToggleShuffleResult;
     cycleRepeat: () => void;
     removeFromQueue: (index: number) => void;
     reorderQueue: (fromIndex: number, toIndex: number) => void;
@@ -54,7 +70,10 @@ export function useQueue(): UseQueueReturn {
         q.map((item, i) => ({ publicId: item.publicId, queueMediaId: i }));
 
     const setQueueAndPlay = useCallback(
-        (media: TQueueMedia, newQueue: TQueueMedia[]): number => {
+        (
+            media: TQueueMedia,
+            newQueue: TQueueMedia[]
+        ): { index: number; queue: TQueueMedia[] } => {
             let finalQueue = [...newQueue];
 
             if (shuffleRef.current) {
@@ -69,6 +88,10 @@ export function useQueue(): UseQueueReturn {
                 finalQueue = shuffled.map(
                     (item) => newQueue[item.queueMediaId]
                 );
+                // Store the unsorted order so WS sync can compute sortedIndex
+                originalQueueRef.current = [...newQueue];
+            } else {
+                originalQueueRef.current = [];
             }
 
             setQueue(finalQueue);
@@ -77,7 +100,7 @@ export function useQueue(): UseQueueReturn {
             );
             const finalIndex = Math.max(0, index);
             setCurrentIndex(finalIndex);
-            return finalIndex;
+            return { index: finalIndex, queue: finalQueue };
         },
         []
     );
@@ -120,17 +143,24 @@ export function useQueue(): UseQueueReturn {
         return { action: actionMap[action], index: nextId };
     }, []);
 
-    const toggleShuffle = useCallback(() => {
+    const toggleShuffle = useCallback((): ToggleShuffleResult => {
+        let result: ToggleShuffleResult = {
+            newShuffle: false,
+            newQueue: [],
+            originalQueue: [],
+        };
         setShuffle((s) => {
             const next = !s;
             if (next) {
                 const q = queueRef.current;
-                originalQueueRef.current = [...q];
+                const original = [...q];
+                originalQueueRef.current = original;
                 const items = toQueueItems(q);
                 const shuffled = shuffleQueue(items, currentIndexRef.current);
                 const newQueue = shuffled.map((item) => q[item.queueMediaId]);
                 setQueue(newQueue);
                 setCurrentIndex(0);
+                result = { newShuffle: true, newQueue, originalQueue: original };
             } else {
                 const original = originalQueueRef.current;
                 if (original.length > 0) {
@@ -142,9 +172,15 @@ export function useQueue(): UseQueueReturn {
                     );
                     setCurrentIndex(restoredIndex >= 0 ? restoredIndex : 0);
                 }
+                result = {
+                    newShuffle: false,
+                    newQueue: originalQueueRef.current,
+                    originalQueue: [],
+                };
             }
             return next;
         });
+        return result;
     }, []);
 
     const cycleRepeat = useCallback(() => {
@@ -156,6 +192,22 @@ export function useQueue(): UseQueueReturn {
     }, []);
 
     const removeFromQueue = useCallback((index: number) => {
+        // Keep originalQueueRef in sync when shuffle is active
+        const removedMedia = queueRef.current[index];
+        if (
+            removedMedia &&
+            shuffleRef.current &&
+            originalQueueRef.current.length > 0
+        ) {
+            const origIdx = originalQueueRef.current.findIndex(
+                (m) => m.publicId === removedMedia.publicId
+            );
+            if (origIdx !== -1) {
+                originalQueueRef.current = originalQueueRef.current.filter(
+                    (_, i) => i !== origIdx
+                );
+            }
+        }
         setQueue((q) => {
             const newQ = q.filter((_, i) => i !== index);
             const curr = currentIndexRef.current;
@@ -182,15 +234,24 @@ export function useQueue(): UseQueueReturn {
     }, []);
 
     const addToQueueEnd = useCallback((media: TQueueMedia | TQueueMedia[]) => {
-        setQueue((q) => {
-            const items = Array.isArray(media) ? media : [media];
-            return [...q, ...items];
-        });
+        const items = Array.isArray(media) ? media : [media];
+        // Keep originalQueueRef in sync when shuffle is active
+        if (shuffleRef.current && originalQueueRef.current.length > 0) {
+            originalQueueRef.current = [...originalQueueRef.current, ...items];
+        }
+        setQueue((q) => [...q, ...items]);
     }, []);
 
     const addToQueueNext = useCallback((media: TQueueMedia | TQueueMedia[]) => {
+        const items = Array.isArray(media) ? media : [media];
+        // Keep originalQueueRef in sync when shuffle is active
+        if (shuffleRef.current && originalQueueRef.current.length > 0) {
+            const nextIndex = currentIndexRef.current + 1;
+            const newOriginal = [...originalQueueRef.current];
+            newOriginal.splice(nextIndex, 0, ...items);
+            originalQueueRef.current = newOriginal;
+        }
         setQueue((q) => {
-            const items = Array.isArray(media) ? media : [media];
             const nextIndex = currentIndexRef.current + 1;
             const newQ = [...q];
             newQ.splice(nextIndex, 0, ...items);
@@ -198,9 +259,45 @@ export function useQueue(): UseQueueReturn {
         });
     }, []);
 
+    const restoreQueue = useCallback(
+        (
+            sortedQueue: TQueueMedia[],
+            randomQueue: TQueueMedia[],
+            currentMedia: TQueueMedia,
+            isShuffle: boolean
+        ): number => {
+            if (isShuffle) {
+                originalQueueRef.current = sortedQueue;
+                setQueue(randomQueue);
+                setShuffle(true);
+                const index = Math.max(
+                    0,
+                    randomQueue.findIndex(
+                        (m) => m.publicId === currentMedia.publicId
+                    )
+                );
+                setCurrentIndex(index);
+                return index;
+            } else {
+                originalQueueRef.current = [];
+                setQueue(sortedQueue);
+                setShuffle(false);
+                const index = Math.max(
+                    0,
+                    sortedQueue.findIndex(
+                        (m) => m.publicId === currentMedia.publicId
+                    )
+                );
+                setCurrentIndex(index);
+                return index;
+            }
+        },
+        []
+    );
+
     const playNext = useCallback(
         async (media: TQueueMedia, newQueue: TQueueMedia[]): Promise<void> => {
-            const index = setQueueAndPlay(media, newQueue);
+            const { index } = setQueueAndPlay(media, newQueue);
             setCurrentIndex(index);
         },
         [setQueueAndPlay]
@@ -212,7 +309,9 @@ export function useQueue(): UseQueueReturn {
         currentMedia,
         shuffle,
         repeatMode,
+        originalQueue: originalQueueRef.current,
         setQueueAndPlay,
+        restoreQueue,
         getNextIndex,
         getPrevIndex,
         resolveOnEnd,

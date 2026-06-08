@@ -107,7 +107,9 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
 
                             const url = isVideo(media)
                                 ? (media.audioSrc ?? media.videoSrc ?? null)
-                                : media.audioSrc;
+                                : "audioSrc" in media
+                                  ? media.audioSrc
+                                  : media.streamUrl;
 
                             if (!url) {
                                 toasterManager.notifyError(

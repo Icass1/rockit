@@ -8,6 +8,7 @@ import {
     EWebSocketMessage,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
+    QueueTypeRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
     TWebSocketIncomingMessage,
@@ -206,6 +207,10 @@ export class WebSocketManager {
 
     sendMediaClicked(data: MediaClickedMessageRequest) {
         this.send({ type: "media_clicked", ...data });
+    }
+
+    sendQueueType(data: QueueTypeRequest) {
+        this.send({ type: "queue_type", ...data });
     }
 
     sendSkipClicked(data: SkipClickedMessageRequest) {

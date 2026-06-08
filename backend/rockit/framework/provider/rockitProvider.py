@@ -158,12 +158,12 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         self,
         session: AsyncSession,
         request: UploadSongRequest,
-        file_data: bytes,
-        image_data: bytes | None = None,
+        file_path: str,
+        image_path: str | None = None,
     ) -> AResult[UploadResponse]:
         """Upload a song file to the RockIt provider."""
 
-        if image_data is None:
+        if image_path is None:
             return AResult(
                 code=AResultCode.BAD_REQUEST,
                 message="Image data is required for song upload.",
@@ -173,8 +173,8 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             session=session,
             title=request.title,
             artist_names=request.artistNames,
-            file_data=file_data,
-            image_data=image_data,
+            file_path=file_path,
+            image_path=image_path,
             disc_number=request.discNumber,
             track_number=request.trackNumber,
         )
@@ -183,12 +183,12 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         self,
         session: AsyncSession,
         request: UploadAlbumRequest,
-        cover_data: bytes | None,
-        song_files: dict[str, bytes],
+        cover_path: str | None,
+        song_paths: dict[str, str],
     ) -> AResult[UploadResponse]:
         """Upload an album with songs to the RockIt provider."""
 
-        if cover_data is None:
+        if cover_path is None:
             return AResult(
                 code=AResultCode.BAD_REQUEST,
                 message="Cover image data is required for album upload.",
@@ -199,8 +199,8 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             title=request.title,
             artist_name=request.artistNames,
             song_titles=[s.title for s in request.songs],
-            song_files=song_files,
-            cover_data=cover_data,
+            song_paths=song_paths,
+            cover_path=cover_path,
             release_date=request.releaseDate,
         )
 
@@ -208,12 +208,12 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         self,
         session: AsyncSession,
         request: UploadVideoRequest,
-        file_data: bytes,
-        image_data: bytes | None = None,
+        file_path: str,
+        image_path: str | None = None,
     ) -> AResult[UploadResponse]:
         """Upload a video file to the RockIt provider."""
 
-        if image_data is None:
+        if image_path is None:
             return AResult(
                 code=AResultCode.BAD_REQUEST,
                 message="Image data is required for video upload.",
@@ -223,8 +223,8 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             session=session,
             title=request.title,
             artist_names=request.artistNames,
-            file_data=file_data,
-            image_data=image_data,
+            file_path=file_path,
+            image_path=image_path,
         )
 
     def get_stats_media_info_cte_fragment(self) -> str | None:

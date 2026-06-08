@@ -25,8 +25,8 @@ class BaseUploadProvider(BaseProvider):
         self,
         session: AsyncSession,
         request: UploadSongRequest,
-        file_data: bytes,
-        image_data: bytes | None = None,
+        file_path: str,
+        image_path: str | None = None,
     ) -> AResult[UploadResponse]:
         logger.warning(
             f"Provider '{self._name}' doesn't implement upload_song_async method."
@@ -40,8 +40,8 @@ class BaseUploadProvider(BaseProvider):
         self,
         session: AsyncSession,
         request: UploadAlbumRequest,
-        cover_data: bytes | None,
-        song_files: dict[str, bytes],
+        cover_path: str | None,
+        song_paths: dict[str, str],
     ) -> AResult[UploadResponse]:
         logger.warning(
             f"Provider '{self._name}' doesn't implement upload_album_async method."
@@ -55,8 +55,8 @@ class BaseUploadProvider(BaseProvider):
         self,
         session: AsyncSession,
         request: UploadVideoRequest,
-        file_data: bytes,
-        image_data: bytes | None = None,
+        file_path: str,
+        image_path: str | None = None,
     ) -> AResult[UploadResponse]:
         logger.warning(
             f"Provider '{self._name}' doesn't implement upload_video_async method."

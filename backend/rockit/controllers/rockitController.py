@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 from typing import Any, List, cast
 from logging import Logger
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
@@ -7,6 +8,7 @@ from fastapi.responses import StreamingResponse
 import aiofiles
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import create_id
 
 from backend.core.aResult import AResult
 
@@ -33,9 +35,25 @@ from backend.rockit.access.rockitAccess import RockitAccess
 from backend.rockit.access.db.ormModels.song import RockitSongRow
 from backend.rockit.access.db.ormModels.video import RockitVideoRow
 
+from backend.constants import MEDIA_PATH
+
 logger: Logger = getLogger(__name__)
 
 router = APIRouter(prefix="/rockit", tags=["rockit"])
+
+_STREAM_CHUNK_SIZE = 1024 * 1024  # 1MB
+
+
+async def _stream_to_file(upload_file: UploadFile, dest_path: str) -> None:
+    """Stream an UploadFile to disk in chunks without loading into RAM."""
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    async with aiofiles.open(dest_path, "wb") as f:
+        while True:
+            chunk = await upload_file.read(_STREAM_CHUNK_SIZE)
+            if not chunk:
+                break
+            await f.write(chunk)
 
 
 @router.post("/upload/song", response_model=UploadResponse)
@@ -64,13 +82,18 @@ async def upload_rockit_song(
     if provider is None:
         raise HTTPException(status_code=500, detail="RockIt upload provider not found")
 
-    file_data: bytes = await file.read()
-    image_data: bytes = await image.read()
+    upload_id: str = create_id(16)
+    temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
+    file_path: str = os.path.join(temp_dir, "file")
+    image_path: str = os.path.join(temp_dir, "image")
+
+    await _stream_to_file(upload_file=file, dest_path=file_path)
+    await _stream_to_file(upload_file=image, dest_path=image_path)
 
     upload_request: UploadSongRequest = UploadSongRequest(
         title=title,
         artistNames=artistNames,
-        fileSize=len(file_data),
+        fileSize=os.path.getsize(file_path),
         discNumber=discNumber,
         trackNumber=trackNumber,
     )
@@ -78,9 +101,11 @@ async def upload_rockit_song(
     a_result: AResult[UploadResponse] = await provider.upload_song_async(
         session=session,
         request=upload_request,
-        file_data=file_data,
-        image_data=image_data,
+        file_path=file_path,
+        image_path=image_path,
     )
+
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
     if a_result.is_not_ok():
         raise HTTPException(
@@ -142,12 +167,17 @@ async def upload_rockit_album(
     else:
         songs_meta = []
 
+    upload_id: str = create_id(16)
+    temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
+
     raw_cover = form.get("cover")
     if not isinstance(raw_cover, UploadFile):
+        shutil.rmtree(temp_dir, ignore_errors=True)
         raise HTTPException(status_code=400, detail="Cover image file is required")
-    cover_data: bytes = await raw_cover.read()
+    cover_path: str = os.path.join(temp_dir, "cover")
+    await _stream_to_file(upload_file=raw_cover, dest_path=cover_path)
 
-    song_files: dict[str, bytes] = {}
+    song_paths: dict[str, str] = {}
     for i, song_meta in enumerate(songs_meta):
         song_title: str = str(song_meta.get("title", f"Track {i + 1}"))
         field_name: str = f"{i}_song"
@@ -156,7 +186,9 @@ async def upload_rockit_album(
             raw_song_file if isinstance(raw_song_file, UploadFile) else None
         )
         if song_file is not None:
-            song_files[song_title] = await song_file.read()
+            song_path: str = os.path.join(temp_dir, f"song_{i}")
+            await _stream_to_file(upload_file=song_file, dest_path=song_path)
+            song_paths[song_title] = song_path
 
     song_requests: list[UploadSongRequest] = [
         UploadSongRequest(
@@ -181,9 +213,11 @@ async def upload_rockit_album(
     a_result: AResult[UploadResponse] = await provider.upload_album_async(
         session=session,
         request=upload_request,
-        cover_data=cover_data,
-        song_files=song_files,
+        cover_path=cover_path,
+        song_paths=song_paths,
     )
+
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
     if a_result.is_not_ok():
         raise HTTPException(

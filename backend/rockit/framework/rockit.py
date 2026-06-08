@@ -1,3 +1,5 @@
+import aiofiles
+import shutil
 from typing import List
 from logging import Logger
 import os
@@ -47,6 +49,19 @@ class Rockit:
     provider_id: int = 0
 
     @staticmethod
+    async def _copy_from_path_async(src_path: str, dst_path: str) -> None:
+        """Copy a file from src to dst in 1MB chunks without loading into RAM."""
+
+        os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+        async with aiofiles.open(src_path, "rb") as src:
+            async with aiofiles.open(dst_path, "wb") as dst:
+                while True:
+                    chunk = await src.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    await dst.write(chunk)
+
+    @staticmethod
     async def _extract_duration_ms_async(file_path: str) -> int:
         """Extract duration in milliseconds from a media file using ffprobe."""
 
@@ -78,8 +93,8 @@ class Rockit:
         session: AsyncSession,
         title: str,
         artist_names: List[str],
-        file_data: bytes,
-        image_data: bytes,
+        file_path: str,
+        image_path: str,
         disc_number: int,
         track_number: int,
     ) -> AResult[UploadResponse]:
@@ -88,25 +103,21 @@ class Rockit:
         try:
             file_ext: str = "mp3"
             file_name: str = f"{create_id(32)}.{file_ext}"
-            file_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
+            final_file_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
 
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-            import aiofiles
-
-            async with aiofiles.open(file_path, "wb") as f:
-                await f.write(file_data)
+            await Rockit._copy_from_path_async(
+                src_path=file_path, dst_path=final_file_path
+            )
 
             duration_ms: int = await Rockit._extract_duration_ms_async(
-                file_path=file_path
+                file_path=final_file_path
             )
 
             image_file_name: str = f"{create_id(32)}.jpg"
             image_rel_path: str = f"rockit/{image_file_name}"
             image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
             os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
-            async with aiofiles.open(image_full_path, "wb") as f:
-                await f.write(image_data)
+            shutil.copy2(image_path, image_full_path)
 
             a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
                 session=session, path=image_rel_path
@@ -125,7 +136,7 @@ class Rockit:
                     provider_id=Rockit.provider_id,
                     image_id=a_result_image.result().id,
                     duration_ms=duration_ms,
-                    file_path=file_path,
+                    file_path=final_file_path,
                     disc_number=disc_number,
                     track_number=track_number,
                 )
@@ -170,8 +181,8 @@ class Rockit:
         title: str,
         artist_name: List[str],
         song_titles: List[str],
-        song_files: dict[str, bytes],
-        cover_data: bytes,
+        song_paths: dict[str, str],
+        cover_path: str,
         release_date: str,
     ) -> AResult[UploadResponse]:
         """Upload an album with multiple songs."""
@@ -183,10 +194,7 @@ class Rockit:
 
             os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
 
-            import aiofiles
-
-            async with aiofiles.open(image_full_path, "wb") as f:
-                await f.write(cover_data)
+            shutil.copy2(cover_path, image_full_path)
 
             a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
                 session=session, path=image_rel_path
@@ -217,25 +225,22 @@ class Rockit:
             album: RockitAlbumRow = a_result_album.result()
 
             for track_number, song_title in enumerate(song_titles, start=1):
-                file_bytes: bytes = song_files.get(song_title, b"")
+                song_src_path: str = song_paths.get(song_title, "")
 
-                if not file_bytes:
+                if not song_src_path:
                     logger.warning(f"No file data for song '{song_title}', skipping.")
                     continue
 
                 file_ext: str = "mp3"
                 file_name: str = f"{create_id(32)}.{file_ext}"
-                file_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
+                song_dst_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
 
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-                import aiofiles
-
-                async with aiofiles.open(file_path, "wb") as f:
-                    await f.write(file_bytes)
+                await Rockit._copy_from_path_async(
+                    src_path=song_src_path, dst_path=song_dst_path
+                )
 
                 song_duration_ms: int = await Rockit._extract_duration_ms_async(
-                    file_path=file_path
+                    file_path=song_dst_path
                 )
 
                 a_result_song: AResult[RockitSongRow] = (
@@ -246,7 +251,7 @@ class Rockit:
                         provider_id=Rockit.provider_id,
                         image_id=image_id,
                         duration_ms=song_duration_ms,
-                        file_path=file_path,
+                        file_path=song_dst_path,
                         disc_number=1,
                         track_number=track_number,
                     )
@@ -301,33 +306,29 @@ class Rockit:
         session: AsyncSession,
         title: str,
         artist_names: List[str],
-        file_data: bytes,
-        image_data: bytes,
+        file_path: str,
+        image_path: str,
     ) -> AResult[UploadResponse]:
         """Upload a video file and create database records."""
 
         try:
             file_ext: str = "mp4"
             file_name: str = f"{create_id(32)}.{file_ext}"
-            file_path: str = f"{MEDIA_PATH}/rockit/videos/{file_name}"
+            final_file_path: str = f"{MEDIA_PATH}/rockit/videos/{file_name}"
 
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-            import aiofiles
-
-            async with aiofiles.open(file_path, "wb") as f:
-                await f.write(file_data)
+            await Rockit._copy_from_path_async(
+                src_path=file_path, dst_path=final_file_path
+            )
 
             duration_ms: int = await Rockit._extract_duration_ms_async(
-                file_path=file_path
+                file_path=final_file_path
             )
 
             image_file_name: str = f"{create_id(32)}.jpg"
             image_rel_path: str = f"rockit/{image_file_name}"
             image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
             os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
-            async with aiofiles.open(image_full_path, "wb") as f:
-                await f.write(image_data)
+            shutil.copy2(image_path, image_full_path)
 
             a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
                 session=session, path=image_rel_path
@@ -346,7 +347,7 @@ class Rockit:
                     provider_id=Rockit.provider_id,
                     image_id=a_result_image.result().id,
                     duration_ms=duration_ms,
-                    file_path=file_path,
+                    file_path=final_file_path,
                 )
             )
             if a_result_video.is_not_ok():

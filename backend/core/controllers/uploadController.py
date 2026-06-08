@@ -38,6 +38,20 @@ router = APIRouter(
     tags=["Core", "Upload"],
 )
 
+_STREAM_CHUNK_SIZE = 1024 * 1024  # 1MB
+
+
+async def _stream_to_file(upload_file: UploadFile, dest_path: str) -> None:
+    """Stream an UploadFile to disk in 1MB chunks without loading into RAM."""
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    async with aiofiles.open(dest_path, "wb") as f:
+        while True:
+            chunk = await upload_file.read(_STREAM_CHUNK_SIZE)
+            if not chunk:
+                break
+            await f.write(chunk)
+
 
 def _get_upload_provider() -> BaseUploadProvider:
     """Get the first available upload provider or raise 501."""
@@ -213,8 +227,15 @@ async def upload_file(
         session=session, upload_id=upload_id
     )
     provider: BaseUploadProvider = _get_upload_provider()
-    file_data: bytes = await file.read()
-    image_data: bytes | None = await image.read() if image is not None else None
+
+    temp_dir: str = _upload_temp_dir(upload_id=upload_id)
+    file_path: str = os.path.join(temp_dir, "file")
+    await _stream_to_file(upload_file=file, dest_path=file_path)
+
+    image_path: str | None = None
+    if image is not None:
+        image_path = os.path.join(temp_dir, "image")
+        await _stream_to_file(upload_file=image, dest_path=image_path)
 
     if pending.media_type_key == MediaTypeEnum.SONG.value:
         request_model: UploadSongRequest = UploadSongRequest.model_validate_json(
@@ -226,9 +247,10 @@ async def upload_file(
         a_result = await provider.upload_song_async(
             session=session,
             request=request_model,
-            file_data=file_data,
-            image_data=image_data,
+            file_path=file_path,
+            image_path=image_path,
         )
+        await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
             logger.error("TODO")
             raise HTTPException(
@@ -247,9 +269,10 @@ async def upload_file(
         a_result = await provider.upload_video_async(
             session=session,
             request=video_request,
-            file_data=file_data,
-            image_data=image_data,
+            file_path=file_path,
+            image_path=image_path,
         )
+        await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
             logger.error("TODO")
             raise HTTPException(
@@ -258,6 +281,7 @@ async def upload_file(
             )
         return a_result.result()
 
+    await _cleanup_upload_temp_dir(upload_id=upload_id)
     logger.error("TODO")
     raise HTTPException(
         status_code=400,
@@ -283,13 +307,8 @@ async def upload_album_cover(
         logger.error("TODO")
         raise HTTPException(status_code=400, detail="Upload is not an album.")
 
-    cover_data: bytes = await file.read()
-
     cover_path: str = _upload_temp_cover_path(upload_id=upload_id)
-    os.makedirs(os.path.dirname(cover_path), exist_ok=True)
-
-    async with aiofiles.open(cover_path, "wb") as f:
-        await f.write(cover_data)
+    await _stream_to_file(upload_file=file, dest_path=cover_path)
 
     a_result = await PendingUploadAccess.set_cover_uploaded_async(
         session=session, public_id=upload_id
@@ -332,13 +351,8 @@ async def upload_album_song_file(
             detail=f"Song index {index} out of range. Album has {len(album_request.songs)} songs.",
         )
 
-    file_data: bytes = await file.read()
-
     song_path: str = _upload_temp_song_path(upload_id=upload_id, index=index)
-    os.makedirs(os.path.dirname(song_path), exist_ok=True)
-
-    async with aiofiles.open(song_path, "wb") as f:
-        await f.write(file_data)
+    await _stream_to_file(upload_file=file, dest_path=song_path)
 
     a_result = await PendingUploadAccess.increment_uploaded_song_count_async(
         session=session, public_id=upload_id
@@ -357,17 +371,15 @@ async def upload_album_song_file(
         and pending.cover_uploaded
     ):
         cover_path: str = _upload_temp_cover_path(upload_id=upload_id)
-        cover_data: bytes | None = None
-        if os.path.exists(cover_path):
-            async with aiofiles.open(cover_path, "rb") as f:
-                cover_data = await f.read()
+        cover_path_to_pass: str | None = (
+            cover_path if os.path.exists(cover_path) else None
+        )
 
-        song_files: dict[str, bytes] = {}
+        song_paths: dict[str, str] = {}
         for i, song_meta in enumerate(album_request.songs):
             sp: str = _upload_temp_song_path(upload_id=upload_id, index=i)
             if os.path.exists(sp):
-                async with aiofiles.open(sp, "rb") as f:
-                    song_files[song_meta.title] = await f.read()
+                song_paths[song_meta.title] = sp
 
         await PendingUploadAccess.delete_by_public_id_async(
             session=session, public_id=upload_id
@@ -377,8 +389,8 @@ async def upload_album_song_file(
         a_result = await provider.upload_album_async(
             session=session,
             request=album_request,
-            cover_data=cover_data,
-            song_files=song_files,
+            cover_path=cover_path_to_pass,
+            song_paths=song_paths,
         )
 
         await _cleanup_upload_temp_dir(upload_id=upload_id)

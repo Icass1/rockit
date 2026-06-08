@@ -449,16 +449,18 @@ export class MediaPlayerManager {
             direction
         );
 
-        if (action === EQueueAction.REPLAY) {
-            this.setMedia();
-            this.play();
-        } else if (action === EQueueAction.PLAY && nextId !== null) {
-            rockIt.queueManager.setQueueMediaId(nextId, direction);
-            this.setMedia();
-            this.play();
-        } else {
-            this._playingAtom.set(false);
-        }
+        setTimeout(() => {
+            if (action === EQueueAction.REPLAY) {
+                this.setMedia();
+                this.play();
+            } else if (action === EQueueAction.PLAY && nextId !== null) {
+                rockIt.queueManager.setQueueMediaId(nextId, direction);
+                this.setMedia();
+                this.play();
+            } else {
+                this._playingAtom.set(false);
+            }
+        }, 1000);
     }
 
     private _handleEnded(): void {

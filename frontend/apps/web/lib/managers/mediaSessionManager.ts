@@ -26,6 +26,11 @@ export class MediaSessionManager {
     private _keepaliveGain?: GainNode;
     private _unsubscribers: (() => void)[] = [];
 
+    private static _isiOS(): boolean {
+        return typeof navigator !== "undefined" &&
+            /iPad|iPhone|iPod/.test(navigator.userAgent ?? "");
+    }
+
     constructor() {
         this._supported =
             typeof window !== "undefined" && "mediaSession" in navigator;
@@ -43,8 +48,11 @@ export class MediaSessionManager {
         if (typeof window === "undefined") return;
 
         this._setAudioSession();
-        this._startKeepalive();
-        this._unlockAudioElements();
+
+        if (MediaSessionManager._isiOS()) {
+            this._startKeepalive();
+            this._unlockAudioElements();
+        }
     }
 
     destroy(): void {

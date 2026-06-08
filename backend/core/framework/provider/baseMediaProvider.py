@@ -150,6 +150,20 @@ class BaseMediaProvider(BaseProvider):
     # Return None if the provider has no contribution for that CTE.
     # ------------------------------------------------------------------
 
+    async def delete_media_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[None]:
+        """Remove the audio file for a media item and reset its path in the database
+        so it can be downloaded again."""
+
+        logger.warning(
+            f"Provider '{self._name}' doesn't implement delete_media_async method."
+        )
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name}' doesn't implement delete_media_async method.",
+        )
+
     def get_stats_media_info_cte_fragment(self) -> str | None:
         """SELECT fragment for media_info (media_id, duration_ms, public_id, media_name, image_url, media_type_key)."""
         return None

@@ -26,6 +26,7 @@ from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
 
 from backend.core.responses.mediaResponse import MediaResponse
+from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.urlMatchResponse import UrlMatchResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.baseStationResponse import BaseStationResponse
@@ -284,6 +285,28 @@ async def generate_image_async(request: Request, public_id: str):
         )
     except Exception as e:
         return Response(content=f"Error reading image: {e}", status_code=500)
+
+
+@router.delete(
+    path="/{public_id}",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+)
+async def delete_media(request: Request, public_id: str) -> OkResponse:
+    """Delete the media file for a media item so it can be downloaded again."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result: AResult[None] = await Media.delete_media_async(
+        session=session, public_id=public_id
+    )
+    if a_result.is_not_ok():
+        logger.error(
+            f"Error deleting media with public_id {public_id}. {a_result.info()}"
+        )
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return OkResponse()
 
 
 @router.get("/url/match")

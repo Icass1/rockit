@@ -155,7 +155,7 @@ class DownloadsManager:
                             )
 
                             await session.commit()
-                            await ws_manager.broadcast_progress(
+                            await ws_manager.broadcast_progress_async(
                                 user_id=d.user_id,
                                 download_public_id=download_public_id,
                                 media_public_id=d.public_id,

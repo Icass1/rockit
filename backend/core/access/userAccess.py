@@ -20,6 +20,9 @@ from backend.core.access.db.ormModels.user_seeks import UserSeeksRow
 from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
 from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
 from backend.core.access.db.ormModels.user_media_listened import UserMediaListenedRow
+from backend.core.access.db.ormModels.user_media_listen_interval import (
+    UserMediaListenIntervalRow,
+)
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.framework.media.image import Image
@@ -310,3 +313,25 @@ class UserAccess:
         await session.commit()
         await session.refresh(instance=user_media_listened)
         return AResult(code=AResultCode.OK, message="OK", result=user_media_listened)
+
+    @staticmethod
+    @safe_async
+    async def add_user_media_listen_interval_async(
+        session: AsyncSession,
+        user_id: int,
+        media_id: int,
+        time_ms_start: int,
+        time_ms_end: int,
+    ) -> AResult[UserMediaListenIntervalRow]:
+        """Record a listen interval with start and end times."""
+
+        interval = UserMediaListenIntervalRow(
+            user_id=user_id,
+            media_id=media_id,
+            time_ms_start=time_ms_start,
+            time_ms_end=time_ms_end,
+        )
+        session.add(instance=interval)
+        await session.commit()
+        await session.refresh(instance=interval)
+        return AResult(code=AResultCode.OK, message="OK", result=interval)

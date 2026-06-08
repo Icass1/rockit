@@ -45,6 +45,8 @@ class UserPlaybackState:
     last_time_ms: int = 0
     last_timestamp: float = 0.0
     has_reached_listen_threshold: bool = False
+    active_interval_start_ms: int | None = None
+    active_interval_media_id: int | None = None
 
 
 class WebSocketManager:
@@ -59,14 +61,15 @@ class WebSocketManager:
         self.active_connections[user_id].add(websocket)
         logger.info(f"WebSocket connected for user: {user_id}")
 
-    def disconnect(self, user_id: int, websocket: WebSocket) -> None:
+    async def disconnect_async(self, user_id: int, websocket: WebSocket) -> None:
         if user_id in self.active_connections:
             self.active_connections[user_id].discard(websocket)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
+                await self._close_listen_interval_on_disconnect_async(user_id)
             logger.info(f"WebSocket disconnected for user: {user_id}")
 
-    async def send_to_user(self, user_id: int, message: Any) -> None:
+    async def send_to_user_async(self, user_id: int, message: Any) -> None:
         if user_id not in self.active_connections:
             return
 
@@ -85,9 +88,9 @@ class WebSocketManager:
                 disconnected.add(websocket)
 
         for ws in disconnected:
-            self.disconnect(user_id, ws)
+            await self.disconnect_async(user_id, ws)
 
-    async def broadcast_progress(
+    async def broadcast_progress_async(
         self,
         user_id: int,
         download_public_id: str,
@@ -109,9 +112,11 @@ class WebSocketManager:
             dateStarted=date_started,
             dateEnded=date_ended,
         )
-        await self.send_to_user(user_id=user_id, message=download_message)
+        await self.send_to_user_async(user_id=user_id, message=download_message)
 
-    async def handle_client_message(self, user_id: int, data: Dict[str, Any]) -> None:
+    async def handle_client_message_async(
+        self, user_id: int, data: Dict[str, Any]
+    ) -> None:
         message_type: str | None = data.get("type")
         logger.debug(f"Received WebSocket message from user {user_id}: {message_type}")
 
@@ -123,33 +128,44 @@ class WebSocketManager:
 
         async with rockit_db.session_scope_async() as session:
             if message_type == "media_ended":
-                await self._handle_media_ended(user_id, data)
+                await self._handle_media_ended_async(session, user_id, data)
             elif message_type == "current_media":
-                await self._handle_current_media(session, user_id, data)
+                await self._handle_current_media_async(session, user_id, data)
             elif message_type == "current_queue":
-                await self._handle_current_queue(session, user_id, data)
+                await self._handle_current_queue_async(session, user_id, data)
             elif message_type == "current_time":
-                await self._handle_current_time(session, user_id, data)
+                await self._handle_current_time_async(session, user_id, data)
             elif message_type == "media_clicked":
-                await self._handle_media_clicked(session, user_id, data)
+                await self._handle_media_clicked_async(session, user_id, data)
             elif message_type == "skip_clicked":
                 await self._handle_skip_clicked(session, user_id, data)
             elif message_type == "seek":
-                await self._handle_seek(session, user_id, data)
+                await self._handle_seek_async(session, user_id, data)
             elif message_type == "queue_type":
-                await self._handle_queue_type(session, user_id, data)
+                await self._handle_queue_type_async(session, user_id, data)
             elif message_type == "media_expanded":
-                await self._handle_media_expanded(session, user_id, data)
+                await self._handle_media_expanded_async(session, user_id, data)
             else:
                 logger.warning(f"Unknown message type: {message_type}")
 
-    async def _handle_media_ended(self, user_id: int, data: Dict[str, Any]) -> None:
+    async def _handle_media_ended_async(
+        self, session: AsyncSession, user_id: int, data: Dict[str, Any]
+    ) -> None:
         media_ended_msg = MediaEndedMessageRequest(**data)
         logger.info(
             f"User {user_id} media ended. Media: {media_ended_msg.mediaPublicId}"
         )
 
-    async def _handle_current_media(
+        playback_state = self.user_playback_states.get(user_id)
+        if playback_state and playback_state.active_interval_start_ms is not None:
+            await self._close_listen_interval_async(
+                session=session,
+                user_id=user_id,
+                playback_state=playback_state,
+                time_ms_end=playback_state.last_time_ms,
+            )
+
+    async def _handle_current_media_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]
     ) -> None:
         current_media_msg = CurrentMediaMessageRequest(**data)
@@ -171,7 +187,7 @@ class WebSocketManager:
                 f"Error updating current media. {a_result_update_current_media.info()}"
             )
 
-    async def _handle_current_queue(
+    async def _handle_current_queue_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]
     ) -> None:
         current_queue_msg = CurrentQueueMessageRequest(**data)
@@ -232,7 +248,7 @@ class WebSocketManager:
             queue_items=queue_items,
         )
 
-    async def _handle_current_time(
+    async def _handle_current_time_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]
     ) -> None:
         current_time_msg = CurrentTimeMessageRequest(**data)
@@ -252,7 +268,26 @@ class WebSocketManager:
             f"time_diff_ms={time_diff_ms} already_reached_threshold={playback_state.has_reached_listen_threshold}"
         )
 
-        await self._check_and_record_listen_threshold(
+        if is_new_media:
+            # Close previous listen interval if one is active
+            if playback_state.active_interval_start_ms is not None:
+                await self._close_listen_interval_async(
+                    session=session,
+                    user_id=user_id,
+                    playback_state=playback_state,
+                    time_ms_end=playback_state.last_time_ms,
+                )
+
+            # Start a new listen interval for the new media
+            await self._start_listen_interval_async(
+                session=session,
+                user_id=user_id,
+                media_public_id=media_public_id,
+                time_ms_start=current_time,
+                playback_state=playback_state,
+            )
+
+        await self._check_and_record_listen_threshold_async(
             user_id=user_id,
             media_public_id=media_public_id,
             current_time=current_time,
@@ -286,7 +321,7 @@ class WebSocketManager:
                 f"Error updating current time. {a_result_update_current_time.info()}"
             )
 
-    async def _check_and_record_listen_threshold(
+    async def _check_and_record_listen_threshold_async(
         self,
         user_id: int,
         media_public_id: str,
@@ -396,7 +431,85 @@ class WebSocketManager:
                     message=MediaListenedMessage(publicId=media_public_id),
                 )
 
-    async def _handle_media_clicked(
+    async def _close_listen_interval_async(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        playback_state: UserPlaybackState,
+        time_ms_end: int,
+    ) -> None:
+        """Close the current listen interval by recording it to the DB."""
+
+        if (
+            playback_state.active_interval_start_ms is None
+            or playback_state.active_interval_media_id is None
+        ):
+            return
+
+        a_result: AResult[bool] = await User.record_media_listen_interval_async(
+            session=session,
+            user_id=user_id,
+            media_id=playback_state.active_interval_media_id,
+            time_ms_start=playback_state.active_interval_start_ms,
+            time_ms_end=time_ms_end,
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error recording listen interval. {a_result.info()}")
+        else:
+            logger.debug(
+                f"Recorded listen interval media={playback_state.active_interval_media_id} "
+                f"start={playback_state.active_interval_start_ms}ms end={time_ms_end}ms"
+            )
+
+        playback_state.active_interval_start_ms = None
+        playback_state.active_interval_media_id = None
+
+    async def _start_listen_interval_async(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        media_public_id: str,
+        time_ms_start: int,
+        playback_state: UserPlaybackState,
+    ) -> None:
+        """Start tracking a new listen interval in state (no DB write yet)."""
+
+        a_result_media: AResult[MediaModel] = (
+            await Media.get_media_from_public_id_async(
+                session=session,
+                public_id=media_public_id,
+                media_type_keys=None,
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(
+                f"Error getting media for interval start. {a_result_media.info()}"
+            )
+            return
+
+        playback_state.active_interval_start_ms = time_ms_start
+        playback_state.active_interval_media_id = a_result_media.result().id
+        logger.debug(
+            f"Tracking listen interval for media {media_public_id} from {time_ms_start}ms"
+        )
+
+    async def _close_listen_interval_on_disconnect_async(
+        self,
+        user_id: int,
+    ) -> None:
+        """Close the active listen interval when a user fully disconnects."""
+
+        playback_state = self.user_playback_states.get(user_id)
+        if playback_state and playback_state.active_interval_start_ms is not None:
+            async with rockit_db.session_scope_async() as session:
+                await self._close_listen_interval_async(
+                    session=session,
+                    user_id=user_id,
+                    playback_state=playback_state,
+                    time_ms_end=playback_state.last_time_ms,
+                )
+
+    async def _handle_media_clicked_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]
     ) -> None:
         media_clicked_msg = MediaClickedMessageRequest(**data)
@@ -432,14 +545,14 @@ class WebSocketManager:
                 f"Error adding user media skip for user {user_id}. {a_result_skip.info()}"
             )
 
-    async def _handle_queue_type(
+    async def _handle_queue_type_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]
     ) -> None:
         queue_type_msg = QueueTypeRequest(**data)
 
         await User.update_queue_type_async(session, user_id, queue_type_msg.queueType)
 
-    async def _handle_seek(
+    async def _handle_seek_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]
     ) -> None:
         seek_msg = SeekMessageRequest(**data)
@@ -469,7 +582,33 @@ class WebSocketManager:
                 f"Error adding user current time seek for user {user_id}. {a_result.info()}"
             )
 
-    async def _handle_media_expanded(
+        playback_state = self.user_playback_states.get(user_id)
+
+        # Close the current interval at the position before seek
+        if playback_state and playback_state.active_interval_start_ms is not None:
+            seek_time_ms_from: int = int(seek_msg.timeFrom * 1000)
+            a_result_close: AResult[bool] = (
+                await User.record_media_listen_interval_async(
+                    session=session,
+                    user_id=user_id,
+                    media_id=a_result_media.result().id,
+                    time_ms_start=playback_state.active_interval_start_ms,
+                    time_ms_end=seek_time_ms_from,
+                )
+            )
+            if a_result_close.is_not_ok():
+                logger.error(
+                    f"Error closing listen interval on seek. {a_result_close.info()}"
+                )
+            playback_state.active_interval_start_ms = None
+
+        # Start a new interval from the position after seek
+        if playback_state:
+            seek_time_ms_to: int = int(seek_msg.timeTo * 1000)
+            playback_state.active_interval_start_ms = seek_time_ms_to
+            playback_state.active_interval_media_id = a_result_media.result().id
+
+    async def _handle_media_expanded_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]
     ) -> None:
         expanded_msg = MediaExpandedMessageRequest(**data)

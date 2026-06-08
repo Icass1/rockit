@@ -51,8 +51,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
             data: str = await websocket.receive_text()
             try:
                 message: dict[str, object] = json.loads(data)
-                await ws_manager.handle_client_message(user_id, message)
+                await ws_manager.handle_client_message_async(user_id, message)
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON received from user {user_id}")
     except WebSocketDisconnect:
-        ws_manager.disconnect(user_id, websocket)
+        await ws_manager.disconnect_async(user_id, websocket)

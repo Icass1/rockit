@@ -23,6 +23,9 @@ from backend.core.access.db.ormModels.user_library_media import UserLibraryMedia
 from backend.core.access.db.ormModels.user_media_clicked import UserMediaClickedRow
 from backend.core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
 from backend.core.access.db.ormModels.user_media_listened import UserMediaListenedRow
+from backend.core.access.db.ormModels.user_media_listen_interval import (
+    UserMediaListenIntervalRow,
+)
 
 from backend.core.access.userAccess import UserAccess
 from backend.core.access.mediaAccess import MediaAccess
@@ -951,6 +954,31 @@ class User:
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding media listened. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def record_media_listen_interval_async(
+        session: AsyncSession,
+        user_id: int,
+        media_id: int,
+        time_ms_start: int,
+        time_ms_end: int,
+    ) -> AResult[bool]:
+        """Record a listen interval with start and end times."""
+
+        a_result: AResult[UserMediaListenIntervalRow] = (
+            await UserAccess.add_user_media_listen_interval_async(
+                session=session,
+                user_id=user_id,
+                media_id=media_id,
+                time_ms_start=time_ms_start,
+                time_ms_end=time_ms_end,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error recording listen interval. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=True)

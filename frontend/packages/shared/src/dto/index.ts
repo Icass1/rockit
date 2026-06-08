@@ -288,6 +288,10 @@ export {
     SeekMessageRequestSchema,
     type SeekMessageRequest,
 } from "./seekMessageRequest";
+export {
+    SessionIdResponseSchema,
+    type SessionIdResponse,
+} from "./sessionIdResponse";
 export { SessionResponseSchema, type SessionResponse } from "./sessionResponse";
 export {
     SkipClickedMessageRequestSchema,

@@ -14,6 +14,7 @@ import {
     View,
 } from "react-native";
 import { Http } from "@/lib/http";
+import { saveSessionCookieValue } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
 
 function validateUsername(value: string): string | null {
@@ -74,6 +75,9 @@ export default function RegisterScreen() {
             });
 
             if (result.isOk()) {
+                if (result.result?.sessionId) {
+                    await saveSessionCookieValue(result.result.sessionId);
+                }
                 router.replace("/");
                 refreshVocabulary();
             } else {

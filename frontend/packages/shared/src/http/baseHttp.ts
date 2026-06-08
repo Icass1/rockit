@@ -198,6 +198,13 @@ export class BaseHttp {
         );
     }
 
+    static async getSessionId() {
+        return this.apiGetAsync(
+            `/auth/session-id`,
+            dto.SessionIdResponseSchema
+        );
+    }
+
     static async getUserPlaylistsAsync() {
         return this.apiGetAsync(
             `/default/playlist`,
@@ -456,6 +463,10 @@ export class BaseHttp {
             `/media/video/${publicId}`,
             dto.BaseVideoResponseSchema
         );
+    }
+
+    static async deleteMedia(publicId: string) {
+        return this.apiDeleteAsync(`/media/${publicId}`, dto.OkResponseSchema);
     }
 
     static async getMedia(publicId: string) {

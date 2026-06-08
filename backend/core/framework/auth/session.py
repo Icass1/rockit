@@ -33,7 +33,7 @@ class Session:
         user_id: int,
         rembember_me: bool,
         ip: str | None,
-    ) -> AResultCode:
+    ) -> AResult[str]:
         session_duration = SESSION_DURATION
 
         if rembember_me:
@@ -54,8 +54,8 @@ class Session:
         )
         if a_result_sesion.is_not_ok():
             logger.error(f"Error creating session {a_result_sesion.info()}")
-            return AResultCode(
-                code=a_result_sesion.code(), message=a_result_sesion.message()
+            return AResult(
+                code=a_result_sesion.code(), message=a_result_sesion.message(), result=None
             )
 
         if ENVIRONMENT == "DEV":
@@ -82,7 +82,7 @@ class Session:
             domain=domain,
         )
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return AResult(code=AResultCode.OK, message="OK", result=session_id)
 
     @staticmethod
     async def get_user_id_from_session_async(

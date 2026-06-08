@@ -15,6 +15,7 @@ import {
     View,
 } from "react-native";
 import { Http } from "@/lib/http";
+import { saveSessionCookieValue } from "@/lib/api";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function LoginScreen() {
@@ -45,6 +46,9 @@ export default function LoginScreen() {
             });
 
             if (result.isOk()) {
+                if (result.result?.sessionId) {
+                    await saveSessionCookieValue(result.result.sessionId);
+                }
                 router.replace("/");
                 refreshVocabulary();
             } else {

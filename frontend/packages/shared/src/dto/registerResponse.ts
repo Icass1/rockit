@@ -5,6 +5,7 @@ import { z } from "zod";
 
 export const RegisterResponseSchema = z.object({
     userId: z.string(),
+    sessionId: z.string().nullable(),
 });
 
 export type RegisterResponse = z.infer<typeof RegisterResponseSchema>;

@@ -23,6 +23,7 @@ from backend.core.requests.registerRequest import RegisterRequest
 from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.registerResponse import RegisterResponse
 from backend.core.responses.loginResponse import LoginResponse
+from backend.core.responses.sessionIdResponse import SessionIdResponse
 
 ph = PasswordHasher(
     time_cost=2,
@@ -64,7 +65,7 @@ async def login(
     else:
         ip = a_result_ip.result()
 
-    a_result_session: AResultCode = await Session.create_session_async(
+    a_result_session: AResult[str] = await Session.create_session_async(
         session=session,
         response=response,
         user_id=user.id,
@@ -75,12 +76,13 @@ async def login(
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")
         raise HTTPException(
-            status_code=a_result_session.code(), detail=a_result_session.message()
+            status_code=a_result_session.get_http_code(), detail=a_result_session.message()
         )
     else:
         logger.info(f"Session created for user {user.username} from ip {ip}.")
 
-    return LoginResponse(userId=user.public_id)
+    session_id = a_result_session.result() if payload.platform == "MOBILE" else None
+    return LoginResponse(userId=user.public_id, sessionId=session_id)
 
 
 @router.post("/register")
@@ -108,7 +110,7 @@ async def register(
     else:
         ip = a_result_ip.result()
 
-    a_result_session = await Session.create_session_async(
+    a_result_session: AResult[str] = await Session.create_session_async(
         session=session,
         response=response,
         user_id=user.id,
@@ -119,12 +121,31 @@ async def register(
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")
         raise HTTPException(
-            status_code=a_result_session.code(), detail=a_result_session.message()
+            status_code=a_result_session.get_http_code(), detail=a_result_session.message()
         )
     else:
         logger.info(f"Session created for user {user.username} from ip {ip}.")
 
-    return RegisterResponse(userId=user.public_id)
+    session_id = a_result_session.result() if payload.platform == "MOBILE" else None
+    return RegisterResponse(userId=user.public_id, sessionId=session_id)
+
+
+@router.get(path="/session-id")
+async def get_session_id(
+    request: Request,
+    _=Depends(AuthMiddleware.auth_dependency),
+) -> SessionIdResponse:
+    """Return the current session ID for mobile WebSocket authentication."""
+
+    a_result: AResult[str] = AuthMiddleware.get_current_session_id(request=request)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting session id. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(),
+            detail=a_result.message(),
+        )
+
+    return SessionIdResponse(sessionId=a_result.result())
 
 
 @router.get(path="/logout")

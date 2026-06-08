@@ -80,7 +80,7 @@ async def _insert_and_broadcast(
         if a_result.is_not_ok():
             logger.error(f"Error inserting download status. {a_result.info()}")
 
-    await ws_manager.broadcast_progress(
+    await ws_manager.broadcast_progress_async(
         user_id=user_id,
         download_public_id=download_public_id,
         media_public_id=public_id,

@@ -25,7 +25,9 @@ def _parse_range(
     custom_end: datetime | None = None,
 ) -> tuple[datetime, datetime]:
     now = datetime.now(timezone.utc)
-    end_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    end_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
+        days=1
+    )
 
     if range_value == "7d":
         start_date = end_of_today - timedelta(days=7)
@@ -96,8 +98,10 @@ class Stats:
             a_first = await StatsAccess.get_first_listen_date_async(
                 session=session, user_id=user_id
             )
-            if a_first.is_ok() and a_first.result() is not None:
-                start_date = a_first.result()
+            if a_first.is_ok():
+                first_date = a_first.result()
+                if first_date is not None:
+                    start_date = first_date
 
         try:
             summary_result: AResult[dict[str, Any]] = (

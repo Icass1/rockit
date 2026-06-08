@@ -95,10 +95,8 @@ async def get_liked_playlist_async(
 ) -> AResult[BasePlaylistWithMediasResponse]:
     from backend.core.framework.user.user import User
 
-    a_result_ids: AResult[List[str]] = (
-        await User.get_user_liked_media_public_ids(
-            session=session, user_id=user_id
-        )
+    a_result_ids: AResult[List[str]] = await User.get_user_liked_media_public_ids(
+        session=session, user_id=user_id
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting liked media. {a_result_ids.info()}")
@@ -147,12 +145,14 @@ async def get_most_listened_playlist_async(
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=365 * 10)
 
-    a_result_top: AResult[list[StatsRankedItemResponse]] = await StatsAccess.get_top_songs_async(
-        session=session,
-        user_id=user_id,
-        start_date=start_date,
-        end_date=end_date,
-        limit=50,
+    a_result_top: AResult[list[StatsRankedItemResponse]] = (
+        await StatsAccess.get_top_songs_async(
+            session=session,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            limit=50,
+        )
     )
     if a_result_top.is_not_ok():
         logger.error(f"Error getting top songs. {a_result_top.info()}")
@@ -248,12 +248,14 @@ async def get_last_month_playlist_async(
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=30)
 
-    a_result_top: AResult[list[StatsRankedItemResponse]] = await StatsAccess.get_top_songs_async(
-        session=session,
-        user_id=user_id,
-        start_date=start_date,
-        end_date=end_date,
-        limit=50,
+    a_result_top: AResult[list[StatsRankedItemResponse]] = (
+        await StatsAccess.get_top_songs_async(
+            session=session,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            limit=50,
+        )
     )
     if a_result_top.is_not_ok():
         logger.error(f"Error getting top songs. {a_result_top.info()}")
@@ -300,19 +302,20 @@ async def get_year_recap_playlist_async(
     session: AsyncSession,
     user_id: int,
 ) -> AResult[BasePlaylistWithMediasResponse]:
-    from datetime import timedelta
 
     now = datetime.now(timezone.utc)
     last_year = now.year - 1
     start_date = datetime(year=last_year, month=1, day=1, tzinfo=timezone.utc)
     end_date = datetime(year=last_year + 1, month=1, day=1, tzinfo=timezone.utc)
 
-    a_result_top: AResult[list[StatsRankedItemResponse]] = await StatsAccess.get_top_songs_async(
-        session=session,
-        user_id=user_id,
-        start_date=start_date,
-        end_date=end_date,
-        limit=100,
+    a_result_top: AResult[list[StatsRankedItemResponse]] = (
+        await StatsAccess.get_top_songs_async(
+            session=session,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            limit=100,
+        )
     )
     if a_result_top.is_not_ok():
         logger.error(f"Error getting top songs. {a_result_top.info()}")

@@ -5,14 +5,18 @@ export function getTime(seconds: number): string {
         return "Invalid input";
     }
 
-    // Calculate minutes and remaining seconds
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.round(seconds % 60);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
 
-    // Format the result with leading zeros
-    const formattedMinutes = String(minutes).padStart(1, "0");
     const formattedSeconds = String(remainingSeconds).padStart(2, "0");
 
+    if (hours > 0) {
+        const formattedMinutes = String(minutes).padStart(2, "0");
+        return `${hours}:${formattedMinutes}:${formattedSeconds}`;
+    }
+
+    const formattedMinutes = String(minutes);
     return `${formattedMinutes}:${formattedSeconds}`;
 }
 
@@ -102,13 +106,13 @@ export function getDatabaseDate(
         const pad = (n: number): string => n.toString().padStart(2, "0");
 
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-    } else if (typeof date == "number" || typeof date == "string") {
+    } else if (typeof date === "number" || typeof date === "string") {
         if (Number(date)) {
             return getDatabaseDate(new Date(Number(date)));
         } else {
             return getDatabaseDate(new Date(date));
         }
-    } else if (typeof date == "undefined") {
+    } else if (typeof date === "undefined") {
         return getDatabaseDate(new Date());
     } else {
         throw new Error("getDatabaseDate: invalid date input");

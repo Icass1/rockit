@@ -1,11 +1,13 @@
 from fastapi import Depends, APIRouter, Request, HTTPException
 from logging import Logger
 
+from backend.core.responses.streakResponse import StreakResponse
 from backend.core.responses.userStatsResponse import UserStatsResponse
 from backend.core.responses.homeStatsResponse import HomeStatsResponse
 from backend.core.requests.userStatsRequest import UserStatsRequest
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+
 from backend.core.framework.stats import Stats
 from backend.utils.logger import getLogger
 
@@ -63,3 +65,30 @@ async def get_home_stats(
         raise HTTPException(status_code=400, detail=a_result.message())
 
     return a_result.result()
+
+
+@router.get("/streak")
+async def get_streak(
+    request: Request,
+) -> StreakResponse:
+    """Get current user streak count."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request=request)
+
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await Stats.get_streak_async(
+        session=session,
+        user_id=a_result_user.result().id,
+    )
+
+    if a_result.is_not_ok():
+        logger.error(f"Error getting streak. {a_result.info()}", exc_info=True)
+        raise HTTPException(
+            status_code=a_result.get_http_code(),
+            detail=a_result.message(),
+        )
+
+    return StreakResponse(currentStreak=a_result.result())

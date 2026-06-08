@@ -112,7 +112,7 @@ function LibraryCard({
                 />
             )}
             <div className="absolute top-1 left-1 flex gap-1">
-                <span className="rounded bg-black/60 px-1 text-[10px] leading-4 text-white">
+                <span className="rounded bg-black/60 px-1 text-[10px] leading-4 text-white font-semibold">
                     {$vocabulary[badge].toUpperCase()}
                 </span>
                 {undownloadedCount !== undefined && undownloadedCount > 0 && (

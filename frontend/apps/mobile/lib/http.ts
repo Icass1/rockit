@@ -1,5 +1,6 @@
 import { BACKEND_URL, BaseHttp, IApiFetchOptions } from "@/shared/index";
 import { getItemAsync } from "expo-secure-store";
+import { saveSessionCookie } from "@/lib/api";
 
 export class Http extends BaseHttp {
     protected static override async baseApiFetchAsync(
@@ -20,12 +21,16 @@ export class Http extends BaseHttp {
             ...(cookie ? { Cookie: `session_id=${cookie}` } : {}),
         };
 
-        return fetch(`${BACKEND_URL}${path}`, {
+        const response = await fetch(`${BACKEND_URL}${path}`, {
             method,
             headers: requestHeaders,
             body,
             credentials: "include",
             signal,
         });
+
+        await saveSessionCookie(response);
+
+        return response;
     }
 }

@@ -23,6 +23,7 @@ from backend.core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
 from backend.core.access.db.ormEnums.queueTypeEnum import QueueTypeEnumRow
 from backend.core.access.db.ormEnums.mediaTypeEnum import MediaTypeEnumRow
 from backend.core.access.db.ormEnums.platformEnum import PlatformEnumRow
+from backend.core.access.db.ormEnums.bookmarkModeEnum import BookmarkModeEnumRow
 
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
@@ -31,6 +32,7 @@ from backend.core.enums.repeatModeEnum import RepeatModeEnum
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.enums.platformEnum import PlatformEnum
+from backend.core.enums.bookmarkModeEnum import BookmarkModeEnum
 
 from backend.core.framework import providers
 
@@ -127,6 +129,11 @@ async def add_initial_content():
             session=session,
             enum_class=PlatformEnum,
             table=PlatformEnumRow,
+        )
+        await EnumAccess.check_enum_contents_async(
+            session=session,
+            enum_class=BookmarkModeEnum,
+            table=BookmarkModeEnumRow,
         )
 
 

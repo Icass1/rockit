@@ -39,6 +39,7 @@ from backend.core.access.db.ormModels.pendingUpload import (
     PendingUploadRow as PendingUploadRow,
 )
 from backend.core.access.db.ormModels.user import UserRow as UserRow
+from backend.core.access.db.ormModels.bookmark import BookmarkRow as BookmarkRow
 
 # ENUMS
 from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
@@ -58,6 +59,9 @@ from backend.core.access.db.ormEnums.mediaTypeEnum import (
 )
 from backend.core.access.db.ormEnums.queueTypeEnum import (
     QueueTypeEnumRow as QueueTypeEnumRow,
+)
+from backend.core.access.db.ormEnums.bookmarkModeEnum import (
+    BookmarkModeEnumRow as BookmarkModeEnumRow,
 )
 
 schemas = ["core"]

@@ -1,8 +1,11 @@
 "use client";
 
-import { JSX } from "react";
-import type { UserStatsResponse } from "@/dto";
+import { useCallback, type JSX } from "react";
+import type { StatsRankedItemResponse, UserStatsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { isQueueable } from "@rockit/packages/shared/models/types/media";
+import type { TPlayableMedia } from "@rockit/packages/shared/models/types/media";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
 import MinutesBarChart from "@/components/Stats/Charts/MinutesBarChart";
@@ -23,6 +26,47 @@ export default function UserStats({
 }: UserStatsProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
+    const handlePlayMedia = useCallback(
+        async (item: StatsRankedItemResponse): Promise<void> => {
+            const listKey = `stats-${item.publicId}`;
+            const allItems = data.topSongs.some(
+                (s) => s.publicId === item.publicId
+            )
+                ? data.topSongs
+                : data.topVideos;
+
+            const results = await Promise.all(
+                allItems.map((s) => Http.getMedia(s.publicId))
+            );
+
+            const playable = results
+                .filter((r) => r.isOk())
+                .map((r) => r.result.media)
+                .filter((m) => isQueueable(m)) as TPlayableMedia[];
+
+            if (playable.length === 0) return;
+
+            rockIt.queueManager.setMedia(playable, listKey);
+            rockIt.queueManager.moveToMedia(item.publicId);
+            rockIt.mediaPlayerManager.play();
+        },
+        [data.topSongs, data.topVideos]
+    );
+
+    const handlePlaySong = useCallback(
+        (item: StatsRankedItemResponse): void => {
+            handlePlayMedia(item);
+        },
+        [handlePlayMedia]
+    );
+
+    const handlePlayVideo = useCallback(
+        (item: StatsRankedItemResponse): void => {
+            handlePlayMedia(item);
+        },
+        [handlePlayMedia]
+    );
+
     return (
         <div className="flex flex-col gap-21 md:gap-30">
             <SummaryCards summary={data.summary} />
@@ -40,7 +84,11 @@ export default function UserStats({
                         title={$vocabulary.TOP_SONGS ?? "Top Songs"}
                         stagger={2}
                     >
-                        <RankingList items={data.topSongs} showImages />
+                        <RankingList
+                            items={data.topSongs}
+                            showImages
+                            onPlay={handlePlaySong}
+                        />
                     </StatsSection>
 
                     <StatsSection
@@ -58,7 +106,11 @@ export default function UserStats({
                         title={$vocabulary.TOP_VIDEOS ?? "Top Videos"}
                         stagger={4}
                     >
-                        <RankingList items={data.topVideos} showImages />
+                        <RankingList
+                            items={data.topVideos}
+                            showImages
+                            onPlay={handlePlayVideo}
+                        />
                     </StatsSection>
 
                     <StatsSection

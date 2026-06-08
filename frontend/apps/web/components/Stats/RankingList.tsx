@@ -10,6 +10,7 @@ interface RankingListProps {
     showImages?: boolean;
     valueLabel?: string;
     initialVisible?: number;
+    onPlay?: (item: StatsRankedItemResponse) => void;
 }
 
 const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
@@ -19,6 +20,7 @@ export default function RankingList({
     showImages = false,
     valueLabel = "",
     initialVisible = 5,
+    onPlay,
 }: RankingListProps): JSX.Element {
     const [visibleCount, setVisibleCount] = useState(initialVisible);
 
@@ -58,6 +60,7 @@ export default function RankingList({
                     maxValue={maxValue}
                     showImages={showImages}
                     valueLabel={valueLabel}
+                    onPlay={onPlay}
                 />
             ))}
             <div className="flex justify-center gap-4">
@@ -92,12 +95,14 @@ function RankingRow({
     maxValue,
     showImages,
     valueLabel,
+    onPlay,
 }: {
     item: StatsRankedItemResponse;
     index: number;
     maxValue: number;
     showImages: boolean;
     valueLabel: string;
+    onPlay?: (item: StatsRankedItemResponse) => void;
 }): JSX.Element {
     const progressPercent = (item.value / maxValue) * 100;
     const isTop3 = index < 3;
@@ -142,7 +147,7 @@ function RankingRow({
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <div className="hidden h-1 w-16 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-24">
                     <div
-                        className="bg-lineal-to-r h-full rounded-full from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
+                        className="bg-gradient-to-r h-full rounded-full from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
                         style={{ width: `${progressPercent}%` }}
                     />
                 </div>
@@ -155,7 +160,15 @@ function RankingRow({
         </div>
     );
 
-    const className = "group transition-all duration-200 hover:bg-white/2";
+    const className = "group w-full text-left transition-all duration-200 hover:bg-white/2";
+
+    if (onPlay) {
+        return (
+            <button type="button" onClick={() => onPlay(item)} className={className}>
+                {content}
+            </button>
+        );
+    }
 
     if (item.href) {
         return (

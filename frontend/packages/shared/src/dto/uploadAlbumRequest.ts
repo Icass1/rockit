@@ -6,8 +6,9 @@ import { UploadSongRequestSchema } from "./uploadSongRequest";
 
 export const UploadAlbumRequestSchema = z.object({
     title: z.string(),
-    artistName: z.array(z.string()),
+    artistNames: z.array(z.string()),
     songs: z.array(z.lazy(() => UploadSongRequestSchema)),
+    releaseDate: z.string(),
 });
 
 export type UploadAlbumRequest = z.infer<typeof UploadAlbumRequestSchema>;

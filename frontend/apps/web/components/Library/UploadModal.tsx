@@ -2,15 +2,12 @@
 
 import { useCallback, useRef, useState, type JSX } from "react";
 import {
-    StartUploadResponseSchema,
     UploadResponseSchema,
-    type StartUploadResponse,
-    type UploadAlbumRequest,
     type UploadSongRequest,
-    type UploadVideoRequest,
 } from "@/dto";
 import { BACKEND_URL } from "@/environment";
 import { useStore } from "@nanostores/react";
+import { Http } from "@/lib/http";
 import {
     Clapperboard,
     DiscAlbum,
@@ -34,6 +31,7 @@ interface SongFile {
     title: string;
     artist: string;
     track: string;
+    imageFile: File | null;
 }
 
 interface UploadModalProps {
@@ -87,7 +85,7 @@ function formatBytes(bytes: number): string {
 function uploadFormDataWithProgress(
     url: string,
     formData: FormData,
-    onProgress: (loaded: number) => void,
+    onProgress: (loaded: number) => void
 ): Promise<Response> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -150,7 +148,9 @@ export default function UploadModal({
 
     // Video state
     const [videoTitle, setVideoTitle] = useState("");
+    const [videoArtist, setVideoArtist] = useState("");
     const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [videoImageFile, setVideoImageFile] = useState<File | null>(null);
 
     const dragCounter = useRef(0);
 
@@ -162,7 +162,9 @@ export default function UploadModal({
         setAlbumArtist("");
         setCoverFile(null);
         setVideoTitle("");
+        setVideoArtist("");
         setVideoFile(null);
+        setVideoImageFile(null);
         setUploadError("");
         setProgress(0);
         setTotal(0);
@@ -186,6 +188,7 @@ export default function UploadModal({
             (file): SongFile => ({
                 id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 file,
+                imageFile: null,
                 ...parseSongFilename(file.name),
             })
         );
@@ -259,8 +262,20 @@ export default function UploadModal({
             const list = e.target.files;
             if (!list?.length) return;
 
-            if (e.target.dataset.uploadType === "cover") {
+            const dataType = e.target.dataset.uploadType;
+            if (dataType === "cover") {
                 pickCoverFile(list);
+            } else if (dataType === "video-image") {
+                const f = Array.from(list).find((fl): boolean =>
+                    /\.(jpg|jpeg|png|webp)$/i.test(fl.name)
+                );
+                if (f) setVideoImageFile(f);
+            } else if (dataType?.startsWith("song-image-")) {
+                const songId = dataType.replace("song-image-", "");
+                const f = Array.from(list).find((fl): boolean =>
+                    /\.(jpg|jpeg|png|webp)$/i.test(fl.name)
+                );
+                if (f) updateFile(songId, { imageFile: f });
             } else if (uploadType === "video") {
                 pickVideoFile(list);
             } else {
@@ -268,7 +283,7 @@ export default function UploadModal({
             }
             e.target.value = "";
         },
-        [uploadType, addAudioFiles, pickVideoFile, pickCoverFile]
+        [uploadType, addAudioFiles, pickVideoFile, pickCoverFile, updateFile]
     );
 
     // Validation.
@@ -293,40 +308,32 @@ export default function UploadModal({
             onClose();
         } catch (err) {
             console.error("Upload error:", err);
-            setUploadError(
-                $vocabulary.UPLOAD_ERROR || "Upload failed. Please try again."
-            );
+            setUploadError($vocabulary.UPLOAD_ERROR);
         } finally {
             setUploading(false);
         }
     };
 
     async function uploadSongsAsync(): Promise<void> {
-        const totalBytesValue = files.reduce(
-            (sum, f) => sum + f.file.size,
-            0
-        );
+        const totalBytesValue = files.reduce((sum, f) => sum + f.file.size, 0);
         setTotalBytes(totalBytesValue);
         setTotal(files.length);
         for (let i = 0; i < files.length; i++) {
             const f = files[i];
-            const startRes = await fetch(`${BACKEND_URL}/upload/song/start`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title: f.title,
-                    artistName: f.artist ? [f.artist] : [],
-                    fileSize: f.file.size,
-                } satisfies UploadSongRequest),
+            const startResult = await Http.startSongUpload({
+                title: f.title,
+                artistNames: f.artist ? [f.artist] : [],
+                fileSize: f.file.size,
+                discNumber: 0,
+                trackNumber: parseInt(f.track, 10) || 0,
             });
-            if (!startRes.ok)
-                throw new Error(`Start song upload failed: ${startRes.status}`);
-            const { uploadId }: StartUploadResponse =
-                StartUploadResponseSchema.parse(await startRes.json());
+            if (!startResult.isOk())
+                throw new Error(`Start song upload failed: ${startResult.code}`);
+            const { uploadId } = startResult.result;
 
             const fd = new FormData();
             fd.append("file", f.file);
+            if (f.imageFile) fd.append("image", f.imageFile);
             const cumulativeBytes = files
                 .slice(0, i)
                 .reduce((sum, sf) => sum + sf.file.size, 0);
@@ -355,29 +362,26 @@ export default function UploadModal({
         const songsPayload = files.map(
             (f): UploadSongRequest => ({
                 title: f.title,
-                artistName: f.artist
+                artistNames: f.artist
                     ? [f.artist]
                     : albumArtist
                       ? [albumArtist]
                       : [],
                 fileSize: f.file.size,
+                discNumber: 0,
+                trackNumber: parseInt(f.track, 10) || 0,
             })
         );
 
-        const startRes = await fetch(`${BACKEND_URL}/upload/album/start`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                title: albumTitle,
-                artistName: albumArtist ? [albumArtist] : [],
-                songs: songsPayload,
-            } satisfies UploadAlbumRequest),
+        const startResult = await Http.startAlbumUpload({
+            title: albumTitle,
+            artistNames: albumArtist ? [albumArtist] : [],
+            songs: songsPayload,
+            releaseDate: "",
         });
-        if (!startRes.ok)
-            throw new Error(`Start album upload failed: ${startRes.status}`);
-        const { uploadId }: StartUploadResponse =
-            StartUploadResponseSchema.parse(await startRes.json());
+        if (!startResult.isOk())
+            throw new Error(`Start album upload failed: ${startResult.code}`);
+        const { uploadId } = startResult.result;
 
         let p = 0;
         let cumulativeBytes = 0;
@@ -425,22 +429,18 @@ export default function UploadModal({
         setTotalBytes(videoFile.size);
         setTotal(1);
 
-        const startRes = await fetch(`${BACKEND_URL}/upload/video/start`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                title: videoTitle,
-                fileSize: videoFile.size,
-            } satisfies UploadVideoRequest),
+        const startResult = await Http.startVideoUpload({
+            title: videoTitle,
+            artistNames: videoArtist ? [videoArtist] : [],
+            fileSize: videoFile.size,
         });
-        if (!startRes.ok)
-            throw new Error(`Start video upload failed: ${startRes.status}`);
-        const { uploadId }: StartUploadResponse =
-            StartUploadResponseSchema.parse(await startRes.json());
+        if (!startResult.isOk())
+            throw new Error(`Start video upload failed: ${startResult.code}`);
+        const { uploadId } = startResult.result;
 
         const fd = new FormData();
         fd.append("file", videoFile);
+        if (videoImageFile) fd.append("image", videoImageFile);
         const fileRes = await uploadFormDataWithProgress(
             `${BACKEND_URL}/upload/${uploadId}/file`,
             fd,
@@ -554,6 +554,30 @@ export default function UploadModal({
                                             $vocabulary.UPLOAD_ARTIST_FIELD
                                         }
                                         className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                    />
+                                    <label
+                                        htmlFor={`song-image-${file.id}`}
+                                        className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition ${
+                                            file.imageFile
+                                                ? "bg-green-500/10 text-green-400"
+                                                : "bg-neutral-700 text-neutral-400 hover:text-white"
+                                        }`}
+                                    >
+                                        {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
+                                        <Image className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">
+                                            {file.imageFile
+                                                ? file.imageFile.name
+                                                : $vocabulary.UPLOAD_COVER_HINT}
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept={ACCEPTED_IMAGE}
+                                        id={`song-image-${file.id}`}
+                                        className="sr-only"
+                                        data-upload-type={`song-image-${file.id}`}
+                                        onChange={handleInputChange}
                                     />
                                 </div>
                                 <button
@@ -714,6 +738,14 @@ export default function UploadModal({
     const renderVideoContent = (): JSX.Element => (
         <div className="flex flex-col gap-3 p-3">
             {renderFileInput(ACCEPTED_VIDEO, false)}
+            <input
+                type="file"
+                accept={ACCEPTED_IMAGE}
+                id="video-image-input"
+                className="sr-only"
+                data-upload-type="video-image"
+                onChange={handleInputChange}
+            />
 
             {!videoFile ? (
                 <label
@@ -754,6 +786,29 @@ export default function UploadModal({
                         placeholder={$vocabulary.UPLOAD_VIDEO_TITLE}
                         className="w-full rounded-md bg-neutral-800 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                     />
+                    <input
+                        type="text"
+                        value={videoArtist}
+                        onChange={(e): void => setVideoArtist(e.target.value)}
+                        placeholder={$vocabulary.UPLOAD_ARTIST_FIELD}
+                        className="w-full rounded-md bg-neutral-800 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    />
+                    <label
+                        htmlFor="video-image-input"
+                        className={`flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm transition ${
+                            videoImageFile
+                                ? "bg-green-500/10 text-green-400"
+                                : "bg-neutral-800 text-neutral-400 hover:text-white"
+                        }`}
+                    >
+                        {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
+                        <Image className="h-4 w-4 shrink-0" />
+                        <span className="truncate">
+                            {videoImageFile
+                                ? videoImageFile.name
+                                : $vocabulary.UPLOAD_COVER_HINT}
+                        </span>
+                    </label>
                 </div>
             )}
         </div>

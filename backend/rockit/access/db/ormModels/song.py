@@ -25,7 +25,7 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
-    file_path: Mapped[str | None] = mapped_column(String, nullable=True)
+    file_path: Mapped[str] = mapped_column(String, nullable=False)
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
@@ -50,20 +50,20 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
         id: int,
         name: str,
         duration_ms: int,
+        file_path: str,
         image_id: int,
         disc_number: int,
         track_number: int,
-        file_path: str | None = None,
         album_id: int | None = None,
     ):
         kwargs: Dict[str, None | int | str] = {}
         kwargs["id"] = id
         kwargs["name"] = name
         kwargs["duration_ms"] = duration_ms
+        kwargs["file_path"] = file_path
         kwargs["image_id"] = image_id
         kwargs["disc_number"] = disc_number
         kwargs["track_number"] = track_number
-        kwargs["file_path"] = file_path
         kwargs["album_id"] = album_id
         for k, v in kwargs.items():
             setattr(self, k, v)

@@ -1,8 +1,13 @@
 from typing import List, Tuple, cast
 
-from sqlalchemy import Result, select
+from sqlalchemy import Result, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
+
+from backend.rockit.access.db.associationTables.song_artists import song_artists
+from backend.rockit.access.db.associationTables.album_artists import album_artists
+from backend.rockit.access.db.associationTables.video_artists import video_artists
 
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import create_id
@@ -10,7 +15,6 @@ from backend.utils.backendUtils import create_id
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.media import CoreMediaRow
-from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.rockit.access.db.ormModels.song import RockitSongRow
@@ -26,28 +30,17 @@ class RockitAccess:
     async def create_song_async(
         session: AsyncSession,
         name: str,
-        artist_name: str,
+        artist_names: list[str],
         provider_id: int,
-        image_path: str,
-        image_url: str | None = None,
-        duration_ms: int | None = None,
-        file_path: str | None = None,
+        image_id: int,
+        duration_ms: int,
+        disc_number: int,
+        track_number: int,
+        file_path: str,
     ) -> AResult[RockitSongRow]:
         """Create a new song in core.media and rockit.song."""
 
         try:
-            a_result_image: AResult[ImageRow] = (
-                await RockitAccess._get_or_create_image_async(
-                    session=session, path=image_path, url=image_url
-                )
-            )
-            if a_result_image.is_not_ok():
-                return AResult(
-                    code=a_result_image.code(), message=a_result_image.message()
-                )
-
-            image: ImageRow = a_result_image.result()
-
             core_media: CoreMediaRow = CoreMediaRow(
                 public_id=create_id(32),
                 provider_id=provider_id,
@@ -59,17 +52,19 @@ class RockitAccess:
             song: RockitSongRow = RockitSongRow(
                 id=core_media.id,
                 name=name,
-                image_id=image.id,
+                image_id=image_id,
                 duration_ms=duration_ms,
                 file_path=file_path,
+                disc_number=disc_number,
+                track_number=track_number,
             )
             session.add(song)
             await session.flush()
 
             a_result_artists = await RockitAccess._link_artists_by_name_async(
                 session=session,
-                artist_name=artist_name,
-                image_id=image.id,
+                artist_names=artist_names,
+                image_id=image_id,
                 target=song,
             )
             if a_result_artists.is_not_ok():
@@ -87,27 +82,14 @@ class RockitAccess:
     async def create_album_async(
         session: AsyncSession,
         name: str,
-        artist_name: str,
+        artist_names: list[str],
         provider_id: int,
-        image_path: str,
-        image_url: str | None = None,
-        release_date: str | None = None,
+        image_id: int,
+        release_date: str,
     ) -> AResult[RockitAlbumRow]:
         """Create a new album in core.media and rockit.album."""
 
         try:
-            a_result_image: AResult[ImageRow] = (
-                await RockitAccess._get_or_create_image_async(
-                    session=session, path=image_path, url=image_url
-                )
-            )
-            if a_result_image.is_not_ok():
-                return AResult(
-                    code=a_result_image.code(), message=a_result_image.message()
-                )
-
-            image: ImageRow = a_result_image.result()
-
             core_media: CoreMediaRow = CoreMediaRow(
                 public_id=create_id(32),
                 provider_id=provider_id,
@@ -119,7 +101,7 @@ class RockitAccess:
             album: RockitAlbumRow = RockitAlbumRow(
                 id=core_media.id,
                 name=name,
-                image_id=image.id,
+                image_id=image_id,
                 release_date=release_date,
             )
             session.add(album)
@@ -127,8 +109,8 @@ class RockitAccess:
 
             a_result_artists = await RockitAccess._link_artists_by_name_async(
                 session=session,
-                artist_name=artist_name,
-                image_id=image.id,
+                artist_names=artist_names,
+                image_id=image_id,
                 target=album,
             )
             if a_result_artists.is_not_ok():
@@ -147,8 +129,8 @@ class RockitAccess:
         session: AsyncSession,
         album_id: int,
         song_id: int,
-        disc_number: int = 1,
-        track_number: int = 1,
+        disc_number: int,
+        track_number: int,
     ) -> AResult[RockitSongRow]:
         """Add a song to an album by setting its album_id."""
 
@@ -385,41 +367,15 @@ class RockitAccess:
             )
 
     @staticmethod
-    async def _get_or_create_image_async(
-        session: AsyncSession,
-        path: str,
-        url: str | None = None,
-    ) -> AResult[ImageRow]:
-        """Get or create an ImageRow."""
-
-        try:
-            from backend.core.access.imageAccess import ImageAccess
-
-            return await ImageAccess.create_image_async(
-                session=session, path=path, url=url
-            )
-
-        except Exception as e:
-            logger.error(f"Error getting or creating image: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message="Error getting or creating image",
-            )
-
-    @staticmethod
     async def _link_artists_by_name_async(
         session: AsyncSession,
-        artist_name: str,
+        artist_names: list[str],
         image_id: int,
         target: RockitSongRow | RockitAlbumRow | RockitVideoRow,
-    ) -> AResult[None]:
-        """Parse comma-separated artist names, find or create artists, and link to target."""
+    ) -> AResult[bool]:
+        """Find or create artists by name and link to target via association table."""
 
         try:
-            artist_names: List[str] = [
-                a.strip() for a in artist_name.split(",") if a.strip()
-            ]
-
             for name in artist_names:
                 a_result_artist = await RockitAccess._get_or_create_artist_async(
                     session=session, name=name, image_id=image_id
@@ -427,15 +383,27 @@ class RockitAccess:
                 if a_result_artist.is_ok():
                     artist: RockitArtistRow = a_result_artist.result()
                     if isinstance(target, RockitSongRow):
-                        target.artists.append(artist)
+                        await session.execute(
+                            insert(song_artists).values(
+                                song_id=target.id, artist_id=artist.id
+                            )
+                        )
                     elif isinstance(target, RockitAlbumRow):
-                        target.artists.append(artist)
+                        await session.execute(
+                            insert(album_artists).values(
+                                album_id=target.id, artist_id=artist.id
+                            )
+                        )
                     else:
-                        target.artists.append(artist)
+                        await session.execute(
+                            insert(video_artists).values(
+                                video_id=target.id, artist_id=artist.id
+                            )
+                        )
 
             await session.flush()
 
-            return AResult(code=AResultCode.OK, message="OK", result=None)
+            return AResult(code=AResultCode.OK, message="OK", result=True)
 
         except Exception as e:
             logger.error(f"Error linking artists: {e}", exc_info=True)
@@ -478,28 +446,15 @@ class RockitAccess:
     async def create_video_async(
         session: AsyncSession,
         name: str,
-        artist_name: str,
+        artist_names: list[str],
         provider_id: int,
-        image_path: str,
-        image_url: str | None = None,
-        duration_ms: int | None = None,
-        file_path: str | None = None,
+        image_id: int,
+        duration_ms: int,
+        file_path: str,
     ) -> AResult[RockitVideoRow]:
         """Create a new video in core.media and rockit.video."""
 
         try:
-            a_result_image: AResult[ImageRow] = (
-                await RockitAccess._get_or_create_image_async(
-                    session=session, path=image_path, url=image_url
-                )
-            )
-            if a_result_image.is_not_ok():
-                return AResult(
-                    code=a_result_image.code(), message=a_result_image.message()
-                )
-
-            image: ImageRow = a_result_image.result()
-
             core_media: CoreMediaRow = CoreMediaRow(
                 public_id=create_id(32),
                 provider_id=provider_id,
@@ -511,7 +466,7 @@ class RockitAccess:
             video: RockitVideoRow = RockitVideoRow(
                 id=core_media.id,
                 name=name,
-                image_id=image.id,
+                image_id=image_id,
                 duration_ms=duration_ms,
                 file_path=file_path,
             )
@@ -520,8 +475,8 @@ class RockitAccess:
 
             a_result_artists = await RockitAccess._link_artists_by_name_async(
                 session=session,
-                artist_name=artist_name,
-                image_id=image.id,
+                artist_names=artist_names,
+                image_id=image_id,
                 target=video,
             )
             if a_result_artists.is_not_ok():
@@ -536,6 +491,36 @@ class RockitAccess:
             )
 
     @staticmethod
+    async def get_videos_async(
+        session: AsyncSession,
+        video_ids: List[int],
+    ) -> AResult[List[RockitVideoRow]]:
+        """Get rockit videos by their internal IDs."""
+
+        try:
+            stmt: Select[Tuple[RockitVideoRow]] = select(RockitVideoRow).where(
+                RockitVideoRow.id.in_(video_ids)
+            )
+            result: Result[Tuple[RockitVideoRow]] = await session.execute(stmt)
+            rows: List[RockitVideoRow] = cast(
+                List[RockitVideoRow], result.scalars().all()
+            )
+
+            if not rows:
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message=f"RockIt videos not found for ids: {video_ids}",
+                )
+
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
+
+        except Exception as e:
+            logger.error(f"Error getting rockit videos: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting rockit videos"
+            )
+
+    @staticmethod
     async def get_videos_from_public_ids_async(
         session: AsyncSession,
         public_ids: List[str],
@@ -547,6 +532,7 @@ class RockitAccess:
                 select(RockitVideoRow)
                 .join(CoreMediaRow, RockitVideoRow.id == CoreMediaRow.id)
                 .where(CoreMediaRow.public_id.in_(public_ids))
+                .options(selectinload(RockitVideoRow.artists))
             )
             result: Result[Tuple[RockitVideoRow]] = await session.execute(stmt)
             rows: List[RockitVideoRow] = cast(

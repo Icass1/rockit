@@ -199,9 +199,11 @@ async def upload_file(
     request: Request,
     upload_id: str,
     file: UploadFile = File(...),
+    image: UploadFile | None = File(default=None),
 ) -> UploadResponse:
     """Upload a file for a previously initialized upload.
 
+    Optionally include an `image` file field for song/video uploads to set cover art.
     For album uploads, include query parameter ?index=N (0-based) to
     associate the file with the Nth song in the album's song list.
     """
@@ -212,6 +214,7 @@ async def upload_file(
     )
     provider: BaseUploadProvider = _get_upload_provider()
     file_data: bytes = await file.read()
+    image_data: bytes | None = await image.read() if image is not None else None
 
     if pending.media_type_key == MediaTypeEnum.SONG.value:
         request_model: UploadSongRequest = UploadSongRequest.model_validate_json(
@@ -224,6 +227,7 @@ async def upload_file(
             session=session,
             request=request_model,
             file_data=file_data,
+            image_data=image_data,
         )
         if a_result.is_not_ok():
             logger.error("TODO")
@@ -244,6 +248,7 @@ async def upload_file(
             session=session,
             request=video_request,
             file_data=file_data,
+            image_data=image_data,
         )
         if a_result.is_not_ok():
             logger.error("TODO")

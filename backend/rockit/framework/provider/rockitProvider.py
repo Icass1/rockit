@@ -159,14 +159,24 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         session: AsyncSession,
         request: UploadSongRequest,
         file_data: bytes,
+        image_data: bytes | None = None,
     ) -> AResult[UploadResponse]:
         """Upload a song file to the RockIt provider."""
+
+        if image_data is None:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Image data is required for song upload.",
+            )
 
         return await Rockit.upload_song_async(
             session=session,
             title=request.title,
-            artist_name=", ".join(request.artistName),
+            artist_names=request.artistNames,
             file_data=file_data,
+            image_data=image_data,
+            disc_number=request.discNumber,
+            track_number=request.trackNumber,
         )
 
     async def upload_album_async(
@@ -178,13 +188,20 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     ) -> AResult[UploadResponse]:
         """Upload an album with songs to the RockIt provider."""
 
+        if cover_data is None:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Cover image data is required for album upload.",
+            )
+
         return await Rockit.upload_album_async(
             session=session,
             title=request.title,
-            artist_name=", ".join(request.artistName),
+            artist_name=request.artistNames,
             song_titles=[s.title for s in request.songs],
             song_files=song_files,
             cover_data=cover_data,
+            release_date=request.releaseDate,
         )
 
     async def upload_video_async(
@@ -192,14 +209,22 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         session: AsyncSession,
         request: UploadVideoRequest,
         file_data: bytes,
+        image_data: bytes | None = None,
     ) -> AResult[UploadResponse]:
         """Upload a video file to the RockIt provider."""
+
+        if image_data is None:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Image data is required for video upload.",
+            )
 
         return await Rockit.upload_video_async(
             session=session,
             title=request.title,
-            artist_name="",
+            artist_names=request.artistNames,
             file_data=file_data,
+            image_data=image_data,
         )
 
     def get_stats_media_info_cte_fragment(self) -> str | None:

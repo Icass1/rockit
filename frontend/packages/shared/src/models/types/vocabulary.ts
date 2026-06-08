@@ -310,4 +310,23 @@ export interface Vocabulary {
     PLAYLIST: string;
     VIDEO: string;
     RADIO_STATION: string;
+    UPLOAD_ACTION: string;
+    UPLOAD_ADD_MORE: string;
+    UPLOAD_ALBUM: string;
+    UPLOAD_ALBUM_TITLE: string;
+    UPLOAD_ARTIST_FIELD: string;
+    UPLOAD_BROWSE: string;
+    UPLOAD_COVER_HINT: string;
+    UPLOAD_DROP_ZONE: string;
+    UPLOAD_ERROR: string;
+    UPLOAD_FILES_READY: string;
+    UPLOAD_HINT: string;
+    UPLOAD_IN_PROGRESS: string;
+    UPLOAD_NO_FILES: string;
+    UPLOAD_SONGS: string;
+    UPLOAD_TITLE: string;
+    UPLOAD_TITLE_FIELD: string;
+    UPLOAD_TRACK_FIELD: string;
+    UPLOAD_VIDEO: string;
+    UPLOAD_VIDEO_TITLE: string;
 }

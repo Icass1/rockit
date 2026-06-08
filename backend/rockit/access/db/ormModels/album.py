@@ -24,7 +24,7 @@ class RockitAlbumRow(RockitBase, TableDateUpdated, TableDateAdded):
         Integer, ForeignKey("core.media.id"), primary_key=True
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
-    release_date: Mapped[str | None] = mapped_column(String, nullable=True)
+    release_date: Mapped[str] = mapped_column(String, nullable=False)
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
@@ -41,13 +41,11 @@ class RockitAlbumRow(RockitBase, TableDateUpdated, TableDateAdded):
         back_populates="albums",
     )
 
-    def __init__(
-        self, id: int, name: str, image_id: int, release_date: str | None = None
-    ):
-        kwargs: Dict[str, None | int | str] = {}
+    def __init__(self, id: int, name: str, release_date: str, image_id: int):
+        kwargs: Dict[str, int | str] = {}
         kwargs["id"] = id
         kwargs["name"] = name
-        kwargs["image_id"] = image_id
         kwargs["release_date"] = release_date
+        kwargs["image_id"] = image_id
         for k, v in kwargs.items():
             setattr(self, k, v)

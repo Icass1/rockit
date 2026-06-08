@@ -5,6 +5,7 @@ import { z } from "zod";
 
 export const UploadVideoRequestSchema = z.object({
     title: z.string(),
+    artistNames: z.array(z.string()),
     fileSize: z.number(),
 });
 

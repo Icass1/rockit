@@ -229,6 +229,10 @@ export {
     QueueTypeRequestSchema,
     type QueueTypeRequest,
 } from "./queueTypeRequest";
+export {
+    RadioBrowserStationResponseSchema,
+    type RadioBrowserStationResponse,
+} from "./radioBrowserStationResponse";
 export { RegisterRequestSchema, type RegisterRequest } from "./registerRequest";
 export {
     RegisterResponseSchema,

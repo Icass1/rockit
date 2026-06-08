@@ -3,7 +3,8 @@ import json
 from typing import Any, List, cast
 from logging import Logger
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
+import aiofiles
 
 from backend.utils.logger import getLogger
 
@@ -30,6 +31,7 @@ from backend.core.access.mediaAccess import MediaAccess
 
 from backend.rockit.access.rockitAccess import RockitAccess
 from backend.rockit.access.db.ormModels.song import RockitSongRow
+from backend.rockit.access.db.ormModels.video import RockitVideoRow
 
 logger: Logger = getLogger(__name__)
 
@@ -40,8 +42,11 @@ router = APIRouter(prefix="/rockit", tags=["rockit"])
 async def upload_rockit_song(
     request: Request,
     file: UploadFile = File(...),
+    image: UploadFile = File(...),
     title: str = Form(...),
-    artistName: str = Form(...),
+    artistNames: List[str] = Form(...),
+    discNumber: int = Form(...),
+    trackNumber: int = Form(...),
     _=Depends(AuthMiddleware.auth_dependency),
 ) -> UploadResponse:
     """Upload a song file to the RockIt provider."""
@@ -60,17 +65,21 @@ async def upload_rockit_song(
         raise HTTPException(status_code=500, detail="RockIt upload provider not found")
 
     file_data: bytes = await file.read()
+    image_data: bytes = await image.read()
 
     upload_request: UploadSongRequest = UploadSongRequest(
         title=title,
-        artistName=[artistName],
+        artistNames=artistNames,
         fileSize=len(file_data),
+        discNumber=discNumber,
+        trackNumber=trackNumber,
     )
 
     a_result: AResult[UploadResponse] = await provider.upload_song_async(
         session=session,
         request=upload_request,
         file_data=file_data,
+        image_data=image_data,
     )
 
     if a_result.is_not_ok():
@@ -134,12 +143,9 @@ async def upload_rockit_album(
         songs_meta = []
 
     raw_cover = form.get("cover")
-    cover_file: UploadFile | None = (
-        raw_cover if isinstance(raw_cover, UploadFile) else None
-    )
-    cover_data: bytes | None = None
-    if cover_file is not None:
-        cover_data = await cover_file.read()
+    if not isinstance(raw_cover, UploadFile):
+        raise HTTPException(status_code=400, detail="Cover image file is required")
+    cover_data: bytes = await raw_cover.read()
 
     song_files: dict[str, bytes] = {}
     for i, song_meta in enumerate(songs_meta):
@@ -155,16 +161,21 @@ async def upload_rockit_album(
     song_requests: list[UploadSongRequest] = [
         UploadSongRequest(
             title=str(s.get("title", f"Track {idx + 1}")),
-            artistName=artist_names,
+            artistNames=artist_names,
             fileSize=0,
+            discNumber=int(s.get("discNumber", 1)),
+            trackNumber=int(s.get("trackNumber", idx + 1)),
         )
         for idx, s in enumerate(songs_meta)
     ]
 
+    release_date: str = str(metadata.get("releaseDate", ""))
+
     upload_request: UploadAlbumRequest = UploadAlbumRequest(
         title=title,
-        artistName=artist_names,
+        artistNames=artist_names,
         songs=song_requests,
+        releaseDate=release_date,
     )
 
     a_result: AResult[UploadResponse] = await provider.upload_album_async(
@@ -247,9 +258,8 @@ async def get_rockit_album(
 async def serve_rockit_audio(
     request: Request,
     public_id: str,
-    _=Depends(AuthMiddleware.auth_dependency),
 ):
-    """Serve an uploaded audio file."""
+    """Stream an uploaded audio file with Range support."""
 
     session = DBSessionMiddleware.get_session(request=request)
 
@@ -259,6 +269,7 @@ async def serve_rockit_audio(
         )
     )
     if a_result_media.is_not_ok():
+        logger.error("TODO")
         raise HTTPException(status_code=404, detail="Media not found")
 
     media: CoreMediaRow = a_result_media.result()
@@ -273,10 +284,162 @@ async def serve_rockit_audio(
     if not song.file_path or not os.path.exists(song.file_path):
         raise HTTPException(status_code=404, detail="Audio file not found")
 
-    return FileResponse(
-        path=song.file_path,
-        media_type="audio/mpeg",
-        filename=f"{song.name}.mp3",
+    file_path: str = song.file_path
+    file_size: int = os.path.getsize(file_path)
+    _, file_ext = os.path.splitext(file_path)
+    media_type: str = "audio/mpeg"
+    if file_ext == ".ogg":
+        media_type = "audio/ogg"
+    elif file_ext == ".wav":
+        media_type = "audio/wav"
+    elif file_ext == ".flac":
+        media_type = "audio/flac"
+
+    range_header: str | None = request.headers.get("range")
+
+    if range_header:
+        range_start: int = 0
+        range_end: int = file_size - 1
+        if "bytes=" in range_header:
+            parts: list[str] = range_header.split("bytes=")[1].split("-")
+            if parts[0]:
+                range_start = int(parts[0])
+            if parts[1]:
+                range_end = int(parts[1])
+
+        content_length: int = range_end - range_start + 1
+
+        async def iter_audio_range(start: int, end: int):
+            async with aiofiles.open(file_path, "rb") as f:
+                await f.seek(start)
+                remaining: int = end - start + 1
+                while remaining > 0:
+                    chunk_size: int = min(1024 * 1024, remaining)
+                    chunk: bytes = await f.read(chunk_size)
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        return StreamingResponse(
+            iter_audio_range(range_start, range_end),
+            status_code=206,
+            media_type=media_type,
+            headers={
+                "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(content_length),
+            },
+        )
+
+    async def iter_audio_file():
+        async with aiofiles.open(file_path, "rb") as f:
+            while True:
+                chunk: bytes = await f.read(1024 * 1024)
+                if not chunk:
+                    break
+                yield chunk
+
+    return StreamingResponse(
+        iter_audio_file(),
+        media_type=media_type,
+        headers={
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(file_size),
+        },
+    )
+
+
+@router.get("/video/{public_id}")
+async def serve_rockit_video(
+    request: Request,
+    public_id: str,
+):
+    """Stream an uploaded video file with Range support."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+
+    a_result_media: AResult[CoreMediaRow] = (
+        await MediaAccess.get_media_from_public_id_async(
+            session=session, public_id=public_id, media_type_keys=None
+        )
+    )
+    if a_result_media.is_not_ok():
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    media: CoreMediaRow = a_result_media.result()
+
+    a_result_videos: AResult[List[RockitVideoRow]] = (
+        await RockitAccess.get_videos_async(session=session, video_ids=[media.id])
+    )
+    if a_result_videos.is_not_ok() or not a_result_videos.result():
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    video: RockitVideoRow = a_result_videos.result()[0]
+    if not video.file_path or not os.path.exists(video.file_path):
+        raise HTTPException(status_code=404, detail="Video file not found")
+
+    file_path: str = video.file_path
+    file_size: int = os.path.getsize(file_path)
+    _, file_ext = os.path.splitext(file_path)
+    media_type: str = "video/mp4"
+    if file_ext == ".webm":
+        media_type = "video/webm"
+    elif file_ext == ".mkv":
+        media_type = "video/x-matroska"
+
+    range_header: str | None = request.headers.get("range")
+
+    if range_header:
+        range_start: int = 0
+        range_end: int = file_size - 1
+        if "bytes=" in range_header:
+            parts: list[str] = range_header.split("bytes=")[1].split("-")
+            if parts[0]:
+                range_start = int(parts[0])
+            if parts[1]:
+                range_end = int(parts[1])
+
+        content_length: int = range_end - range_start + 1
+
+        async def iter_video_range(start: int, end: int):
+            async with aiofiles.open(file_path, "rb") as f:
+                await f.seek(start)
+                remaining: int = end - start + 1
+                while remaining > 0:
+                    chunk_size: int = min(1024 * 1024, remaining)
+                    chunk: bytes = await f.read(chunk_size)
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        return StreamingResponse(
+            iter_video_range(range_start, range_end),
+            status_code=206,
+            media_type=media_type,
+            headers={
+                "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(content_length),
+            },
+        )
+
+    async def iter_video_file():
+        async with aiofiles.open(file_path, "rb") as f:
+            while True:
+                chunk: bytes = await f.read(1024 * 1024)
+                if not chunk:
+                    break
+                yield chunk
+
+    return StreamingResponse(
+        iter_video_file(),
+        media_type=media_type,
+        headers={
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(file_size),
+        },
     )
 
 

@@ -322,6 +322,41 @@ export class BaseHttp {
         );
     }
 
+    static async getFeaturedLastMonth() {
+        return this.apiGetAsync(
+            `/featured/last-month`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedLiked() {
+        return this.apiGetAsync(
+            `/featured/liked`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedMostListened() {
+        return this.apiGetAsync(
+            `/featured/most-listened`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedRecentMix() {
+        return this.apiGetAsync(
+            `/featured/recent-mix`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedYearRecap() {
+        return this.apiGetAsync(
+            `/featured/year-recap`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
         return this.apiPostAsync(
             `/lrclib/lyrics`,
@@ -425,6 +460,24 @@ export class BaseHttp {
 
     static async getMedia(publicId: string) {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
+    }
+
+    static async getStation(publicId: string) {
+        return this.apiGetAsync(
+            `/radio/station/${publicId}`,
+            dto.BaseStationResponseSchema
+        );
+    }
+
+    static async getStationsByCountry(country: string) {
+        return this.apiGetAsync(
+            `/radio/stations/by-country/${country}`,
+            dto.ListSchema
+        );
+    }
+
+    static async getStationsWithGeo() {
+        return this.apiGetAsync(`/radio/stations/geo`, dto.ListSchema);
     }
 
     static async getRockitAlbum(publicId: string) {
@@ -639,41 +692,6 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/youtube/video/${youtubeId}`,
             dto.YoutubeVideoResponseSchema
-        );
-    }
-
-    static async getFeaturedLiked() {
-        return this.apiGetAsync(
-            `/featured/liked`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedMostListened() {
-        return this.apiGetAsync(
-            `/featured/most-listened`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedRecentMix() {
-        return this.apiGetAsync(
-            `/featured/recent-mix`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedLastMonth() {
-        return this.apiGetAsync(
-            `/featured/last-month`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedYearRecap() {
-        return this.apiGetAsync(
-            `/featured/year-recap`,
-            dto.BasePlaylistWithMediasResponseSchema
         );
     }
 }

@@ -8,7 +8,7 @@ from sqlalchemy.sql import Select as SA_Select
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import create_id
 
-from backend.constants import BACKEND_URL, MEDIA_PATH
+from backend.constants import BACKEND_URL, IMAGES_PATH, MEDIA_PATH
 
 from backend.core.aResult import AResult, AResultCode
 
@@ -32,6 +32,7 @@ from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 
 from backend.core.framework.media.image import Image
+from backend.core.access.imageAccess import ImageAccess
 
 from backend.rockit.access.rockitAccess import RockitAccess
 from backend.rockit.access.db.ormModels.song import RockitSongRow
@@ -46,12 +47,41 @@ class Rockit:
     provider_id: int = 0
 
     @staticmethod
+    async def _extract_duration_ms_async(file_path: str) -> int:
+        """Extract duration in milliseconds from a media file using ffprobe."""
+
+        import asyncio
+
+        proc = await asyncio.create_subprocess_exec(
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "csv=p=0",
+            file_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await proc.communicate()
+        if stdout:
+            try:
+                duration = float(stdout.decode().strip())
+                return int(duration * 1000)
+            except (ValueError, UnicodeDecodeError):
+                pass
+        return 0
+
+    @staticmethod
     async def upload_song_async(
         session: AsyncSession,
         title: str,
-        artist_name: str,
+        artist_names: List[str],
         file_data: bytes,
-        duration_ms: int | None = None,
+        image_data: bytes,
+        disc_number: int,
+        track_number: int,
     ) -> AResult[UploadResponse]:
         """Upload a song file and create database records."""
 
@@ -67,19 +97,37 @@ class Rockit:
             async with aiofiles.open(file_path, "wb") as f:
                 await f.write(file_data)
 
-            image_path: str = f"{MEDIA_PATH}/rockit/images/default_song.png"
-            image_url: str | None = None
+            duration_ms: int = await Rockit._extract_duration_ms_async(
+                file_path=file_path
+            )
+
+            image_file_name: str = f"{create_id(32)}.jpg"
+            image_rel_path: str = f"rockit/{image_file_name}"
+            image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
+            os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
+            async with aiofiles.open(image_full_path, "wb") as f:
+                await f.write(image_data)
+
+            a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
+                session=session, path=image_rel_path
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error creating image. {a_result_image.info()}")
+                return AResult(
+                    code=a_result_image.code(), message=a_result_image.message()
+                )
 
             a_result_song: AResult[RockitSongRow] = (
                 await RockitAccess.create_song_async(
                     session=session,
                     name=title,
-                    artist_name=artist_name,
+                    artist_names=artist_names,
                     provider_id=Rockit.provider_id,
-                    image_path=image_path,
-                    image_url=image_url,
+                    image_id=a_result_image.result().id,
                     duration_ms=duration_ms,
                     file_path=file_path,
+                    disc_number=disc_number,
+                    track_number=track_number,
                 )
             )
             if a_result_song.is_not_ok():
@@ -120,36 +168,44 @@ class Rockit:
     async def upload_album_async(
         session: AsyncSession,
         title: str,
-        artist_name: str,
+        artist_name: List[str],
         song_titles: List[str],
         song_files: dict[str, bytes],
-        cover_data: bytes | None = None,
+        cover_data: bytes,
+        release_date: str,
     ) -> AResult[UploadResponse]:
         """Upload an album with multiple songs."""
 
         try:
-            if cover_data:
-                image_file_name: str = f"{create_id(32)}.jpg"
-                image_path: str = f"{MEDIA_PATH}/rockit/images/{image_file_name}"
+            image_file_name: str = f"{create_id(32)}.jpg"
+            image_rel_path: str = f"rockit/{image_file_name}"
+            image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
 
-                os.makedirs(os.path.dirname(image_path), exist_ok=True)
+            os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
 
-                import aiofiles
+            import aiofiles
 
-                async with aiofiles.open(image_path, "wb") as f:
-                    await f.write(cover_data)
-            else:
-                image_path = f"{MEDIA_PATH}/rockit/images/default_album.png"
-            image_url: str | None = None
+            async with aiofiles.open(image_full_path, "wb") as f:
+                await f.write(cover_data)
+
+            a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
+                session=session, path=image_rel_path
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error creating image. {a_result_image.info()}")
+                return AResult(
+                    code=a_result_image.code(), message=a_result_image.message()
+                )
+            image_id: int = a_result_image.result().id
 
             a_result_album: AResult[RockitAlbumRow] = (
                 await RockitAccess.create_album_async(
                     session=session,
                     name=title,
-                    artist_name=artist_name,
+                    artist_names=artist_name,
                     provider_id=Rockit.provider_id,
-                    image_path=image_path,
-                    image_url=image_url,
+                    image_id=image_id,
+                    release_date=release_date,
                 )
             )
             if a_result_album.is_not_ok():
@@ -178,15 +234,21 @@ class Rockit:
                 async with aiofiles.open(file_path, "wb") as f:
                     await f.write(file_bytes)
 
+                song_duration_ms: int = await Rockit._extract_duration_ms_async(
+                    file_path=file_path
+                )
+
                 a_result_song: AResult[RockitSongRow] = (
                     await RockitAccess.create_song_async(
                         session=session,
                         name=song_title,
-                        artist_name=artist_name,
+                        artist_names=artist_name,
                         provider_id=Rockit.provider_id,
-                        image_path=image_path,
-                        image_url=image_url,
+                        image_id=image_id,
+                        duration_ms=song_duration_ms,
                         file_path=file_path,
+                        disc_number=1,
+                        track_number=track_number,
                     )
                 )
                 if a_result_song.is_not_ok():
@@ -238,9 +300,9 @@ class Rockit:
     async def upload_video_async(
         session: AsyncSession,
         title: str,
-        artist_name: str,
+        artist_names: List[str],
         file_data: bytes,
-        duration_ms: int | None = None,
+        image_data: bytes,
     ) -> AResult[UploadResponse]:
         """Upload a video file and create database records."""
 
@@ -256,17 +318,33 @@ class Rockit:
             async with aiofiles.open(file_path, "wb") as f:
                 await f.write(file_data)
 
-            image_path: str = f"{MEDIA_PATH}/rockit/images/default_video.png"
-            image_url: str | None = None
+            duration_ms: int = await Rockit._extract_duration_ms_async(
+                file_path=file_path
+            )
+
+            image_file_name: str = f"{create_id(32)}.jpg"
+            image_rel_path: str = f"rockit/{image_file_name}"
+            image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
+            os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
+            async with aiofiles.open(image_full_path, "wb") as f:
+                await f.write(image_data)
+
+            a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
+                session=session, path=image_rel_path
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error creating image. {a_result_image.info()}")
+                return AResult(
+                    code=a_result_image.code(), message=a_result_image.message()
+                )
 
             a_result_video: AResult[RockitVideoRow] = (
                 await RockitAccess.create_video_async(
                     session=session,
                     name=title,
-                    artist_name=artist_name,
+                    artist_names=artist_names,
                     provider_id=Rockit.provider_id,
-                    image_path=image_path,
-                    image_url=image_url,
+                    image_id=a_result_image.result().id,
                     duration_ms=duration_ms,
                     file_path=file_path,
                 )
@@ -705,7 +783,7 @@ class Rockit:
 
             audio_src: str | None = None
             if song.file_path:
-                audio_src = f"{BACKEND_URL}/media/audio/{public_id}"
+                audio_src = f"{BACKEND_URL}/rockit/audio/{public_id}"
 
             album_response: BaseAlbumWithoutSongsResponse = (
                 BaseAlbumWithoutSongsResponse(
@@ -871,7 +949,7 @@ class Rockit:
 
                     audio_src: str | None = None
                     if song.file_path:
-                        audio_src = f"{BACKEND_URL}/media/audio/{song_pid}"
+                        audio_src = f"{BACKEND_URL}/rockit/audio/{song_pid}"
 
                     song_responses.append(
                         BaseSongWithoutAlbumResponse(
@@ -945,7 +1023,7 @@ class Rockit:
 
             video_src: str | None = None
             if video.file_path:
-                video_src = f"{BACKEND_URL}/media/video/{public_id}"
+                video_src = f"{BACKEND_URL}/rockit/video/{public_id}"
 
             return AResult(
                 code=AResultCode.OK,

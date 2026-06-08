@@ -23,7 +23,7 @@ class RockitArtistRow(
     __tablename__ = "artist"
     __table_args__ = ({"schema": "rockit", "extend_existing": True},)
 
-    name: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )

@@ -22,8 +22,8 @@ class RockitVideoRow(RockitBase, TableDateUpdated, TableDateAdded):
         Integer, ForeignKey("core.media.id"), primary_key=True
     )
     name: Mapped[str] = mapped_column(String, nullable=False)
-    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    file_path: Mapped[str | None] = mapped_column(String, nullable=True)
+    duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    file_path: Mapped[str] = mapped_column(String, nullable=False)
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
@@ -35,18 +35,13 @@ class RockitVideoRow(RockitBase, TableDateUpdated, TableDateAdded):
     )
 
     def __init__(
-        self,
-        id: int,
-        name: str,
-        image_id: int,
-        duration_ms: int | None = None,
-        file_path: str | None = None,
+        self, id: int, name: str, duration_ms: int, file_path: str, image_id: int
     ):
-        kwargs: Dict[str, None | int | str] = {}
+        kwargs: Dict[str, int | str] = {}
         kwargs["id"] = id
         kwargs["name"] = name
-        kwargs["image_id"] = image_id
         kwargs["duration_ms"] = duration_ms
         kwargs["file_path"] = file_path
+        kwargs["image_id"] = image_id
         for k, v in kwargs.items():
             setattr(self, k, v)

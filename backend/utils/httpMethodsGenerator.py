@@ -69,7 +69,9 @@ async def http_methods_generator():
             body_type = body_params[0].type_
 
             if not isinstance(body_type, type) or not issubclass(body_type, BaseModel):
-                print(f"Path {route.path}: body param is not a Pydantic BaseModel, skipping")
+                print(
+                    f"Path {route.path}: body param is not a Pydantic BaseModel, skipping"
+                )
                 continue
 
             request_model = body_type.__name__

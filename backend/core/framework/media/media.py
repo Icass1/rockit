@@ -112,7 +112,7 @@ class Media:
             )
         )
         if a_result_song.is_not_ok():
-            logger.error(f"Error getting song from database.")
+            logger.error(f"Error getting song from database. {a_result_song.info()}")
             return AResult(code=a_result_song.code(), message=a_result_song.message())
 
         song: CoreMediaRow = a_result_song.result()

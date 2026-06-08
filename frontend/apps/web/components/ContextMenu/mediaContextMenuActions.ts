@@ -15,6 +15,7 @@ import {
     PlayCircle,
     RefreshCw,
     Shuffle,
+    Trash2,
     X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -37,7 +38,8 @@ export type ActionId =
     | "addSongToQueueTop"
     | "addSongQueueRandom"
     | "addSongToQueueBottom"
-    | "removeFromPlaylist";
+    | "removeFromPlaylist"
+    | "delete";
 
 export interface ActionDef {
     id: ActionId;
@@ -213,6 +215,15 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
+        id: "delete",
+        type: "action",
+        icon: Trash2,
+        labelKey: "DELETE",
+        mediaTypes: [EMediaType.Song, EMediaType.Video],
+        condition: (m) =>
+            !isSearchResult(m) && isDownloadable(m) && Boolean(m.downloaded),
+    },
+    {
         id: "removeFromPlaylist",
         type: "action",
         icon: ListMinus,
@@ -245,6 +256,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         "---",
         "download",
         "retryDownload",
+        "delete",
         "removeFromQueue",
         "removeFromPlaylist",
     ],
@@ -261,6 +273,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         "---",
         "download",
         "retryDownload",
+        "delete",
         "removeFromQueue",
         "removeFromPlaylist",
     ],

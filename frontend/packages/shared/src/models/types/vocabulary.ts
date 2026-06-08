@@ -329,4 +329,7 @@ export interface Vocabulary {
     UPLOAD_TRACK_FIELD: string;
     UPLOAD_VIDEO: string;
     UPLOAD_VIDEO_TITLE: string;
+    DELETE_ERROR: string;
+    DELETE: string;
+    DELETE_SUCCESS: string;
 }

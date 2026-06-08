@@ -35,6 +35,9 @@ from backend.core.access.db.ormModels.media import CoreMediaRow as CoreMediaRow
 from backend.core.access.db.ormModels.session import SessionRow as SessionRow
 from backend.core.access.db.ormModels.image import ImageRow as ImageRow
 from backend.core.access.db.ormModels.error import ErrorRow as ErrorRow
+from backend.core.access.db.ormModels.pendingUpload import (
+    PendingUploadRow as PendingUploadRow,
+)
 from backend.core.access.db.ormModels.user import UserRow as UserRow
 
 # ENUMS

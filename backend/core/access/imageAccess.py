@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import create_id
 
+from backend.core.utils.safeAsyncCall import safe_async
+
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.image import ImageRow
@@ -56,6 +58,23 @@ class ImageAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR, message="Error getting image"
             )
+
+    @staticmethod
+    @safe_async
+    async def get_image_from_id_async(
+        session: AsyncSession,
+        id: int,
+    ) -> AResult[ImageRow]:
+        """Get an ImageRow by its internal ID."""
+
+        stmt: Select[Tuple[ImageRow]] = select(ImageRow).where(ImageRow.id == id)
+        result: Result[Tuple[ImageRow]] = await session.execute(stmt)
+        row: ImageRow | None = result.scalar_one_or_none()
+
+        if row is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
+
+        return AResult(code=AResultCode.OK, message="OK", result=row)
 
     @staticmethod
     async def create_image_async(

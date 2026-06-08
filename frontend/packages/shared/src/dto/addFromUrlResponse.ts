@@ -6,6 +6,7 @@ import { BaseAlbumWithSongsResponseSchema } from "./baseAlbumWithSongsResponse";
 import { BaseArtistResponseSchema } from "./baseArtistResponse";
 import { BasePlaylistWithoutMediasResponseSchema } from "./basePlaylistWithoutMediasResponse";
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
+import { BaseStationResponseSchema } from "./baseStationResponse";
 import { BaseVideoResponseSchema } from "./baseVideoResponse";
 
 export const AddFromUrlResponseSchema = z.object({
@@ -15,6 +16,7 @@ export const AddFromUrlResponseSchema = z.object({
         z.lazy(() => BasePlaylistWithoutMediasResponseSchema),
         z.lazy(() => BaseAlbumWithSongsResponseSchema),
         z.lazy(() => BaseArtistResponseSchema),
+        z.lazy(() => BaseStationResponseSchema),
     ]),
 });
 

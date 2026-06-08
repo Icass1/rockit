@@ -322,6 +322,41 @@ export class BaseHttp {
         );
     }
 
+    static async getFeaturedLastMonth() {
+        return this.apiGetAsync(
+            `/featured/last-month`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedLiked() {
+        return this.apiGetAsync(
+            `/featured/liked`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedMostListened() {
+        return this.apiGetAsync(
+            `/featured/most-listened`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedRecentMix() {
+        return this.apiGetAsync(
+            `/featured/recent-mix`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getFeaturedYearRecap() {
+        return this.apiGetAsync(
+            `/featured/year-recap`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
         return this.apiPostAsync(
             `/lrclib/lyrics`,
@@ -436,15 +471,26 @@ export class BaseHttp {
 
     static async getStationsByCountry(country: string) {
         return this.apiGetAsync(
-            `/radio/stations/by-country/${encodeURIComponent(country)}`,
+            `/radio/stations/by-country/${country}`,
             dto.ListSchema
         );
     }
 
-    static async getStationsWithGeo(limit = 1000, offset = 0) {
+    static async getStationsWithGeo() {
+        return this.apiGetAsync(`/radio/stations/geo`, dto.ListSchema);
+    }
+
+    static async getRockitAlbum(publicId: string) {
         return this.apiGetAsync(
-            `/radio/stations/geo?limit=${limit}&offset=${offset}`,
-            dto.ListSchema
+            `/rockit/album/${publicId}`,
+            dto.BaseAlbumWithSongsResponseSchema
+        );
+    }
+
+    static async getRockitSong(publicId: string) {
+        return this.apiGetAsync(
+            `/rockit/song/${publicId}`,
+            dto.BaseSongWithAlbumResponseSchema
         );
     }
 
@@ -485,6 +531,33 @@ export class BaseHttp {
             `/stats/user`,
             dto.UserStatsRequestSchema,
             dto.UserStatsResponseSchema,
+            payload
+        );
+    }
+
+    static async startAlbumUpload(payload: dto.UploadAlbumRequest) {
+        return this.apiPostAsync(
+            `/upload/album/start`,
+            dto.UploadAlbumRequestSchema,
+            dto.StartUploadResponseSchema,
+            payload
+        );
+    }
+
+    static async startSongUpload(payload: dto.UploadSongRequest) {
+        return this.apiPostAsync(
+            `/upload/song/start`,
+            dto.UploadSongRequestSchema,
+            dto.StartUploadResponseSchema,
+            payload
+        );
+    }
+
+    static async startVideoUpload(payload: dto.UploadVideoRequest) {
+        return this.apiPostAsync(
+            `/upload/video/start`,
+            dto.UploadVideoRequestSchema,
+            dto.StartUploadResponseSchema,
             payload
         );
     }
@@ -619,41 +692,6 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/youtube/video/${youtubeId}`,
             dto.YoutubeVideoResponseSchema
-        );
-    }
-
-    static async getFeaturedLiked() {
-        return this.apiGetAsync(
-            `/featured/liked`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedMostListened() {
-        return this.apiGetAsync(
-            `/featured/most-listened`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedRecentMix() {
-        return this.apiGetAsync(
-            `/featured/recent-mix`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedLastMonth() {
-        return this.apiGetAsync(
-            `/featured/last-month`,
-            dto.BasePlaylistWithMediasResponseSchema
-        );
-    }
-
-    static async getFeaturedYearRecap() {
-        return this.apiGetAsync(
-            `/featured/year-recap`,
-            dto.BasePlaylistWithMediasResponseSchema
         );
     }
 }

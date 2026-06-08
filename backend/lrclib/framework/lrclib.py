@@ -113,8 +113,8 @@ class Lrclib:
                 )
             )
             if a_result_song.is_not_ok():
-                logger.error(
-                    f"Error getting song for media {media_id}. {a_result_song.info()}"
+                logger.warning(
+                    f"Song with id {media_id} not found. {a_result_song.info()}"
                 )
                 return media_id, AResult(
                     code=a_result_song.code(), message=a_result_song.message()

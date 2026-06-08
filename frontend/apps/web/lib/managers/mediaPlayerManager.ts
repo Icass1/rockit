@@ -542,6 +542,10 @@ export class MediaPlayerManager {
         return this._crossFadeAtom.getReadonlyAtom();
     }
 
+    get audioElement(): HTMLAudioElement | undefined {
+        return this._audio;
+    }
+
     get videoElement(): HTMLVideoElement | undefined {
         return this._video;
     }

@@ -23,6 +23,12 @@ export default function AppClientLayout({
     useEffect((): void => {
         rockIt.mediaManager.fetchLikedMedia();
         rockIt.vocabularyManager.setVocabulary(vocabulary);
+
+        const onFirstGesture = (): void => {
+            rockIt.mediaSessionManager.activateOnGesture();
+        };
+        document.addEventListener("pointerup", onFirstGesture, { once: true });
+        document.addEventListener("keydown", onFirstGesture, { once: true });
     }, [vocabulary]);
 
     return (

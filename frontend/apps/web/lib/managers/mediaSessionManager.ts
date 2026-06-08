@@ -6,8 +6,24 @@ import {
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
+const SILENT_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+
+const ACTION_HANDLERS: MediaSessionAction[] = [
+    "play",
+    "pause",
+    "previoustrack",
+    "nexttrack",
+    "seekto",
+    "seekbackward",
+    "seekforward",
+    "stop",
+];
+
 export class MediaSessionManager {
     private _supported: boolean;
+    private _keepaliveCtx?: AudioContext;
+    private _keepaliveOsc?: OscillatorNode;
+    private _keepaliveGain?: GainNode;
     private _unsubscribers: (() => void)[] = [];
 
     constructor() {
@@ -21,10 +37,139 @@ export class MediaSessionManager {
         this._subscribeToChanges();
     }
 
+    /** Call inside the FIRST user gesture (click/touchend).
+     *  Unlocks audio, sets audio session, starts keepalive oscillator. */
+    activateOnGesture(): void {
+        if (typeof window === "undefined") return;
+
+        this._setAudioSession();
+        this._startKeepalive();
+        this._unlockAudioElements();
+    }
+
     destroy(): void {
         this._unsubscribers.forEach((fn): void => fn());
         this._unsubscribers = [];
+        this._stopKeepalive();
+
+        if (this._supported) {
+            for (const action of ACTION_HANDLERS) {
+                try {
+                    navigator.mediaSession.setActionHandler(action, null);
+                } catch {
+                    /* ignore */
+                }
+            }
+        }
     }
+
+    // ── Audio Session API (iOS 16.4+) ───────────────────────────────────
+
+    private _setAudioSession(): void {
+        if ("audioSession" in navigator) {
+            const nav = navigator as Navigator & {
+                audioSession?: { type: string };
+            };
+            if (nav.audioSession) {
+                nav.audioSession.type = "playback";
+            }
+        }
+    }
+
+    // ── Silent oscillator keepalive ────────────────────────────────────
+
+    private _startKeepalive(): void {
+        if (this._keepaliveCtx) return;
+
+        try {
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.frequency.value = 1;
+            osc.type = "sine";
+            gain.gain.value = 0.001;
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+
+            this._keepaliveCtx = ctx;
+            this._keepaliveOsc = osc;
+            this._keepaliveGain = gain;
+
+            ctx.addEventListener("statechange", (): void => {
+                if (ctx.state === "suspended") {
+                    ctx.resume().catch((): void => {});
+                }
+            });
+        } catch {
+            /* keepalive not available */
+        }
+    }
+
+    private _stopKeepalive(): void {
+        try {
+            this._keepaliveOsc?.stop();
+            this._keepaliveOsc?.disconnect();
+            this._keepaliveGain?.disconnect();
+            this._keepaliveCtx?.close();
+        } catch {
+            /* ignore */
+        }
+        this._keepaliveOsc = undefined;
+        this._keepaliveGain = undefined;
+        this._keepaliveCtx = undefined;
+    }
+
+    // ── Silent WAV unlock trick ────────────────────────────────────────
+
+    private static _unlockedElements = new WeakMap<HTMLAudioElement, boolean>();
+    private _needsUnlock = false;
+    private _unlockPromise: Promise<void> | null = null;
+
+    private _unlockAudioElements(): void {
+        const audioEl = rockIt.mediaPlayerManager.audioElement;
+        if (!audioEl) {
+            this._needsUnlock = true;
+            return;
+        }
+        if (MediaSessionManager._unlockedElements.get(audioEl)) return;
+        this._unlockElement(audioEl);
+    }
+
+    private _unlockElement(el: HTMLAudioElement): void {
+        if (MediaSessionManager._unlockedElements.get(el)) return;
+
+        if (!this._unlockPromise) {
+            this._unlockPromise = this._doUnlock(el);
+        }
+    }
+
+    private _doUnlock(el: HTMLAudioElement): Promise<void> {
+        return new Promise((resolve): void => {
+            el.src = SILENT_WAV;
+            el.muted = true;
+            el.play()
+                .then((): void => {
+                    MediaSessionManager._unlockedElements.set(el, true);
+                    this._needsUnlock = false;
+                    if (el.src === SILENT_WAV) {
+                        el.pause();
+                        el.currentTime = 0;
+                    }
+                    el.muted = false;
+                    resolve();
+                })
+                .catch((): void => {
+                    el.muted = false;
+                    this._unlockPromise = null;
+                    resolve();
+                });
+        });
+    }
+
+    // ── Media Session action handlers ───────────────────────────────────
 
     private _registerActionHandlers(): void {
         const session = navigator.mediaSession;
@@ -112,6 +257,9 @@ export class MediaSessionManager {
         const unsubMedia = rockIt.queueManager.currentMediaAtom.subscribe(
             (media: TPlayableMedia | undefined): void => {
                 this._updateMetadata(media);
+                if (this._needsUnlock) {
+                    this._unlockAudioElements();
+                }
             }
         );
         this._unsubscribers.push(unsubMedia);
@@ -178,7 +326,9 @@ export class MediaSessionManager {
 
     private _updatePositionState(time: number): void {
         const media = rockIt.queueManager.currentMedia;
-        const duration = getMediaDuration(media) ?? 0;
+        const duration = getMediaDuration(media);
+
+        if (!media || !duration || duration <= 0) return;
 
         try {
             navigator.mediaSession.setPositionState({

@@ -44,34 +44,34 @@ class DownloadAccess:
     async def create_download(
         session: AsyncSession,
         download_group_id: int,
-        song_id: int,
+        media_id: int,
     ) -> AResult[DownloadRow]:
         """Create a new download row for a single song and flush so its id is available."""
 
         result = await session.execute(
             select(DownloadRow)
-            .where(DownloadRow.media_id == song_id)
+            .where(DownloadRow.media_id == media_id)
             .where(DownloadRow.download_group_id == download_group_id)
         )
         existing = result.scalar_one_or_none()
         if existing:
             return AResult(code=AResultCode.OK, message="OK", result=existing)
 
-        result_any = await session.execute(
-            select(DownloadRow)
-            .where(DownloadRow.media_id == song_id)
-            .where(DownloadRow.status_key == 3)
-        )
-        existing_completed = result_any.scalar_one_or_none()
-        if existing_completed:
-            return AResult(
-                code=AResultCode.ALREADY_EXISTS,
-                message="Download already exists for this media",
-                result=existing_completed,
-            )
+        # result_any = await session.execute(
+        #     select(DownloadRow)
+        #     .where(DownloadRow.media_id == media_id)
+        #     .where(DownloadRow.status_key == 3)
+        # )
+        # existing_completed = result_any.scalar_one_or_none()
+        # if existing_completed:
+        #     return AResult(
+        #         code=AResultCode.ALREADY_EXISTS,
+        #         message="Download already exists for this media",
+        #         result=existing_completed,
+        #     )
 
         result_pending = await session.execute(
-            select(DownloadRow).where(DownloadRow.media_id == song_id)
+            select(DownloadRow).where(DownloadRow.media_id == media_id)
         )
         existing_pending = result_pending.scalar_one_or_none()
         if existing_pending:
@@ -80,7 +80,7 @@ class DownloadAccess:
         row: DownloadRow = DownloadRow(
             public_id=create_id(32),
             download_group_id=download_group_id,
-            media_id=song_id,
+            media_id=media_id,
             date_started=datetime.now(timezone.utc),
         )
         session.add(row)

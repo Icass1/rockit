@@ -49,6 +49,12 @@ async def stream_video_async(request: Request, youtube_id: str):
         raise HTTPException(status_code=404, detail="Video file not found on disk")
 
     file_size: int = os.path.getsize(video_path)
+    _, file_ext = os.path.splitext(video_path)
+    media_type: str = "video/mp4"
+    if file_ext == ".webm":
+        media_type = "video/webm"
+    elif file_ext == ".mkv":
+        media_type = "video/x-matroska"
     range_header: str | None = request.headers.get("range")
 
     if range_header:
@@ -78,7 +84,7 @@ async def stream_video_async(request: Request, youtube_id: str):
         return StreamingResponse(
             iter_range(range_start, range_end),
             status_code=206,
-            media_type="video/mp4",
+            media_type=media_type,
             headers={
                 "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
                 "Accept-Ranges": "bytes",
@@ -96,7 +102,7 @@ async def stream_video_async(request: Request, youtube_id: str):
 
     return StreamingResponse(
         iter_file(),
-        media_type="video/mp4",
+        media_type=media_type,
         headers={
             "Accept-Ranges": "bytes",
             "Content-Length": str(file_size),

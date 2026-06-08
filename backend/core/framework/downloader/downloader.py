@@ -35,10 +35,10 @@ logger: Logger = getLogger(__name__)
 
 class Downloader:
     @staticmethod
-    async def download_multiple_songs_async(
+    async def download_multiple_medias_async(
         session: AsyncSession, user_id: int, title: str, public_ids: List[str]
     ) -> AResult[StartDownloadResponse]:
-        """Create a download group, queue a BaseDownload per song, and return the group's public_id."""
+        """Create a download group, queue a BaseDownload per media, and return the group's public_id."""
 
         a_result_group: AResult[DownloadGroupRow] = (
             await DownloadAccess.create_download_group(
@@ -54,30 +54,32 @@ class Downloader:
         group: DownloadGroupRow = a_result_group.result()
 
         for public_id in public_ids:
-            a_result_song: AResult[MediaModel] = (
+            a_result_media: AResult[MediaModel] = (
                 await Media.get_media_from_public_id_async(
                     session=session,
                     public_id=public_id,
                     media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
                 )
             )
-            if a_result_song.is_not_ok():
-                logger.error(f"Error getting song {public_id}. {a_result_song.info()}")
+            if a_result_media.is_not_ok():
+                logger.error(
+                    f"Error getting media {public_id}. {a_result_media.info()}"
+                )
                 continue
 
-            song: MediaModel = a_result_song.result()
+            media: MediaModel = a_result_media.result()
             provider: BaseMediaProvider | None = providers.find_media_provider(
-                provider_id=song.provider_id
+                provider_id=media.provider_id
             )
             if provider is None:
-                logger.error(f"No provider found for song {public_id}.")
+                logger.error(f"No provider found for media {public_id}.")
                 continue
 
             a_result_download: AResult[DownloadRow] = (
                 await DownloadAccess.create_download(
                     session=session,
                     download_group_id=group.id,
-                    song_id=song.id,
+                    media_id=media.id,
                 )
             )
             if a_result_download.is_not_ok():

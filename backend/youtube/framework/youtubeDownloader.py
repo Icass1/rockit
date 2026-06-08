@@ -22,6 +22,23 @@ def _retry_sleep(n: int) -> int:
     return 2 ** min(n, 5)
 
 
+class _YtDlpLogger:
+    def debug(self, msg: str) -> None:
+        if msg.startswith("[debug]"):
+            logger.debug(msg)
+        else:
+            logger.info(f"[yt-dlp] {msg}")
+
+    def info(self, msg: str) -> None:
+        logger.info(f"[yt-dlp] {msg}")
+
+    def warning(self, msg: str) -> None:
+        logger.warning(f"[yt-dlp] {msg}")
+
+    def error(self, msg: str) -> None:
+        logger.error(f"[yt-dlp] {msg}")
+
+
 def _create_youtube_dl(opts: Dict[str, Any]) -> YoutubeDL:
     return YoutubeDL(opts)  # type: ignore[arg-type]
 
@@ -124,7 +141,6 @@ class YouTubeDownloader:
         title: str,
         artist: str,
         filename: str,
-        height: int = 1080,
     ) -> AResult[Dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
@@ -135,7 +151,6 @@ class YouTubeDownloader:
             artist=artist,
             filename=filename,
             format_type="mp4",
-            height=height,
         )
 
     @staticmethod
@@ -148,7 +163,6 @@ class YouTubeDownloader:
         artist: str,
         filename: str,
         format_type: str,
-        height: int = 1080,
     ) -> AResult[Dict[str, Any]]:
         async with rockit_db.session_scope_async() as session:
             a_result_row = await DownloadAccess.get_download_by_id(
@@ -168,7 +182,7 @@ class YouTubeDownloader:
 
         output_template: str = os.path.join(output_path, f"{filename}.%(ext)s")
 
-        expected_ext: str
+        expected_ext: str | None
         if format_type == "mp3":
             ydl_opts: Dict[str, Any] = {
                 "format": "bestaudio/best",
@@ -190,26 +204,23 @@ class YouTubeDownloader:
             }
             expected_ext = "mp3"
         else:
-            format_string: str = (
-                f"bestvideo[height>={height}]+bestaudio/bestvideo[height>={height}]/best[height>={height}][ext=mp4]/best"
-            )
+            # No [ext=mp4] constraint — YouTube serves 1080p as WebM (VP9).
+            # merge_output_format handles remuxing to mp4 via ffmpeg.
+            format_string: str = "bestvideo[height<=1080]+bestaudio/best"
             ydl_opts = {
                 "format": format_string,
-                "outtmpl": output_template,
                 "merge_output_format": "mp4",
-                "postprocessors": [
-                    {
-                        "key": "FFmpegVideoConvertor",
-                        "preferedformat": "mp4",
-                    }
-                ],
-                "quiet": True,
-                "no_warnings": True,
+                "outtmpl": output_template,
+                "logger": _YtDlpLogger(),
                 "retries": 15,
                 "fragment_retries": 15,
                 "retry_sleep": _retry_sleep,
                 "socket_timeout": 30,
+                "ffmpeg_location": "/usr/bin",
                 "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                # Use node.js to solve YouTube's n-challenge and access DASH (1080p) formats.
+                "js_runtimes": {"node": {}},
+                "remote_components": ["ejs:github"],
             }
             expected_ext = "mp4"
 
@@ -285,12 +296,18 @@ class YouTubeDownloader:
                 lambda: _create_youtube_dl(ydl_opts).download([youtube_url]),
             )
 
-            final_filename: str = f"{filename}.{expected_ext}"
-            final_path: str = os.path.join(output_path, final_filename)
+            final_filename: str | None = None
+            final_path: str | None = None
 
-            if not os.path.exists(final_path):
-                files: List[str] = os.listdir(output_path)
-                matching: List[str] = [f for f in files if f.startswith(filename)]
+            if expected_ext:
+                final_filename = f"{filename}.{expected_ext}"
+                final_path = os.path.join(output_path, final_filename)
+                if not os.path.exists(final_path):
+                    final_path = None
+
+            if not final_path:
+                files = os.listdir(output_path)
+                matching = [f for f in files if f.startswith(filename)]
                 if matching:
                     final_path = os.path.join(output_path, matching[0])
                     final_filename = matching[0]

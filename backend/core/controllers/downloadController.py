@@ -43,7 +43,7 @@ async def start_download(
     user: UserRow = a_result_user.result()
 
     a_result: AResult[StartDownloadResponse] = (
-        await Downloader.download_multiple_songs_async(
+        await Downloader.download_multiple_medias_async(
             session=session,
             user_id=user.id,
             title=payload.title,

@@ -116,6 +116,44 @@ function uploadFormDataWithProgress(
     });
 }
 
+// Chunked upload.
+
+const MEDIA_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per chunk — safely under Cloudflare's 100 MB proxy limit
+
+async function uploadFileChunked(
+    uploadId: string,
+    file: File,
+    imageFile: File | null,
+    onProgress: (loaded: number) => void
+): Promise<void> {
+    const totalChunks = Math.ceil(file.size / MEDIA_CHUNK_SIZE);
+    let uploadedBytes = 0;
+
+    for (let i = 0; i < totalChunks; i++) {
+        const start = i * MEDIA_CHUNK_SIZE;
+        const end = Math.min(start + MEDIA_CHUNK_SIZE, file.size);
+        const fd = new FormData();
+        fd.append("chunk", file.slice(start, end));
+        await uploadFormDataWithProgress(
+            `${BACKEND_URL}/upload/${uploadId}/chunk?index=${i}&total=${totalChunks}`,
+            fd,
+            (loaded) => onProgress(uploadedBytes + loaded)
+        );
+        uploadedBytes += end - start;
+        onProgress(uploadedBytes);
+    }
+
+    const fd = new FormData();
+    if (imageFile) fd.append("image", imageFile);
+    const res = await uploadFormDataWithProgress(
+        `${BACKEND_URL}/upload/${uploadId}/assemble?total=${totalChunks}`,
+        fd,
+        () => {}
+    );
+    if (!res.ok) throw new Error(`Assemble failed: ${res.status}`);
+    UploadResponseSchema.parse(await res.json());
+}
+
 // Constants.
 
 const ACCEPTED_AUDIO = ".mp3,.flac,.ogg,.m4a,.wav,.aac,.zip";
@@ -331,22 +369,17 @@ export default function UploadModal({
                 throw new Error(`Start song upload failed: ${startResult.code}`);
             const { uploadId } = startResult.result;
 
-            const fd = new FormData();
-            fd.append("file", f.file);
-            if (f.imageFile) fd.append("image", f.imageFile);
             const cumulativeBytes = files
                 .slice(0, i)
                 .reduce((sum, sf) => sum + sf.file.size, 0);
-            const fileRes = await uploadFormDataWithProgress(
-                `${BACKEND_URL}/upload/${uploadId}/file`,
-                fd,
+            await uploadFileChunked(
+                uploadId,
+                f.file,
+                f.imageFile,
                 (loaded: number): void => {
                     setUploadedBytes(cumulativeBytes + loaded);
                 }
             );
-            if (!fileRes.ok)
-                throw new Error(`Song file upload failed: ${fileRes.status}`);
-            UploadResponseSchema.parse(await fileRes.json());
             setProgress(i + 1);
         }
     }
@@ -438,19 +471,14 @@ export default function UploadModal({
             throw new Error(`Start video upload failed: ${startResult.code}`);
         const { uploadId } = startResult.result;
 
-        const fd = new FormData();
-        fd.append("file", videoFile);
-        if (videoImageFile) fd.append("image", videoImageFile);
-        const fileRes = await uploadFormDataWithProgress(
-            `${BACKEND_URL}/upload/${uploadId}/file`,
-            fd,
+        await uploadFileChunked(
+            uploadId,
+            videoFile,
+            videoImageFile,
             (loaded: number): void => {
                 setUploadedBytes(loaded);
             }
         );
-        if (!fileRes.ok)
-            throw new Error(`Video file upload failed: ${fileRes.status}`);
-        UploadResponseSchema.parse(await fileRes.json());
         setProgress(1);
     }
 

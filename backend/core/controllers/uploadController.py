@@ -408,3 +408,129 @@ async def upload_album_song_file(
         message=f"Song '{album_request.songs[index].title}' uploaded ({pending.uploaded_song_count}/{len(album_request.songs)}).",
         filename=file.filename,
     )
+
+
+@router.post("/{upload_id}/chunk")
+async def upload_media_chunk(
+    request: Request,
+    upload_id: str,
+    index: int,
+    total: int,
+    chunk: UploadFile = File(...),
+) -> OkResponse:
+    """Upload one binary chunk for a pending media upload.
+
+    Send chunks sequentially with index 0 … total-1, then call
+    POST /{upload_id}/assemble to concatenate and process.
+    """
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    await _get_pending_or_404(session=session, upload_id=upload_id)
+
+    chunk_path: str = os.path.join(
+        _upload_temp_dir(upload_id=upload_id), "chunks", str(index)
+    )
+    await _stream_to_file(upload_file=chunk, dest_path=chunk_path)
+    return OkResponse()
+
+
+@router.post("/{upload_id}/assemble")
+async def assemble_media_upload(
+    request: Request,
+    upload_id: str,
+    total: int,
+    image: UploadFile | None = File(default=None),
+) -> UploadResponse:
+    """Concatenate all uploaded chunks and process the media.
+
+    Validates that all chunk files 0…total-1 are present, assembles them
+    in order into a single file, then runs the same provider logic as the
+    single-request upload endpoint. Optionally include an `image` field
+    for song/video cover art.
+    """
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    pending: PendingUploadRow = await _get_pending_or_404(
+        session=session, upload_id=upload_id
+    )
+    provider: BaseUploadProvider = _get_upload_provider()
+
+    temp_dir: str = _upload_temp_dir(upload_id=upload_id)
+    chunks_dir: str = os.path.join(temp_dir, "chunks")
+
+    for i in range(total):
+        if not os.path.exists(os.path.join(chunks_dir, str(i))):
+            logger.error(f"Missing chunk {i} for upload {upload_id}.")
+            raise HTTPException(
+                status_code=400, detail=f"Missing chunk {i} of {total}."
+            )
+
+    file_path: str = os.path.join(temp_dir, "file")
+    os.makedirs(temp_dir, exist_ok=True)
+
+    async with aiofiles.open(file_path, "wb") as out_f:
+        for i in range(total):
+            async with aiofiles.open(
+                os.path.join(chunks_dir, str(i)), "rb"
+            ) as chunk_f:
+                while True:
+                    data = await chunk_f.read(_STREAM_CHUNK_SIZE)
+                    if not data:
+                        break
+                    await out_f.write(data)
+
+    image_path: str | None = None
+    if image is not None:
+        image_path = os.path.join(temp_dir, "image")
+        await _stream_to_file(upload_file=image, dest_path=image_path)
+
+    if pending.media_type_key == MediaTypeEnum.SONG.value:
+        request_model: UploadSongRequest = UploadSongRequest.model_validate_json(
+            pending.metadata_json
+        )
+        await PendingUploadAccess.delete_by_public_id_async(
+            session=session, public_id=upload_id
+        )
+        a_result = await provider.upload_song_async(
+            session=session,
+            request=request_model,
+            file_path=file_path,
+            image_path=image_path,
+        )
+        await _cleanup_upload_temp_dir(upload_id=upload_id)
+        if a_result.is_not_ok():
+            logger.error(f"Error assembling song upload. {a_result.info()}")
+            raise HTTPException(
+                status_code=a_result.get_http_code(),
+                detail=a_result.message(),
+            )
+        return a_result.result()
+
+    elif pending.media_type_key == MediaTypeEnum.VIDEO.value:
+        video_request: UploadVideoRequest = UploadVideoRequest.model_validate_json(
+            pending.metadata_json
+        )
+        await PendingUploadAccess.delete_by_public_id_async(
+            session=session, public_id=upload_id
+        )
+        a_result = await provider.upload_video_async(
+            session=session,
+            request=video_request,
+            file_path=file_path,
+            image_path=image_path,
+        )
+        await _cleanup_upload_temp_dir(upload_id=upload_id)
+        if a_result.is_not_ok():
+            logger.error(f"Error assembling video upload. {a_result.info()}")
+            raise HTTPException(
+                status_code=a_result.get_http_code(),
+                detail=a_result.message(),
+            )
+        return a_result.result()
+
+    await _cleanup_upload_temp_dir(upload_id=upload_id)
+    logger.error(f"Unsupported media type for chunked assembly: {pending.media_type_key}")
+    raise HTTPException(
+        status_code=400,
+        detail=f"Unsupported media type for chunked assembly: '{pending.media_type_key}'.",
+    )

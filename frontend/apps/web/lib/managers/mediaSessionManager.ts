@@ -231,25 +231,27 @@ export class MediaSessionManager {
             /* not supported */
         }
 
-        try {
-            session.setActionHandler("seekbackward", (): void => {
-                const time = rockIt.mediaPlayerManager.currentTime;
-                rockIt.mediaPlayerManager.setCurrentTime(
-                    Math.max(0, time - 10),
-                    true
-                );
-            });
-        } catch {
-            /* not supported */
-        }
+        if (!MediaSessionManager._isiOS()) {
+            try {
+                session.setActionHandler("seekbackward", (): void => {
+                    const time = rockIt.mediaPlayerManager.currentTime;
+                    rockIt.mediaPlayerManager.setCurrentTime(
+                        Math.max(0, time - 10),
+                        true
+                    );
+                });
+            } catch {
+                /* not supported */
+            }
 
-        try {
-            session.setActionHandler("seekforward", (): void => {
-                const time = rockIt.mediaPlayerManager.currentTime;
-                rockIt.mediaPlayerManager.setCurrentTime(time + 10, true);
-            });
-        } catch {
-            /* not supported */
+            try {
+                session.setActionHandler("seekforward", (): void => {
+                    const time = rockIt.mediaPlayerManager.currentTime;
+                    rockIt.mediaPlayerManager.setCurrentTime(time + 10, true);
+                });
+            } catch {
+                /* not supported */
+            }
         }
 
         try {

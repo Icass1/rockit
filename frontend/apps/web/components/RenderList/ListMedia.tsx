@@ -65,7 +65,7 @@ export function ListMedia({
                     alt={$media.name}
                     width={100}
                     height={100}
-                    className="h-12 w-12 rounded object-cover"
+                    className="h-12 w-12 select-none rounded object-cover"
                 />
                 <div className="flex w-full flex-col">
                     <Link

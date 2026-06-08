@@ -56,7 +56,7 @@ export default function RenderList({
                             aria-hidden="true"
                             width={600}
                             height={600}
-                            className="absolute inset-0 -z-10 scale-150 rounded-lg opacity-80 blur-[100px] saturate-150"
+                            className="absolute inset-0 -z-10 scale-150 select-none rounded-lg opacity-80 blur-[100px] saturate-150"
                         />
                         {/* Main image */}
                         <Image
@@ -64,7 +64,7 @@ export default function RenderList({
                             alt={title}
                             width={600}
                             height={600}
-                            className="relative h-auto w-full rounded-lg"
+                            className="relative h-auto w-full select-none rounded-lg"
                         />
                         {coverOverlay && (
                             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

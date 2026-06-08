@@ -103,7 +103,7 @@ function RankingRow({
                         <img
                             src={item.imageUrl}
                             alt=""
-                            className="h-full w-full object-cover"
+                            className="h-full w-full select-none object-cover"
                             aria-hidden
                         />
                     ) : (

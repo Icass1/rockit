@@ -2,14 +2,14 @@ import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { Http } from "@/lib/http";
 
 export default function PlayLibraryButton(): JSX.Element {
-    let icon;
-
     const $queue = useStore(rockIt.queueManager.queueAtom);
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
     const playingLibrary = $queue?.find(
         (queueSong): boolean =>
@@ -19,41 +19,42 @@ export default function PlayLibraryButton(): JSX.Element {
         ? true
         : false;
 
-    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-
-    if (playingLibrary && $playing) {
-        icon = (
-            <Pause
-                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
-                fill="white"
-            />
-        );
-    } else {
-        icon = (
-            <Play
-                className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
-                fill="white"
-            />
-        );
-    }
+    const handleClick = async (): Promise<void> => {
+        if (playingLibrary && $playing) {
+            rockIt.mediaPlayerManager.pause();
+        } else if (playingLibrary) {
+            rockIt.mediaPlayerManager.play();
+        } else {
+            const res = await Http.getUserLibraryMedias();
+            if (res.isOk()) {
+                const songs = res.result.songs ?? [];
+                const videos = res.result.videos ?? [];
+                const allMedia = [...songs, ...videos];
+                if (allMedia.length === 0) return;
+                rockIt.queueManager.setMedia(allMedia, "library");
+                rockIt.queueManager.setQueueMediaId(0);
+                rockIt.mediaPlayerManager.play();
+            }
+        }
+    };
 
     return (
-        <>
-            <div
-                onClick={(): void => {
-                    if (playingLibrary && $playing) {
-                        rockIt.mediaPlayerManager.play();
-                    } else if (playingLibrary) {
-                        rockIt.mediaPlayerManager.pause();
-                    } else {
-                        console.warn("PlayLibraryButton playLibraryHandler");
-                    }
-                }}
-                title="Play albums in library"
-                className="h-8 w-8 cursor-pointer rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
-            >
-                {icon}
-            </div>
-        </>
+        <div
+            onClick={handleClick}
+            title="Play library"
+            className="h-8 w-8 cursor-pointer rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
+        >
+            {playingLibrary && $playing ? (
+                <Pause
+                    className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                    fill="white"
+                />
+            ) : (
+                <Play
+                    className="relative top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                    fill="white"
+                />
+            )}
+        </div>
     );
 }

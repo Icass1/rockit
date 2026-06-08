@@ -302,7 +302,7 @@ export function LibraryLists({
                         }}
                     >
                         <Heart
-                            className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2"
+                            className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 select-none"
                             fill="white"
                         />
                     </div>
@@ -324,7 +324,7 @@ export function LibraryLists({
                             backgroundImage: "url(/rockit-background.png)",
                         }}
                     >
-                        <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                        <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 select-none" />
                     </div>
                     <p className="mt-2 block truncate text-center font-semibold">
                         {$vocabulary.MOST_LISTENED}
@@ -344,7 +344,7 @@ export function LibraryLists({
                             backgroundImage: "url(/rockit-background.png)",
                         }}
                     >
-                        <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2" />
+                        <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 select-none" />
                     </div>
                     <p className="mt-2 block truncate text-center font-semibold">
                         {$vocabulary.RECENT_MIX}
@@ -365,7 +365,7 @@ export function LibraryLists({
                         }}
                     >
                         <div
-                            className="absolute inset-0 flex items-center justify-center gap-1 text-white"
+                            className="absolute inset-0 flex select-none items-center justify-center gap-1 text-white"
                             style={{
                                 fontFamily:
                                     "'Nunito', 'Segoe UI', system-ui, sans-serif",
@@ -417,7 +417,7 @@ export function LibraryLists({
                             src={album.imageUrl ?? "/song-placeholder.png"}
                             width={160}
                             height={160}
-                            className="aspect-square w-full rounded-md object-cover"
+                            className="aspect-square w-full select-none rounded-md object-cover"
                         />
                         <p className="mt-1 truncate text-center font-semibold">
                             {album.name}

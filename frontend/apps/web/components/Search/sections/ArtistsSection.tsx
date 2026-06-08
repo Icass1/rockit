@@ -36,7 +36,7 @@ export default function ArtistsSection({
                                 <Image
                                     width={350}
                                     height={350}
-                                    className="aspect-square w-full rounded-full object-cover"
+                                    className="aspect-square w-full select-none rounded-full object-cover"
                                     src={artist.imageUrl}
                                     alt={`Image of ${artist.name}`}
                                 />

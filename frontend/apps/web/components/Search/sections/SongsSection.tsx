@@ -36,7 +36,7 @@ export default function SongsSection({
                                 <Image
                                     width={350}
                                     height={350}
-                                    className="aspect-square w-full rounded-lg object-cover"
+                                    className="aspect-square w-full select-none rounded-lg object-cover"
                                     src={song.imageUrl}
                                     alt={`Cover of ${song.name}`}
                                 />

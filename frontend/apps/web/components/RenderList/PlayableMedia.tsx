@@ -103,7 +103,7 @@ export function PlayableMedia({
                 )}
                 {showMediaImage && (
                     <Image
-                        className="h-12 w-auto rounded"
+                        className="h-12 w-auto select-none rounded"
                         src={$media.imageUrl}
                         alt={$media.name}
                         width={50}

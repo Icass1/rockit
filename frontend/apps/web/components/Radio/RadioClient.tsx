@@ -57,7 +57,7 @@ function StationSearchCard({
                 <Image
                     width={250}
                     height={250}
-                    className="aspect-square w-full rounded-lg object-cover"
+                    className="aspect-square w-full select-none rounded-lg object-cover"
                     src={imgSrc}
                     alt={station.name}
                     loading="lazy"
@@ -101,7 +101,7 @@ function StationSearchRow({
                 <Image
                     width={48}
                     height={48}
-                    className="h-12 w-12 shrink-0 rounded object-cover"
+                    className="h-12 w-12 shrink-0 select-none rounded object-cover"
                     src={imgSrc}
                     alt={station.name}
                     loading="lazy"

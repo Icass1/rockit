@@ -94,7 +94,22 @@ export class QueueManager {
         const queueType = rockIt.userManager.queueTypeAtom.get();
 
         if (queueType === EQueueType.RANDOM) {
-            if (shuffleRandom) this.randomQueue = shuffle(this.randomQueue);
+            if (shuffleRandom) {
+                const currentQueueMediaId = this._currentQueueMediaIdAtom.get();
+                const currentIndex = this.randomQueue.findIndex(
+                    (item): boolean => item.queueMediaId === currentQueueMediaId
+                );
+                if (currentIndex >= 0) {
+                    const [currentItem] = this.randomQueue.splice(
+                        currentIndex,
+                        1
+                    );
+                    this.randomQueue = shuffle(this.randomQueue);
+                    this.randomQueue.unshift(currentItem);
+                } else {
+                    this.randomQueue = shuffle(this.randomQueue);
+                }
+            }
             this._queueAtom.set([...this.randomQueue]);
         } else if (queueType === EQueueType.SORTED)
             this._queueAtom.set([...this.sortedQueue]);
@@ -194,6 +209,18 @@ export class QueueManager {
         };
 
         shuffle(this.randomQueue);
+
+        const firstSortedId = this.sortedQueue[0]?.queueMediaId;
+        if (firstSortedId !== undefined) {
+            const firstRandomIndex = this.randomQueue.findIndex(
+                (item): boolean => item.queueMediaId === firstSortedId
+            );
+            if (firstRandomIndex > 0) {
+                const tmp = this.randomQueue[0];
+                this.randomQueue[0] = this.randomQueue[firstRandomIndex];
+                this.randomQueue[firstRandomIndex] = tmp;
+            }
+        }
 
         this.updateQueue();
 

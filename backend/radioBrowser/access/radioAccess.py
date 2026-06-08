@@ -384,67 +384,29 @@ class RadioAccess:
             codec_name = sd.get("codec")
             codec_id = codec_map[codec_name].id if codec_name in codec_map else None
 
-            core = CoreMediaRow(
-                public_id=create_id(32),
-                provider_id=provider_id,
-                media_type_key=MediaTypeEnum.RADIO.value,
-            )
-            session.add(core)
-            await session.flush()
-
-            station = StationRow(
-                id=core.id,
-                radio_id=sd["radio_id"],
-                name=sd["name"],
-                stream_url=sd["stream_url"],
-                homepage=sd.get("homepage"),
-                favicon_url=sd.get("favicon_url"),
-                language=sd.get("language"),
-                bitrate=sd.get("bitrate"),
-                votes=sd.get("votes"),
-                geo_lat=sd.get("geo_lat"),
-                geo_long=sd.get("geo_long"),
-                country_id=country_id,
-                state_id=state_id,
-                codec_id=codec_id,
-            )
-            session.add(station)
-            await session.flush()
-
-            if sd.get("tags"):
-                for tag_name in sd["tags"]:
-                    tag_name = tag_name.strip()
-                    if not tag_name or tag_name not in tag_map:
-                        continue
-                    junction = StationTagRow(
-                        station_id=station.id, tag_id=tag_map[tag_name].id
+            try:
+                async with session.begin_nested():
+                    await RadioAccess._create_single_station_in_savepoint_async(
+                        session=session,
+                        sd=sd,
+                        provider_id=provider_id,
+                        country_id=country_id,
+                        state_id=state_id,
+                        codec_id=codec_id,
+                        tag_map=tag_map,
+                        lc_map=lc_map,
+                        result_map=result_map,
                     )
-                    session.add(junction)
-
-            if sd.get("language_codes"):
-                for lc in sd["language_codes"]:
-                    lc = lc.strip()
-                    if not lc or lc not in lc_map:
-                        continue
-                    junction = StationLanguageCodeRow(
-                        station_id=station.id, language_code_id=lc_map[lc].id
+            except IntegrityError:
+                a_existing = await RadioAccess.batch_get_stations_by_radio_ids_async(
+                    session=session, radio_ids=[sd["radio_id"]]
+                )
+                if a_existing.is_ok() and sd["radio_id"] in a_existing.result():
+                    result_map[sd["radio_id"]] = a_existing.result()[sd["radio_id"]]
+                else:
+                    logger.error(
+                        f"Failed to create station after retry: {sd['radio_id']}"
                     )
-                    session.add(junction)
-
-            await session.flush()
-            await session.refresh(
-                station,
-                [
-                    "core_station",
-                    "tags_rel",
-                    "language_codes_rel",
-                    "country_rel",
-                    "state_rel",
-                    "codec_rel",
-                ],
-            )
-
-            result_map[station.radio_id] = station
 
     @staticmethod
     @time_it
@@ -661,6 +623,82 @@ class RadioAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create codec: {e}",
             )
+
+    @staticmethod
+    async def _create_single_station_in_savepoint_async(
+        session: AsyncSession,
+        sd: Dict[str, Any],
+        provider_id: int,
+        country_id: int | None,
+        state_id: int | None,
+        codec_id: int | None,
+        tag_map: Dict[str, TagRow],
+        lc_map: Dict[str, LanguageCodeRow],
+        result_map: Dict[str, StationRow],
+    ) -> None:
+        """Create a single station inside a savepoint (caller must handle IntegrityError)."""
+
+        core = CoreMediaRow(
+            public_id=create_id(32),
+            provider_id=provider_id,
+            media_type_key=MediaTypeEnum.RADIO.value,
+        )
+        session.add(core)
+        await session.flush()
+
+        station = StationRow(
+            id=core.id,
+            radio_id=sd["radio_id"],
+            name=sd["name"],
+            stream_url=sd["stream_url"],
+            homepage=sd.get("homepage"),
+            favicon_url=sd.get("favicon_url"),
+            language=sd.get("language"),
+            bitrate=sd.get("bitrate"),
+            votes=sd.get("votes"),
+            geo_lat=sd.get("geo_lat"),
+            geo_long=sd.get("geo_long"),
+            country_id=country_id,
+            state_id=state_id,
+            codec_id=codec_id,
+        )
+        session.add(station)
+        await session.flush()
+
+        if sd.get("tags"):
+            for tag_name in sd["tags"]:
+                tag_name = tag_name.strip()
+                if not tag_name or tag_name not in tag_map:
+                    continue
+                junction = StationTagRow(
+                    station_id=station.id, tag_id=tag_map[tag_name].id
+                )
+                session.add(junction)
+
+        if sd.get("language_codes"):
+            for lc in sd["language_codes"]:
+                lc = lc.strip()
+                if not lc or lc not in lc_map:
+                    continue
+                junction = StationLanguageCodeRow(
+                    station_id=station.id, language_code_id=lc_map[lc].id
+                )
+                session.add(junction)
+
+        await session.flush()
+        await session.refresh(
+            station,
+            [
+                "core_station",
+                "tags_rel",
+                "language_codes_rel",
+                "country_rel",
+                "state_rel",
+                "codec_rel",
+            ],
+        )
+
+        result_map[station.radio_id] = station
 
     @staticmethod
     @time_it

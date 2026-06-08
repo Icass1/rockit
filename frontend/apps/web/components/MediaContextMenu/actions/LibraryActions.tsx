@@ -13,9 +13,7 @@ export function AddToLibraryAction({
 }: ActionComponentProps): JSX.Element {
     const addToLibrary = async (): Promise<void> => {
         setLoading(true);
-        if (!isSearchResult(media)) {
-            await rockIt.libraryManager.addMediaToLibrary(media);
-        }
+        await rockIt.libraryManager.addMediaToLibrary(media);
         setLoading(false);
     };
 

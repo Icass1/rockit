@@ -470,9 +470,7 @@ async def assemble_media_upload(
 
     async with aiofiles.open(file_path, "wb") as out_f:
         for i in range(total):
-            async with aiofiles.open(
-                os.path.join(chunks_dir, str(i)), "rb"
-            ) as chunk_f:
+            async with aiofiles.open(os.path.join(chunks_dir, str(i)), "rb") as chunk_f:
                 while True:
                     data = await chunk_f.read(_STREAM_CHUNK_SIZE)
                     if not data:
@@ -529,7 +527,9 @@ async def assemble_media_upload(
         return a_result.result()
 
     await _cleanup_upload_temp_dir(upload_id=upload_id)
-    logger.error(f"Unsupported media type for chunked assembly: {pending.media_type_key}")
+    logger.error(
+        f"Unsupported media type for chunked assembly: {pending.media_type_key}"
+    )
     raise HTTPException(
         status_code=400,
         detail=f"Unsupported media type for chunked assembly: '{pending.media_type_key}'.",

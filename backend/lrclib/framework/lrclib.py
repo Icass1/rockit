@@ -126,6 +126,12 @@ class Lrclib:
                 logger.warning(
                     f"Song {song.name} from {song.provider} doesn't have artists."
                 )
+                return media_id, AResult[
+                    Tuple[List[Lyrics] | None, DynamicLyricsData | None]
+                ](
+                    code=AResultCode.BAD_REQUEST,
+                    message=f"Song {song.name} from {song.provider} doesn't have artists.",
+                )
 
             artist_name: str = song.artists[0].name if len(song.artists) > 0 else ""
             track_name: str = song.name

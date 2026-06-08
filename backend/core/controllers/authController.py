@@ -76,7 +76,8 @@ async def login(
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")
         raise HTTPException(
-            status_code=a_result_session.get_http_code(), detail=a_result_session.message()
+            status_code=a_result_session.get_http_code(),
+            detail=a_result_session.message(),
         )
     else:
         logger.info(f"Session created for user {user.username} from ip {ip}.")
@@ -121,7 +122,8 @@ async def register(
     if a_result_session.is_not_ok():
         logger.error(f"Error creating session. {a_result_session.info()}")
         raise HTTPException(
-            status_code=a_result_session.get_http_code(), detail=a_result_session.message()
+            status_code=a_result_session.get_http_code(),
+            detail=a_result_session.message(),
         )
     else:
         logger.info(f"Session created for user {user.username} from ip {ip}.")

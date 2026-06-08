@@ -1,8 +1,10 @@
 import {
+    EMediaContextAction,
     EMediaContextLocation,
     EMediaType,
     isDownloadable,
 } from "@rockit/shared";
+import type { LucideIcon } from "lucide-react";
 import {
     ExternalLink,
     HardDriveDownload,
@@ -18,31 +20,10 @@ import {
     Trash2,
     X,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { isSearchResult, type TMediaWithSearch } from "@/models/types/media";
 
-export type ActionId =
-    | "play"
-    | "addToPlaylist"
-    | "navigate"
-    | "addToLibrary"
-    | "removeFromLibrary"
-    | "playList"
-    | "addToQueueTop"
-    | "addQueueRandom"
-    | "addToQueueBottom"
-    | "downloadZip"
-    | "retryDownload"
-    | "download"
-    | "removeFromQueue"
-    | "addSongToQueueTop"
-    | "addSongQueueRandom"
-    | "addSongToQueueBottom"
-    | "removeFromPlaylist"
-    | "delete";
-
 export interface ActionDef {
-    id: ActionId;
+    id: EMediaContextAction;
     type: "action" | "submenu";
     icon: LucideIcon;
     labelKey: string;
@@ -52,11 +33,11 @@ export interface ActionDef {
     condition?: (media: TMediaWithSearch) => boolean;
 }
 
-type BlueprintEntry = ActionId | "---";
+type BlueprintEntry = EMediaContextAction | "---";
 
 const ACTION_REGISTRY: ActionDef[] = [
     {
-        id: "play",
+        id: EMediaContextAction.Play,
         type: "action",
         icon: Play,
         labelKey: "PLAY",
@@ -65,7 +46,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addToPlaylist",
+        id: EMediaContextAction.AddToPlaylist,
         type: "submenu",
         icon: ListIcon,
         labelKey: "ADD_MEDIA_TO_PLAYLIST",
@@ -79,7 +60,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         ],
     },
     {
-        id: "navigate",
+        id: EMediaContextAction.Navigate,
         type: "action",
         icon: ExternalLink,
         labelKey: "GO_TO_ALBUM",
@@ -87,7 +68,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addToLibrary",
+        id: EMediaContextAction.AddToLibrary,
         type: "action",
         icon: Library,
         labelKey: "ADD_TO_LIBRARY",
@@ -102,7 +83,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         excludeLocations: [EMediaContextLocation.LIBRARY],
     },
     {
-        id: "removeFromLibrary",
+        id: EMediaContextAction.RemoveFromLibrary,
         type: "action",
         icon: Library,
         labelKey: "REMOVE_FROM_LIBRARY",
@@ -117,7 +98,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         locations: [EMediaContextLocation.LIBRARY],
     },
     {
-        id: "playList",
+        id: EMediaContextAction.PlayList,
         type: "action",
         icon: PlayCircle,
         labelKey: "PLAY_LIST",
@@ -125,7 +106,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addToQueueTop",
+        id: EMediaContextAction.AddToQueueTop,
         type: "action",
         icon: ListStart,
         labelKey: "ADD_LIST_TO_QUEUE",
@@ -133,7 +114,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addQueueRandom",
+        id: EMediaContextAction.AddQueueRandom,
         type: "action",
         icon: Shuffle,
         labelKey: "ADD_LIST_RANDOMLY",
@@ -141,7 +122,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addToQueueBottom",
+        id: EMediaContextAction.AddToQueueBottom,
         type: "action",
         icon: ListEnd,
         labelKey: "ADD_LIST_TO_BOTTOM",
@@ -149,7 +130,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "downloadZip",
+        id: EMediaContextAction.DownloadZip,
         type: "action",
         icon: HardDriveDownload,
         labelKey: "DOWNLOAD_ZIP",
@@ -157,7 +138,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "retryDownload",
+        id: EMediaContextAction.RetryDownload,
         type: "action",
         icon: RefreshCw,
         labelKey: "RETRY",
@@ -173,7 +154,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "download",
+        id: EMediaContextAction.Download,
         type: "action",
         icon: HardDriveDownload,
         labelKey: "DOWNLOAD",
@@ -182,7 +163,7 @@ const ACTION_REGISTRY: ActionDef[] = [
             !isSearchResult(m) && isDownloadable(m) && !m.downloaded,
     },
     {
-        id: "removeFromQueue",
+        id: EMediaContextAction.RemoveFromQueue,
         type: "action",
         icon: X,
         labelKey: "REMOVE_FROM_QUEUE",
@@ -191,7 +172,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addSongToQueueTop",
+        id: EMediaContextAction.AddSongToQueueTop,
         type: "action",
         icon: ListStart,
         labelKey: "ADD_SONG_TO_QUEUE",
@@ -199,7 +180,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addSongQueueRandom",
+        id: EMediaContextAction.AddMediaQueueRandom,
         type: "action",
         icon: Shuffle,
         labelKey: "ADD_LIST_RANDOMLY",
@@ -207,7 +188,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "addSongToQueueBottom",
+        id: EMediaContextAction.AddMediaToQueueBottom,
         type: "action",
         icon: ListEnd,
         labelKey: "ADD_LIST_TO_BOTTOM",
@@ -215,7 +196,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: "delete",
+        id: EMediaContextAction.Delete,
         type: "action",
         icon: Trash2,
         labelKey: "DELETE",
@@ -224,7 +205,7 @@ const ACTION_REGISTRY: ActionDef[] = [
             !isSearchResult(m) && isDownloadable(m) && Boolean(m.downloaded),
     },
     {
-        id: "removeFromPlaylist",
+        id: EMediaContextAction.RemoveFromPlaylist,
         type: "action",
         icon: ListMinus,
         labelKey: "REMOVE_FROM_PLAYLIST",
@@ -234,89 +215,94 @@ const ACTION_REGISTRY: ActionDef[] = [
     },
 ];
 
-const ACTION_MAP = new Map<ActionId, ActionDef>(
+const ACTION_MAP = new Map<EMediaContextAction, ActionDef>(
     ACTION_REGISTRY.map((a) => [a.id, a])
 );
 
-function findAction(id: ActionId): ActionDef | undefined {
+function findAction(id: EMediaContextAction): ActionDef | undefined {
     return ACTION_MAP.get(id);
 }
 
 const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
     [EMediaType.Song]: [
-        "play",
-        "addToPlaylist",
+        EMediaContextAction.Play,
+        EMediaContextAction.AddToPlaylist,
         "---",
-        "addSongToQueueTop",
-        "addSongQueueRandom",
-        "addSongToQueueBottom",
+        EMediaContextAction.AddSongToQueueTop,
+        EMediaContextAction.AddMediaQueueRandom,
+        EMediaContextAction.AddMediaToQueueBottom,
         "---",
-        "addToLibrary",
-        "removeFromLibrary",
+        EMediaContextAction.AddToLibrary,
+        EMediaContextAction.RemoveFromLibrary,
         "---",
-        "download",
-        "retryDownload",
-        "delete",
-        "removeFromQueue",
-        "removeFromPlaylist",
+        EMediaContextAction.Download,
+        EMediaContextAction.RetryDownload,
+        EMediaContextAction.Delete,
+        EMediaContextAction.RemoveFromQueue,
+        EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Video]: [
-        "play",
-        "addToPlaylist",
+        EMediaContextAction.Play,
+        EMediaContextAction.AddToPlaylist,
         "---",
-        "addSongToQueueTop",
-        "addSongQueueRandom",
-        "addSongToQueueBottom",
+        EMediaContextAction.AddSongToQueueTop,
+        EMediaContextAction.AddMediaQueueRandom,
+        EMediaContextAction.AddMediaToQueueBottom,
         "---",
-        "addToLibrary",
-        "removeFromLibrary",
+        EMediaContextAction.AddToLibrary,
+        EMediaContextAction.RemoveFromLibrary,
         "---",
-        "download",
-        "retryDownload",
-        "delete",
-        "removeFromQueue",
-        "removeFromPlaylist",
+        EMediaContextAction.Download,
+        EMediaContextAction.RetryDownload,
+        EMediaContextAction.Delete,
+        EMediaContextAction.RemoveFromQueue,
+        EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Station]: [
-        "play",
-        "addToPlaylist",
+        EMediaContextAction.Play,
+        EMediaContextAction.AddToPlaylist,
         "---",
-        "addSongToQueueTop",
-        "addSongQueueRandom",
-        "addSongToQueueBottom",
+        EMediaContextAction.AddSongToQueueTop,
+        EMediaContextAction.AddMediaQueueRandom,
+        EMediaContextAction.AddMediaToQueueBottom,
         "---",
-        "addToLibrary",
-        "removeFromLibrary",
-        "removeFromQueue",
-        "removeFromPlaylist",
+        EMediaContextAction.AddToLibrary,
+        EMediaContextAction.RemoveFromLibrary,
+        EMediaContextAction.RemoveFromQueue,
+        EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Album]: [
-        "playList",
-        "addToPlaylist",
-        "navigate",
+        EMediaContextAction.PlayList,
+        EMediaContextAction.AddToPlaylist,
+        EMediaContextAction.Navigate,
         "---",
-        "addToLibrary",
-        "removeFromLibrary",
+        EMediaContextAction.AddToLibrary,
+        EMediaContextAction.RemoveFromLibrary,
         "---",
-        "addToQueueTop",
-        "addQueueRandom",
-        "addToQueueBottom",
+        EMediaContextAction.AddToQueueTop,
+        EMediaContextAction.AddQueueRandom,
+        EMediaContextAction.AddToQueueBottom,
         "---",
-        "downloadZip",
+        EMediaContextAction.DownloadZip,
     ],
     [EMediaType.Playlist]: [
-        "playList",
-        "addToPlaylist",
-        "navigate",
+        EMediaContextAction.PlayList,
+        EMediaContextAction.AddToPlaylist,
+        EMediaContextAction.Navigate,
         "---",
-        "addToLibrary",
-        "removeFromLibrary",
+        EMediaContextAction.AddToLibrary,
+        EMediaContextAction.RemoveFromLibrary,
         "---",
-        "addToQueueTop",
-        "addQueueRandom",
-        "addToQueueBottom",
+        EMediaContextAction.AddToQueueTop,
+        EMediaContextAction.AddQueueRandom,
+        EMediaContextAction.AddToQueueBottom,
     ],
-    [EMediaType.Artist]: ["addToPlaylist", "navigate", "---", "addToLibrary"],
+    [EMediaType.Artist]: [
+        EMediaContextAction.AddToPlaylist,
+        EMediaContextAction.Navigate,
+        "---",
+        EMediaContextAction.AddToLibrary,
+    ],
 };
 
 export function getActionsForMedia(

@@ -4,6 +4,7 @@ import { ReactNode, useCallback, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import {
     BasePlaylistWithoutMediasResponse,
+    EMediaContextAction,
     EMediaContextLocation,
     getMediaSubtitle,
     isSearchResult,
@@ -15,7 +16,6 @@ import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import {
     getActionsForMedia,
     type ActionDef,
-    type ActionId,
 } from "@/components/ContextMenu/mediaContextMenuActions";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
@@ -48,26 +48,26 @@ import {
 } from "@/components/MediaContextMenu/actions/SongQueueActions";
 
 const actionComponents: Partial<
-    Record<ActionId, React.ComponentType<ActionComponentProps>>
+    Record<EMediaContextAction, React.ComponentType<ActionComponentProps>>
 > = {
-    play: PlayAction,
-    navigate: NavigateAction,
-    addToLibrary: AddToLibraryAction,
-    removeFromLibrary: RemoveFromLibraryAction,
-    playList: PlayListAction,
-    addToQueueTop: AddToQueueTopAction,
-    addQueueRandom: AddQueueRandomAction,
-    addToQueueBottom: AddToQueueBottomAction,
-    addSongToQueueTop: AddSongToQueueTopAction,
-    addSongQueueRandom: AddSongQueueRandomAction,
-    addSongToQueueBottom: AddSongToQueueBottomAction,
-    removeFromQueue: RemoveFromQueueAction,
-    download: DownloadAction,
-    retryDownload: RetryDownloadAction,
-    downloadZip: DownloadZipAction,
-    removeFromPlaylist: RemoveFromPlaylistAction,
-    addToPlaylist: AddToPlaylistAction,
-    delete: DeleteAction,
+    [EMediaContextAction.Play]: PlayAction,
+    [EMediaContextAction.Navigate]: NavigateAction,
+    [EMediaContextAction.AddToLibrary]: AddToLibraryAction,
+    [EMediaContextAction.RemoveFromLibrary]: RemoveFromLibraryAction,
+    [EMediaContextAction.PlayList]: PlayListAction,
+    [EMediaContextAction.AddToQueueTop]: AddToQueueTopAction,
+    [EMediaContextAction.AddQueueRandom]: AddQueueRandomAction,
+    [EMediaContextAction.AddToQueueBottom]: AddToQueueBottomAction,
+    [EMediaContextAction.AddSongToQueueTop]: AddSongToQueueTopAction,
+    [EMediaContextAction.AddMediaQueueRandom]: AddSongQueueRandomAction,
+    [EMediaContextAction.AddMediaToQueueBottom]: AddSongToQueueBottomAction,
+    [EMediaContextAction.RemoveFromQueue]: RemoveFromQueueAction,
+    [EMediaContextAction.Download]: DownloadAction,
+    [EMediaContextAction.RetryDownload]: RetryDownloadAction,
+    [EMediaContextAction.DownloadZip]: DownloadZipAction,
+    [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
+    [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
+    [EMediaContextAction.Delete]: DeleteAction,
 };
 
 function getMediaCover(media: TMediaWithSearch): string | undefined {

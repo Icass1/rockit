@@ -17,6 +17,7 @@ export * from "./models/types/media";
 export * from "./models/types/webSocketMessages";
 
 export * from "./models/enums/events";
+export * from "./models/enums/mediaContextAction";
 export * from "./models/enums/mediaContextLocation";
 export * from "./models/enums/mediaType";
 export * from "./models/enums/platform";

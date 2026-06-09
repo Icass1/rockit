@@ -1,8 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { COLORS } from "@/constants/theme";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Tabs, useRouter } from "expo-router";
+import { Tabs, useRouter, useSegments } from "expo-router";
 import {
     BookOpen,
     Download,
@@ -19,57 +18,65 @@ import {
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { ContextMenuProvider, useContextMenu } from "@/lib/ContextMenuContext";
 import { ModalProvider } from "@/lib/ModalContext";
-import { PlayerProvider } from "@/lib/PlayerContext";
+import { PlayerProvider, usePlayer } from "@/lib/PlayerContext";
 import { getSession } from "@/lib/session";
 import { useVocabulary } from "@/lib/vocabulary";
 import ContextMenuSheet from "@/components/ContextMenu/ContextMenuSheet";
 import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 
-function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
+    const router = useRouter();
+    const segments = useSegments();
+
+    const activeTab = segments[1] || "index";
+
+    const tabs = [
+        { name: "index", icon: Home, path: "/(app)" as const },
+        { name: "library", icon: BookOpen, path: "/(app)/library" as const },
+        { name: "search", icon: Search, path: "/(app)/search" as const },
+        { name: "downloader", icon: Download, path: "/(app)/downloader" as const },
+        { name: "settings", icon: Settings, path: "/(app)/settings" as const },
+    ];
+
     return (
         <SafeAreaView
             edges={["bottom"]}
-            style={{ backgroundColor: COLORS.bgCard }}
+            style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: COLORS.bgCard,
+                zIndex: 1000,
+            }}
         >
-            <>
-                <View style={styles.tabBar}>
-                    {state.routes.map((route, index) => {
-                        const { options } = descriptors[route.key];
-                        if (!options.tabBarIcon) return null;
-                        const isFocused = state.index === index;
-
-                        const onPress = () => {
-                            const event = navigation.emit({
-                                type: "tabPress",
-                                target: route.key,
-                                canPreventDefault: true,
-                            });
-                            if (!isFocused && !event.defaultPrevented) {
-                                navigation.navigate(route.name);
-                            }
-                        };
-
-                        return (
-                            <Pressable
-                                key={route.key}
-                                onPress={onPress}
-                                style={styles.tabItem}
-                                accessibilityRole="button"
-                                accessibilityState={{ selected: isFocused }}
-                            >
-                                {options.tabBarIcon?.({
-                                    color: isFocused
-                                        ? COLORS.accent
-                                        : COLORS.gray400,
-                                    size: 22,
-                                    focused: isFocused,
-                                })}
-                            </Pressable>
-                        );
-                    })}
-                </View>
-            </>
+            <View style={styles.tabBar}>
+                {tabs.map((tab) => {
+                    const isFocused = activeTab === tab.name;
+                    return (
+                        <Pressable
+                            key={tab.name}
+                            onPress={() => {
+                                if (!isFocused) {
+                                    onTabPress?.();
+                                    router.replace(tab.path);
+                                }
+                            }}
+                            style={styles.tabItem}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isFocused }}
+                        >
+                            <tab.icon
+                                color={
+                                    isFocused ? COLORS.accent : COLORS.gray400
+                                }
+                                size={22}
+                            />
+                        </Pressable>
+                    );
+                })}
+            </View>
         </SafeAreaView>
     );
 }
@@ -82,7 +89,6 @@ const styles = StyleSheet.create({
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: COLORS.gray800,
         height: 50,
-        zIndex: 1000,
     },
     tabItem: {
         flex: 1,
@@ -133,10 +139,11 @@ function AppLayoutInner({
     sheetRef: any;
     handleSheetChange: (index: number) => void;
 }) {
+    const { hidePlayer } = usePlayer();
     return (
         <View style={{ flex: 1 }}>
             <Tabs
-                tabBar={(props) => <CustomTabBar {...props} />}
+                tabBar={() => null}
                 screenOptions={{ headerShown: false }}
             >
                 <Tabs.Screen
@@ -187,6 +194,7 @@ function AppLayoutInner({
             </Tabs>
 
             <FullPlayer />
+            <StandaloneTabBar onTabPress={hidePlayer} />
             {/* MiniPlayer always rendered – its opacity animates based on FullPlayer visibility */}
             <View
                 style={{

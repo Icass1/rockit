@@ -43,7 +43,6 @@ export default function FullPlayer() {
     } else {
         containerHeight = SCREEN_HEIGHT - FOOTER_HEIGHT - (insets.bottom || 0);
     }
-
     const translateY = useSharedValue(SCREEN_HEIGHT + 10);
     const isHiding = useSharedValue(false);
     const [keepMounted, setKeepMounted] = useState(false);

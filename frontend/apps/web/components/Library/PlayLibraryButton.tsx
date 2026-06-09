@@ -3,6 +3,10 @@ import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { Http } from "@/lib/http";
+import {
+    expandAlbumsToPlayable,
+    expandPlaylistsToPlayable,
+} from "@/lib/services/mediaService";
 
 export default function PlayLibraryButton(): JSX.Element {
     const $queue = useStore(rockIt.queueManager.queueAtom);
@@ -29,7 +33,18 @@ export default function PlayLibraryButton(): JSX.Element {
             if (res.isOk()) {
                 const songs = res.result.songs ?? [];
                 const videos = res.result.videos ?? [];
-                const allMedia = [...songs, ...videos];
+                const albumSongs = await expandAlbumsToPlayable(
+                    res.result.albums ?? []
+                );
+                const playlistSongs = await expandPlaylistsToPlayable(
+                    res.result.playlists ?? []
+                );
+                const allMedia = [
+                    ...songs,
+                    ...videos,
+                    ...albumSongs,
+                    ...playlistSongs,
+                ];
                 if (allMedia.length === 0) return;
                 rockIt.queueManager.setMedia(allMedia, "library");
                 rockIt.queueManager.setQueueMediaId(0);

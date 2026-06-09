@@ -1,9 +1,12 @@
 import {
     BaseAlbumWithSongsResponse,
+    BaseAlbumWithoutSongsResponse,
     BaseArtistResponse,
     BasePlaylistWithMediasResponse,
+    BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
 } from "@/dto";
+import { isQueueable, type TPlayableMedia } from "@rockit/shared";
 import { Http } from "@/lib/http";
 
 export async function getAlbumAsync(
@@ -59,6 +62,31 @@ export async function getArtistAsync(
         );
     }
     return undefined;
+}
+
+export async function expandAlbumsToPlayable(
+    albums: BaseAlbumWithoutSongsResponse[]
+): Promise<TPlayableMedia[]> {
+    const promises = albums.map(async (album) => {
+        const full = await getAlbumAsync(album.publicId);
+        return full?.songs ?? [];
+    });
+    const results = await Promise.all(promises);
+    return results.flat();
+}
+
+export async function expandPlaylistsToPlayable(
+    playlists: BasePlaylistWithoutMediasResponse[]
+): Promise<TPlayableMedia[]> {
+    const promises = playlists.map(async (playlist) => {
+        const full = await getPlaylistAsync(playlist.publicId);
+        if (!full) return [];
+        return full.medias
+            .filter((m) => isQueueable(m.item))
+            .map((m) => m.item) as TPlayableMedia[];
+    });
+    const results = await Promise.all(promises);
+    return results.flat();
 }
 
 export async function getFeaturedListAsync(

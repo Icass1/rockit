@@ -18,7 +18,7 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { Disc3, Heart, History } from "lucide-react";
+import { Disc3, Heart, History, Play } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
 import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
@@ -41,6 +41,10 @@ import {
 } from "@/components/Library/LibraryRows";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
+import {
+    expandAlbumsToPlayable,
+    expandPlaylistsToPlayable,
+} from "@/lib/services/mediaService";
 import LoadingComponent from "@/components/Loading";
 
 /* ------------------------------------------------------- */
@@ -91,6 +95,24 @@ function interleaveGridItems(
 /* ------------------------------------------------------- */
 /* SHARED UI PRIMITIVES                                    */
 /* ------------------------------------------------------- */
+
+function SectionPlayButton({
+    onClick,
+    label,
+}: {
+    onClick: () => void;
+    label: string;
+}): JSX.Element {
+    return (
+        <button
+            onClick={onClick}
+            title={label}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] transition-transform md:hover:scale-105"
+        >
+            <Play className="h-1/2 w-1/2" fill="white" />
+        </button>
+    );
+}
 
 function SectionHeader({
     title,
@@ -284,6 +306,42 @@ export function LibraryLists({
 
     const showAll = activeType === EContentType.All;
 
+    const handlePlaySongs = async (): Promise<void> => {
+        const songs = filtered.songs;
+        if (songs.length === 0) return;
+        rockIt.queueManager.setMedia(songs, "library-songs");
+        rockIt.queueManager.setQueueMediaId(0);
+        rockIt.mediaPlayerManager.play();
+    };
+
+    const handlePlayVideos = async (): Promise<void> => {
+        const videos = filtered.videos;
+        if (videos.length === 0) return;
+        rockIt.queueManager.setMedia(videos, "library-videos");
+        rockIt.queueManager.setQueueMediaId(0);
+        rockIt.mediaPlayerManager.play();
+    };
+
+    const handlePlayAlbums = async (): Promise<void> => {
+        if (filtered.albums.length === 0) return;
+        const albumSongs = await expandAlbumsToPlayable(filtered.albums);
+        if (albumSongs.length === 0) return;
+        rockIt.queueManager.setMedia(albumSongs, "library-albums");
+        rockIt.queueManager.setQueueMediaId(0);
+        rockIt.mediaPlayerManager.play();
+    };
+
+    const handlePlayPlaylists = async (): Promise<void> => {
+        if (filtered.playlists.length === 0) return;
+        const playlistSongs = await expandPlaylistsToPlayable(
+            filtered.playlists
+        );
+        if (playlistSongs.length === 0) return;
+        rockIt.queueManager.setMedia(playlistSongs, "library-playlists");
+        rockIt.queueManager.setQueueMediaId(0);
+        rockIt.mediaPlayerManager.play();
+    };
+
     if (loading) return <LoadingComponent />;
 
     return (
@@ -464,6 +522,12 @@ export function LibraryLists({
                     <>
                         <SectionHeader
                             title={`${$vocabulary.YOUR} ${$vocabulary.ALBUMS}`}
+                            rightElement={
+                                <SectionPlayButton
+                                    onClick={handlePlayAlbums}
+                                    label="Play all albums"
+                                />
+                            }
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
@@ -499,6 +563,12 @@ export function LibraryLists({
                     <>
                         <SectionHeader
                             title={`${$vocabulary.YOUR} ${$vocabulary.PLAYLISTS}`}
+                            rightElement={
+                                <SectionPlayButton
+                                    onClick={handlePlayPlaylists}
+                                    label="Play all playlists"
+                                />
+                            }
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
@@ -536,6 +606,12 @@ export function LibraryLists({
                     <>
                         <SectionHeader
                             title={`${$vocabulary.YOUR} ${$vocabulary.SONGS}`}
+                            rightElement={
+                                <SectionPlayButton
+                                    onClick={handlePlaySongs}
+                                    label="Play all songs"
+                                />
+                            }
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
@@ -565,6 +641,12 @@ export function LibraryLists({
                     <>
                         <SectionHeader
                             title={`${$vocabulary.YOUR} ${$vocabulary.VIDEOS}`}
+                            rightElement={
+                                <SectionPlayButton
+                                    onClick={handlePlayVideos}
+                                    label="Play all videos"
+                                />
+                            }
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>

@@ -335,3 +335,24 @@ class UserAccess:
         await session.commit()
         await session.refresh(instance=interval)
         return AResult(code=AResultCode.OK, message="OK", result=interval)
+
+    @staticmethod
+    @safe_async
+    async def update_user_media_listen_interval_end_async(
+        session: AsyncSession,
+        interval_id: int,
+        time_ms_end: int,
+    ) -> AResultCode:
+        """Update the end time of an existing open listen interval."""
+
+        interval: UserMediaListenIntervalRow | None = await session.get(
+            entity=UserMediaListenIntervalRow, ident=interval_id
+        )
+        if interval is None:
+            return AResultCode(
+                code=AResultCode.NOT_FOUND, message="Listen interval not found"
+            )
+
+        interval.time_ms_end = time_ms_end
+        await session.commit()
+        return AResultCode(code=AResultCode.OK, message="OK")

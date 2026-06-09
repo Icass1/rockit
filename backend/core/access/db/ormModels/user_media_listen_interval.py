@@ -7,13 +7,16 @@ from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableAutoincrementId,
+    TableDateUpdated,
 )
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.media import CoreMediaRow
 
 
-class UserMediaListenIntervalRow(CoreBase, TableAutoincrementId, TableDateAdded):
+class UserMediaListenIntervalRow(
+    CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpdated
+):
     __tablename__ = "user_media_listen_interval"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 

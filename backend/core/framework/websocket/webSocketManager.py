@@ -14,6 +14,9 @@ from backend.core.access.db import rockit_db
 
 from backend.core.framework import providers
 from backend.core.framework.user.user import User
+from backend.core.access.db.ormModels.user_media_listen_interval import (
+    UserMediaListenIntervalRow,
+)
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
@@ -37,6 +40,7 @@ from backend.core.requests.wsMessages import (
 logger = getLogger(__name__)
 
 LISTENED_THRESHOLD_PERCENT = 0.9
+FLUSH_INTERVAL_SECONDS = 30
 
 
 @dataclass
@@ -47,6 +51,9 @@ class UserPlaybackState:
     has_reached_listen_threshold: bool = False
     active_interval_start_ms: int | None = None
     active_interval_media_id: int | None = None
+    active_interval_db_id: int | None = None
+    active_interval_start_timestamp: float | None = None
+    active_interval_last_flush_timestamp: float | None = None
 
 
 class WebSocketManager:
@@ -308,6 +315,13 @@ class WebSocketManager:
         playback_state.last_time_ms = current_time
         playback_state.last_timestamp = time_module.time()
 
+        await self._maybe_flush_listen_interval_async(
+            session=session,
+            user_id=user_id,
+            playback_state=playback_state,
+            current_time_ms=current_time,
+        )
+
         a_result_update_current_time: AResult[bool] = (
             await User.update_user_current_time(
                 session=session,
@@ -446,23 +460,57 @@ class WebSocketManager:
         ):
             return
 
-        a_result: AResult[bool] = await User.record_media_listen_interval_async(
-            session=session,
-            user_id=user_id,
-            media_id=playback_state.active_interval_media_id,
-            time_ms_start=playback_state.active_interval_start_ms,
-            time_ms_end=time_ms_end,
-        )
-        if a_result.is_not_ok():
-            logger.error(f"Error recording listen interval. {a_result.info()}")
-        else:
+        if time_ms_end <= playback_state.active_interval_start_ms:
             logger.debug(
-                f"Recorded listen interval media={playback_state.active_interval_media_id} "
+                f"Skipping zero/negative-duration interval media={playback_state.active_interval_media_id} "
                 f"start={playback_state.active_interval_start_ms}ms end={time_ms_end}ms"
             )
+            playback_state.active_interval_start_ms = None
+            playback_state.active_interval_media_id = None
+            return
+
+        if playback_state.active_interval_db_id is not None:
+            a_result_update: AResultCode = (
+                await User.update_media_listen_interval_end_async(
+                    session=session,
+                    interval_id=playback_state.active_interval_db_id,
+                    time_ms_end=time_ms_end,
+                )
+            )
+            if a_result_update.is_not_ok():
+                logger.error(
+                    f"Error finalising listen interval. {a_result_update.info()}"
+                )
+            else:
+                logger.debug(
+                    f"Finalised listen interval db_id={playback_state.active_interval_db_id} "
+                    f"end={time_ms_end}ms"
+                )
+        else:
+            a_result_insert_close: AResult[UserMediaListenIntervalRow] = (
+                await User.record_media_listen_interval_async(
+                    session=session,
+                    user_id=user_id,
+                    media_id=playback_state.active_interval_media_id,
+                    time_ms_start=playback_state.active_interval_start_ms,
+                    time_ms_end=time_ms_end,
+                )
+            )
+            if a_result_insert_close.is_not_ok():
+                logger.error(
+                    f"Error recording listen interval. {a_result_insert_close.info()}"
+                )
+            else:
+                logger.debug(
+                    f"Recorded listen interval media={playback_state.active_interval_media_id} "
+                    f"start={playback_state.active_interval_start_ms}ms end={time_ms_end}ms"
+                )
 
         playback_state.active_interval_start_ms = None
         playback_state.active_interval_media_id = None
+        playback_state.active_interval_db_id = None
+        playback_state.active_interval_start_timestamp = None
+        playback_state.active_interval_last_flush_timestamp = None
 
     async def _start_listen_interval_async(
         self,
@@ -489,6 +537,9 @@ class WebSocketManager:
 
         playback_state.active_interval_start_ms = time_ms_start
         playback_state.active_interval_media_id = a_result_media.result().id
+        playback_state.active_interval_db_id = None
+        playback_state.active_interval_start_timestamp = time_module.time()
+        playback_state.active_interval_last_flush_timestamp = None
         logger.debug(
             f"Tracking listen interval for media {media_public_id} from {time_ms_start}ms"
         )
@@ -587,26 +638,94 @@ class WebSocketManager:
         # Close the current interval at the position before seek
         if playback_state and playback_state.active_interval_start_ms is not None:
             seek_time_ms_from: int = int(seek_msg.timeFrom * 1000)
-            a_result_close: AResult[bool] = (
-                await User.record_media_listen_interval_async(
-                    session=session,
-                    user_id=user_id,
-                    media_id=a_result_media.result().id,
-                    time_ms_start=playback_state.active_interval_start_ms,
-                    time_ms_end=seek_time_ms_from,
-                )
+            await self._close_listen_interval_async(
+                session=session,
+                user_id=user_id,
+                playback_state=playback_state,
+                time_ms_end=seek_time_ms_from,
             )
-            if a_result_close.is_not_ok():
-                logger.error(
-                    f"Error closing listen interval on seek. {a_result_close.info()}"
-                )
-            playback_state.active_interval_start_ms = None
 
         # Start a new interval from the position after seek
         if playback_state:
             seek_time_ms_to: int = int(seek_msg.timeTo * 1000)
             playback_state.active_interval_start_ms = seek_time_ms_to
             playback_state.active_interval_media_id = a_result_media.result().id
+            playback_state.active_interval_db_id = None
+            playback_state.active_interval_start_timestamp = time_module.time()
+            playback_state.active_interval_last_flush_timestamp = None
+
+    async def _maybe_flush_listen_interval_async(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        playback_state: UserPlaybackState,
+        current_time_ms: int,
+    ) -> None:
+        """Insert or update the open interval in the DB every 5 minutes."""
+
+        if (
+            playback_state.active_interval_start_ms is None
+            or playback_state.active_interval_media_id is None
+            or playback_state.active_interval_start_timestamp is None
+        ):
+            return
+
+        now = time_module.time()
+
+        if playback_state.active_interval_db_id is None:
+            elapsed = now - playback_state.active_interval_start_timestamp
+            logger.debug(f"Elapsed: {elapsed}")
+            if elapsed < FLUSH_INTERVAL_SECONDS:
+                return
+
+            a_result_insert: AResult[UserMediaListenIntervalRow] = (
+                await User.record_media_listen_interval_async(
+                    session=session,
+                    user_id=user_id,
+                    media_id=playback_state.active_interval_media_id,
+                    time_ms_start=playback_state.active_interval_start_ms,
+                    time_ms_end=current_time_ms,
+                )
+            )
+            if a_result_insert.is_not_ok():
+                logger.error(
+                    f"Error flushing listen interval. {a_result_insert.info()}"
+                )
+                return
+
+            row_id: int = a_result_insert.result().id
+            playback_state.active_interval_db_id = row_id
+            playback_state.active_interval_last_flush_timestamp = now
+            logger.debug(
+                f"Flushed open interval to DB for user={user_id} "
+                f"db_id={playback_state.active_interval_db_id} end={current_time_ms}ms"
+            )
+        else:
+            if (
+                playback_state.active_interval_last_flush_timestamp is None
+                or now - playback_state.active_interval_last_flush_timestamp
+                < FLUSH_INTERVAL_SECONDS
+            ):
+                return
+
+            a_result_update: AResultCode = (
+                await User.update_media_listen_interval_end_async(
+                    session=session,
+                    interval_id=playback_state.active_interval_db_id,
+                    time_ms_end=current_time_ms,
+                )
+            )
+            if a_result_update.is_not_ok():
+                logger.error(
+                    f"Error updating open interval end. {a_result_update.info()}"
+                )
+                return
+
+            playback_state.active_interval_last_flush_timestamp = now
+            logger.debug(
+                f"Updated open interval end for user={user_id} "
+                f"db_id={playback_state.active_interval_db_id} end={current_time_ms}ms"
+            )
 
     async def _handle_media_expanded_async(
         self, session: AsyncSession, user_id: int, data: Dict[str, Any]

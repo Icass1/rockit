@@ -965,8 +965,8 @@ class User:
         media_id: int,
         time_ms_start: int,
         time_ms_end: int,
-    ) -> AResult[bool]:
-        """Record a listen interval with start and end times."""
+    ) -> AResult[UserMediaListenIntervalRow]:
+        """Insert a new listen interval and return the created row."""
 
         a_result: AResult[UserMediaListenIntervalRow] = (
             await UserAccess.add_user_media_listen_interval_async(
@@ -981,4 +981,25 @@ class User:
             logger.error(f"Error recording listen interval. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def update_media_listen_interval_end_async(
+        session: AsyncSession,
+        interval_id: int,
+        time_ms_end: int,
+    ) -> AResultCode:
+        """Update the end time of an existing open listen interval."""
+
+        a_result: AResultCode = (
+            await UserAccess.update_user_media_listen_interval_end_async(
+                session=session,
+                interval_id=interval_id,
+                time_ms_end=time_ms_end,
+            )
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error updating listen interval end. {a_result.info()}")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+
+        return AResultCode(code=AResultCode.OK, message="OK")

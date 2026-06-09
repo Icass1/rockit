@@ -164,9 +164,7 @@ async def get_liked_playlist_async(
                 PlaylistResponseItem[BaseVideoResponse],
             ]
         ]
-    ] = (
-        await _resolve_medias(session=session, public_ids=public_ids)
-    )
+    ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
         return AResult(code=a_result_items.code(), message=a_result_items.message())
 
@@ -205,14 +203,12 @@ async def get_most_listened_playlist_async(
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=365 * 10)
 
-    a_result_ids: AResult[list[str]] = (
-        await StatsAccess.get_top_media_public_ids_async(
-            session=session,
-            user_id=user_id,
-            start_date=start_date,
-            end_date=end_date,
-            limit=50,
-        )
+    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+        session=session,
+        user_id=user_id,
+        start_date=start_date,
+        end_date=end_date,
+        limit=50,
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
@@ -227,9 +223,7 @@ async def get_most_listened_playlist_async(
                 PlaylistResponseItem[BaseVideoResponse],
             ]
         ]
-    ] = (
-        await _resolve_medias(session=session, public_ids=public_ids)
-    )
+    ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
         return AResult(code=a_result_items.code(), message=a_result_items.message())
 
@@ -281,9 +275,7 @@ async def get_recent_mix_playlist_async(
                 PlaylistResponseItem[BaseVideoResponse],
             ]
         ]
-    ] = (
-        await _resolve_medias(session=session, public_ids=public_ids)
-    )
+    ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
         return AResult(code=a_result_items.code(), message=a_result_items.message())
 
@@ -322,14 +314,12 @@ async def get_last_month_playlist_async(
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=30)
 
-    a_result_ids: AResult[list[str]] = (
-        await StatsAccess.get_top_media_public_ids_async(
-            session=session,
-            user_id=user_id,
-            start_date=start_date,
-            end_date=end_date,
-            limit=50,
-        )
+    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+        session=session,
+        user_id=user_id,
+        start_date=start_date,
+        end_date=end_date,
+        limit=50,
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
@@ -344,9 +334,7 @@ async def get_last_month_playlist_async(
                 PlaylistResponseItem[BaseVideoResponse],
             ]
         ]
-    ] = (
-        await _resolve_medias(session=session, public_ids=public_ids)
-    )
+    ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
         return AResult(code=a_result_items.code(), message=a_result_items.message())
 
@@ -389,14 +377,12 @@ async def get_year_recap_playlist_async(
     start_date = datetime(year=last_year, month=1, day=1, tzinfo=timezone.utc)
     end_date = datetime(year=last_year + 1, month=1, day=1, tzinfo=timezone.utc)
 
-    a_result_ids: AResult[list[str]] = (
-        await StatsAccess.get_top_media_public_ids_async(
-            session=session,
-            user_id=user_id,
-            start_date=start_date,
-            end_date=end_date,
-            limit=100,
-        )
+    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+        session=session,
+        user_id=user_id,
+        start_date=start_date,
+        end_date=end_date,
+        limit=100,
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
@@ -411,9 +397,7 @@ async def get_year_recap_playlist_async(
                 PlaylistResponseItem[BaseVideoResponse],
             ]
         ]
-    ] = (
-        await _resolve_medias(session=session, public_ids=public_ids)
-    )
+    ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
         return AResult(code=a_result_items.code(), message=a_result_items.message())
 

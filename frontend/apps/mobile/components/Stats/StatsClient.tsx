@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import DateTimePicker, {
     type DateTimePickerEvent,
@@ -73,13 +73,20 @@ export default function StatsClient() {
     const [tempStartDate, setTempStartDate] = useState(new Date());
     const [tempEndDate, setTempEndDate] = useState(new Date());
 
-    const { data, error, loading } = useFetch(() =>
+    const { data, error, loading, update } = useFetch(() =>
         Http.getUserStats({
             range: range,
             start: customStart?.toISOString() ?? null,
             end: customEnd?.toISOString() ?? null,
         })
     );
+
+    const updateRef = useRef(update);
+    updateRef.current = update;
+
+    useEffect(() => {
+        updateRef.current();
+    }, [range, customStart, customEnd]);
 
     function formatDateForDisplay(dateStr: Date | undefined): string {
         if (!dateStr) return "Select date";

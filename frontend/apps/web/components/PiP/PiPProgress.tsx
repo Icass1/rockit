@@ -5,113 +5,79 @@ import { useStore } from "@nanostores/react";
 import { getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
-
-const S = {
-    progressRow: {
-        display: "flex",
-        alignItems: "center",
-        width: "100%",
-        height: "1.5rem",
-        gap: "0.5rem",
-    },
-    timeLabel: {
-        minWidth: "1.5rem",
-        fontSize: "0.75rem",
-        fontWeight: 600,
-        color: "white",
-    },
-};
+import type { PiPLayout } from "@/components/PiP/PiPRoot";
 
 interface PiPProgressProps {
     show: boolean;
+    layout: PiPLayout;
 }
 
-export function PiPProgress({ show }: PiPProgressProps): JSX.Element | null {
-    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
+export function PiPProgress({
+    show,
+    layout,
+}: PiPProgressProps): JSX.Element | null {
+    const $currentTime = useStore(
+        rockIt.mediaPlayerManager.currentTimeAtom
+    );
+    const $currentSong = useStore(
+        rockIt.queueManager.currentMediaAtom
+    );
 
-    const progress =
-        (($currentTime ?? 0) / (getMediaDuration($currentSong) ?? 1)) * 100;
+    const duration = getMediaDuration($currentSong) ?? 0;
 
     if (!show) return null;
 
+    const isCoverOnly = layout === "cover-only";
+    const progressPct =
+        duration > 0
+            ? Math.min(
+                  100,
+                  Math.max(0, (($currentTime ?? 0) / duration) * 100)
+              )
+            : 0;
+    const sliderStyle: React.CSSProperties = {
+        flexGrow: 1,
+        background: `linear-gradient(to right, #f53a76 ${progressPct}%, rgba(255,255,255,0.15) ${progressPct}%)`,
+    };
+
     return (
-        <div style={S.progressRow as React.CSSProperties}>
-            <span style={S.timeLabel as React.CSSProperties}>
+        <div
+            className="pip-progress-bar"
+            style={{
+                height: isCoverOnly ? "1rem" : "1.5rem",
+                gap: isCoverOnly ? "4px" : "8px",
+            }}
+        >
+            <span className="pip-time-label">
                 {getTime($currentTime ?? 0)}
             </span>
+
             <input
                 type="range"
                 className="pip-slider"
                 value={$currentTime ?? 0}
                 min={0}
-                max={getMediaDuration($currentSong) ?? 0}
+                max={duration}
                 step={0.001}
-                style={{ flexGrow: 1 }}
-                onChange={(e): void =>
+                style={sliderStyle}
+                onChange={(e): void => {
                     rockIt.mediaPlayerManager.setCurrentTime(
                         Number(e.target.value),
                         false
-                    )
-                }
-                onPointerDown={(): void =>
-                    rockIt.mediaPlayerManager.beginSeek()
-                }
-                onPointerUp={(e): void =>
+                    );
+                }}
+                onPointerDown={(): void => {
+                    rockIt.mediaPlayerManager.beginSeek();
+                }}
+                onPointerUp={(e): void => {
                     rockIt.mediaPlayerManager.endSeek(
                         Number(e.currentTarget.value)
-                    )
-                }
-            />
-            <style>{`
-                .pip-slider {
-                    -webkit-appearance: none;
-                    height: 4px;
-                    background: #707070;
-                    border-radius: 2px;
-                    cursor: pointer;
-                }
-                .pip-slider::-webkit-slider-runnable-track {
-                    height: 4px;
-                    border-radius: 2px;
-                    background: linear-gradient(
-                        to right,
-                        #ee1086 0%,
-                        #fb6467 ${progress}%,
-                        #707070 ${progress}%,
-                        #707070 100%
                     );
-                }
-                .pip-slider::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    width: 12px;
-                    height: 12px;
-                    margin-top: -4px;
-                    border-radius: 50%;
-                    background: white;
-                    cursor: pointer;
-                }
-                .pip-slider::-moz-range-track {
-                    height: 4px;
-                    background: #707070;
-                    border-radius: 2px;
-                }
-                .pip-slider::-moz-range-progress {
-                    height: 4px;
-                    border-radius: 2px;
-                    background: linear-gradient(to right, #ee1086, #fb6467);
-                }
-                .pip-slider::-moz-range-thumb {
-                    width: 12px;
-                    height: 12px;
-                    border-radius: 50%;
-                    background: white;
-                    border: none;
-                    cursor: pointer;
-                }
-            `}</style>
-            <span style={S.timeLabel as React.CSSProperties}>
-                {getTime(getMediaDuration($currentSong) ?? 0)}
+                }}
+            />
+
+            <span className="pip-time-label">
+                {getTime(duration)}
             </span>
         </div>
     );

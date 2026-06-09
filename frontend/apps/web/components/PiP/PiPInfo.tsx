@@ -5,59 +5,29 @@ import { useStore } from "@nanostores/react";
 import { getMediaArtists } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import LikeButton from "@/components/LikeButton/LikeButton";
-
-const S = {
-    infoRow: {
-        marginTop: "10px",
-        display: "flex",
-        width: "100%",
-        maxWidth: "300px",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "0.5rem",
-        boxSizing: "border-box",
-    },
-    infoText: {
-        color: "white",
-        overflow: "hidden",
-        flex: 1,
-        paddingRight: "0.5rem",
-    },
-    songName: {
-        fontSize: "1rem",
-        fontWeight: 600,
-        lineHeight: 1.2,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-    },
-    artistName: {
-        fontSize: "0.875rem",
-        opacity: 0.75,
-        lineHeight: 1.2,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-    },
-};
-
-export function PiPInfo(): JSX.Element {
-    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
+export function PiPInfo(): JSX.Element | null {
+    const $currentSong = useStore(
+        rockIt.queueManager.currentMediaAtom
+    );
 
     return (
-        <div style={S.infoRow as React.CSSProperties}>
-            <div style={S.infoText as React.CSSProperties}>
-                <p style={S.songName as React.CSSProperties}>
-                    {$currentSong?.name}
+        <div className="pip-info">
+            <div className="pip-info-text">
+                <p className="pip-info-song-name">
+                    {$currentSong?.name ?? "No media playing"}
                 </p>
-                <p style={S.artistName as React.CSSProperties}>
+                <p className="pip-info-artist-name">
                     {getMediaArtists($currentSong)
                         ?.map((a: { name: string }): string => a.name)
-                        .join(", ")}
+                        .join(", ") || ""}
                 </p>
             </div>
             {$currentSong && (
-                <LikeButton mediaPublicId={$currentSong.publicId} />
+                <div className="pip-info-like">
+                    <LikeButton
+                        mediaPublicId={$currentSong.publicId}
+                    />
+                </div>
             )}
         </div>
     );

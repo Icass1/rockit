@@ -3,7 +3,7 @@
 import type { JSX } from "react";
 import FooterCenter from "@/components/Footer/FooterCenter";
 import FooterLeft from "@/components/Footer/FooterLeft";
-// import PictureInPicture from "@/components/Footer/PictureInPicture/PictureInPicture";
+import PictureInPicture from "@/components/Footer/PictureInPicture/PictureInPicture";
 import TogglePlayerUI from "@/components/Footer/TogglePlayerUI";
 import VolumeSlider from "@/components/Footer/VolumeSlider";
 
@@ -17,7 +17,7 @@ export default function Footer(): JSX.Element {
                 <FooterLeft />
                 <FooterCenter />
                 <div className="group hidden h-full w-1/3 items-center justify-end gap-x-5 md:flex">
-                    {/* <PictureInPicture /> */}
+                    <PictureInPicture />
                     <VolumeSlider />
                     <TogglePlayerUI />
                 </div>

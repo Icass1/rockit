@@ -4,9 +4,13 @@ import { useCallback, useEffect, useState, type JSX } from "react";
 import { PictureInPicture2 } from "lucide-react";
 import { createPortal } from "react-dom";
 import PiPContent from "@/components/PiP/PiPRoot";
+import { PIP_STYLES } from "@/components/PiP/PiPStyles";
 
 type DocumentPiP = {
-    requestWindow: (opts: { width: number; height: number }) => Promise<Window>;
+    requestWindow: (opts: {
+        width: number;
+        height: number;
+    }) => Promise<Window>;
 };
 
 function getDocumentPiP(): DocumentPiP | null {
@@ -21,26 +25,35 @@ function getDocumentPiP(): DocumentPiP | null {
 }
 
 function copyStylesToPiPWindow(pipWin: Window): void {
-    // Copy all stylesheets from the main document to the PiP window
-    // This makes Tailwind and any other CSS available inside PiP
+    const pipDoc = pipWin.document;
+
+    const linkEl = pipDoc.createElement("link");
+    linkEl.rel = "stylesheet";
+    linkEl.href =
+        "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
+    pipDoc.head.appendChild(linkEl);
+
     [...document.styleSheets].forEach((sheet): void => {
         try {
-            const styleEl = document.createElement("style");
+            const styleEl = pipDoc.createElement("style");
             const rules = [...sheet.cssRules]
                 .map((r): string => r.cssText)
                 .join("");
             styleEl.textContent = rules;
-            pipWin.document.head.appendChild(styleEl);
+            pipDoc.head.appendChild(styleEl);
         } catch {
-            // Cross-origin stylesheets can't be read — link them instead
             if (sheet.href) {
-                const link = document.createElement("link");
+                const link = pipDoc.createElement("link");
                 link.rel = "stylesheet";
                 link.href = sheet.href;
-                pipWin.document.head.appendChild(link);
+                pipDoc.head.appendChild(link);
             }
         }
     });
+
+    const pipBase = pipDoc.createElement("style");
+    pipBase.textContent = PIP_STYLES;
+    pipDoc.head.appendChild(pipBase);
 }
 
 export default function PictureInPicture(): JSX.Element | null {
@@ -57,15 +70,9 @@ export default function PictureInPicture(): JSX.Element | null {
         if (!pip) return;
 
         try {
-            const newWin = await pip.requestWindow({ width: 320, height: 400 });
-
-            // Reset default browser styles
-            Object.assign(newWin.document.body.style, {
-                margin: "0",
-                padding: "0",
-                width: "100vw",
-                height: "100vh",
-                overflow: "hidden",
+            const newWin = await pip.requestWindow({
+                width: 320,
+                height: 420,
             });
 
             copyStylesToPiPWindow(newWin);
@@ -88,15 +95,14 @@ export default function PictureInPicture(): JSX.Element | null {
         }
     }, [pipWindow, closePiP, openPiP]);
 
-    // Detect when the user closes the PiP window manually
     useEffect((): (() => void) | undefined => {
         if (!pipWindow) return;
         const onClose = (): void => setPipWindow(null);
         pipWindow.addEventListener("pagehide", onClose);
-        return (): void => pipWindow.removeEventListener("pagehide", onClose);
+        return (): void =>
+            pipWindow.removeEventListener("pagehide", onClose);
     }, [pipWindow]);
 
-    // Not supported — don't render the button at all
     if (isSupported === null || !isSupported) return null;
 
     return (
@@ -104,7 +110,9 @@ export default function PictureInPicture(): JSX.Element | null {
             <button
                 onClick={togglePiP}
                 className="rounded-full p-2 text-gray-400 transition hover:text-white"
-                aria-label={pipWindow ? "Close miniplayer" : "Open miniplayer"}
+                aria-label={
+                    pipWindow ? "Close miniplayer" : "Open miniplayer"
+                }
                 title={pipWindow ? "Close miniplayer" : "Open miniplayer"}
             >
                 <PictureInPicture2
@@ -113,7 +121,11 @@ export default function PictureInPicture(): JSX.Element | null {
                 />
             </button>
 
-            {pipWindow && createPortal(<PiPContent />, pipWindow.document.body)}
+            {pipWindow &&
+                createPortal(
+                    <PiPContent pipWindow={pipWindow} />,
+                    pipWindow.document.body
+                )}
         </>
     );
 }

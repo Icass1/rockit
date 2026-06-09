@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { HttpResult } from "@rockit/shared";
 import { IUseFetch } from "@/models/interfaces/useFetch";
 import { Http } from "@/lib/http";
@@ -28,17 +28,17 @@ export default function useFetch<T>(
     const [data, setData] = useState<T | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | undefined>(undefined);
-
-    console.log("useFetch", func);
+    const funcRef = useRef(func);
+    funcRef.current = func;
 
     useEffect((): void => {
-        update(func, setData, setLoading, setError);
-    }, [func]);
+        update(funcRef.current, setData, setLoading, setError);
+    }, []);
 
     return {
         data: data,
         update: (): Promise<void> =>
-            update(func, setData, setLoading, setError),
+            update(funcRef.current, setData, setLoading, setError),
         loading,
         error,
     };

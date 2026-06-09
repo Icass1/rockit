@@ -640,3 +640,85 @@ class StatsAccess:
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
+
+    @staticmethod
+    async def get_top_media_public_ids_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 50,
+    ) -> AResult[list[str]]:
+        """Get top songs and videos public_ids by play count."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()},
+        play_counts AS (
+            SELECT uml.media_id, COUNT(*) AS play_count
+            FROM   core.user_media_listened uml
+            JOIN   media_info mi ON mi.media_id = uml.media_id
+            WHERE  uml.user_id    = :user_id
+              AND  uml.date_added >= :start_date
+              AND  uml.date_added <  :end_date
+              AND  mi.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
+            GROUP BY uml.media_id
+            ORDER BY play_count DESC
+            LIMIT :limit
+        )
+        SELECT mi.public_id
+        FROM   play_counts pc
+        JOIN   media_info  mi ON mi.media_id = pc.media_id
+        ORDER BY pc.play_count DESC
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_recently_played_media_public_ids_async(
+        session: AsyncSession,
+        user_id: int,
+        limit: int = 50,
+    ) -> AResult[list[str]]:
+        """Get recently played songs and videos public_ids ordered by date_added DESC."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) DESC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )

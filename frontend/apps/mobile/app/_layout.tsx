@@ -58,6 +58,7 @@ export default function RootLayout() {
                                 <Stack.Screen name="(app)" />
                                 <Stack.Screen name="(auth)" />
                                 <Stack.Screen name="stats" />
+                                <Stack.Screen name="logs" />
                             </Stack>
                         </PlayerProvider>
                     </ThemeProvider>

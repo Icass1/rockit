@@ -105,7 +105,7 @@ export class WebSocketManager {
     }
 
     private async _attemptReconnect() {
-        console.log("CCCCCCCCCCCCCCCCCCCCCCCCCC");
+        console.log("_attemptReconnect");
         if (this._connecting) return;
         this._connecting = true;
         const maxRetries = 5;
@@ -132,7 +132,7 @@ export class WebSocketManager {
                 // The session cookie must be passed explicitly since SecureStore is not
                 // the system cookie jar and Android/OkHttp won't include it automatically.
 
-                console.log("BBBBBBBBBBBBBBBBB");
+                console.log("Creating new WebSocket", getWsUrl());
 
                 this._webSocket = new (WebSocket as any)(
                     getWsUrl(),
@@ -155,6 +155,10 @@ export class WebSocketManager {
                     this._init = false;
                     this._connecting = false;
                     this._attemptReconnect();
+                };
+
+                this._webSocket.onerror = (e) => {
+                    console.error("Error in web socket", e);
                 };
 
                 break;

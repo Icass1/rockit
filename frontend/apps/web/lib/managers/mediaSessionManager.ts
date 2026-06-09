@@ -231,7 +231,19 @@ export class MediaSessionManager {
             /* not supported */
         }
 
-        if (!MediaSessionManager._isiOS()) {
+        if (MediaSessionManager._isiOS()) {
+            try {
+                session.setActionHandler("seekbackward", null);
+            } catch {
+                /* not supported */
+            }
+
+            try {
+                session.setActionHandler("seekforward", null);
+            } catch {
+                /* not supported */
+            }
+        } else {
             try {
                 session.setActionHandler("seekbackward", (): void => {
                     const time = rockIt.mediaPlayerManager.currentTime;

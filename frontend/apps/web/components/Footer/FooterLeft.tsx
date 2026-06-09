@@ -137,9 +137,9 @@ function FooterLeftForStation({
                     ) : (
                         <PlayIcon
                             className="h-6 w-6 cursor-pointer text-white"
-                            onClick={(): void =>
-                                rockIt.mediaPlayerManager.play()
-                            }
+onClick={(): void => {
+                                  void rockIt.mediaPlayerManager.play().catch(() => {});
+                              }}
                         />
                     )}
                 </div>

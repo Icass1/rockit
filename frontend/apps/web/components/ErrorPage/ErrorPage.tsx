@@ -37,7 +37,7 @@ export default function ErrorPage({ code }: { code: ErrorCode }): JSX.Element {
         ERROR_CONTENT[code] ?? ERROR_CONTENT[500];
 
     return (
-        <div className="relative flex h-screen w-full flex-col items-center justify-center bg-linear-to-r from-[#d185ca] to-[#ffbb9e] select-none">
+        <div className="relative flex h-screen w-full flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] select-none">
             <div className="flex h-auto flex-col items-center gap-8 md:flex-row">
                 <div className="w-full text-center text-black">
                     <h1 className="mb-4 text-6xl font-bold md:text-9xl">

@@ -34,7 +34,7 @@ export default function MiniPlayer(): JSX.Element {
                         </span>
                         <div className="relative h-1 flex-1 rounded-full bg-neutral-700">
                             <div
-                                className="absolute top-0 left-0 h-full rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467]"
+                                className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
                                 style={{
                                     width: `${Math.min(100, Math.max(0, (($currentTime ?? 0) / (getMediaDuration($currentMedia) ?? 1)) * 100))}%`,
                                 }}
@@ -97,9 +97,9 @@ export default function MiniPlayer(): JSX.Element {
                                 />
                             </button>
                             <button
-                                onClick={(): void =>
-                                    rockIt.queueManager.skipBack()
-                                }
+                                onClick={(): void => {
+                                    void rockIt.queueManager.skipBack();
+                                }}
                                 className="flex h-9 w-9 items-center justify-center"
                             >
                                 <SkipBack className="h-5 w-5 fill-current text-neutral-400" />
@@ -117,9 +117,9 @@ export default function MiniPlayer(): JSX.Element {
                                 )}
                             </button>
                             <button
-                                onClick={(): void =>
-                                    rockIt.queueManager.skipForward()
-                                }
+                                onClick={(): void => {
+                                    void rockIt.queueManager.skipForward();
+                                }}
                                 className="flex h-9 w-9 items-center justify-center"
                             >
                                 <SkipForward className="h-5 w-5 fill-current text-neutral-400" />

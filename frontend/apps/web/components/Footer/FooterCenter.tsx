@@ -62,7 +62,9 @@ export default function FooterCenter(): JSX.Element {
 
                 <button
                     aria-label={$vocabulary.PREVIOUS_MEDIA}
-                    onClick={(): void => rockIt.queueManager.skipBack()}
+                    onClick={(): void => {
+                        rockIt.queueManager.skipBack().catch(() => {});
+                    }}
                 >
                     <SkipBack
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}
@@ -74,11 +76,13 @@ export default function FooterCenter(): JSX.Element {
                 ) : (
                     <button
                         aria-label={$playing ? "Pause" : "Play"}
-                        onClick={(): void =>
-                            $playing
-                                ? rockIt.mediaPlayerManager.pause()
-                                : rockIt.mediaPlayerManager.play()
-                        }
+                        onClick={(): void => {
+                            if ($playing) {
+                                rockIt.mediaPlayerManager.pause();
+                            } else {
+                                rockIt.mediaPlayerManager.play().catch(() => {});
+                            }
+                        }}
                     >
                         {$playing ? (
                             <CirclePause className={`h-8 w-8 ${ICON_BTN}`} />
@@ -90,7 +94,9 @@ export default function FooterCenter(): JSX.Element {
 
                 <button
                     aria-label={$vocabulary.NEXT_MEDIA}
-                    onClick={(): void => rockIt.queueManager.skipForward()}
+                    onClick={(): void => {
+                        rockIt.queueManager.skipForward().catch(() => {});
+                    }}
                 >
                     <SkipForward
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}

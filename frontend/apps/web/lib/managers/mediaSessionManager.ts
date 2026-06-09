@@ -4,6 +4,7 @@ import {
     getMediaDuration,
     type TPlayableMedia,
 } from "@rockit/shared";
+import { audioEngine } from "@/lib/audio/AudioEngine";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 const SILENT_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
@@ -21,9 +22,6 @@ const ACTION_HANDLERS: MediaSessionAction[] = [
 
 export class MediaSessionManager {
     private _supported: boolean;
-    private _keepaliveCtx?: AudioContext;
-    private _keepaliveOsc?: OscillatorNode;
-    private _keepaliveGain?: GainNode;
     private _unsubscribers: (() => void)[] = [];
 
     private static _isiOS(): boolean {
@@ -50,7 +48,7 @@ export class MediaSessionManager {
         this._setAudioSession();
 
         if (MediaSessionManager._isiOS()) {
-            this._startKeepalive();
+            audioEngine.startKeepalive();
             this._unlockAudioElements();
         }
     }
@@ -58,7 +56,6 @@ export class MediaSessionManager {
     destroy(): void {
         this._unsubscribers.forEach((fn): void => fn());
         this._unsubscribers = [];
-        this._stopKeepalive();
 
         if (this._supported) {
             for (const action of ACTION_HANDLERS) {
@@ -82,52 +79,6 @@ export class MediaSessionManager {
                 nav.audioSession.type = "playback";
             }
         }
-    }
-
-    // ── Silent oscillator keepalive ────────────────────────────────────
-
-    private _startKeepalive(): void {
-        if (this._keepaliveCtx) return;
-
-        try {
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.frequency.value = 1;
-            osc.type = "sine";
-            gain.gain.value = 0.001;
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-
-            this._keepaliveCtx = ctx;
-            this._keepaliveOsc = osc;
-            this._keepaliveGain = gain;
-
-            ctx.addEventListener("statechange", (): void => {
-                if (ctx.state === "suspended") {
-                    ctx.resume().catch((): void => {});
-                }
-            });
-        } catch {
-            /* keepalive not available */
-        }
-    }
-
-    private _stopKeepalive(): void {
-        try {
-            this._keepaliveOsc?.stop();
-            this._keepaliveOsc?.disconnect();
-            this._keepaliveGain?.disconnect();
-            this._keepaliveCtx?.close();
-        } catch {
-            /* ignore */
-        }
-        this._keepaliveOsc = undefined;
-        this._keepaliveGain = undefined;
-        this._keepaliveCtx = undefined;
     }
 
     // ── Silent WAV unlock trick ────────────────────────────────────────
@@ -200,7 +151,7 @@ export class MediaSessionManager {
 
         try {
             session.setActionHandler("previoustrack", (): void => {
-                rockIt.queueManager.skipBack();
+                rockIt.mediaPlayerManager.skipBack();
             });
         } catch {
             /* not supported */
@@ -208,7 +159,7 @@ export class MediaSessionManager {
 
         try {
             session.setActionHandler("nexttrack", (): void => {
-                rockIt.queueManager.skipForward();
+                rockIt.mediaPlayerManager.skipForward();
             });
         } catch {
             /* not supported */

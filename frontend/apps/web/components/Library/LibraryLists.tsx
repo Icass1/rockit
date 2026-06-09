@@ -107,7 +107,7 @@ function SectionPlayButton({
         <button
             onClick={onClick}
             title={label}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] transition-transform md:hover:scale-105"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-transform md:hover:scale-105"
         >
             <Play className="h-1/2 w-1/2" fill="white" />
         </button>

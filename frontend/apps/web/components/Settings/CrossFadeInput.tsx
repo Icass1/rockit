@@ -20,17 +20,13 @@ export default function CrossFadeInput(): JSX.Element {
                     id="cross-fade-input"
                     type="number"
                     value={$crossFade}
-                    onChange={
-                        (): void =>
-                            console.warn(
-                                "CrossFade setting is currently not implemented"
-                            ) // TODO: Implement CrossFade setting
-                        // rockIt.userManager.setCrossFadeAsync(
-                        //     Number(e.currentTarget.value)
-                        // )
-                    }
-                    max={40}
+                    onChange={(e): void => {
+                        const val = Number(e.currentTarget.value);
+                        rockIt.mediaPlayerManager.setCrossFade(val);
+                    }}
+                    max={12}
                     min={0}
+                    step={1}
                     className="w-20 rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2.5 text-center text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
                 />
                 <span className="text-sm text-neutral-500">seconds</span>

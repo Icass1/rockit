@@ -9,6 +9,7 @@ import { ChartLine, ImageUp, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
+import TransitionProfileInput from "@/components/Settings/TransitionProfileInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
@@ -180,6 +181,7 @@ export default function SettingsClient(): JSX.Element {
 
                     <SettingsSection title="Audio">
                         <CrossFadeInput />
+                        <TransitionProfileInput />
                     </SettingsSection>
 
                     <SettingsSection title={$vocabulary.DOWNLOAD_APP ?? "App"}>

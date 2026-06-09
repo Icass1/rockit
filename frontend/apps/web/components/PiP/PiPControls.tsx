@@ -65,9 +65,9 @@ export function PiPControls({
 
             <button
                 className="pip-controls-icon-btn"
-                onClick={(): void =>
-                    rockIt.queueManager.skipBack()
-                }
+onClick={(): void => {
+                     void rockIt.queueManager.skipBack();
+                 }}
                 aria-label="Previous"
                 title="Previous"
             >
@@ -91,9 +91,9 @@ export function PiPControls({
 
             <button
                 className="pip-controls-icon-btn"
-                onClick={(): void =>
-                    rockIt.queueManager.skipForward()
-                }
+onClick={(): void => {
+                     void rockIt.queueManager.skipForward();
+                 }}
                 aria-label="Next"
                 title="Next"
             >

@@ -149,42 +149,46 @@ export class QueueManager {
         });
     }
 
-    skipBack(): void {
-        this._lastNavigationDirection = -1;
-        if (this.currentMedia?.publicId)
-            rockIt.webSocketManager.sendSkipClicked({
-                direction: "PREVIOUS",
-                mediaPublicId: this.currentMedia.publicId,
-            });
-        const currentQueueMediaId = this.currentQueueMediaId;
+    get nextMedia(): TPlayableMedia | undefined {
         const queue = this.queue;
+        const currentQueueMediaId = this.currentQueueMediaId;
+        if (currentQueueMediaId === null || queue.length === 0) return;
 
         const currentIndex = queue.findIndex(
             (item): boolean => item.queueMediaId === currentQueueMediaId
         );
-
-        const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
-        this.setQueueMediaId(queue[prevIndex].queueMediaId, -1);
-        rockIt.mediaPlayerManager.play();
-    }
-
-    skipForward(): void {
-        this._lastNavigationDirection = 1;
-        if (this.currentMedia?.publicId)
-            rockIt.webSocketManager.sendSkipClicked({
-                direction: "NEXT",
-                mediaPublicId: this.currentMedia.publicId,
-            });
-        const currentQueueMediaId = this.currentQueueMediaId;
-        const queue = this.queue;
-
-        const currentIndex = queue.findIndex(
-            (item): boolean => item.queueMediaId === currentQueueMediaId
-        );
+        if (currentIndex === -1) return;
 
         const nextIndex = (currentIndex + 1) % queue.length;
-        this.setQueueMediaId(queue[nextIndex].queueMediaId);
-        rockIt.mediaPlayerManager.play();
+        return queue[nextIndex]?.media;
+    }
+
+    get prevMedia(): TPlayableMedia | undefined {
+        const queue = this.queue;
+        const currentQueueMediaId = this.currentQueueMediaId;
+        if (currentQueueMediaId === null || queue.length === 0) return;
+
+        const currentIndex = queue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+        if (currentIndex === -1) return;
+
+        const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
+        return queue[prevIndex]?.media;
+    }
+
+    isNextMedia(publicId: string): boolean {
+        return this.nextMedia?.publicId === publicId;
+    }
+
+    async skipBack(): Promise<void> {
+        this._lastNavigationDirection = -1;
+        await rockIt.mediaPlayerManager.skipBack();
+    }
+
+    async skipForward(): Promise<void> {
+        this._lastNavigationDirection = 1;
+        await rockIt.mediaPlayerManager.skipForward();
     }
 
     setMedia(medias: TQueueMedia[], listPublicId: string): void {

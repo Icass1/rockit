@@ -29,7 +29,7 @@ export default function Slider({
     step,
     id,
     className = "",
-    barClassName = "bg-linear-to-r from-[#ee1086] to-[#fb6467]",
+    barClassName = "bg-gradient-to-r from-[#ee1086] to-[#fb6467]",
     readOnly = false,
 }: SliderProps): JSX.Element {
     const widthPercentage = Math.min(

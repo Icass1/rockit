@@ -10,7 +10,7 @@ export default function WorkInProgress(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     return (
-        <div className="relative flex h-screen w-full flex-col items-center justify-center bg-linear-to-r from-[#d185ca] to-[#ffbb9e] select-none">
+        <div className="relative flex h-screen w-full flex-col items-center justify-center bg-gradient-to-r from-[#d185ca] to-[#ffbb9e] select-none">
             <div className="flex h-auto flex-col items-center gap-40 md:flex-row">
                 <Image
                     alt="crane"

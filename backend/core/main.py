@@ -92,3 +92,22 @@ async def app_startup():
 
     asyncio.create_task(downloads_manager.download_manager(), name="Download Manager")
     # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")
+
+
+@app.on_event("shutdown")
+async def app_shutdown():
+    """Close all active WebSocket connections before shutdown."""
+
+    from backend.core.framework.websocket.webSocketManager import ws_manager
+
+    all_sockets = [
+        ws
+        for connections in ws_manager.active_connections.values()
+        for ws in connections
+    ]
+    for ws in all_sockets:
+        try:
+            await ws.close(code=1001)
+        except Exception:
+            pass
+    logger.info(f"Closed {len(all_sockets)} WebSocket connection(s) on shutdown.")

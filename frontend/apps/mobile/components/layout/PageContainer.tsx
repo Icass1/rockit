@@ -4,12 +4,14 @@ import { ScrollView, StyleSheet, View } from "react-native";
 interface PageContainerProps {
     children?: React.ReactNode;
     topPadding?: number;
+    bottomPadding?: number;
     horizontalPadding?: number;
 }
 
 export default function PageContainer({
     children,
     topPadding = 150,
+    bottomPadding = 0,
     horizontalPadding = 16,
 }: PageContainerProps) {
     return (
@@ -19,6 +21,7 @@ export default function PageContainer({
                     styles.content,
                     {
                         paddingTop: topPadding,
+                        paddingBottom: bottomPadding,
                         paddingHorizontal: horizontalPadding,
                     },
                 ]}

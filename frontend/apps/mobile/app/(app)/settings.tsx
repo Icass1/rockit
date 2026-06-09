@@ -29,7 +29,7 @@ export default function SettingsScreen() {
     return (
         <>
             <Header />
-            <PageContainer>
+            <PageContainer bottomPadding={60}>
                 <ProfileSection />
 
                 <SettingsSection title={vocabulary.DISPLAY_NAME}>

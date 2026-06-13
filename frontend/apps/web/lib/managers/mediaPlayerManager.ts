@@ -55,6 +55,8 @@ export class MediaPlayerManager {
 
         this._video = document.createElement("video");
         this._video.preload = "auto";
+        this._video.setAttribute("playsInline", "");
+        this._video.setAttribute("webkit-playsinline", "");
 
         this._video.onplaying = (): void => this._playingAtom.set(true);
         this._video.onpause = (): void => this._playingAtom.set(false);
@@ -356,6 +358,15 @@ export class MediaPlayerManager {
         const videoSrc = getMediaVideoSrc(currentMedia);
         if (!currentMedia || !videoSrc) return;
         if (this._video.src === videoSrc) return;
+
+        if (!this._video.isConnected) {
+            const root = document.getElementById("rockit-video-root");
+            if (root) {
+                root.appendChild(this._video);
+            } else {
+                document.body.appendChild(this._video);
+            }
+        }
 
         this._video.volume = this._volumeAtom.get();
         this._video.src = videoSrc;

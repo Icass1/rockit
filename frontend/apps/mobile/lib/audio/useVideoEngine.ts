@@ -32,6 +32,8 @@ export function useVideoEngine(
         callbacksRef.current = callbacks;
     });
 
+    const lastCurrentTime = useRef<number | undefined>(undefined);
+
     const videoPlayer = useVideoPlayer(null, (p) => {
         p.loop = false;
         p.muted = false;
@@ -53,9 +55,15 @@ export function useVideoEngine(
         const sub2 = videoPlayer.addListener(
             "timeUpdate",
             ({ currentTime }) => {
-                const duration = videoPlayer.duration ?? 0;
-                if (duration > 0) {
-                    callbacksRef.current?.onTimeUpdate?.(currentTime, duration);
+                const duration = videoPlayer.duration;
+                if (currentTime !== lastCurrentTime.current) {
+                    if (duration > 0) {
+                        callbacksRef.current?.onTimeUpdate?.(
+                            currentTime,
+                            duration
+                        );
+                    }
+                    lastCurrentTime.current = currentTime;
                 }
             }
         );

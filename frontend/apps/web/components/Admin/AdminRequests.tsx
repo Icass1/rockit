@@ -40,15 +40,21 @@ export default function AdminRequests(): JSX.Element {
     const [requests, setRequests] = useState<UserRequestResponse[]>([]);
     const [stats, setStats] = useState<AdminRequestStatsResponse | null>(null);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const isAdmin = useStore(rockIt.userManager.admin);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<RequestStatus>("all");
     const [reviewingId, setReviewingId] = useState<string | null>(null);
 
-    useEffect(() => {
+useEffect(() => {
+        if (!isAdmin) {
+            setError($vocabulary.ADMIN_REQUIRED);
+            setLoading(false);
+            return;
+        }
         let cancelled = false;
 
-        const fetchData = async (): Promise<void> => {
+        const fetchData = async () => {
             const [requestsResult, statsResult] = await Promise.all([
                 Http.getAllRequests(),
                 Http.getRequestStats(),
@@ -78,7 +84,7 @@ export default function AdminRequests(): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [isAdmin, $vocabulary]);
 
     const handleReview = async (
         publicId: string,

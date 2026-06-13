@@ -3,7 +3,7 @@ from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, load_only
 
 from backend.utils.logger import getLogger
 from backend.core.utils.safeAsyncCall import safe_async
@@ -55,7 +55,7 @@ class RequestAccess:
         query = (
             select(UserRequestRow)
             .options(
-                joinedload(UserRequestRow.__table__).load_only(
+                load_only(
                     UserRequestRow.user_id,
                     UserRequestRow.media_id,
                     UserRequestRow.request_type_key,

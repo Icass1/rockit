@@ -13,4 +13,6 @@ class CurrentMediaMessage(BaseModel):
 
     @field_validator("queueType", mode="before")
     def convert_string_to_enum(cls, v: str) -> QueueTypeEnum:
+        if isinstance(v, QueueTypeEnum):
+            return v
         return QueueTypeEnum[v]

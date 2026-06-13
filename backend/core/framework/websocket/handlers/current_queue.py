@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, List
 
+from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -12,6 +13,7 @@ from backend.core.framework.models.queue import QueueItem
 from backend.core.framework.user.user import User
 from backend.core.framework.websocket.webSocketRouter import websocket_router
 from backend.core.requests.wsMessages import CurrentQueueMessageRequest
+from backend.core.responses.currentQueueMessage import CurrentQueueMessage
 
 if TYPE_CHECKING:
     from backend.core.framework.websocket.webSocketManager import WebSocketManager
@@ -25,6 +27,7 @@ async def handle_current_queue(
     session: AsyncSession,
     user_id: int,
     data: Dict[str, Any],
+    sender_websocket: WebSocket | None = None,
 ) -> None:
     current_queue_msg = CurrentQueueMessageRequest(**data)
 
@@ -83,3 +86,13 @@ async def handle_current_queue(
         user_id=user_id,
         queue_items=queue_items,
     )
+
+    if sender_websocket is not None:
+        relay_message = CurrentQueueMessage(
+            queue=current_queue_msg.queue,
+        )
+        await manager.send_to_user_async(
+            user_id=user_id,
+            message=relay_message,
+            exclude_websocket=sender_websocket,
+        )

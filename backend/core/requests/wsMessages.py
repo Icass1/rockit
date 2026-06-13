@@ -1,7 +1,9 @@
-from pydantic import BaseModel, field_validator
+from pydantic import field_validator
 
+from backend.core.baseModel import BaseModel
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.enums.skipDirectionEnum import SkipDirectionEnum
+from backend.core.models.queueItem import QueueItem
 
 
 class MediaEndedMessageRequest(BaseModel):
@@ -18,12 +20,8 @@ class CurrentMediaMessageRequest(BaseModel):
         return QueueTypeEnum[v]
 
 
-class CurrentQueueMessageRequestItem(BaseModel):
-    mediaPublicId: str
-    listPublicId: str | None
-    queueMediaId: int
-    randomIndex: int
-    sortedIndex: int
+class CurrentQueueMessageRequestItem(QueueItem):
+    pass
 
 
 class CurrentQueueMessageRequest(BaseModel):

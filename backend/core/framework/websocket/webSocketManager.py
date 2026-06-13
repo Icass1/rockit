@@ -5,17 +5,18 @@ from typing import Any, Dict, Set
 from fastapi import WebSocket
 
 from backend.utils.logger import getLogger
+
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
+
+from backend.core.access.db import rockit_db
+
+from backend.core.framework.websocket.playbackState import UserPlaybackState
+from backend.core.framework.websocket.webSocketRouter import websocket_router
 from backend.core.framework.websocket.listenInterval import (
     close_listen_interval_on_disconnect_async,
 )
-from backend.core.framework.websocket.playbackState import UserPlaybackState
-from backend.core.framework.websocket.webSocketRouter import websocket_router
-from backend.core.responses.currentMediaMessage import CurrentMediaMessage
-from backend.core.responses.currentQueueMessage import CurrentQueueMessage
+
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
-from backend.core.responses.queueTypeMessage import QueueTypeMessage
-from backend.core.access.db import rockit_db
 
 logger = getLogger(__name__)
 
@@ -112,40 +113,8 @@ class WebSocketManager:
                 user_id=user_id,
                 message_type=message_type,
                 data=data,
+                sender_websocket=websocket,
             )
-
-        await self._relay_to_other_devices_async(
-            user_id=user_id, sender_websocket=websocket, data=data
-        )
-
-    async def _relay_to_other_devices_async(
-        self, user_id: int, sender_websocket: WebSocket, data: Dict[str, Any]
-    ) -> None:
-        message_type: str | None = data.get("type")
-
-        if message_type == "current_media":
-            relay_message = CurrentMediaMessage(
-                mediaPublicId=data.get("mediaPublicId", ""),
-                queueMediaId=data.get("queueMediaId", 0),
-                queueType=data.get("queueType", "SORTED"),
-            )
-        elif message_type == "current_queue":
-            queue_data = data.get("queue", [])
-            relay_message = CurrentQueueMessage(
-                queue=queue_data,
-            )
-        elif message_type == "queue_type":
-            relay_message = QueueTypeMessage(
-                queueType=data.get("queueType", "SORTED"),
-            )
-        else:
-            return
-
-        await self.send_to_user_async(
-            user_id=user_id,
-            message=relay_message,
-            exclude_websocket=sender_websocket,
-        )
 
 
 ws_manager = WebSocketManager()

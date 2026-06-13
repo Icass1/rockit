@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict
+from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 logger = getLogger(__name__)
 
 HandlerFunc = Callable[
-    ["WebSocketManager", AsyncSession, int, Dict[str, Any]],
+    ["WebSocketManager", AsyncSession, int, Dict[str, Any], WebSocket | None],
     Coroutine[Any, Any, None],
 ]
 
@@ -38,12 +39,13 @@ class WebSocketRouter:
         user_id: int,
         message_type: str,
         data: Dict[str, Any],
+        sender_websocket: WebSocket | None = None,
     ) -> None:
         handler = self._handlers.get(message_type)
         if handler is None:
             logger.warning(f"Unknown WebSocket message type: {message_type}")
             return
-        await handler(manager, session, user_id, data)
+        await handler(manager, session, user_id, data, sender_websocket)
 
 
 websocket_router = WebSocketRouter()

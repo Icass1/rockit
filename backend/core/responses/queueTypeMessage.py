@@ -1,4 +1,4 @@
-from pydantic import field_validator
+from pydantic import field_serializer
 from typing import Literal
 
 from backend.core.baseModel import BaseModel
@@ -9,6 +9,6 @@ class QueueTypeMessage(BaseModel):
     type: Literal["queue_type"] = "queue_type"
     queueType: QueueTypeEnum
 
-    @field_validator("queueType", mode="before")
-    def convert_string_to_enum(cls, v: str) -> QueueTypeEnum:
-        return QueueTypeEnum[v]
+    @field_serializer("queueType")
+    def serialize_queue_type(self, queue_type: QueueTypeEnum) -> str:
+        return queue_type.name

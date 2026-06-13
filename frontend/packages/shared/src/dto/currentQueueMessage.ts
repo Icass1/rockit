@@ -2,11 +2,11 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { CurrentQueueMessageItemSchema } from "./currentQueueMessageItem";
+import { QueueItemSchema } from "./queueItem";
 
 export const CurrentQueueMessageSchema = z.object({
     type: z.union([z.literal("current_queue")]).default("current_queue"),
-    queue: z.array(z.lazy(() => CurrentQueueMessageItemSchema)),
+    queue: z.array(z.lazy(() => QueueItemSchema)),
 });
 
 export type CurrentQueueMessage = z.infer<typeof CurrentQueueMessageSchema>;

@@ -6,7 +6,7 @@
 import { EQueueAction } from "@/models/enums/queueAction";
 import { ERepeatMode } from "@/models/enums/repeatMode";
 
-export interface QueueItem {
+interface QueueItem {
     publicId: string;
     queueMediaId: number;
 }

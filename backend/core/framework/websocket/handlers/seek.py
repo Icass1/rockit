@@ -3,6 +3,7 @@ from __future__ import annotations
 import time as time_module
 from typing import TYPE_CHECKING, Any, Dict
 
+from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -26,6 +27,7 @@ async def handle_seek(
     session: AsyncSession,
     user_id: int,
     data: Dict[str, Any],
+    sender_websocket: WebSocket | None = None,
 ) -> None:
     seek_msg = SeekMessageRequest(**data)
 

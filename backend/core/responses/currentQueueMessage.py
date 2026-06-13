@@ -1,16 +1,13 @@
 from typing import List, Literal
 
 from backend.core.baseModel import BaseModel
+from backend.core.models.queueItem import QueueItem
 
 
-class CurrentQueueMessageItem(BaseModel):
-    mediaPublicId: str
-    listPublicId: str | None = None
-    queueMediaId: int
-    randomIndex: int
-    sortedIndex: int
+class CurrentQueueMessageItem(QueueItem):
+    pass
 
 
 class CurrentQueueMessage(BaseModel):
     type: Literal["current_queue"] = "current_queue"
-    queue: List[CurrentQueueMessageItem]
+    queue: List[QueueItem]

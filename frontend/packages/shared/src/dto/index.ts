@@ -131,6 +131,10 @@ export {
     type CurrentQueueMessageRequestItem,
 } from "./currentQueueMessageRequestItem";
 export {
+    CurrentTimeMessageSchema,
+    type CurrentTimeMessage,
+} from "./currentTimeMessage";
+export {
     CurrentTimeMessageRequestSchema,
     type CurrentTimeMessageRequest,
 } from "./currentTimeMessageRequest";
@@ -206,6 +210,7 @@ export {
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
+export { LyricsResponseSchema, type LyricsResponse } from "./lyricsResponse";
 export {
     MediaAddedToPlaylistMessageSchema,
     type MediaAddedToPlaylistMessage,
@@ -248,6 +253,7 @@ export {
     PlaylistResponseItemSchema,
     type PlaylistResponseItem,
 } from "./playlistResponseItem";
+export { QueueItemSchema, type QueueItem } from "./queueItem";
 export { QueueResponseSchema, type QueueResponse } from "./queueResponse";
 export {
     QueueResponseItemSchema,
@@ -384,10 +390,6 @@ export {
 } from "./statsSummaryResponse";
 export { StreakResponseSchema, type StreakResponse } from "./streakResponse";
 export {
-    TestWebSocketMessageSchema,
-    type TestWebSocketMessage,
-} from "./testWebSocketMessage";
-export {
     UpdateBookmarkRequestSchema,
     type UpdateBookmarkRequest,
 } from "./updateBookmarkRequest";
@@ -488,6 +490,7 @@ export {
     YoutubeVideoResponseSchema,
     type YoutubeVideoResponse,
 } from "./youtubeVideoResponse";
+export { CoroutineSchema, type Coroutine } from "./coroutine";
 export { DictSchema, type Dict } from "./dict";
 export { ListSchema, type List } from "./list";
 export { SequenceSchema, type Sequence } from "./sequence";

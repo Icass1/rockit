@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict
 
+from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -21,6 +22,7 @@ async def handle_media_ended(
     session: AsyncSession,
     user_id: int,
     data: Dict[str, Any],
+    sender_websocket: WebSocket | None = None,
 ) -> None:
     media_ended_msg = MediaEndedMessageRequest(**data)
     logger.info(f"User {user_id} media ended. Media: {media_ended_msg.mediaPublicId}")

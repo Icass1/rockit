@@ -28,6 +28,7 @@ for root, dirs, files in os.walk("."):
             dir.endswith("responses")
             or dir.endswith("requests")
             or dir.endswith("types")
+            or dir.endswith("models")
         ):
             folders_to_process.append(os.path.join(root, dir))
 

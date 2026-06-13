@@ -1,6 +1,7 @@
 import type {
     CurrentMediaMessage,
     CurrentQueueMessage,
+    CurrentTimeMessage,
     DownloadProgressMessage,
     LibraryMediaAddedMessage,
     LibraryMediaRemovedMessage,
@@ -10,12 +11,10 @@ import type {
     PlaylistDeletedMessage,
     PlaylistRenamedMessage,
     QueueTypeMessage,
-    TestWebSocketMessage,
 } from "@rockit/shared";
 
 export enum EWebSocketMessage {
     DownloadProgress = "download_progress",
-    TestWebSocketMessage = "test_web_socket_message",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
     MediaAddedToPlaylist = "media_added_to_playlist",
@@ -26,11 +25,11 @@ export enum EWebSocketMessage {
     CurrentMedia = "current_media",
     CurrentQueue = "current_queue",
     QueueType = "queue_type",
+    CurrentTime = "current_time",
 }
 
 export interface IWebSocketMessagePayloadMap {
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
-    [EWebSocketMessage.TestWebSocketMessage]: TestWebSocketMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
     [EWebSocketMessage.LibraryMediaRemoved]: LibraryMediaRemovedMessage;
     [EWebSocketMessage.MediaAddedToPlaylist]: MediaAddedToPlaylistMessage;
@@ -41,11 +40,11 @@ export interface IWebSocketMessagePayloadMap {
     [EWebSocketMessage.CurrentMedia]: CurrentMediaMessage;
     [EWebSocketMessage.CurrentQueue]: CurrentQueueMessage;
     [EWebSocketMessage.QueueType]: QueueTypeMessage;
+    [EWebSocketMessage.CurrentTime]: CurrentTimeMessage;
 }
 
 export type TWebSocketIncomingMessage =
     | DownloadProgressMessage
-    | TestWebSocketMessage
     | LibraryMediaAddedMessage
     | LibraryMediaRemovedMessage
     | MediaAddedToPlaylistMessage
@@ -55,7 +54,8 @@ export type TWebSocketIncomingMessage =
     | PlaylistDeletedMessage
     | CurrentMediaMessage
     | CurrentQueueMessage
-    | QueueTypeMessage;
+    | QueueTypeMessage
+    | CurrentTimeMessage;
 
 export type WebSocketMessageHandler<T extends EWebSocketMessage> = (
     data: IWebSocketMessagePayloadMap[T]

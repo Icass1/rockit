@@ -3,6 +3,7 @@ from __future__ import annotations
 import time as time_module
 from typing import TYPE_CHECKING, Any, Dict
 
+from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -17,6 +18,7 @@ from backend.core.framework.websocket.listenInterval import (
 from backend.core.framework.websocket.playbackState import UserPlaybackState
 from backend.core.framework.websocket.webSocketRouter import websocket_router
 from backend.core.requests.wsMessages import CurrentTimeMessageRequest
+from backend.core.responses.currentTimeMessage import CurrentTimeMessage
 
 if TYPE_CHECKING:
     from backend.core.framework.websocket.webSocketManager import WebSocketManager
@@ -30,6 +32,7 @@ async def handle_current_time(
     session: AsyncSession,
     user_id: int,
     data: Dict[str, Any],
+    sender_websocket: WebSocket | None = None,
 ) -> None:
     current_time_msg = CurrentTimeMessageRequest(**data)
     current_time = current_time_msg.currentTimeMs
@@ -108,3 +111,13 @@ async def handle_current_time(
     )
     if a_result.is_not_ok():
         logger.error(f"Error updating current time. {a_result.info()}")
+
+    if sender_websocket is not None:
+        relay_message = CurrentTimeMessage(
+            currentTimeMs=current_time_msg.currentTimeMs,
+        )
+        await manager.send_to_user_async(
+            user_id=user_id,
+            message=relay_message,
+            exclude_websocket=sender_websocket,
+        )

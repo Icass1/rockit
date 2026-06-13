@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict
 
+from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -22,6 +23,7 @@ async def handle_skip_clicked(
     session: AsyncSession,
     user_id: int,
     data: Dict[str, Any],
+    sender_websocket: WebSocket | None = None,
 ) -> None:
     skip_clicked_msg = SkipClickedMessageRequest(**data)
     logger.info(

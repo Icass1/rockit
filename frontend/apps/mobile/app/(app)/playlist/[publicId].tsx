@@ -32,6 +32,11 @@ export default function PlaylistPage() {
         );
     }
 
+    const expandedByMediaId: Record<string, boolean> = {};
+    for (const m of playlist.medias) {
+        expandedByMediaId[m.item.publicId] = m.expanded;
+    }
+
     return (
         <RenderList
             title={playlist.name}
@@ -39,6 +44,8 @@ export default function PlaylistPage() {
             media={playlist.medias.map((m) => m.item)}
             showMediaIndex={false}
             showMediaImage={true}
+            listPublicId={publicId}
+            expandedByMediaId={expandedByMediaId}
         />
     );
 }

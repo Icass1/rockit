@@ -11,6 +11,8 @@ export function Media({
     substractArtists = [],
     showMediaIndex,
     showMediaImage,
+    listPublicId,
+    expandedByMediaId,
 }: {
     index: number;
     media: TMedia;
@@ -18,6 +20,8 @@ export function Media({
     substractArtists?: string[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
+    listPublicId?: string;
+    expandedByMediaId?: Record<string, boolean>;
 }) {
     const $media = useMedia(media);
 
@@ -38,6 +42,8 @@ export function Media({
                 media={$media}
                 allMedia={allMedia}
                 substractArtists={substractArtists}
+                listPublicId={listPublicId}
+                defaultExpanded={expandedByMediaId?.[media.publicId] ?? false}
             />
         );
     }

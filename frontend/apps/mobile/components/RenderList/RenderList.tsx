@@ -17,6 +17,8 @@ interface RenderListProps {
     showMediaIndex?: boolean;
     showMediaImage?: boolean;
     substractArtists?: string[];
+    listPublicId?: string;
+    expandedByMediaId?: Record<string, boolean>;
 }
 
 export default memo(function RenderList({
@@ -28,6 +30,8 @@ export default memo(function RenderList({
     showMediaIndex = false,
     showMediaImage = true,
     substractArtists = [],
+    listPublicId,
+    expandedByMediaId,
 }: RenderListProps) {
     const artistNames = artists.map((a) => a.name).join(", ");
 
@@ -81,6 +85,8 @@ export default memo(function RenderList({
                         showMediaIndex={showMediaIndex}
                         showMediaImage={showMediaImage}
                         substractArtists={substractArtists}
+                        listPublicId={listPublicId}
+                        expandedByMediaId={expandedByMediaId}
                     />
                 ))}
             </ScrollView>

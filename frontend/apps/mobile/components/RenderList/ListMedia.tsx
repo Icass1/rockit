@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import {
     isAlbum,
@@ -12,6 +12,7 @@ import { Image } from "expo-image";
 import { ChevronDown, ChevronRight } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
+import { webSocketManager } from "@/lib/webSocketManager";
 import { Media } from "./Media";
 
 function ListArtists({ media }: { media: TListMedia }) {
@@ -42,14 +43,30 @@ export function ListMedia({
     allMedia,
     substractArtists = [],
     listPublicId,
+    defaultExpanded,
 }: {
     media: TListMedia;
     allMedia?: TMedia[];
     substractArtists?: string[];
     listPublicId?: string;
+    defaultExpanded?: boolean;
 }) {
     const $media = useMedia(_media);
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(defaultExpanded ?? false);
+
+    const handleToggle = useCallback((): void => {
+        setExpanded((prev): boolean => {
+            const newValue = !prev;
+            if (listPublicId) {
+                webSocketManager.sendMediaExpanded({
+                    mediaPublicId: $media.publicId,
+                    playlistPublicId: listPublicId,
+                    expanded: newValue,
+                });
+            }
+            return newValue;
+        });
+    }, [listPublicId, $media.publicId]);
 
     const medias: TMedia[] = useMemo(() => {
         if (isAlbumWithSongs($media)) {
@@ -64,7 +81,7 @@ export function ListMedia({
     return (
         <View style={styles.container}>
             <Pressable
-                onPress={() => setExpanded((prev) => !prev)}
+                onPress={handleToggle}
                 style={styles.header}
             >
                 <Image

@@ -1,4 +1,5 @@
 import {
+    EWebSocketMessage,
     getMediaAudioSrc,
     getMediaVideoSrc,
     isSong,
@@ -68,7 +69,17 @@ export class MediaPlayerManager {
         };
 
         MediaPlayerManager.#instance = this;
+
         return MediaPlayerManager.#instance;
+    }
+
+    init(): void {
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.CurrentTime,
+            (data): void => {
+                this._currentTimeAtom.set(data.currentTimeMs / 1000);
+            }
+        );
     }
 
     play(): void {

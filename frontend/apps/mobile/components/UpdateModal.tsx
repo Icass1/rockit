@@ -45,8 +45,6 @@ export function UpdateModalContent({
 }
 
 export function showUpdateModal(apkUrl: string, latestVersion: string): void {
-    console.log("showUpdateModal");
-
     const ref = getModalRef();
     const content: ModalContent = {
         title: "Update Available",
@@ -54,7 +52,6 @@ export function showUpdateModal(apkUrl: string, latestVersion: string): void {
             <UpdateModalContent apkUrl={apkUrl} latestVersion={latestVersion} />
         ),
     };
-    console.log("ref.show", ref);
 
     ref.show(content);
 }

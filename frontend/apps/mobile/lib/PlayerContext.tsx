@@ -449,8 +449,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                         mediaPublicId: nextMedia.publicId,
                         queueMediaId: index,
                         queueType: queueRef.current.shuffle
-                            ? "RANDOM"
-                            : "SORTED",
+                            ? EQueueType.RANDOM
+                            : EQueueType.SORTED,
                     });
                 }
             } else {
@@ -513,7 +513,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             webSocketManager.sendMediaClicked({
                 mediaPublicId: media.publicId,
             });
-
+            webSocketManager.sendCurrentQueue({
+                queue: buildQueuePayload(
+                    displayQueue,
+                    isShuffle ? newQueue : [],
+                    isShuffle,
+                    listPublicIdByMediaPublicIdRef.current
+                ),
+            });
             webSocketManager.sendCurrentMedia({
                 mediaPublicId: media.publicId,
                 queueMediaId: index,
@@ -642,7 +649,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         const { newShuffle, newQueue, originalQueue } =
             queueRef.current.toggleShuffle();
 
-        const newQueueType = newShuffle ? "RANDOM" : "SORTED";
+        const newQueueType = newShuffle ? EQueueType.RANDOM : EQueueType.SORTED;
         webSocketManager.sendQueueType({ queueType: newQueueType });
 
         // When turning ON: newQueue=shuffled, originalQueue=sorted (currentQBeforeToggle)

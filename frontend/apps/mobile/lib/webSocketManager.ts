@@ -206,6 +206,7 @@ export class WebSocketManager {
     }
 
     sendCurrentQueue(data: CurrentQueueMessageRequest) {
+        console.log("Sending current queue");
         this.send({ type: "current_queue", ...data });
     }
 

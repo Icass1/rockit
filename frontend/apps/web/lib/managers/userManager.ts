@@ -1,9 +1,16 @@
-import { EQueueType, ERepeatMode } from "@rockit/shared";
+import {
+    EQueueType,
+    ERepeatMode,
+    EWebSocketMessage,
+    type QueueTypeMessage,
+} from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class UserManager {
+    private _init = false;
+
     private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
     private _repeatModeAtom = createAtom<ERepeatMode>(ERepeatMode.OFF);
     private _loggedIn = createAtom<boolean>(false);
@@ -14,8 +21,23 @@ export class UserManager {
 
     async init(): Promise<void> {
         if (typeof window === "undefined") return;
+        if (this._init) return;
+        this._init = true;
+
         await this.updateAsync();
+
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.QueueType,
+            this._handleQueueType
+        );
     }
+
+    private _handleQueueType = (data: QueueTypeMessage): void => {
+        const newType =
+            data.queueType === "RANDOM" ? EQueueType.RANDOM : EQueueType.SORTED;
+        this._queueTypeAtom.set(newType);
+        rockIt.queueManager.updateQueue();
+    };
 
     async updateAsync(): Promise<void> {
         const res = await Http.getSession();

@@ -50,7 +50,6 @@ export function getNextQueueMediaId<T extends QueueItem>(
         (item): boolean => item.queueMediaId === currentId
     );
     if (currentIndex === -1 || currentIndex + 1 >= queue.length) return null;
-    console.log(queue, currentId, queue[currentIndex + 1].queueMediaId);
     return queue[currentIndex + 1].queueMediaId;
 }
 

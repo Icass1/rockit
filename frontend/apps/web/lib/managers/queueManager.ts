@@ -1,6 +1,7 @@
 import { CurrentQueueMessageRequestItem } from "@/dto";
 import {
     EQueueType,
+    EWebSocketMessage,
     isAlbum,
     isAlbumWithSongs,
     isPlaylist,
@@ -9,6 +10,7 @@ import {
     TListMedia,
     TPlayableMedia,
     TQueueMedia,
+    type CurrentMediaMessage,
 } from "@rockit/shared";
 import { QueueItem } from "@/models/interfaces/queue";
 import { Http } from "@/lib/http";
@@ -32,6 +34,7 @@ export class QueueManager {
     private _currentQueueMediaIdAtom = createAtom<number | null>(0);
 
     private _lastNavigationDirection: 1 | -1 = 1;
+    private _init = false;
 
     private sortedQueue: QueueItem[] = [];
     private randomQueue: QueueItem[] = [];
@@ -46,6 +49,42 @@ export class QueueManager {
 
     async init(): Promise<void> {
         if (typeof window === "undefined") return;
+        if (this._init) return;
+        this._init = true;
+
+        await this._refreshQueueAsync();
+
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.CurrentQueue,
+            this._handleCurrentQueue
+        );
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.CurrentMedia,
+            this._handleCurrentMedia
+        );
+    }
+
+    private _handleCurrentQueue = async (): Promise<void> => {
+        await this._refreshQueueAsync();
+    };
+
+    private _handleCurrentMedia = (data: CurrentMediaMessage): void => {
+        const queue = this._queueAtom.get();
+        const item = queue.find(
+            (item): boolean =>
+                item.queueMediaId === data.queueMediaId ||
+                item.media.publicId === data.mediaPublicId
+        );
+
+        if (item) {
+            this._currentQueueMediaIdAtom.set(data.queueMediaId);
+            this._currentMediaAtom.set(item.media);
+            this._currentListAtom.set(item.listPublicId ?? undefined);
+            rockIt.mediaPlayerManager.setMedia(true);
+        }
+    };
+
+    private async _refreshQueueAsync(): Promise<void> {
         const response = await Http.getQueue();
 
         if (response.isNotOk()) {
@@ -67,9 +106,9 @@ export class QueueManager {
                 .sort((a, b): number => a.randomIndex - b.randomIndex)
                 .map(({ ...item }): QueueItem => item);
 
-            if (response.result.queueType === "RANDOM")
+            if (response.result.queueType === EQueueType.RANDOM)
                 this._queueAtom.set(this.randomQueue);
-            else if (response.result.queueType === "SORTED")
+            else if (response.result.queueType === EQueueType.SORTED)
                 this._queueAtom.set(this.sortedQueue);
 
             const currentMedia = this._queueAtom

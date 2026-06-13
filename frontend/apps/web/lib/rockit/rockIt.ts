@@ -55,6 +55,7 @@ export class RockIt {
 
     async init(): Promise<void> {
         console.log("RockIt! int");
+        rockIt.mediaPlayerManager.init();
         rockIt.queueManager.init();
         rockIt.userManager.init();
         rockIt.downloaderManager.init();

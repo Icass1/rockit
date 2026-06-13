@@ -104,7 +104,6 @@ export class WebSocketManager {
     }
 
     private async _attemptReconnect() {
-        console.log("_attemptReconnect");
         if (this._connecting) return;
         this._connecting = true;
         const maxRetries = 5;
@@ -206,7 +205,6 @@ export class WebSocketManager {
     }
 
     sendCurrentQueue(data: CurrentQueueMessageRequest) {
-        console.log("Sending current queue");
         this.send({ type: "current_queue", ...data });
     }
 

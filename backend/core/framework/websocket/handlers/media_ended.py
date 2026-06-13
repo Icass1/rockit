@@ -23,9 +23,7 @@ async def handle_media_ended(
     data: Dict[str, Any],
 ) -> None:
     media_ended_msg = MediaEndedMessageRequest(**data)
-    logger.info(
-        f"User {user_id} media ended. Media: {media_ended_msg.mediaPublicId}"
-    )
+    logger.info(f"User {user_id} media ended. Media: {media_ended_msg.mediaPublicId}")
 
     playback_state = manager.user_playback_states.get(user_id)
     if playback_state and playback_state.active_interval_start_ms is not None:

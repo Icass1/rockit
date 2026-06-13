@@ -29,12 +29,10 @@ async def handle_seek(
 ) -> None:
     seek_msg = SeekMessageRequest(**data)
 
-    a_result_media: AResult[MediaModel] = (
-        await Media.get_media_from_public_id_async(
-            session=session,
-            public_id=seek_msg.mediaPublicId,
-            media_type_keys=None,
-        )
+    a_result_media: AResult[MediaModel] = await Media.get_media_from_public_id_async(
+        session=session,
+        public_id=seek_msg.mediaPublicId,
+        media_type_keys=None,
     )
     if a_result_media.is_not_ok():
         logger.error(

@@ -1,8 +1,8 @@
-import { COLORS } from "@/constants/theme";
-import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
-import { getMediaArtists } from "@/shared/index";
 import { useEffect, useMemo, useState } from "react";
+import { COLORS } from "@/constants/theme";
+import { getMediaArtists } from "@/shared/index";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 
 interface LyricsLine {
     text: string;

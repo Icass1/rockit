@@ -107,9 +107,21 @@ export {
     type CreatePlaylistRequest,
 } from "./createPlaylistRequest";
 export {
+    CurrentMediaMessageSchema,
+    type CurrentMediaMessage,
+} from "./currentMediaMessage";
+export {
     CurrentMediaMessageRequestSchema,
     type CurrentMediaMessageRequest,
 } from "./currentMediaMessageRequest";
+export {
+    CurrentQueueMessageSchema,
+    type CurrentQueueMessage,
+} from "./currentQueueMessage";
+export {
+    CurrentQueueMessageItemSchema,
+    type CurrentQueueMessageItem,
+} from "./currentQueueMessageItem";
 export {
     CurrentQueueMessageRequestSchema,
     type CurrentQueueMessageRequest,
@@ -241,6 +253,10 @@ export {
     QueueResponseItemSchema,
     type QueueResponseItem,
 } from "./queueResponseItem";
+export {
+    QueueTypeMessageSchema,
+    type QueueTypeMessage,
+} from "./queueTypeMessage";
 export {
     QueueTypeRequestSchema,
     type QueueTypeRequest,

@@ -310,7 +310,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                             a.sortedIndex - b.sortedIndex
                     )
                     .map((item: QueueResponseItem) => {
-                        listPublicIdMap.set(item.media.publicId, item.listPublicId);
+                        listPublicIdMap.set(
+                            item.media.publicId,
+                            item.listPublicId
+                        );
                         return item.media;
                     });
                 const randomQueue = [...queueResponse.result.queue]
@@ -441,14 +444,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                             );
                         }
                     });
-                    webSocketManager.sendCurrentQueue({
-                        queue: buildQueuePayload(
-                            queueRef.current.queue,
-                            queueRef.current.originalQueue,
-                            queueRef.current.shuffle,
-                            listPublicIdByMediaPublicIdRef.current
-                        ),
-                    });
+
                     webSocketManager.sendCurrentMedia({
                         mediaPublicId: nextMedia.publicId,
                         queueMediaId: index,
@@ -517,16 +513,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             webSocketManager.sendMediaClicked({
                 mediaPublicId: media.publicId,
             });
-            // Send queue before media so the backend validates current_media
-            // against the queue we are about to set, not a stale one from another client.
-            webSocketManager.sendCurrentQueue({
-                queue: buildQueuePayload(
-                    displayQueue,
-                    isShuffle ? newQueue : [],
-                    isShuffle,
-                    listPublicIdByMediaPublicIdRef.current
-                ),
-            });
+
             webSocketManager.sendCurrentMedia({
                 mediaPublicId: media.publicId,
                 queueMediaId: index,
@@ -556,8 +543,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     const seekTo = useCallback(
         async (seconds: number) => {
-            const mediaPublicId =
-                queueRef.current.currentMedia?.publicId ?? "";
+            const mediaPublicId = queueRef.current.currentMedia?.publicId ?? "";
             const timeFrom = currentTimeRef.current;
             await mediaEngine.seekTo(seconds);
             setCurrentTime(seconds);
@@ -600,14 +586,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (!isLocal && !shouldHaveVideo) {
             mediaCacheManager.downloadToCache(rawUri, nextMedia.publicId);
         }
-        webSocketManager.sendCurrentQueue({
-            queue: buildQueuePayload(
-                queue.queue,
-                queue.originalQueue,
-                queue.shuffle,
-                listPublicIdByMediaPublicIdRef.current
-            ),
-        });
+
         webSocketManager.sendCurrentMedia({
             mediaPublicId: nextMedia.publicId,
             queueMediaId: nextIndex,
@@ -650,14 +629,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (!isLocal && !shouldHaveVideo) {
             mediaCacheManager.downloadToCache(rawUri, prevMedia.publicId);
         }
-        webSocketManager.sendCurrentQueue({
-            queue: buildQueuePayload(
-                queue.queue,
-                queue.originalQueue,
-                queue.shuffle,
-                listPublicIdByMediaPublicIdRef.current
-            ),
-        });
+
         webSocketManager.sendCurrentMedia({
             mediaPublicId: prevMedia.publicId,
             queueMediaId: prevIndex,
@@ -773,14 +745,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             webSocketManager.sendMediaClicked({
                 mediaPublicId: media.publicId,
             });
-            webSocketManager.sendCurrentQueue({
-                queue: buildQueuePayload(
-                    displayQueue,
-                    isShuffle ? newQueue : [],
-                    isShuffle,
-                    listPublicIdByMediaPublicIdRef.current
-                ),
-            });
+
             webSocketManager.sendCurrentMedia({
                 mediaPublicId: media.publicId,
                 queueMediaId: index,

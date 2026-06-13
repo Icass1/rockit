@@ -1,4 +1,5 @@
 import json
+from typing import Any, Dict
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from logging import Logger
@@ -50,8 +51,10 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         while True:
             data: str = await websocket.receive_text()
             try:
-                message: dict[str, object] = json.loads(data)
-                await ws_manager.handle_client_message_async(user_id, message)
+                message: Dict[str, Any] = json.loads(data)
+                await ws_manager.handle_client_message_async(
+                    user_id, websocket, message
+                )
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON received from user {user_id}")
     except WebSocketDisconnect:

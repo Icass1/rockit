@@ -30,7 +30,7 @@ export class WebSocketManager {
         try {
             const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
 
-            // console.log("WebSocketManager", { data });
+            console.log("WebSocketManager recevied message", { data });
 
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);

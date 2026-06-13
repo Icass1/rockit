@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState, type JSX } from "react";
+import { createPortal } from "react-dom";
 import { UploadResponseSchema, type UploadSongRequest } from "@/dto";
 import { BACKEND_URL } from "@/environment";
 import { useStore } from "@nanostores/react";
@@ -894,6 +895,7 @@ export default function UploadModal({
     // Render.
 
     if (!isOpen) return null;
+    if (typeof window === "undefined") return null;
 
     const tabs: {
         key: UploadType;
@@ -905,14 +907,14 @@ export default function UploadModal({
         { key: "video", label: $vocabulary.UPLOAD_VIDEO, icon: Clapperboard },
     ];
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 md:items-center"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
             onClick={(e): void => {
                 if (e.target === e.currentTarget) handleClose();
             }}
         >
-            <div className="flex h-[92vh] w-full flex-col rounded-t-2xl bg-neutral-900 p-5 md:h-[85vh] md:max-w-3xl md:rounded-2xl md:p-6">
+            <div className="flex max-h-[90vh] w-full flex-col rounded-2xl bg-neutral-900 p-5 md:max-h-[85vh] md:max-w-3xl md:p-6">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                     <div>
@@ -934,7 +936,7 @@ export default function UploadModal({
                 </div>
 
                 {/* Type tabs */}
-                <div className="mb-4 flex gap-2">
+                <div className="mb-4 flex flex-wrap gap-1.5">
                     {tabs.map(
                         ({ key, label, icon: Icon }): JSX.Element => (
                             <button
@@ -1000,11 +1002,11 @@ export default function UploadModal({
                             {renderStatusText()}
                         </p>
                     )}
-                    <div className="flex gap-3">
+                    <div className="flex shrink-0 gap-2">
                         <button
                             onClick={handleClose}
                             disabled={uploading}
-                            className="rounded-md border border-neutral-600 px-4 py-2 text-sm text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
+                            className="whitespace-nowrap rounded-md border border-neutral-600 px-3 py-2 text-sm text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
                         >
                             {$vocabulary.CANCEL}
                         </button>
@@ -1016,7 +1018,7 @@ export default function UploadModal({
                                 (uploadType === "album" && !canSubmitAlbum) ||
                                 (uploadType === "video" && !canSubmitVideo)
                             }
-                            className="rounded-md bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="whitespace-nowrap rounded-md bg-pink-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {uploading
                                 ? $vocabulary.UPLOAD_IN_PROGRESS
@@ -1025,6 +1027,7 @@ export default function UploadModal({
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

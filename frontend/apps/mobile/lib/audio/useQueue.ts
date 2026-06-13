@@ -39,6 +39,7 @@ interface UseQueueReturn {
     };
     toggleShuffle: () => ToggleShuffleResult;
     cycleRepeat: () => void;
+    setRepeatMode: (mode: ERepeatMode) => void;
     removeFromQueue: (index: number) => void;
     reorderQueue: (fromIndex: number, toIndex: number) => void;
     setCurrentIndex: (index: number) => void;
@@ -191,6 +192,10 @@ export function useQueue(): UseQueueReturn {
         });
     }, []);
 
+    const setRepeatModeValue = useCallback((mode: ERepeatMode) => {
+        setRepeatMode(mode);
+    }, []);
+
     const removeFromQueue = useCallback((index: number) => {
         // Keep originalQueueRef in sync when shuffle is active
         const removedMedia = queueRef.current[index];
@@ -317,6 +322,7 @@ export function useQueue(): UseQueueReturn {
         resolveOnEnd,
         toggleShuffle,
         cycleRepeat,
+        setRepeatMode: setRepeatModeValue,
         removeFromQueue,
         reorderQueue,
         setCurrentIndex,

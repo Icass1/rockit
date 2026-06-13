@@ -295,6 +295,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
                 queue.restoreQueue(sortedQueue, randomQueue, currentMedia, isShuffle);
 
+                const repeatMode = ERepeatMode[sessionResponse.result.repeatMode];
+                if (repeatMode !== undefined) {
+                    queue.setRepeatMode(repeatMode);
+                }
+
                 const uri = getUri(currentMedia);
                 if (!uri) return;
 

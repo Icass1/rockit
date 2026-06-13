@@ -7,6 +7,11 @@ import {
 import { Directory, File, Paths } from "expo-file-system";
 import { getItemAsync } from "expo-secure-store";
 import { saveSessionCookie } from "@/lib/api";
+import {
+    denormalizeAndLoad,
+    ensureMediaDirs,
+    normalizeAndSave,
+} from "@/lib/http/storageNormalizer";
 
 export class Http extends BaseHttp {
     protected static override async baseApiFetchAsync(
@@ -80,9 +85,10 @@ function resolveRoute(path: string): string | undefined {
     return undefined;
 }
 
-["album", "playlist", "lyrics", "lyrics/dynamic"].map((dirname) => {
-    const albumDir = new Directory(Paths.document, dirname);
-    albumDir.create({ idempotent: true });
+ensureMediaDirs();
+["lyrics", "lyrics/dynamic"].map((dirname) => {
+    const dir = new Directory(Paths.document, dirname);
+    dir.create({ idempotent: true });
 });
 
 // Reset middlewares.
@@ -98,8 +104,10 @@ Http.middlewares.push(async (next, context) => {
 
     if (filePath) {
         const file = new File(Paths.document, filePath);
-        if (response.isOk()) file.write(JSON.stringify(response.result));
-        else {
+        if (response.isOk()) {
+            const normalized = normalizeAndSave(response.result);
+            file.write(JSON.stringify(normalized));
+        } else {
             if (!file.exists) {
                 return new HttpResult({
                     code: 404,
@@ -122,11 +130,13 @@ Http.middlewares.push(async (next, context) => {
                 });
             }
 
+            const denormalized = await denormalizeAndLoad(json);
+
             return new HttpResult({
                 code: 200,
                 ok: true,
                 message: "From middleware",
-                result: context.schema.parse(json),
+                result: context.schema.parse(denormalized),
             });
         }
     }

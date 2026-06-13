@@ -2,6 +2,9 @@ import { EventManager } from "@rockit/packages/shared";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
+import { FriendManager } from "@/lib/managers/friendManager";
+import { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
+import { SharingManager } from "@/lib/managers/sharingManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
@@ -46,6 +49,9 @@ export class RockIt {
     playerUIManager = new PlayerUIManager();
     eventManager = new EventManager();
     libraryManager = new LibraryManager();
+    friendManager = new FriendManager();
+    listenTogetherManager = new ListenTogetherManager();
+    sharingManager = new SharingManager();
     mediaSessionManager = new MediaSessionManager();
 
     constructor() {

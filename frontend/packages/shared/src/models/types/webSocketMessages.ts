@@ -3,8 +3,10 @@ import type {
     CurrentQueueMessage,
     CurrentTimeMessage,
     DownloadProgressMessage,
+    FriendActivityItem,
     LibraryMediaAddedMessage,
     LibraryMediaRemovedMessage,
+    ListenTogetherSessionResponse,
     MediaAddedToPlaylistMessage,
     MediaListenedMessage,
     PlaylistCreatedMessage,
@@ -13,10 +15,20 @@ import type {
     QueueTypeMessage,
 } from "@rockit/shared";
 
+export type FriendActivityMessage = {
+    type: "friend_activity";
+} & FriendActivityItem;
+
+export type ListenTogetherSyncMessage = {
+    type: "listen_together_sync";
+} & ListenTogetherSessionResponse;
+
 export enum EWebSocketMessage {
     DownloadProgress = "download_progress",
+    FriendActivity = "friend_activity",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
+    ListenTogetherSync = "listen_together_sync",
     MediaAddedToPlaylist = "media_added_to_playlist",
     MediaListened = "media_listened",
     PlaylistCreated = "playlist_created",
@@ -30,8 +42,10 @@ export enum EWebSocketMessage {
 
 export interface IWebSocketMessagePayloadMap {
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
+    [EWebSocketMessage.FriendActivity]: FriendActivityMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
     [EWebSocketMessage.LibraryMediaRemoved]: LibraryMediaRemovedMessage;
+    [EWebSocketMessage.ListenTogetherSync]: ListenTogetherSyncMessage;
     [EWebSocketMessage.MediaAddedToPlaylist]: MediaAddedToPlaylistMessage;
     [EWebSocketMessage.MediaListened]: MediaListenedMessage;
     [EWebSocketMessage.PlaylistCreated]: PlaylistCreatedMessage;
@@ -45,8 +59,10 @@ export interface IWebSocketMessagePayloadMap {
 
 export type TWebSocketIncomingMessage =
     | DownloadProgressMessage
+    | FriendActivityMessage
     | LibraryMediaAddedMessage
     | LibraryMediaRemovedMessage
+    | ListenTogetherSyncMessage
     | MediaAddedToPlaylistMessage
     | MediaListenedMessage
     | PlaylistCreatedMessage

@@ -450,6 +450,157 @@ export class BaseHttp {
         );
     }
 
+    static async getFriends() {
+        return this.apiGetAsync(`/friends`, dto.FriendListResponseSchema);
+    }
+
+    static async getFriendsActivity() {
+        return this.apiGetAsync(
+            `/friends/activity`,
+            dto.FriendActivityResponseSchema
+        );
+    }
+
+    static async unblockUser(userPublicId: string) {
+        return this.apiDeleteAsync(
+            `/friends/block/${userPublicId}`,
+            dto.OkResponseSchema
+        );
+    }
+
+    static async compareStats(userPublicId: string) {
+        return this.apiGetAsync(
+            `/friends/compare/${userPublicId}`,
+            dto.CompareStatsResponseSchema
+        );
+    }
+
+    static async getLeaderboard() {
+        return this.apiGetAsync(
+            `/friends/leaderboard`,
+            dto.LeaderboardResponseSchema
+        );
+    }
+
+    static async getMyLevel() {
+        return this.apiGetAsync(`/friends/levels`, dto.UserLevelResponseSchema);
+    }
+
+    static async inviteToSession(payload: dto.ListenTogetherInviteRequest) {
+        return this.apiPostAsync(
+            `/friends/listen-together/invite`,
+            dto.ListenTogetherInviteRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async joinSession(payload: dto.ListenTogetherJoinRequest) {
+        return this.apiPostAsync(
+            `/friends/listen-together/join`,
+            dto.ListenTogetherJoinRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async leaveSession(payload: dto.ListenTogetherLeaveRequest) {
+        return this.apiPostAsync(
+            `/friends/listen-together/leave`,
+            dto.ListenTogetherLeaveRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async getActiveSessions() {
+        return this.apiGetAsync(
+            `/friends/listen-together/sessions`,
+            dto.ListenTogetherListResponseSchema
+        );
+    }
+
+    static async syncSession(payload: dto.ListenTogetherSyncRequest) {
+        return this.apiPostAsync(
+            `/friends/listen-together/sync`,
+            dto.ListenTogetherSyncRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async getFriendRequests() {
+        return this.apiGetAsync(
+            `/friends/requests`,
+            dto.FriendRequestListResponseSchema
+        );
+    }
+
+    static async searchUsers() {
+        return this.apiGetAsync(
+            `/friends/search`,
+            dto.FriendSearchResponseSchema
+        );
+    }
+
+    static async shareMedia(payload: dto.ShareMediaRequest) {
+        return this.apiPostAsync(
+            `/friends/share`,
+            dto.ShareMediaRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async getShareInbox() {
+        return this.apiGetAsync(
+            `/friends/share/inbox`,
+            dto.SharedMediaInboxResponseSchema
+        );
+    }
+
+    static async getShareSent() {
+        return this.apiGetAsync(
+            `/friends/share/sent`,
+            dto.SharedMediaSentResponseSchema
+        );
+    }
+
+    static async removeFriend(userPublicId: string) {
+        return this.apiDeleteAsync(
+            `/friends/${userPublicId}`,
+            dto.OkResponseSchema
+        );
+    }
+
+    static async getUserLevel(userPublicId: string) {
+        return this.apiGetAsync(
+            `/friends/${userPublicId}/level`,
+            dto.UserLevelResponseSchema
+        );
+    }
+
+    static async getFriendStats(userPublicId: string) {
+        return this.apiGetAsync(
+            `/friends/${userPublicId}/stats`,
+            dto.FriendStatsResponseSchema
+        );
+    }
+
+    static async getFriendStreak(userPublicId: string) {
+        return this.apiGetAsync(
+            `/friends/${userPublicId}/streak`,
+            dto.DictSchema
+        );
+    }
+
+    static async getVibeScore(userPublicId: string) {
+        return this.apiGetAsync(
+            `/friends/${userPublicId}/vibe`,
+            dto.DictSchema
+        );
+    }
+
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
         return this.apiPostAsync(
             `/lrclib/lyrics`,

@@ -83,7 +83,7 @@ export function QueueMedia({
 
             <div className="max-w-full min-w-0 flex-1">
                 <p className="truncate text-base font-semibold text-white">
-                    {media.media.name} {media.queueMediaId}
+                    {media.media.name}
                 </p>
                 <div className="flex flex-row items-center gap-2">
                     <ProviderTag name={media.media.provider} iconOnly={true} />

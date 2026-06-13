@@ -80,7 +80,9 @@ export default function MiniPlayer() {
                         {currentMedia.name}
                     </Text>
                     <Text style={styles.artist} numberOfLines={1}>
-                        {"artists" in currentMedia ? (currentMedia.artists[0]?.name ?? "") : ""}
+                        {"artists" in currentMedia
+                            ? (currentMedia.artists[0]?.name ?? "")
+                            : ""}
                     </Text>
                 </View>
 

@@ -124,7 +124,7 @@ function RankingRow({
                         <img
                             src={item.imageUrl}
                             alt=""
-                            className="h-full w-full select-none object-cover"
+                            className="h-full w-full object-cover select-none"
                             aria-hidden
                         />
                     ) : (
@@ -147,7 +147,7 @@ function RankingRow({
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <div className="hidden h-1 w-16 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-24">
                     <div
-                        className="bg-gradient-to-r h-full rounded-full from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
+                        className="h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
                         style={{ width: `${progressPercent}%` }}
                     />
                 </div>
@@ -160,11 +160,16 @@ function RankingRow({
         </div>
     );
 
-    const className = "group w-full text-left transition-all duration-200 hover:bg-white/2";
+    const className =
+        "group w-full text-left transition-all duration-200 hover:bg-white/2";
 
     if (onPlay) {
         return (
-            <button type="button" onClick={() => onPlay(item)} className={className}>
+            <button
+                type="button"
+                onClick={() => onPlay(item)}
+                className={className}
+            >
                 {content}
             </button>
         );

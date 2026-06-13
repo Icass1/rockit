@@ -22,7 +22,6 @@ import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
-import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAction";
 import {
     DownloadAction,
     DownloadZipAction,
@@ -40,6 +39,7 @@ import {
 } from "@/components/MediaContextMenu/actions/ListQueueActions";
 import NavigateAction from "@/components/MediaContextMenu/actions/NavigateAction";
 import PlayAction from "@/components/MediaContextMenu/actions/PlayAction";
+import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAction";
 import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/RemoveFromPlaylistAction";
 import {
     AddSongQueueRandomAction,

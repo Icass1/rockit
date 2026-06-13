@@ -7,10 +7,7 @@ import PiPContent from "@/components/PiP/PiPRoot";
 import { PIP_STYLES } from "@/components/PiP/PiPStyles";
 
 type DocumentPiP = {
-    requestWindow: (opts: {
-        width: number;
-        height: number;
-    }) => Promise<Window>;
+    requestWindow: (opts: { width: number; height: number }) => Promise<Window>;
 };
 
 function getDocumentPiP(): DocumentPiP | null {
@@ -99,8 +96,7 @@ export default function PictureInPicture(): JSX.Element | null {
         if (!pipWindow) return;
         const onClose = (): void => setPipWindow(null);
         pipWindow.addEventListener("pagehide", onClose);
-        return (): void =>
-            pipWindow.removeEventListener("pagehide", onClose);
+        return (): void => pipWindow.removeEventListener("pagehide", onClose);
     }, [pipWindow]);
 
     if (isSupported === null || !isSupported) return null;
@@ -110,9 +106,7 @@ export default function PictureInPicture(): JSX.Element | null {
             <button
                 onClick={togglePiP}
                 className="rounded-full p-2 text-gray-400 transition hover:text-white"
-                aria-label={
-                    pipWindow ? "Close miniplayer" : "Open miniplayer"
-                }
+                aria-label={pipWindow ? "Close miniplayer" : "Open miniplayer"}
                 title={pipWindow ? "Close miniplayer" : "Open miniplayer"}
             >
                 <PictureInPicture2

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
+import { getMediaArtists } from "@/shared/index";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface LyricsLine {
     text: string;
@@ -61,9 +62,9 @@ export default function PlayerLyrics() {
                 {currentMedia && (
                     <Text style={styles.headerSubtitle} numberOfLines={1}>
                         {currentMedia.name}
-                        {"artists" in currentMedia && currentMedia.artists[0]?.name
-                            ? ` — ${currentMedia.artists[0].name}`
-                            : ""}
+                        {getMediaArtists(currentMedia)
+                            .map((artist) => artist.name)
+                            .join(", ")}
                     </Text>
                 )}
             </View>

@@ -67,7 +67,7 @@ export default function NewPlaylistButton({
                     {...triggerProps}
                     className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
                 >
-                    <div className="relative h-12 w-12 shrink-0 select-none overflow-hidden rounded-md">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md select-none">
                         <Image
                             alt=""
                             src="/rockit-background.png"
@@ -93,13 +93,13 @@ export default function NewPlaylistButton({
                         <div className="cover relative aspect-square h-auto w-full">
                             <Image
                                 alt=""
-                                className="cover absolute top-0 left-0 aspect-square h-auto w-full select-none rounded-md"
+                                className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md select-none"
                                 src="/rockit-background.png"
                                 width={600}
                                 height={600}
                                 priority
                             />
-                            <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full select-none rounded-md p-6" />
+                            <Plus className="cover absolute top-0 left-0 aspect-square h-auto w-full rounded-md p-6 select-none" />
                         </div>
                         <label className="min-h-6 cursor-pointer truncate text-center font-semibold">
                             {$vocabulary.NEW_PLAYLIST}

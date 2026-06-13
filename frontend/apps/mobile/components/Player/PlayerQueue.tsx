@@ -11,7 +11,14 @@ import QueueItem from "./QueueItem";
  * Drag-to-reorder is a TODO once DraggableFlatList is re-integrated.
  */
 export default function PlayerQueue() {
-    const { queue, currentMedia, removeFromQueue, playMedia, shuffle, originalQueue } = usePlayer();
+    const {
+        queue,
+        currentMedia,
+        removeFromQueue,
+        playMedia,
+        shuffle,
+        originalQueue,
+    } = usePlayer();
 
     if (!queue || queue.length === 0) {
         return (
@@ -38,9 +45,10 @@ export default function PlayerQueue() {
                         isActive={item.publicId === currentMedia?.publicId}
                         onDelete={(idx) => removeFromQueue(idx)}
                         onPlay={(media: TQueueMedia) => {
-                            const sortedQueue = shuffle && originalQueue.length > 0
-                                ? originalQueue
-                                : queue;
+                            const sortedQueue =
+                                shuffle && originalQueue.length > 0
+                                    ? originalQueue
+                                    : queue;
                             playMedia(media, sortedQueue);
                         }}
                     />

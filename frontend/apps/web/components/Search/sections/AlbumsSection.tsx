@@ -36,7 +36,7 @@ export default function AlbumsSection({
                                 <Image
                                     width={350}
                                     height={350}
-                                    className="aspect-square w-full select-none rounded-lg object-cover"
+                                    className="aspect-square w-full rounded-lg object-cover select-none"
                                     src={album.imageUrl}
                                     alt={`Cover of ${album.name}`}
                                 />

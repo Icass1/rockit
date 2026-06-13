@@ -5,10 +5,9 @@ import { useStore } from "@nanostores/react";
 import { getMediaArtists } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import LikeButton from "@/components/LikeButton/LikeButton";
+
 export function PiPInfo(): JSX.Element | null {
-    const $currentSong = useStore(
-        rockIt.queueManager.currentMediaAtom
-    );
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     return (
         <div className="pip-info">
@@ -24,9 +23,7 @@ export function PiPInfo(): JSX.Element | null {
             </div>
             {$currentSong && (
                 <div className="pip-info-like">
-                    <LikeButton
-                        mediaPublicId={$currentSong.publicId}
-                    />
+                    <LikeButton mediaPublicId={$currentSong.publicId} />
                 </div>
             )}
         </div>

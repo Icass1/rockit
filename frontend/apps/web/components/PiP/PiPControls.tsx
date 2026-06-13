@@ -31,12 +31,8 @@ export function PiPControls({
     onToggleLyrics,
     isSong = false,
 }: PiPControlsProps): JSX.Element | null {
-    const $playing = useStore(
-        rockIt.mediaPlayerManager.playingAtom
-    );
-    const $repeatMode = useStore(
-        rockIt.userManager.repeatModeAtom
-    );
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
 
     if (!show) return null;
 
@@ -45,7 +41,10 @@ export function PiPControls({
     return (
         <div className="pip-controls-bar">
             {showSecondary && onToggleLyrics && isSong && (
-                <div className="pip-controls-icon-btn" style={{ visibility: "hidden", pointerEvents: "none" }}>
+                <div
+                    className="pip-controls-icon-btn"
+                    style={{ visibility: "hidden", pointerEvents: "none" }}
+                >
                     <Subtitles className="pip-icon" />
                 </div>
             )}
@@ -53,9 +52,7 @@ export function PiPControls({
             {showSecondary && (
                 <button
                     className="pip-controls-icon-btn"
-                    onClick={(): void =>
-                        rockIt.userManager.toggleRandomQueue()
-                    }
+                    onClick={(): void => rockIt.userManager.toggleRandomQueue()}
                     aria-label="Toggle shuffle"
                     title="Shuffle"
                 >
@@ -65,9 +62,7 @@ export function PiPControls({
 
             <button
                 className="pip-controls-icon-btn"
-                onClick={(): void =>
-                    rockIt.queueManager.skipBack()
-                }
+                onClick={(): void => rockIt.queueManager.skipBack()}
                 aria-label="Previous"
                 title="Previous"
             >
@@ -91,9 +86,7 @@ export function PiPControls({
 
             <button
                 className="pip-controls-icon-btn"
-                onClick={(): void =>
-                    rockIt.queueManager.skipForward()
-                }
+                onClick={(): void => rockIt.queueManager.skipForward()}
                 aria-label="Next"
                 title="Next"
             >
@@ -103,9 +96,7 @@ export function PiPControls({
             {showSecondary && (
                 <button
                     className="pip-controls-icon-btn"
-                    onClick={(): void =>
-                        rockIt.userManager.cycleRepeatMode()
-                    }
+                    onClick={(): void => rockIt.userManager.cycleRepeatMode()}
                     aria-label={
                         $repeatMode === ERepeatMode.ONE
                             ? "Repeat one"
@@ -131,7 +122,7 @@ export function PiPControls({
 
             {showSecondary && onToggleLyrics && isSong && (
                 <button
-                    className={`pip-controls-icon-btn${showLyrics ? " pip-lyrics-toggle-btn--active" : ""}`}
+                    className={`pip-controls-icon-btn${showLyrics ? "pip-lyrics-toggle-btn--active" : ""}`}
                     onClick={onToggleLyrics}
                     aria-label={showLyrics ? "Hide lyrics" : "Show lyrics"}
                     title={showLyrics ? "Hide lyrics" : "Show lyrics"}

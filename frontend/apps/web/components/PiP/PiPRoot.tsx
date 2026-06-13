@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { PiPCover } from "@/components/PiP/PiPCover";
 import { PiPInfo } from "@/components/PiP/PiPInfo";
 import { PiPLyrics } from "@/components/PiP/PiPLyrics";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { PIP_STYLES } from "@/components/PiP/PiPStyles";
 
 export type PiPLayout = "cover-only" | "sidebar" | "pill" | "full";
@@ -18,10 +18,7 @@ function getLayout(width: number, height: number): PiPLayout {
     return "sidebar";
 }
 
-function applyCssVars(
-    doc: Document,
-    layout: PiPLayout
-): void {
+function applyCssVars(doc: Document, layout: PiPLayout): void {
     const root = doc.documentElement;
 
     const vars: Record<string, string> = {};

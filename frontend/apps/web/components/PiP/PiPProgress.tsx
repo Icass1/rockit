@@ -16,12 +16,8 @@ export function PiPProgress({
     show,
     layout,
 }: PiPProgressProps): JSX.Element | null {
-    const $currentTime = useStore(
-        rockIt.mediaPlayerManager.currentTimeAtom
-    );
-    const $currentSong = useStore(
-        rockIt.queueManager.currentMediaAtom
-    );
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
 
     const duration = getMediaDuration($currentSong) ?? 0;
 
@@ -30,10 +26,7 @@ export function PiPProgress({
     const isCoverOnly = layout === "cover-only";
     const progressPct =
         duration > 0
-            ? Math.min(
-                  100,
-                  Math.max(0, (($currentTime ?? 0) / duration) * 100)
-              )
+            ? Math.min(100, Math.max(0, (($currentTime ?? 0) / duration) * 100))
             : 0;
     const sliderStyle: React.CSSProperties = {
         flexGrow: 1,
@@ -48,9 +41,7 @@ export function PiPProgress({
                 gap: isCoverOnly ? "4px" : "8px",
             }}
         >
-            <span className="pip-time-label">
-                {getTime($currentTime ?? 0)}
-            </span>
+            <span className="pip-time-label">{getTime($currentTime ?? 0)}</span>
 
             <input
                 type="range"
@@ -76,9 +67,7 @@ export function PiPProgress({
                 }}
             />
 
-            <span className="pip-time-label">
-                {getTime(duration)}
-            </span>
+            <span className="pip-time-label">{getTime(duration)}</span>
         </div>
     );
 }

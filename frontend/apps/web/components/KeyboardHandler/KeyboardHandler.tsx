@@ -50,7 +50,8 @@ export default function KeyboardHandler(): null {
                     event.preventDefault();
                     rockIt.mediaPlayerManager.volume = Math.min(
                         1,
-                        (Math.sqrt(rockIt.mediaPlayerManager.volume) + 0.05) ** 2,
+                        (Math.sqrt(rockIt.mediaPlayerManager.volume) + 0.05) **
+                            2
                     );
                     break;
 
@@ -58,7 +59,8 @@ export default function KeyboardHandler(): null {
                     event.preventDefault();
                     rockIt.mediaPlayerManager.volume = Math.max(
                         0,
-                        (Math.sqrt(rockIt.mediaPlayerManager.volume) - 0.05) ** 2,
+                        (Math.sqrt(rockIt.mediaPlayerManager.volume) - 0.05) **
+                            2
                     );
                     break;
 

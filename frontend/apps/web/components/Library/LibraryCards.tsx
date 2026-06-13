@@ -97,7 +97,7 @@ function LibraryCard({
                     src={cardImgSrc}
                     fill
                     sizes={COVER_SIZES}
-                    className="select-none object-cover"
+                    className="object-cover select-none"
                     onError={(): void =>
                         setCardImgSrc("/radio-placeholder.png")
                     }
@@ -109,7 +109,7 @@ function LibraryCard({
                     width={COVER_PX}
                     height={COVER_PX}
                     sizes={COVER_SIZES}
-                    className="aspect-square w-full select-none rounded-md object-cover"
+                    className="aspect-square w-full rounded-md object-cover select-none"
                     onError={(): void =>
                         setCardImgSrc("/radio-placeholder.png")
                     }

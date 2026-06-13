@@ -24,6 +24,10 @@ import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    expandAlbumsToPlayable,
+    expandPlaylistsToPlayable,
+} from "@/lib/services/mediaService";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
 import {
     AlbumCard,
@@ -41,10 +45,6 @@ import {
 } from "@/components/Library/LibraryRows";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
-import {
-    expandAlbumsToPlayable,
-    expandPlaylistsToPlayable,
-} from "@/lib/services/mediaService";
 import LoadingComponent from "@/components/Loading";
 
 /* ------------------------------------------------------- */
@@ -423,7 +423,7 @@ export function LibraryLists({
                         }}
                     >
                         <div
-                            className="absolute inset-0 flex select-none items-center justify-center gap-1 text-white"
+                            className="absolute inset-0 flex items-center justify-center gap-1 text-white select-none"
                             style={{
                                 fontFamily:
                                     "'Nunito', 'Segoe UI', system-ui, sans-serif",
@@ -475,7 +475,7 @@ export function LibraryLists({
                             src={album.imageUrl ?? "/song-placeholder.png"}
                             width={160}
                             height={160}
-                            className="aspect-square w-full select-none rounded-md object-cover"
+                            className="aspect-square w-full rounded-md object-cover select-none"
                         />
                         <p className="mt-1 truncate text-center font-semibold">
                             {album.name}

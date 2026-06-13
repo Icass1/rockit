@@ -35,7 +35,11 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
         { name: "index", icon: Home, path: "/(app)" as const },
         { name: "library", icon: BookOpen, path: "/(app)/library" as const },
         { name: "search", icon: Search, path: "/(app)/search" as const },
-        { name: "downloader", icon: Download, path: "/(app)/downloader" as const },
+        {
+            name: "downloader",
+            icon: Download,
+            path: "/(app)/downloader" as const,
+        },
         { name: "settings", icon: Settings, path: "/(app)/settings" as const },
     ];
 
@@ -142,10 +146,7 @@ function AppLayoutInner({
     const { hidePlayer } = usePlayer();
     return (
         <View style={{ flex: 1 }}>
-            <Tabs
-                tabBar={() => null}
-                screenOptions={{ headerShown: false }}
-            >
+            <Tabs tabBar={() => null} screenOptions={{ headerShown: false }}>
                 <Tabs.Screen
                     name="index"
                     options={{

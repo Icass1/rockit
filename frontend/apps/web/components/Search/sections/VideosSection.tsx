@@ -32,7 +32,7 @@ export default function VideosSection({
                                 <Image
                                     width={350}
                                     height={197}
-                                    className="aspect-video w-full select-none rounded-lg object-cover"
+                                    className="aspect-video w-full rounded-lg object-cover select-none"
                                     src={video.imageUrl}
                                     alt={`Thumbnail of ${video.name}`}
                                 />

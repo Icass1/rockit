@@ -1,13 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState, type JSX } from "react";
-import {
-    UploadResponseSchema,
-    type UploadSongRequest,
-} from "@/dto";
+import { UploadResponseSchema, type UploadSongRequest } from "@/dto";
 import { BACKEND_URL } from "@/environment";
 import { useStore } from "@nanostores/react";
-import { Http } from "@/lib/http";
 import {
     Clapperboard,
     DiscAlbum,
@@ -19,6 +15,7 @@ import {
     Upload,
     X,
 } from "lucide-react";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 // Types.
@@ -395,7 +392,9 @@ export default function UploadModal({
                 trackNumber: parseInt(f.track, 10) || 0,
             });
             if (!startResult.isOk())
-                throw new Error(`Start song upload failed: ${startResult.code}`);
+                throw new Error(
+                    `Start song upload failed: ${startResult.code}`
+                );
             const { uploadId } = startResult.result;
 
             const cumulativeBytes = files

@@ -6,7 +6,8 @@ import {
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-const SILENT_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+const SILENT_WAV =
+    "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
 const ACTION_HANDLERS: MediaSessionAction[] = [
     "play",
@@ -27,8 +28,10 @@ export class MediaSessionManager {
     private _unsubscribers: (() => void)[] = [];
 
     private static _isiOS(): boolean {
-        return typeof navigator !== "undefined" &&
-            /iPad|iPhone|iPod/.test(navigator.userAgent ?? "");
+        return (
+            typeof navigator !== "undefined" &&
+            /iPad|iPhone|iPod/.test(navigator.userAgent ?? "")
+        );
     }
 
     constructor() {

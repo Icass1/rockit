@@ -1,6 +1,6 @@
-import { useTypedRouter } from "@/lib/useTypedRouter";
 import { Bug } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTypedRouter } from "@/lib/useTypedRouter";
 
 export default function LogsButton() {
     const { push } = useTypedRouter();

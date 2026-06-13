@@ -45,7 +45,7 @@ function SquareCover({ src, alt }: { src: string; alt: string }): JSX.Element {
                 alt={alt}
                 fill
                 sizes="48px"
-                className="select-none object-cover"
+                className="object-cover select-none"
             />
         </div>
     );
@@ -60,7 +60,7 @@ function VideoCover({ src, alt }: { src: string; alt: string }): JSX.Element {
                 alt={alt}
                 fill
                 sizes="85px"
-                className="select-none object-cover"
+                className="object-cover select-none"
             />
         </div>
     );

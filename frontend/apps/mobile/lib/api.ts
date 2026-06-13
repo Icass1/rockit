@@ -1,5 +1,5 @@
-import * as SecureStore from "expo-secure-store";
 import { BACKEND_URL } from "@rockit/shared";
+import * as SecureStore from "expo-secure-store";
 
 const SESSION_KEY = "session_id";
 

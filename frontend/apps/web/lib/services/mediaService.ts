@@ -1,6 +1,6 @@
 import {
-    BaseAlbumWithSongsResponse,
     BaseAlbumWithoutSongsResponse,
+    BaseAlbumWithSongsResponse,
     BaseArtistResponse,
     BasePlaylistWithMediasResponse,
     BasePlaylistWithoutMediasResponse,

@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
-import { logger, type LogLevel, type LogEntry } from "@/lib/logger";
 import {
     Bug,
     ChevronDown,
@@ -12,14 +11,9 @@ import {
     TriangleAlert,
     X,
 } from "lucide-react-native";
-import {
-    FlatList,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { logger, type LogEntry, type LogLevel } from "@/lib/logger";
 
 const LEVEL_CONFIG: Record<
     LogLevel,
@@ -71,10 +65,7 @@ function LogRow({ item }: { item: LogEntry }) {
     const cfg = LEVEL_CONFIG[item.level];
 
     return (
-        <Pressable
-            style={styles.logRow}
-            onPress={() => setExpanded((p) => !p)}
-        >
+        <Pressable style={styles.logRow} onPress={() => setExpanded((p) => !p)}>
             <View style={styles.logHeader}>
                 <View style={[styles.levelBadge, { backgroundColor: cfg.bg }]}>
                     {cfg.icon}
@@ -93,7 +84,10 @@ function LogRow({ item }: { item: LogEntry }) {
                     )}
                 </View>
             </View>
-            <Text style={styles.summary} numberOfLines={expanded ? undefined : 2}>
+            <Text
+                style={styles.summary}
+                numberOfLines={expanded ? undefined : 2}
+            >
                 {String(item.args[0] ?? "")}
             </Text>
             {expanded && item.args.length > 1 && (
@@ -112,7 +106,8 @@ function LogRow({ item }: { item: LogEntry }) {
 function formatArg(arg: unknown): string {
     if (arg === null) return "null";
     if (arg === undefined) return "undefined";
-    if (arg instanceof Error) return `${arg.name}: ${arg.message}\n${arg.stack ?? ""}`;
+    if (arg instanceof Error)
+        return `${arg.name}: ${arg.message}\n${arg.stack ?? ""}`;
     if (typeof arg === "object") {
         try {
             return JSON.stringify(arg, null, 2);
@@ -168,7 +163,11 @@ export default function LogsScreen() {
                             key={level}
                             style={[
                                 styles.filterChip,
-                                { borderColor: active ? cfg.color : COLORS.gray800 },
+                                {
+                                    borderColor: active
+                                        ? cfg.color
+                                        : COLORS.gray800,
+                                },
                                 active && { backgroundColor: cfg.bg },
                             ]}
                             onPress={() =>
@@ -179,7 +178,11 @@ export default function LogsScreen() {
                             <Text
                                 style={[
                                     styles.filterChipText,
-                                    { color: active ? cfg.color : COLORS.gray400 },
+                                    {
+                                        color: active
+                                            ? cfg.color
+                                            : COLORS.gray400,
+                                    },
                                 ]}
                             >
                                 {cfg.label}
@@ -188,7 +191,11 @@ export default function LogsScreen() {
                                 <Text
                                     style={[
                                         styles.filterChipCount,
-                                        { color: active ? cfg.color : COLORS.gray600 },
+                                        {
+                                            color: active
+                                                ? cfg.color
+                                                : COLORS.gray600,
+                                        },
                                     ]}
                                 >
                                     {countByLevel[level]}

@@ -41,8 +41,6 @@ export class WebSocketManager {
         try {
             const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
 
-            console.log({ data });
-
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);
             if (handlers) {
@@ -105,7 +103,6 @@ export class WebSocketManager {
     }
 
     private async _attemptReconnect() {
-        console.log("_attemptReconnect");
         if (this._connecting) return;
         this._connecting = true;
         const maxRetries = 5;
@@ -201,7 +198,6 @@ export class WebSocketManager {
     }
 
     sendCurrentQueue(data: CurrentQueueMessageRequest) {
-        console.log({ type: "current_queue", ...data });
         this.send({ type: "current_queue", ...data });
     }
 

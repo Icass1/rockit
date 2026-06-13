@@ -415,28 +415,6 @@ async def update_password(
     return OkResponse()
 
 
-@router.patch("/random-queue")
-async def toggle_random_queue(request: Request) -> OkResponse:
-    """Toggle random queue."""
-    session: AsyncSession = DBSessionMiddleware.get_session(request)
-
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
-    if a_result_user.is_not_ok():
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
-    a_result: AResult[bool] = await User.toggle_random_queue_async(
-        session=session, user_id=a_result_user.result().id
-    )
-    if a_result.is_not_ok():
-        raise HTTPException(
-            status_code=a_result.get_http_code(), detail=a_result.message()
-        )
-
-    return OkResponse()
-
-
 @router.patch("/repeat-mode")
 async def cycle_repeat_mode(request: Request) -> OkResponse:
     """Cycle repeat mode."""

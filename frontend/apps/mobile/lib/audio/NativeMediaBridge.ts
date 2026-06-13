@@ -32,7 +32,7 @@ export interface AutoQueueItem {
 
 class NativeMediaBridgeClass {
     private callbacks: NativeMediaBridgeCallbacks | null = null;
-    private subscriptions: Array<{ remove: () => void }> = [];
+    private subscriptions: { remove: () => void }[] = [];
     private isSetUp = false;
 
     setup(callbacks: NativeMediaBridgeCallbacks) {
@@ -85,7 +85,7 @@ class NativeMediaBridgeClass {
         artist: string,
         album: string,
         artworkUrl: string,
-        durationMs: number
+        durationMs: number | undefined
     ) {
         if (Platform.OS !== EPlatform.Android) return;
         NativeModules.RockItMedia?.updateNowPlaying(
@@ -93,7 +93,7 @@ class NativeMediaBridgeClass {
             artist,
             album,
             artworkUrl,
-            durationMs
+            durationMs ?? 0
         );
     }
 

@@ -145,43 +145,36 @@ export function useQueue(): UseQueueReturn {
     }, []);
 
     const toggleShuffle = useCallback((): ToggleShuffleResult => {
-        let result: ToggleShuffleResult = {
-            newShuffle: false,
-            newQueue: [],
-            originalQueue: [],
-        };
-        setShuffle((s) => {
-            const next = !s;
-            if (next) {
-                const q = queueRef.current;
-                const original = [...q];
-                originalQueueRef.current = original;
-                const items = toQueueItems(q);
-                const shuffled = shuffleQueue(items, currentIndexRef.current);
-                const newQueue = shuffled.map((item) => q[item.queueMediaId]);
-                setQueue(newQueue);
-                setCurrentIndex(0);
-                result = { newShuffle: true, newQueue, originalQueue: original };
-            } else {
-                const original = originalQueueRef.current;
-                if (original.length > 0) {
-                    setQueue(original);
-                    const currentPublicId =
-                        queueRef.current[currentIndexRef.current]?.publicId;
-                    const restoredIndex = original.findIndex(
-                        (m) => m.publicId === currentPublicId
-                    );
-                    setCurrentIndex(restoredIndex >= 0 ? restoredIndex : 0);
-                }
-                result = {
-                    newShuffle: false,
-                    newQueue: originalQueueRef.current,
-                    originalQueue: [],
-                };
+        const newShuffle = !shuffleRef.current;
+
+        if (newShuffle) {
+            const q = queueRef.current;
+            const original = [...q];
+            originalQueueRef.current = original;
+            const items = toQueueItems(q);
+            const shuffled = shuffleQueue(items, currentIndexRef.current);
+            const newQueue = shuffled.map((item) => q[item.queueMediaId]);
+            setQueue(newQueue);
+            setCurrentIndex(0);
+            setShuffle(true);
+            shuffleRef.current = true;
+            return { newShuffle: true, newQueue, originalQueue: original };
+        } else {
+            const original = originalQueueRef.current;
+            const newQueue = original.length > 0 ? original : queueRef.current;
+            if (original.length > 0) {
+                const currentPublicId =
+                    queueRef.current[currentIndexRef.current]?.publicId;
+                const restoredIndex = currentPublicId
+                    ? original.findIndex((m) => m.publicId === currentPublicId)
+                    : -1;
+                setCurrentIndex(restoredIndex >= 0 ? restoredIndex : 0);
+                setQueue(original);
             }
-            return next;
-        });
-        return result;
+            setShuffle(false);
+            shuffleRef.current = false;
+            return { newShuffle: false, newQueue, originalQueue: [] };
+        }
     }, []);
 
     const cycleRepeat = useCallback(() => {

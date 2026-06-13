@@ -688,10 +688,6 @@ export class BaseHttp {
         return this.apiGetAsync(`/user/queue`, dto.QueueResponseSchema);
     }
 
-    static async toggleRandomQueue() {
-        return this.apiPatchAsync(`/user/random-queue`, dto.OkResponseSchema);
-    }
-
     static async cycleRepeatMode() {
         return this.apiPatchAsync(`/user/repeat-mode`, dto.OkResponseSchema);
     }

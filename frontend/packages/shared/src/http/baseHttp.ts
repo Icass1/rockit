@@ -204,6 +204,32 @@ export class BaseHttp {
         );
     }
 
+    static async getAllRequests() {
+        return this.apiGetAsync(
+            `/admin/requests`,
+            dto.UserRequestListResponseSchema
+        );
+    }
+
+    static async getRequestStats() {
+        return this.apiGetAsync(
+            `/admin/requests/stats`,
+            dto.AdminRequestStatsResponseSchema
+        );
+    }
+
+    static async reviewRequest(
+        publicId: string,
+        payload: dto.ReviewUserRequestRequest
+    ) {
+        return this.apiPostAsync(
+            `/admin/requests/${publicId}/review`,
+            dto.ReviewUserRequestRequestSchema,
+            dto.UserRequestResponseSchema,
+            payload
+        );
+    }
+
     static async login(payload: dto.LoginRequest) {
         return this.apiPostAsync(
             `/auth/login`,
@@ -549,6 +575,19 @@ export class BaseHttp {
 
     static async getStationsWithGeo() {
         return this.apiGetAsync(`/radio/stations/geo`, dto.ListSchema);
+    }
+
+    static async createRequest(payload: dto.CreateUserRequestRequest) {
+        return this.apiPostAsync(
+            `/request`,
+            dto.CreateUserRequestRequestSchema,
+            dto.UserRequestResponseSchema,
+            payload
+        );
+    }
+
+    static async getMyRequests() {
+        return this.apiGetAsync(`/request`, dto.UserRequestListResponseSchema);
     }
 
     static async getRockitAlbum(publicId: string) {

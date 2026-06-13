@@ -7,6 +7,7 @@ import {
     BarChart3,
     Download,
     Loader2,
+    MessageSquare,
     Package,
     Plus,
     Settings,
@@ -20,6 +21,7 @@ import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import AdminStats from "@/components/Admin/AdminStats";
+import AdminRequests from "@/components/Admin/AdminRequests";
 
 interface AdminClientProps {
     builds: BuildResponse[];
@@ -194,6 +196,11 @@ export default function AdminClient({
             id: EAdminClientTab.BUILDS,
             label: $vocabulary.ADMIN_TAB_BUILDS,
             icon: Smartphone,
+        },
+        {
+            id: EAdminClientTab.REQUESTS,
+            label: $vocabulary.ADMIN_TAB_REQUESTS,
+            icon: MessageSquare,
         },
         {
             id: EAdminClientTab.STATS,
@@ -473,6 +480,10 @@ export default function AdminClient({
                             </div>
                         )}
                     </div>
+                )}
+
+                {activeTab === EAdminClientTab.REQUESTS && (
+                    <AdminRequests />
                 )}
 
                 {activeTab === EAdminClientTab.STATS && (

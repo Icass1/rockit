@@ -194,6 +194,12 @@ async def main() -> None:
                 if hasattr(rockit_db, "engine"):
                     await rockit_db.engine.dispose()
                 await rockit_db.async_init()
+
+                from backend.core.access.seedData import seed_enum_values_async
+
+                async with rockit_db.session_scope_async() as session:
+                    await seed_enum_values_async(session=session)
+
                 logger.info("Database initialized")
 
             elif command == "cleanup-images":

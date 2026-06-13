@@ -1,6 +1,7 @@
 export enum EAdminClientTab {
     BUILDS = "builds",
-    USERS = "users",
+    REQUESTS = "requests",
     STATS = "stats",
+    USERS = "users",
     SETTINGS = "settings",
 }

@@ -10,6 +10,7 @@ from typing import Any
 
 from backend.core.access.adminVersionAccess import AdminVersionAccess
 from backend.core.framework.admin.requestLogStats import RequestLogStats
+from backend.core.framework.admin.userRequest import UserRequest as UserRequestFramework
 from backend.core.requests.addVersionRequest import AddVersionRequest
 from backend.core.requests.uploadApkRequest import UploadApkRequest
 from backend.core.requests.startChunkedUploadRequest import StartChunkedUploadRequest
@@ -17,12 +18,18 @@ from backend.core.requests.uploadChunkRequest import UploadChunkRequest
 from backend.core.requests.completeChunkedUploadRequest import (
     CompleteChunkedUploadRequest,
 )
+from backend.core.requests.userRequestRequest import ReviewUserRequestRequest
 from backend.core.responses.buildResponse import AllBuildsResponse, BuildResponse
 from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.requestLogStatsResponse import RequestLogStatsResponse
 from backend.core.responses.uploadApkResponse import UploadApkResponse
 from backend.core.responses.startChunkedUploadResponse import StartChunkedUploadResponse
 from backend.core.responses.uploadChunkResponse import UploadChunkResponse
+from backend.core.responses.userRequestResponse import (
+    UserRequestListResponse,
+    UserRequestResponse,
+    AdminRequestStatsResponse,
+)
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.constants import BUILDS_PATH, CHUNK_SIZE
@@ -249,6 +256,79 @@ async def get_request_log_stats(request: Request) -> RequestLogStatsResponse:
 
     if a_result.is_not_ok():
         logger.error(f"Error getting request log stats. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.get("/requests")
+async def get_all_requests(
+    request: Request,
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> UserRequestListResponse:
+    """Get all user requests (with optional status filter)."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await UserRequestFramework.get_all_requests_async(
+        session=session, status=status, limit=limit, offset=offset
+    )
+
+    if a_result.is_not_ok():
+        logger.error(f"Error fetching requests. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.get("/requests/stats")
+async def get_request_stats(request: Request) -> AdminRequestStatsResponse:
+    """Get user request statistics."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await UserRequestFramework.get_stats_async(session=session)
+
+    if a_result.is_not_ok():
+        logger.error(f"Error fetching request stats. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.post("/requests/{public_id}/review")
+async def review_request(
+    request: Request,
+    public_id: str,
+    payload: ReviewUserRequestRequest,
+) -> UserRequestResponse:
+    """Accept or reject a user request."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(),
+            detail=a_result_user.message(),
+        )
+
+    a_result = await UserRequestFramework.review_request_async(
+        session=session,
+        public_id=public_id,
+        reviewer_id=a_result_user.result().id,
+        status=payload.status,
+        review_comment=payload.reviewComment,
+    )
+
+    if a_result.is_not_ok():
+        logger.error(f"Error reviewing request. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

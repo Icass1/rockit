@@ -56,8 +56,10 @@ export interface Vocabulary {
     ADMIN_SETTINGS_SUBTITLE: string;
     ADMIN_SETTINGS_TITLE: string;
     ADMIN_TAB_BUILDS: string;
+    ADMIN_TAB_REQUESTS: string;
     ADMIN_TAB_SETTINGS: string;
     ADMIN_TAB_USERS: string;
+    ADMIN_REQUESTS_TITLE: string;
     ADMIN_TOP_IPS: string;
     ADMIN_TOP_ROUTES: string;
     ADMIN_TOTAL_REQUESTS: string;

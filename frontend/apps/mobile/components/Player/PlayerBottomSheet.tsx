@@ -1,9 +1,8 @@
 // Bottom sheet for player tabs (Queue, Lyrics, Related, Crossfade)
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import {
+import BottomSheet, {
     BottomSheetBackdrop,
-    BottomSheetModal,
     type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
 import { Radio } from "lucide-react-native";
@@ -15,7 +14,6 @@ import PlayerTabsBar from "./PlayerTabsBar";
 
 type PlayerBottomSheetProps = {
     activeTab: PlayerTab;
-    // Accept either a direct value or a updater function, mirroring React's setState signature
     setActiveTab: (value: PlayerTab | ((prev: PlayerTab) => PlayerTab)) => void;
     insetBottom: number;
 };
@@ -25,8 +23,18 @@ export default function PlayerBottomSheet({
     setActiveTab,
     insetBottom,
 }: PlayerBottomSheetProps) {
-    const bottomSheetRef = useRef<any>(null);
     const SNAP_POINTS = useMemo(() => ["65%"], []);
+    const sheetRef = useRef<BottomSheet>(null);
+
+    // Imperatively open/close to avoid onChange(-1) firing during the open
+    // animation when using a reactive index prop, which would reset activeTab.
+    useEffect(() => {
+        if (activeTab) {
+            sheetRef.current?.snapToIndex(0);
+        } else {
+            sheetRef.current?.close();
+        }
+    }, [activeTab]);
 
     const renderBackdrop = useCallback(
         (props: BottomSheetBackdropProps) => (
@@ -40,18 +48,10 @@ export default function PlayerBottomSheet({
         []
     );
 
-    // Open or close based on activeTab
-    useEffect(() => {
-        if (activeTab) {
-            bottomSheetRef.current?.present();
-        } else {
-            bottomSheetRef.current?.dismiss();
+    const handleSheetChange = (index: number) => {
+        if (index === -1) {
+            setActiveTab(null);
         }
-    }, [activeTab]);
-
-    const handleClose = () => {
-        // Reset active tab when sheet is dismissed
-        setActiveTab(null);
     };
 
     const handleTabPress = (tab: PlayerTab) => {
@@ -59,13 +59,15 @@ export default function PlayerBottomSheet({
     };
 
     return (
-        <BottomSheetModal
-            ref={bottomSheetRef}
+        <BottomSheet
+            ref={sheetRef}
             snapPoints={SNAP_POINTS}
+            index={-1}
+            onChange={handleSheetChange}
             backdropComponent={renderBackdrop}
+            enablePanDownToClose
             handleIndicatorStyle={{ backgroundColor: COLORS.gray600 }}
             backgroundStyle={styles.sheetBackground}
-            onDismiss={handleClose}
             style={styles.modal}
         >
             {/* Internal tabs bar */}
@@ -81,7 +83,7 @@ export default function PlayerBottomSheet({
                 {activeTab === "lyrics" && <PlayerLyrics />}
                 {activeTab === "related" && <RelatedMock />}
             </View>
-        </BottomSheetModal>
+        </BottomSheet>
     );
 }
 

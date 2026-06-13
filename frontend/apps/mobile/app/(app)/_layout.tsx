@@ -111,6 +111,7 @@ function AppLayoutContent() {
     useEffect(() => {
         getSession().then((session) => {
             if (!session) {
+                console.log("No session found, redirecting to login.");
                 router.replace("/(auth)/login");
             }
         });

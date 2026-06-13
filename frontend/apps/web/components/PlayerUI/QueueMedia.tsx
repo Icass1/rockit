@@ -5,9 +5,14 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { GripVertical, Pause, Play } from "lucide-react";
 import { QueueItem } from "@/models/interfaces/queue";
-import { getMediaDuration, isDownloadable } from "@/models/types/media";
+import {
+    getMediaArtists,
+    getMediaDuration,
+    isDownloadable,
+} from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import Artists from "@/components/Artists/Artists";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export function QueueMedia({
@@ -23,12 +28,6 @@ export function QueueMedia({
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
 
     const isCurrent = media.queueMediaId === $currentQueueMediaId;
-
-    const m = media.media;
-    const artists =
-        "artists" in m
-            ? (m as { artists: { publicId: string; name: string }[] }).artists
-            : undefined;
 
     return (
         <div
@@ -84,26 +83,15 @@ export function QueueMedia({
 
             <div className="max-w-full min-w-0 flex-1">
                 <p className="truncate text-base font-semibold text-white">
-                    {media.media.name}
+                    {media.media.name} {media.queueMediaId}
                 </p>
                 <div className="flex flex-row items-center gap-2">
                     <ProviderTag name={media.media.provider} iconOnly={true} />
-                    {/* <Artists
+                    <Artists
+                        linkable={false}
                         className="w-fit max-w-full min-w-0 flex-nowrap overflow-x-hidden text-left text-sm text-gray-300"
-                        artists={media.media.artists}
-                    /> */}
-                    {artists &&
-                        artists.map((artist, index) => (
-                            <span
-                                key={artist.publicId}
-                                className="text-sm text-gray-300"
-                            >
-                                {artist.name}
-                                {index !== artists.length - 1 && (
-                                    <span>, </span>
-                                )}
-                            </span>
-                        ))}
+                        artists={getMediaArtists(media.media)}
+                    />
                 </div>
             </div>
 

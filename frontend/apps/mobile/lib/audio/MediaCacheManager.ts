@@ -1,7 +1,7 @@
-import { Directory, File, Paths, type DownloadOptions } from "expo-file-system";
+import { Platform } from "react-native";
 import { getSessionCookie } from "@/lib/api";
 
-const CACHE_DIR = new Directory(Paths.cache, "media_cache");
+const IS_NATIVE = Platform.OS === "ios" || Platform.OS === "android";
 
 interface CachedEntry {
     originalUrl: string;
@@ -9,25 +9,50 @@ interface CachedEntry {
     publicId: string;
 }
 
+function createNativeDir() {
+    try {
+        const { Directory, Paths } = require("expo-file-system");
+        return new Directory(Paths.cache, "media_cache");
+    } catch {
+        return null;
+    }
+}
+
 class MediaCacheManager {
     private _cache: Map<string, CachedEntry> = new Map();
     private _isDownloading: Set<string> = new Set();
+    private _cacheDir: ReturnType<typeof createNativeDir> | null = null;
+
+    private _getCacheDir() {
+        if (!this._cacheDir) {
+            this._cacheDir = createNativeDir();
+        }
+        return this._cacheDir;
+    }
 
     async ensureCacheDir(): Promise<void> {
+        if (!IS_NATIVE) return;
+        const dir = this._getCacheDir();
+        if (!dir) return;
         try {
-            CACHE_DIR.create();
+            dir.create();
         } catch {
             // May already exist
         }
     }
 
     async getCachedUri(url: string, publicId: string): Promise<string | null> {
-        console.log("getCacheUri", { url, publicId });
+        if (!IS_NATIVE) return null;
         const entry = this._cache.get(url);
         if (entry && entry.publicId === publicId) {
-            const cachedFile = new File(entry.cachedUri);
-            if (cachedFile.exists) {
-                return entry.cachedUri;
+            try {
+                const { File } = require("expo-file-system");
+                const cachedFile = new File(entry.cachedUri);
+                if (cachedFile.exists) {
+                    return entry.cachedUri;
+                }
+            } catch {
+                // Fall through
             }
             this._cache.delete(url);
         }
@@ -39,16 +64,21 @@ class MediaCacheManager {
         publicId: string,
         onProgress?: (progress: number) => void
     ): Promise<string | null> {
-        console.log("downloadToCache", { url, publicId });
+        if (!IS_NATIVE) return url;
         if (this._isDownloading.has(url)) {
             return null;
         }
 
         const cachedEntry = this._cache.get(url);
         if (cachedEntry && cachedEntry.publicId === publicId) {
-            const cachedFile = new File(cachedEntry.cachedUri);
-            if (cachedFile.exists) {
-                return cachedEntry.cachedUri;
+            try {
+                const { File } = require("expo-file-system");
+                const cachedFile = new File(cachedEntry.cachedUri);
+                if (cachedFile.exists) {
+                    return cachedEntry.cachedUri;
+                }
+            } catch {
+                // Fall through
             }
         }
 
@@ -56,7 +86,10 @@ class MediaCacheManager {
 
         try {
             await this.ensureCacheDir();
-            const extension = this._getExtension(url);
+            const dir = this._getCacheDir();
+            if (!dir) return url;
+
+            const { File } = require("expo-file-system");
 
             const cookie = await getSessionCookie();
             const headers: Record<string, string> = {};
@@ -64,11 +97,11 @@ class MediaCacheManager {
                 headers.Cookie = `session_id=${cookie}`;
             }
 
-            const options: DownloadOptions = { headers };
+            const options = { headers };
 
             const downloadedFile = await File.downloadFileAsync(
                 url,
-                CACHE_DIR,
+                dir,
                 options
             );
 
@@ -92,10 +125,11 @@ class MediaCacheManager {
     }
 
     async deleteCached(url: string): Promise<void> {
-        console.log("deleteCached", { url });
+        if (!IS_NATIVE) return;
         const entry = this._cache.get(url);
         if (entry) {
             try {
+                const { File } = require("expo-file-system");
                 const file = new File(entry.cachedUri);
                 if (file.exists) {
                     file.delete();
@@ -112,7 +146,6 @@ class MediaCacheManager {
     }
 
     private _getExtension(url: string): string {
-        console.log("_getExtension", { url });
         const ext = url.split(".").pop()?.split("?")[0]?.toLowerCase();
         if (ext === "m3u8") return ".m3u8";
         if (ext === "mpd") return ".mpd";

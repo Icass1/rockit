@@ -37,7 +37,7 @@ export default function PlayerQueue() {
 
             <FlatList
                 data={queue}
-                keyExtractor={(item) => item.publicId}
+                keyExtractor={(item, index) => `${item.publicId}-${index}`}
                 renderItem={({ item, index }) => (
                     <QueueItem
                         media={item}

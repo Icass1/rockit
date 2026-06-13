@@ -8,6 +8,7 @@ import {
     EWebSocketMessage,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
+    MediaExpandedMessageRequest,
     QueueTypeRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
@@ -103,6 +104,7 @@ export class WebSocketManager {
     }
 
     private async _attemptReconnect() {
+        console.log("_attemptReconnect");
         if (this._connecting) return;
         this._connecting = true;
         const maxRetries = 5;
@@ -186,7 +188,13 @@ export class WebSocketManager {
             });
         }
 
-        this._webSocket?.send(JSON.stringify(message));
+        try {
+            this._webSocket?.send(JSON.stringify(message));
+        } catch (e) {
+            console.error(
+                `Error sending web socket message ${e}. Sending message ${JSON.stringify(message)}`
+            );
+        }
     }
 
     sendMediaEnded(data: MediaEndedMessageRequest) {
@@ -219,6 +227,10 @@ export class WebSocketManager {
 
     sendSeek(data: SeekMessageRequest) {
         this.send({ type: "seek", ...data });
+    }
+
+    sendMediaExpanded(data: MediaExpandedMessageRequest) {
+        this.send({ type: "media_expanded", ...data });
     }
 }
 

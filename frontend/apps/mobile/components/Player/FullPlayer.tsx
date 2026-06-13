@@ -11,9 +11,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer } from "@/lib/PlayerContext";
-import PlayerBottomSheet from "./PlayerBottomSheet";
 import PlayerMediaInfo from "./PlayerMediaInfo";
 import PlayerTabsBar from "./PlayerTabsBar";
+import PlayerTabsPanel from "./PlayerTabsPanel";
 import PlayerTopBar from "./PlayerTopBar";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -143,7 +143,13 @@ export default function FullPlayer() {
             {/* Main content wrapped in pan gesture detector */}
             <GestureDetector gesture={panGesture}>
                 <Animated.View
-                    style={[styles.inner, { paddingTop: insets.top + 80 }]}
+                    style={[
+                        styles.inner,
+                        {
+                            paddingTop: insets.top + 80,
+                            paddingBottom: 20,
+                        },
+                    ]}
                 >
                     <PlayerTopBar
                         title={currentMedia?.name ?? ""}
@@ -169,10 +175,9 @@ export default function FullPlayer() {
                 </Animated.View>
             </GestureDetector>
 
-            <PlayerBottomSheet
+            <PlayerTabsPanel
                 activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                insetBottom={Math.max(insets.bottom, 8)}
+                onClose={() => setActiveTab(null)}
             />
         </Animated.View>
     );

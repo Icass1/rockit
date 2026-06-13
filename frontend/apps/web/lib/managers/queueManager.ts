@@ -123,6 +123,7 @@ export class QueueManager {
 
         this._currentMediaAtom.set(currentMedia?.media);
         this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
+        this._sendCurrentQueue();
     }
 
     private _sendCurrentQueue(): void {
@@ -223,8 +224,6 @@ export class QueueManager {
         }
 
         this.updateQueue();
-
-        this._sendCurrentQueue();
     }
 
     moveToMedia(publicId: string): void {
@@ -330,7 +329,6 @@ export class QueueManager {
         this.randomQueue = [...shuffle(newItems), ...this.randomQueue];
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     async addListToQueueRandomAsync(media: TListMedia): Promise<void> {
@@ -397,7 +395,6 @@ export class QueueManager {
         });
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     async addListToQueueBottomAsync(media: TListMedia): Promise<void> {
@@ -424,7 +421,6 @@ export class QueueManager {
         this.randomQueue = [...this.randomQueue, ...shuffle(newItems)];
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     async playList(media: TListMedia): Promise<void> {
@@ -476,7 +472,6 @@ export class QueueManager {
         this.randomQueue.splice(toIndex, 0, movedRandomItem);
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     removeMediaFromQueue(media: TPlayableMedia): void {
@@ -517,7 +512,6 @@ export class QueueManager {
         }
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     addMediaNext(media: TPlayableMedia): void {
@@ -560,7 +554,6 @@ export class QueueManager {
         });
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     addMediaToEnd(media: TPlayableMedia): void {
@@ -581,7 +574,6 @@ export class QueueManager {
         this.randomQueue.push({ ...newItem, queueMediaId: currentMaxId + 2 });
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     addMediaRandom(media: TPlayableMedia): void {
@@ -633,7 +625,6 @@ export class QueueManager {
         });
 
         this.updateQueue();
-        this._sendCurrentQueue();
     }
 
     // #endregion: Methods

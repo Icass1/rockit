@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,6 +25,8 @@ export default function MiniPlayer() {
     const { isOpen: isContextMenuOpen } = useContextMenu();
     const shouldHide = isPlayerVisible || isContextMenuOpen;
     const opacity = useRef(new Animated.Value(shouldHide ? 0 : 1)).current;
+    const [isHidden, setIsHidden] = useState(false);
+
     useEffect(() => {
         Animated.timing(opacity, {
             toValue: shouldHide ? 0 : 1,
@@ -32,6 +34,15 @@ export default function MiniPlayer() {
             useNativeDriver: true,
         }).start();
     }, [shouldHide, opacity]);
+
+    useEffect(() => {
+        if (shouldHide) {
+            const timer = setTimeout(() => setIsHidden(true), 120);
+            return () => clearTimeout(timer);
+        } else {
+            setIsHidden(false);
+        }
+    }, [shouldHide]);
 
     const handlePressIn = () =>
         Animated.spring(scale, {
@@ -48,6 +59,7 @@ export default function MiniPlayer() {
         }).start();
 
     if (!currentMedia) return null;
+    if (isHidden) return null;
 
     const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 

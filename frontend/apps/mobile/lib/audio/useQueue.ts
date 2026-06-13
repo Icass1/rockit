@@ -108,16 +108,9 @@ export function useQueue(): UseQueueReturn {
 
     const getNextIndex = useCallback((): number | null => {
         const q = queueRef.current;
-        if (shuffleRef.current && q.length > 1) {
-            let nextIdx;
-            do {
-                nextIdx = Math.floor(Math.random() * q.length);
-            } while (nextIdx === currentIndexRef.current && q.length > 1);
-            return nextIdx;
-        }
+        if (!q.length) return null;
         const items = toQueueItems(q);
-        const nextId = getNextQueueMediaId(items, currentIndexRef.current);
-        return nextId;
+        return getNextQueueMediaId(items, currentIndexRef.current);
     }, []);
 
     const getPrevIndex = useCallback((): number | null => {

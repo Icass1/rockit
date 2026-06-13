@@ -144,10 +144,7 @@ export default function HomeScreen() {
                 {data.randomSongsLastMonth.length > 0 && (
                     <Animated.View style={section2}>
                         <QuickSelectionsGrid
-                            title={
-                                vocabulary.QUICK_SELECTIONS ||
-                                "Quick Selections"
-                            }
+                            title={vocabulary.QUICK_SELECTIONS}
                             items={data.randomSongsLastMonth}
                             onMediaPress={handleSongPress}
                         />

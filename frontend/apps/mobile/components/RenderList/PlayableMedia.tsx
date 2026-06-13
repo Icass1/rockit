@@ -95,8 +95,6 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 10,
-        paddingHorizontal: 16,
         gap: 12,
     },
     pressed: {

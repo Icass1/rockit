@@ -76,19 +76,21 @@ export default memo(function RenderList({
                         </Text>
                     </View>
                 </View>
-                {media.map((item, index) => (
-                    <Media
-                        key={item.publicId}
-                        media={item}
-                        allMedia={media}
-                        index={index}
-                        showMediaIndex={showMediaIndex}
-                        showMediaImage={showMediaImage}
-                        substractArtists={substractArtists}
-                        listPublicId={listPublicId}
-                        expandedByMediaId={expandedByMediaId}
-                    />
-                ))}
+                <View style={styles.mediaContainer}>
+                    {media.map((item, index) => (
+                        <Media
+                            key={item.publicId}
+                            media={item}
+                            allMedia={media}
+                            index={index}
+                            showMediaIndex={showMediaIndex}
+                            showMediaImage={showMediaImage}
+                            substractArtists={substractArtists}
+                            listPublicId={listPublicId}
+                            expandedByMediaId={expandedByMediaId}
+                        />
+                    ))}
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -152,5 +154,11 @@ const styles = StyleSheet.create({
         color: COLORS.gray400,
         fontSize: 12,
         marginTop: 8,
+    },
+    mediaContainer: {
+        flexDirection: "column",
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        gap: 12,
     },
 });

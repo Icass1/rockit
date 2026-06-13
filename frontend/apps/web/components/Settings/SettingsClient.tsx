@@ -145,7 +145,7 @@ export default function SettingsClient(): JSX.Element {
     return (
         <div className="mx-auto max-w-4xl px-4 md:px-8 md:py-10 md:pb-10">
             <h1 className="mb-6 text-2xl font-bold text-white">
-                {$vocabulary.USER_SETTINGS ?? "Settings"}
+                {$vocabulary.USER_SETTINGS}
             </h1>
 
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
@@ -157,17 +157,17 @@ export default function SettingsClient(): JSX.Element {
 
                 <div className="flex min-w-0 flex-1 flex-col gap-4">
                     <SettingsSection
-                        title={$vocabulary.DISPLAY_NAME ?? "Account"}
+                        title={$vocabulary.DISPLAY_NAME}
                     >
                         <DisplayNameInput vocabulary={$vocabulary} />
                     </SettingsSection>
 
-                    <SettingsSection title={$vocabulary.LANGUAGE ?? "Language"}>
+                    <SettingsSection title={$vocabulary.LANGUAGE}>
                         <ChangeLang />
                     </SettingsSection>
 
                     <SettingsSection
-                        title={$vocabulary.CHANGE_PASSWORD ?? "Password"}
+                        title={$vocabulary.CHANGE_PASSWORD}
                     >
                         <div className="mb-1 flex items-center gap-2">
                             <Lock className="h-3.5 w-3.5 text-neutral-500" />
@@ -182,7 +182,7 @@ export default function SettingsClient(): JSX.Element {
                         <CrossFadeInput />
                     </SettingsSection>
 
-                    <SettingsSection title={$vocabulary.DOWNLOAD_APP ?? "App"}>
+                    <SettingsSection title={$vocabulary.DOWNLOAD_APP}>
                         <DownloadAppButton />
                     </SettingsSection>
 

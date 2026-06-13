@@ -74,7 +74,7 @@ export default function SummaryCards({
     const [showMinutes, setShowMinutes] = useState(false);
 
     const minutesDisplay = showMinutes
-        ? `${Math.round(summary.minutesListened).toLocaleString()} ${$vocabulary.MINUTES ?? "min"}`
+        ? `${Math.round(summary.minutesListened).toLocaleString()} ${$vocabulary.MINUTES}`
         : formatDuration(summary.minutesListened);
 
     return (
@@ -87,7 +87,7 @@ export default function SummaryCards({
                     />
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.SONGS_LISTENED ?? "Songs Listened"}
+                    {$vocabulary.SONGS_LISTENED}
                 </p>
             </div>
 
@@ -100,7 +100,7 @@ export default function SummaryCards({
                     {minutesDisplay}
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.MINUTES_LISTEND ?? "Time Listened"}
+                    {$vocabulary.MINUTES_LISTEND}
                 </p>
             </button>
 
@@ -109,7 +109,7 @@ export default function SummaryCards({
                     {summary.avgMinutesPerSong.toFixed(2)}
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.AVERAGE_MINUTES_PER_SONG ?? "Avg / Song"}
+                    {$vocabulary.AVERAGE_MINUTES_PER_SONG}
                 </p>
             </div>
 
@@ -121,7 +121,7 @@ export default function SummaryCards({
                     </span>
                 </p>
                 <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.LEVEL_ABBR ?? "Current Streak"}
+                    {$vocabulary.LEVEL_ABBR}
                 </p>
             </div>
         </div>

@@ -243,7 +243,7 @@ export default function RadioClient(): JSX.Element {
         <div className="mx-auto flex flex-col items-center px-4 pb-8">
             <header className="flex w-full max-w-2xl flex-col items-center gap-2 pt-8 pb-6 text-center">
                 <h1 className="text-5xl font-bold tracking-tight text-white select-none">
-                    {$vocabulary.RADIO ?? "Radio"}
+                    {$vocabulary.RADIO}
                 </h1>
                 <p className="text-lg text-balance text-neutral-400">
                     {"Explore stations across the world with Rock It!"}
@@ -268,8 +268,7 @@ export default function RadioClient(): JSX.Element {
                         }
                     }}
                     placeholder={
-                        $vocabulary.RADIO_SEARCH ??
-                        "Search stations or click the map..."
+                        $vocabulary.RADIO_SEARCH
                     }
                     className="h-11 w-full rounded-full bg-neutral-900 pr-9 pl-10 text-sm font-semibold text-white placeholder-neutral-500 focus:ring-2 focus:ring-[#ee1086]/40 focus:outline-0"
                 />
@@ -396,21 +395,21 @@ export default function RadioClient(): JSX.Element {
 
             {showEmptyState && (
                 <div className="py-16 text-center text-neutral-500">
-                    {$vocabulary.NO_STATIONS ?? "No radio stations found"}
+                    {$vocabulary.NO_STATIONS}
                 </div>
             )}
 
             {isSearching && searching && !searchResults && (
                 <div className="flex items-center justify-center py-16 text-neutral-400">
                     <span className="animate-pulse text-lg font-semibold">
-                        {$vocabulary.SEARCH ?? "Searching..."}
+                        {$vocabulary.SEARCH}
                     </span>
                 </div>
             )}
 
             {isSearching && !searching && searchResults?.length === 0 && (
                 <div className="py-16 text-center text-neutral-500">
-                    {$vocabulary.NO_RESULTS ?? "No results found"}
+                    {$vocabulary.NO_RESULTS}
                 </div>
             )}
 

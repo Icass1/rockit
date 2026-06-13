@@ -8,6 +8,7 @@ import { Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import Image from "next/image";
 
 interface EditMetadataModalProps {
     media: TMediaWithSearch;
@@ -260,7 +261,7 @@ export default function EditMetadataModal({
             setError(
                 typeof result.detail === "string"
                     ? result.detail
-                    : $vocabulary.EDIT_METADATA_ERROR || "Failed to submit"
+                    : $vocabulary.EDIT_METADATA_ERROR
             );
         }
 
@@ -283,11 +284,10 @@ export default function EditMetadataModal({
                 <div className="mb-4 flex items-center justify-between">
                     <div>
                         <h2 className="text-xl font-bold text-white">
-                            {$vocabulary.EDIT_METADATA_TITLE || "Edit Metadata"}
+                            {$vocabulary.EDIT_METADATA_TITLE}
                         </h2>
                         <p className="mt-0.5 text-xs text-neutral-400">
-                            {$vocabulary.EDIT_METADATA_DESCRIPTION ||
-                                "Suggest changes to metadata"}
+                            {$vocabulary.EDIT_METADATA_DESCRIPTION}
                         </p>
                     </div>
                     <button
@@ -303,11 +303,14 @@ export default function EditMetadataModal({
                 {/* Media info */}
                 <div className="mb-4 flex items-center gap-3 rounded-xl bg-neutral-800/50 p-3">
                     {media.imageUrl && (
-                        <img
-                            src={media.imageUrl}
-                            alt={media.name}
-                            className="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
-                        />
+<Image
+                             src={media.imageUrl}
+                             alt={media.name}
+                             width={48}
+                             height={48}
+                             loading="eager"
+                             className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                         />
                     )}
                     <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-white">
@@ -338,8 +341,7 @@ export default function EditMetadataModal({
                             </svg>
                         </div>
                         <p className="text-lg font-semibold text-white">
-                            {$vocabulary.EDIT_METADATA_SUCCESS ||
-                                "Suggestion submitted!"}
+                            {$vocabulary.EDIT_METADATA_SUCCESS}
                         </p>
                         <p className="mt-1 text-sm text-neutral-400">
                             An admin will review your changes.
@@ -473,7 +475,7 @@ export default function EditMetadataModal({
                         {/* Comment */}
                         <div>
                             <label className="mb-1 block text-xs font-medium tracking-wider text-neutral-400 uppercase">
-                                {$vocabulary.EDIT_METADATA_COMMENT || "Comment"}
+                                {$vocabulary.EDIT_METADATA_COMMENT}
                             </label>
                             <textarea
                                 value={comment}
@@ -481,8 +483,7 @@ export default function EditMetadataModal({
                                     setComment(e.target.value)
                                 }
                                 placeholder={
-                                    $vocabulary.EDIT_METADATA_COMMENT_PLACEHOLDER ||
-                                    "Optional: explain why these changes are needed"
+                                    $vocabulary.EDIT_METADATA_COMMENT_PLACEHOLDER
                                 }
                                 className="w-full rounded-lg border border-neutral-700 bg-neutral-800 p-3 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
                                 rows={2}
@@ -515,8 +516,7 @@ export default function EditMetadataModal({
                                     Submitting...
                                 </>
                             ) : (
-                                $vocabulary.EDIT_METADATA_SUBMIT ||
-                                "Submit Suggestion"
+$vocabulary.EDIT_METADATA_SUBMIT
                             )}
                         </button>
                     </div>

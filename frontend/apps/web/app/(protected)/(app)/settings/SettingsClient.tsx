@@ -57,13 +57,13 @@ export default function SettingsClient({
     return (
         <div className="mx-auto max-w-2xl p-6">
             <h1 className="mb-8 text-3xl font-bold text-white">
-                {($vocabulary as Vocabulary)?.USER_SETTINGS || "User Settings"}
+                {($vocabulary as Vocabulary)?.USER_SETTINGS}
             </h1>
 
             <section className="mb-8 rounded-lg bg-neutral-800 p-6">
                 <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-white">
                     <Globe className="h-5 w-5" />
-                    {($vocabulary as Vocabulary)?.LANGUAGE || "Language"}
+                    {($vocabulary as Vocabulary)?.LANGUAGE}
                 </h2>
 
                 {loading ? (

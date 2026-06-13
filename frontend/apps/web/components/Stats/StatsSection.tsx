@@ -24,11 +24,11 @@ export default function StatsSection({
         >
             {showDivider && (
                 <div className="mb-8 flex items-center gap-4">
-                    <div className="h-px flex-1 bg-gradient-to-r from-white/5 to-transparent" />
-                    <h3 className="shrink-0 text-base font-bold tracking-[0.25em] break-words text-neutral-500 uppercase">
+                    <div className="h-px flex-1 bg-linear-to-r from-white/5 to-transparent" />
+                    <h3 className="shrink-0 text-base font-bold tracking-[0.25em] wrap-break-word text-neutral-500 uppercase">
                         {title}
                     </h3>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/5" />
+                    <div className="h-px flex-1 bg-linear-to-r from-transparent to-white/5" />
                 </div>
             )}
 

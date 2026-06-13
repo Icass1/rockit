@@ -125,7 +125,7 @@ export default function StatsClient(): JSX.Element {
             >
                 <div className="min-w-0">
                     <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
-                        {$vocabulary.STATS ?? "Stats"}
+                        {$vocabulary.STATS}
                     </h1>
                     <p className="mt-1.5 text-sm text-neutral-500 md:text-base">
                         Showing stats for{" "}

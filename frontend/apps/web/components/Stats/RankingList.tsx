@@ -147,7 +147,7 @@ function RankingRow({
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <div className="hidden h-1 w-16 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-24">
                     <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
+                        className="h-full rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
                         style={{ width: `${progressPercent}%` }}
                     />
                 </div>

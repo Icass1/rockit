@@ -78,7 +78,7 @@ export default function ListeningHeatmap({
 
             <svg
                 viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                className="w-full max-w-[560px]"
+                className="w-full max-w-140"
             >
                 {HOUR_LABELS.map((hour) => {
                     const hourIndex = hour - HOURS_START;

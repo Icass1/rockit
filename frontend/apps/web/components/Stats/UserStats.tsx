@@ -72,7 +72,7 @@ export default function UserStats({
             <SummaryCards summary={data.summary} />
 
             <StatsSection
-                title={`${$vocabulary.MINUTES_LISTEND ?? "Time Listened"} — ${rangeLabel}`}
+                title={`${$vocabulary.MINUTES_LISTEND} — ${rangeLabel}`}
                 stagger={1}
             >
                 <MinutesBarChart data={data.minutes} range={range} />
@@ -81,7 +81,7 @@ export default function UserStats({
             <div className="flex flex-col gap-8 md:gap-10">
                 <div className="grid gap-8 md:grid-cols-2 md:gap-20">
                     <StatsSection
-                        title={$vocabulary.TOP_SONGS ?? "Top Songs"}
+                        title={$vocabulary.TOP_SONGS}
                         stagger={2}
                     >
                         <RankingList
@@ -93,7 +93,7 @@ export default function UserStats({
 
                     <StatsSection
                         title={
-                            $vocabulary.MOST_LISTENED_ARTISTS ?? "Top Artists"
+                            $vocabulary.MOST_LISTENED_ARTISTS
                         }
                         stagger={3}
                     >
@@ -103,7 +103,7 @@ export default function UserStats({
 
                 <div className="grid gap-8 md:grid-cols-2 md:gap-20">
                     <StatsSection
-                        title={$vocabulary.TOP_VIDEOS ?? "Top Videos"}
+                        title={$vocabulary.TOP_VIDEOS}
                         stagger={4}
                     >
                         <RankingList
@@ -114,7 +114,7 @@ export default function UserStats({
                     </StatsSection>
 
                     <StatsSection
-                        title={$vocabulary.TOP_ALBUMS ?? "Top Albums"}
+                        title={$vocabulary.TOP_ALBUMS}
                         stagger={5}
                     >
                         <RankingList items={data.topAlbums} showImages />
@@ -124,7 +124,7 @@ export default function UserStats({
 
             <StatsSection
                 title={
-                    $vocabulary.MINUTES_LISTENED_PER_DAY ?? "Listening Heatmap"
+                    $vocabulary.MINUTES_LISTENED_PER_DAY
                 }
                 stagger={6}
             >

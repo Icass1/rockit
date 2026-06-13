@@ -7,15 +7,14 @@ import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ServiceWorkerInfo(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [status, setStatus] = useState<string>($vocabulary.NO_DATA ?? "—");
+    const [status, setStatus] = useState<string>($vocabulary.NO_DATA);
 
     const handleAction = async (
         action: EServiceWorkerAction
     ): Promise<void> => {
         if (!("serviceWorker" in navigator)) {
             setStatus(
-                $vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER ??
-                    "Service Worker not supported"
+                $vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER
             );
             return;
         }

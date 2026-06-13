@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import useHandlePlay from "@/callbacks/handlePlay";
 import {
     BaseSearchResultsItem,
@@ -14,7 +14,14 @@ import {
     isVideo,
     TMedia,
 } from "@rockit/shared";
-import { Download, Heart, Music, Play, PlusCircle } from "lucide-react-native";
+import {
+    Download,
+    Heart,
+    Music,
+    Pencil,
+    Play,
+    PlusCircle,
+} from "lucide-react-native";
 import { Pressable } from "react-native";
 import {
     ContextMenuConfig,
@@ -26,6 +33,7 @@ import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
+import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 
 interface MediaCardProps {
     media: TMedia | BaseSearchResultsItem;
@@ -42,6 +50,8 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     const { vocabulary } = useVocabulary();
     const router = useTypedRouter();
     const handlePlay = useHandlePlay();
+    const [editMetadataMedia, setEditMetadataMedia] =
+        useState<TMedia | BaseSearchResultsItem | null>(null);
 
     const buildMainMenu = useCallback(
         (media: TMedia | BaseSearchResultsItem): ContextMenuConfig => {
@@ -151,6 +161,23 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 });
             }
 
+            if (
+                !isSearchResult(media) &&
+                (media.type === "song" ||
+                    media.type === "video" ||
+                    media.type === "album" ||
+                    media.type === "artist")
+            ) {
+                options.push({
+                    label: vocabulary.EDIT_METADATA,
+                    icon: Pencil,
+                    onPress: () => {
+                        hide();
+                        setEditMetadataMedia(media);
+                    },
+                });
+            }
+
             return {
                 imageUrl: media.imageUrl,
                 title: media.name,
@@ -242,14 +269,25 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     }, [media, allMedia, router, show, buildMainMenu, handlePlay]);
 
     return (
-        <Pressable
-            onPress={handlePress}
-            onLongPress={handleLongPress}
-            delayLongPress={250}
-            style={({ pressed }) => pressed && { transform: [{ scale: 0.98 }] }}
-        >
-            {children}
-        </Pressable>
+        <>
+            <Pressable
+                onPress={handlePress}
+                onLongPress={handleLongPress}
+                delayLongPress={250}
+                style={({ pressed }) =>
+                    pressed && { transform: [{ scale: 0.98 }] }
+                }
+            >
+                {children}
+            </Pressable>
+            {editMetadataMedia && (
+                <EditMetadataModal
+                    visible={!!editMetadataMedia}
+                    media={editMetadataMedia}
+                    onClose={(): void => setEditMetadataMedia(null)}
+                />
+            )}
+        </>
     );
 });
 

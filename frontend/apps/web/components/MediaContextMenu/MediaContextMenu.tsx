@@ -13,6 +13,7 @@ import {
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import {
     getActionsForMedia,
     type ActionDef,
@@ -22,6 +23,7 @@ import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
+import EditMetadataAction from "@/components/MediaContextMenu/actions/EditMetadataAction";
 import {
     DownloadAction,
     DownloadZipAction,
@@ -70,6 +72,7 @@ const actionComponents: Partial<
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
     [EMediaContextAction.Delete]: DeleteAction,
     [EMediaContextAction.Redownload]: RedownloadAction,
+    [EMediaContextAction.EditMetadata]: EditMetadataAction,
 };
 
 function getMediaCover(media: TMediaWithSearch): string | undefined {
@@ -91,6 +94,7 @@ export default function MediaContextMenu({
 }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [loading, setLoading] = useState(false);
+    const [showEditMetadata, setShowEditMetadata] = useState(false);
     const $playlists = useStore(rockIt.playlistManager.playlistsAtom);
 
     const visibleActions = getActionsForMedia(media, location);
@@ -120,30 +124,41 @@ export default function MediaContextMenu({
         setLoading,
         listPublicId,
         handleAddToPlaylist,
+        onEditMetadata: (): void => setShowEditMetadata(true),
     };
 
     return (
-        <ContextMenu>
-            <ContextMenuTrigger openOnLeftClick={isSearch}>
-                {children}
-            </ContextMenuTrigger>
-            <ContextMenuContent
-                cover={getMediaCover(media)}
-                title={media.name}
-                description={getMediaSubtitle(media)}
-            >
-                {visibleActions.map((item, index) => {
-                    if (item.type === "separator") {
-                        return <ContextMenuSplitter key={`sep-${index}`} />;
-                    }
+        <>
+            <ContextMenu>
+                <ContextMenuTrigger openOnLeftClick={isSearch}>
+                    {children}
+                </ContextMenuTrigger>
+                <ContextMenuContent
+                    cover={getMediaCover(media)}
+                    title={media.name}
+                    description={getMediaSubtitle(media)}
+                >
+                    {visibleActions.map((item, index) => {
+                        if (item.type === "separator") {
+                            return (
+                                <ContextMenuSplitter key={`sep-${index}`} />
+                            );
+                        }
 
-                    const action = item as ActionDef;
-                    const Component = actionComponents[action.id];
-                    if (!Component) return null;
+                        const action = item as ActionDef;
+                        const Component = actionComponents[action.id];
+                        if (!Component) return null;
 
-                    return <Component key={action.id} {...actionProps} />;
-                })}
-            </ContextMenuContent>
-        </ContextMenu>
+                        return <Component key={action.id} {...actionProps} />;
+                    })}
+                </ContextMenuContent>
+            </ContextMenu>
+            {showEditMetadata && (
+                <EditMetadataModal
+                    media={media}
+                    onClose={(): void => setShowEditMetadata(false)}
+                />
+            )}
+        </>
     );
 }

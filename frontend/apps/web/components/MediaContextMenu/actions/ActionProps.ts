@@ -14,4 +14,5 @@ export type ActionComponentProps = {
     handleAddToPlaylist: (
         playlist: BasePlaylistWithoutMediasResponse
     ) => Promise<void>;
+    onEditMetadata?: () => void;
 };

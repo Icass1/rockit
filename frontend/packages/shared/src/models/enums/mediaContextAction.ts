@@ -18,4 +18,5 @@ export enum EMediaContextAction {
     RemoveFromPlaylist = "removeFromPlaylist",
     Delete = "delete",
     Redownload = "redownload",
+    EditMetadata = "editMetadata",
 }

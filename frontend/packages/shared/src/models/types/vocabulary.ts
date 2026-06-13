@@ -337,4 +337,18 @@ export interface Vocabulary {
     DELETE: string;
     DELETE_SUCCESS: string;
     REDOWNLOAD: string;
+    EDIT_METADATA: string;
+    EDIT_METADATA_TITLE: string;
+    EDIT_METADATA_DESCRIPTION: string;
+    EDIT_METADATA_SUBMIT: string;
+    EDIT_METADATA_SUCCESS: string;
+    EDIT_METADATA_ERROR: string;
+    EDIT_METADATA_COMMENT: string;
+    EDIT_METADATA_COMMENT_PLACEHOLDER: string;
+    EDIT_METADATA_FIELD_TITLE: string;
+    EDIT_METADATA_FIELD_ARTIST: string;
+    EDIT_METADATA_FIELD_ALBUM: string;
+    EDIT_METADATA_FIELD_GENRE: string;
+    EDIT_METADATA_FIELD_LYRICS: string;
+    EDIT_METADATA_FIELD_RELEASE_DATE: string;
 }

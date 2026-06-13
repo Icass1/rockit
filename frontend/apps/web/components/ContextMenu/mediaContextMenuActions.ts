@@ -13,6 +13,7 @@ import {
     ListIcon,
     ListMinus,
     ListStart,
+    Pencil,
     Play,
     PlayCircle,
     RefreshCw,
@@ -222,6 +223,19 @@ const ACTION_REGISTRY: ActionDef[] = [
         locations: [EMediaContextLocation.PLAYLIST],
         condition: (m) => !isSearchResult(m),
     },
+    {
+        id: EMediaContextAction.EditMetadata,
+        type: "action",
+        icon: Pencil,
+        labelKey: "EDIT_METADATA",
+        mediaTypes: [
+            EMediaType.Song,
+            EMediaType.Video,
+            EMediaType.Album,
+            EMediaType.Artist,
+        ],
+        condition: (m) => !isSearchResult(m),
+    },
 ];
 
 const ACTION_MAP = new Map<EMediaContextAction, ActionDef>(
@@ -241,6 +255,8 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddMediaQueueRandom,
         EMediaContextAction.AddMediaToQueueBottom,
         "---",
+        EMediaContextAction.EditMetadata,
+        "---",
         EMediaContextAction.AddToLibrary,
         EMediaContextAction.RemoveFromLibrary,
         "---",
@@ -258,6 +274,8 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddSongToQueueTop,
         EMediaContextAction.AddMediaQueueRandom,
         EMediaContextAction.AddMediaToQueueBottom,
+        "---",
+        EMediaContextAction.EditMetadata,
         "---",
         EMediaContextAction.AddToLibrary,
         EMediaContextAction.RemoveFromLibrary,
@@ -287,6 +305,8 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddToPlaylist,
         EMediaContextAction.Navigate,
         "---",
+        EMediaContextAction.EditMetadata,
+        "---",
         EMediaContextAction.AddToLibrary,
         EMediaContextAction.RemoveFromLibrary,
         "---",
@@ -311,6 +331,8 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
     [EMediaType.Artist]: [
         EMediaContextAction.AddToPlaylist,
         EMediaContextAction.Navigate,
+        "---",
+        EMediaContextAction.EditMetadata,
         "---",
         EMediaContextAction.AddToLibrary,
     ],

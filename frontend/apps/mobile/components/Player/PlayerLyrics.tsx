@@ -1,59 +1,65 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "@/constants/theme";
 import { getMediaArtists } from "@/shared/index";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
+import { useVocabulary } from "@/lib/vocabulary";
+import { Http } from "@/lib/http";
+import { type BaseDynamicLyricsResponse } from "@/dto";
 
-interface LyricsLine {
-    text: string;
-    time?: number;
-}
-
-type LyricsState =
-    | { status: "idle" }
-    | { status: "loading" }
-    | { status: "empty" }
-    | { status: "ready"; lines: LyricsLine[]; dynamic: boolean };
-
-/**
- * PlayerLyrics — inline lyrics panel rendered inside the tabs panel.
- * Replaces the old BottomSheet-based implementation.
- * Dynamic (synced) lyrics are ready to wire in; static display works today.
- */
 export default function PlayerLyrics() {
-    const { currentMedia } = usePlayer();
+    const { currentMedia, seekTo } = usePlayer();
     const { currentTime } = usePlayerTime();
-    const [lyricsState, setLyricsState] = useState<LyricsState>({
-        status: "idle",
-    });
+    const { vocabulary } = useVocabulary();
+
+    const [lyrics, setLyrics] = useState<BaseDynamicLyricsResponse>();
+    const [loading, setLoading] = useState(true);
+    const scrollRef = useRef<ScrollView>(null);
 
     useEffect(() => {
-        if (!currentMedia?.publicId) {
-            setLyricsState({ status: "idle" });
-            return;
+        if (!currentMedia) return;
+
+        setLoading(true);
+
+        Http.getDynamicLyricsAsync(currentMedia.publicId).then((response) => {
+            if (response.isOk()) {
+                setLyrics(response.result);
+            }
+            setLoading(false);
+        });
+    }, [currentMedia]);
+
+    const currentIndex = useMemo(() => {
+        if (!lyrics || !currentTime) return null;
+
+        const offset = lyrics.offset;
+
+        for (let i = lyrics.lines.length - 1; i >= 0; i--) {
+            if (currentTime >= lyrics.lines[i].timestamp_s - offset) {
+                return i;
+            }
         }
 
-        setLyricsState({ status: "loading" });
+        return null;
+    }, [lyrics, currentTime]);
 
-        // TODO: fetch from your lyrics API endpoint, e.g.:
-        // fetchLyrics(currentMedia.publicId)
-        //   .then(lines => setLyricsState({ status: "ready", lines, dynamic: true }))
-        //   .catch(() => setLyricsState({ status: "empty" }));
+    useEffect(() => {
+        if (!scrollRef.current || currentIndex === null || !lyrics) return;
 
-        // Stub: show "no lyrics" for now
-        setLyricsState({ status: "empty" });
-    }, [currentMedia?.publicId]);
+        const LINE_HEIGHT = 44;
+        const targetY = currentIndex * LINE_HEIGHT;
+        scrollRef.current.scrollTo({
+            y: Math.max(0, targetY - 150),
+            animated: true,
+        });
+    }, [currentIndex, lyrics]);
 
-    // Highlights the active line for synced lyrics
-    const activeIndex = useMemo(() => {
-        if (lyricsState.status !== "ready" || !lyricsState.dynamic) return -1;
-        let idx = 0;
-        for (let i = 0; i < lyricsState.lines.length; i++) {
-            const t = lyricsState.lines[i].time;
-            if (t !== undefined && t <= currentTime + 0.3) idx = i;
+    const goToLine = (index: number): void => {
+        const timestamp = lyrics?.lines[index].timestamp_s;
+        if (timestamp !== undefined) {
+            seekTo(timestamp);
         }
-        return idx;
-    }, [lyricsState, currentTime]);
+    };
 
     return (
         <View style={styles.container}>
@@ -63,43 +69,59 @@ export default function PlayerLyrics() {
                     <Text style={styles.headerSubtitle} numberOfLines={1}>
                         {currentMedia.name}
                         {getMediaArtists(currentMedia)
-                            .map((artist) => artist.name)
+                            .map((a) => a.name)
                             .join(", ")}
                     </Text>
                 )}
             </View>
 
-            <ScrollView
-                contentContainerStyle={styles.content}
-                showsVerticalScrollIndicator={false}
-            >
-                {lyricsState.status === "loading" && (
-                    <Text style={styles.stateText}>Loading lyrics…</Text>
-                )}
+            {loading && (
+                <View style={styles.centerContent}>
+                    <Text style={styles.stateText}>Loading lyrics...</Text>
+                </View>
+            )}
 
-                {(lyricsState.status === "empty" ||
-                    lyricsState.status === "idle") && (
+            {!loading && !lyrics && (
+                <View style={styles.centerContent}>
                     <Text style={styles.stateText}>No lyrics available</Text>
-                )}
+                </View>
+            )}
 
-                {lyricsState.status === "ready" &&
-                    lyricsState.lines.map((line, i) => (
+            {!loading && lyrics && (
+                <ScrollView
+                    ref={scrollRef}
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {lyrics.lines.map((line, index) => (
                         <Text
-                            key={i}
+                            key={index}
+                            onPress={() => goToLine(index)}
                             style={[
                                 styles.lyricLine,
-                                lyricsState.dynamic &&
-                                    i === activeIndex &&
-                                    styles.lyricLineActive,
-                                lyricsState.dynamic &&
-                                    i < activeIndex &&
+                                currentIndex === index && styles.lyricLineActive,
+                                currentIndex !== null &&
+                                    index < currentIndex &&
                                     styles.lyricLinePast,
                             ]}
                         >
                             {line.text}
                         </Text>
                     ))}
-            </ScrollView>
+
+                    <View style={styles.footer}>
+                        <Text style={styles.footerLabel}>
+                            {vocabulary.LYRICS_BY}
+                        </Text>
+                        <Text style={styles.footerProvider}>
+                            {lyrics.provider}
+                        </Text>
+                        <Text style={styles.footerId}>
+                            {lyrics.publicId}
+                        </Text>
+                    </View>
+                </ScrollView>
+            )}
         </View>
     );
 }
@@ -124,16 +146,20 @@ const styles = StyleSheet.create({
         color: COLORS.gray400,
         marginTop: 2,
     },
-    content: {
-        paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 60,
+    centerContent: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
     },
     stateText: {
         fontSize: 16,
         color: COLORS.gray400,
         textAlign: "center",
-        marginTop: 48,
+    },
+    content: {
+        paddingHorizontal: 24,
+        paddingTop: 20,
+        paddingBottom: 120,
     },
     lyricLine: {
         fontSize: 22,
@@ -141,6 +167,7 @@ const styles = StyleSheet.create({
         color: "rgba(255,255,255,0.35)",
         lineHeight: 36,
         marginBottom: 8,
+        paddingRight: 16,
     },
     lyricLineActive: {
         color: COLORS.white,
@@ -149,5 +176,24 @@ const styles = StyleSheet.create({
     },
     lyricLinePast: {
         color: "rgba(255,255,255,0.2)",
+    },
+    footer: {
+        alignItems: "center",
+        marginTop: 96,
+        gap: 12,
+    },
+    footerLabel: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: COLORS.gray400,
+    },
+    footerProvider: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: COLORS.gray400,
+    },
+    footerId: {
+        fontSize: 11,
+        color: COLORS.gray600,
     },
 });

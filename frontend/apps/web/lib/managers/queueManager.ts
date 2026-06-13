@@ -65,7 +65,7 @@ export class QueueManager {
     }
 
     private _handleCurrentQueue = async (): Promise<void> => {
-        await this._refreshQueueAsync();
+        await this._refreshQueueAsync(false);
     };
 
     private _handleCurrentMedia = (data: CurrentMediaMessage): void => {
@@ -84,7 +84,9 @@ export class QueueManager {
         }
     };
 
-    private async _refreshQueueAsync(): Promise<void> {
+    private async _refreshQueueAsync(
+        updateCurrentMedia: boolean = true
+    ): Promise<void> {
         const response = await Http.getQueue();
 
         if (response.isNotOk()) {
@@ -95,9 +97,10 @@ export class QueueManager {
         }
 
         if (response.isOk()) {
-            this._currentQueueMediaIdAtom.set(
-                response.result.currentQueueMediaId
-            );
+            if (updateCurrentMedia)
+                this._currentQueueMediaIdAtom.set(
+                    response.result.currentQueueMediaId
+                );
 
             this.sortedQueue = [...response.result.queue]
                 .sort((a, b): number => a.sortedIndex - b.sortedIndex)
@@ -119,7 +122,8 @@ export class QueueManager {
                         this._currentQueueMediaIdAtom.get()
                 );
 
-            this._currentMediaAtom.set(currentMedia?.media);
+            if (updateCurrentMedia)
+                this._currentMediaAtom.set(currentMedia?.media);
             this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
             rockIt.mediaPlayerManager.setMedia(true);
         }

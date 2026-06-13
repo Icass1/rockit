@@ -26,8 +26,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 14,
-        minHeight: 48,
     },
     rowBorder: {
         borderBottomWidth: StyleSheet.hairlineWidth,

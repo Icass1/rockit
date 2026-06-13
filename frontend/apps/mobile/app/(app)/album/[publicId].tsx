@@ -13,6 +13,7 @@ export default function AlbumPage() {
     );
 
     useEffect(() => {
+        setAlbum(undefined);
         if (!publicId) return;
         getAlbumAsync(publicId).then(setAlbum);
     }, [publicId]);

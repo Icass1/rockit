@@ -10,6 +10,7 @@ import {
     isPlayable,
     isQueueable,
     isSearchResult,
+    isSong,
     isVideo,
     TMedia,
 } from "@rockit/shared";
@@ -118,15 +119,18 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                 return;
                             }
 
-                            const localPath = isVideo(media)
-                                ? await mediaStorage.downloadVideo(
-                                      media.publicId,
-                                      url
-                                  )
-                                : await mediaStorage.downloadSong(
-                                      media.publicId,
-                                      url
-                                  );
+                            let localPath;
+
+                            if (isVideo(media))
+                                localPath = await mediaStorage.downloadVideo(
+                                    media.publicId,
+                                    url
+                                );
+                            if (isSong(media))
+                                localPath = await mediaStorage.downloadSong(
+                                    media.publicId,
+                                    url
+                                );
 
                             if (localPath) {
                                 toasterManager.notifySuccess(

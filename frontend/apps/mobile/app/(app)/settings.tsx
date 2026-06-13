@@ -5,6 +5,7 @@ import {
     AccountSection,
     AudioSection,
     LanguageSection,
+    LogsButton,
     ProfileSection,
 } from "@/components/Settings";
 
@@ -29,7 +30,7 @@ export default function SettingsScreen() {
     return (
         <>
             <Header />
-            <PageContainer bottomPadding={60}>
+            <PageContainer bottomPadding={200}>
                 <ProfileSection />
 
                 <SettingsSection title={vocabulary.DISPLAY_NAME}>
@@ -42,6 +43,12 @@ export default function SettingsScreen() {
 
                 <SettingsSection title={vocabulary.DOWNLOAD_APP}>
                     <AudioSection />
+                </SettingsSection>
+                <SettingsSection title={vocabulary.LOGS}>
+                    <LogsButton />
+                </SettingsSection>
+                <SettingsSection title={vocabulary.STORAGE_MANAGEMENT}>
+                    <LogsButton />
                 </SettingsSection>
             </PageContainer>
         </>
@@ -58,6 +65,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(38, 38, 38, 0.8)",
         paddingHorizontal: 16,
-        paddingVertical: 0,
+        paddingVertical: 16,
     },
 });

@@ -5,7 +5,14 @@ import * as dto from "@/dto";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
 
+type Middleware = <T>(
+    next: () => Promise<HttpResult<T>>,
+    context: { path: string; schema: TZodSchema<T>; options: IApiFetchOptions }
+) => Promise<HttpResult<T>>;
+
 export class BaseHttp {
+    static middlewares: Middleware[] = [];
+
     protected static baseApiFetchAsync(
         _path: string,
         _options: IApiFetchOptions = {}
@@ -17,6 +24,27 @@ export class BaseHttp {
     }
 
     private static async apiFetchAsync<T>(
+        path: string,
+        schema: TZodSchema<T>,
+        options: IApiFetchOptions = {}
+    ): Promise<HttpResult<T>> {
+        const next: (n: number) => Promise<HttpResult<T>> = async (
+            n: number
+        ) => {
+            if (!this.middlewares[n])
+                return await this._apiFetchAsync(path, schema, options);
+
+            return await this.middlewares[n](() => next(n + 1), {
+                path,
+                schema,
+                options,
+            });
+        };
+
+        return next(0);
+    }
+
+    private static async _apiFetchAsync<T>(
         path: string,
         schema: TZodSchema<T>,
         options: IApiFetchOptions = {}

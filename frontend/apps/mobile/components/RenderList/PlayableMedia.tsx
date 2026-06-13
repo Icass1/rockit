@@ -7,9 +7,10 @@ import {
     type TPlayableMedia,
 } from "@rockit/shared";
 import { Image } from "expo-image";
-import { Download } from "lucide-react-native";
+import { Check } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
+import { useMediaOffline } from "@/hooks/useMediaOffline";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 import MediaSubTitle from "@/components/MediaSubTitle";
 
@@ -37,31 +38,28 @@ export const PlayableMedia = memo(function PlayableMedia({
 }) {
     const $media = useMedia(_media);
 
+    const availableOffline = useMediaOffline($media.publicId);
     const duration = getMediaDuration($media);
     const downloaded = !isDownloadable($media) || $media.downloaded;
 
     return (
         <MediaPressableWrapper media={$media} allMedia={allMedia}>
             <View style={styles.container}>
-                {showMediaIndex && (
-                    <View style={styles.indexContainer}>
-                        <Text style={styles.indexText}>{index + 1}</Text>
-                    </View>
-                )}
-                {showMediaImage && (
-                    <View style={styles.imageWrapper}>
+                <View style={styles.imageWrapper}>
+                    {showMediaIndex && (
+                        <View style={styles.indexContainer}>
+                            <Text style={styles.indexText}>{index + 1}</Text>
+                        </View>
+                    )}
+                    {showMediaImage && (
                         <Image
                             source={{ uri: $media.imageUrl }}
                             style={styles.image}
                             contentFit="cover"
                         />
-                        {!downloaded && (
-                            <View style={styles.downloadBadge}>
-                                <Download size={10} color={COLORS.white} />
-                            </View>
-                        )}
-                    </View>
-                )}
+                    )}
+                </View>
+
                 <View style={styles.info}>
                     <Text
                         style={[
@@ -81,6 +79,11 @@ export const PlayableMedia = memo(function PlayableMedia({
                         substractArtists={substractArtists}
                     />
                 </View>
+                {availableOffline && (
+                    <View style={styles.offlineBadge}>
+                        <Check size={10} color={COLORS.white} />
+                    </View>
+                )}
                 {duration !== undefined && (
                     <Text style={styles.duration}>
                         {formatDuration(duration)}
@@ -102,6 +105,7 @@ const styles = StyleSheet.create({
     },
     indexContainer: {
         width: 24,
+        height: 24,
         alignItems: "center",
     },
     indexText: {
@@ -122,6 +126,11 @@ const styles = StyleSheet.create({
         bottom: 2,
         right: 2,
         backgroundColor: "rgba(0,0,0,0.6)",
+        borderRadius: 8,
+        padding: 2,
+    },
+    offlineBadge: {
+        backgroundColor: COLORS.accent,
         borderRadius: 8,
         padding: 2,
     },

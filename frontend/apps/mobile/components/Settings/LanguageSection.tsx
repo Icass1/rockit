@@ -66,14 +66,11 @@ export default function LanguageSection() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 4,
-    },
+    container: {},
     selector: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 14,
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: COLORS.gray800,
     },

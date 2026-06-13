@@ -4,7 +4,6 @@ import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
 import LogoutButton from "./LogoutButton";
-import LogsButton from "./LogsButton";
 import StatsButton from "./StatsButton";
 
 export default function ProfileSection() {
@@ -42,7 +41,6 @@ export default function ProfileSection() {
 
             <View style={styles.actions}>
                 <StatsButton />
-                <LogsButton />
                 <LogoutButton />
             </View>
         </View>

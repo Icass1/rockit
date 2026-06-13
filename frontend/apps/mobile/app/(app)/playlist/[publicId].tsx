@@ -13,6 +13,7 @@ export default function PlaylistPage() {
     >(undefined);
 
     useEffect(() => {
+        setPlaylist(undefined);
         if (!publicId) return;
         getPlaylistAsync(publicId).then(setPlaylist);
     }, [publicId]);

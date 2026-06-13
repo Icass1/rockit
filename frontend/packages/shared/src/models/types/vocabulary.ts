@@ -170,6 +170,7 @@ export interface Vocabulary {
     LOG_IN: string;
     LOG_IN_TO: string;
     LOG_OUT: string;
+    LOGS: string;
     LOGGING_IN: string;
     LYRICS: string;
     LYRICS_BY: string;
@@ -280,6 +281,7 @@ export interface Vocabulary {
     STARTING: string;
     STATISTICS: string;
     STATS: string;
+    STORAGE_MANAGEMENT: string;
     STOP: string;
     TO: string;
     TODO: string;

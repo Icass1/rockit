@@ -109,9 +109,7 @@ export default function AccountSection() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        paddingVertical: 4,
-    },
+    container: { gap: 16 },
     value: {
         color: COLORS.gray400,
         fontSize: 16,
@@ -119,7 +117,6 @@ const styles = StyleSheet.create({
     changePassword: {
         color: COLORS.accent,
         fontSize: 14,
-        paddingVertical: 12,
     },
     passwordForm: {
         paddingTop: 16,

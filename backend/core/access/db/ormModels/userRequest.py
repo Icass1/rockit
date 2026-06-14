@@ -1,3 +1,4 @@
+from typing import Dict
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, Integer, Text

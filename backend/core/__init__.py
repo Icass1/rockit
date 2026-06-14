@@ -1,5 +1,3 @@
-import sys
-import asyncio
 import os
 import shutil
 
@@ -104,12 +102,7 @@ async def add_default_images(session: AsyncSession):
             )
 
 
-async def add_initial_content():
-    try:
-        await rockit_db.async_init()
-    except Exception as e:
-        logger.critical(f"Error initializing database: {e}")
-        sys.exit()
+async def add_initial_content_async():
 
     async with rockit_db.session_scope_async() as session:
         await providers.async_init(session=session)
@@ -168,14 +161,4 @@ async def add_initial_content():
             enum_class=ListenTogetherStatusEnum,
             table=ListenTogetherStatusEnumRow,
         )
-
-
-async def main():
-    await add_initial_content()
-
-
-try:
-    loop = asyncio.get_running_loop()
-    loop.create_task(main())
-except RuntimeError:
-    asyncio.run(main())
+        

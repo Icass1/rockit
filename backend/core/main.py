@@ -1,7 +1,8 @@
-import asyncio
 import os
-from importlib import import_module
+import sys
+import asyncio
 from typing import List
+from importlib import import_module
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
@@ -87,6 +88,16 @@ for dirpath, dirnames, filenames in os.walk("backend"):
 @app.on_event("startup")
 async def app_startup():
     """Initialize core enums and start background tasks."""
+
+    from backend.core import add_initial_content_async
+
+    try:
+        await rockit_db.async_init()
+    except Exception as e:
+        logger.critical(f"Error initializing database: {e}")
+        sys.exit()
+
+    await add_initial_content_async()
 
     await rockit_db.wait_for_session_local_async()
 

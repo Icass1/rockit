@@ -33,7 +33,20 @@ class Logger {
     }
 
     private _capture(level: LogLevel, ...args: unknown[]) {
-        this._originals[level](...args);
+        if (level === "error") {
+            const realStack = new Error().stack
+                ?.split("\n")
+                .slice(3)
+                .join("\n");
+            const message = args
+                .map((a) => (typeof a === "string" ? a : String(a)))
+                .join(" ");
+            const err = new Error(message);
+            err.stack = `Error: ${message}\n${realStack}`;
+            this._originals[level](err);
+        } else {
+            this._originals[level](...args);
+        }
 
         const id = this._idCounter++;
         const entry: LogEntry = {

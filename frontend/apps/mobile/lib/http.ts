@@ -100,6 +100,9 @@ Http.middlewares.push(async (next, context) => {
 
     const response = await next();
 
+    if (response.code === 401) {
+        return response;
+    }
     const filePath = resolveRoute(context.path);
 
     if (filePath) {

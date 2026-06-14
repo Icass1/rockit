@@ -5,4 +5,5 @@ export { default as AudioSection } from "./AudioSection";
 export { default as LogoutButton } from "./LogoutButton";
 export { default as StatsButton } from "./StatsButton";
 export { default as LogsButton } from "./LogsButton";
+export { default as StorageButton } from "./StorageButton";
 export { default as SettingRow } from "./SettingRow";

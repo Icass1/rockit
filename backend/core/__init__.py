@@ -24,6 +24,13 @@ from backend.core.access.db.ormEnums.platformEnum import PlatformEnumRow
 from backend.core.access.db.ormEnums.bookmarkModeEnum import BookmarkModeEnumRow
 from backend.core.access.db.ormEnums.requestTypeEnum import RequestTypeEnumRow
 from backend.core.access.db.ormEnums.requestStatusEnum import RequestStatusEnumRow
+from backend.core.access.db.ormEnums.friendStatusEnum import FriendStatusEnumRow
+from backend.core.access.db.ormEnums.listenTogetherStatusEnum import (
+    ListenTogetherStatusEnumRow,
+)
+
+from backend.core.enums.friend.friendStatusEnum import FriendStatusEnum
+from backend.core.enums.friend.listenTogetherStatusEnum import ListenTogetherStatusEnum
 
 from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
@@ -142,3 +149,16 @@ async def add_initial_content_async():
             enum_class=RequestStatusEnum,
             table=RequestStatusEnumRow,
         )
+
+        await EnumAccess.check_enum_contents_async(
+            session=session,
+            enum_class=FriendStatusEnum,
+            table=FriendStatusEnumRow,
+        )
+
+        await EnumAccess.check_enum_contents_async(
+            session=session,
+            enum_class=ListenTogetherStatusEnum,
+            table=ListenTogetherStatusEnumRow,
+        )
+        

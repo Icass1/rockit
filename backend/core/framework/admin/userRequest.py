@@ -122,9 +122,7 @@ class UserRequest:
             logger.error(f"Error creating request. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return await _map_request_to_response(
-            session=session, row=a_result.result()
-        )
+        return await _map_request_to_response(session=session, row=a_result.result())
 
     @staticmethod
     async def get_all_requests_async(
@@ -142,9 +140,7 @@ class UserRequest:
 
         responses: list[UserRequestResponse] = []
         for row in a_result.result():
-            a_result_resp = await _map_request_to_response(
-                session=session, row=row
-            )
+            a_result_resp = await _map_request_to_response(session=session, row=row)
             if a_result_resp.is_ok():
                 responses.append(a_result_resp.result())
 
@@ -170,9 +166,7 @@ class UserRequest:
 
         responses: list[UserRequestResponse] = []
         for row in a_result.result():
-            a_result_resp = await _map_request_to_response(
-                session=session, row=row
-            )
+            a_result_resp = await _map_request_to_response(session=session, row=row)
             if a_result_resp.is_ok():
                 responses.append(a_result_resp.result())
 
@@ -221,21 +215,15 @@ class UserRequest:
             logger.error(f"Error updating request. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return await _map_request_to_response(
-            session=session, row=a_result.result()
-        )
+        return await _map_request_to_response(session=session, row=a_result.result())
 
     @staticmethod
     async def get_stats_async(
         session: AsyncSession,
     ) -> AResult[AdminRequestStatsResponse]:
-        a_result_total = await RequestAccess.get_total_count_async(
-            session=session
-        )
+        a_result_total = await RequestAccess.get_total_count_async(session=session)
         if a_result_total.is_not_ok():
-            logger.error(
-                f"Error getting total. {a_result_total.info()}"
-            )
+            logger.error(f"Error getting total. {a_result_total.info()}")
             return AResult(
                 code=a_result_total.code(),
                 message=a_result_total.message(),
@@ -245,9 +233,7 @@ class UserRequest:
             session=session, status_value="pending"
         )
         if a_result_pending.is_not_ok():
-            logger.error(
-                f"Error getting pending. {a_result_pending.info()}"
-            )
+            logger.error(f"Error getting pending. {a_result_pending.info()}")
             return AResult(
                 code=a_result_pending.code(),
                 message=a_result_pending.message(),
@@ -257,9 +243,7 @@ class UserRequest:
             session=session, status_value="accepted"
         )
         if a_result_accepted.is_not_ok():
-            logger.error(
-                f"Error getting accepted. {a_result_accepted.info()}"
-            )
+            logger.error(f"Error getting accepted. {a_result_accepted.info()}")
             return AResult(
                 code=a_result_accepted.code(),
                 message=a_result_accepted.message(),
@@ -269,9 +253,7 @@ class UserRequest:
             session=session, status_value="rejected"
         )
         if a_result_rejected.is_not_ok():
-            logger.error(
-                f"Error getting rejected. {a_result_rejected.info()}"
-            )
+            logger.error(f"Error getting rejected. {a_result_rejected.info()}")
             return AResult(
                 code=a_result_rejected.code(),
                 message=a_result_rejected.message(),

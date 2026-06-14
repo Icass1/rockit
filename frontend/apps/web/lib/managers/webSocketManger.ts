@@ -14,6 +14,7 @@ import {
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export class WebSocketManager {
     static #instance: WebSocketManager;
@@ -79,8 +80,6 @@ export class WebSocketManager {
 
     async init(): Promise<void> {
         if (this._init) return;
-
-        // console.debug("WebSocketManager.init", this.webSocket);
 
         await this.attemptReconnect();
     }

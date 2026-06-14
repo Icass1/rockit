@@ -67,7 +67,6 @@ export default function Navigation(): JSX.Element {
             title: $vocabulary.FRIENDS,
             href: "/friends",
             icon: Users,
-            disabled: true,
         },
         {
             name: "Radio",

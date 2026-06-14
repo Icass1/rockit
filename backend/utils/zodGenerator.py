@@ -73,16 +73,17 @@ def get_base_models_from_folder(
     if not folder_path.exists():
         return base_models, type_aliases
 
-    for file_path in folder_path.glob("*.py"):
+    for file_path in folder_path.rglob("*.py"):
         if file_path.name.startswith("_") or file_path.name == "baseModel.py":
             continue
 
-        module_name = file_path.stem
+        relative_path = file_path.relative_to(folder_path)
+        module_parts = list(relative_path.with_suffix("").parts)
+        module_name = module_parts[-1]
 
         try:
-            module = importlib.import_module(
-                f"backend.{folder.split('backend/')[1].replace('/', '.')}.{module_name}"
-            )
+            full_module_path = f"backend.{folder.split('backend/')[1].replace('/', '.')}.{'.'.join(module_parts)}"
+            module = importlib.import_module(full_module_path)
         except Exception as e:
             logger.warning(f"Could not import {module_name} from {folder}: {e}")
             continue
@@ -388,7 +389,12 @@ def generate_zod_schema(
         fields[field_name] = zod_type
 
     if not fields:
-        return (f"export const {class_name}Schema = z.any();\n", schema_refs, False)
+        return (
+            f"export const {class_name}Schema = z.any();\n"
+            f"export type {class_name} = z.infer<typeof {class_name}Schema>;\n",
+            schema_refs,
+            False,
+        )
 
     has_self_ref = any(
         f"z.lazy(() => {class_name}Schema)" in zod_type for zod_type in fields.values()

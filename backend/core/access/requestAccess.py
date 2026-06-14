@@ -144,13 +144,13 @@ class RequestAccess:
         value: str,
     ) -> AResult[int]:
         result = await session.execute(
-            select(RequestTypeEnumRow.key).where(
-                RequestTypeEnumRow.value == value
-            )
+            select(RequestTypeEnumRow.key).where(RequestTypeEnumRow.value == value)
         )
         key = result.scalar_one_or_none()
         if key is None:
-            return AResult(AResultCode.NOT_FOUND, f"Request type '{value}' not found.", None)
+            return AResult(
+                AResultCode.NOT_FOUND, f"Request type '{value}' not found.", None
+            )
         return AResult(code=AResultCode.OK, message="OK", result=key)
 
     @staticmethod
@@ -160,9 +160,7 @@ class RequestAccess:
         value: str,
     ) -> AResult[int]:
         result = await session.execute(
-            select(RequestStatusEnumRow.key).where(
-                RequestStatusEnumRow.value == value
-            )
+            select(RequestStatusEnumRow.key).where(RequestStatusEnumRow.value == value)
         )
         key = result.scalar_one_or_none()
         if key is None:
@@ -176,9 +174,7 @@ class RequestAccess:
         key: int,
     ) -> AResult[str]:
         result = await session.execute(
-            select(RequestTypeEnumRow.value).where(
-                RequestTypeEnumRow.key == key
-            )
+            select(RequestTypeEnumRow.value).where(RequestTypeEnumRow.key == key)
         )
         value = result.scalar_one_or_none()
         if value is None:
@@ -192,9 +188,7 @@ class RequestAccess:
         key: int,
     ) -> AResult[str]:
         result = await session.execute(
-            select(RequestStatusEnumRow.value).where(
-                RequestStatusEnumRow.key == key
-            )
+            select(RequestStatusEnumRow.value).where(RequestStatusEnumRow.key == key)
         )
         value = result.scalar_one_or_none()
         if value is None:
@@ -214,7 +208,9 @@ class RequestAccess:
         )
         media_id = result.scalar_one_or_none()
         if media_id is None:
-            return AResult(AResultCode.NOT_FOUND, f"Media '{public_id}' not found.", None)
+            return AResult(
+                AResultCode.NOT_FOUND, f"Media '{public_id}' not found.", None
+            )
         return AResult(code=AResultCode.OK, message="OK", result=media_id)
 
     @staticmethod
@@ -238,9 +234,7 @@ class RequestAccess:
     async def get_total_count_async(
         session: AsyncSession,
     ) -> AResult[int]:
-        result = await session.execute(
-            select(UserRequestRow.id)
-        )
+        result = await session.execute(select(UserRequestRow.id))
         count = len(result.all())
         return AResult(code=AResultCode.OK, message="OK", result=count)
 
@@ -251,10 +245,12 @@ class RequestAccess:
         status_value: str,
     ) -> AResult[int]:
         result = await session.execute(
-            select(UserRequestRow.id).join(
+            select(UserRequestRow.id)
+            .join(
                 RequestStatusEnumRow,
                 UserRequestRow.status_key == RequestStatusEnumRow.key,
-            ).where(RequestStatusEnumRow.value == status_value)
+            )
+            .where(RequestStatusEnumRow.value == status_value)
         )
         count = len(result.all())
         return AResult(code=AResultCode.OK, message="OK", result=count)

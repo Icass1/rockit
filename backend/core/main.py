@@ -90,6 +90,11 @@ async def app_startup():
 
     await rockit_db.wait_for_session_local_async()
 
+    # Seed core enum tables if missing
+    from backend.core.access.seedData import seed_enum_values_async
+    async with rockit_db.session_scope_async() as session:
+        await seed_enum_values_async(session=session)
+
     asyncio.create_task(downloads_manager.download_manager(), name="Download Manager")
     # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")
 

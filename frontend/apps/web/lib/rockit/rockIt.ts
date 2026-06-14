@@ -1,6 +1,7 @@
 import { EventManager } from "@rockit/packages/shared";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
+import { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
@@ -30,6 +31,7 @@ export class RockIt {
     public readonly USER_PLACEHOLDER_IMAGE_URL =
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/user-placeholder.png";
 
+    bookmarkManager = new BookmarkManager();
     notificationManager = new NotificationManager();
     webSocketManager = new WebSocketManager();
     userManager = new UserManager();
@@ -59,6 +61,7 @@ export class RockIt {
         rockIt.queueManager.init();
         rockIt.userManager.init();
         rockIt.downloaderManager.init();
+        rockIt.bookmarkManager.init();
         rockIt.libraryManager.init();
         rockIt.playlistManager.init();
         rockIt.mediaSessionManager.init();

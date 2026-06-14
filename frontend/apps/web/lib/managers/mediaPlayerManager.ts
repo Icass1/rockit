@@ -33,6 +33,7 @@ export class MediaPlayerManager {
     private _lastWsSyncTime = 0;
     private _isSeeking = false;
     private _seekFrom: number = 0;
+    private _triggeredAutoSkipBookmarks: Set<string> = new Set();
 
     constructor() {
         if (typeof window === "undefined") return;
@@ -289,6 +290,8 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
+        this._triggeredAutoSkipBookmarks.clear();
+
         if (isVideo(currentMedia)) {
             this.setVideo(useSavedCurrentTime);
         } else {
@@ -435,6 +438,9 @@ export class MediaPlayerManager {
 
         this._currentTimeAtom.set(time);
 
+        // Auto-skip: check for AUTOSKIP bookmarks at current position
+        this._checkAutoSkipBookmarks(time, currentMedia.publicId);
+
         const now = Date.now();
         if (now - this._lastWsSyncTime >= WS_TIME_SYNC_INTERVAL_MS) {
             this._lastWsSyncTime = now;
@@ -442,6 +448,20 @@ export class MediaPlayerManager {
                 currentTimeMs: Math.round(time * 1000),
                 mediaPublicId: currentMedia.publicId,
             });
+        }
+    }
+
+    private _checkAutoSkipBookmarks(currentTime: number, mediaPublicId: string): void {
+        const bookmarks = rockIt.bookmarkManager.currentMediaBookmarksAtom.get();
+        for (const bookmark of bookmarks) {
+            if (bookmark.mode !== "AUTOSKIP") continue;
+            if (this._triggeredAutoSkipBookmarks.has(bookmark.publicId)) continue;
+
+            if (Math.abs(bookmark.timestamp - currentTime) < 0.4) {
+                this._triggeredAutoSkipBookmarks.add(bookmark.publicId);
+                rockIt.queueManager.skipForward();
+                return;
+            }
         }
     }
 

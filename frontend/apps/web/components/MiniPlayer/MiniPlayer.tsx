@@ -8,6 +8,7 @@ import { Pause, Play, Shuffle, SkipBack, SkipForward } from "lucide-react";
 import { getMediaArtists, getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import type { BookmarkResponse } from "@/dto";
 
 export default function MiniPlayer(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
@@ -15,6 +16,7 @@ export default function MiniPlayer(): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
+    const $bookmarks = useStore(rockIt.bookmarkManager.currentMediaBookmarksAtom);
 
     const hasMedia = Boolean($currentMedia || $currentStation);
 
@@ -39,6 +41,25 @@ export default function MiniPlayer(): JSX.Element {
                                     width: `${Math.min(100, Math.max(0, (($currentTime ?? 0) / (getMediaDuration($currentMedia) ?? 1)) * 100))}%`,
                                 }}
                             />
+                            {/* Bookmark markers */}
+                            {$bookmarks.map((b: BookmarkResponse): JSX.Element => {
+                                const duration = getMediaDuration($currentMedia) ?? 1;
+                                const left = `${Math.min(100, Math.max(0, (b.timestamp / duration) * 100))}%`;
+                                return (
+                                    <button
+                                        key={b.publicId}
+                                        title={b.description ?? `${getTime(b.timestamp)}`}
+                                        onClick={(): void =>
+                                            rockIt.mediaPlayerManager.setCurrentTime(
+                                                b.timestamp,
+                                                true
+                                            )
+                                        }
+                                        className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border-2 border-white bg-transparent transition-transform hover:scale-150"
+                                        style={{ left }}
+                                    />
+                                );
+                            })}
                             <input
                                 type="range"
                                 min={0}

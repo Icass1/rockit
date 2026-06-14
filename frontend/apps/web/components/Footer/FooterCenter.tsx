@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { EQueueType, ERepeatMode, isStation } from "@rockit/packages/shared";
 import {
+    Bookmark,
     CirclePause,
     CirclePlay,
     Repeat,
@@ -16,6 +17,7 @@ import { getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Slider from "@/components/Slider/Slider";
+import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
@@ -30,6 +32,8 @@ export default function FooterCenter(): JSX.Element {
     const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $bookmarks = useStore(rockIt.bookmarkManager.currentMediaBookmarksAtom);
+    const $showBookmarkPopup = useStore(rockIt.bookmarkManager.showPopupAtom);
     const isLiveStation = $currentMedia && isStation($currentMedia);
 
     if (!$currentMedia) return <div className="hidden w-1/3 md:block" />;
@@ -45,9 +49,16 @@ export default function FooterCenter(): JSX.Element {
               ? $vocabulary.REPEAT_ALL
               : $vocabulary.NO_REPEAT;
 
+    const hasBookmarkAtCurrentTime = $bookmarks.some(
+        (b): boolean => Math.abs(b.timestamp - ($currentTime ?? 0)) < 0.5
+    );
+
     return (
         <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
-            <div className="grid grid-cols-5 items-center justify-items-center gap-2">
+            <div className="relative grid grid-cols-7 items-center justify-items-center gap-2">
+                {/* Spacer to keep play button centered with 7 items */}
+                <div className="h-4.5 w-4.5" />
+
                 <button
                     aria-label={
                         $queueType ? "Disable shuffle" : "Enable shuffle"
@@ -106,6 +117,28 @@ export default function FooterCenter(): JSX.Element {
                         className={`h-4.5 w-4.5 transition-colors md:hover:scale-105 ${isRepeatActive ? ACTIVE : "text-gray-400"}`}
                     />
                 </button>
+
+                <div className="relative flex items-center justify-center">
+                    <button
+                        aria-label="Bookmark"
+                        onClick={(): void => rockIt.bookmarkManager.togglePopup()}
+                    >
+                        <Bookmark
+                            className={`h-5 w-5 transition-all md:hover:scale-105 ${
+                                hasBookmarkAtCurrentTime
+                                    ? "fill-[#ee1086] text-[#ee1086]"
+                                    : "fill-none text-gray-400"
+                            }`}
+                        />
+                    </button>
+                    {$showBookmarkPopup && (
+                        <BookmarkPopup
+                            onClose={(): void =>
+                                rockIt.bookmarkManager.hidePopup()
+                            }
+                        />
+                    )}
+                </div>
             </div>
 
             {/* Progress bar */}
@@ -113,35 +146,57 @@ export default function FooterCenter(): JSX.Element {
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
                     {getTime($currentTime ?? 0)}
                 </span>
-                <Slider
-                    id="default-slider"
-                    className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
-                    value={$currentTime}
-                    min={0}
-                    max={isLiveStation ? 3600 : getMediaDuration($currentMedia)}
-                    onChange={
-                        isLiveStation
-                            ? undefined
-                            : (e): void =>
-                                  rockIt.mediaPlayerManager.setCurrentTime(
-                                      Number(e.target.value),
-                                      false
-                                  )
-                    }
-                    onPointerDown={
-                        isLiveStation
-                            ? undefined
-                            : (): void => rockIt.mediaPlayerManager.beginSeek()
-                    }
-                    onPointerUp={
-                        isLiveStation
-                            ? undefined
-                            : (e): void =>
-                                  rockIt.mediaPlayerManager.endSeek(
-                                      Number(e.currentTarget.value)
-                                  )
-                    }
-                />
+                <div className="relative flex-1">
+                    <Slider
+                        id="default-slider"
+                        className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
+                        value={$currentTime}
+                        min={0}
+                        max={isLiveStation ? 3600 : getMediaDuration($currentMedia)}
+                        onChange={
+                            isLiveStation
+                                ? undefined
+                                : (e): void =>
+                                      rockIt.mediaPlayerManager.setCurrentTime(
+                                          Number(e.target.value),
+                                          false
+                                      )
+                        }
+                        onPointerDown={
+                            isLiveStation
+                                ? undefined
+                                : (): void => rockIt.mediaPlayerManager.beginSeek()
+                        }
+                        onPointerUp={
+                            isLiveStation
+                                ? undefined
+                                : (e): void =>
+                                      rockIt.mediaPlayerManager.endSeek(
+                                          Number(e.currentTarget.value)
+                                      )
+                        }
+                    />
+                    {/* Bookmark markers */}
+                    {!isLiveStation &&
+                        $bookmarks.map((b): JSX.Element => {
+                            const duration = getMediaDuration($currentMedia) ?? 1;
+                            const left = `${Math.min(100, Math.max(0, (b.timestamp / duration) * 100))}%`;
+                            return (
+                                <button
+                                    key={b.publicId}
+                                    title={b.description ?? `${getTime(b.timestamp)}`}
+                                    onClick={(): void =>
+                                        rockIt.mediaPlayerManager.setCurrentTime(
+                                            b.timestamp,
+                                            true
+                                        )
+                                    }
+                                    className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border-2 border-white bg-transparent transition-transform hover:scale-150"
+                                    style={{ left }}
+                                />
+                            );
+                        })}
+                </div>
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
                     {getTime(
                         isLiveStation

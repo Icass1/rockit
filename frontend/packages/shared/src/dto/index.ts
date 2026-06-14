@@ -208,6 +208,10 @@ export {
     type FriendStatsResponse,
 } from "./friendStatsResponse";
 export {
+    FriendStreakResponseSchema,
+    type FriendStreakResponse,
+} from "./friendStreakResponse";
+export {
     GetBookmarksRequestSchema,
     type GetBookmarksRequest,
 } from "./getBookmarksRequest";
@@ -573,6 +577,7 @@ export {
     UserRequestResponseSchema,
     type UserRequestResponse,
 } from "./userRequestResponse";
+export {
     UserSearchResultSchema,
     type UserSearchResult,
 } from "./userSearchResult";
@@ -588,6 +593,11 @@ export {
     UserStatsResponseSchema,
     type UserStatsResponse,
 } from "./userStatsResponse";
+export { VibeResultSchema, type VibeResult } from "./vibeResult";
+export {
+    VibeScoreResponseSchema,
+    type VibeScoreResponse,
+} from "./vibeScoreResponse";
 export {
     VocabularyResponseSchema,
     type VocabularyResponse,

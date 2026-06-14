@@ -56,10 +56,8 @@ export interface Vocabulary {
     ADMIN_SETTINGS_SUBTITLE: string;
     ADMIN_SETTINGS_TITLE: string;
     ADMIN_TAB_BUILDS: string;
-    ADMIN_TAB_REQUESTS: string;
     ADMIN_TAB_SETTINGS: string;
     ADMIN_TAB_USERS: string;
-    ADMIN_REQUESTS_TITLE: string;
     ADMIN_TOP_IPS: string;
     ADMIN_TOP_ROUTES: string;
     ADMIN_TOTAL_REQUESTS: string;
@@ -405,18 +403,4 @@ export interface Vocabulary {
     FRIENDS_NO_SHARED: string;
     FRIENDS_LIVE: string;
     FRIENDS_MY_FRIENDS: string;
-    EDIT_METADATA: string;
-    EDIT_METADATA_TITLE: string;
-    EDIT_METADATA_DESCRIPTION: string;
-    EDIT_METADATA_SUBMIT: string;
-    EDIT_METADATA_SUCCESS: string;
-    EDIT_METADATA_ERROR: string;
-    EDIT_METADATA_COMMENT: string;
-    EDIT_METADATA_COMMENT_PLACEHOLDER: string;
-    EDIT_METADATA_FIELD_TITLE: string;
-    EDIT_METADATA_FIELD_ARTIST: string;
-    EDIT_METADATA_FIELD_ALBUM: string;
-    EDIT_METADATA_FIELD_GENRE: string;
-    EDIT_METADATA_FIELD_LYRICS: string;
-    EDIT_METADATA_FIELD_RELEASE_DATE: string;
 }

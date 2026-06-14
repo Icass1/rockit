@@ -14,9 +14,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
 
 
-class StreakBattleRow(
-    CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded
-):
+class StreakBattleRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded):
     __tablename__ = "streak_battle"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
@@ -48,7 +46,7 @@ class StreakBattleRow(
         winner_id: int | None = None,
         status_key: int = 1,
     ):
-        kwargs: Dict[str, int | str | None] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["challenger_id"] = challenger_id
         kwargs["challenged_id"] = challenged_id

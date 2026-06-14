@@ -71,7 +71,7 @@ class ListenTogetherSessionRow(
         queue_json: str | None = None,
         status_key: int = 1,
     ):
-        kwargs: Dict[str, int | str | bool | None] = {}
+        kwargs: Dict[str, None | bool | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["host_user_id"] = host_user_id
         kwargs["guest_user_id"] = guest_user_id

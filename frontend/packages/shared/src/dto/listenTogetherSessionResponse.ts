@@ -16,7 +16,7 @@ export const ListenTogetherSessionResponseSchema = z.object({
     currentMediaImageUrl: z.string().nullable(),
     currentTimeMs: z.number().default(0),
     isPlaying: z.boolean().default(false),
-    status: z.string(),
+    status: z.enum(["ACTIVE", "ENDED"]),
 });
 
 export type ListenTogetherSessionResponse = z.infer<

@@ -15,9 +15,7 @@ if TYPE_CHECKING:
     from backend.core.access.db.ormModels.media import CoreMediaRow
 
 
-class SharedMediaRow(
-    CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded
-):
+class SharedMediaRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded):
     __tablename__ = "shared_media"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
@@ -50,7 +48,7 @@ class SharedMediaRow(
         message: str | None = None,
         seen: bool = False,
     ):
-        kwargs: Dict[str, int | str | bool | None] = {}
+        kwargs: Dict[str, None | bool | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["sender_user_id"] = sender_user_id
         kwargs["recipient_user_id"] = recipient_user_id

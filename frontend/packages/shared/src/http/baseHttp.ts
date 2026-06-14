@@ -1,7 +1,6 @@
 // This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 
-import { z } from "zod";
 import * as dto from "@/dto";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
@@ -537,9 +536,9 @@ export class BaseHttp {
         );
     }
 
-    static async searchUsers(query: string) {
+    static async searchUsers() {
         return this.apiGetAsync(
-            `/friends/search?q=${encodeURIComponent(query)}`,
+            `/friends/search`,
             dto.FriendSearchResponseSchema
         );
     }
@@ -567,51 +566,6 @@ export class BaseHttp {
         );
     }
 
-    static async markShareAsSeen(publicId: string) {
-        return this.apiPostAsync(
-            `/friends/share/${publicId}/seen`,
-            z.object({}),
-            dto.OkResponseSchema,
-            {}
-        );
-    }
-
-    static async sendFriendRequest(userPublicId: string) {
-        return this.apiPostAsync(
-            `/friends/request/${userPublicId}`,
-            z.object({}),
-            dto.OkResponseSchema,
-            {}
-        );
-    }
-
-    static async acceptFriendRequest(requestPublicId: string) {
-        return this.apiPostAsync(
-            `/friends/request/${requestPublicId}/accept`,
-            z.object({}),
-            dto.OkResponseSchema,
-            {}
-        );
-    }
-
-    static async rejectFriendRequest(requestPublicId: string) {
-        return this.apiPostAsync(
-            `/friends/request/${requestPublicId}/reject`,
-            z.object({}),
-            dto.OkResponseSchema,
-            {}
-        );
-    }
-
-    static async blockUser(userPublicId: string) {
-        return this.apiPostAsync(
-            `/friends/block/${userPublicId}`,
-            z.object({}),
-            dto.OkResponseSchema,
-            {}
-        );
-    }
-
     static async removeFriend(userPublicId: string) {
         return this.apiDeleteAsync(
             `/friends/${userPublicId}`,
@@ -636,14 +590,14 @@ export class BaseHttp {
     static async getFriendStreak(userPublicId: string) {
         return this.apiGetAsync(
             `/friends/${userPublicId}/streak`,
-            dto.DictSchema
+            dto.FriendStreakResponseSchema
         );
     }
 
     static async getVibeScore(userPublicId: string) {
         return this.apiGetAsync(
             `/friends/${userPublicId}/vibe`,
-            dto.DictSchema
+            dto.VibeScoreResponseSchema
         );
     }
 

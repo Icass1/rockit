@@ -56,7 +56,7 @@ class FriendRequestRow(
         status_key: int = 1,
         message: str | None = None,
     ):
-        kwargs: Dict[str, int | str | None] = {}
+        kwargs: Dict[str, None | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["from_user_id"] = from_user_id
         kwargs["to_user_id"] = to_user_id

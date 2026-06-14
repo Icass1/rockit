@@ -44,12 +44,7 @@ class FriendRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded
     def status(self, value: FriendStatusEnum) -> None:
         self.status_key = value.value
 
-    def __init__(
-        self,
-        user_id: int,
-        friend_user_id: int,
-        status_key: int = 1,
-    ):
+    def __init__(self, user_id: int, friend_user_id: int, status_key: int = 1):
         kwargs: Dict[str, int] = {}
         kwargs["user_id"] = user_id
         kwargs["friend_user_id"] = friend_user_id

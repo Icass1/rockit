@@ -451,11 +451,16 @@ export class MediaPlayerManager {
         }
     }
 
-    private _checkAutoSkipBookmarks(currentTime: number, mediaPublicId: string): void {
-        const bookmarks = rockIt.bookmarkManager.currentMediaBookmarksAtom.get();
+    private _checkAutoSkipBookmarks(
+        currentTime: number,
+        mediaPublicId: string
+    ): void {
+        const bookmarks =
+            rockIt.bookmarkManager.currentMediaBookmarksAtom.get();
         for (const bookmark of bookmarks) {
             if (bookmark.mode !== "AUTOSKIP") continue;
-            if (this._triggeredAutoSkipBookmarks.has(bookmark.publicId)) continue;
+            if (this._triggeredAutoSkipBookmarks.has(bookmark.publicId))
+                continue;
 
             if (Math.abs(bookmark.timestamp - currentTime) < 0.4) {
                 this._triggeredAutoSkipBookmarks.add(bookmark.publicId);

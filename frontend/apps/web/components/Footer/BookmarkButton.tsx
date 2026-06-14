@@ -8,7 +8,9 @@ import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 
 export default function BookmarkButton(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $currentMediaBookmarks = useStore(rockIt.bookmarkManager.currentMediaBookmarksAtom);
+    const $currentMediaBookmarks = useStore(
+        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    );
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $showPopup = useStore(rockIt.bookmarkManager.showPopupAtom);
 
@@ -34,7 +36,11 @@ export default function BookmarkButton(): JSX.Element {
                 />
             </button>
 
-            {$showPopup && <BookmarkPopup onClose={(): void => rockIt.bookmarkManager.hidePopup()} />}
+            {$showPopup && (
+                <BookmarkPopup
+                    onClose={(): void => rockIt.bookmarkManager.hidePopup()}
+                />
+            )}
         </div>
     );
 }

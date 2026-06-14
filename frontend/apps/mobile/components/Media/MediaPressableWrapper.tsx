@@ -50,9 +50,9 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     const { vocabulary } = useVocabulary();
     const router = useTypedRouter();
     const handlePlay = useHandlePlay();
-    const [editMetadataMedia, setEditMetadataMedia] = useState<
-        TMedia | BaseSearchResultsItem | null
-    >(null);
+    const [editMetadataMedia, setEditMetadataMedia] = useState<TMedia | null>(
+        null
+    );
 
     const buildMainMenu = useCallback(
         (media: TMedia | BaseSearchResultsItem): ContextMenuConfig => {

@@ -16,8 +16,8 @@ import {
 import { getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
-import Slider from "@/components/Slider/Slider";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
+import Slider from "@/components/Slider/Slider";
 
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
@@ -32,7 +32,9 @@ export default function FooterCenter(): JSX.Element {
     const $repeatMode = useStore(rockIt.userManager.repeatModeAtom);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const $bookmarks = useStore(rockIt.bookmarkManager.currentMediaBookmarksAtom);
+    const $bookmarks = useStore(
+        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    );
     const $showBookmarkPopup = useStore(rockIt.bookmarkManager.showPopupAtom);
     const isLiveStation = $currentMedia && isStation($currentMedia);
 
@@ -121,7 +123,9 @@ export default function FooterCenter(): JSX.Element {
                 <div className="relative flex items-center justify-center">
                     <button
                         aria-label="Bookmark"
-                        onClick={(): void => rockIt.bookmarkManager.togglePopup()}
+                        onClick={(): void =>
+                            rockIt.bookmarkManager.togglePopup()
+                        }
                     >
                         <Bookmark
                             className={`h-5 w-5 transition-all md:hover:scale-105 ${
@@ -152,7 +156,11 @@ export default function FooterCenter(): JSX.Element {
                         className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
                         value={$currentTime}
                         min={0}
-                        max={isLiveStation ? 3600 : getMediaDuration($currentMedia)}
+                        max={
+                            isLiveStation
+                                ? 3600
+                                : getMediaDuration($currentMedia)
+                        }
                         onChange={
                             isLiveStation
                                 ? undefined
@@ -165,7 +173,8 @@ export default function FooterCenter(): JSX.Element {
                         onPointerDown={
                             isLiveStation
                                 ? undefined
-                                : (): void => rockIt.mediaPlayerManager.beginSeek()
+                                : (): void =>
+                                      rockIt.mediaPlayerManager.beginSeek()
                         }
                         onPointerUp={
                             isLiveStation
@@ -179,19 +188,23 @@ export default function FooterCenter(): JSX.Element {
                     {/* Bookmark markers */}
                     {!isLiveStation &&
                         $bookmarks.map((b): JSX.Element => {
-                            const duration = getMediaDuration($currentMedia) ?? 1;
+                            const duration =
+                                getMediaDuration($currentMedia) ?? 1;
                             const left = `${Math.min(100, Math.max(0, (b.timestamp / duration) * 100))}%`;
                             return (
                                 <button
                                     key={b.publicId}
-                                    title={b.description ?? `${getTime(b.timestamp)}`}
+                                    title={
+                                        b.description ??
+                                        `${getTime(b.timestamp)}`
+                                    }
                                     onClick={(): void =>
                                         rockIt.mediaPlayerManager.setCurrentTime(
                                             b.timestamp,
                                             true
                                         )
                                     }
-                                    className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border-2 border-white bg-transparent transition-transform hover:scale-150"
+                                    className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-white bg-transparent transition-transform hover:scale-150"
                                     style={{ left }}
                                 />
                             );

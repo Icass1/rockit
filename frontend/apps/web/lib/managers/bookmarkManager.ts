@@ -1,8 +1,13 @@
-import { EWebSocketMessage } from "@rockit/packages/shared";
 import { type BookmarkResponse } from "@/dto";
+import { EWebSocketMessage } from "@rockit/packages/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createArrayAtom, createAtom, ReadonlyArrayAtom, ReadonlyAtom } from "@/lib/store";
+import {
+    createArrayAtom,
+    createAtom,
+    ReadonlyArrayAtom,
+    ReadonlyAtom,
+} from "@/lib/store";
 
 export type EBookmarkMode = "NOTHING" | "AUTOSKIP";
 
@@ -57,7 +62,7 @@ export class BookmarkManager {
         const media = rockIt.queueManager.currentMedia;
         if (!media) return null;
 
-        console.log('Creating bookmark payload:', {
+        console.log("Creating bookmark payload:", {
             mediaPublicId: media.publicId,
             timestamp,
             description,
@@ -79,7 +84,9 @@ export class BookmarkManager {
         // Log detailed error for debugging
         console.error("Bookmark create error detail:", response);
         rockIt.notificationManager.notifyError(
-            typeof response.detail === "string" ? response.detail : "Failed to save bookmark"
+            typeof response.detail === "string"
+                ? response.detail
+                : "Failed to save bookmark"
         );
         return null;
     }

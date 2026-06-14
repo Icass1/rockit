@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import {
-    getMediaSubtitle,
-    type BaseSearchResultsItem,
-    type TMedia as MobileMedia,
-} from "@rockit/shared";
+import { getMediaSubtitle, type TMedia } from "@rockit/shared";
 import {
     ActivityIndicator,
     KeyboardAvoidingView,
@@ -20,8 +16,6 @@ import {
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
 
-type MediaForEdit = MobileMedia | BaseSearchResultsItem;
-
 interface FieldDef {
     key: string;
     label: string;
@@ -29,7 +23,7 @@ interface FieldDef {
     multiline: boolean;
 }
 
-function getFieldsForMedia(media: MediaForEdit): FieldDef[] {
+function getFieldsForMedia(media: TMedia): FieldDef[] {
     switch (media.type) {
         case "song":
             return [
@@ -112,7 +106,7 @@ function getFieldsForMedia(media: MediaForEdit): FieldDef[] {
 }
 
 interface EditMetadataModalContentProps {
-    media: MediaForEdit;
+    media: TMedia;
     onClose: () => void;
 }
 
@@ -146,11 +140,11 @@ export function EditMetadataModalContent({
             }
         }
 
-        const mediaPublicId = "publicId" in media ? media.publicId : null;
+        const mediaPublicId = media.publicId;
 
         const result = await Http.createRequest({
             mediaPublicId,
-            requestType: "metadata",
+            requestType: "METADATA",
             proposedValue: JSON.stringify(changes),
             comment: comment.trim() || null,
         });
@@ -279,7 +273,7 @@ export function EditMetadataModalContent({
 
 interface EditMetadataModalProps {
     visible: boolean;
-    media: MediaForEdit;
+    media: TMedia;
     onClose: () => void;
 }
 

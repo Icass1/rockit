@@ -1,21 +1,7 @@
-import { BACKEND_URL } from "@/environment";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
-
-interface SharedMediaItem {
-    publicId: string;
-    senderPublicId: string;
-    senderUsername: string;
-    senderImageUrl: string | null;
-    mediaPublicId: string;
-    mediaName: string;
-    mediaImageUrl: string | null;
-    mediaType: string;
-    artistName: string | null;
-    message: string | null;
-    seen: boolean;
-    dateAdded: string;
-}
+import { type SharedMediaItem } from "@/dto";
 
 export class SharingManager {
     private _inboxAtom = createArrayAtom<SharedMediaItem>([]);
@@ -25,13 +11,10 @@ export class SharingManager {
     async fetchInbox(): Promise<void> {
         this._loadingAtom.set(true);
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/share/inbox`,
-                { credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
-            const data = await res.json();
-            this._inboxAtom.set(data.items ?? []);
+            const res = await Http.getShareInbox();
+            if (res.isOk()) {
+                this._inboxAtom.set(res.result.items);
+            }
         } catch {
             // silent
         } finally {
@@ -41,13 +24,10 @@ export class SharingManager {
 
     async fetchSent(): Promise<void> {
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/share/sent`,
-                { credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
-            const data = await res.json();
-            this._sentAtom.set(data.items ?? []);
+            const res = await Http.getShareSent();
+            if (res.isOk()) {
+                this._sentAtom.set(res.result.items);
+            }
         } catch {
             // silent
         }
@@ -59,20 +39,12 @@ export class SharingManager {
         message?: string
     ): Promise<boolean> {
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/share`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        recipientPublicId,
-                        mediaPublicId,
-                        message: message ?? null,
-                    }),
-                }
-            );
-            if (!res.ok) throw new Error(await res.text());
+            const res = await Http.shareMedia({
+                recipientPublicId,
+                mediaPublicId,
+                message: message ?? null,
+            });
+            if (res.isNotOk()) throw new Error(String(res.detail));
             await this.fetchSent();
             rockIt.notificationManager.notifySuccess("Media shared!");
             return true;
@@ -84,10 +56,7 @@ export class SharingManager {
 
     async markAsSeen(sharePublicId: string): Promise<void> {
         try {
-            await fetch(
-                `${BACKEND_URL}/friends/share/${sharePublicId}/seen`,
-                { method: "POST", credentials: "include" }
-            );
+            await Http.markShareAsSeen(sharePublicId);
             await this.fetchInbox();
         } catch {
             // silent

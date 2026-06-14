@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type JSX } from "react";
+import { useEffect, useRef, useState, useMemo, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { EFriendTab } from "@rockit/shared";
 import FriendActivityFeed from "./FriendActivityFeed";
 import FriendsList from "./FriendsList";
 import FriendRequests from "./FriendRequests";
@@ -11,18 +12,8 @@ import ListenTogetherPanel from "./ListenTogetherPanel";
 import FriendLeaderboard from "./FriendLeaderboard";
 import LivePulseBanner from "./LivePulseBanner";
 
-type Tab = "activity" | "friends" | "share" | "party" | "ranks";
-
-const TABS: { id: Tab; label: string }[] = [
-    { id: "activity", label: "Activity" },
-    { id: "friends", label: "Friends" },
-    { id: "share", label: "Share" },
-    { id: "party", label: "Party" },
-    { id: "ranks", label: "Ranks" },
-];
-
 export default function FriendsClient(): JSX.Element {
-    const [activeTab, setActiveTab] = useState<Tab>("activity");
+    const [activeTab, setActiveTab] = useState<EFriendTab>(EFriendTab.ACTIVITY);
     const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
     const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
@@ -31,6 +22,17 @@ export default function FriendsClient(): JSX.Element {
     const $activity = useStore(rockIt.friendManager.activityAtom);
     const $loading = useStore(rockIt.friendManager.loadingAtom);
     const $requests = useStore(rockIt.friendManager.incomingRequestsAtom);
+
+    const tabs = useMemo<{ id: EFriendTab; label: string }[]>(
+        () => [
+            { id: EFriendTab.ACTIVITY, label: $vocabulary.FRIENDS_ACTIVITY },
+            { id: EFriendTab.FRIENDS, label: $vocabulary.FRIENDS_FRIENDS },
+            { id: EFriendTab.SHARE, label: $vocabulary.FRIENDS_SHARE },
+            { id: EFriendTab.PARTY, label: $vocabulary.FRIENDS_PARTY },
+            { id: EFriendTab.RANKS, label: $vocabulary.FRIENDS_RANKS },
+        ],
+        [$vocabulary]
+    );
 
     useEffect(() => {
         rockIt.friendManager.fetchFriends();
@@ -42,10 +44,10 @@ export default function FriendsClient(): JSX.Element {
     }, []);
 
     useEffect(() => {
-        const idx = TABS.findIndex((t) => t.id === activeTab);
+        const idx = tabs.findIndex((t) => t.id === activeTab);
         const el = tabRefs.current[idx];
         if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
-    }, [activeTab]);
+    }, [activeTab, tabs]);
 
     const onlineCount = $friends.filter((f) => f.isOnline).length;
 
@@ -57,7 +59,7 @@ export default function FriendsClient(): JSX.Element {
                 style={{ animationDelay: "0ms" }}
             >
                 <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
-                    {$vocabulary.FRIENDS ?? "Friends"}
+                    {$vocabulary.FRIENDS}
                 </h1>
                 <p className="mt-1.5 text-sm text-neutral-500 md:text-base">
                     {onlineCount > 0
@@ -71,7 +73,7 @@ export default function FriendsClient(): JSX.Element {
                 style={{ animationDelay: "50ms" }}
             >
                 <div className="relative flex overflow-x-auto border-b border-white/[0.06] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {TABS.map((tab, i) => (
+                    {tabs.map((tab, i) => (
                         <button
                             key={tab.id}
                             ref={(el) => { tabRefs.current[i] = el; }}
@@ -83,7 +85,7 @@ export default function FriendsClient(): JSX.Element {
                             }`}
                         >
                             {tab.label}
-                            {tab.id === "friends" && $requests.length > 0 && (
+                            {tab.id === EFriendTab.FRIENDS && $requests.length > 0 && (
                                 <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#ee1086] px-1 text-[10px] font-bold text-white">
                                     {$requests.length}
                                 </span>
@@ -110,21 +112,21 @@ export default function FriendsClient(): JSX.Element {
                     </div>
                 ) : (
                     <>
-                        {activeTab === "activity" && (
+                        {activeTab === EFriendTab.ACTIVITY && (
                             <div className="flex flex-col gap-5">
                                 <LivePulseBanner friends={$friends} />
                                 <FriendActivityFeed activities={$activity} />
                             </div>
                         )}
-                        {activeTab === "friends" && (
+                        {activeTab === EFriendTab.FRIENDS && (
                             <div className="flex flex-col gap-4">
                                 <FriendRequests />
                                 <FriendsList friends={$friends} />
                             </div>
                         )}
-                        {activeTab === "share" && <SharedMediaInbox />}
-                        {activeTab === "party" && <ListenTogetherPanel />}
-                        {activeTab === "ranks" && <FriendLeaderboard />}
+                        {activeTab === EFriendTab.SHARE && <SharedMediaInbox />}
+                        {activeTab === EFriendTab.PARTY && <ListenTogetherPanel />}
+                        {activeTab === EFriendTab.RANKS && <FriendLeaderboard />}
                     </>
                 )}
             </div>

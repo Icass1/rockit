@@ -219,14 +219,14 @@ class Friend:
             await FriendAccess.update_friend_status_async(
                 session=session,
                 friend_row=existing,
-                status_key=FriendStatusEnum.BLOCKED.value,
+                status=FriendStatusEnum.BLOCKED,
             )
         else:
             await FriendAccess.add_friend_async(
                 session=session,
                 user_id=user_id,
                 friend_user_id=block_user_id,
-                status_key=FriendStatusEnum.BLOCKED.value,
+                status=FriendStatusEnum.BLOCKED,
             )
         return AResult(code=AResultCode.OK, message="OK")
 

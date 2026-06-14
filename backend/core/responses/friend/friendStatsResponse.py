@@ -16,3 +16,13 @@ class CompareStatsResponse(BaseModel):
     friendStats: FriendStatsResponse
     vibeScore: int = 0
     vibeDescriptor: str = ""
+
+
+class FriendStreakResponse(BaseModel):
+    currentStreak: int
+
+
+class VibeScoreResponse(BaseModel):
+    score: int
+    descriptor: str
+    sharedArtistsCount: int

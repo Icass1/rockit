@@ -74,6 +74,7 @@ class ShareAccess:
         result: Result = await session.execute(stmt)
         row: SharedMediaRow | None = result.scalars().first()
         if row is None:
+            logger.error("Shared media not found")
             return AResult(code=AResultCode.NOT_FOUND, message="Shared media not found")
         return AResult(code=AResultCode.OK, message="OK", result=row)
 
@@ -107,5 +108,6 @@ class ShareAccess:
         result: Result = await session.execute(stmt)
         row: CoreMediaRow | None = result.scalars().first()
         if row is None:
+            logger.error("Media not found")
             return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
         return AResult(code=AResultCode.OK, message="OK", result=row)

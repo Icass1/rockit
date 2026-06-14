@@ -5,10 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.friend.userLevelAccess import UserLevelAccess
-from backend.core.access.db.ormModels.friend.userLevel import (
-    UserLevelRow,
-    LevelConfigRow,
-)
+from backend.core.access.db.ormModels.friend.userLevel import UserLevelRow
+from backend.core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from backend.core.access.db.ormModels.user import UserRow
 
 logger = getLogger(__name__)

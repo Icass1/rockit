@@ -15,7 +15,8 @@ from backend.core.access.db.ormModels.friend.sharedMedia import SharedMediaRow
 from backend.core.access.db.ormModels.friend.listenTogether import (
     ListenTogetherSessionRow,
 )
-from backend.core.access.db.ormModels.friend.userLevel import UserLevelRow, LevelConfigRow
+from backend.core.access.db.ormModels.friend.userLevel import UserLevelRow
+from backend.core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from backend.core.enums.friend.friendStatusEnum import FriendStatusEnum
 from backend.core.enums.friend.listenTogetherStatusEnum import (
     ListenTogetherStatusEnum,
@@ -40,7 +41,10 @@ from backend.core.requests.friend.friendRequests import (
     StreakBattleChallengeRequest,
 )
 
-from backend.core.responses.friend.friendResponse import FriendResponse, FriendListResponse
+from backend.core.responses.friend.friendResponse import (
+    FriendResponse,
+    FriendListResponse,
+)
 from backend.core.responses.friend.friendRequestResponse import (
     FriendRequestResponse,
     FriendRequestListResponse,
@@ -61,6 +65,8 @@ from backend.core.responses.friend.listenTogetherResponse import (
 from backend.core.responses.friend.friendStatsResponse import (
     FriendStatsResponse,
     CompareStatsResponse,
+    FriendStreakResponse,
+    VibeScoreResponse,
 )
 from backend.core.responses.friend.friendSearchResponse import (
     UserSearchResult,
@@ -85,7 +91,8 @@ router = APIRouter(
 def _get_user(request: Request) -> UserRow:
     a_user = AuthMiddleware.get_current_user(request=request)
     if a_user.is_not_ok():
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        logger.error(f"Authentication error: {a_user.info()}")
+        raise HTTPException(status_code=500, detail="Internal authentication error")
     return a_user.result()
 
 
@@ -100,7 +107,10 @@ async def get_friends(request: Request):
 
     a_result = await Friend.get_friends_async(session=session, user_id=user.id)
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error getting friends: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     friend_rows: List[FriendRow] = a_result.result()
     friends = []
@@ -142,7 +152,7 @@ async def get_friend_requests(request: Request):
                     fromUsername=from_user.username,
                     fromUserImageUrl=from_user.image.url if from_user.image else None,
                     message=req.message,
-                    status="pending",
+                    status=FriendStatusEnum.PENDING,
                     dateAdded=req.date_added,
                 )
             )
@@ -158,7 +168,7 @@ async def get_friend_requests(request: Request):
                     fromUsername=to_user.username,
                     fromUserImageUrl=to_user.image.url if to_user.image else None,
                     message=req.message,
-                    status="pending",
+                    status=FriendStatusEnum.PENDING,
                     dateAdded=req.date_added,
                 )
             )
@@ -176,7 +186,10 @@ async def search_users(request: Request, q: str = Query(min_length=2)):
         session=session, query=q, current_user_id=user.id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error searching users: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     friend_ids_result = await Friend.get_friend_ids_async(
         session=session, user_id=user.id
@@ -207,7 +220,10 @@ async def send_friend_request(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_result = await Friend.send_friend_request_async(
         session=session,
@@ -216,7 +232,10 @@ async def send_friend_request(request: Request, user_public_id: str):
         message=None,
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error sending friend request: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -231,7 +250,10 @@ async def accept_friend_request(request: Request, request_public_id: str):
         session=session, user_id=user.id, request_public_id=request_public_id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error accepting friend request: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -246,7 +268,10 @@ async def reject_friend_request(request: Request, request_public_id: str):
         session=session, user_id=user.id, request_public_id=request_public_id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error rejecting friend request: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -261,13 +286,19 @@ async def remove_friend(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_result = await Friend.remove_friend_async(
         session=session, user_id=user.id, friend_user_id=a_target.result().id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error removing friend: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -282,13 +313,19 @@ async def block_user(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_result = await Friend.block_user_async(
         session=session, user_id=user.id, block_user_id=a_target.result().id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error blocking user: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -303,13 +340,19 @@ async def unblock_user(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_result = await Friend.unblock_user_async(
         session=session, user_id=user.id, blocked_user_id=a_target.result().id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error unblocking user: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -327,11 +370,12 @@ async def get_friends_activity(request: Request):
         session=session, user_id=user.id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error getting friends activity: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
-    activities = [
-        FriendActivityItem(**item) for item in a_result.result()
-    ]
+    activities = [FriendActivityItem(**item) for item in a_result.result()]
     return FriendActivityResponse(activities=activities)
 
 
@@ -348,7 +392,10 @@ async def share_media(request: Request, body: ShareMediaRequest):
         session=session, public_id=body.recipientPublicId
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_result = await Sharing.share_media_async(
         session=session,
@@ -358,7 +405,10 @@ async def share_media(request: Request, body: ShareMediaRequest):
         message=body.message,
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error sharing media: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -371,7 +421,10 @@ async def get_share_inbox(request: Request):
 
     a_result = await Sharing.get_inbox_async(session=session, user_id=user.id)
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error getting share inbox: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     items = []
     for share in a_result.result():
@@ -404,7 +457,10 @@ async def get_share_sent(request: Request):
 
     a_result = await Sharing.get_sent_async(session=session, user_id=user.id)
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error getting sent shares: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     items = []
     for share in a_result.result():
@@ -439,7 +495,10 @@ async def mark_share_seen(request: Request, share_public_id: str):
         session=session, user_id=user.id, share_public_id=share_public_id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error marking share as seen: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -457,13 +516,19 @@ async def invite_to_session(request: Request, body: ListenTogetherInviteRequest)
         session=session, public_id=body.userPublicId
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_result = await ListenTogether.invite_async(
         session=session, host_user_id=user.id, guest_user_id=a_target.result().id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error inviting to session: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -478,7 +543,10 @@ async def join_session(request: Request, body: ListenTogetherJoinRequest):
         session=session, user_id=user.id, session_public_id=body.sessionPublicId
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error joining session: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -493,7 +561,10 @@ async def leave_session(request: Request, body: ListenTogetherLeaveRequest):
         session=session, user_id=user.id, session_public_id=body.sessionPublicId
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error leaving session: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -507,6 +578,7 @@ async def sync_session(request: Request, body: ListenTogetherSyncRequest):
     media_id = None
     if body.mediaPublicId:
         from backend.core.access.bookmarkAccess import BookmarkAccess
+
         a_media = await BookmarkAccess.get_media_by_public_id_async(
             session=session, media_public_id=body.mediaPublicId
         )
@@ -523,7 +595,10 @@ async def sync_session(request: Request, body: ListenTogetherSyncRequest):
         queue_json=body.queueJson,
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error syncing session: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     return OkResponse(status="OK")
 
@@ -538,7 +613,10 @@ async def get_active_sessions(request: Request):
         session=session, user_id=user.id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error getting active sessions: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
     sessions = []
     for s in a_result.result():
@@ -556,10 +634,18 @@ async def get_active_sessions(request: Request):
                 guestImageUrl=guest.image.url if guest.image else None,
                 currentMediaPublicId=current_media.public_id if current_media else None,
                 currentMediaName=current_media.name if current_media else None,
-                currentMediaImageUrl=current_media.image.url if current_media and current_media.image else None,
+                currentMediaImageUrl=(
+                    current_media.image.url
+                    if current_media and current_media.image
+                    else None
+                ),
                 currentTimeMs=s.current_time_ms,
                 isPlaying=s.is_playing,
-                status="active" if s.status_key == ListenTogetherStatusEnum.ACTIVE.value else "ended",
+                status=(
+                    ListenTogetherStatusEnum.ACTIVE
+                    if s.status_key == ListenTogetherStatusEnum.ACTIVE.value
+                    else ListenTogetherStatusEnum.ENDED
+                ),
             )
         )
 
@@ -580,11 +666,15 @@ async def get_friend_stats(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     target = a_target.result()
 
     from backend.core.requests.userStatsRequest import UserStatsRequest
+
     stats_req = UserStatsRequest(range="7d")
 
     a_stats = await StatsFramework.get_user_stats_async(
@@ -592,8 +682,12 @@ async def get_friend_stats(request: Request, user_public_id: str):
         user_id=target.id,
         range_value=stats_req.range,
     )
+    if a_stats.is_not_ok():
+        logger.error(f"Error getting user stats: {a_stats.info()}")
 
     a_level = await Levels.get_user_level_async(session=session, user_id=target.id)
+    if a_level.is_not_ok():
+        logger.error(f"Error getting user level: {a_level.info()}")
 
     minutes = 0
     songs = 0
@@ -621,7 +715,7 @@ async def get_friend_stats(request: Request, user_public_id: str):
     )
 
 
-@router.get("/{user_public_id}/streak", response_model=dict)
+@router.get("/{user_public_id}/streak", response_model=FriendStreakResponse)
 async def get_friend_streak(request: Request, user_public_id: str):
     """Get a friend's streak."""
     user = _get_user(request)
@@ -631,14 +725,19 @@ async def get_friend_streak(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_streak = await StreakBattle.get_streak_for_user_async(
         session=session, user_id=a_target.result().id
     )
+    if a_streak.is_not_ok():
+        logger.error(f"Error getting streak: {a_streak.info()}")
 
     streak = a_streak.result() if a_streak.is_ok() else 0
-    return {"currentStreak": streak}
+    return FriendStreakResponse(currentStreak=streak)
 
 
 @router.get("/compare/{user_public_id}", response_model=CompareStatsResponse)
@@ -651,18 +750,26 @@ async def compare_stats(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     target = a_target.result()
 
     from backend.core.requests.userStatsRequest import UserStatsRequest
+
     stats_req = UserStatsRequest(range="7d")
 
     a_my_stats = await StatsFramework.get_user_stats_async(
-        session=session, user_id=user.id, range_value=stats_req.range,
+        session=session,
+        user_id=user.id,
+        range_value=stats_req.range,
     )
     a_friend_stats = await StatsFramework.get_user_stats_async(
-        session=session, user_id=target.id, range_value=stats_req.range,
+        session=session,
+        user_id=target.id,
+        range_value=stats_req.range,
     )
 
     a_my_level = await Levels.get_user_level_async(session=session, user_id=user.id)
@@ -672,6 +779,17 @@ async def compare_stats(request: Request, user_public_id: str):
     a_vibe = await Vibe.get_vibe_score_async(
         session=session, user_id=user.id, friend_user_id=target.id
     )
+
+    if a_my_stats.is_not_ok():
+        logger.error(f"Error getting my stats: {a_my_stats.info()}")
+    if a_friend_stats.is_not_ok():
+        logger.error(f"Error getting friend stats: {a_friend_stats.info()}")
+    if a_my_level.is_not_ok():
+        logger.error(f"Error getting my level: {a_my_level.info()}")
+    if a_friend_level.is_not_ok():
+        logger.error(f"Error getting friend level: {a_friend_level.info()}")
+    if a_vibe.is_not_ok():
+        logger.error(f"Error getting vibe score: {a_vibe.info()}")
 
     my_stats = a_my_stats.result() if a_my_stats.is_ok() else None
     friend_stats = a_friend_stats.result() if a_friend_stats.is_ok() else None
@@ -716,7 +834,10 @@ async def get_my_level(request: Request):
 
     a_level = await Levels.get_user_level_async(session=session, user_id=user.id)
     if a_level.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_level.message())
+        logger.error(f"Error getting my level: {a_level.info()}")
+        raise HTTPException(
+            status_code=a_level.get_http_code(), detail=a_level.message()
+        )
 
     level_row = a_level.result()
     a_configs = await Levels.get_level_configs_async(session=session)
@@ -762,14 +883,18 @@ async def get_user_level(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     target = a_target.result()
-    a_level = await Levels.get_user_level_async(
-        session=session, user_id=target.id
-    )
+    a_level = await Levels.get_user_level_async(session=session, user_id=target.id)
     if a_level.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_level.message())
+        logger.error(f"Error getting user level: {a_level.info()}")
+        raise HTTPException(
+            status_code=a_level.get_http_code(), detail=a_level.message()
+        )
 
     level_row = a_level.result()
     a_configs = await Levels.get_level_configs_async(session=session)
@@ -805,9 +930,7 @@ async def get_leaderboard(request: Request):
     user = _get_user(request)
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_friend_ids = await Friend.get_friend_ids_async(
-        session=session, user_id=user.id
-    )
+    a_friend_ids = await Friend.get_friend_ids_async(session=session, user_id=user.id)
     friend_ids = a_friend_ids.result() if a_friend_ids.is_ok() else []
 
     all_user_ids = [user.id] + friend_ids
@@ -824,13 +947,10 @@ async def get_leaderboard(request: Request):
             continue
 
         level_row = a_level.result()
-        a_user = await Friend.get_user_by_public_id_async(
-            session=session, public_id=""
-        )
+        a_user = await Friend.get_user_by_public_id_async(session=session, public_id="")
         from backend.core.access.userAccess import UserAccess
-        a_user_row = await UserAccess.get_user_from_id(
-            session=session, user_id=uid
-        )
+
+        a_user_row = await UserAccess.get_user_from_id(session=session, user_id=uid)
         if a_user_row.is_not_ok():
             continue
 
@@ -878,7 +998,7 @@ async def get_leaderboard(request: Request):
 # ─── Vibe Score ───────────────────────────────────────────────────────────────
 
 
-@router.get("/{user_public_id}/vibe", response_model=dict)
+@router.get("/{user_public_id}/vibe", response_model=VibeScoreResponse)
 async def get_vibe_score(request: Request, user_public_id: str):
     """Get vibe score with a friend."""
     user = _get_user(request)
@@ -888,12 +1008,23 @@ async def get_vibe_score(request: Request, user_public_id: str):
         session=session, public_id=user_public_id
     )
     if a_target.is_not_ok():
-        raise HTTPException(status_code=404, detail="User not found")
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(
+            status_code=a_target.get_http_code(), detail=a_target.message()
+        )
 
     a_result = await Vibe.get_vibe_score_async(
         session=session, user_id=user.id, friend_user_id=a_target.result().id
     )
     if a_result.is_not_ok():
-        raise HTTPException(status_code=400, detail=a_result.message())
+        logger.error(f"Error getting vibe score: {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
 
-    return a_result.result()
+    vibe = a_result.result()
+    return VibeScoreResponse(
+        score=vibe.score,
+        descriptor=vibe.descriptor,
+        sharedArtistsCount=vibe.sharedArtistsCount,
+    )

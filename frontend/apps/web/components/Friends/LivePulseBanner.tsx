@@ -2,18 +2,7 @@
 
 import { type JSX } from "react";
 import Image from "next/image";
-
-interface Friend {
-    publicId: string;
-    username: string;
-    imageUrl: string | null;
-    isOnline: boolean;
-    nowPlaying: string | null;
-    level: number;
-    levelTitle: string | null;
-    status: string;
-    dateAdded: string;
-}
+import type { Friend } from "@/models/interfaces";
 
 function Waveform(): JSX.Element {
     return (

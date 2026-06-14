@@ -66,12 +66,15 @@ class FriendAccess:
     @staticmethod
     @safe_async
     async def add_friend_async(
-        session: AsyncSession, user_id: int, friend_user_id: int, status_key: int = 2
+        session: AsyncSession,
+        user_id: int,
+        friend_user_id: int,
+        status: FriendStatusEnum = FriendStatusEnum.ACCEPTED,
     ) -> AResult[FriendRow]:
         row = FriendRow(
             user_id=user_id,
             friend_user_id=friend_user_id,
-            status_key=status_key,
+            status_key=status.value,
         )
         session.add(row)
         await session.flush()
@@ -81,9 +84,9 @@ class FriendAccess:
     @staticmethod
     @safe_async
     async def update_friend_status_async(
-        session: AsyncSession, friend_row: FriendRow, status_key: int
+        session: AsyncSession, friend_row: FriendRow, status: FriendStatusEnum
     ) -> AResult[FriendRow]:
-        friend_row.status_key = status_key
+        friend_row.status_key = status.value
         await session.flush()
         await session.refresh(friend_row)
         return AResult(code=AResultCode.OK, message="OK", result=friend_row)
@@ -167,7 +170,10 @@ class FriendAccess:
         result: Result = await session.execute(stmt)
         row: FriendRequestRow | None = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Friend request not found")
+            logger.error("Friend request not found")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Friend request not found"
+            )
         return AResult(code=AResultCode.OK, message="OK", result=row)
 
     @staticmethod
@@ -189,5 +195,6 @@ class FriendAccess:
         result: Result = await session.execute(stmt)
         row: UserRow | None = result.scalars().first()
         if row is None:
+            logger.error("User not found")
             return AResult(code=AResultCode.NOT_FOUND, message="User not found")
         return AResult(code=AResultCode.OK, message="OK", result=row)

@@ -1,6 +1,7 @@
 // This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 
+import { z } from "zod";
 import * as dto from "@/dto";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
@@ -536,9 +537,9 @@ export class BaseHttp {
         );
     }
 
-    static async searchUsers() {
+    static async searchUsers(query: string) {
         return this.apiGetAsync(
-            `/friends/search`,
+            `/friends/search?q=${encodeURIComponent(query)}`,
             dto.FriendSearchResponseSchema
         );
     }
@@ -563,6 +564,51 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/friends/share/sent`,
             dto.SharedMediaSentResponseSchema
+        );
+    }
+
+    static async markShareAsSeen(publicId: string) {
+        return this.apiPostAsync(
+            `/friends/share/${publicId}/seen`,
+            z.object({}),
+            dto.OkResponseSchema,
+            {}
+        );
+    }
+
+    static async sendFriendRequest(userPublicId: string) {
+        return this.apiPostAsync(
+            `/friends/request/${userPublicId}`,
+            z.object({}),
+            dto.OkResponseSchema,
+            {}
+        );
+    }
+
+    static async acceptFriendRequest(requestPublicId: string) {
+        return this.apiPostAsync(
+            `/friends/request/${requestPublicId}/accept`,
+            z.object({}),
+            dto.OkResponseSchema,
+            {}
+        );
+    }
+
+    static async rejectFriendRequest(requestPublicId: string) {
+        return this.apiPostAsync(
+            `/friends/request/${requestPublicId}/reject`,
+            z.object({}),
+            dto.OkResponseSchema,
+            {}
+        );
+    }
+
+    static async blockUser(userPublicId: string) {
+        return this.apiPostAsync(
+            `/friends/block/${userPublicId}`,
+            z.object({}),
+            dto.OkResponseSchema,
+            {}
         );
     }
 

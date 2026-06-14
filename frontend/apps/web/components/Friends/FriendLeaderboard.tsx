@@ -1,21 +1,10 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
 import { Trophy, Flame } from "lucide-react";
-
-interface LeaderboardEntry {
-    userId: string;
-    username: string;
-    imageUrl: string | null;
-    level: number;
-    xp: number;
-    xpToNext: number;
-    title: string;
-    streak: number;
-}
+import type { LeaderboardEntry } from "@/models/interfaces";
 
 export default function FriendLeaderboard(): JSX.Element {
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);

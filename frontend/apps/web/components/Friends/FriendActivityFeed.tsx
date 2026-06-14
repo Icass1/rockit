@@ -1,27 +1,23 @@
 "use client";
 
 import { type JSX } from "react";
+import { useStore } from "@nanostores/react";
 import Image from "next/image";
 import { Heart, ListPlus, Share2, Music2 } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
+import type { FriendActivity } from "@/models/interfaces";
 
-interface Activity {
-    userPublicId: string;
-    username: string;
-    userImageUrl: string | null;
-    mediaPublicId: string;
-    mediaName: string;
+type Activity = FriendActivity & {
     mediaArtist?: string;
-    mediaImageUrl: string | null;
-    listenedAt: string;
     currentProgressMs?: number;
     durationMs?: number;
     isLiveNow?: boolean;
-}
+};
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, justNowText: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const m = Math.floor(diff / 60_000);
-    if (m < 1) return "just now";
+    if (m < 1) return justNowText;
     if (m < 60) return `${m}m`;
     const h = Math.floor(m / 60);
     if (h < 24) return `${h}h`;
@@ -33,7 +29,7 @@ function formatMs(ms: number): string {
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-function ActivityCard({ item }: { item: Activity }): JSX.Element {
+function ActivityCard({ item, justNowText }: { item: Activity; justNowText: string }): JSX.Element {
     const progress =
         item.currentProgressMs && item.durationMs
             ? Math.min(100, (item.currentProgressMs / item.durationMs) * 100)
@@ -68,7 +64,7 @@ function ActivityCard({ item }: { item: Activity }): JSX.Element {
                     </span>
                 )}
                 <span className="ml-auto text-[10px] text-neutral-700">
-                    {timeAgo(item.listenedAt)}
+                    {timeAgo(item.listenedAt, justNowText)}
                 </span>
             </div>
 
@@ -143,6 +139,9 @@ export default function FriendActivityFeed({
 }: {
     activities: Activity[];
 }): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const justNowText = ($vocabulary as unknown as Record<string, string>).JUST_NOW;
+
     if (activities.length === 0) {
         return (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
@@ -176,6 +175,7 @@ export default function FriendActivityFeed({
                             <ActivityCard
                                 key={`live-${item.userPublicId}-${item.mediaPublicId}-${i}`}
                                 item={item}
+                                justNowText={justNowText}
                             />
                         ))}
                     </div>
@@ -192,6 +192,7 @@ export default function FriendActivityFeed({
                             <ActivityCard
                                 key={`recent-${item.userPublicId}-${item.mediaPublicId}-${i}`}
                                 item={item}
+                                justNowText={justNowText}
                             />
                         ))}
                     </div>

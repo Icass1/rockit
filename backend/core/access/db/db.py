@@ -54,6 +54,8 @@ from backend.core.access.db.ormModels.friend.listenTogether import (
 )
 from backend.core.access.db.ormModels.friend.userLevel import (
     UserLevelRow as UserLevelRow,
+)
+from backend.core.access.db.ormModels.friend.levelConfig import (
     LevelConfigRow as LevelConfigRow,
 )
 from backend.core.access.db.ormModels.friend.streakBattle import (

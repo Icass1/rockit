@@ -1,57 +1,7 @@
-import { BACKEND_URL } from "@/environment";
+import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, createArrayAtom, ReadonlyAtom } from "@/lib/store";
-
-interface Friend {
-    publicId: string;
-    username: string;
-    imageUrl: string | null;
-    status: string;
-    isOnline: boolean;
-    nowPlaying: string | null;
-    level: number;
-    levelTitle: string | null;
-    dateAdded: string;
-}
-
-interface FriendRequest {
-    publicId: string;
-    fromUserPublicId: string;
-    fromUsername: string;
-    fromUserImageUrl: string | null;
-    message: string | null;
-    status: string;
-    dateAdded: string;
-}
-
-interface UserSearchResult {
-    publicId: string;
-    username: string;
-    imageUrl: string | null;
-    isFriend: boolean;
-    requestSent: boolean;
-}
-
-interface LeaderboardEntry {
-    userId: string;
-    username: string;
-    imageUrl: string | null;
-    level: number;
-    xp: number;
-    xpToNext: number;
-    title: string;
-    streak: number;
-}
-
-interface FriendActivity {
-    userPublicId: string;
-    username: string;
-    userImageUrl: string | null;
-    mediaPublicId: string;
-    mediaName: string;
-    mediaImageUrl: string | null;
-    listenedAt: string;
-}
+import type { Friend, FriendRequest, UserSearchResult, LeaderboardEntry, FriendActivity } from "@/models/interfaces";
 
 export class FriendManager {
     private _init = false;
@@ -73,12 +23,10 @@ export class FriendManager {
     async fetchFriends(): Promise<void> {
         this._loadingAtom.set(true);
         try {
-            const res = await fetch(`${BACKEND_URL}/friends`, {
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error(await res.text());
-            const data = await res.json();
-            this._friendsAtom.set(data.friends ?? []);
+            const res = await Http.getFriends();
+            if (res.isOk()) {
+                this._friendsAtom.set(res.result.friends ?? []);
+            }
             this._errorAtom.set(null);
         } catch (e) {
             this._errorAtom.set((e as Error).message);
@@ -89,13 +37,11 @@ export class FriendManager {
 
     async fetchRequests(): Promise<void> {
         try {
-            const res = await fetch(`${BACKEND_URL}/friends/requests`, {
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error(await res.text());
-            const data = await res.json();
-            this._incomingRequestsAtom.set(data.incoming ?? []);
-            this._sentRequestsAtom.set(data.sent ?? []);
+            const res = await Http.getFriendRequests();
+            if (res.isOk()) {
+                this._incomingRequestsAtom.set(res.result.incoming ?? []);
+                this._sentRequestsAtom.set(res.result.sent ?? []);
+            }
         } catch (e) {
             this._errorAtom.set((e as Error).message);
         }
@@ -107,13 +53,10 @@ export class FriendManager {
             return;
         }
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/search?q=${encodeURIComponent(query)}`,
-                { credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
-            const data = await res.json();
-            this._searchResultsAtom.set(data.results ?? []);
+            const res = await Http.searchUsers(query);
+            if (res.isOk()) {
+                this._searchResultsAtom.set(res.result.results ?? []);
+            }
         } catch (e) {
             this._errorAtom.set((e as Error).message);
         }
@@ -121,11 +64,8 @@ export class FriendManager {
 
     async sendRequest(userPublicId: string): Promise<boolean> {
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/request/${userPublicId}`,
-                { method: "POST", credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
+            const res = await Http.sendFriendRequest(userPublicId);
+            if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchRequests();
             rockIt.notificationManager.notifySuccess("Friend request sent!");
             return true;
@@ -137,11 +77,8 @@ export class FriendManager {
 
     async acceptRequest(requestPublicId: string): Promise<boolean> {
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/request/${requestPublicId}/accept`,
-                { method: "POST", credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
+            const res = await Http.acceptFriendRequest(requestPublicId);
+            if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchRequests();
             await this.fetchFriends();
             rockIt.notificationManager.notifySuccess("Friend request accepted!");
@@ -154,11 +91,8 @@ export class FriendManager {
 
     async rejectRequest(requestPublicId: string): Promise<boolean> {
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/request/${requestPublicId}/reject`,
-                { method: "POST", credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
+            const res = await Http.rejectFriendRequest(requestPublicId);
+            if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchRequests();
             return true;
         } catch {
@@ -168,11 +102,8 @@ export class FriendManager {
 
     async removeFriend(userPublicId: string): Promise<boolean> {
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/${userPublicId}`,
-                { method: "DELETE", credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
+            const res = await Http.removeFriend(userPublicId);
+            if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchFriends();
             rockIt.notificationManager.notifySuccess("Friend removed");
             return true;
@@ -183,13 +114,10 @@ export class FriendManager {
 
     async fetchActivity(): Promise<void> {
         try {
-            const res = await fetch(
-                `${BACKEND_URL}/friends/activity`,
-                { credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
-            const data = await res.json();
-            this._activityAtom.set(data.activities ?? []);
+            const res = await Http.getFriendsActivity();
+            if (res.isOk()) {
+                this._activityAtom.set(res.result.activities ?? []);
+            }
         } catch {
             // silent
         }
@@ -197,11 +125,14 @@ export class FriendManager {
 
     async fetchLeaderboard(): Promise<{ entries: LeaderboardEntry[]; currentUser: LeaderboardEntry | null }> {
         try {
-            const res = await fetch(`${BACKEND_URL}/friends/leaderboard`, {
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error(await res.text());
-            return await res.json();
+            const res = await Http.getLeaderboard();
+            if (res.isOk()) {
+                return {
+                    entries: res.result.entries ?? [],
+                    currentUser: res.result.currentUser,
+                };
+            }
+            return { entries: [], currentUser: null };
         } catch {
             return { entries: [], currentUser: null };
         }

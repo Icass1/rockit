@@ -5,18 +5,7 @@ import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
 import { Search, X, UserPlus, Music2, MoreHorizontal, UserMinus } from "lucide-react";
-
-interface Friend {
-    publicId: string;
-    username: string;
-    imageUrl: string | null;
-    isOnline: boolean;
-    nowPlaying: string | null;
-    level: number;
-    levelTitle: string | null;
-    status: string;
-    dateAdded: string;
-}
+import type { Friend } from "@/models/interfaces";
 
 function Avatar({
     imageUrl,

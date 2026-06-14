@@ -73,10 +73,10 @@ async def migrate_playlist_async(
     playlist_desc: str = row["description"] or ""
     songs_raw = row["songs"]
 
-    songs_data: list[dict] = (
+    songs_data: list[dict[str, object]] = (
         json.loads(songs_raw) if isinstance(songs_raw, str) else songs_raw
     )
-    spotify_ids: list[str] = [s["id"] for s in songs_data]
+    spotify_ids: list[str] = [str(s["id"]) for s in songs_data]
     logger.info(f"Playlist '{playlist_name}' has {len(spotify_ids)} songs")
 
     sqlite_conn.close()

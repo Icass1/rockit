@@ -681,12 +681,9 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        user.current_queue_id = queue_id
-
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return await UserAccess.update_user_current_queue_id_async(
+            session=session, user_id=user_id, queue_id=queue_id
+        )
 
     @staticmethod
     async def update_user_current_time(
@@ -701,12 +698,9 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        user.current_time_ms = current_time_ms
-
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return await UserAccess.update_user_current_time_async(
+            session=session, user_id=user_id, current_time_ms=current_time_ms
+        )
 
     @staticmethod
     async def add_user_current_time_seek_async(
@@ -773,11 +767,9 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        user.lang_id = a_result_lang.result().id
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return await UserAccess.update_user_lang_async(
+            session=session, user_id=user_id, lang_id=a_result_lang.result().id
+        )
 
     @staticmethod
     async def update_crossfade_async(
@@ -792,11 +784,9 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        user.cross_fade_ms = crossfade_ms
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return await UserAccess.update_user_crossfade_async(
+            session=session, user_id=user_id, crossfade_ms=crossfade_ms
+        )
 
     @staticmethod
     async def update_password_async(
@@ -811,11 +801,9 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        user.password_hash = password_hash
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return await UserAccess.update_user_password_async(
+            session=session, user_id=user_id, password_hash=password_hash
+        )
 
     @staticmethod
     async def update_queue_type_async(
@@ -830,11 +818,9 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        user.queue_type_key = queue_type.value
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return await UserAccess.update_user_queue_type_async(
+            session=session, user_id=user_id, queue_type_key=queue_type.value
+        )
 
     @staticmethod
     async def toggle_random_queue_async(
@@ -849,11 +835,10 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        user.queue_type_key = 2 if user.queue_type_key == 1 else 1
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        new_queue_type_key = 2 if a_result_user.result().queue_type_key == 1 else 1
+        return await UserAccess.update_user_queue_type_async(
+            session=session, user_id=user_id, queue_type_key=new_queue_type_key
+        )
 
     @staticmethod
     async def cycle_repeat_mode_async(
@@ -868,12 +853,11 @@ class User:
             logger.error(f"Error getting user. {a_result_user.info()}")
             return AResult(code=a_result_user.code(), message=a_result_user.message())
 
-        user: UserRow = a_result_user.result()
-        current_mode: int = user.repeat_mode_key
-        user.repeat_mode_key = 1 if current_mode >= 3 else current_mode + 1
-        await session.commit()
-
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        current_mode: int = a_result_user.result().repeat_mode_key
+        new_repeat_mode_key = 1 if current_mode >= 3 else current_mode + 1
+        return await UserAccess.update_user_repeat_mode_async(
+            session=session, user_id=user_id, repeat_mode_key=new_repeat_mode_key
+        )
 
     @staticmethod
     async def add_user_media_clicked_async(

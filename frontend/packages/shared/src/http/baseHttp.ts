@@ -146,19 +146,6 @@ export class BaseHttp {
         });
     }
 
-    private static async apiPatchWithBodyAsync<T, G>(
-        path: string,
-        _requestSchema: TZodSchema<T>,
-        responseSchema: TZodSchema<G>,
-        body: T
-    ): Promise<HttpResult<G>> {
-        return this.apiFetchAsync(path, responseSchema, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-        });
-    }
-
     static async addBuild(payload: dto.AddVersionRequest) {
         return this.apiPostAsync(
             `/admin/builds`,
@@ -217,10 +204,12 @@ export class BaseHttp {
         );
     }
 
-    static async getAllRequests() {
-        return this.apiGetAsync(
+    static async getAllRequests(payload: dto.GetAllRequestsRequest) {
+        return this.apiPostAsync(
             `/admin/requests`,
-            dto.UserRequestListResponseSchema
+            dto.GetAllRequestsRequestSchema,
+            dto.UserRequestListResponseSchema,
+            payload
         );
     }
 
@@ -301,7 +290,7 @@ export class BaseHttp {
         publicId: string,
         payload: dto.UpdateBookmarkRequest
     ) {
-        return this.apiPatchWithBodyAsync(
+        return this.apiPostAsync(
             `/bookmark/${publicId}`,
             dto.UpdateBookmarkRequestSchema,
             dto.BookmarkResponseSchema,

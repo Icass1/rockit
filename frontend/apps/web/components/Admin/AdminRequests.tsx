@@ -19,7 +19,7 @@ import {
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-type RequestStatus = "all" | "pending" | "accepted" | "rejected";
+type RequestStatus = "ALL" | "PENDING" | "ACCEPTED" | "REJECTED";
 
 const STATUS_BADGES: Record<
     string,
@@ -50,27 +50,22 @@ const REQUEST_TYPE_ICONS: Record<string, string> = {
 };
 
 export default function AdminRequests(): JSX.Element {
-    //
     const [requests, setRequests] = useState<UserRequestResponse[]>([]);
     const [stats, setStats] = useState<AdminRequestStatsResponse | null>(null);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const isAdmin = useStore(rockIt.userManager.admin);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filter, setFilter] = useState<RequestStatus>("all");
+    const [filter, setFilter] = useState<RequestStatus>("ALL");
     const [reviewingId, setReviewingId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!isAdmin) {
-            setError($vocabulary.ADMIN_REQUIRED);
-            setLoading(false);
-            return;
-        }
+        if (!isAdmin) return;
         let cancelled = false;
 
-        const fetchData = async () => {
+        const fetchData = async (): Promise<void> => {
             const [requestsResult, statsResult] = await Promise.all([
-                Http.getAllRequests(),
+                Http.getAllRequests({ status: null, limit: 50, offset: 0 }),
                 Http.getRequestStats(),
             ]);
 
@@ -102,7 +97,7 @@ export default function AdminRequests(): JSX.Element {
 
     const handleReview = async (
         publicId: string,
-        status: "accepted" | "rejected"
+        status: "ACCEPTED" | "REJECTED"
     ): Promise<void> => {
         setReviewingId(publicId);
         const result = await Http.reviewRequest(publicId, {
@@ -120,7 +115,7 @@ export default function AdminRequests(): JSX.Element {
     };
 
     const filteredRequests =
-        filter === "all"
+        filter === "ALL"
             ? requests
             : requests.filter((r) => r.status === filter);
 
@@ -152,11 +147,25 @@ export default function AdminRequests(): JSX.Element {
     ];
 
     const filters: { id: RequestStatus; label: string }[] = [
-        { id: "all", label: "All" },
-        { id: "pending", label: "Pending" },
-        { id: "accepted", label: "Accepted" },
-        { id: "rejected", label: "Rejected" },
+        { id: "ALL", label: "All" },
+        { id: "PENDING", label: "Pending" },
+        { id: "ACCEPTED", label: "Accepted" },
+        { id: "REJECTED", label: "Rejected" },
     ];
+
+    if (!isAdmin) {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
+                <p className="text-red-400">{$vocabulary.ADMIN_REQUIRED}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="mt-4 rounded-lg bg-[#ee1086] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#f53a76]"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -237,7 +246,7 @@ export default function AdminRequests(): JSX.Element {
                             STATUS_BADGES[req.status] || STATUS_BADGES.pending;
                         const typeIcon =
                             REQUEST_TYPE_ICONS[req.requestType] || "📌";
-                        const isPending = req.status === "pending";
+                        const isPending = req.status === "PENDING";
 
                         return (
                             <div
@@ -322,7 +331,7 @@ export default function AdminRequests(): JSX.Element {
                                                 onClick={() =>
                                                     handleReview(
                                                         req.publicId,
-                                                        "accepted"
+                                                        "ACCEPTED"
                                                     )
                                                 }
                                                 disabled={
@@ -342,7 +351,7 @@ export default function AdminRequests(): JSX.Element {
                                                 onClick={() =>
                                                     handleReview(
                                                         req.publicId,
-                                                        "rejected"
+                                                        "REJECTED"
                                                     )
                                                 }
                                                 disabled={
@@ -363,7 +372,7 @@ export default function AdminRequests(): JSX.Element {
 
                                     {!isPending && (
                                         <div className="flex shrink-0 items-center">
-                                            {req.status === "accepted" ? (
+                                            {req.status === "ACCEPTED" ? (
                                                 <CheckCircle2 className="h-8 w-8 text-emerald-500" />
                                             ) : (
                                                 <XCircle className="h-8 w-8 text-red-500" />

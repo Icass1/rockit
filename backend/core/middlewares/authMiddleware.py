@@ -36,6 +36,13 @@ class AuthMiddleware:
             )
         )
         if a_result_session.is_not_ok():
+            logger.error(f"Error getting user from session. {a_result_session.info()}")
+            if a_result_session.code() == AResultCode.NOT_FOUND:
+                raise HTTPException(
+                    status_code=401,
+                    detail=a_result_session.message(),
+                )
+
             raise HTTPException(
                 status_code=a_result_session.get_http_code(),
                 detail=a_result_session.message(),

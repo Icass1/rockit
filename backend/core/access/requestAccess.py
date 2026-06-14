@@ -9,11 +9,13 @@ from backend.utils.logger import getLogger
 from backend.core.utils.safeAsyncCall import safe_async
 from backend.core.aResult import AResult, AResultCode
 
-from backend.core.access.db.ormModels.userRequest import UserRequestRow
 from backend.core.access.db.ormModels.user import UserRow
-from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.db.ormEnums.requestTypeEnum import RequestTypeEnumRow
+from backend.core.access.db.ormModels.userRequest import UserRequestRow
 from backend.core.access.db.ormEnums.requestStatusEnum import RequestStatusEnumRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
+
+from backend.core.enums.requestStatusEnum import RequestStatusEnum
+from backend.core.enums.requestTypeEnum import RequestTypeEnum
 
 logger: Logger = getLogger(__name__)
 
@@ -25,16 +27,16 @@ class RequestAccess:
         session: AsyncSession,
         user_id: int,
         public_id: str,
-        request_type_key: int,
+        request_type: RequestTypeEnum,
         proposed_value: str,
-        media_id: int | None = None,
+        media_id: int,
         comment: str | None = None,
     ) -> AResult[UserRequestRow]:
         row = UserRequestRow(
             user_id=user_id,
             public_id=public_id,
             media_id=media_id,
-            request_type_key=request_type_key,
+            request_type_key=request_type.value,
             proposed_value=proposed_value,
             comment=comment,
             status_key=1,
@@ -48,7 +50,7 @@ class RequestAccess:
     @safe_async
     async def get_all_requests_async(
         session: AsyncSession,
-        status: str | None = None,
+        status: RequestStatusEnum | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> AResult[List[UserRequestRow]]:
@@ -71,11 +73,8 @@ class RequestAccess:
             .order_by(UserRequestRow.id.desc())
         )
 
-        if status:
-            query = query.join(
-                RequestStatusEnumRow,
-                UserRequestRow.status_key == RequestStatusEnumRow.key,
-            ).where(RequestStatusEnumRow.value == status)
+        if status is not None:
+            query = query.where(UserRequestRow.status_key == status.value)
 
         result = await session.execute(query.offset(offset).limit(limit))
         rows = list(result.scalars().all())
@@ -118,7 +117,7 @@ class RequestAccess:
     async def update_request_status_async(
         session: AsyncSession,
         request_id: int,
-        status_key: int,
+        status: RequestStatusEnum,
         reviewed_by: int,
         review_comment: str | None = None,
     ) -> AResult[UserRequestRow]:
@@ -129,7 +128,7 @@ class RequestAccess:
         if row is None:
             return AResult(AResultCode.NOT_FOUND, "Request not found.", None)
 
-        row.status_key = status_key
+        row.status_key = status.value
         row.reviewed_by = reviewed_by
         if review_comment is not None:
             row.review_comment = review_comment
@@ -139,83 +138,35 @@ class RequestAccess:
 
     @staticmethod
     @safe_async
-    async def get_request_type_key_async(
-        session: AsyncSession,
-        value: str,
-    ) -> AResult[int]:
-        result = await session.execute(
-            select(RequestTypeEnumRow.key).where(
-                RequestTypeEnumRow.value == value
-            )
-        )
-        key = result.scalar_one_or_none()
-        if key is None:
-            return AResult(AResultCode.NOT_FOUND, f"Request type '{value}' not found.", None)
-        return AResult(code=AResultCode.OK, message="OK", result=key)
-
-    @staticmethod
-    @safe_async
-    async def get_request_status_key_async(
-        session: AsyncSession,
-        value: str,
-    ) -> AResult[int]:
-        result = await session.execute(
-            select(RequestStatusEnumRow.key).where(
-                RequestStatusEnumRow.value == value
-            )
-        )
-        key = result.scalar_one_or_none()
-        if key is None:
-            return AResult(AResultCode.NOT_FOUND, f"Status '{value}' not found.", None)
-        return AResult(code=AResultCode.OK, message="OK", result=key)
-
-    @staticmethod
-    @safe_async
-    async def get_request_type_value_async(
-        session: AsyncSession,
-        key: int,
-    ) -> AResult[str]:
-        result = await session.execute(
-            select(RequestTypeEnumRow.value).where(
-                RequestTypeEnumRow.key == key
-            )
-        )
-        value = result.scalar_one_or_none()
-        if value is None:
-            return AResult(AResultCode.NOT_FOUND, "Request type not found.", None)
-        return AResult(code=AResultCode.OK, message="OK", result=value)
-
-    @staticmethod
-    @safe_async
-    async def get_request_status_value_async(
-        session: AsyncSession,
-        key: int,
-    ) -> AResult[str]:
-        result = await session.execute(
-            select(RequestStatusEnumRow.value).where(
-                RequestStatusEnumRow.key == key
-            )
-        )
-        value = result.scalar_one_or_none()
-        if value is None:
-            return AResult(AResultCode.NOT_FOUND, "Status not found.", None)
-        return AResult(code=AResultCode.OK, message="OK", result=value)
-
-    @staticmethod
-    @safe_async
     async def get_media_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
     ) -> AResult[int]:
-        from backend.core.access.db.ormModels.media import CoreMediaRow
-
         result = await session.execute(
             select(CoreMediaRow.id).where(CoreMediaRow.public_id == public_id)
         )
         media_id = result.scalar_one_or_none()
         if media_id is None:
-            return AResult(AResultCode.NOT_FOUND, f"Media '{public_id}' not found.", None)
+            return AResult(
+                AResultCode.NOT_FOUND, f"Media '{public_id}' not found.", None
+            )
         return AResult(code=AResultCode.OK, message="OK", result=media_id)
+
+    @staticmethod
+    @safe_async
+    async def get_media_public_id_from_id_async(
+        session: AsyncSession,
+        media_id: int,
+    ) -> AResult[str]:
+        result = await session.execute(
+            select(CoreMediaRow.public_id).where(CoreMediaRow.id == media_id)
+        )
+        public_id: str | None = result.scalar_one_or_none()
+        if public_id is None:
+            return AResult(
+                AResultCode.NOT_FOUND, f"Media with id '{media_id}' not found.", None
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=public_id)
 
     @staticmethod
     @safe_async
@@ -238,9 +189,7 @@ class RequestAccess:
     async def get_total_count_async(
         session: AsyncSession,
     ) -> AResult[int]:
-        result = await session.execute(
-            select(UserRequestRow.id)
-        )
+        result = await session.execute(select(UserRequestRow.id))
         count = len(result.all())
         return AResult(code=AResultCode.OK, message="OK", result=count)
 
@@ -251,10 +200,12 @@ class RequestAccess:
         status_value: str,
     ) -> AResult[int]:
         result = await session.execute(
-            select(UserRequestRow.id).join(
+            select(UserRequestRow.id)
+            .join(
                 RequestStatusEnumRow,
                 UserRequestRow.status_key == RequestStatusEnumRow.key,
-            ).where(RequestStatusEnumRow.value == status_value)
+            )
+            .where(RequestStatusEnumRow.value == status_value)
         )
         count = len(result.all())
         return AResult(code=AResultCode.OK, message="OK", result=count)

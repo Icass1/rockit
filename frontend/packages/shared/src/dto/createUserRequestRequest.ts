@@ -4,8 +4,17 @@
 import { z } from "zod";
 
 export const CreateUserRequestRequestSchema = z.object({
-    mediaPublicId: z.string().nullable(),
-    requestType: z.string(),
+    mediaPublicId: z.string(),
+    requestType: z.enum([
+        "LYRICS",
+        "TITLE",
+        "ARTIST",
+        "ALBUM",
+        "GENRE",
+        "METADATA",
+        "COVER_ART",
+        "OTHER",
+    ]),
     proposedValue: z.string(),
     comment: z.string().nullable(),
 });

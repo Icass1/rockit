@@ -3,9 +3,7 @@ import shutil
 from typing import List
 from logging import Logger
 import os
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select as SA_Select
 
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import create_id
@@ -31,7 +29,6 @@ from backend.core.responses.searchResponse import (
 from backend.core.responses.uploadResponse import UploadResponse
 
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.db.ormModels.media import CoreMediaRow
 
 from backend.core.framework.media.image import Image
 from backend.core.access.imageAccess import ImageAccess
@@ -576,13 +573,13 @@ class Rockit:
         try:
             results: List[BaseSearchResultsItem] = []
 
-            song_stmt: SA_Select[tuple[RockitSongRow]] = select(RockitSongRow).where(
-                RockitSongRow.name.ilike(f"%{query}%")
+            a_result_songs: AResult[List[RockitSongRow]] = (
+                await RockitAccess.search_songs_by_name_async(
+                    session=session, query=query
+                )
             )
-            song_result = await session.execute(song_stmt)
-            song_rows: List[RockitSongRow] = list(song_result.scalars().all())
-
-            if song_rows:
+            if a_result_songs.is_ok() and a_result_songs.result():
+                song_rows: List[RockitSongRow] = a_result_songs.result()
                 a_result_mapping: AResult[dict[int, str]] = (
                     await RockitAccess.get_public_ids_by_ids_async(
                         session=session, ids=[s.id for s in song_rows]
@@ -625,13 +622,13 @@ class Rockit:
                             )
                         )
 
-            album_stmt: SA_Select[tuple[RockitAlbumRow]] = select(RockitAlbumRow).where(
-                RockitAlbumRow.name.ilike(f"%{query}%")
+            a_result_albums: AResult[List[RockitAlbumRow]] = (
+                await RockitAccess.search_albums_by_name_async(
+                    session=session, query=query
+                )
             )
-            album_result = await session.execute(album_stmt)
-            album_rows: List[RockitAlbumRow] = list(album_result.scalars().all())
-
-            if album_rows:
+            if a_result_albums.is_ok() and a_result_albums.result():
+                album_rows: List[RockitAlbumRow] = a_result_albums.result()
                 a_result_album_mapping: AResult[dict[int, str]] = (
                     await RockitAccess.get_public_ids_by_ids_async(
                         session=session, ids=[a.id for a in album_rows]
@@ -672,13 +669,13 @@ class Rockit:
                             )
                         )
 
-            video_stmt: SA_Select[tuple[RockitVideoRow]] = select(RockitVideoRow).where(
-                RockitVideoRow.name.ilike(f"%{query}%")
+            a_result_videos: AResult[List[RockitVideoRow]] = (
+                await RockitAccess.search_videos_by_name_async(
+                    session=session, query=query
+                )
             )
-            video_result = await session.execute(video_stmt)
-            video_rows: List[RockitVideoRow] = list(video_result.scalars().all())
-
-            if video_rows:
+            if a_result_videos.is_ok() and a_result_videos.result():
+                video_rows: List[RockitVideoRow] = a_result_videos.result()
                 a_result_video_mapping: AResult[dict[int, str]] = (
                     await RockitAccess.get_public_ids_by_ids_async(
                         session=session, ids=[v.id for v in video_rows]
@@ -801,17 +798,24 @@ class Rockit:
             )
 
             if song.album_id is not None:
-                stmt = select(RockitAlbumRow).where(RockitAlbumRow.id == song.album_id)
-                result = await session.execute(stmt)
-                album_row: RockitAlbumRow | None = result.scalar_one_or_none()
+                a_result_album = await RockitAccess.get_album_by_id_async(
+                    session=session, album_id=song.album_id
+                )
+                album_row: RockitAlbumRow | None = (
+                    a_result_album.result() if a_result_album.is_ok() else None
+                )
 
                 if album_row is not None:
-                    album_stmt = select(CoreMediaRow).where(
-                        CoreMediaRow.id == album_row.id
+                    a_result_album_media = (
+                        await RockitAccess.get_public_ids_by_ids_async(
+                            session=session, ids=[album_row.id]
+                        )
                     )
-                    album_result = await session.execute(album_stmt)
-                    album_media: CoreMediaRow | None = album_result.scalar_one_or_none()
-                    album_public_id: str = album_media.public_id if album_media else ""
+                    album_public_id: str = ""
+                    if a_result_album_media.is_ok():
+                        album_public_id = a_result_album_media.result().get(
+                            album_row.id, ""
+                        )
 
                     a_result_album_image: AResult[ImageRow] = (
                         await Rockit._get_image_for_media_async(

@@ -167,6 +167,10 @@ export {
     type DynamicLyricsItem,
 } from "./dynamicLyricsItem";
 export {
+    GetAllRequestsRequestSchema,
+    type GetAllRequestsRequest,
+} from "./getAllRequestsRequest";
+export {
     GetBookmarksRequestSchema,
     type GetBookmarksRequest,
 } from "./getBookmarksRequest";

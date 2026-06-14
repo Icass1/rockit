@@ -83,7 +83,7 @@ async def create_bookmark(
     return BookmarkResponse.from_row(row=a_result.result())
 
 
-@router.patch("/{public_id}")
+@router.post("/{public_id}")
 async def update_bookmark(
     request: Request,
     public_id: str,

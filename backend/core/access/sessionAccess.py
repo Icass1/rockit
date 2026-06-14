@@ -64,7 +64,7 @@ class SessionAccess:
             session_row: SessionRow | None = result.scalar_one_or_none()
 
             if not session_row:
-                logger.error("Error ")
+                logger.error("Session not found")
                 return AResult(code=AResultCode.NOT_FOUND, message="Session not found")
 
             return AResult(

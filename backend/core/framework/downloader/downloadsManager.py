@@ -1,6 +1,5 @@
 import asyncio
 from collections import defaultdict
-from datetime import datetime, timezone
 from logging import Logger
 from typing import List
 
@@ -114,13 +113,15 @@ class DownloadsManager:
                             )
 
                             a_result_download_row = (
-                                await DownloadAccess.get_download_by_id(
-                                    session=session, download_id=d.download_id
+                                await DownloadAccess.finalize_download_async(
+                                    session=session,
+                                    download_id=d.download_id,
+                                    status_key=status_key,
                                 )
                             )
                             if a_result_download_row.is_not_ok():
                                 logger.error(
-                                    f"Error getting download row. {a_result_download_row.info()}"
+                                    f"Error finalizing download. {a_result_download_row.info()}"
                                 )
                                 return AResultCode(
                                     code=a_result_download_row.code(),
@@ -130,7 +131,6 @@ class DownloadsManager:
                             download_row = a_result_download_row.result()
                             download_public_id = download_row.public_id
                             date_started = download_row.date_started
-                            download_row.date_ended = datetime.now(timezone.utc)
                             date_ended = download_row.date_ended
 
                             latest_status: DownloadStatusRow | None = (
@@ -153,8 +153,6 @@ class DownloadsManager:
                                     else 0
                                 )
                             )
-
-                            await session.commit()
                             await ws_manager.broadcast_progress_async(
                                 user_id=d.user_id,
                                 download_public_id=download_public_id,

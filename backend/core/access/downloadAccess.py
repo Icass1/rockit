@@ -153,6 +153,30 @@ class DownloadAccess:
 
     @staticmethod
     @safe_async
+    async def finalize_download_async(
+        session: AsyncSession,
+        download_id: int,
+        status_key: int,
+    ) -> AResult[DownloadRow]:
+        """Set status_key and date_ended on a download, then commit."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.id == download_id)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Download {download_id} not found",
+            )
+
+        download.status_key = status_key
+        download.date_ended = datetime.now(timezone.utc)
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
     async def update_download_status(
         session: AsyncSession,
         download_id: int,

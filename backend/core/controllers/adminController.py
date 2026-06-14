@@ -18,7 +18,10 @@ from backend.core.requests.uploadChunkRequest import UploadChunkRequest
 from backend.core.requests.completeChunkedUploadRequest import (
     CompleteChunkedUploadRequest,
 )
-from backend.core.requests.userRequestRequest import ReviewUserRequestRequest
+from backend.core.requests.userRequestRequest import (
+    GetAllRequestsRequest,
+    ReviewUserRequestRequest,
+)
 from backend.core.responses.buildResponse import AllBuildsResponse, BuildResponse
 from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.requestLogStatsResponse import RequestLogStatsResponse
@@ -263,18 +266,20 @@ async def get_request_log_stats(request: Request) -> RequestLogStatsResponse:
     return a_result.result()
 
 
-@router.get("/requests")
+@router.post("/requests")
 async def get_all_requests(
     request: Request,
-    status: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    payload: GetAllRequestsRequest,
 ) -> UserRequestListResponse:
     """Get all user requests (with optional status filter)."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
     a_result = await UserRequestFramework.get_all_requests_async(
-        session=session, status=status, limit=limit, offset=offset
+        session=session,
+        status=payload.status,
+        limit=payload.limit,
+        offset=payload.offset,
     )
 
     if a_result.is_not_ok():

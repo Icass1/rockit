@@ -1,10 +1,10 @@
 "use client";
 
 import type { JSX } from "react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { type BookmarkResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { Bookmark, BookmarkCheck, ChevronDown, Trash2 } from "lucide-react";
-import { type BookmarkResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
@@ -25,52 +25,32 @@ const MODE_LABELS: Record<Mode, string> = {
     AUTOSKIP: "Auto-skip",
 };
 
-export default function BookmarkPopup({ onClose }: BookmarkPopupProps): JSX.Element {
-    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const $currentMediaBookmarks = useStore(
-        rockIt.bookmarkManager.currentMediaBookmarksAtom
+function BookmarkPopupForm({
+    existingAtCurrentTime,
+    currentTime,
+    onClose,
+}: {
+    existingAtCurrentTime: BookmarkResponse | undefined;
+    currentTime: number | null;
+    onClose: () => void;
+}): JSX.Element {
+    const editingBookmark = existingAtCurrentTime ?? null;
+
+    const [description, setDescription] = useState(
+        editingBookmark?.description ?? ""
+    );
+    const [mode, setMode] = useState<Mode>(
+        (editingBookmark?.mode as Mode) ?? "NOTHING"
+    );
+    const [showModeDropdown, setShowModeDropdown] = useState(false);
+    const [timestampText, setTimestampText] = useState(
+        getTime(editingBookmark?.timestamp ?? currentTime ?? 0)
     );
 
-    const [description, setDescription] = useState("");
-    const [mode, setMode] = useState<Mode>("NOTHING");
-    const [editingBookmark, setEditingBookmark] =
-        useState<BookmarkResponse | null>(null);
-    const [showModeDropdown, setShowModeDropdown] = useState(false);
-    // Timestamp is derived from current time or existing bookmark; stored as formatted text only
-    const [timestampText, setTimestampText] = useState("0:00");
-
-    const popupRef = useRef<HTMLDivElement>(null);
     const modeBtnRef = useRef<HTMLButtonElement>(null);
     const modeDropdownRef = useRef<HTMLDivElement>(null);
 
-    const existingAtCurrentTime = $currentMediaBookmarks.find(
-        (b): boolean => Math.abs(b.timestamp - $currentTime) < 0.5
-    );
-
     useEffect(() => {
-        const ts = existingAtCurrentTime
-            ? existingAtCurrentTime.timestamp
-            : ($currentTime ?? 0);
-
-        setTimestampText(getTime(ts));
-        if (existingAtCurrentTime) {
-            setEditingBookmark(existingAtCurrentTime);
-            setDescription(existingAtCurrentTime.description ?? "");
-            setMode(existingAtCurrentTime.mode as Mode);
-        } else {
-            setEditingBookmark(null);
-            setDescription("");
-            setMode("NOTHING");
-        }
-    }, [existingAtCurrentTime?.publicId, $currentMedia?.publicId, $currentTime]);
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent): void => {
-            if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
-                onClose();
-            }
-        };
         const handleDropdownOutside = (e: MouseEvent): void => {
             if (
                 modeDropdownRef.current &&
@@ -81,19 +61,16 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps): JSX.Elem
                 setShowModeDropdown(false);
             }
         };
-        document.addEventListener("mousedown", handleClickOutside);
         document.addEventListener("mousedown", handleDropdownOutside);
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("mousedown", handleDropdownOutside);
         };
-    }, [onClose]);
-
-    if (!$currentMedia) return <></>;
+    }, []);
 
     const parseTimestamp = (text: string): number => {
         const parts = text.split(":").map(Number);
-        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 3)
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
         if (parts.length === 2) return parts[0] * 60 + parts[1];
         return Number(text) || 0;
     };
@@ -135,11 +112,7 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps): JSX.Elem
     const ModeIcon = MODE_ICONS[mode];
 
     return (
-        <div
-            ref={popupRef}
-            className="absolute bottom-full right-0 z-50 mb-2 w-64 rounded-lg border border-neutral-700 bg-[#1a1a1a] p-2 shadow-xl"
-        >
-            {/* Title row + Save */}
+        <>
             <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold text-neutral-400">
                     {editingBookmark ? "Edit bookmark" : "New bookmark"}
@@ -170,7 +143,6 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps): JSX.Elem
                 </div>
             </div>
 
-            {/* Label input + mode toggle */}
             <div className="flex items-center gap-1">
                 <input
                     type="text"
@@ -196,7 +168,7 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps): JSX.Elem
                     {showModeDropdown && (
                         <div
                             ref={modeDropdownRef}
-                            className="absolute right-0 top-full z-50 mt-1 w-28 rounded-lg border border-neutral-700 bg-[#1a1a1a] py-1 shadow-xl"
+                            className="absolute top-full right-0 z-50 mt-1 w-28 rounded-lg border border-neutral-700 bg-[#1a1a1a] py-1 shadow-xl"
                         >
                             {MODES.map((m): JSX.Element => {
                                 const Icon = MODE_ICONS[m];
@@ -221,6 +193,58 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps): JSX.Elem
                         </div>
                     )}
                 </div>
+            </div>
+        </>
+    );
+}
+
+export default function BookmarkPopup({
+    onClose,
+}: BookmarkPopupProps): JSX.Element {
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
+    const $currentMediaBookmarks = useStore(
+        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    );
+
+    const popupRef = useRef<HTMLDivElement>(null);
+
+    const existingAtCurrentTime = $currentMediaBookmarks.find(
+        (b): boolean => Math.abs(b.timestamp - $currentTime) < 0.5
+    );
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent): void => {
+            if (
+                popupRef.current &&
+                !popupRef.current.contains(e.target as Node)
+            ) {
+                onClose();
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [onClose]);
+
+    if (!$currentMedia) return <></>;
+
+    const popupContentKey = `${
+        $currentMedia.publicId
+    }-${existingAtCurrentTime?.publicId ?? "new"}`;
+
+    return (
+        <div
+            ref={popupRef}
+            className="absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border border-neutral-700 bg-[#1a1a1a] p-2 shadow-xl"
+        >
+            <div key={popupContentKey}>
+                <BookmarkPopupForm
+                    existingAtCurrentTime={existingAtCurrentTime}
+                    currentTime={$currentTime}
+                    onClose={onClose}
+                />
             </div>
         </div>
     );

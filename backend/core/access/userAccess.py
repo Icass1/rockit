@@ -300,6 +300,90 @@ class UserAccess:
 
     @staticmethod
     @safe_async
+    async def update_user_current_queue_id_async(
+        session: AsyncSession, user_id: int, queue_id: int
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.current_queue_id = queue_id
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_current_time_async(
+        session: AsyncSession, user_id: int, current_time_ms: int
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.current_time_ms = current_time_ms
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_lang_async(
+        session: AsyncSession, user_id: int, lang_id: int
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.lang_id = lang_id
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_crossfade_async(
+        session: AsyncSession, user_id: int, crossfade_ms: int
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.cross_fade_ms = crossfade_ms
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_password_async(
+        session: AsyncSession, user_id: int, password_hash: str
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.password_hash = password_hash
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_queue_type_async(
+        session: AsyncSession, user_id: int, queue_type_key: int
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.queue_type_key = queue_type_key
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def update_user_repeat_mode_async(
+        session: AsyncSession, user_id: int, repeat_mode_key: int
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.repeat_mode_key = repeat_mode_key
+        await session.commit()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
     async def add_user_media_listened_async(
         session: AsyncSession, user_id: int, media_id: int
     ) -> AResult[UserMediaListenedRow]:

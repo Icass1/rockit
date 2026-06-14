@@ -1,7 +1,6 @@
-from datetime import datetime
-
+from typing import Dict
 from sqlalchemy import ForeignKey, Integer, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.core.access.db.base import CoreBase
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -21,8 +20,8 @@ class UserRequestRow(
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.user.id"), nullable=False
     )
-    media_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("core.media.id"), nullable=True
+    media_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.media.id"), nullable=False
     )
     request_type_key: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.request_type_enum.key"), nullable=False
@@ -41,9 +40,9 @@ class UserRequestRow(
         self,
         public_id: str,
         user_id: int,
+        media_id: int,
         request_type_key: int,
         proposed_value: str,
-        media_id: int | None = None,
         comment: str | None = None,
         status_key: int = 1,
         reviewed_by: int | None = None,
@@ -52,9 +51,9 @@ class UserRequestRow(
         kwargs: Dict[str, None | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["user_id"] = user_id
+        kwargs["media_id"] = media_id
         kwargs["request_type_key"] = request_type_key
         kwargs["proposed_value"] = proposed_value
-        kwargs["media_id"] = media_id
         kwargs["comment"] = comment
         kwargs["status_key"] = status_key
         kwargs["reviewed_by"] = reviewed_by

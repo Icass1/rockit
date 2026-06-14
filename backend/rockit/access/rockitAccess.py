@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
 
+
 from backend.rockit.access.db.associationTables.song_artists import song_artists
 from backend.rockit.access.db.associationTables.album_artists import album_artists
 from backend.rockit.access.db.associationTables.video_artists import video_artists
@@ -581,4 +582,104 @@ class RockitAccess:
             logger.error(f"Error getting video public_id: {e}", exc_info=True)
             return AResult(
                 code=AResultCode.GENERAL_ERROR, message="Error getting video public_id"
+            )
+
+    @staticmethod
+    async def search_songs_by_name_async(
+        session: AsyncSession,
+        query: str,
+    ) -> AResult[List[RockitSongRow]]:
+        """Search rockit songs by name (case-insensitive partial match)."""
+
+        try:
+            stmt: Select[Tuple[RockitSongRow]] = (
+                select(RockitSongRow)
+                .where(RockitSongRow.name.ilike(f"%{query}%"))
+                .options(selectinload(RockitSongRow.artists))
+            )
+            result: Result[Tuple[RockitSongRow]] = await session.execute(stmt)
+            rows: List[RockitSongRow] = cast(
+                List[RockitSongRow], result.scalars().all()
+            )
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
+        except Exception as e:
+            logger.error(f"Error searching rockit songs: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error searching rockit songs"
+            )
+
+    @staticmethod
+    async def search_albums_by_name_async(
+        session: AsyncSession,
+        query: str,
+    ) -> AResult[List[RockitAlbumRow]]:
+        """Search rockit albums by name (case-insensitive partial match)."""
+
+        try:
+            stmt: Select[Tuple[RockitAlbumRow]] = (
+                select(RockitAlbumRow)
+                .where(RockitAlbumRow.name.ilike(f"%{query}%"))
+                .options(selectinload(RockitAlbumRow.artists))
+            )
+            result: Result[Tuple[RockitAlbumRow]] = await session.execute(stmt)
+            rows: List[RockitAlbumRow] = cast(
+                List[RockitAlbumRow], result.scalars().all()
+            )
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
+        except Exception as e:
+            logger.error(f"Error searching rockit albums: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error searching rockit albums"
+            )
+
+    @staticmethod
+    async def search_videos_by_name_async(
+        session: AsyncSession,
+        query: str,
+    ) -> AResult[List[RockitVideoRow]]:
+        """Search rockit videos by name (case-insensitive partial match)."""
+
+        try:
+            stmt: Select[Tuple[RockitVideoRow]] = (
+                select(RockitVideoRow)
+                .where(RockitVideoRow.name.ilike(f"%{query}%"))
+                .options(selectinload(RockitVideoRow.artists))
+            )
+            result: Result[Tuple[RockitVideoRow]] = await session.execute(stmt)
+            rows: List[RockitVideoRow] = cast(
+                List[RockitVideoRow], result.scalars().all()
+            )
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
+        except Exception as e:
+            logger.error(f"Error searching rockit videos: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error searching rockit videos"
+            )
+
+    @staticmethod
+    async def get_album_by_id_async(
+        session: AsyncSession,
+        album_id: int,
+    ) -> AResult[RockitAlbumRow]:
+        """Get a single rockit album by its internal ID."""
+
+        try:
+            stmt: Select[Tuple[RockitAlbumRow]] = (
+                select(RockitAlbumRow)
+                .where(RockitAlbumRow.id == album_id)
+                .options(selectinload(RockitAlbumRow.artists))
+            )
+            result: Result[Tuple[RockitAlbumRow]] = await session.execute(stmt)
+            row: RockitAlbumRow | None = result.scalar_one_or_none()
+
+            if row is None:
+                return AResult(
+                    code=AResultCode.NOT_FOUND,
+                    message=f"RockIt album not found for id: {album_id}",
+                )
+            return AResult(code=AResultCode.OK, message="OK", result=row)
+        except Exception as e:
+            logger.error(f"Error getting rockit album by id: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error getting rockit album"
             )

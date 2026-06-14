@@ -248,9 +248,11 @@ export default function EditMetadataModal({
             );
         }
 
+        if (!mediaPublicId) return;
+
         const result = await Http.createRequest({
             mediaPublicId,
-            requestType: "metadata",
+            requestType: "METADATA",
             proposedValue: JSON.stringify(changes),
             comment: comment.trim() || null,
         });

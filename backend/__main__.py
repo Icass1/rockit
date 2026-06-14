@@ -323,6 +323,34 @@ async def main() -> None:
 
                     logger.info(f"Updated {updated_count} videos, {error_count} errors")
 
+            elif command.startswith("migrate-playlist"):
+                from backend.migratePlaylist import migrate_playlist_async
+
+                parts = command.split()
+                sqlite_db = "database.db"
+                playlist_id = ""
+                user_id = 0
+
+                for i, part in enumerate(parts):
+                    if part == "--db" and i + 1 < len(parts):
+                        sqlite_db = parts[i + 1]
+                    elif part == "--playlist-id" and i + 1 < len(parts):
+                        playlist_id = parts[i + 1]
+                    elif part == "--user-id" and i + 1 < len(parts):
+                        user_id = int(parts[i + 1])
+
+                if not playlist_id or not user_id:
+                    logger.error(
+                        "Usage: migrate-playlist --playlist-id <id> --user-id <int> [--db <path>]"
+                    )
+                    continue
+
+                await migrate_playlist_async(
+                    sqlite_path=sqlite_db,
+                    playlist_id=playlist_id,
+                    target_user_id=user_id,
+                )
+
             elif command == "import-lrc-lib":
                 from backend.lrclib.framework.importLrcLib import (
                     import_lrc_lib_from_dump_async,

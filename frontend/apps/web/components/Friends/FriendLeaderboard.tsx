@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
-import { Trophy, Flame } from "lucide-react";
+import { Flame, Trophy } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function FriendLeaderboard(): JSX.Element {
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-    const [currentUser, setCurrentUser] = useState<LeaderboardEntry | null>(null);
+    const [currentUser, setCurrentUser] = useState<LeaderboardEntry | null>(
+        null
+    );
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -36,7 +38,10 @@ export default function FriendLeaderboard(): JSX.Element {
     }
 
     const allEntries = currentUser
-        ? [...entries.filter((e) => e.userId !== currentUser.userId), currentUser]
+        ? [
+              ...entries.filter((e) => e.userId !== currentUser.userId),
+              currentUser,
+          ]
         : entries;
 
     return (
@@ -62,7 +67,8 @@ export default function FriendLeaderboard(): JSX.Element {
                                 {currentUser.username}
                             </p>
                             <p className="text-xs text-neutral-400">
-                                {currentUser.title || `Level ${currentUser.level}`}
+                                {currentUser.title ||
+                                    `Level ${currentUser.level}`}
                             </p>
                         </div>
                         <div className="text-right">
@@ -82,7 +88,8 @@ export default function FriendLeaderboard(): JSX.Element {
                                     width: `${Math.min(
                                         100,
                                         (currentUser.xp /
-                                            (currentUser.xp + currentUser.xpToNext)) *
+                                            (currentUser.xp +
+                                                currentUser.xpToNext)) *
                                             100
                                     )}%`,
                                 }}
@@ -92,7 +99,7 @@ export default function FriendLeaderboard(): JSX.Element {
                 </div>
             )}
 
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
+            <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">
                 Leaderboard
             </p>
 

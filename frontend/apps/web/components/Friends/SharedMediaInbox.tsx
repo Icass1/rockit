@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, type JSX } from "react";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
-import { Play, Inbox, Send } from "lucide-react";
+import { useStore } from "@nanostores/react";
+import { Inbox, Play, Send } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SharedMediaInbox(): JSX.Element {
     const [view, setView] = useState<"inbox" | "sent">("inbox");
@@ -107,7 +107,7 @@ export default function SharedMediaInbox(): JSX.Element {
                                         : `to ${item.senderUsername}`}
                                 </p>
                                 {item.message && (
-                                    <p className="mt-0.5 truncate text-xs italic text-neutral-600">
+                                    <p className="mt-0.5 truncate text-xs text-neutral-600 italic">
                                         &ldquo;{item.message}&rdquo;
                                     </p>
                                 )}

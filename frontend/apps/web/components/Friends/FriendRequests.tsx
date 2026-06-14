@@ -1,10 +1,10 @@
 "use client";
 
 import { type JSX } from "react";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
+import { useStore } from "@nanostores/react";
 import { Check, X } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function FriendRequests(): JSX.Element {
     const $incoming = useStore(rockIt.friendManager.incomingRequestsAtom);
@@ -13,17 +13,14 @@ export default function FriendRequests(): JSX.Element {
 
     return (
         <div className="rounded-2xl border border-[#ee1086]/15 bg-[#ee1086]/[0.04] p-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-[#ee1086]">
+            <p className="mb-3 text-[11px] font-semibold tracking-widest text-[#ee1086] uppercase">
                 {$incoming.length}{" "}
                 {$incoming.length === 1 ? "Friend Request" : "Friend Requests"}
             </p>
 
             <div className="flex flex-col gap-3">
                 {$incoming.map((req) => (
-                    <div
-                        key={req.publicId}
-                        className="flex items-center gap-3"
-                    >
+                    <div key={req.publicId} className="flex items-center gap-3">
                         <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-neutral-800">
                             {req.fromUserImageUrl ? (
                                 <Image

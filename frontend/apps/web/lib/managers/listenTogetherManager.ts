@@ -1,8 +1,8 @@
+import { EWebSocketMessage } from "@rockit/shared";
+import type { ListenSession } from "@/models/interfaces";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
-import { EWebSocketMessage } from "@rockit/shared";
-import type { ListenSession } from "@/models/interfaces";
 
 export class ListenTogetherManager {
     private _sessionsAtom = createArrayAtom<ListenSession>([]);

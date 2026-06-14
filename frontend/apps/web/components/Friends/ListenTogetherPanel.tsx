@@ -2,8 +2,8 @@
 
 import { type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import { Headphones, LogOut, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { Headphones, LogOut, Play, Pause } from "lucide-react";
 
 export default function ListenTogetherPanel(): JSX.Element {
     const $sessions = useStore(rockIt.listenTogetherManager.sessionsAtom);
@@ -109,7 +109,7 @@ export default function ListenTogetherPanel(): JSX.Element {
 
             {$friends.length > 0 && (
                 <div className="mt-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    <p className="mb-2 text-xs font-semibold tracking-wider text-neutral-500 uppercase">
                         Invite a friend
                     </p>
                     <div className="flex flex-wrap gap-2">

@@ -1,7 +1,7 @@
+import { type SharedMediaItem } from "@/dto";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
-import { type SharedMediaItem } from "@/dto";
 
 export class SharingManager {
     private _inboxAtom = createArrayAtom<SharedMediaItem>([]);

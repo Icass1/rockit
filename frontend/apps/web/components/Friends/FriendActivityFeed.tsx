@@ -1,11 +1,11 @@
 "use client";
 
 import { type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import Image from "next/image";
-import { Heart, ListPlus, Share2, Music2 } from "lucide-react";
-import { rockIt } from "@/lib/rockit/rockIt";
+import { useStore } from "@nanostores/react";
+import { Heart, ListPlus, Music2, Share2 } from "lucide-react";
 import type { FriendActivity } from "@/models/interfaces";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 type Activity = FriendActivity & {
     mediaArtist?: string;
@@ -29,7 +29,13 @@ function formatMs(ms: number): string {
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-function ActivityCard({ item, justNowText }: { item: Activity; justNowText: string }): JSX.Element {
+function ActivityCard({
+    item,
+    justNowText,
+}: {
+    item: Activity;
+    justNowText: string;
+}): JSX.Element {
     const progress =
         item.currentProgressMs && item.durationMs
             ? Math.min(100, (item.currentProgressMs / item.durationMs) * 100)
@@ -37,7 +43,6 @@ function ActivityCard({ item, justNowText }: { item: Activity; justNowText: stri
 
     return (
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
-
             <div className="mb-3 flex items-center gap-2">
                 <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-neutral-800">
                     {item.userImageUrl ? (
@@ -58,7 +63,7 @@ function ActivityCard({ item, justNowText }: { item: Activity; justNowText: stri
                     {item.username}
                 </span>
                 {item.isLiveNow && (
-                    <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-green-400">
+                    <span className="flex items-center gap-1 text-[10px] font-semibold tracking-wider text-green-400 uppercase">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
                         live
                     </span>
@@ -86,7 +91,7 @@ function ActivityCard({ item, justNowText }: { item: Activity; justNowText: stri
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold leading-snug text-white">
+                    <p className="truncate leading-snug font-semibold text-white">
                         {item.mediaName}
                     </p>
                     {item.mediaArtist && (
@@ -105,7 +110,7 @@ function ActivityCard({ item, justNowText }: { item: Activity; justNowText: stri
                             )}
                         </div>
                         {item.currentProgressMs != null && (
-                            <span className="shrink-0 text-[10px] tabular-nums text-neutral-700">
+                            <span className="shrink-0 text-[10px] text-neutral-700 tabular-nums">
                                 {formatMs(item.currentProgressMs)}
                             </span>
                         )}
@@ -168,7 +173,7 @@ export default function FriendActivityFeed({
         <div className="flex flex-col gap-6">
             {liveNow.length > 0 && (
                 <section>
-                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
+                    <p className="mb-3 text-[11px] font-semibold tracking-widest text-neutral-600 uppercase">
                         {v.NOW_PLAYING}
                     </p>
                     <div className="flex flex-col gap-2">
@@ -185,7 +190,7 @@ export default function FriendActivityFeed({
 
             {recent.length > 0 && (
                 <section>
-                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
+                    <p className="mb-3 text-[11px] font-semibold tracking-widest text-neutral-600 uppercase">
                         {v.RECENT}
                     </p>
                     <div className="flex flex-col gap-2">

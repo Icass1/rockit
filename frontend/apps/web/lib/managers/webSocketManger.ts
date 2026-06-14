@@ -1,5 +1,4 @@
 import { BACKEND_URL } from "@/environment";
-import { rockIt } from "@/lib/rockit/rockIt";
 import {
     CurrentMediaMessageRequest,
     CurrentQueueMessageRequest,
@@ -15,6 +14,7 @@ import {
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export class WebSocketManager {
     static #instance: WebSocketManager;

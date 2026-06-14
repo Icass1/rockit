@@ -45,7 +45,10 @@ class UserLevelAccess:
         if a_config.is_ok():
             configs = sorted(a_config.result(), key=lambda c: c.level)
             for config in configs:
-                if level_row.xp >= config.xp_required and config.level > level_row.level:
+                if (
+                    level_row.xp >= config.xp_required
+                    and config.level > level_row.level
+                ):
                     level_row.level = config.level
         await session.flush()
         await session.refresh(level_row)
@@ -66,11 +69,7 @@ class UserLevelAccess:
     async def get_leaderboard_async(
         session: AsyncSession, limit: int = 50
     ) -> AResult[List[UserLevelRow]]:
-        stmt: Select = (
-            select(UserLevelRow)
-            .order_by(desc(UserLevelRow.xp))
-            .limit(limit)
-        )
+        stmt: Select = select(UserLevelRow).order_by(desc(UserLevelRow.xp)).limit(limit)
         result: Result = await session.execute(stmt)
         rows: Sequence[UserLevelRow] = result.scalars().all()
         return AResult(code=AResultCode.OK, message="OK", result=list(rows))

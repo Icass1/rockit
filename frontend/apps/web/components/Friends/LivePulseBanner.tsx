@@ -44,12 +44,11 @@ export default function LivePulseBanner({
 
     return (
         <div className="flex items-center gap-4 overflow-x-auto rounded-2xl border border-[#ee1086]/10 bg-[#ee1086]/[0.04] px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-
             <div className="flex shrink-0 flex-col items-center gap-1.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ee1086]/15">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-[#ee1086]" />
                 </div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#ee1086]">
+                <span className="text-[10px] font-semibold tracking-wider text-[#ee1086] uppercase">
                     {live.length} live
                 </span>
             </div>

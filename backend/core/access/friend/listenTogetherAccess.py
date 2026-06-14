@@ -83,9 +83,7 @@ class ListenTogetherAccess:
             .where(
                 ListenTogetherSessionRow.status_key
                 == ListenTogetherStatusEnum.ACTIVE.value,
-                (
-                    ListenTogetherSessionRow.host_user_id == user_id
-                )
+                (ListenTogetherSessionRow.host_user_id == user_id)
                 | (ListenTogetherSessionRow.guest_user_id == user_id),
             )
             .order_by(desc(ListenTogetherSessionRow.date_added))

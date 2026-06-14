@@ -1,8 +1,14 @@
+import { EWebSocketMessage } from "@rockit/shared";
+import type {
+    Friend,
+    FriendActivity,
+    FriendRequest,
+    LeaderboardEntry,
+    UserSearchResult,
+} from "@/models/interfaces";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom, createArrayAtom, ReadonlyAtom } from "@/lib/store";
-import { EWebSocketMessage } from "@rockit/shared";
-import type { Friend, FriendRequest, UserSearchResult, LeaderboardEntry, FriendActivity } from "@/models/interfaces";
+import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class FriendManager {
     private _init = false;
@@ -89,7 +95,9 @@ export class FriendManager {
             if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchRequests();
             await this.fetchFriends();
-            rockIt.notificationManager.notifySuccess("Friend request accepted!");
+            rockIt.notificationManager.notifySuccess(
+                "Friend request accepted!"
+            );
             return true;
         } catch (e) {
             rockIt.notificationManager.notifyError((e as Error).message);
@@ -131,7 +139,10 @@ export class FriendManager {
         }
     }
 
-    async fetchLeaderboard(): Promise<{ entries: LeaderboardEntry[]; currentUser: LeaderboardEntry | null }> {
+    async fetchLeaderboard(): Promise<{
+        entries: LeaderboardEntry[];
+        currentUser: LeaderboardEntry | null;
+    }> {
         try {
             const res = await Http.getLeaderboard();
             if (res.isOk()) {

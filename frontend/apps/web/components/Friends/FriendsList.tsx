@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import Image from "next/image";
-import { Search, X, UserPlus, Music2, MoreHorizontal, UserMinus } from "lucide-react";
+import { useStore } from "@nanostores/react";
+import {
+    MoreHorizontal,
+    Music2,
+    Search,
+    UserMinus,
+    UserPlus,
+    X,
+} from "lucide-react";
 import type { Friend } from "@/models/interfaces";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function Avatar({
     imageUrl,
@@ -39,7 +46,7 @@ function Avatar({
                 )}
             </div>
             {online && (
-                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-black bg-green-500" />
+                <div className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-black bg-green-500" />
             )}
         </div>
     );
@@ -66,20 +73,21 @@ export default function FriendsList({
 
     return (
         <div className="flex flex-col gap-4">
-
             <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
+                <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-600" />
                 <input
                     type="text"
                     value={query}
                     onChange={(e) => handleSearch(e.target.value)}
                     placeholder="Search users..."
-                    className="w-full rounded-full bg-neutral-900 py-2.5 pl-10 pr-9 text-sm text-white placeholder-neutral-600 outline-none ring-1 ring-white/[0.06] transition-shadow focus:ring-[#ee1086]/40"
+                    className="w-full rounded-full bg-neutral-900 py-2.5 pr-9 pl-10 text-sm text-white placeholder-neutral-600 ring-1 ring-white/[0.06] transition-shadow outline-none focus:ring-[#ee1086]/40"
                 />
                 {query && (
                     <button
-                        onClick={() => { setQuery(""); }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-600 transition-colors hover:text-white"
+                        onClick={() => {
+                            setQuery("");
+                        }}
+                        className="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-600 transition-colors hover:text-white"
                     >
                         <X size={15} />
                     </button>
@@ -88,7 +96,7 @@ export default function FriendsList({
 
             {showResults && (
                 <div className="flex flex-col gap-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-2">
-                    <p className="px-2 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
+                    <p className="px-2 pt-0.5 pb-1 text-[10px] font-semibold tracking-widest text-neutral-600 uppercase">
                         Results
                     </p>
                     {$searchResults.length === 0 ? (
@@ -138,7 +146,7 @@ export default function FriendsList({
 
             {!showResults && (
                 <>
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
+                    <p className="text-[11px] font-semibold tracking-widest text-neutral-600 uppercase">
                         My Friends · {friends.length}
                     </p>
 
@@ -212,7 +220,7 @@ export default function FriendsList({
                                         </button>
 
                                         {openMenu === friend.publicId && (
-                                            <div className="absolute right-0 top-9 z-10 min-w-[140px] overflow-hidden rounded-xl border border-white/[0.08] bg-neutral-950 shadow-2xl">
+                                            <div className="absolute top-9 right-0 z-10 min-w-[140px] overflow-hidden rounded-xl border border-white/[0.08] bg-neutral-950 shadow-2xl">
                                                 <button
                                                     onClick={() => {
                                                         rockIt.friendManager.removeFriend(

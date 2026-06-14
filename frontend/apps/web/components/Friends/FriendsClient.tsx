@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { EFriendTab } from "@rockit/shared";
+import { rockIt } from "@/lib/rockit/rockIt";
 import FriendActivityFeed from "./FriendActivityFeed";
-import FriendsList from "./FriendsList";
-import FriendRequests from "./FriendRequests";
-import SharedMediaInbox from "./SharedMediaInbox";
-import ListenTogetherPanel from "./ListenTogetherPanel";
 import FriendLeaderboard from "./FriendLeaderboard";
+import FriendRequests from "./FriendRequests";
+import FriendsList from "./FriendsList";
+import ListenTogetherPanel from "./ListenTogetherPanel";
 import LivePulseBanner from "./LivePulseBanner";
+import SharedMediaInbox from "./SharedMediaInbox";
 
 export default function FriendsClient(): JSX.Element {
     const [activeTab, setActiveTab] = useState<EFriendTab>(EFriendTab.ACTIVITY);
@@ -54,7 +54,6 @@ export default function FriendsClient(): JSX.Element {
 
     return (
         <div className="mx-auto w-full overflow-x-hidden px-4 pt-6 pb-24 sm:max-w-lg md:max-w-3xl md:px-8 md:pt-10 lg:max-w-5xl xl:max-w-7xl 2xl:max-w-[1600px]">
-
             <div
                 className="animate-fade-in-up mb-8 md:mb-10"
                 style={{ animationDelay: "0ms" }}
@@ -64,7 +63,10 @@ export default function FriendsClient(): JSX.Element {
                 </h1>
                 <p className="mt-1.5 text-sm text-neutral-500 md:text-base">
                     {onlineCount > 0
-                        ? v.FRIENDS_LISTENING_NOW.replace("{count}", String(onlineCount))
+                        ? v.FRIENDS_LISTENING_NOW.replace(
+                              "{count}",
+                              String(onlineCount)
+                          )
                         : v.SEE_WHAT_WORLD_LISTENING}
                 </p>
             </div>
@@ -77,7 +79,9 @@ export default function FriendsClient(): JSX.Element {
                     {tabs.map((tab, i) => (
                         <button
                             key={tab.id}
-                            ref={(el) => { tabRefs.current[i] = el; }}
+                            ref={(el) => {
+                                tabRefs.current[i] = el;
+                            }}
                             onClick={() => setActiveTab(tab.id)}
                             className={`relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors duration-200 ${
                                 activeTab === tab.id
@@ -86,11 +90,12 @@ export default function FriendsClient(): JSX.Element {
                             }`}
                         >
                             {tab.label}
-                            {tab.id === EFriendTab.FRIENDS && $requests.length > 0 && (
-                                <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#ee1086] px-1 text-[10px] font-bold text-white">
-                                    {$requests.length}
-                                </span>
-                            )}
+                            {tab.id === EFriendTab.FRIENDS &&
+                                $requests.length > 0 && (
+                                    <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#ee1086] px-1 text-[10px] font-bold text-white">
+                                        {$requests.length}
+                                    </span>
+                                )}
                         </button>
                     ))}
                     <span
@@ -126,8 +131,12 @@ export default function FriendsClient(): JSX.Element {
                             </div>
                         )}
                         {activeTab === EFriendTab.SHARE && <SharedMediaInbox />}
-                        {activeTab === EFriendTab.PARTY && <ListenTogetherPanel />}
-                        {activeTab === EFriendTab.RANKS && <FriendLeaderboard />}
+                        {activeTab === EFriendTab.PARTY && (
+                            <ListenTogetherPanel />
+                        )}
+                        {activeTab === EFriendTab.RANKS && (
+                            <FriendLeaderboard />
+                        )}
                     </>
                 )}
             </div>

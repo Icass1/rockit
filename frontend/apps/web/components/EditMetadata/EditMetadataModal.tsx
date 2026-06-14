@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
+import Image from "next/image";
 import type { BaseDynamicLyricsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { getMediaSubtitle, type TMediaWithSearch } from "@rockit/shared";
@@ -8,7 +9,6 @@ import { Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import Image from "next/image";
 
 interface EditMetadataModalProps {
     media: TMediaWithSearch;
@@ -303,14 +303,14 @@ export default function EditMetadataModal({
                 {/* Media info */}
                 <div className="mb-4 flex items-center gap-3 rounded-xl bg-neutral-800/50 p-3">
                     {media.imageUrl && (
-<Image
-                             src={media.imageUrl}
-                             alt={media.name}
-                             width={48}
-                             height={48}
-                             loading="eager"
-                             className="h-12 w-12 shrink-0 rounded-lg object-cover"
-                         />
+                        <Image
+                            src={media.imageUrl}
+                            alt={media.name}
+                            width={48}
+                            height={48}
+                            loading="eager"
+                            className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                        />
                     )}
                     <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-white">
@@ -516,7 +516,7 @@ export default function EditMetadataModal({
                                     Submitting...
                                 </>
                             ) : (
-$vocabulary.EDIT_METADATA_SUBMIT
+                                $vocabulary.EDIT_METADATA_SUBMIT
                             )}
                         </button>
                     </div>

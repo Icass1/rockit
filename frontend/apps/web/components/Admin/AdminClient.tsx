@@ -20,8 +20,8 @@ import {
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import AdminStats from "@/components/Admin/AdminStats";
 import AdminRequests from "@/components/Admin/AdminRequests";
+import AdminStats from "@/components/Admin/AdminStats";
 
 interface AdminClientProps {
     builds: BuildResponse[];
@@ -482,9 +482,7 @@ export default function AdminClient({
                     </div>
                 )}
 
-                {activeTab === EAdminClientTab.REQUESTS && (
-                    <AdminRequests />
-                )}
+                {activeTab === EAdminClientTab.REQUESTS && <AdminRequests />}
 
                 {activeTab === EAdminClientTab.STATS && (
                     <div>

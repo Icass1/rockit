@@ -267,9 +267,7 @@ export default function RadioClient(): JSX.Element {
                             searchDebounce.current?.(q);
                         }
                     }}
-                    placeholder={
-                        $vocabulary.RADIO_SEARCH
-                    }
+                    placeholder={$vocabulary.RADIO_SEARCH}
                     className="h-11 w-full rounded-full bg-neutral-900 pr-9 pl-10 text-sm font-semibold text-white placeholder-neutral-500 focus:ring-2 focus:ring-[#ee1086]/40 focus:outline-0"
                 />
                 {query && (

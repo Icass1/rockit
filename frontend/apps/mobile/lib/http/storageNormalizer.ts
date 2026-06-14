@@ -30,9 +30,7 @@ function isMediaObject(
     );
 }
 
-function isRef(
-    obj: unknown
-): obj is MediaRef {
+function isRef(obj: unknown): obj is MediaRef {
     if (!isMediaObject(obj)) return false;
     return Object.keys(obj).length === 2;
 }
@@ -102,7 +100,10 @@ export function normalizeAndSave(root: unknown): unknown {
     return normalizeValue(root, 0);
 }
 
-async function denormalizeValue(value: unknown, depth: number): Promise<unknown> {
+async function denormalizeValue(
+    value: unknown,
+    depth: number
+): Promise<unknown> {
     if (depth > MAX_DEPTH || value === null || value === undefined) {
         return value;
     }

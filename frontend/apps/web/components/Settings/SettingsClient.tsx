@@ -156,9 +156,7 @@ export default function SettingsClient(): JSX.Element {
                 </div>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-4">
-                    <SettingsSection
-                        title={$vocabulary.DISPLAY_NAME}
-                    >
+                    <SettingsSection title={$vocabulary.DISPLAY_NAME}>
                         <DisplayNameInput vocabulary={$vocabulary} />
                     </SettingsSection>
 
@@ -166,9 +164,7 @@ export default function SettingsClient(): JSX.Element {
                         <ChangeLang />
                     </SettingsSection>
 
-                    <SettingsSection
-                        title={$vocabulary.CHANGE_PASSWORD}
-                    >
+                    <SettingsSection title={$vocabulary.CHANGE_PASSWORD}>
                         <div className="mb-1 flex items-center gap-2">
                             <Lock className="h-3.5 w-3.5 text-neutral-500" />
                             <span className="text-xs text-neutral-500">

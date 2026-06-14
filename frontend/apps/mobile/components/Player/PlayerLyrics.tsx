@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "@/constants/theme";
+import { type BaseDynamicLyricsResponse } from "@/dto";
 import { getMediaArtists } from "@/shared/index";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Http } from "@/lib/http";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
-import { Http } from "@/lib/http";
-import { type BaseDynamicLyricsResponse } from "@/dto";
 
 export default function PlayerLyrics() {
     const { currentMedia, seekTo } = usePlayer();
@@ -99,7 +99,8 @@ export default function PlayerLyrics() {
                             onPress={() => goToLine(index)}
                             style={[
                                 styles.lyricLine,
-                                currentIndex === index && styles.lyricLineActive,
+                                currentIndex === index &&
+                                    styles.lyricLineActive,
                                 currentIndex !== null &&
                                     index < currentIndex &&
                                     styles.lyricLinePast,
@@ -116,9 +117,7 @@ export default function PlayerLyrics() {
                         <Text style={styles.footerProvider}>
                             {lyrics.provider}
                         </Text>
-                        <Text style={styles.footerId}>
-                            {lyrics.publicId}
-                        </Text>
+                        <Text style={styles.footerId}>{lyrics.publicId}</Text>
                     </View>
                 </ScrollView>
             )}

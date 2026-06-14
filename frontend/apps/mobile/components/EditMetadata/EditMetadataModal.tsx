@@ -1,4 +1,10 @@
 import { useState } from "react";
+import { COLORS } from "@/constants/theme";
+import {
+    getMediaSubtitle,
+    type BaseSearchResultsItem,
+    type TMedia as MobileMedia,
+} from "@rockit/shared";
 import {
     ActivityIndicator,
     KeyboardAvoidingView,
@@ -11,14 +17,8 @@ import {
     TextInput,
     View,
 } from "react-native";
-import { COLORS } from "@/constants/theme";
-import { useVocabulary } from "@/lib/vocabulary";
 import { Http } from "@/lib/http";
-import {
-    getMediaSubtitle,
-    type TMedia as MobileMedia,
-    type BaseSearchResultsItem,
-} from "@rockit/shared";
+import { useVocabulary } from "@/lib/vocabulary";
 
 type MediaForEdit = MobileMedia | BaseSearchResultsItem;
 
@@ -48,9 +48,8 @@ function getFieldsForMedia(media: MediaForEdit): FieldDef[] {
                 {
                     key: "album",
                     label: "Album",
-                    value: "album" in media && media.album
-                        ? media.album.name
-                        : "",
+                    value:
+                        "album" in media && media.album ? media.album.name : "",
                     multiline: false,
                 },
                 { key: "genre", label: "Genre", value: "", multiline: false },
@@ -89,9 +88,10 @@ function getFieldsForMedia(media: MediaForEdit): FieldDef[] {
                 {
                     key: "releaseDate",
                     label: "Release date",
-                    value: "releaseDate" in media && media.releaseDate
-                        ? media.releaseDate
-                        : "",
+                    value:
+                        "releaseDate" in media && media.releaseDate
+                            ? media.releaseDate
+                            : "",
                     multiline: false,
                 },
                 { key: "genre", label: "Genre", value: "", multiline: false },
@@ -146,8 +146,7 @@ export function EditMetadataModalContent({
             }
         }
 
-        const mediaPublicId =
-            "publicId" in media ? media.publicId : null;
+        const mediaPublicId = "publicId" in media ? media.publicId : null;
 
         const result = await Http.createRequest({
             mediaPublicId,
@@ -176,7 +175,8 @@ export function EditMetadataModalContent({
                     <Text style={styles.successIconText}>✓</Text>
                 </View>
                 <Text style={styles.successTitle}>
-                    {vocabulary.EDIT_METADATA_SUCCESS || "Suggestion submitted!"}
+                    {vocabulary.EDIT_METADATA_SUCCESS ||
+                        "Suggestion submitted!"}
                 </Text>
                 <Text style={styles.successSubtitle}>
                     An admin will review your changes.

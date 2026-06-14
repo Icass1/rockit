@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState, type JSX } from "react";
-import { createPortal } from "react-dom";
 import { UploadResponseSchema, type UploadSongRequest } from "@/dto";
 import { BACKEND_URL } from "@/environment";
 import { useStore } from "@nanostores/react";
@@ -16,6 +15,7 @@ import {
     Upload,
     X,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -1006,7 +1006,7 @@ export default function UploadModal({
                         <button
                             onClick={handleClose}
                             disabled={uploading}
-                            className="whitespace-nowrap rounded-md border border-neutral-600 px-3 py-2 text-sm text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
+                            className="rounded-md border border-neutral-600 px-3 py-2 text-sm whitespace-nowrap text-neutral-300 transition hover:border-neutral-400 hover:text-white disabled:opacity-50"
                         >
                             {$vocabulary.CANCEL}
                         </button>
@@ -1018,7 +1018,7 @@ export default function UploadModal({
                                 (uploadType === "album" && !canSubmitAlbum) ||
                                 (uploadType === "video" && !canSubmitVideo)
                             }
-                            className="whitespace-nowrap rounded-md bg-pink-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="rounded-md bg-pink-600 px-3 py-2 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {uploading
                                 ? $vocabulary.UPLOAD_IN_PROGRESS

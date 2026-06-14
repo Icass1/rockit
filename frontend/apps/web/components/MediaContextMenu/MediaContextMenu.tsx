@@ -13,22 +13,22 @@ import {
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
-import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import {
     getActionsForMedia,
     type ActionDef,
 } from "@/components/ContextMenu/mediaContextMenuActions";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
-import EditMetadataAction from "@/components/MediaContextMenu/actions/EditMetadataAction";
 import {
     DownloadAction,
     DownloadZipAction,
     RetryDownloadAction,
 } from "@/components/MediaContextMenu/actions/DownloadActions";
+import EditMetadataAction from "@/components/MediaContextMenu/actions/EditMetadataAction";
 import {
     AddToLibraryAction,
     RemoveFromLibraryAction,
@@ -140,9 +140,7 @@ export default function MediaContextMenu({
                 >
                     {visibleActions.map((item, index) => {
                         if (item.type === "separator") {
-                            return (
-                                <ContextMenuSplitter key={`sep-${index}`} />
-                            );
+                            return <ContextMenuSplitter key={`sep-${index}`} />;
                         }
 
                         const action = item as ActionDef;

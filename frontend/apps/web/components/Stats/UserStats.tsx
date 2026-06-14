@@ -80,10 +80,7 @@ export default function UserStats({
 
             <div className="flex flex-col gap-8 md:gap-10">
                 <div className="grid gap-8 md:grid-cols-2 md:gap-20">
-                    <StatsSection
-                        title={$vocabulary.TOP_SONGS}
-                        stagger={2}
-                    >
+                    <StatsSection title={$vocabulary.TOP_SONGS} stagger={2}>
                         <RankingList
                             items={data.topSongs}
                             showImages
@@ -92,9 +89,7 @@ export default function UserStats({
                     </StatsSection>
 
                     <StatsSection
-                        title={
-                            $vocabulary.MOST_LISTENED_ARTISTS
-                        }
+                        title={$vocabulary.MOST_LISTENED_ARTISTS}
                         stagger={3}
                     >
                         <RankingList items={data.topArtists} showImages />
@@ -102,10 +97,7 @@ export default function UserStats({
                 </div>
 
                 <div className="grid gap-8 md:grid-cols-2 md:gap-20">
-                    <StatsSection
-                        title={$vocabulary.TOP_VIDEOS}
-                        stagger={4}
-                    >
+                    <StatsSection title={$vocabulary.TOP_VIDEOS} stagger={4}>
                         <RankingList
                             items={data.topVideos}
                             showImages
@@ -113,19 +105,14 @@ export default function UserStats({
                         />
                     </StatsSection>
 
-                    <StatsSection
-                        title={$vocabulary.TOP_ALBUMS}
-                        stagger={5}
-                    >
+                    <StatsSection title={$vocabulary.TOP_ALBUMS} stagger={5}>
                         <RankingList items={data.topAlbums} showImages />
                     </StatsSection>
                 </div>
             </div>
 
             <StatsSection
-                title={
-                    $vocabulary.MINUTES_LISTENED_PER_DAY
-                }
+                title={$vocabulary.MINUTES_LISTENED_PER_DAY}
                 stagger={6}
             >
                 <ListeningHeatmap data={data.heatmap} />

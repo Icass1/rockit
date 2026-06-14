@@ -13,9 +13,7 @@ export default function ServiceWorkerInfo(): JSX.Element {
         action: EServiceWorkerAction
     ): Promise<void> => {
         if (!("serviceWorker" in navigator)) {
-            setStatus(
-                $vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER
-            );
+            setStatus($vocabulary.DEVICE_DOESNT_SUPPORT_SERVICE_WORKER);
             return;
         }
 

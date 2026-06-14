@@ -35,10 +35,7 @@ class MediaStorageManager {
         }
     }
 
-    async downloadSong(
-        publicId: string,
-        url: string
-    ): Promise<string | null> {
+    async downloadSong(publicId: string, url: string): Promise<string | null> {
         await this.init();
 
         const songsDir = new Directory(this._baseDir, SONGS_DIR_NAME);
@@ -62,10 +59,7 @@ class MediaStorageManager {
         }
     }
 
-    async downloadVideo(
-        publicId: string,
-        url: string
-    ): Promise<string | null> {
+    async downloadVideo(publicId: string, url: string): Promise<string | null> {
         await this.init();
 
         const videosDir = new Directory(this._baseDir, VIDEOS_DIR_NAME);
@@ -151,7 +145,9 @@ class MediaStorageManager {
 
         const imagesDir = new Directory(this._baseDir, IMAGES_DIR_NAME);
         const ext = url.split(".").pop()?.split("?")[0]?.toLowerCase();
-        const safeExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext ?? "")
+        const safeExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(
+            ext ?? ""
+        )
             ? `.${ext}`
             : ".jpg";
         const filename = `${publicId}${safeExt}`;

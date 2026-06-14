@@ -1,7 +1,10 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { type UserRequestResponse, type AdminRequestStatsResponse } from "@/dto";
+import {
+    type AdminRequestStatsResponse,
+    type UserRequestResponse,
+} from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     CheckCircle2,
@@ -18,9 +21,20 @@ import { rockIt } from "@/lib/rockit/rockIt";
 
 type RequestStatus = "all" | "pending" | "accepted" | "rejected";
 
-const STATUS_BADGES: Record<string, { bg: string; text: string; label: string }> = {
-    pending: { bg: "bg-amber-500/10", text: "text-amber-400", label: "Pending" },
-    accepted: { bg: "bg-emerald-500/10", text: "text-emerald-400", label: "Accepted" },
+const STATUS_BADGES: Record<
+    string,
+    { bg: string; text: string; label: string }
+> = {
+    pending: {
+        bg: "bg-amber-500/10",
+        text: "text-amber-400",
+        label: "Pending",
+    },
+    accepted: {
+        bg: "bg-emerald-500/10",
+        text: "text-emerald-400",
+        label: "Accepted",
+    },
     rejected: { bg: "bg-red-500/10", text: "text-red-400", label: "Rejected" },
 };
 
@@ -46,7 +60,7 @@ export default function AdminRequests(): JSX.Element {
     const [filter, setFilter] = useState<RequestStatus>("all");
     const [reviewingId, setReviewingId] = useState<string | null>(null);
 
-useEffect(() => {
+    useEffect(() => {
         if (!isAdmin) {
             setError($vocabulary.ADMIN_REQUIRED);
             setLoading(false);
@@ -173,7 +187,8 @@ useEffect(() => {
                     {$vocabulary.ADMIN_REQUESTS_TITLE}
                 </h1>
                 <p className="mt-1 text-sm text-neutral-500">
-                    Manage user suggestions for lyrics, metadata, and content corrections
+                    Manage user suggestions for lyrics, metadata, and content
+                    corrections
                 </p>
             </div>
 
@@ -183,7 +198,7 @@ useEffect(() => {
                         key={stat.label}
                         className={`rounded-xl border border-neutral-800 ${stat.bg} p-4`}
                     >
-                        <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+                        <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
                             {stat.label}
                         </p>
                         <p className={`mt-1 text-2xl font-bold ${stat.color}`}>
@@ -218,8 +233,10 @@ useEffect(() => {
             ) : (
                 <div className="space-y-3">
                     {filteredRequests.map((req) => {
-                        const badge = STATUS_BADGES[req.status] || STATUS_BADGES.pending;
-                        const typeIcon = REQUEST_TYPE_ICONS[req.requestType] || "📌";
+                        const badge =
+                            STATUS_BADGES[req.status] || STATUS_BADGES.pending;
+                        const typeIcon =
+                            REQUEST_TYPE_ICONS[req.requestType] || "📌";
                         const isPending = req.status === "pending";
 
                         return (
@@ -233,7 +250,7 @@ useEffect(() => {
                                             <span className="text-lg">
                                                 {typeIcon}
                                             </span>
-                                            <span className="rounded-full bg-neutral-800 px-2.5 py-0.5 text-xs font-medium capitalize text-neutral-300">
+                                            <span className="rounded-full bg-neutral-800 px-2.5 py-0.5 text-xs font-medium text-neutral-300 capitalize">
                                                 {req.requestType}
                                             </span>
                                             <span
@@ -245,7 +262,7 @@ useEffect(() => {
 
                                         <div className="mb-3 space-y-2">
                                             <div className="rounded-lg bg-neutral-800/50 p-3">
-                                                <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+                                                <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
                                                     Proposed change
                                                 </p>
                                                 <p className="mt-1 text-sm text-white">
@@ -255,7 +272,7 @@ useEffect(() => {
 
                                             {req.comment && (
                                                 <div className="rounded-lg bg-neutral-800/30 p-3">
-                                                    <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+                                                    <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
                                                         User comment
                                                     </p>
                                                     <p className="mt-1 text-sm text-neutral-300">
@@ -266,7 +283,7 @@ useEffect(() => {
 
                                             {req.reviewComment && (
                                                 <div className="rounded-lg bg-neutral-800/30 p-3">
-                                                    <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+                                                    <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
                                                         Review note
                                                     </p>
                                                     <p className="mt-1 text-sm text-neutral-300">
@@ -308,10 +325,13 @@ useEffect(() => {
                                                         "accepted"
                                                     )
                                                 }
-                                                disabled={reviewingId === req.publicId}
+                                                disabled={
+                                                    reviewingId === req.publicId
+                                                }
                                                 className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
                                             >
-                                                {reviewingId === req.publicId ? (
+                                                {reviewingId ===
+                                                req.publicId ? (
                                                     <Loader2 className="h-4 w-4 animate-spin" />
                                                 ) : (
                                                     <ThumbsUp className="h-4 w-4" />
@@ -325,10 +345,13 @@ useEffect(() => {
                                                         "rejected"
                                                     )
                                                 }
-                                                disabled={reviewingId === req.publicId}
+                                                disabled={
+                                                    reviewingId === req.publicId
+                                                }
                                                 className="flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
                                             >
-                                                {reviewingId === req.publicId ? (
+                                                {reviewingId ===
+                                                req.publicId ? (
                                                     <Loader2 className="h-4 w-4 animate-spin" />
                                                 ) : (
                                                     <XCircle className="h-4 w-4" />

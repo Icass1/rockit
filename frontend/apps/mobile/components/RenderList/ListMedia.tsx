@@ -80,10 +80,7 @@ export function ListMedia({
 
     return (
         <View style={styles.container}>
-            <Pressable
-                onPress={handleToggle}
-                style={styles.header}
-            >
+            <Pressable onPress={handleToggle} style={styles.header}>
                 <Image
                     source={{ uri: $media.imageUrl }}
                     style={styles.image}

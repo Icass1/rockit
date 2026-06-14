@@ -9,14 +9,13 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
 )
+from backend.core.enums.friend.friendStatusEnum import FriendStatusEnum
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
 
 
-class FriendRow(
-    CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded
-):
+class FriendRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "user_friend"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
@@ -36,6 +35,14 @@ class FriendRow(
     friend: Mapped["UserRow"] = relationship(
         "UserRow", foreign_keys=[friend_user_id], lazy="selectin"
     )
+
+    @property
+    def status(self) -> FriendStatusEnum:
+        return FriendStatusEnum(self.status_key)
+
+    @status.setter
+    def status(self, value: FriendStatusEnum) -> None:
+        self.status_key = value.value
 
     def __init__(
         self,

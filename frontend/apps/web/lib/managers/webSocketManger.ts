@@ -22,7 +22,6 @@ export class WebSocketManager {
     private webSocket?: WebSocket;
     private _init = false;
     private initializing = false;
-    private _registeredFriendHandlers = false;
     private _messageHandlers: Map<
         EWebSocketMessage,
         Set<WebSocketMessageHandler<EWebSocketMessage>>
@@ -82,29 +81,7 @@ export class WebSocketManager {
     async init(): Promise<void> {
         if (this._init) return;
 
-        this.registerFriendHandlers();
-
         await this.attemptReconnect();
-    }
-
-    private registerFriendHandlers(): void {
-        if (this._registeredFriendHandlers) return;
-        this._registeredFriendHandlers = true;
-
-        this.onMessage(
-            EWebSocketMessage.FriendActivity,
-            (data) => {
-                rockIt.friendManager.activityAtom.get();
-                rockIt.friendManager.fetchActivity();
-            }
-        );
-
-        this.onMessage(
-            EWebSocketMessage.ListenTogetherSync,
-            () => {
-                rockIt.listenTogetherManager.fetchSessions();
-            }
-        );
     }
 
     private async attemptReconnect(): Promise<void> {

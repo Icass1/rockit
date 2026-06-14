@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, Text
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.core.access.db.base import CoreBase
@@ -10,6 +10,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TablePublicId,
     TableDateUpdated,
 )
+from backend.core.enums.friend.friendStatusEnum import FriendStatusEnum
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
@@ -38,6 +39,14 @@ class FriendRequestRow(
     to_user: Mapped["UserRow"] = relationship(
         "UserRow", foreign_keys=[to_user_id], lazy="selectin"
     )
+
+    @property
+    def status(self) -> FriendStatusEnum:
+        return FriendStatusEnum(self.status_key)
+
+    @status.setter
+    def status(self, value: FriendStatusEnum) -> None:
+        self.status_key = value.value
 
     def __init__(
         self,

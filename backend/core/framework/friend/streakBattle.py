@@ -1,56 +1,13 @@
 import uuid
 from typing import Any, Dict
 
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.friend.streakBattle import StreakBattleRow
-from backend.core.utils.safeAsyncCall import safe_async
-
-from backend.core.access.db.ormModels.friend.streakBattle import StreakBattleRow
-from sqlalchemy import Result, Select, select
 
 logger = getLogger(__name__)
-
-
-def _get_user_streak_sql(user_id: int) -> str:
-    return f"""
-    SELECT COUNT(*) AS streak
-    FROM (
-        SELECT DISTINCT DATE(date_added) AS listen_date
-        FROM core.user_media_listened
-        WHERE user_id = {user_id}
-        ORDER BY listen_date DESC
-    ) dates
-    WHERE dates.listen_date >= (
-        SELECT MAX(listen_date) - (
-            SELECT COUNT(*) FROM (
-                SELECT DISTINCT DATE(date_added) AS d
-                FROM core.user_media_listened
-                WHERE user_id = {user_id}
-                ORDER BY d DESC
-            ) sub
-            WHERE d >= (
-                SELECT MIN(listen_date) FROM (
-                    SELECT DISTINCT DATE(date_added) AS listen_date
-                    FROM core.user_media_listened
-                    WHERE user_id = {user_id}
-                    ORDER BY listen_date DESC
-                    LIMIT 2
-                ) last_two
-                HAVING MAX(listen_date) - MIN(listen_date) <= 1
-            )
-        )
-        FROM (
-            SELECT DISTINCT DATE(date_added) AS listen_date
-            FROM core.user_media_listened
-            WHERE user_id = {user_id}
-            ORDER BY listen_date DESC
-        ) ld
-    )
-    """
 
 
 class StreakBattle:
@@ -82,9 +39,11 @@ class StreakBattle:
         if not dates:
             return 0
         today = dates[0]
-        from datetime import date, timedelta
+        from datetime import timedelta
+
         if isinstance(today, str):
             from datetime import datetime
+
             today = datetime.fromisoformat(today).date()
         yesterday = today - timedelta(days=1)
         if dates[0] < yesterday:
@@ -94,6 +53,7 @@ class StreakBattle:
         for d in dates:
             if isinstance(d, str):
                 from datetime import datetime
+
                 d = datetime.fromisoformat(d).date()
             if d == expected:
                 streak += 1
@@ -107,4 +67,5 @@ class StreakBattle:
         session: AsyncSession, user_id: int
     ) -> AResult[int]:
         from backend.core.access.statsAccess import StatsAccess as sa
+
         return await sa.get_current_streak_async(session=session, user_id=user_id)

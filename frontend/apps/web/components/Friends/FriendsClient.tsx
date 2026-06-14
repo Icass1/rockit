@@ -18,6 +18,7 @@ export default function FriendsClient(): JSX.Element {
     const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const v = $vocabulary as unknown as Record<string, string>;
     const $friends = useStore(rockIt.friendManager.friendsAtom);
     const $activity = useStore(rockIt.friendManager.activityAtom);
     const $loading = useStore(rockIt.friendManager.loadingAtom);
@@ -63,8 +64,8 @@ export default function FriendsClient(): JSX.Element {
                 </h1>
                 <p className="mt-1.5 text-sm text-neutral-500 md:text-base">
                     {onlineCount > 0
-                        ? `${onlineCount} friend${onlineCount !== 1 ? "s" : ""} listening right now`
-                        : "See what your world is listening to"}
+                        ? v.FRIENDS_LISTENING_NOW.replace("{count}", String(onlineCount))
+                        : v.SEE_WHAT_WORLD_LISTENING}
                 </p>
             </div>
 

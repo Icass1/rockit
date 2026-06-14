@@ -1,6 +1,7 @@
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, createArrayAtom, ReadonlyAtom } from "@/lib/store";
+import { EWebSocketMessage } from "@rockit/shared";
 import type { Friend, FriendRequest, UserSearchResult, LeaderboardEntry, FriendActivity } from "@/models/interfaces";
 
 export class FriendManager {
@@ -18,6 +19,13 @@ export class FriendManager {
         if (typeof window === "undefined") return;
         if (this._init) return;
         this._init = true;
+
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.FriendActivity,
+            () => {
+                this.fetchActivity();
+            }
+        );
     }
 
     async fetchFriends(): Promise<void> {

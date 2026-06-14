@@ -1,4 +1,3 @@
-import json
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,7 +59,7 @@ class ListenTogether:
                 code=AResultCode.BAD_REQUEST,
                 message="You are not invited to this session",
             )
-        if session_row.status_key != ListenTogetherStatusEnum.ACTIVE.value:
+        if session_row.status != ListenTogetherStatusEnum.ACTIVE:
             return AResult(
                 code=AResultCode.BAD_REQUEST, message="This session is no longer active"
             )
@@ -69,18 +68,15 @@ class ListenTogether:
     @staticmethod
     async def leave_async(
         session: AsyncSession, user_id: int, session_public_id: str
-    ) -> AResult[None]:
+    ) -> AResultCode:
         a_session = await ListenTogetherAccess.get_session_by_public_id_async(
             session=session, public_id=session_public_id
         )
         if a_session.is_not_ok():
-            return AResult(code=a_session.code(), message=a_session.message())
+            return AResultCode(code=a_session.code(), message=a_session.message())
         session_row = a_session.result()
-        if (
-            session_row.host_user_id != user_id
-            and session_row.guest_user_id != user_id
-        ):
-            return AResult(
+        if session_row.host_user_id != user_id and session_row.guest_user_id != user_id:
+            return AResultCode(
                 code=AResultCode.BAD_REQUEST,
                 message="You are not part of this session",
             )
@@ -88,11 +84,9 @@ class ListenTogether:
             session=session, session_row=session_row
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error ending session. {a_result.info()}", exc_info=True
-            )
-            return AResult(code=a_result.code(), message=a_result.message())
-        return AResult(code=AResultCode.OK, message="OK")
+            logger.error(f"Error ending session. {a_result.info()}", exc_info=True)
+            return AResultCode(code=a_result.code(), message=a_result.message())
+        return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
     async def sync_async(
@@ -124,9 +118,7 @@ class ListenTogether:
             queue_json=queue_json,
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error syncing session. {a_result.info()}", exc_info=True
-            )
+            logger.error(f"Error syncing session. {a_result.info()}", exc_info=True)
             return AResult(code=a_result.code(), message=a_result.message())
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 

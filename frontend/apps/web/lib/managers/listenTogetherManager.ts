@@ -1,12 +1,24 @@
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
+import { EWebSocketMessage } from "@rockit/shared";
 import type { ListenSession } from "@/models/interfaces";
 
 export class ListenTogetherManager {
     private _sessionsAtom = createArrayAtom<ListenSession>([]);
     private _activeSessionAtom = createAtom<ListenSession | null>(null);
     private _loadingAtom = createAtom<boolean>(false);
+
+    async init(): Promise<void> {
+        if (typeof window === "undefined") return;
+
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.ListenTogetherSync,
+            () => {
+                this.fetchSessions();
+            }
+        );
+    }
 
     async fetchSessions(): Promise<void> {
         try {

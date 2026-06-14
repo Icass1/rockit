@@ -67,6 +67,8 @@ export class RockIt {
         rockIt.downloaderManager.init();
         rockIt.libraryManager.init();
         rockIt.playlistManager.init();
+        rockIt.friendManager.init();
+        rockIt.listenTogetherManager.init();
         rockIt.mediaSessionManager.init();
     }
 }

@@ -3,10 +3,8 @@ import type {
     CurrentQueueMessage,
     CurrentTimeMessage,
     DownloadProgressMessage,
-    FriendActivityItem,
     LibraryMediaAddedMessage,
     LibraryMediaRemovedMessage,
-    ListenTogetherSessionResponse,
     MediaAddedToPlaylistMessage,
     MediaListenedMessage,
     PlaylistCreatedMessage,
@@ -15,13 +13,33 @@ import type {
     QueueTypeMessage,
 } from "@rockit/shared";
 
-export type FriendActivityMessage = {
+export interface FriendActivityMessage {
     type: "friend_activity";
-} & FriendActivityItem;
+    userPublicId: string;
+    username: string;
+    userImageUrl: string | null;
+    mediaPublicId: string;
+    mediaName: string;
+    mediaImageUrl: string | null;
+    listenedAt: string;
+}
 
-export type ListenTogetherSyncMessage = {
+export interface ListenTogetherSyncMessage {
     type: "listen_together_sync";
-} & ListenTogetherSessionResponse;
+    publicId: string;
+    hostPublicId: string;
+    hostUsername: string;
+    hostImageUrl: string | null;
+    guestPublicId: string;
+    guestUsername: string;
+    guestImageUrl: string | null;
+    currentMediaPublicId: string | null;
+    currentMediaName: string | null;
+    currentMediaImageUrl: string | null;
+    currentTimeMs: number;
+    isPlaying: boolean;
+    status: string;
+}
 
 export enum EWebSocketMessage {
     DownloadProgress = "download_progress",

@@ -140,7 +140,8 @@ export default function FriendActivityFeed({
     activities: Activity[];
 }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const justNowText = ($vocabulary as unknown as Record<string, string>).JUST_NOW;
+    const v = $vocabulary as unknown as Record<string, string>;
+    const justNowText = v.JUST_NOW;
 
     if (activities.length === 0) {
         return (
@@ -150,10 +151,10 @@ export default function FriendActivityFeed({
                 </div>
                 <div>
                     <p className="text-sm font-medium text-neutral-400">
-                        Nothing playing yet
+                        {v.NOTHING_PLAYING_YET}
                     </p>
                     <p className="mt-1 text-xs text-neutral-600">
-                        Your friends' listening activity will appear here
+                        {v.FRIENDS_ACTIVITY_WILL_APPEAR}
                     </p>
                 </div>
             </div>
@@ -168,7 +169,7 @@ export default function FriendActivityFeed({
             {liveNow.length > 0 && (
                 <section>
                     <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
-                        Now Playing
+                        {v.NOW_PLAYING}
                     </p>
                     <div className="flex flex-col gap-2">
                         {liveNow.map((item, i) => (
@@ -185,7 +186,7 @@ export default function FriendActivityFeed({
             {recent.length > 0 && (
                 <section>
                     <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
-                        Recent
+                        {v.RECENT}
                     </p>
                     <div className="flex flex-col gap-2">
                         {recent.map((item, i) => (

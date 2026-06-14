@@ -30,11 +30,13 @@ class Sharing:
         )
         if a_check.is_not_ok() or a_check.result() is None:
             return AResult(
-                code=AResultCode.BAD_REQUEST, message="You are not friends with this user"
+                code=AResultCode.BAD_REQUEST,
+                message="You are not friends with this user",
             )
-        if a_check.result().status_key != FriendStatusEnum.ACCEPTED.value:
+        if a_check.result().status != FriendStatusEnum.ACCEPTED:
             return AResult(
-                code=AResultCode.BAD_REQUEST, message="You are not friends with this user"
+                code=AResultCode.BAD_REQUEST,
+                message="You are not friends with this user",
             )
         a_media = await ShareAccess.get_media_by_public_id_async(
             session=session, media_public_id=media_public_id
@@ -100,21 +102,25 @@ class Sharing:
     @staticmethod
     async def delete_share_async(
         session: AsyncSession, user_id: int, share_public_id: str
-    ) -> AResult[None]:
+    ) -> AResultCode:
         a_share = await ShareAccess.get_share_by_public_id_async(
             session=session, public_id=share_public_id
         )
         if a_share.is_not_ok():
-            return AResult(code=a_share.code(), message=a_share.message())
+            return AResultCode(code=a_share.code(), message=a_share.message())
         share_row = a_share.result()
-        if share_row.sender_user_id != user_id and share_row.recipient_user_id != user_id:
-            return AResult(
-                code=AResultCode.BAD_REQUEST, message="Not authorized to delete this share"
+        if (
+            share_row.sender_user_id != user_id
+            and share_row.recipient_user_id != user_id
+        ):
+            return AResultCode(
+                code=AResultCode.BAD_REQUEST,
+                message="Not authorized to delete this share",
             )
         a_result = await ShareAccess.delete_share_async(
             session=session, share_row=share_row
         )
         if a_result.is_not_ok():
             logger.error(f"Error deleting share. {a_result.info()}", exc_info=True)
-            return AResult(code=a_result.code(), message=a_result.message())
-        return AResult(code=AResultCode.OK, message="OK")
+            return AResultCode(code=a_result.code(), message=a_result.message())
+        return AResultCode(code=AResultCode.OK, message="OK")

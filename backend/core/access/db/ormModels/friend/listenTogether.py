@@ -10,6 +10,7 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableDateUpdated,
     TablePublicId,
 )
+from backend.core.enums.friend.listenTogetherStatusEnum import ListenTogetherStatusEnum
 
 if TYPE_CHECKING:
     from backend.core.access.db.ormModels.user import UserRow
@@ -32,9 +33,7 @@ class ListenTogetherSessionRow(
         Integer, ForeignKey("core.media.id"), nullable=True
     )
     current_time_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    is_playing: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    is_playing: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     queue_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     status_key: Mapped[int] = mapped_column(
         Integer,
@@ -52,6 +51,14 @@ class ListenTogetherSessionRow(
     current_media: Mapped["CoreMediaRow | None"] = relationship(
         "CoreMediaRow", lazy="selectin"
     )
+
+    @property
+    def status(self) -> ListenTogetherStatusEnum:
+        return ListenTogetherStatusEnum(self.status_key)
+
+    @status.setter
+    def status(self, value: ListenTogetherStatusEnum) -> None:
+        self.status_key = value.value
 
     def __init__(
         self,

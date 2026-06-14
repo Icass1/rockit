@@ -34,7 +34,8 @@ class Friend:
     ) -> AResult[List[UserRow]]:
         if len(query.strip()) < 2:
             return AResult(
-                code=AResultCode.BAD_REQUEST, message="Query must be at least 2 characters"
+                code=AResultCode.BAD_REQUEST,
+                message="Query must be at least 2 characters",
             )
         a_result = await FriendAccess.search_users_async(
             session=session, query=query, current_user_id=current_user_id
@@ -50,25 +51,27 @@ class Friend:
     ) -> AResult[FriendRequestRow]:
         if from_user_id == to_user_id:
             return AResult(
-                code=AResultCode.BAD_REQUEST, message="Cannot send friend request to yourself"
+                code=AResultCode.BAD_REQUEST,
+                message="Cannot send friend request to yourself",
             )
         a_check = await FriendAccess.get_friend_relationship_async(
             session=session, user_id=from_user_id, friend_user_id=to_user_id
         )
         if a_check.is_ok() and a_check.result() is not None:
             existing = a_check.result()
-            if existing.status_key == FriendStatusEnum.ACCEPTED.value:
+            if existing.status == FriendStatusEnum.ACCEPTED:
                 return AResult(
                     code=AResultCode.ALREADY_EXISTS, message="Already friends"
                 )
-            if existing.status_key == FriendStatusEnum.PENDING.value:
+            if existing.status == FriendStatusEnum.PENDING:
                 return AResult(
                     code=AResultCode.ALREADY_EXISTS,
                     message="Friend request already pending",
                 )
-            if existing.status_key == FriendStatusEnum.BLOCKED.value:
+            if existing.status == FriendStatusEnum.BLOCKED:
                 return AResult(
-                    code=AResultCode.BAD_REQUEST, message="Cannot send request to blocked user"
+                    code=AResultCode.BAD_REQUEST,
+                    message="Cannot send request to blocked user",
                 )
         a_result = await FriendAccess.create_friend_request_async(
             session=session,
@@ -98,7 +101,7 @@ class Friend:
                 code=AResultCode.BAD_REQUEST,
                 message="This request was not sent to you",
             )
-        if request_row.status_key != FriendStatusEnum.PENDING.value:
+        if request_row.status != FriendStatusEnum.PENDING:
             return AResult(
                 code=AResultCode.BAD_REQUEST, message="Request is no longer pending"
             )
@@ -124,15 +127,15 @@ class Friend:
     @staticmethod
     async def reject_friend_request_async(
         session: AsyncSession, user_id: int, request_public_id: str
-    ) -> AResult[None]:
+    ) -> AResultCode:
         a_req = await FriendAccess.get_friend_request_by_public_id_async(
             session=session, public_id=request_public_id
         )
         if a_req.is_not_ok():
-            return AResult(code=a_req.code(), message=a_req.message())
+            return AResultCode(code=a_req.code(), message=a_req.message())
         request_row = a_req.result()
         if request_row.to_user_id != user_id:
-            return AResult(
+            return AResultCode(
                 code=AResultCode.BAD_REQUEST,
                 message="This request was not sent to you",
             )
@@ -142,8 +145,8 @@ class Friend:
             status_key=FriendStatusEnum.REJECTED.value,
         )
         if a_update.is_not_ok():
-            return AResult(code=a_update.code(), message=a_update.message())
-        return AResult(code=AResultCode.OK, message="OK")
+            return AResultCode(code=a_update.code(), message=a_update.message())
+        return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
     async def get_pending_requests_async(
@@ -176,24 +179,24 @@ class Friend:
     @staticmethod
     async def remove_friend_async(
         session: AsyncSession, user_id: int, friend_user_id: int
-    ) -> AResult[None]:
+    ) -> AResultCode:
         a_rel = await FriendAccess.get_friend_relationship_async(
             session=session, user_id=user_id, friend_user_id=friend_user_id
         )
         if a_rel.is_not_ok() or a_rel.result() is None:
-            return AResult(
+            return AResultCode(
                 code=AResultCode.NOT_FOUND, message="Friend relationship not found"
             )
         friend_row = a_rel.result()
-        if friend_row.status_key != FriendStatusEnum.ACCEPTED.value:
-            return AResult(
+        if friend_row.status != FriendStatusEnum.ACCEPTED:
+            return AResultCode(
                 code=AResultCode.BAD_REQUEST, message="Not currently friends"
             )
         a_del = await FriendAccess.delete_friend_async(
             session=session, friend_row=friend_row
         )
         if a_del.is_not_ok():
-            return AResult(code=a_del.code(), message=a_del.message())
+            return AResultCode(code=a_del.code(), message=a_del.message())
         a_rel2 = await FriendAccess.get_friend_relationship_async(
             session=session, user_id=friend_user_id, friend_user_id=user_id
         )
@@ -201,19 +204,19 @@ class Friend:
             await FriendAccess.delete_friend_async(
                 session=session, friend_row=a_rel2.result()
             )
-        return AResult(code=AResultCode.OK, message="OK")
+        return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
     async def block_user_async(
         session: AsyncSession, user_id: int, block_user_id: int
-    ) -> AResult[None]:
+    ) -> AResultCode:
         a_rel = await FriendAccess.get_friend_relationship_async(
             session=session, user_id=user_id, friend_user_id=block_user_id
         )
         if a_rel.is_ok() and a_rel.result() is not None:
             existing = a_rel.result()
-            if existing.status_key == FriendStatusEnum.BLOCKED.value:
-                return AResult(
+            if existing.status == FriendStatusEnum.BLOCKED:
+                return AResultCode(
                     code=AResultCode.ALREADY_EXISTS, message="User already blocked"
                 )
             await FriendAccess.update_friend_status_async(
@@ -228,28 +231,26 @@ class Friend:
                 friend_user_id=block_user_id,
                 status=FriendStatusEnum.BLOCKED,
             )
-        return AResult(code=AResultCode.OK, message="OK")
+        return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
     async def unblock_user_async(
         session: AsyncSession, user_id: int, blocked_user_id: int
-    ) -> AResult[None]:
+    ) -> AResultCode:
         a_rel = await FriendAccess.get_friend_relationship_async(
             session=session, user_id=user_id, friend_user_id=blocked_user_id
         )
         if a_rel.is_not_ok() or a_rel.result() is None:
-            return AResult(
+            return AResultCode(
                 code=AResultCode.NOT_FOUND, message="Block relationship not found"
             )
         existing = a_rel.result()
-        if existing.status_key != FriendStatusEnum.BLOCKED.value:
-            return AResult(
+        if existing.status != FriendStatusEnum.BLOCKED:
+            return AResultCode(
                 code=AResultCode.BAD_REQUEST, message="User is not blocked"
             )
-        await FriendAccess.delete_friend_async(
-            session=session, friend_row=existing
-        )
-        return AResult(code=AResultCode.OK, message="OK")
+        await FriendAccess.delete_friend_async(session=session, friend_row=existing)
+        return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
     async def get_user_by_public_id_async(
@@ -263,6 +264,4 @@ class Friend:
     async def get_friend_ids_async(
         session: AsyncSession, user_id: int
     ) -> AResult[List[int]]:
-        return await FriendAccess.get_friend_ids_async(
-            session=session, user_id=user_id
-        )
+        return await FriendAccess.get_friend_ids_async(session=session, user_id=user_id)

@@ -250,13 +250,18 @@ class RockItDB:
                         orm_fks.add(f"{table_name}.{col.name} -> {fk.target_fullname}")
 
                 db_fks: Set[str] = set()
-                for fk in inspector.get_foreign_keys(table_name, schema=schema):
-                    for local, remote in zip(
-                        fk["constrained_columns"], fk["referred_columns"]
-                    ):
-                        db_fks.add(
-                            f"{table_name}.{local} -> {fk['referred_schema']}.{fk['referred_table']}.{remote}"
-                        )
+                try:
+                    for fk in inspector.get_foreign_keys(table_name, schema=schema):
+                        for local, remote in zip(
+                            fk["constrained_columns"], fk["referred_columns"]
+                        ):
+                            db_fks.add(
+                                f"{table_name}.{local} -> {fk['referred_schema']}.{fk['referred_table']}.{remote}"
+                            )
+                except Exception as e:
+                    logger.error(
+                        f"Could not read foreign keys for table '{schema}.{table_name}' ({e})"
+                    )
 
                 for fk in orm_fks - db_fks:
                     logger.error(
@@ -277,12 +282,18 @@ class RockItDB:
                         col_names = [c.name for c in constraint.columns]
                         orm_uqs.add(frozenset(col_names))
 
-                db_uqs: Set[frozenset[str]] = {
-                    frozenset(uq["column_names"])
-                    for uq in inspector.get_unique_constraints(
-                        table_name, schema=schema
+                db_uqs: Set[frozenset[str]] = set()
+                try:
+                    db_uqs = {
+                        frozenset(uq["column_names"])
+                        for uq in inspector.get_unique_constraints(
+                            table_name, schema=schema
+                        )
+                    }
+                except Exception as e:
+                    logger.error(
+                        f"Could not read unique constraints for table '{schema}.{table_name}' ({e})"
                     )
-                }
 
                 for uq in orm_uqs - db_uqs:
                     logger.error(

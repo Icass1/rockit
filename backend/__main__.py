@@ -153,6 +153,13 @@ async def import_vocabulary() -> None:
 
 async def main() -> None:
     from backend.core.access.db import rockit_db
+    from backend.core import add_initial_content_async
+
+    try:
+        await rockit_db.async_init()
+    except Exception as e:
+        logger.critical(f"Error initializing database: {e}")
+        sys.exit()
 
     await rockit_db.wait_for_session_local_async()
 
@@ -195,9 +202,7 @@ async def main() -> None:
                     await rockit_db.engine.dispose()
                 await rockit_db.async_init()
 
-                from backend.core import add_initial_content
-
-                await add_initial_content()
+                await add_initial_content_async()
 
                 logger.info("Database initialized")
 

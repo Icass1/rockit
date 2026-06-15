@@ -34,6 +34,10 @@ export class MediaSessionManager {
         );
     }
 
+    private static _needsOscillatorKeepalive(): boolean {
+        return !("audioSession" in navigator);
+    }
+
     constructor() {
         this._supported =
             typeof window !== "undefined" && "mediaSession" in navigator;
@@ -53,7 +57,9 @@ export class MediaSessionManager {
         this._setAudioSession();
 
         if (MediaSessionManager._isiOS()) {
-            this._startKeepalive();
+            if (MediaSessionManager._needsOscillatorKeepalive()) {
+                this._startKeepalive();
+            }
             this._unlockAudioElements();
         }
     }
@@ -111,7 +117,9 @@ export class MediaSessionManager {
 
             ctx.addEventListener("statechange", (): void => {
                 if (ctx.state === "suspended") {
-                    ctx.resume().catch((): void => {});
+                    ctx.resume().catch((): void => {
+                        this._stopKeepalive();
+                    });
                 }
             });
         } catch {
@@ -347,6 +355,24 @@ export class MediaSessionManager {
             album: album?.name ?? "",
             artwork,
         });
+
+        if (MediaSessionManager._isiOS()) {
+            this._registeriOSActionHandlers();
+        }
+    }
+
+    private _registeriOSActionHandlers(): void {
+        try {
+            navigator.mediaSession.setActionHandler("seekbackward", null);
+        } catch {
+            /* not supported */
+        }
+
+        try {
+            navigator.mediaSession.setActionHandler("seekforward", null);
+        } catch {
+            /* not supported */
+        }
     }
 
     private _updatePositionState(time: number): void {

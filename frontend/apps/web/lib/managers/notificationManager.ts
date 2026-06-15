@@ -18,7 +18,7 @@ export class NotificationManager {
     }
 
     notifyInfo(message: string): void {
-        console.error("NotificationManager.notifyInfo", message);
+        console.info("NotificationManager.notifyInfo", message);
         const id = this._nextId++;
         this._notificationsAtom.push({
             id,
@@ -29,7 +29,7 @@ export class NotificationManager {
     }
 
     notifySuccess(message: string): void {
-        console.error("NotificationManager.notifySuccess", message);
+        console.info("NotificationManager.notifySuccess", message);
         const id = this._nextId++;
         this._notificationsAtom.push({
             id,

@@ -161,7 +161,9 @@ class DownloadAccess:
         """Set status_key and date_ended on a download, then commit."""
 
         result = await session.execute(
-            select(DownloadRow).where(DownloadRow.id == download_id)
+            select(DownloadRow)
+            .where(DownloadRow.id == download_id)
+            .options(selectinload(DownloadRow.download_status_list))
         )
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:

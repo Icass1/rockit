@@ -23,7 +23,7 @@ export default function MiniPlayer(): JSX.Element {
         <div
             className={`fixed right-0 left-0 z-30 flex flex-col transition-all md:hidden ${
                 hasMedia
-                    ? "bottom-[calc(56px+env(safe-area-inset-bottom,0px))] opacity-100"
+                    ? "bottom-[calc(56px+env(safe-area-inset-bottom,0px)+12px)] opacity-100"
                     : "pointer-events-none bottom-0 opacity-0"
             }`}
         >

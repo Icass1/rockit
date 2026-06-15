@@ -39,7 +39,7 @@
 - Hooks: `use*.ts`
 - Utils: `*.ts` in `lib/utils/`
 - Managers: `*.ts` in `lib/managers/`
-- Models/enums: `frontend/apps/web/models/enums/` (TypeScript enums)
+- Models/enums: `frontend/apps/web/models/` (app-specific) or `frontend/packages/shared/src/models/` (shared with mobile)
 - DTOs: Auto-generated, NEVER edit manually (`packages/shared/src/dto/`)
 
 ### Hydration Safety
@@ -146,8 +146,8 @@ frontend/
         │   ├── hooks/          # Custom React hooks
         │   ├── rockit/         # RockIt singleton
         │   └── store.ts        # nanostores helpers
-        ├── models/             # TypeScript types and enums
-        │   └── enums/          # EContentType, EFilterMode, etc.
+        ├── models/             # TypeScript types and enums (app-specific)
+        │   └── enums/          # EAdminClientTab, etc.
         ├── styles/             # CSS files
         │   ├── globals.css     # Tailwind imports
         │   ├── base.css        # Reset, CSS vars
@@ -168,3 +168,4 @@ frontend/
 9. **NEVER** use relative imports - always `@/` prefix
 10. **NEVER** edit files in `packages/shared/src/dto/` manually
 11. **NEVER** return `null` based on nanostores atoms (causes hydration mismatch)
+12. **NEVER** create interfaces, types, or enums outside `models/` directories — the only exception is component prop types

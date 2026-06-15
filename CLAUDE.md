@@ -926,6 +926,7 @@ if (typeof window !== "undefined") { ... }
 - Never use relative imports — always `@/`
 - Never edit files in `packages/shared/src/dto/` manually
 - Never return `null` based on nanostores atoms (causes hydration mismatch — return empty element instead)
+- Never create interfaces, types, or enums outside `models/` directories — the only exception is component prop types
 
 ---
 
@@ -976,13 +977,34 @@ if (typeof window !== "undefined") { ... }
 
 ## 11. Frontend Models and Enums
 
-All shared TypeScript enums for the frontend should be defined in `frontend/apps/web/lib/models.ts`. This file serves as a central location for enum definitions used across components.
+### Where to Put Types
+
+Enums, interfaces, and types must be placed in one of three `models/` directories:
+
+| Location | Purpose |
+|---|---|
+| `frontend/packages/shared/src/models/` | Types that represent backend entities (DTO-like interfaces, shared enums) — shared between web and mobile |
+| `frontend/apps/web/models/` | Web-only types and enums (app-specific) |
+| `frontend/apps/mobile/models/` | Mobile-only types and enums (app-specific) |
+
+**Never create interfaces, types, or enums outside these `models/` directories** — the only exception is component prop types, which may be defined co-located with the component file.
 
 ### Creating a New Enum
 
-1. Add the enum to `frontend/apps/web/models/enums/*`:
+Add the enum to the appropriate `models/` directory:
 
 ```typescript
+// frontend/packages/shared/src/models/enums/contentType.ts
+export enum EContentType {
+    SONG = "song",
+    ALBUM = "album",
+    ARTIST = "artist",
+    PLAYLIST = "playlist",
+}
+```
+
+```typescript
+// frontend/apps/web/models/enums/adminTabs.ts
 export enum EAdminClientTab {
     BUILDS = "builds",
     USERS = "users",
@@ -990,10 +1012,11 @@ export enum EAdminClientTab {
 }
 ```
 
-2. Import it in your component:
+Import using the short path alias:
 
 ```typescript
-import { EAdminClientTab } from "@/lib/models";
+import { EAdminClientTab } from "@/models/enums/adminTabs";  // web-specific
+import { EContentType } from "@shared/models/enums/contentType";  // shared
 ```
 
 ### Vocabulary Manager

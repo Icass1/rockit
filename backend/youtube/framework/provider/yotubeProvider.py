@@ -324,10 +324,6 @@ class YoutubeProvider(BaseMediaProvider):
 
         video: VideoRow = a_result_video.result()
 
-        if video.audio_path:
-            full_audio_path: str = os.path.join(MEDIA_PATH, video.audio_path)
-            self._rename_file_to_backup(full_audio_path)
-
         if video.video_path:
             full_video_path: str = os.path.join(MEDIA_PATH, video.video_path)
             self._rename_file_to_backup(full_video_path)

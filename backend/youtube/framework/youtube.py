@@ -123,17 +123,13 @@ class YouTube:
                     )
                 ]
 
-            is_downloaded: bool = (
-                video_row.video_path is not None or video_row.audio_path is not None
-            )
+            is_downloaded: bool = video_row.video_path is not None
 
             video_src: str | None = None
             if video_row.video_path:
                 video_src = f"/youtube/video/{video_row.youtube_id}/stream"
 
             audio_src: str | None = None
-            if video_row.audio_path:
-                audio_src = f"/youtube/video/{video_row.youtube_id}/audio"
 
             return AResult(
                 code=AResultCode.OK,
@@ -159,7 +155,6 @@ class YouTube:
                     youtubeUrl=video_row.youtube_url,
                     tags=tags,
                     publishedAt=video_row.published_at,
-                    audio_path=video_row.audio_path,
                     video_path=video_row.video_path,
                     downloaded=is_downloaded,
                     videoSrc=BACKEND_URL + video_src if video_src else None,
@@ -323,17 +318,13 @@ class YouTube:
                 )
             ]
 
-        is_downloaded: bool = (
-            video_row.video_path is not None or video_row.audio_path is not None
-        )
+        is_downloaded: bool = video_row.video_path is not None
 
         video_src: str | None = None
         if video_row.video_path:
             video_src = f"/youtube/video/{video_row.youtube_id}/stream"
 
         audio_src: str | None = None
-        if video_row.audio_path:
-            audio_src = f"/youtube/video/{video_row.youtube_id}/audio"
 
         return AResult(
             code=AResultCode.OK,
@@ -359,7 +350,6 @@ class YouTube:
                 youtubeUrl=video_row.youtube_url,
                 tags=tags,
                 publishedAt=video_row.published_at,
-                audio_path=video_row.audio_path,
                 video_path=video_row.video_path,
                 downloaded=is_downloaded,
                 videoSrc=BACKEND_URL + video_src if video_src else None,

@@ -134,7 +134,7 @@ class YouTubeAccess:
         try:
             stmt: Select[Tuple[str]] = select(VideoRow.youtube_id).where(
                 VideoRow.youtube_id.in_(youtube_ids),
-                (VideoRow.video_path.isnot(None)) | (VideoRow.audio_path.isnot(None)),
+                VideoRow.video_path.isnot(None),
             )
             result: Result[Tuple[str]] = await session.execute(stmt)
             return {row[0] for row in result.all()}
@@ -158,8 +158,7 @@ class YouTubeAccess:
                 .join(CoreMediaRow, VideoRow.id == CoreMediaRow.id)
                 .where(
                     VideoRow.youtube_id.in_(youtube_ids),
-                    (VideoRow.video_path.isnot(None))
-                    | (VideoRow.audio_path.isnot(None)),
+                    VideoRow.video_path.isnot(None),
                 )
             )
             result: Result[Tuple[str, str]] = await session.execute(stmt)
@@ -420,7 +419,6 @@ class YouTubeAccess:
                 like_count=like_count,
                 comment_count=comment_count,
                 video_path=None,
-                audio_path=None,
                 description=snippet.get("description"),
                 youtube_url=f"https://www.youtube.com/watch?v={raw.id}",
                 tags=tags_str,

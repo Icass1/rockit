@@ -75,7 +75,6 @@ class VideoAccess:
                 message=f"Video with id {video_id} not found.",
             )
 
-        video.audio_path = None
         video.video_path = None
 
         await session.flush()

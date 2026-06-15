@@ -54,6 +54,8 @@ export function PlayableMedia({
 }): JSX.Element {
     const $media = useMedia(_media);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
+    const isLiked = $likedMedias.includes($media.publicId);
 
     const artists = getArtistNames($media, substractArtists);
 
@@ -139,7 +141,11 @@ export function PlayableMedia({
                         </p>
                     )}
                 </div>
-                <LikeButton mediaPublicId={$media.publicId}></LikeButton>
+                <div
+                    className={`${isLiked ? '' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto'} transition-all duration-200`}
+                >
+                    <LikeButton mediaPublicId={$media.publicId} />
+                </div>
                 <div>{getTime(getMediaDuration($media) ?? 0)}</div>
             </div>
         </MediaContextMenu>

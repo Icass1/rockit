@@ -10,6 +10,11 @@ import {
 
 export type EBookmarkMode = "NOTHING" | "AUTOSKIP";
 
+export const BOOKMARK_MODE_COLORS: Record<EBookmarkMode, string> = {
+    NOTHING: "#ee1086",
+    AUTOSKIP: "#00ffea",
+};
+
 export class BookmarkManager {
     private _currentMediaBookmarksAtom = createArrayAtom<BookmarkResponse>([]);
     private _showPopupAtom = createAtom<boolean>(false);

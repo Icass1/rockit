@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { getTime } from "@/lib/utils/getTime";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 import Slider from "@/components/Slider/Slider";
@@ -51,7 +52,7 @@ export default function FooterCenter(): JSX.Element {
               ? $vocabulary.REPEAT_ALL
               : $vocabulary.NO_REPEAT;
 
-    const hasBookmarkAtCurrentTime = $bookmarks.some(
+    const bookmarkAtCurrentTime = $bookmarks.find(
         (b): boolean => Math.abs(b.timestamp - ($currentTime ?? 0)) < 0.5
     );
 
@@ -129,10 +130,16 @@ export default function FooterCenter(): JSX.Element {
                     >
                         <Bookmark
                             className={`h-5 w-5 transition-all md:hover:scale-105 ${
-                                hasBookmarkAtCurrentTime
-                                    ? "fill-[#ee1086] text-[#ee1086]"
-                                    : "fill-none text-gray-400"
+                                bookmarkAtCurrentTime ? "" : "fill-none text-gray-400"
                             }`}
+                            style={
+                                bookmarkAtCurrentTime
+                                    ? {
+                                          fill: BOOKMARK_MODE_COLORS[bookmarkAtCurrentTime.mode],
+                                          color: BOOKMARK_MODE_COLORS[bookmarkAtCurrentTime.mode],
+                                      }
+                                    : undefined
+                            }
                         />
                     </button>
                     {$showBookmarkPopup && (
@@ -210,8 +217,8 @@ export default function FooterCenter(): JSX.Element {
                                                 true
                                             )
                                         }
-                                        className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-transform hover:scale-150"
-                                        style={{ left }}
+                                        className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform hover:scale-150"
+                                        style={{ backgroundColor: BOOKMARK_MODE_COLORS[b.mode], left }}
                                     />
                                 );
                             })}

@@ -8,6 +8,7 @@ import { EQueueType } from "@rockit/packages/shared";
 import { Pause, Play, Shuffle, SkipBack, SkipForward } from "lucide-react";
 import { getMediaArtists, getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { getTime } from "@/lib/utils/getTime";
 
 export default function MiniPlayer(): JSX.Element {
@@ -62,8 +63,12 @@ export default function MiniPlayer(): JSX.Element {
                                                     true
                                                 )
                                             }
-                                            className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-white bg-transparent transition-transform hover:scale-150"
-                                            style={{ left }}
+                                            className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 transition-transform hover:scale-150"
+                                            style={{
+                                                borderColor: BOOKMARK_MODE_COLORS[b.mode],
+                                                backgroundColor: `${BOOKMARK_MODE_COLORS[b.mode]}33`,
+                                                left,
+                                            }}
                                         />
                                     );
                                 }

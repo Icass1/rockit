@@ -3,6 +3,7 @@
 import type { JSX } from "react";
 import { useEffect, useRef, useState } from "react";
 import { type BookmarkResponse } from "@/dto";
+import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { useStore } from "@nanostores/react";
 import { Bookmark, BookmarkCheck, ChevronDown, Trash2 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -161,6 +162,7 @@ function BookmarkPopupForm({
                         className="flex items-center gap-0.5 rounded px-1.5 py-1 text-neutral-400 transition-colors hover:text-white"
                         title={MODE_LABELS[mode]}
                     >
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: BOOKMARK_MODE_COLORS[mode] }} />
                         <ModeIcon className="h-3.5 w-3.5" />
                         <ChevronDown className="h-2.5 w-2.5" />
                     </button>
@@ -170,7 +172,7 @@ function BookmarkPopupForm({
                             ref={modeDropdownRef}
                             className="absolute top-full right-0 z-50 mt-1 w-28 rounded-lg border border-neutral-700 bg-[#1a1a1a] py-1 shadow-xl"
                         >
-                            {MODES.map((m): JSX.Element => {
+                                    {MODES.map((m): JSX.Element => {
                                 const Icon = MODE_ICONS[m];
                                 return (
                                     <button
@@ -185,6 +187,7 @@ function BookmarkPopupForm({
                                                 : "text-neutral-400 hover:text-white"
                                         }`}
                                     >
+                                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: BOOKMARK_MODE_COLORS[m] }} />
                                         <Icon className="h-3.5 w-3.5" />
                                         <span>{MODE_LABELS[m]}</span>
                                     </button>

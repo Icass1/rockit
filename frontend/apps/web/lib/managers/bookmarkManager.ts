@@ -136,6 +136,38 @@ export class BookmarkManager {
         return false;
     }
 
+    skipToNextBookmark(): boolean {
+        const bookmarks = this._currentMediaBookmarksAtom.get();
+        const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
+        if (!bookmarks.length || currentTime === null) return false;
+
+        const sorted = [...bookmarks].sort(
+            (a, b) => a.timestamp - b.timestamp
+        );
+        const next = sorted.find((b) => b.timestamp > currentTime + 0.5);
+        if (next) {
+            rockIt.mediaPlayerManager.setCurrentTime(next.timestamp, true);
+            return true;
+        }
+        return false;
+    }
+
+    skipToPrevBookmark(): boolean {
+        const bookmarks = this._currentMediaBookmarksAtom.get();
+        const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
+        if (!bookmarks.length || currentTime === null) return false;
+
+        const sorted = [...bookmarks].sort(
+            (a, b) => a.timestamp - b.timestamp
+        );
+        const prev = sorted.reverse().find((b) => b.timestamp < currentTime - 0.5);
+        if (prev) {
+            rockIt.mediaPlayerManager.setCurrentTime(prev.timestamp, true);
+            return true;
+        }
+        return false;
+    }
+
     openEditForBookmark(publicId: string): void {
         const bookmark = this._currentMediaBookmarksAtom
             .get()

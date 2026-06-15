@@ -33,7 +33,7 @@ export class MediaPlayerManager {
     private _lastWsSyncTime = 0;
     private _isSeeking = false;
     private _seekFrom: number = 0;
-    private _triggeredAutoSkipBookmarks: Set<string> = new Set();
+    private _lastTime = 0;
 
     constructor() {
         if (typeof window === "undefined") return;
@@ -290,7 +290,7 @@ export class MediaPlayerManager {
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
 
-        this._triggeredAutoSkipBookmarks.clear();
+        this._lastTime = 0;
 
         if (isVideo(currentMedia)) {
             this.setVideo(useSavedCurrentTime);
@@ -438,8 +438,10 @@ export class MediaPlayerManager {
 
         this._currentTimeAtom.set(time);
 
-        // Auto-skip: check for AUTOSKIP bookmarks at current position
-        this._checkAutoSkipBookmarks(time, currentMedia.publicId);
+        // Auto-skip: check for AUTOSKIP bookmarks we've crossed since last update.
+        this._checkAutoSkipBookmarks(this._lastTime, time);
+
+        this._lastTime = time;
 
         const now = Date.now();
         if (now - this._lastWsSyncTime >= WS_TIME_SYNC_INTERVAL_MS) {
@@ -452,19 +454,30 @@ export class MediaPlayerManager {
     }
 
     private _checkAutoSkipBookmarks(
-        currentTime: number,
-        mediaPublicId: string
+        lastTime: number,
+        currentTime: number
     ): void {
         const bookmarks =
             rockIt.bookmarkManager.currentMediaBookmarksAtom.get();
-        for (const bookmark of bookmarks) {
-            if (bookmark.mode !== "AUTOSKIP") continue;
-            if (this._triggeredAutoSkipBookmarks.has(bookmark.publicId))
-                continue;
 
-            if (Math.abs(bookmark.timestamp - currentTime) < 0.4) {
-                this._triggeredAutoSkipBookmarks.add(bookmark.publicId);
-                rockIt.queueManager.skipForward();
+        const sortedBookmarks = [...bookmarks]
+            .filter((b): boolean => b.mode === "AUTOSKIP")
+            .sort((a, b): number => a.timestamp - b.timestamp);
+
+        for (let i = 0; i < sortedBookmarks.length; i++) {
+            const bookmark = sortedBookmarks[i];
+
+            if (
+                lastTime < bookmark.timestamp &&
+                bookmark.timestamp <= currentTime
+            ) {
+                const nextBookmark = sortedBookmarks[i + 1];
+
+                if (nextBookmark) {
+                    this.setCurrentTime(nextBookmark.timestamp, true);
+                } else {
+                    rockIt.queueManager.skipForward();
+                }
                 return;
             }
         }

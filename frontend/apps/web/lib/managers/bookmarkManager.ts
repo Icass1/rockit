@@ -1,5 +1,4 @@
 import { type BookmarkResponse } from "@/dto";
-import { EWebSocketMessage } from "@rockit/packages/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
@@ -20,20 +19,11 @@ export class BookmarkManager {
         if (this._initialized) return;
         this._initialized = true;
 
-        // Fetch bookmarks when current media changes
-        rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.CurrentMedia,
-            () => {
-                this._fetchCurrentMediaBookmarksAsync();
-            }
-        );
-
-        // Also respond to changes in currentMediaAtom by polling approach
-        // When queue manager sets a new current media, fetch bookmarks
-        const media = rockIt.queueManager.currentMedia;
-        if (media) {
-            await this._fetchCurrentMediaBookmarksAsync();
-        }
+        // Subscribe to currentMediaAtom changes so bookmarks load
+        // immediately when user skips tracks or media changes
+        rockIt.queueManager.currentMediaAtom.subscribe(() => {
+            this._fetchCurrentMediaBookmarksAsync();
+        });
     }
 
     private async _fetchCurrentMediaBookmarksAsync(): Promise<void> {

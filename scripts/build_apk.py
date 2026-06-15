@@ -8,9 +8,9 @@ dotenv.load_dotenv()
 
 def main():
 
-    current_version = json.loads(
-        Path("frontend/apps/mobile/app.json").read_text()
-    )["expo"]["version"]
+    current_version = json.loads(Path("frontend/apps/mobile/app.json").read_text())[
+        "expo"
+    ]["version"]
     print(f"Current version: {current_version}")
 
     version = input("Enter version: ")

@@ -142,7 +142,7 @@ export function PlayableMedia({
                     )}
                 </div>
                 <div
-                    className={`${isLiked ? '' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto'} transition-all duration-200`}
+                    className={`${isLiked ? "" : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"} transition-all duration-200`}
                 >
                     <LikeButton mediaPublicId={$media.publicId} />
                 </div>

@@ -14,11 +14,11 @@ import {
     SkipForward,
 } from "lucide-react";
 import { getMediaDuration } from "@/models/types/media";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
-import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 import Bookmarks from "@/components/Bookmark/Bookmarks";
+import BookmarkPopup from "@/components/Footer/BookmarkPopup";
 import Slider from "@/components/Slider/Slider";
 
 const ICON_BTN =
@@ -131,13 +131,19 @@ export default function FooterCenter(): JSX.Element {
                     >
                         <Bookmark
                             className={`h-5 w-5 transition-all md:hover:scale-105 ${
-                                bookmarkAtCurrentTime ? "" : "fill-none text-gray-400"
+                                bookmarkAtCurrentTime
+                                    ? ""
+                                    : "fill-none text-gray-400"
                             }`}
                             style={
                                 bookmarkAtCurrentTime
                                     ? {
-                                          fill: BOOKMARK_MODE_COLORS[bookmarkAtCurrentTime.mode],
-                                          color: BOOKMARK_MODE_COLORS[bookmarkAtCurrentTime.mode],
+                                          fill: BOOKMARK_MODE_COLORS[
+                                              bookmarkAtCurrentTime.mode
+                                          ],
+                                          color: BOOKMARK_MODE_COLORS[
+                                              bookmarkAtCurrentTime.mode
+                                          ],
                                       }
                                     : undefined
                             }

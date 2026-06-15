@@ -176,12 +176,17 @@ export class BookmarkManager {
             .sort((a, b) => a.timestamp - b.timestamp);
         if (sorted.length === 0) return false;
 
-        const prev = [...sorted].reverse().find((b) => b.timestamp < currentTime - 0.5);
+        const prev = [...sorted]
+            .reverse()
+            .find((b) => b.timestamp < currentTime - 0.5);
         if (prev) {
             rockIt.mediaPlayerManager.setCurrentTime(prev.timestamp, true);
             return true;
         }
-        if (currentTime >= sorted[0].timestamp - 0.5 && sorted[0].timestamp > 0.5) {
+        if (
+            currentTime >= sorted[0].timestamp - 0.5 &&
+            sorted[0].timestamp > 0.5
+        ) {
             rockIt.mediaPlayerManager.setCurrentTime(0, true);
             return true;
         }

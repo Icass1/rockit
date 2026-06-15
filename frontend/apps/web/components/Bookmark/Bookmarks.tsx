@@ -4,7 +4,10 @@ import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { ERepeatMode, isStation } from "@rockit/shared";
 import { getMediaDuration } from "@/models/types/media";
-import { BOOKMARK_MODE_COLORS, BOOKMARK_MODE_MUTED_COLORS } from "@/lib/managers/bookmarkManager";
+import {
+    BOOKMARK_MODE_COLORS,
+    BOOKMARK_MODE_MUTED_COLORS,
+} from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import BookmarkTooltip from "@/components/Bookmark/BookmarkTooltip";
@@ -39,9 +42,10 @@ export default function Bookmarks(): JSX.Element {
                 const isUsed =
                     $repeatMode === ERepeatMode.ALL &&
                     $triggeredPublicIds.includes(b.publicId);
-                const modeColor = isDisabled || isUsed
-                    ? BOOKMARK_MODE_MUTED_COLORS[b.mode]
-                    : BOOKMARK_MODE_COLORS[b.mode];
+                const modeColor =
+                    isDisabled || isUsed
+                        ? BOOKMARK_MODE_MUTED_COLORS[b.mode]
+                        : BOOKMARK_MODE_COLORS[b.mode];
 
                 return (
                     <BookmarkTooltip
@@ -58,11 +62,13 @@ export default function Bookmarks(): JSX.Element {
                         }
                         onContextMenu={(e): void => {
                             e.preventDefault();
-                            rockIt.bookmarkManager.openEditForBookmark(b.publicId);
+                            rockIt.bookmarkManager.openEditForBookmark(
+                                b.publicId
+                            );
                         }}
                     >
                         <div
-                            className="absolute left-1/2 top-1/2 h-full w-[4px] -translate-x-1/2 -translate-y-1/2 rounded-t-md rounded-b-md transition-transform hover:scale-x-[166%] hover:scale-y-[225%]"
+                            className="absolute top-1/2 left-1/2 h-full w-1 -translate-x-1/2 -translate-y-1/2 rounded-t-md rounded-b-md transition-transform hover:scale-x-166 hover:scale-y-225"
                             style={
                                 isDisabled || isUsed
                                     ? {

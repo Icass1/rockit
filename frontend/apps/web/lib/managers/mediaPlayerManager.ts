@@ -462,10 +462,7 @@ export class MediaPlayerManager {
         }
     }
 
-    private _checkBookmarks(
-        lastTime: number,
-        currentTime: number
-    ): void {
+    private _checkBookmarks(lastTime: number, currentTime: number): void {
         const repeatMode = rockIt.userManager.repeatModeAtom.get();
 
         const isAllMode = repeatMode === ERepeatMode.ALL;
@@ -481,14 +478,19 @@ export class MediaPlayerManager {
         for (let i = 0; i < sortedBookmarks.length; i++) {
             const bookmark = sortedBookmarks[i];
             if (
-                !(lastTime < bookmark.timestamp &&
-                bookmark.timestamp <= currentTime &&
-                currentTime - bookmark.timestamp < 1)
+                !(
+                    lastTime < bookmark.timestamp &&
+                    bookmark.timestamp <= currentTime &&
+                    currentTime - bookmark.timestamp < 1
+                )
             ) {
                 continue;
             }
 
-            if (repeatMode === ERepeatMode.OFF && bookmark.mode === "PREVIOUS_BOOKMARK") {
+            if (
+                repeatMode === ERepeatMode.OFF &&
+                bookmark.mode === "PREVIOUS_BOOKMARK"
+            ) {
                 continue;
             }
 
@@ -498,7 +500,9 @@ export class MediaPlayerManager {
 
             if (bookmark.mode === "AUTOSKIP") {
                 if (isAllMode) {
-                    this._triggeredBookmarkPublicIdsAtom.push(bookmark.publicId);
+                    this._triggeredBookmarkPublicIdsAtom.push(
+                        bookmark.publicId
+                    );
                 }
                 const nextBookmark = sortedBookmarks[i + 1];
                 if (nextBookmark) {
@@ -511,7 +515,9 @@ export class MediaPlayerManager {
 
             if (bookmark.mode === "REPEAT_FROM_BEGINNING") {
                 if (isAllMode) {
-                    this._triggeredBookmarkPublicIdsAtom.push(bookmark.publicId);
+                    this._triggeredBookmarkPublicIdsAtom.push(
+                        bookmark.publicId
+                    );
                 }
                 this.setCurrentTime(0, true);
                 return;
@@ -519,7 +525,9 @@ export class MediaPlayerManager {
 
             if (bookmark.mode === "PREVIOUS_BOOKMARK") {
                 if (isAllMode) {
-                    this._triggeredBookmarkPublicIdsAtom.push(bookmark.publicId);
+                    this._triggeredBookmarkPublicIdsAtom.push(
+                        bookmark.publicId
+                    );
                 }
                 const prevBookmark = i > 0 ? sortedBookmarks[i - 1] : null;
                 if (prevBookmark) {

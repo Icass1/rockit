@@ -460,19 +460,21 @@ export class MediaPlayerManager {
         const bookmarks =
             rockIt.bookmarkManager.currentMediaBookmarksAtom.get();
 
-        const sortedBookmarks = [...bookmarks]
-            .filter((b): boolean => b.mode === "AUTOSKIP")
-            .sort((a, b): number => a.timestamp - b.timestamp);
+        const sortedBookmarks = [...bookmarks].sort(
+            (a, b): number => a.timestamp - b.timestamp
+        );
 
         for (let i = 0; i < sortedBookmarks.length; i++) {
             const bookmark = sortedBookmarks[i];
-
+            if (bookmark.mode !== "AUTOSKIP") continue;
             if (
                 lastTime < bookmark.timestamp &&
                 bookmark.timestamp <= currentTime &&
                 currentTime - bookmark.timestamp < 1
             ) {
                 const nextBookmark = sortedBookmarks[i + 1];
+
+                console.log({ nextBookmark, sortedBookmarks });
 
                 if (nextBookmark) {
                     this.setCurrentTime(nextBookmark.timestamp, true);

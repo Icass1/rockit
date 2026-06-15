@@ -34,7 +34,6 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
-    audio_path: Mapped[str | None] = mapped_column(String, nullable=True)
     video_path: Mapped[str | None] = mapped_column(String, nullable=True)
     channel_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("youtube.channel.id"), nullable=False
@@ -68,7 +67,6 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         view_count: int = 0,
         like_count: int = 0,
         comment_count: int = 0,
-        audio_path: str | None = None,
         video_path: str | None = None,
         description: str | None = None,
         tags: str | None = None,
@@ -86,7 +84,6 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["view_count"] = view_count
         kwargs["like_count"] = like_count
         kwargs["comment_count"] = comment_count
-        kwargs["audio_path"] = audio_path
         kwargs["video_path"] = video_path
         kwargs["description"] = description
         kwargs["tags"] = tags

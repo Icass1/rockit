@@ -1,9 +1,14 @@
+import os
+import json
+import asyncio
+import aiofiles
+from typing import Any
+from logging import Logger
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
-from logging import Logger
-from sqlalchemy.ext.asyncio import AsyncSession
-import os
-import aiofiles
 
 from backend.constants import MEDIA_PATH
 from backend.utils.logger import getLogger
@@ -112,7 +117,7 @@ async def stream_video_async(request: Request, youtube_id: str):
 
 @public_router.get("/video/{youtube_id}/audio")
 async def stream_audio_async(request: Request, youtube_id: str):
-    """Stream audio."""
+    """Stream audio from video using ffmpeg with seeking support."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
@@ -125,19 +130,38 @@ async def stream_audio_async(request: Request, youtube_id: str):
         )
 
     video_response: YoutubeVideoResponse = a_result.result()
-    if not video_response.audio_path:
-        raise HTTPException(status_code=404, detail="Audio file not found")
+    if not video_response.video_path:
+        raise HTTPException(status_code=404, detail="Video file not found")
 
-    audio_path: str = os.path.join(MEDIA_PATH, video_response.audio_path)
-    if not os.path.exists(audio_path):
-        raise HTTPException(status_code=404, detail="Audio file not found on disk")
+    video_path: str = os.path.join(MEDIA_PATH, video_response.video_path)
+    if not os.path.exists(video_path):
+        raise HTTPException(status_code=404, detail="Video file not found on disk")
 
-    file_size: int = os.path.getsize(audio_path)
+    ffprobe = await asyncio.create_subprocess_exec(
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "json",
+        video_path,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    ffprobe_stdout, _ = await ffprobe.communicate()
+    duration_data: dict[str, Any] = json.loads(ffprobe_stdout)
+    duration: float = float(duration_data["format"]["duration"])
+
+    bitrate: str = "192k"
+    bitrate_bps: int = 192000
+    estimated_size: int = int(duration * bitrate_bps / 8)
+
     range_header: str | None = request.headers.get("range")
 
     if range_header:
         range_start: int = 0
-        range_end: int = file_size - 1
+        range_end: int = estimated_size - 1
         if "bytes=" in range_header:
             parts: list[str] = range_header.split("bytes=")[1].split("-")
             if parts[0]:
@@ -145,45 +169,90 @@ async def stream_audio_async(request: Request, youtube_id: str):
             if parts[1]:
                 range_end = int(parts[1])
 
-        content_length: int = range_end - range_start + 1
+        start_time: float = range_start / (bitrate_bps / 8)
+        end_time: float = range_end / (bitrate_bps / 8)
 
-        async def iter_range(start: int, end: int):
-            async with aiofiles.open(audio_path, "rb") as f:
-                await f.seek(start)
-                remaining: int = end - start + 1
-                while remaining > 0:
-                    chunk_size: int = min(1024 * 1024, remaining)
-                    chunk: bytes = await f.read(chunk_size)
+        async def iter_range(time_start: float, time_end: float):
+            process = await asyncio.create_subprocess_exec(
+                "ffmpeg",
+                "-ss",
+                str(time_start),
+                "-i",
+                video_path,
+                "-to",
+                str(time_end),
+                "-f",
+                "mp3",
+                "-acodec",
+                "libmp3lame",
+                "-b:a",
+                bitrate,
+                "-vn",
+                "-",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            stdout = process.stdout
+            if stdout is None:
+                process.kill()
+                await process.wait()
+                return
+            try:
+                while True:
+                    chunk: bytes = await stdout.read(1024 * 1024)
                     if not chunk:
                         break
-                    remaining -= len(chunk)
                     yield chunk
+            finally:
+                process.kill()
+                await process.wait()
 
         return StreamingResponse(
-            iter_range(range_start, range_end),
+            iter_range(start_time, min(end_time, duration)),
             status_code=206,
             media_type="audio/mpeg",
             headers={
-                "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
+                "Content-Range": f"bytes {range_start}-{range_end}/{estimated_size}",
                 "Accept-Ranges": "bytes",
-                "Content-Length": str(content_length),
             },
         )
 
-    async def iter_file():
-        async with aiofiles.open(audio_path, "rb") as f:
+    async def iter_full():
+        process = await asyncio.create_subprocess_exec(
+            "ffmpeg",
+            "-i",
+            video_path,
+            "-f",
+            "mp3",
+            "-acodec",
+            "libmp3lame",
+            "-b:a",
+            bitrate,
+            "-vn",
+            "-",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        stdout = process.stdout
+        if stdout is None:
+            process.kill()
+            await process.wait()
+            return
+        try:
             while True:
-                chunk: bytes = await f.read(1024 * 1024)
+                chunk: bytes = await stdout.read(1024 * 1024)
                 if not chunk:
                     break
                 yield chunk
+        finally:
+            process.kill()
+            await process.wait()
 
     return StreamingResponse(
-        iter_file(),
+        iter_full(),
         media_type="audio/mpeg",
         headers={
             "Accept-Ranges": "bytes",
-            "Content-Length": str(file_size),
         },
     )
 

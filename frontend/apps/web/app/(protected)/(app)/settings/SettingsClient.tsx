@@ -2,7 +2,7 @@
 
 import { JSX, useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { type Vocabulary, type VocabularyResponse } from "@rockit/shared";
+import { type VocabularyResponse } from "@rockit/shared";
 import { Check, Globe } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";

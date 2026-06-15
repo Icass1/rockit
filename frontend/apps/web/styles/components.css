@@ -164,14 +164,6 @@
     scroll-behavior: smooth;
 }
 
-/* ── Safe area bottom ─────────────────────
-    Compensa el home indicator en iOS y gesture nav en Android.
-    Fallback automático si env() no existe.
-    ─────────────────────────────────────── */
-.safe-area-bottom {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-}
-
 .mobile-nav-blur {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);

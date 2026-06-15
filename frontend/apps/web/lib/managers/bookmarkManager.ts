@@ -8,11 +8,24 @@ import {
     ReadonlyAtom,
 } from "@/lib/store";
 
-export type EBookmarkMode = "NOTHING" | "AUTOSKIP";
+export type EBookmarkMode =
+    | "NOTHING"
+    | "AUTOSKIP"
+    | "REPEAT_FROM_BEGINNING"
+    | "PREVIOUS_BOOKMARK";
 
 export const BOOKMARK_MODE_COLORS: Record<EBookmarkMode, string> = {
     NOTHING: "#ffffff",
     AUTOSKIP: "#00ff00",
+    REPEAT_FROM_BEGINNING: "#00ffff",
+    PREVIOUS_BOOKMARK: "#ff8000",
+};
+
+export const BOOKMARK_MODE_MUTED_COLORS: Record<EBookmarkMode, string> = {
+    NOTHING: "#999999",
+    AUTOSKIP: "#006600",
+    REPEAT_FROM_BEGINNING: "#006666",
+    PREVIOUS_BOOKMARK: "#b35900",
 };
 
 export class BookmarkManager {
@@ -141,9 +154,10 @@ export class BookmarkManager {
         const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
         if (!bookmarks.length || currentTime === null) return false;
 
-        const sorted = [...bookmarks].sort(
-            (a, b) => a.timestamp - b.timestamp
-        );
+        const sorted = [...bookmarks]
+            .filter((b) => b.mode === "NOTHING")
+            .sort((a, b) => a.timestamp - b.timestamp);
+
         const next = sorted.find((b) => b.timestamp > currentTime + 0.5);
         if (next) {
             rockIt.mediaPlayerManager.setCurrentTime(next.timestamp, true);
@@ -157,12 +171,18 @@ export class BookmarkManager {
         const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
         if (!bookmarks.length || currentTime === null) return false;
 
-        const sorted = [...bookmarks].sort(
-            (a, b) => a.timestamp - b.timestamp
-        );
-        const prev = sorted.reverse().find((b) => b.timestamp < currentTime - 0.5);
+        const sorted = [...bookmarks]
+            .filter((b) => b.mode === "NOTHING")
+            .sort((a, b) => a.timestamp - b.timestamp);
+        if (sorted.length === 0) return false;
+
+        const prev = [...sorted].reverse().find((b) => b.timestamp < currentTime - 0.5);
         if (prev) {
             rockIt.mediaPlayerManager.setCurrentTime(prev.timestamp, true);
+            return true;
+        }
+        if (currentTime >= sorted[0].timestamp - 0.5 && sorted[0].timestamp > 0.5) {
+            rockIt.mediaPlayerManager.setCurrentTime(0, true);
             return true;
         }
         return false;

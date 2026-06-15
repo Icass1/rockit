@@ -1,4 +1,5 @@
 import {
+    ERepeatMode,
     EWebSocketMessage,
     getMediaAudioSrc,
     getMediaVideoSrc,
@@ -11,7 +12,12 @@ import {
 } from "@rockit/shared";
 import { EQueueAction } from "@/models/enums/queueAction";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom, ReadonlyAtom } from "@/lib/store";
+import {
+    createArrayAtom,
+    createAtom,
+    ReadonlyArrayAtom,
+    ReadonlyAtom,
+} from "@/lib/store";
 
 const WS_TIME_SYNC_INTERVAL_MS = 1000;
 
@@ -34,6 +40,7 @@ export class MediaPlayerManager {
     private _isSeeking = false;
     private _seekFrom: number = 0;
     private _lastTime = 0;
+    private _triggeredBookmarkPublicIdsAtom = createArrayAtom<string>([]);
 
     constructor() {
         if (typeof window === "undefined") return;
@@ -302,6 +309,7 @@ export class MediaPlayerManager {
     private setAudio(useSavedCurrentTime: boolean = false): void {
         console.log("MediaPlayerManager.setAudio", useSavedCurrentTime);
 
+        this._triggeredBookmarkPublicIdsAtom.set([]);
         this.clearVideo();
         // console.log({
         //     "!this._audio": !this._audio,
@@ -353,6 +361,7 @@ export class MediaPlayerManager {
     private setVideo(useSavedCurrentTime: boolean = false): void {
         console.log("MediaPlayerManager.setVideo", useSavedCurrentTime);
 
+        this._triggeredBookmarkPublicIdsAtom.set([]);
         this.clearAudio();
         if (!this._video) return;
         const currentMedia = rockIt.queueManager.currentMedia;
@@ -438,8 +447,8 @@ export class MediaPlayerManager {
 
         this._currentTimeAtom.set(time);
 
-        // Auto-skip: check for AUTOSKIP bookmarks we've crossed since last update.
-        this._checkAutoSkipBookmarks(this._lastTime, time);
+        // Check bookmarks we've crossed since last update.
+        this._checkBookmarks(this._lastTime, time);
 
         this._lastTime = time;
 
@@ -453,10 +462,15 @@ export class MediaPlayerManager {
         }
     }
 
-    private _checkAutoSkipBookmarks(
+    private _checkBookmarks(
         lastTime: number,
         currentTime: number
     ): void {
+        const repeatMode = rockIt.userManager.repeatModeAtom.get();
+
+        const isAllMode = repeatMode === ERepeatMode.ALL;
+        const triggeredIds = this._triggeredBookmarkPublicIdsAtom.get();
+
         const bookmarks =
             rockIt.bookmarkManager.currentMediaBookmarksAtom.get();
 
@@ -466,20 +480,52 @@ export class MediaPlayerManager {
 
         for (let i = 0; i < sortedBookmarks.length; i++) {
             const bookmark = sortedBookmarks[i];
-            if (bookmark.mode !== "AUTOSKIP") continue;
             if (
-                lastTime < bookmark.timestamp &&
+                !(lastTime < bookmark.timestamp &&
                 bookmark.timestamp <= currentTime &&
-                currentTime - bookmark.timestamp < 1
+                currentTime - bookmark.timestamp < 1)
             ) {
+                continue;
+            }
+
+            if (repeatMode === ERepeatMode.OFF && bookmark.mode === "PREVIOUS_BOOKMARK") {
+                continue;
+            }
+
+            if (isAllMode && triggeredIds.includes(bookmark.publicId)) {
+                continue;
+            }
+
+            if (bookmark.mode === "AUTOSKIP") {
+                if (isAllMode) {
+                    this._triggeredBookmarkPublicIdsAtom.push(bookmark.publicId);
+                }
                 const nextBookmark = sortedBookmarks[i + 1];
-
-                console.log({ nextBookmark, sortedBookmarks });
-
                 if (nextBookmark) {
                     this.setCurrentTime(nextBookmark.timestamp, true);
                 } else {
                     rockIt.queueManager.skipForward();
+                }
+                return;
+            }
+
+            if (bookmark.mode === "REPEAT_FROM_BEGINNING") {
+                if (isAllMode) {
+                    this._triggeredBookmarkPublicIdsAtom.push(bookmark.publicId);
+                }
+                this.setCurrentTime(0, true);
+                return;
+            }
+
+            if (bookmark.mode === "PREVIOUS_BOOKMARK") {
+                if (isAllMode) {
+                    this._triggeredBookmarkPublicIdsAtom.push(bookmark.publicId);
+                }
+                const prevBookmark = i > 0 ? sortedBookmarks[i - 1] : null;
+                if (prevBookmark) {
+                    this.setCurrentTime(prevBookmark.timestamp, true);
+                } else {
+                    this.setCurrentTime(0, true);
                 }
                 return;
             }
@@ -613,6 +659,10 @@ export class MediaPlayerManager {
 
     get videoElement(): HTMLVideoElement | undefined {
         return this._video;
+    }
+
+    get triggeredBookmarkPublicIdsAtom(): ReadonlyArrayAtom<string> {
+        return this._triggeredBookmarkPublicIdsAtom.getReadonlyAtom();
     }
 
     getVideoElementContainer(): HTMLDivElement | null {

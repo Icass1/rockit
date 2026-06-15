@@ -77,11 +77,7 @@ export default function FooterCenter(): JSX.Element {
 
                 <button
                     aria-label={$vocabulary.PREVIOUS_MEDIA}
-                    onClick={(): void => {
-                        if (!rockIt.bookmarkManager.skipToPrevBookmark()) {
-                            rockIt.queueManager.skipBack();
-                        }
-                    }}
+                    onClick={(): void => rockIt.queueManager.skipBack()}
                 >
                     <SkipBack
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}
@@ -109,11 +105,7 @@ export default function FooterCenter(): JSX.Element {
 
                 <button
                     aria-label={$vocabulary.NEXT_MEDIA}
-                    onClick={(): void => {
-                        if (!rockIt.bookmarkManager.skipToNextBookmark()) {
-                            rockIt.queueManager.skipForward();
-                        }
-                    }}
+                    onClick={(): void => rockIt.queueManager.skipForward()}
                 >
                     <SkipForward
                         className={`h-5.5 w-5.5 fill-current ${ICON_BTN}`}

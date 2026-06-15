@@ -5,7 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { type BookmarkResponse } from "@/dto";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { useStore } from "@nanostores/react";
-import { Bookmark, BookmarkCheck, ChevronDown, Trash2 } from "lucide-react";
+import {
+    Bookmark,
+    BookmarkCheck,
+    ChevronDown,
+    Repeat1,
+    SkipBack,
+    Trash2,
+} from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
@@ -13,17 +20,26 @@ interface BookmarkPopupProps {
     onClose: () => void;
 }
 
-const MODES = ["NOTHING", "AUTOSKIP"] as const;
+const MODES = [
+    "NOTHING",
+    "AUTOSKIP",
+    "REPEAT_FROM_BEGINNING",
+    "PREVIOUS_BOOKMARK",
+] as const;
 type Mode = (typeof MODES)[number];
 
-const MODE_ICONS: Record<Mode, typeof Bookmark> = {
+const MODE_ICONS: Record<Mode, typeof Bookmark | typeof Repeat1 | typeof SkipBack> = {
     NOTHING: Bookmark,
     AUTOSKIP: BookmarkCheck,
+    REPEAT_FROM_BEGINNING: Repeat1,
+    PREVIOUS_BOOKMARK: SkipBack,
 };
 
 const MODE_LABELS: Record<Mode, string> = {
     NOTHING: "Marker",
     AUTOSKIP: "Auto-skip",
+    REPEAT_FROM_BEGINNING: "Repeat from beginning",
+    PREVIOUS_BOOKMARK: "Previous bookmark",
 };
 
 function BookmarkPopupForm({
@@ -170,7 +186,7 @@ function BookmarkPopupForm({
                     {showModeDropdown && (
                         <div
                             ref={modeDropdownRef}
-                            className="absolute top-full right-0 z-50 mt-1 w-28 rounded-lg border border-neutral-700 bg-[#1a1a1a] py-1 shadow-xl"
+                            className="absolute top-full right-0 z-50 mt-1 w-56 rounded-lg border border-neutral-700 bg-[#1a1a1a] py-1 shadow-xl max-h-20 overflow-y-auto"
                         >
                                     {MODES.map((m): JSX.Element => {
                                 const Icon = MODE_ICONS[m];

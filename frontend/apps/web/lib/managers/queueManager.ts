@@ -194,6 +194,12 @@ export class QueueManager {
     }
 
     skipBack(): void {
+        const jumped = rockIt.bookmarkManager.skipToPrevBookmark();
+        if (jumped) return;
+
+        const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
+        if (currentTime !== null && currentTime >= 3) return;
+
         this._lastNavigationDirection = -1;
         if (this.currentMedia?.publicId)
             rockIt.webSocketManager.sendSkipClicked({
@@ -213,6 +219,9 @@ export class QueueManager {
     }
 
     skipForward(): void {
+        const jumped = rockIt.bookmarkManager.skipToNextBookmark();
+        if (jumped) return;
+
         this._lastNavigationDirection = 1;
         if (this.currentMedia?.publicId)
             rockIt.webSocketManager.sendSkipClicked({

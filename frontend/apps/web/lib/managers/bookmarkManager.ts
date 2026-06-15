@@ -11,13 +11,14 @@ import {
 export type EBookmarkMode = "NOTHING" | "AUTOSKIP";
 
 export const BOOKMARK_MODE_COLORS: Record<EBookmarkMode, string> = {
-    NOTHING: "#ee1086",
-    AUTOSKIP: "#00ffea",
+    NOTHING: "#ffffff",
+    AUTOSKIP: "#00ff00",
 };
 
 export class BookmarkManager {
     private _currentMediaBookmarksAtom = createArrayAtom<BookmarkResponse>([]);
     private _showPopupAtom = createAtom<boolean>(false);
+    private _editingBookmarkAtom = createAtom<BookmarkResponse | null>(null);
     private _initialized = false;
 
     async init(): Promise<void> {
@@ -135,19 +136,38 @@ export class BookmarkManager {
         return false;
     }
 
+    openEditForBookmark(publicId: string): void {
+        const bookmark = this._currentMediaBookmarksAtom
+            .get()
+            .find((b) => b.publicId === publicId);
+        if (bookmark) {
+            this._editingBookmarkAtom.set(bookmark);
+            this._showPopupAtom.set(true);
+        }
+    }
+
+    togglePopup(): void {
+        const isOpening = !this._showPopupAtom.get();
+        if (isOpening) {
+            this._editingBookmarkAtom.set(null);
+        }
+        this._showPopupAtom.set(isOpening);
+    }
+
+    hidePopup(): void {
+        this._editingBookmarkAtom.set(null);
+        this._showPopupAtom.set(false);
+    }
+
+    get editingBookmarkAtom(): ReadonlyAtom<BookmarkResponse | null> {
+        return this._editingBookmarkAtom.getReadonlyAtom();
+    }
+
     get currentMediaBookmarksAtom(): ReadonlyArrayAtom<BookmarkResponse> {
         return this._currentMediaBookmarksAtom.getReadonlyAtom();
     }
 
     get showPopupAtom(): ReadonlyAtom<boolean> {
         return this._showPopupAtom.getReadonlyAtom();
-    }
-
-    togglePopup(): void {
-        this._showPopupAtom.set(!this._showPopupAtom.get());
-    }
-
-    hidePopup(): void {
-        this._showPopupAtom.set(false);
     }
 }

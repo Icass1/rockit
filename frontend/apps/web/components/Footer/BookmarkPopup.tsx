@@ -209,12 +209,17 @@ export default function BookmarkPopup({
     const $currentMediaBookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );
+    const $editingBookmark = useStore(
+        rockIt.bookmarkManager.editingBookmarkAtom
+    );
 
     const popupRef = useRef<HTMLDivElement>(null);
 
-    const existingAtCurrentTime = $currentMediaBookmarks.find(
-        (b): boolean => Math.abs(b.timestamp - $currentTime) < 0.5
-    );
+    const existingAtCurrentTime = $editingBookmark
+        ? $editingBookmark
+        : $currentMediaBookmarks.find(
+              (b): boolean => Math.abs(b.timestamp - $currentTime) < 0.5
+          );
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent): void => {

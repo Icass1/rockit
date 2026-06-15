@@ -187,28 +187,34 @@ export default function FooterCenter(): JSX.Element {
                     />
                     {/* Bookmark markers */}
                     {!isLiveStation &&
-                        $bookmarks.map((b): JSX.Element => {
-                            const duration =
-                                getMediaDuration($currentMedia) ?? 1;
-                            const left = `${Math.min(100, Math.max(0, (b.timestamp / duration) * 100))}%`;
-                            return (
-                                <button
-                                    key={b.publicId}
-                                    title={
-                                        b.description ??
-                                        `${getTime(b.timestamp)}`
-                                    }
-                                    onClick={(): void =>
-                                        rockIt.mediaPlayerManager.setCurrentTime(
-                                            b.timestamp,
-                                            true
-                                        )
-                                    }
-                                    className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-transform hover:scale-150"
-                                    style={{ left }}
-                                />
-                            );
-                        })}
+                        $bookmarks
+                            .filter(
+                                (bookmark) =>
+                                    bookmark.mediaPublicId ===
+                                    $currentMedia?.publicId
+                            )
+                            .map((b): JSX.Element => {
+                                const duration =
+                                    getMediaDuration($currentMedia) ?? 1;
+                                const left = `${Math.min(100, Math.max(0, (b.timestamp / duration) * 100))}%`;
+                                return (
+                                    <button
+                                        key={b.publicId}
+                                        title={
+                                            b.description ??
+                                            `${getTime(b.timestamp)}`
+                                        }
+                                        onClick={(): void =>
+                                            rockIt.mediaPlayerManager.setCurrentTime(
+                                                b.timestamp,
+                                                true
+                                            )
+                                        }
+                                        className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-transform hover:scale-150"
+                                        style={{ left }}
+                                    />
+                                );
+                            })}
                 </div>
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
                     {getTime(

@@ -15,8 +15,8 @@ class AppVersionRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpd
     __tablename__ = "app_version"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
-    version: Mapped[str] = mapped_column(String, nullable=False)
-    apk_filename: Mapped[str] = mapped_column(String, nullable=False)
+    version: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    apk_filename: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     downloads: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 

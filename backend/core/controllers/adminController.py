@@ -113,6 +113,12 @@ async def upload_apk(request: Request, payload: UploadApkRequest) -> UploadApkRe
     version_filename = f"v{payload.version}{file_ext}"
     file_path = os.path.join(BUILDS_PATH, version_filename)
 
+    if os.path.exists(file_path):
+        raise HTTPException(
+            status_code=400,
+            detail=f"A build with filename '{version_filename}' already exists.",
+        )
+
     try:
         file_content = base64.b64decode(payload.fileContent)
     except Exception:
@@ -158,6 +164,12 @@ async def start_chunked_upload(
     file_ext = os.path.splitext(payload.fileName)[1]
     version_filename = f"v{payload.version}{file_ext}"
     file_path = os.path.join(BUILDS_PATH, version_filename)
+
+    if os.path.exists(file_path):
+        raise HTTPException(
+            status_code=400,
+            detail=f"A build with filename '{version_filename}' already exists.",
+        )
 
     CHUNKED_UPLOADS[upload_id] = {
         "file_path": file_path,

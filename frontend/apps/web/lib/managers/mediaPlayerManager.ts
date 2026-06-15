@@ -469,7 +469,8 @@ export class MediaPlayerManager {
 
             if (
                 lastTime < bookmark.timestamp &&
-                bookmark.timestamp <= currentTime
+                bookmark.timestamp <= currentTime &&
+                currentTime - bookmark.timestamp < 1
             ) {
                 const nextBookmark = sortedBookmarks[i + 1];
 

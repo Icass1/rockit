@@ -18,6 +18,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { getTime } from "@/lib/utils/getTime";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
+import Bookmarks from "@/components/Bookmark/Bookmarks";
 import Slider from "@/components/Slider/Slider";
 
 const ICON_BTN =
@@ -193,35 +194,7 @@ export default function FooterCenter(): JSX.Element {
                         }
                     />
                     {/* Bookmark markers */}
-                    {!isLiveStation &&
-                        $bookmarks
-                            .filter(
-                                (bookmark) =>
-                                    bookmark.mediaPublicId ===
-                                    $currentMedia?.publicId
-                            )
-                            .map((b): JSX.Element => {
-                                const duration =
-                                    getMediaDuration($currentMedia) ?? 1;
-                                const left = `${Math.min(100, Math.max(0, (b.timestamp / duration) * 100))}%`;
-                                return (
-                                    <button
-                                        key={b.publicId}
-                                        title={
-                                            b.description ??
-                                            `${getTime(b.timestamp)}`
-                                        }
-                                        onClick={(): void =>
-                                            rockIt.mediaPlayerManager.setCurrentTime(
-                                                b.timestamp,
-                                                true
-                                            )
-                                        }
-                                        className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform hover:scale-150"
-                                        style={{ backgroundColor: BOOKMARK_MODE_COLORS[b.mode], left }}
-                                    />
-                                );
-                            })}
+                    <Bookmarks />
                 </div>
                 <span className="min-w-6 text-xs font-semibold tabular-nums">
                     {getTime(

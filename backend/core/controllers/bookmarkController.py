@@ -11,6 +11,7 @@ from backend.core.framework.bookmark.bookmark import Bookmark
 from backend.core.requests.getBookmarksRequest import GetBookmarksRequest
 from backend.core.requests.createBookmarkRequest import CreateBookmarkRequest
 from backend.core.requests.updateBookmarkRequest import UpdateBookmarkRequest
+from backend.core.enums.bookmarkModeEnum import BookmarkModeEnum
 from backend.core.responses.bookmarkResponse import BookmarkResponse
 from backend.core.responses.bookmarkListResponse import BookmarkListResponse
 from backend.core.responses.okResponse import OkResponse
@@ -48,7 +49,18 @@ async def get_bookmarks(
         )
 
     return BookmarkListResponse(
-        bookmarks=[BookmarkResponse.from_row(row=b) for b in a_result.result()]
+        bookmarks=[
+            BookmarkResponse(
+                publicId=b.public_id,
+                mediaPublicId=b.media.public_id,
+                timestamp=b.timestamp,
+                description=b.description,
+                mode=BookmarkModeEnum[b.bookmark_mode_enum.value],
+                dateAdded=b.date_added,
+                dateUpdated=b.date_updated,
+            )
+            for b in a_result.result()
+        ]
     )
 
 
@@ -80,7 +92,16 @@ async def create_bookmark(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    return BookmarkResponse.from_row(row=a_result.result())
+    row = a_result.result()
+    return BookmarkResponse(
+        publicId=row.public_id,
+        mediaPublicId=row.media.public_id,
+        timestamp=row.timestamp,
+        description=row.description,
+        mode=BookmarkModeEnum[row.bookmark_mode_enum.value],
+        dateAdded=row.date_added,
+        dateUpdated=row.date_updated,
+    )
 
 
 @router.post("/{public_id}")
@@ -112,7 +133,16 @@ async def update_bookmark(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    return BookmarkResponse.from_row(row=a_result.result())
+    row = a_result.result()
+    return BookmarkResponse(
+        publicId=row.public_id,
+        mediaPublicId=row.media.public_id,
+        timestamp=row.timestamp,
+        description=row.description,
+        mode=BookmarkModeEnum[row.bookmark_mode_enum.value],
+        dateAdded=row.date_added,
+        dateUpdated=row.date_updated,
+    )
 
 
 @router.delete("/{public_id}")

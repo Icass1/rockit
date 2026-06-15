@@ -8,7 +8,7 @@ export const BookmarkResponseSchema = z.object({
     mediaPublicId: z.string(),
     timestamp: z.number(),
     description: z.string().nullable(),
-    mode: z.string(),
+    mode: z.enum(["NOTHING", "AUTOSKIP"]),
     dateAdded: z.iso.datetime(),
     dateUpdated: z.iso.datetime(),
 });

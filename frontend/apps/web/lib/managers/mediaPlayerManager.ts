@@ -110,8 +110,9 @@ export class MediaPlayerManager {
         if (!this._audio) return;
         this.setAudio();
         this._audio.play().catch((err): void => {
-            if (err.name !== "NotAllowedError") {
-                console.warn("MediaPlayerManager: play failed", err);
+            console.warn("MediaPlayerManager: audio play failed", err.name, err.message);
+            if (err.name === "NotAllowedError") {
+                this._retryPlayOnGesture("audio");
             }
         });
     }
@@ -121,8 +122,15 @@ export class MediaPlayerManager {
         if (!this._video) return;
         this.setVideo();
         this._video.play().catch((err): void => {
-            if (err.name !== "NotAllowedError") {
-                console.warn("MediaPlayerManager: play failed", err);
+            console.warn("MediaPlayerManager: video play failed", err.name, err.message, {
+                readyState: this._video?.readyState,
+                networkState: this._video?.networkState,
+                paused: this._video?.paused,
+                muted: this._video?.muted,
+                src: this._video?.src,
+            });
+            if (err.name === "NotAllowedError") {
+                this._retryPlayOnGesture("video");
             }
         });
     }
@@ -154,6 +162,21 @@ export class MediaPlayerManager {
                 this.pause();
             }
         }
+    }
+
+    private _retryPlayOnGesture(type: "audio" | "video"): void {
+        const handler = (): void => {
+            document.removeEventListener("pointerup", handler);
+            document.removeEventListener("keydown", handler);
+            const el = type === "video" ? this._video : this._audio;
+            if (el?.paused) {
+                el.play().catch((err): void =>
+                    console.warn("MediaPlayerManager: retry play failed", err)
+                );
+            }
+        };
+        document.addEventListener("pointerup", handler, { once: true });
+        document.addEventListener("keydown", handler, { once: true });
     }
 
     togglePlayPauseOrSetMedia(): void {

@@ -1,0 +1,110 @@
+# ============================
+# Backend & other projects
+# ============================
+backend/
+
+# Web app (not needed for mobile builds)
+frontend/apps/web/
+
+# ============================
+# IDEs
+# ============================
+.vscode/
+.vscode-server/
+.idea/
+
+# ============================
+# Documentation & config
+# ============================
+docs/
+skills/
+.agents/
+
+# ============================
+# Local data / assets
+# ============================
+songs/
+media/
+images/
+temp/
+builds/
+cache/
+
+# ============================
+# Python / Backend artifacts
+# ============================
+venv/
+env/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+logs/
+site-packages/
+
+# ============================
+# Node (installed on EAS server)
+# ============================
+node_modules/
+.pnp
+.pnp.*
+
+# ============================
+# Build caches
+# ============================
+.next/
+.turbo/
+.expo/
+dist/
+web-build/
+out/
+.eslintcache
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+next-env.d.ts
+expo-env.d.ts
+.metro-health-check*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# ============================
+# Environment files
+# ============================
+.env
+.env.*
+.env*.local
+!.env.example
+
+# ============================
+# OS files
+# ============================
+.DS_Store
+Thumbs.db
+
+# ============================
+# Database
+# ============================
+*.db
+
+# ============================
+# Misc
+# ============================
+*.pem
+package-lock.json
+yarn.lock
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Spotify cache
+.spotify
+.spotify_cache

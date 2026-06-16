@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { ENotificationType } from "@/models/enums/notificationType";
 import { INotification } from "@/models/interfaces/notification";
 import { ArrayAtom, createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
@@ -14,7 +15,7 @@ export class NotificationManager {
             message,
             type: ENotificationType.ERROR,
         });
-        setTimeout((): void => this.dismiss(id), 4000);
+        toast.error(message, { dismissible: true });
     }
 
     notifyInfo(message: string): void {
@@ -25,7 +26,7 @@ export class NotificationManager {
             message,
             type: ENotificationType.INFO,
         });
-        setTimeout((): void => this.dismiss(id), 4000);
+        toast(message, { dismissible: true });
     }
 
     notifySuccess(message: string): void {
@@ -36,7 +37,7 @@ export class NotificationManager {
             message,
             type: ENotificationType.SUCCESS,
         });
-        setTimeout((): void => this.dismiss(id), 4000);
+        toast.success(message, { dismissible: true });
     }
 
     dismiss(id: number): void {

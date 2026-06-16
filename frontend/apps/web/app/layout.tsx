@@ -4,6 +4,7 @@ import "@/styles/components.css";
 import "@/styles/globals.css";
 import { JSX } from "react";
 import type { Metadata, Viewport } from "next";
+import ToasterProvider from "@/components/Toaster/ToasterProvider";
 
 export const metadata: Metadata = {
     title: "RockIt",
@@ -28,6 +29,7 @@ export default function RootLayout({
             </head>
             <body className="antialiased" suppressHydrationWarning>
                 {children}
+                <ToasterProvider />
             </body>
         </html>
     );

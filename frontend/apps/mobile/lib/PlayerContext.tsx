@@ -144,6 +144,18 @@ function buildQueuePayload(
     });
 }
 
+async function isMediaDownloaded(publicId: string): Promise<boolean> {
+    try {
+        const [songUri, videoUri] = await Promise.all([
+            mediaStorage.getSongUri(publicId),
+            mediaStorage.getVideoUri(publicId),
+        ]);
+        return !!(songUri || videoUri);
+    } catch {
+        return false;
+    }
+}
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -436,11 +448,38 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             if (action === "replay") {
                 mediaEngine.seekTo(0).then(() => mediaEngine.play());
             } else if (action === "play" && index !== null) {
-                const nextMedia = queueRef.current.queue[index];
-                const rawUri = getUri(nextMedia);
-                if (rawUri) {
+                (async () => {
+                    const q = queueRef.current.queue;
+                    let idx = index;
+                    let checked = 0;
+
+                    while (checked < q.length) {
+                        if (idx >= q.length) idx = 0;
+
+                        const media = q[idx];
+                        const rawUri = getUri(media);
+                        if (rawUri) {
+                            const downloaded =
+                                await isMediaDownloaded(media.publicId);
+                            if (downloaded) break;
+                        }
+                        idx++;
+                        checked++;
+                    }
+
+                    if (checked >= q.length || !q[idx]) {
+                        setIsPlaying(false);
+                        return;
+                    }
+
+                    const nextMedia = q[idx];
+                    const rawUri = getUri(nextMedia);
+                    if (!rawUri) {
+                        setIsPlaying(false);
+                        return;
+                    }
                     const nextHasVideo = hasVideoSource(nextMedia);
-                    queueRef.current.setCurrentIndex(index);
+                    queueRef.current.setCurrentIndex(idx);
                     resolveUri(nextMedia).then((playUri) => {
                         if (!playUri) return;
                         mediaEngine.loadTrack(playUri, nextHasVideo);
@@ -455,12 +494,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
                     webSocketManager.sendCurrentMedia({
                         mediaPublicId: nextMedia.publicId,
-                        queueMediaId: index,
+                        queueMediaId: idx,
                         queueType: queueRef.current.shuffle
                             ? EQueueType.RANDOM
                             : EQueueType.SORTED,
                     });
-                }
+                })();
             } else {
                 setIsPlaying(false);
             }
@@ -574,9 +613,29 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     );
 
     const skipForward = useCallback(async () => {
-        const nextIndex = queue.getNextIndex();
+        const q = queue.queue;
+        let nextIndex = queue.getNextIndex();
         if (nextIndex === null) return;
-        const nextMedia = queue.queue[nextIndex];
+
+        // Scan forward for a downloaded item
+        let scanned = 0;
+        while (scanned < q.length) {
+            if (nextIndex >= q.length) nextIndex = 0;
+
+            const media = q[nextIndex];
+            if (!media) break;
+
+            const rawUri = getUri(media);
+            if (rawUri && (await isMediaDownloaded(media.publicId))) {
+                break;
+            }
+            nextIndex++;
+            scanned++;
+        }
+
+        if (scanned >= q.length || !q[nextIndex]) return;
+
+        const nextMedia = q[nextIndex];
         const rawUri = getUri(nextMedia);
         if (!rawUri) return;
         const shouldHaveVideo = hasVideoSource(nextMedia);
@@ -614,12 +673,35 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             await seekTo(0);
             return;
         }
-        const prevIndex = queue.getPrevIndex();
+        const q = queue.queue;
+        let prevIndex = queue.getPrevIndex();
         if (prevIndex === null) {
             await seekTo(0);
             return;
         }
-        const prevMedia = queue.queue[prevIndex];
+
+        // Scan backward for a downloaded item
+        let scanned = 0;
+        while (scanned < q.length) {
+            if (prevIndex < 0) prevIndex = q.length - 1;
+
+            const media = q[prevIndex];
+            if (!media) break;
+
+            const rawUri = getUri(media);
+            if (rawUri && (await isMediaDownloaded(media.publicId))) {
+                break;
+            }
+            prevIndex--;
+            scanned++;
+        }
+
+        if (scanned >= q.length || !q[prevIndex]) {
+            await seekTo(0);
+            return;
+        }
+
+        const prevMedia = q[prevIndex];
         const rawUri = getUri(prevMedia);
         if (!rawUri) return;
         const shouldHaveVideo = hasVideoSource(prevMedia);

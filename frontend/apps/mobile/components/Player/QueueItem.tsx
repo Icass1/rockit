@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import { Menu, Trash2 } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import { useMediaOffline } from "@/hooks/useMediaOffline";
 
 interface QueueItemProps {
     media: TQueueMedia;
@@ -27,6 +28,8 @@ export default function QueueItem({
     onPlay,
 }: QueueItemProps) {
     const swipeableRef = useRef<Swipeable>(null);
+    const isOffline = useMediaOffline(media.publicId);
+    const isNotDownloaded = isOffline === false;
 
     const renderRightActions = (
         _progress: Animated.AnimatedInterpolation<number>,
@@ -67,12 +70,17 @@ export default function QueueItem({
                     styles.container,
                     isActive && styles.containerActive,
                     isDragging && styles.containerDragging,
+                    isNotDownloaded && styles.containerNotDownloaded,
                 ]}
                 onPress={() => onPlay(media, index)}
             >
                 <Image
                     source={{ uri: media.imageUrl }}
-                    style={[styles.image, isActive && styles.imageActive]}
+                    style={[
+                        styles.image,
+                        isActive && styles.imageActive,
+                        isNotDownloaded && styles.imageNotDownloaded,
+                    ]}
                     contentFit="cover"
                     transition={200}
                 />
@@ -82,12 +90,19 @@ export default function QueueItem({
                         style={[
                             styles.title,
                             isActive && { color: COLORS.accent },
+                            isNotDownloaded && styles.titleNotDownloaded,
                         ]}
                         numberOfLines={1}
                     >
                         {media.name}
                     </Text>
-                    <Text style={styles.artist} numberOfLines={1}>
+                    <Text
+                        style={[
+                            styles.artist,
+                            isNotDownloaded && styles.artistNotDownloaded,
+                        ]}
+                        numberOfLines={1}
+                    >
                         {"artists" in media
                             ? (media.artists[0]?.name ?? "")
                             : ""}
@@ -139,6 +154,18 @@ const styles = StyleSheet.create({
     },
     imageActive: {
         opacity: 0.6,
+    },
+    containerNotDownloaded: {
+        opacity: 0.4,
+    },
+    imageNotDownloaded: {
+        opacity: 0.5,
+    },
+    titleNotDownloaded: {
+        color: COLORS.gray600,
+    },
+    artistNotDownloaded: {
+        color: COLORS.gray800,
     },
     info: {
         flex: 1,

@@ -1,4 +1,5 @@
 from logging import Logger
+from typing import List
 
 from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +8,8 @@ from backend.utils.logger import getLogger
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.access.mediaAccess import MediaAccess
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
 from backend.lrclib.framework.lrclib import Lrclib
 from backend.lrclib.requests.lyricsRequest import (
@@ -42,7 +45,11 @@ async def get_lrclib_lyrics_async(
             detail=a_result_media.message(),
         )
 
-    media_id = a_result_media.result().id
+    media: CoreMediaRow = a_result_media.result()
+    if media.media_type_key != MediaTypeEnum.SONG.value:
+        return GetLyricsResponse(lyrics=None, dynamicLyrics=None)
+
+    media_id = media.id
 
     a_result_lyrics = await Lrclib.get_lyrics_by_media_ids_async(
         session=session, media_ids=[media_id]
@@ -92,10 +99,14 @@ async def get_lrclib_lyrics_batch_async(
             detail=a_result_medias.message(),
         )
 
-    media_ids = [m.id for m in a_result_medias.result()]
+    medias: List[CoreMediaRow] = a_result_medias.result()
+
+    song_media_ids = [
+        m.id for m in medias if m.media_type_key == MediaTypeEnum.SONG.value
+    ]
 
     a_result_lyrics = await Lrclib.get_lyrics_by_media_ids_async(
-        session=session, media_ids=media_ids
+        session=session, media_ids=song_media_ids
     )
     if a_result_lyrics.is_not_ok():
         raise HTTPException(
@@ -106,7 +117,12 @@ async def get_lrclib_lyrics_batch_async(
     result_map = a_result_lyrics.result()
 
     lyrics_map: dict[str, GetLyricsResponse] = {}
-    for media in a_result_medias.result():
+    for media in medias:
+        if media.media_type_key != MediaTypeEnum.SONG.value:
+            lyrics_map[media.public_id] = GetLyricsResponse(
+                lyrics=None, dynamicLyrics=None
+            )
+            continue
         lyrics_data = result_map.get(media.id)
         if lyrics_data is None:
             lyrics_map[media.public_id] = GetLyricsResponse(
@@ -148,7 +164,14 @@ async def update_lrclib_lyrics_timestamps_async(
             detail=a_result_media.message(),
         )
 
-    media_id = a_result_media.result().id
+    media: CoreMediaRow = a_result_media.result()
+    if media.media_type_key != MediaTypeEnum.SONG.value:
+        raise HTTPException(
+            status_code=404,
+            detail="Lyrics not available for this media type",
+        )
+
+    media_id = media.id
 
     timestamps = [(t.line, t.timestamp_s) for t in body.timestamps]
 

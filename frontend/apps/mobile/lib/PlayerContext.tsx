@@ -124,16 +124,24 @@ function buildQueuePayload(
         }));
     }
     // currentQueue is the random order; originalQueue is the sorted order
-    const sortedIndexMap = new Map(
-        originalQueue.map((m, i) => [m.publicId, i])
-    );
-    return currentQueue.map((m, i) => ({
-        mediaPublicId: m.publicId,
-        listPublicId: getListPublicId(m.publicId),
-        queueMediaId: i,
-        sortedIndex: sortedIndexMap.get(m.publicId) ?? i,
-        randomIndex: i,
-    }));
+    // Build a map from publicId to all its positions (handles duplicates)
+    const sortedIndexMap = new Map<string, number[]>();
+    originalQueue.forEach((m, i) => {
+        const indices = sortedIndexMap.get(m.publicId) ?? [];
+        indices.push(i);
+        sortedIndexMap.set(m.publicId, indices);
+    });
+    return currentQueue.map((m, i) => {
+        const indices = sortedIndexMap.get(m.publicId);
+        const sortedIndex = indices?.shift() ?? i;
+        return {
+            mediaPublicId: m.publicId,
+            listPublicId: getListPublicId(m.publicId),
+            queueMediaId: i,
+            sortedIndex,
+            randomIndex: i,
+        };
+    });
 }
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {

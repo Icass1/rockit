@@ -81,11 +81,14 @@ async def handle_current_queue(
             )
         )
 
-    await User.save_user_queue_async(
+    a_result_save = await User.save_user_queue_async(
         session=session,
         user_id=user_id,
         queue_items=queue_items,
     )
+
+    if a_result_save.is_not_ok():
+        logger.error(f"Failed to save user queue. {a_result_save.info()}")
 
     if sender_websocket is not None:
         relay_message = CurrentQueueMessage(

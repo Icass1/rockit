@@ -459,8 +459,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                         const media = q[idx];
                         const rawUri = getUri(media);
                         if (rawUri) {
-                            const downloaded =
-                                await isMediaDownloaded(media.publicId);
+                            const downloaded = await isMediaDownloaded(
+                                media.publicId
+                            );
                             if (downloaded) break;
                         }
                         idx++;

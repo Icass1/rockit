@@ -110,7 +110,11 @@ export class MediaPlayerManager {
         if (!this._audio) return;
         this.setAudio();
         this._audio.play().catch((err): void => {
-            console.warn("MediaPlayerManager: audio play failed", err.name, err.message);
+            console.warn(
+                "MediaPlayerManager: audio play failed",
+                err.name,
+                err.message
+            );
             if (err.name === "NotAllowedError") {
                 this._retryPlayOnGesture("audio");
             }
@@ -122,13 +126,18 @@ export class MediaPlayerManager {
         if (!this._video) return;
         this.setVideo();
         this._video.play().catch((err): void => {
-            console.warn("MediaPlayerManager: video play failed", err.name, err.message, {
-                readyState: this._video?.readyState,
-                networkState: this._video?.networkState,
-                paused: this._video?.paused,
-                muted: this._video?.muted,
-                src: this._video?.src,
-            });
+            console.warn(
+                "MediaPlayerManager: video play failed",
+                err.name,
+                err.message,
+                {
+                    readyState: this._video?.readyState,
+                    networkState: this._video?.networkState,
+                    paused: this._video?.paused,
+                    muted: this._video?.muted,
+                    src: this._video?.src,
+                }
+            );
             if (err.name === "NotAllowedError") {
                 this._retryPlayOnGesture("video");
             }

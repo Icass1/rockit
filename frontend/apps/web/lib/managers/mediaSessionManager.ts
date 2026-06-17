@@ -144,7 +144,10 @@ export class MediaSessionManager {
 
     // ── Silent WAV unlock trick ────────────────────────────────────────
 
-    private static _unlockedElements = new WeakMap<HTMLAudioElement | HTMLVideoElement, boolean>();
+    private static _unlockedElements = new WeakMap<
+        HTMLAudioElement | HTMLVideoElement,
+        boolean
+    >();
     private _needsUnlock = false;
     private _unlockPromise: Promise<void> | null = null;
 
@@ -209,7 +212,8 @@ export class MediaSessionManager {
             const stream = canvas.captureStream(1);
             videoEl.muted = true;
             videoEl.srcObject = stream;
-            videoEl.play()
+            videoEl
+                .play()
                 .then((): void => {
                     MediaSessionManager._unlockedElements.set(videoEl, true);
                     videoEl.pause();

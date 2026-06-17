@@ -23,9 +23,9 @@ skills/
 # ============================
 # Local data / assets
 # ============================
-songs/
-media/
-images/
+/songs/
+/media/
+/images/
 temp/
 builds/
 cache/
@@ -108,3 +108,17 @@ yarn-error.log*
 # Spotify cache
 .spotify
 .spotify_cache
+
+
+.opencode
+.claude
+*.md
+Vocabulary.xlsx
+skills-lock.json
+pyright.txt
+pyrightconfig.json
+opencode.json
+lint.txt
+Dockerfile.*
+
+/scripts/

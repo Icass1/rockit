@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 from backend.core.enums.requestTypeEnum import RequestTypeEnum
 from backend.core.enums.requestStatusEnum import RequestStatusEnum
@@ -17,6 +17,10 @@ class UserRequestResponse(BaseModel):
     dateAdded: datetime
     userName: str | None = None
     userImage: str | None = None
+
+    @field_serializer("status")
+    def serialize_repeat_mode(self, repeat_mode: RequestStatusEnum) -> str:
+        return repeat_mode.name
 
 
 class UserRequestListResponse(BaseModel):

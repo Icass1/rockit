@@ -238,7 +238,17 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
            {MediaTypeEnum.SONG.value}                     AS media_type_key
     FROM   rockit.song rs
     JOIN   core.media cm ON cm.id = rs.id
-    JOIN   core.image ci ON ci.id = rs.image_id"""
+    JOIN   core.image ci ON ci.id = rs.image_id
+    UNION ALL
+    SELECT cm.id                                          AS media_id,
+           COALESCE(rv.duration_ms, 0)                    AS duration_ms,
+           cm.public_id                                   AS public_id,
+           rv.name                                        AS media_name,
+           ci.url                                         AS image_url,
+           {MediaTypeEnum.VIDEO.value}                    AS media_type_key
+    FROM   rockit.video rv
+    JOIN   core.media cm ON cm.id = rv.id
+    JOIN   core.image ci ON ci.id = rv.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
         return """    SELECT rs.id           AS media_id,
@@ -249,7 +259,17 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.media             cm  ON cm.id = rs.id
     JOIN   rockit.song_artists    rsa ON rsa.song_id = rs.id
     JOIN   rockit.artist          ra  ON ra.id = rsa.artist_id
-    JOIN   core.image             ci  ON ci.id = ra.image_id"""
+    JOIN   core.image             ci  ON ci.id = ra.image_id
+    UNION ALL
+    SELECT rv.id          AS media_id,
+           cm.public_id   AS artist_public_id,
+           ra.name        AS artist_name,
+           ci.url         AS artist_image_url
+    FROM   rockit.video            rv
+    JOIN   core.media              cm  ON cm.id = rv.id
+    JOIN   rockit.video_artists    rva ON rva.video_id = rv.id
+    JOIN   rockit.artist           ra  ON ra.id = rva.artist_id
+    JOIN   core.image              ci  ON ci.id = ra.image_id"""
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
         return """    SELECT cm.id              AS media_id,

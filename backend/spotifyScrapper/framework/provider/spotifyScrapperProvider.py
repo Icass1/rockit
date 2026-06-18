@@ -13,6 +13,7 @@ from backend.core.access.enumAccess import EnumAccess
 
 from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
+from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.models.urlPattern import UrlPattern
 
 from backend.core.responses.searchResponse import BaseSearchResultsItem
@@ -433,6 +434,105 @@ class SpotifyScrapperProvider(BaseMediaProvider):
             if match:
                 return up.path_template.format(match.group(1))
         return None
+
+    async def add_from_url_async(
+        self, session: AsyncSession, url: str
+    ) -> AResult[AddFromUrlAResult]:
+        """Add a Spotify track/album/artist/playlist from URL to the database."""
+        internal_path: str | None = self.match_url(url)
+        if not internal_path:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Invalid Spotify URL",
+            )
+
+        parts = internal_path.strip("/").split("/")
+        if len(parts) < 3:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Invalid Spotify URL path",
+            )
+
+        resource_type = parts[1]
+        resource_id = parts[2]
+
+        if resource_type == "track":
+            a_result = await SpotifyScrapper.get_track_async(
+                session=session, spotify_id=resource_id
+            )
+            if a_result.is_not_ok():
+                logger.error(
+                    f"Error adding Spotify track from URL. {a_result.info()}"
+                )
+                return AResult(
+                    code=a_result.code(), message=a_result.message()
+                )
+
+            return AResult[AddFromUrlAResult](
+                code=AResultCode.OK,
+                message="OK",
+                result=a_result.result(),
+            )
+
+        elif resource_type == "album":
+            a_result = await SpotifyScrapper.get_album_async(
+                session=session, spotify_id=resource_id
+            )
+            if a_result.is_not_ok():
+                logger.error(
+                    f"Error adding Spotify album from URL. {a_result.info()}"
+                )
+                return AResult(
+                    code=a_result.code(), message=a_result.message()
+                )
+
+            return AResult[AddFromUrlAResult](
+                code=AResultCode.OK,
+                message="OK",
+                result=a_result.result(),
+            )
+
+        elif resource_type == "artist":
+            a_result = await SpotifyScrapper.get_artist_async(
+                session=session, spotify_id=resource_id
+            )
+            if a_result.is_not_ok():
+                logger.error(
+                    f"Error adding Spotify artist from URL. {a_result.info()}"
+                )
+                return AResult(
+                    code=a_result.code(), message=a_result.message()
+                )
+
+            return AResult[AddFromUrlAResult](
+                code=AResultCode.OK,
+                message="OK",
+                result=a_result.result(),
+            )
+
+        elif resource_type == "playlist":
+            a_result = await SpotifyScrapper.get_playlist_with_medias_async(
+                session=session, spotify_id=resource_id
+            )
+            if a_result.is_not_ok():
+                logger.error(
+                    f"Error adding Spotify playlist from URL. {a_result.info()}"
+                )
+                return AResult(
+                    code=a_result.code(), message=a_result.message()
+                )
+
+            return AResult[AddFromUrlAResult](
+                code=AResultCode.OK,
+                message="OK",
+                result=a_result.result(),
+            )
+
+        else:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message=f"Unknown Spotify resource type: {resource_type}",
+            )
 
     def get_stats_media_info_cte_fragment(self) -> str | None:
         from backend.core.enums.mediaTypeEnum import MediaTypeEnum

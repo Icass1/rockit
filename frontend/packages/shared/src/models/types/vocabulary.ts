@@ -75,9 +75,6 @@ export interface Vocabulary {
     ADMIN_USERS_SUBTITLE: string;
     ADMIN_USERS_TITLE: string;
     ADMIN_VERSION: string;
-    UNIQUE_SONGS_LISTENED: string;
-    UNIQUE_MEDIAS_LISTENED: string;
-    UNIQUE_VIDEOS_LISTENED: string;
     ALBUM: string;
     ALBUMS: string;
     ALBUMS_SINGLES: string;
@@ -354,4 +351,7 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
+    UNIQUE_SONGS_LISTENED: string;
+    UNIQUE_MEDIAS_LISTENED: string;
+    UNIQUE_VIDEOS_LISTENED: string;
 }

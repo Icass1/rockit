@@ -151,6 +151,7 @@ class SpotifyScrapperDownload(BaseDownload):
 
             downloaded_result: Dict[str, Any] = a_result_download.result()
             downloaded_filename: str = downloaded_result["filepath"]
+            real_duration_ms: Optional[int] = downloaded_result.get("duration_ms")
 
             logger.info(f"Track downloaded successfully: {downloaded_filename}")
 
@@ -176,6 +177,21 @@ class SpotifyScrapperDownload(BaseDownload):
                 return AResultCode(
                     code=AResultCode.GENERAL_ERROR,
                     message=f"Error updating track: {a_result_update.message()}",
+                )
+
+            if real_duration_ms is not None:
+                a_result_duration = await TrackAccess.update_track_real_duration_async(
+                    session=session,
+                    track_id=track.id,
+                    real_duration_ms=real_duration_ms,
+                )
+                if a_result_duration.is_not_ok():
+                    logger.error(
+                        f"Error updating real duration: {a_result_duration.message()}"
+                    )
+            else:
+                logger.warning(
+                    f"No real duration available from download result for track {track.id}"
                 )
 
             return AResultCode(code=AResultCode.OK, message="Download completed.")

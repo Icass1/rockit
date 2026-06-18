@@ -78,6 +78,8 @@ class TrackAccess:
         session: AsyncSession,
         track_id: int,
     ) -> AResultCode:
+        """Set the track's path to None so it can be re-downloaded."""
+
         try:
             stmt = select(TrackRow).where(TrackRow.id == track_id)
             result = await session.execute(stmt)
@@ -136,6 +138,43 @@ class TrackAccess:
         except Exception as e:
             logger.error(f"Failed to update track path: {e}")
             return AResultCode(
+                code=AResultCode.GENERAL_ERROR, message=f"Failed to update track: {e}"
+            )
+
+    @staticmethod
+    async def update_track_real_duration_async(
+        session: AsyncSession,
+        track_id: int,
+        real_duration_ms: int,
+    ) -> AResultCode:
+        try:
+            stmt = select(TrackRow).where(TrackRow.id == track_id)
+            result = await session.execute(stmt)
+            track: TrackRow | None = result.scalar_one_or_none()
+
+            if not track:
+                logger.error(f"Track with id {track_id} not found.")
+                return AResultCode(
+                    code=AResultCode.NOT_FOUND, message="Track not found."
+                )
+
+            track.real_duration_ms = real_duration_ms
+
+            await session.commit()
+
+            await session.refresh(track)
+            session.expunge(track)
+
+            logger.info(
+                f"Updated real_duration_ms for track {track_id}: {real_duration_ms}ms"
+            )
+            return AResultCode(
+                code=AResultCode.OK, message="Track real duration updated."
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to update track real duration: {e}")
+            return AResultCode(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to update track: {e}",
+                message=f"Failed to update track real duration: {e}",
             )

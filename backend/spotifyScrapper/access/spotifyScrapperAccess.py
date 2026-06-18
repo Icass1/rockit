@@ -51,6 +51,9 @@ from backend.spotifyScrapper.framework.spotifyScrapperApi import (
     ScrappedArtist,
     ScrappedPlaylist,
 )
+from backend.spotifyScrapper.framework.models.spotifyScrapperApi import (
+    ScrappedImage,
+)
 
 from backend.spotifyScrapper.framework.models.playlistTrackLink import (
     PlaylistTrackLink,
@@ -388,6 +391,15 @@ class SpotifyScrapperAccess:
             )
 
     @staticmethod
+    def _get_largest_image(images: List[ScrappedImage]) -> ScrappedImage | None:
+        if not images:
+            return None
+        return max(
+            images,
+            key=lambda img: (img.width or 0) * (img.height or 0),
+        )
+
+    @staticmethod
     @time_it
     async def _get_or_create_genre(
         session: AsyncSession,
@@ -443,9 +455,10 @@ class SpotifyScrapperAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
 
             image_id: int | None = None
-            if raw.images:
+            largest = SpotifyScrapperAccess._get_largest_image(raw.images)
+            if largest and largest.url:
                 a_img = await SpotifyScrapperAccess._download_and_create_internal_image(
-                    session, raw.images[0].url
+                    session, largest.url
                 )
                 if a_img.is_ok():
                     image_id = a_img.result().id
@@ -552,10 +565,11 @@ class SpotifyScrapperAccess:
             )
 
             image_id: int | None = None
-            if raw.images:
+            largest = SpotifyScrapperAccess._get_largest_image(raw.images)
+            if largest and largest.url:
                 a_img: AResult[ImageRow] = (
                     await SpotifyScrapperAccess._download_and_create_internal_image(
-                        session, raw.images[0].url
+                        session, largest.url
                     )
                 )
                 if a_img.is_ok():
@@ -758,9 +772,10 @@ class SpotifyScrapperAccess:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
 
             image_id: int | None = None
-            if raw.images:
+            largest = SpotifyScrapperAccess._get_largest_image(raw.images)
+            if largest and largest.url:
                 a_img = await SpotifyScrapperAccess._download_and_create_internal_image(
-                    session, raw.images[0].url
+                    session, largest.url
                 )
                 if a_img.is_ok():
                     image_id = a_img.result().id

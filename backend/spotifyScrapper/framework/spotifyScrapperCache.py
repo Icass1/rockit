@@ -9,7 +9,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.spotifyScrapper.access.spotifyScrapperCacheAccess import (
     SpotifyScrapperCacheAccess,
 )
-from backend.spotifyScrapper.framework.spotifyScrapperApi import (
+from backend.spotifyScrapper.framework.models.spotifyScrapperApi import (
     ScrappedAlbum,
     ScrappedTrack,
     ScrappedArtist,

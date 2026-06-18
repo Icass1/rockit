@@ -1,5 +1,9 @@
 from backend.spotifyScrapper.access.db.base import SpotifyScrapperBase
 
+from backend.spotifyScrapper.access.db.ormEnums.copyrightTypeEnum import (
+    CopyrightTypeEnumRow as CopyrightTypeEnumRow,
+)
+
 from backend.spotifyScrapper.access.db.ormModels.externalImage import (
     ExternalImageRow as ExternalImageRow,
 )

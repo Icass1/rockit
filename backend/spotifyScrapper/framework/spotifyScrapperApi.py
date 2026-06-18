@@ -1,5 +1,5 @@
 import math
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List
 from urllib.parse import quote_plus
 
 import httpx
@@ -14,153 +14,19 @@ from backend.spotifyScrapper.framework.spotifyScrapperCache import SpotifyScrapp
 
 from backend.spotifyScrapper.framework.models.spotifyScrapperApi import (
     ScrappedAlbum,
-    ScrappedImage,
     ScrappedArtist,
     ScrappedPlaylist,
-    ScrappedPlaylistItem,
     ScrappedSearchResults,
     ScrappedTrack,
+    parse_album,
+    parse_artist,
+    parse_image,
+    parse_playlist,
+    parse_playlist_item,
+    parse_track,
 )
 
 logger = getLogger(__name__)
-
-
-def parse_image(raw: Dict[str, Any]) -> ScrappedImage:
-    raw_url: str = cast(str, raw.get("url", ""))
-    raw_width: Any = raw.get("width")
-    raw_height: Any = raw.get("height")
-    return ScrappedImage(url=raw_url, width=raw_width, height=raw_height)
-
-
-def parse_artist(raw: Dict[str, Any]) -> ScrappedArtist:
-    raw_images: List[Dict[str, Any]] = cast(
-        List[Dict[str, Any]], raw.get("images", []) or []
-    )
-    raw_genres: List[str] = cast(List[str], raw.get("genres", []) or [])
-    raw_followers: Dict[str, Any] = cast(Dict[str, Any], raw.get("followers", {}) or {})
-    raw_popularity: int = cast(int, raw.get("popularity", 0) or 0)
-    return ScrappedArtist(
-        id=cast(str, raw.get("id", "")),
-        name=cast(str, raw.get("name", "")),
-        genres=raw_genres,
-        images=[parse_image(i) for i in raw_images],
-        followers=cast(int, raw_followers.get("total", 0) or 0),
-        popularity=raw_popularity,
-    )
-
-
-def parse_track(raw: Dict[str, Any]) -> ScrappedTrack:
-    raw_artists: List[Dict[str, Any]] = cast(
-        List[Dict[str, Any]], raw.get("artists", []) or []
-    )
-    raw_album: Dict[str, Any] | None = cast(Dict[str, Any] | None, raw.get("album"))
-    album: ScrappedAlbum | None = None
-    if raw_album is not None:
-        raw_album_artists: List[Dict[str, Any]] = cast(
-            List[Dict[str, Any]], raw_album.get("artists", []) or []
-        )
-        raw_album_images: List[Dict[str, Any]] = cast(
-            List[Dict[str, Any]], raw_album.get("images", []) or []
-        )
-        album = ScrappedAlbum(
-            id=cast(str, raw_album.get("id", "")),
-            name=cast(str, raw_album.get("name", "")),
-            artists=[parse_artist(a) for a in raw_album_artists],
-            images=[parse_image(i) for i in raw_album_images],
-            release_date=cast(str, raw_album.get("release_date", "")),
-            total_tracks=cast(int, raw_album.get("total_tracks", 0)),
-        )
-    raw_ext_ids: Dict[str, Any] = cast(
-        Dict[str, Any], raw.get("external_ids", {}) or {}
-    )
-    return ScrappedTrack(
-        id=cast(str, raw.get("id", "")),
-        name=cast(str, raw.get("name", "")),
-        artists=[parse_artist(a) for a in raw_artists],
-        album=album,
-        duration_ms=cast(int, raw.get("duration_ms", 0) or 0),
-        track_number=cast(int, raw.get("track_number", 0) or 0),
-        disc_number=cast(int, raw.get("disc_number", 1) or 1),
-        popularity=cast(int, raw.get("popularity", 0) or 0),
-        isrc=cast(str, raw_ext_ids.get("isrc", "")),
-        preview_url=cast(str | None, raw.get("preview_url")),
-    )
-
-
-def parse_album(raw: Dict[str, Any]) -> ScrappedAlbum:
-    raw_artists: List[Dict[str, Any]] = cast(
-        List[Dict[str, Any]], raw.get("artists", []) or []
-    )
-    raw_images: List[Dict[str, Any]] = cast(
-        List[Dict[str, Any]], raw.get("images", []) or []
-    )
-    raw_tracks_obj: Dict[str, Any] | None = cast(
-        Dict[str, Any] | None, raw.get("tracks")
-    )
-    raw_tracks: List[Dict[str, Any]]
-    if raw_tracks_obj is not None:
-        raw_tracks = cast(List[Dict[str, Any]], raw_tracks_obj.get("items", []) or [])
-    else:
-        raw_tracks = cast(List[Dict[str, Any]], raw.get("tracks", []) or [])
-    raw_copyrights: List[Dict[str, str]] = cast(
-        List[Dict[str, str]], raw.get("copyrights", []) or []
-    )
-    return ScrappedAlbum(
-        id=cast(str, raw.get("id", "")),
-        name=cast(str, raw.get("name", "")),
-        artists=[parse_artist(a) for a in raw_artists],
-        images=[parse_image(i) for i in raw_images],
-        release_date=cast(str, raw.get("release_date", "")),
-        total_tracks=cast(int, raw.get("total_tracks", 0)),
-        popularity=cast(int, raw.get("popularity", 0) or 0),
-        copyrights=[
-            {"type": c.get("type", ""), "text": c.get("text", "")}
-            for c in raw_copyrights
-        ],
-        tracks=[parse_track(t) for t in raw_tracks],
-    )
-
-
-def parse_playlist_item(raw: Dict[str, Any]) -> ScrappedPlaylistItem:
-    raw_track: Dict[str, Any] | None = cast(Dict[str, Any] | None, raw.get("track"))
-    track: ScrappedTrack | None = (
-        parse_track(raw_track) if raw_track is not None else None
-    )
-    raw_added_by: Dict[str, Any] | None = cast(
-        Dict[str, Any] | None, raw.get("added_by")
-    )
-    return ScrappedPlaylistItem(
-        track=track,
-        added_at=cast(str, raw.get("added_at", "")),
-        added_by=cast(
-            str, raw_added_by.get("id", "") if raw_added_by is not None else ""
-        ),
-    )
-
-
-def parse_playlist(raw: Dict[str, Any]) -> ScrappedPlaylist:
-    raw_images: List[Dict[str, Any]] = cast(
-        List[Dict[str, Any]], raw.get("images", []) or []
-    )
-    raw_tracks_obj: Dict[str, Any] | None = cast(
-        Dict[str, Any] | None, raw.get("tracks")
-    )
-    raw_tracks: List[Dict[str, Any]]
-    if raw_tracks_obj is not None:
-        raw_tracks = cast(List[Dict[str, Any]], raw_tracks_obj.get("items", []) or [])
-    else:
-        raw_tracks = cast(List[Dict[str, Any]], [])
-    raw_owner: Dict[str, Any] = cast(Dict[str, Any], raw.get("owner", {}) or {})
-    return ScrappedPlaylist(
-        id=cast(str, raw.get("id", "")),
-        name=cast(str, raw.get("name", "")),
-        description=cast(str, raw.get("description", "") or ""),
-        images=[parse_image(i) for i in raw_images],
-        owner=cast(
-            str, raw_owner.get("display_name", "") or raw_owner.get("id", "") or ""
-        ),
-        tracks=[parse_playlist_item(t) for t in raw_tracks],
-    )
 
 
 # ── The scraper API client ──────────────────────────────────────────────────

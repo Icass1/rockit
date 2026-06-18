@@ -427,6 +427,8 @@ class SpotifyProvider(BaseMediaProvider):
 
     def match_url(self, url: str) -> str | None:
         """Check if the URL is a Spotify URL and return the internal path."""
+        return None
+
         for up in SPOTIFY_URL_PATTERNS:
             match = up.pattern.match(url)
             if match:

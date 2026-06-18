@@ -461,12 +461,8 @@ class SpotifyScrapperProvider(BaseMediaProvider):
                 session=session, spotify_id=resource_id
             )
             if a_result.is_not_ok():
-                logger.error(
-                    f"Error adding Spotify track from URL. {a_result.info()}"
-                )
-                return AResult(
-                    code=a_result.code(), message=a_result.message()
-                )
+                logger.error(f"Error adding Spotify track from URL. {a_result.info()}")
+                return AResult(code=a_result.code(), message=a_result.message())
 
             return AResult[AddFromUrlAResult](
                 code=AResultCode.OK,
@@ -479,12 +475,8 @@ class SpotifyScrapperProvider(BaseMediaProvider):
                 session=session, spotify_id=resource_id
             )
             if a_result.is_not_ok():
-                logger.error(
-                    f"Error adding Spotify album from URL. {a_result.info()}"
-                )
-                return AResult(
-                    code=a_result.code(), message=a_result.message()
-                )
+                logger.error(f"Error adding Spotify album from URL. {a_result.info()}")
+                return AResult(code=a_result.code(), message=a_result.message())
 
             return AResult[AddFromUrlAResult](
                 code=AResultCode.OK,
@@ -497,12 +489,8 @@ class SpotifyScrapperProvider(BaseMediaProvider):
                 session=session, spotify_id=resource_id
             )
             if a_result.is_not_ok():
-                logger.error(
-                    f"Error adding Spotify artist from URL. {a_result.info()}"
-                )
-                return AResult(
-                    code=a_result.code(), message=a_result.message()
-                )
+                logger.error(f"Error adding Spotify artist from URL. {a_result.info()}")
+                return AResult(code=a_result.code(), message=a_result.message())
 
             return AResult[AddFromUrlAResult](
                 code=AResultCode.OK,
@@ -518,9 +506,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
                 logger.error(
                     f"Error adding Spotify playlist from URL. {a_result.info()}"
                 )
-                return AResult(
-                    code=a_result.code(), message=a_result.message()
-                )
+                return AResult(code=a_result.code(), message=a_result.message())
 
             return AResult[AddFromUrlAResult](
                 code=AResultCode.OK,

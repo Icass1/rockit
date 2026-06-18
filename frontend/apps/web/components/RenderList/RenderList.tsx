@@ -3,6 +3,7 @@
 import { useCallback, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { Play } from "lucide-react";
 import { getAllPlayableMedia, isQueueable, TMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -32,6 +33,8 @@ export default function RenderList({
     coverOverlay?: ReactNode;
 }): JSX.Element {
     const playableMedia = getAllPlayableMedia(media);
+
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const handlePlay = useCallback((): void => {
         if (!listPublicId || !playableMedia.length) return;
@@ -121,6 +124,11 @@ export default function RenderList({
                                 expandedByMediaId={expandedByMediaId}
                             />
                         )
+                    )}
+                    {media.length === 0 && (
+                        <p className="text-center text-lg font-semibold text-balance text-neutral-400">
+                            {$vocabulary.NO_MEDIA_FOUND}
+                        </p>
                     )}
                 </div>
             </div>

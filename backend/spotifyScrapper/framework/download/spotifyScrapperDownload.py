@@ -33,7 +33,6 @@ class SpotifyScrapperDownload(BaseDownload):
         artists: list[str]
         album_title: str
         duration_ms: int
-        isrc: str
 
     def __init__(
         self,
@@ -97,7 +96,6 @@ class SpotifyScrapperDownload(BaseDownload):
                     artists=artist_names,
                     album_title=track.album.name,
                     duration_ms=track.duration_ms,
-                    isrc=track.isrc,
                 )
 
                 a_result_youtube: AResult[str] = await self.search_best_youtube_video(
@@ -193,8 +191,6 @@ class SpotifyScrapperDownload(BaseDownload):
         query_parts.extend(song.artists)
         if song.album_title:
             query_parts.append(song.album_title)
-        if song.isrc:
-            query_parts.append(song.isrc)
         return " ".join(query_parts)
 
     def normalize_string(self, s: str) -> str:

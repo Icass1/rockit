@@ -436,17 +436,7 @@ class SpotifyScrapperAccess:
         provider_id: int,
     ) -> AResult[ArtistRow]:
         try:
-            stmt = (
-                select(ArtistRow)
-                .join(
-                    CoreMediaRow,
-                    and_(
-                        CoreMediaRow.id == ArtistRow.id,
-                        CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
-                    ),
-                )
-                .where(CoreMediaRow.public_id == raw.id)
-            )
+            stmt = select(ArtistRow).where(ArtistRow.spotify_id == raw.id)
             result = await session.execute(stmt)
             existing: ArtistRow | None = result.scalar_one_or_none()
             if existing:
@@ -551,17 +541,7 @@ class SpotifyScrapperAccess:
         provider_id: int,
     ) -> AResult[AlbumRow]:
         try:
-            stmt = (
-                select(AlbumRow)
-                .join(
-                    CoreMediaRow,
-                    and_(
-                        CoreMediaRow.id == AlbumRow.id,
-                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
-                    ),
-                )
-                .where(CoreMediaRow.public_id == raw.id)
-            )
+            stmt = select(AlbumRow).where(AlbumRow.spotify_id == raw.id)
             result = await session.execute(stmt)
             existing: AlbumRow | None = result.scalar_one_or_none()
             if existing:
@@ -610,7 +590,12 @@ class SpotifyScrapperAccess:
             if raw.artists:
                 for a in raw.artists:
                     if a.id and a.id in artist_map:
-                        album_row.artists.append(artist_map[a.id])
+                        await session.execute(
+                            album_artists.insert().values(
+                                album_id=album_row.id,
+                                artist_id=artist_map[a.id].id,
+                            )
+                        )
 
             if raw.copyrights:
                 for c in raw.copyrights:
@@ -643,17 +628,7 @@ class SpotifyScrapperAccess:
             )
             await session.rollback()
             session.expire_all()
-            stmt = (
-                select(AlbumRow)
-                .join(
-                    CoreMediaRow,
-                    and_(
-                        CoreMediaRow.id == AlbumRow.id,
-                        CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
-                    ),
-                )
-                .where(CoreMediaRow.public_id == raw.id)
-            )
+            stmt = select(AlbumRow).where(AlbumRow.spotify_id == raw.id)
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:
@@ -683,14 +658,8 @@ class SpotifyScrapperAccess:
         try:
             stmt = (
                 select(TrackRow)
-                .join(
-                    CoreMediaRow,
-                    and_(
-                        CoreMediaRow.id == TrackRow.id,
-                        CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
-                    ),
-                )
-                .where(CoreMediaRow.public_id == raw.id)
+                .where(TrackRow.spotify_id == raw.id)
+                .options(selectinload(TrackRow.album))
             )
             result = await session.execute(stmt)
             existing: TrackRow | None = result.scalar_one_or_none()
@@ -721,7 +690,6 @@ class SpotifyScrapperAccess:
                 track_number=raw.track_number,
                 disc_number=raw.disc_number,
                 album_id=album_row.id,
-                isrc=raw.isrc,
                 popularity=raw.popularity,
                 preview_url=raw.preview_url,
             )
@@ -736,6 +704,35 @@ class SpotifyScrapperAccess:
             await session.flush()
             return AResult(
                 code=AResultCode.OK, message="OK", result=(track_row, core_song)
+            )
+
+        except IntegrityError:
+            logger.warning(
+                f"IntegrityError in get_or_create_track for {raw.id}, rolling back and fetching existing"
+            )
+            await session.rollback()
+            session.expire_all()
+            stmt = (
+                select(TrackRow)
+                .where(TrackRow.spotify_id == raw.id)
+                .options(selectinload(TrackRow.album))
+            )
+            result = await session.execute(stmt)
+            existing = result.scalar_one_or_none()
+            if existing:
+                existing_core = await session.get(CoreMediaRow, existing.id)
+                if existing_core is None:
+                    return AResult(
+                        code=AResultCode.GENERAL_ERROR,
+                        message="CoreMediaRow not found for existing track",
+                    )
+                return AResult(
+                    code=AResultCode.OK, message="OK", result=(existing, existing_core)
+                )
+            logger.error(f"Track {raw.id} not found after IntegrityError rollback")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Failed to get or create track after conflict",
             )
 
         except Exception as e:
@@ -754,17 +751,7 @@ class SpotifyScrapperAccess:
         provider_id: int,
     ) -> AResult[PlaylistRow]:
         try:
-            stmt = (
-                select(PlaylistRow)
-                .join(
-                    CoreMediaRow,
-                    and_(
-                        CoreMediaRow.id == PlaylistRow.id,
-                        CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
-                    ),
-                )
-                .where(CoreMediaRow.public_id == raw.id)
-            )
+            stmt = select(PlaylistRow).where(PlaylistRow.spotify_id == raw.id)
             result = await session.execute(stmt)
             existing: PlaylistRow | None = result.scalar_one_or_none()
             if existing:
@@ -835,6 +822,23 @@ class SpotifyScrapperAccess:
 
             await session.flush()
             return AResult(code=AResultCode.OK, message="OK", result=playlist_row)
+
+        except IntegrityError:
+            logger.warning(
+                f"IntegrityError in get_or_create_playlist for {raw.id}, rolling back and fetching existing"
+            )
+            await session.rollback()
+            session.expire_all()
+            stmt = select(PlaylistRow).where(PlaylistRow.spotify_id == raw.id)
+            result = await session.execute(stmt)
+            existing = result.scalar_one_or_none()
+            if existing:
+                return AResult(code=AResultCode.OK, message="OK", result=existing)
+            logger.error(f"Playlist {raw.id} not found after IntegrityError rollback")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Failed to get or create playlist after conflict",
+            )
 
         except Exception as e:
             logger.error(f"Failed to get/create playlist: {e}")

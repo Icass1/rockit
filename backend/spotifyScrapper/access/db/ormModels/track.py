@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import String, ForeignKey, Text, Integer
+from sqlalchemy import String, ForeignKey, Integer
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -44,10 +44,7 @@ class TrackRow(
     album_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("spotify_scrapper.album.id"), nullable=False
     )
-    isrc: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     download_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
-    dynamic_lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
     preview_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
     artists: WriteOnlyMapped[List["ArtistRow"]] = relationship(
@@ -73,13 +70,10 @@ class TrackRow(
         track_number: int,
         disc_number: int,
         album_id: int,
-        isrc: str,
         real_duration_ms: int | None = None,
         popularity: int | None = None,
         path: str | None = None,
         download_url: str | None = None,
-        lyrics: str | None = None,
-        dynamic_lyrics: str | None = None,
         preview_url: str | None = None,
     ):
         kwargs: Dict[str, None | int | str] = {}
@@ -90,13 +84,10 @@ class TrackRow(
         kwargs["track_number"] = track_number
         kwargs["disc_number"] = disc_number
         kwargs["album_id"] = album_id
-        kwargs["isrc"] = isrc
         kwargs["real_duration_ms"] = real_duration_ms
         kwargs["popularity"] = popularity
         kwargs["path"] = path
         kwargs["download_url"] = download_url
-        kwargs["lyrics"] = lyrics
-        kwargs["dynamic_lyrics"] = dynamic_lyrics
         kwargs["preview_url"] = preview_url
         for k, v in kwargs.items():
             setattr(self, k, v)

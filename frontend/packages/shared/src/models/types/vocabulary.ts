@@ -354,4 +354,5 @@ export interface Vocabulary {
     UNIQUE_SONGS_LISTENED: string;
     UNIQUE_MEDIAS_LISTENED: string;
     UNIQUE_VIDEOS_LISTENED: string;
+    NO_MEDIA_FOUND: string;
 }

@@ -15,6 +15,20 @@ interface RankingListProps {
 
 const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
 
+function formatMs(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const pad = (n: number): string => n.toString().padStart(2, "0");
+
+    if (hours > 0) {
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+    return `${pad(minutes)}:${pad(seconds)}`;
+}
+
 export default function RankingList({
     items,
     showImages = false,
@@ -153,7 +167,7 @@ function RankingRow({
                 </div>
 
                 <span className="text-right text-sm font-medium text-neutral-400 tabular-nums md:w-5 md:text-base">
-                    {item.value}
+                    {formatMs(item.value)}
                     {valueLabel}
                 </span>
             </div>

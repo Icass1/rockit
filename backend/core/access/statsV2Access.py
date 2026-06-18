@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from dataclasses import dataclass
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -106,36 +106,49 @@ def _utc(dt: datetime) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
-class StatsAccess:
+@dataclass
+class StatsV2SummaryData:
+    unique_medias_listened: int
+    unique_songs_listened: int
+    unique_videos_listened: int
+    total_sessions: int
+    total_play_time_ms: int
+    total_play_time_minutes: float
+    avg_play_time_per_media_ms: float
+
+
+class StatsV2Access:
     @staticmethod
     async def get_summary_async(
         session: AsyncSession,
         user_id: int,
         start_date: datetime,
         end_date: datetime,
-    ) -> AResult[dict[str, Any]]:
+    ) -> AResult[StatsV2SummaryData]:
         sql = text(f"""
         WITH {_get_media_info_cte()},
-        listens AS (
-            SELECT uml.media_id, cm.media_type_key
-            FROM   core.user_media_listened uml
-            JOIN   core.media               cm  ON cm.id = uml.media_id
-            WHERE  uml.user_id    = :user_id
-              AND  uml.date_added >= :start_date
-              AND  uml.date_added <  :end_date
+        interval_listens AS (
+            SELECT umli.media_id, cm.media_type_key,
+                   (umli.time_ms_end - umli.time_ms_start) AS interval_ms
+            FROM   core.user_media_listen_interval umli
+            JOIN   core.media                       cm  ON cm.id = umli.media_id
+            WHERE  umli.user_id    = :user_id
+              AND  umli.date_added >= :start_date
+              AND  umli.date_added <  :end_date
               AND  cm.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
         )
         SELECT
-            COUNT(*)                                                        AS medias_listened,
-            COUNT(*) FILTER (WHERE l.media_type_key = {MediaTypeEnum.SONG.value})  AS songs_listened,
-            COUNT(*) FILTER (WHERE l.media_type_key = {MediaTypeEnum.VIDEO.value}) AS videos_listened,
-            COALESCE(SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0, 0) AS total_minutes,
-            CASE WHEN COUNT(*) > 0
-                 THEN SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 / COUNT(*)
+            COUNT(DISTINCT l.media_id)                                                        AS medias_listened,
+            COUNT(DISTINCT l.media_id) FILTER (WHERE l.media_type_key = {MediaTypeEnum.SONG.value})  AS songs_listened,
+            COUNT(DISTINCT l.media_id) FILTER (WHERE l.media_type_key = {MediaTypeEnum.VIDEO.value}) AS videos_listened,
+            COUNT(*)                                                                           AS total_sessions,
+            COALESCE(SUM(COALESCE(l.interval_ms, 0)), 0)::bigint                              AS total_play_time_ms,
+            COALESCE(SUM(COALESCE(l.interval_ms, 0))::float / 60000.0, 0)                     AS total_play_time_minutes,
+            CASE WHEN COUNT(DISTINCT l.media_id) > 0
+                 THEN COALESCE(SUM(COALESCE(l.interval_ms, 0)), 0)::float / COUNT(DISTINCT l.media_id)
                  ELSE 0
-            END                                                             AS avg_minutes
-        FROM listens l
-        LEFT JOIN media_info mi ON mi.media_id = l.media_id
+            END                                                                               AS avg_play_time_per_media_ms
+        FROM interval_listens l
         """)
         row = (
             await session.execute(
@@ -152,24 +165,28 @@ class StatsAccess:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result={
-                    "medias_listened": 0,
-                    "songs_listened": 0,
-                    "videos_listened": 0,
-                    "total_minutes": 0.0,
-                    "avg_minutes": 0.0,
-                },
+                result=StatsV2SummaryData(
+                    unique_medias_listened=0,
+                    unique_songs_listened=0,
+                    unique_videos_listened=0,
+                    total_sessions=0,
+                    total_play_time_ms=0,
+                    total_play_time_minutes=0.0,
+                    avg_play_time_per_media_ms=0.0,
+                ),
             )
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result={
-                "medias_listened": int(row.medias_listened or 0),
-                "songs_listened": int(row.songs_listened or 0),
-                "videos_listened": int(row.videos_listened or 0),
-                "total_minutes": float(row.total_minutes or 0),
-                "avg_minutes": float(row.avg_minutes or 0),
-            },
+            result=StatsV2SummaryData(
+                unique_medias_listened=int(row.medias_listened or 0),
+                unique_songs_listened=int(row.songs_listened or 0),
+                unique_videos_listened=int(row.videos_listened or 0),
+                total_sessions=int(row.total_sessions or 0),
+                total_play_time_ms=int(row.total_play_time_ms or 0),
+                total_play_time_minutes=float(row.total_play_time_minutes or 0),
+                avg_play_time_per_media_ms=float(row.avg_play_time_per_media_ms or 0),
+            ),
         )
 
     @staticmethod
@@ -186,19 +203,19 @@ class StatsAccess:
 
         sql = text(f"""
         WITH {_get_media_info_cte()},
-        listens AS (
-            SELECT uml.media_id, uml.date_added
-            FROM   core.user_media_listened uml
-            JOIN   core.media               cm  ON cm.id = uml.media_id
-            WHERE  uml.user_id    = :user_id
-              AND  uml.date_added >= :start_date
-              AND  uml.date_added <  :end_date
+        interval_listens AS (
+            SELECT umli.media_id, umli.date_added,
+                   (umli.time_ms_end - umli.time_ms_start) AS interval_ms
+            FROM   core.user_media_listen_interval umli
+            JOIN   core.media                       cm  ON cm.id = umli.media_id
+            WHERE  umli.user_id    = :user_id
+              AND  umli.date_added >= :start_date
+              AND  umli.date_added <  :end_date
               AND  cm.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
         )
         SELECT DATE_TRUNC('{pg_period}', l.date_added AT TIME ZONE 'UTC') AS period_start,
-               SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 AS minutes
-        FROM   listens l
-        LEFT JOIN media_info mi ON mi.media_id = l.media_id
+               SUM(COALESCE(l.interval_ms, 0))::float / 60000.0 AS minutes
+        FROM   interval_listens l
         GROUP BY period_start
         ORDER BY period_start
         """)
@@ -286,29 +303,30 @@ class StatsAccess:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         {_get_artist_info_cte()},
-        play_counts AS (
-            SELECT uml.media_id, COUNT(*) AS play_count
-            FROM   core.user_media_listened uml
-            JOIN   media_info mi ON mi.media_id = uml.media_id
-            WHERE  uml.user_id    = :user_id
-              AND  uml.date_added >= :start_date
-              AND  uml.date_added <  :end_date
+        listen_durations AS (
+            SELECT umli.media_id,
+                   SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
+            FROM   core.user_media_listen_interval umli
+            JOIN   media_info mi ON mi.media_id = umli.media_id
+            WHERE  umli.user_id    = :user_id
+              AND  umli.date_added >= :start_date
+              AND  umli.date_added <  :end_date
               AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
-            GROUP BY uml.media_id
-            ORDER BY play_count DESC
+            GROUP BY umli.media_id
+            ORDER BY total_ms DESC
             LIMIT :limit
         )
         SELECT mi.public_id,
                mi.media_name,
                mi.image_url,
-               pc.play_count,
+               ld.total_ms,
                (SELECT ai.artist_name
                 FROM   artist_info ai
-                WHERE  ai.media_id = pc.media_id
+                WHERE  ai.media_id = ld.media_id
                 LIMIT  1)           AS subtitle
-        FROM   play_counts pc
-        JOIN   media_info  mi ON mi.media_id = pc.media_id
-        ORDER BY pc.play_count DESC
+        FROM   listen_durations ld
+        JOIN   media_info  mi ON mi.media_id = ld.media_id
+        ORDER BY ld.total_ms DESC
         """)
         rows = (
             await session.execute(
@@ -329,7 +347,7 @@ class StatsAccess:
                     publicId=r.public_id,
                     name=r.media_name,
                     href=f"/song/{r.public_id}",
-                    value=int(r.play_count),
+                    value=int(r.total_ms),
                     imageUrl=r.image_url,
                     subtitle=r.subtitle,
                 )
@@ -348,29 +366,30 @@ class StatsAccess:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         {_get_artist_info_cte()},
-        play_counts AS (
-            SELECT uml.media_id, COUNT(*) AS play_count
-            FROM   core.user_media_listened uml
-            JOIN   media_info mi ON mi.media_id = uml.media_id
-            WHERE  uml.user_id    = :user_id
-              AND  uml.date_added >= :start_date
-              AND  uml.date_added <  :end_date
+        listen_durations AS (
+            SELECT umli.media_id,
+                   SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
+            FROM   core.user_media_listen_interval umli
+            JOIN   media_info mi ON mi.media_id = umli.media_id
+            WHERE  umli.user_id    = :user_id
+              AND  umli.date_added >= :start_date
+              AND  umli.date_added <  :end_date
               AND  mi.media_type_key = {MediaTypeEnum.VIDEO.value}
-            GROUP BY uml.media_id
-            ORDER BY play_count DESC
+            GROUP BY umli.media_id
+            ORDER BY total_ms DESC
             LIMIT :limit
         )
         SELECT mi.public_id,
                mi.media_name,
                mi.image_url,
-               pc.play_count,
+               ld.total_ms,
                (SELECT ai.artist_name
                 FROM   artist_info ai
-                WHERE  ai.media_id = pc.media_id
+                WHERE  ai.media_id = ld.media_id
                 LIMIT  1)           AS subtitle
-        FROM   play_counts pc
-        JOIN   media_info  mi ON mi.media_id = pc.media_id
-        ORDER BY pc.play_count DESC
+        FROM   listen_durations ld
+        JOIN   media_info  mi ON mi.media_id = ld.media_id
+        ORDER BY ld.total_ms DESC
         """)
         rows = (
             await session.execute(
@@ -391,7 +410,7 @@ class StatsAccess:
                     publicId=r.public_id,
                     name=r.media_name,
                     href=f"/video/{r.public_id}",
-                    value=int(r.play_count),
+                    value=int(r.total_ms),
                     imageUrl=r.image_url,
                     subtitle=r.subtitle,
                 )
@@ -412,14 +431,14 @@ class StatsAccess:
         SELECT   ai.artist_public_id  AS public_id,
                  ai.artist_name       AS name,
                  ai.artist_image_url  AS image_url,
-                 COUNT(*)             AS play_count
-        FROM     core.user_media_listened uml
-        JOIN     artist_info ai ON ai.media_id = uml.media_id
-        WHERE    uml.user_id    = :user_id
-          AND    uml.date_added >= :start_date
-          AND    uml.date_added <  :end_date
+                 SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
+        FROM     core.user_media_listen_interval umli
+        JOIN     artist_info ai ON ai.media_id = umli.media_id
+        WHERE    umli.user_id    = :user_id
+          AND    umli.date_added >= :start_date
+          AND    umli.date_added <  :end_date
         GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_url
-        ORDER BY play_count DESC
+        ORDER BY total_ms DESC
         LIMIT    :limit
         """)
         rows = (
@@ -441,7 +460,7 @@ class StatsAccess:
                     publicId=r.public_id,
                     name=r.name,
                     href=f"/artist/{r.public_id}",
-                    value=int(r.play_count),
+                    value=int(r.total_ms),
                     imageUrl=r.image_url,
                     subtitle=None,
                 )
@@ -462,14 +481,14 @@ class StatsAccess:
         SELECT   ai.album_public_id  AS public_id,
                  ai.album_name       AS name,
                  ai.album_image_url  AS image_url,
-                 COUNT(*)            AS play_count
-        FROM     core.user_media_listened uml
-        JOIN     album_info ai ON ai.media_id = uml.media_id
-        WHERE    uml.user_id    = :user_id
-          AND    uml.date_added >= :start_date
-          AND    uml.date_added <  :end_date
+                 SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
+        FROM     core.user_media_listen_interval umli
+        JOIN     album_info ai ON ai.media_id = umli.media_id
+        WHERE    umli.user_id    = :user_id
+          AND    umli.date_added >= :start_date
+          AND    umli.date_added <  :end_date
         GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
-        ORDER BY play_count DESC
+        ORDER BY total_ms DESC
         LIMIT    :limit
         """)
         rows = (
@@ -491,7 +510,7 @@ class StatsAccess:
                     publicId=r.public_id,
                     name=r.name,
                     href=f"/album/{r.public_id}",
-                    value=int(r.play_count),
+                    value=int(r.total_ms),
                     imageUrl=r.image_url,
                     subtitle=None,
                 )
@@ -506,16 +525,14 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
     ) -> AResult[list[StatsHeatmapCellResponse]]:
-        sql = text(f"""
-        WITH {_get_media_info_cte()}
-        SELECT EXTRACT(HOUR FROM uml.date_added)::int            AS hour,
-               EXTRACT(DOW  FROM uml.date_added)::int            AS day_of_week,
-               SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 AS minutes
-        FROM   core.user_media_listened uml
-        LEFT JOIN media_info mi ON mi.media_id = uml.media_id
-        WHERE  uml.user_id    = :user_id
-          AND  uml.date_added >= :start_date
-          AND  uml.date_added <  :end_date
+        sql = text("""
+        SELECT EXTRACT(HOUR FROM umli.date_added)::int            AS hour,
+               EXTRACT(DOW  FROM umli.date_added)::int            AS day_of_week,
+               SUM(umli.time_ms_end - umli.time_ms_start)::float / 60000.0 AS minutes
+        FROM   core.user_media_listen_interval umli
+        WHERE  umli.user_id    = :user_id
+          AND  umli.date_added >= :start_date
+          AND  umli.date_added <  :end_date
         GROUP BY hour, day_of_week
         """)
         rows = (
@@ -543,14 +560,13 @@ class StatsAccess:
         return AResult(code=AResultCode.OK, message="OK", result=cells)
 
     @staticmethod
-    @staticmethod
     async def get_first_listen_date_async(
         session: AsyncSession,
         user_id: int,
     ) -> AResult[datetime | None]:
         sql = text("""
         SELECT MIN(date_added) AS first_date
-        FROM   core.user_media_listened
+        FROM   core.user_media_listen_interval
         WHERE  user_id = :user_id
         """)
         row = (await session.execute(sql, {"user_id": user_id})).fetchone()
@@ -565,7 +581,7 @@ class StatsAccess:
     ) -> AResult[int]:
         sql = text("""
         SELECT DISTINCT DATE(date_added) AS listen_date
-        FROM   core.user_media_listened
+        FROM   core.user_media_listen_interval
         WHERE  user_id = :user_id
         ORDER BY listen_date DESC
         """)
@@ -591,120 +607,3 @@ class StatsAccess:
                 break
 
         return AResult(code=AResultCode.OK, message="OK", result=streak)
-
-    @staticmethod
-    async def get_recently_played_songs_async(
-        session: AsyncSession,
-        user_id: int,
-        limit: int = 50,
-    ) -> AResult[list[str]]:
-        """Get recently played song public_ids ordered by date_added DESC."""
-
-        sql = text(f"""
-        WITH {_get_media_info_cte()}
-        SELECT mi.public_id
-        FROM   core.user_media_listened uml
-        JOIN   media_info mi ON mi.media_id = uml.media_id
-        WHERE  uml.user_id = :user_id
-          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
-        GROUP BY mi.public_id
-        ORDER BY MAX(uml.date_added) DESC
-        LIMIT :limit
-        """)
-        rows = (
-            await session.execute(
-                sql,
-                {
-                    "user_id": user_id,
-                    "limit": limit,
-                },
-            )
-        ).fetchall()
-
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=[str(r.public_id) for r in rows],
-        )
-
-    @staticmethod
-    async def get_top_media_public_ids_async(
-        session: AsyncSession,
-        user_id: int,
-        start_date: datetime,
-        end_date: datetime,
-        limit: int = 50,
-    ) -> AResult[list[str]]:
-        """Get top songs and videos public_ids by play count."""
-
-        sql = text(f"""
-        WITH {_get_media_info_cte()},
-        play_counts AS (
-            SELECT uml.media_id, COUNT(*) AS play_count
-            FROM   core.user_media_listened uml
-            JOIN   media_info mi ON mi.media_id = uml.media_id
-            WHERE  uml.user_id    = :user_id
-              AND  uml.date_added >= :start_date
-              AND  uml.date_added <  :end_date
-              AND  mi.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
-            GROUP BY uml.media_id
-            ORDER BY play_count DESC
-            LIMIT :limit
-        )
-        SELECT mi.public_id
-        FROM   play_counts pc
-        JOIN   media_info  mi ON mi.media_id = pc.media_id
-        ORDER BY pc.play_count DESC
-        """)
-        rows = (
-            await session.execute(
-                sql,
-                {
-                    "user_id": user_id,
-                    "start_date": start_date.astimezone(timezone.utc),
-                    "end_date": end_date.astimezone(timezone.utc),
-                    "limit": limit,
-                },
-            )
-        ).fetchall()
-
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=[str(r.public_id) for r in rows],
-        )
-
-    @staticmethod
-    async def get_recently_played_media_public_ids_async(
-        session: AsyncSession,
-        user_id: int,
-        limit: int = 50,
-    ) -> AResult[list[str]]:
-        """Get recently played songs and videos public_ids ordered by date_added DESC."""
-
-        sql = text(f"""
-        WITH {_get_media_info_cte()}
-        SELECT mi.public_id
-        FROM   core.user_media_listened uml
-        JOIN   media_info mi ON mi.media_id = uml.media_id
-        WHERE  uml.user_id = :user_id
-          AND  mi.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
-        GROUP BY mi.public_id
-        ORDER BY MAX(uml.date_added) DESC
-        LIMIT :limit
-        """)
-        rows = (
-            await session.execute(
-                sql,
-                {
-                    "user_id": user_id,
-                    "limit": limit,
-                },
-            )
-        ).fetchall()
-
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=[str(r.public_id) for r in rows],
-        )

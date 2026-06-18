@@ -1,7 +1,8 @@
 "use client";
 
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import {
     Bar,
     BarChart,
@@ -11,6 +12,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
@@ -58,13 +60,24 @@ function CustomTooltip({
 }
 
 export default function MinutesBarChart({
-    data,
+    data: _data,
     range = "30d",
 }: MinutesBarChartProps): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
+    const data = useMemo(() => {
+        return _data.map((entry) => ({
+            ...entry,
+            label: $vocabulary[entry.label as keyof typeof $vocabulary],
+        }));
+    }, [_data, $vocabulary]);
+
     if (data.length === 0) {
         return (
-            <div className="flex h-[280px] items-center justify-center">
-                <p className="text-sm text-neutral-600">No data available</p>
+            <div className="flex h-70 items-center justify-center">
+                <p className="text-sm text-neutral-600">
+                    {$vocabulary.NO_DATA}
+                </p>
             </div>
         );
     }

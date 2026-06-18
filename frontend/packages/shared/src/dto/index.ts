@@ -404,6 +404,10 @@ export {
     StatsSummaryResponseSchema,
     type StatsSummaryResponse,
 } from "./statsSummaryResponse";
+export {
+    StatsV2SummaryResponseSchema,
+    type StatsV2SummaryResponse,
+} from "./statsV2SummaryResponse";
 export { StreakResponseSchema, type StreakResponse } from "./streakResponse";
 export {
     UpdateBookmarkRequestSchema,
@@ -490,6 +494,10 @@ export {
     UserStatsResponseSchema,
     type UserStatsResponse,
 } from "./userStatsResponse";
+export {
+    UserStatsV2ResponseSchema,
+    type UserStatsV2Response,
+} from "./userStatsV2Response";
 export {
     VocabularyResponseSchema,
     type VocabularyResponse,

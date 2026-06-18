@@ -656,6 +656,15 @@ export class BaseHttp {
         );
     }
 
+    static async getUserStatsV2(payload: dto.UserStatsRequest) {
+        return this.apiPostAsync(
+            `/stats/v2/user`,
+            dto.UserStatsRequestSchema,
+            dto.UserStatsV2ResponseSchema,
+            payload
+        );
+    }
+
     static async startAlbumUpload(payload: dto.UploadAlbumRequest) {
         return this.apiPostAsync(
             `/upload/album/start`,

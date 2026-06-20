@@ -639,6 +639,34 @@ export class BaseHttp {
         );
     }
 
+    static async getSpotifyScrapperAlbumAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/album/${spotifyId}`,
+            dto.SpotifyScrapperAlbumResponseSchema
+        );
+    }
+
+    static async getSpotifyScrapperArtistAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/artist/${spotifyId}`,
+            dto.BaseArtistResponseSchema
+        );
+    }
+
+    static async getSpotifyScrapperPlaylistAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/playlist/${spotifyId}`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getSpotifyScrapperTrackAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/track/${spotifyId}`,
+            dto.SpotifyScrapperTrackResponseSchema
+        );
+    }
+
     static async getHomeStats() {
         return this.apiGetAsync(`/stats/home`, dto.HomeStatsResponseSchema);
     }

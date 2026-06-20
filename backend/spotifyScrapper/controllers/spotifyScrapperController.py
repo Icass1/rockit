@@ -31,7 +31,7 @@ router = APIRouter(
 
 
 @router.get("/album/{spotify_id}")
-async def get_album_async(
+async def get_spotify_scrapper_album_async(
     request: Request, spotify_id: str
 ) -> SpotifyScrapperAlbumResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
@@ -48,7 +48,7 @@ async def get_album_async(
 
 
 @router.get("/track/{spotify_id}")
-async def get_track_async(
+async def get_spotify_scrapper_track_async(
     request: Request, spotify_id: str
 ) -> SpotifyScrapperTrackResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
@@ -65,7 +65,9 @@ async def get_track_async(
 
 
 @router.get("/artist/{spotify_id}")
-async def get_artist_async(request: Request, spotify_id: str) -> BaseArtistResponse:
+async def get_spotify_scrapper_artist_async(
+    request: Request, spotify_id: str
+) -> BaseArtistResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: AResult[SpotifyScrapperArtistResponse] = (
         await SpotifyScrapper.get_artist_async(session=session, spotify_id=spotify_id)
@@ -80,7 +82,7 @@ async def get_artist_async(request: Request, spotify_id: str) -> BaseArtistRespo
 
 
 @router.get("/playlist/{spotify_id}")
-async def get_spotify_playlist_async(
+async def get_spotify_scrapper_playlist_async(
     request: Request, spotify_id: str
 ) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
@@ -99,7 +101,9 @@ async def get_spotify_playlist_async(
 
 
 @router.get("/audio/{spotify_id}")
-async def get_spotify_audio_async(request: Request, spotify_id: str) -> Response:
+async def get_spotify_scrapper_audio_async(
+    request: Request, spotify_id: str
+) -> Response:
     """Stream audio file with range support for HTML audio element seeking."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result_response: AResult[tuple[bytes, int, str]] = (

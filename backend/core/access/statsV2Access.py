@@ -427,19 +427,27 @@ class StatsV2Access:
         limit: int = 3,
     ) -> AResult[list[StatsRankedItemResponse]]:
         sql = text(f"""
-        WITH {_get_artist_info_cte()}
-        SELECT   ai.artist_public_id  AS public_id,
-                 ai.artist_name       AS name,
-                 ai.artist_image_url  AS image_url,
-                 SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
-        FROM     core.user_media_listen_interval umli
-        JOIN     artist_info ai ON ai.media_id = umli.media_id
-        WHERE    umli.user_id    = :user_id
-          AND    umli.date_added >= :start_date
-          AND    umli.date_added <  :end_date
-        GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_url
+        WITH {_get_artist_info_cte()},
+        artist_durations AS (
+            SELECT ai.artist_public_id,
+                   ai.artist_name,
+                   ai.artist_image_url,
+                   SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
+            FROM     core.user_media_listen_interval umli
+            JOIN     artist_info ai ON ai.media_id = umli.media_id
+            WHERE    umli.user_id    = :user_id
+              AND    umli.date_added >= :start_date
+              AND    umli.date_added <  :end_date
+            GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_url
+        )
+        SELECT (ARRAY_AGG(ad.artist_public_id ORDER BY ad.total_ms DESC))[1] AS public_id,
+               ad.artist_name       AS name,
+               (ARRAY_AGG(ad.artist_image_url ORDER BY ad.total_ms DESC))[1] AS image_url,
+               SUM(ad.total_ms)     AS total_ms
+        FROM   artist_durations ad
+        GROUP BY ad.artist_name
         ORDER BY total_ms DESC
-        LIMIT    :limit
+        LIMIT  :limit
         """)
         rows = (
             await session.execute(
@@ -477,19 +485,27 @@ class StatsV2Access:
         limit: int = 3,
     ) -> AResult[list[StatsRankedItemResponse]]:
         sql = text(f"""
-        WITH {_get_album_info_cte()}
-        SELECT   ai.album_public_id  AS public_id,
-                 ai.album_name       AS name,
-                 ai.album_image_url  AS image_url,
-                 SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
-        FROM     core.user_media_listen_interval umli
-        JOIN     album_info ai ON ai.media_id = umli.media_id
-        WHERE    umli.user_id    = :user_id
-          AND    umli.date_added >= :start_date
-          AND    umli.date_added <  :end_date
-        GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
+        WITH {_get_album_info_cte()},
+        album_durations AS (
+            SELECT ai.album_public_id,
+                   ai.album_name,
+                   ai.album_image_url,
+                   SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
+            FROM     core.user_media_listen_interval umli
+            JOIN     album_info ai ON ai.media_id = umli.media_id
+            WHERE    umli.user_id    = :user_id
+              AND    umli.date_added >= :start_date
+              AND    umli.date_added <  :end_date
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
+        )
+        SELECT (ARRAY_AGG(ad.album_public_id ORDER BY ad.total_ms DESC))[1] AS public_id,
+               ad.album_name        AS name,
+               (ARRAY_AGG(ad.album_image_url ORDER BY ad.total_ms DESC))[1] AS image_url,
+               SUM(ad.total_ms)     AS total_ms
+        FROM   album_durations ad
+        GROUP BY ad.album_name
         ORDER BY total_ms DESC
-        LIMIT    :limit
+        LIMIT  :limit
         """)
         rows = (
             await session.execute(

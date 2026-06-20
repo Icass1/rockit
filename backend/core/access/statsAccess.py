@@ -408,19 +408,27 @@ class StatsAccess:
         limit: int = 3,
     ) -> AResult[list[StatsRankedItemResponse]]:
         sql = text(f"""
-        WITH {_get_artist_info_cte()}
-        SELECT   ai.artist_public_id  AS public_id,
-                 ai.artist_name       AS name,
-                 ai.artist_image_url  AS image_url,
-                 COUNT(*)             AS play_count
-        FROM     core.user_media_listened uml
-        JOIN     artist_info ai ON ai.media_id = uml.media_id
-        WHERE    uml.user_id    = :user_id
-          AND    uml.date_added >= :start_date
-          AND    uml.date_added <  :end_date
-        GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_url
+        WITH {_get_artist_info_cte()},
+        artist_plays AS (
+            SELECT ai.artist_public_id,
+                   ai.artist_name,
+                   ai.artist_image_url,
+                   COUNT(*) AS play_count
+            FROM     core.user_media_listened uml
+            JOIN     artist_info ai ON ai.media_id = uml.media_id
+            WHERE    uml.user_id    = :user_id
+              AND    uml.date_added >= :start_date
+              AND    uml.date_added <  :end_date
+            GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_url
+        )
+        SELECT (ARRAY_AGG(ap.artist_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
+               ap.artist_name       AS name,
+               (ARRAY_AGG(ap.artist_image_url ORDER BY ap.play_count DESC))[1] AS image_url,
+               SUM(ap.play_count)   AS play_count
+        FROM   artist_plays ap
+        GROUP BY ap.artist_name
         ORDER BY play_count DESC
-        LIMIT    :limit
+        LIMIT  :limit
         """)
         rows = (
             await session.execute(
@@ -458,19 +466,27 @@ class StatsAccess:
         limit: int = 3,
     ) -> AResult[list[StatsRankedItemResponse]]:
         sql = text(f"""
-        WITH {_get_album_info_cte()}
-        SELECT   ai.album_public_id  AS public_id,
-                 ai.album_name       AS name,
-                 ai.album_image_url  AS image_url,
-                 COUNT(*)            AS play_count
-        FROM     core.user_media_listened uml
-        JOIN     album_info ai ON ai.media_id = uml.media_id
-        WHERE    uml.user_id    = :user_id
-          AND    uml.date_added >= :start_date
-          AND    uml.date_added <  :end_date
-        GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
+        WITH {_get_album_info_cte()},
+        album_plays AS (
+            SELECT ai.album_public_id,
+                   ai.album_name,
+                   ai.album_image_url,
+                   COUNT(*) AS play_count
+            FROM     core.user_media_listened uml
+            JOIN     album_info ai ON ai.media_id = uml.media_id
+            WHERE    uml.user_id    = :user_id
+              AND    uml.date_added >= :start_date
+              AND    uml.date_added <  :end_date
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
+        )
+        SELECT (ARRAY_AGG(ap.album_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
+               ap.album_name        AS name,
+               (ARRAY_AGG(ap.album_image_url ORDER BY ap.play_count DESC))[1] AS image_url,
+               SUM(ap.play_count)   AS play_count
+        FROM   album_plays ap
+        GROUP BY ap.album_name
         ORDER BY play_count DESC
-        LIMIT    :limit
+        LIMIT  :limit
         """)
         rows = (
             await session.execute(

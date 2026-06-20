@@ -181,8 +181,14 @@ async def get_media(request: Request, public_id: str) -> MediaResponse:
     logger.debug(f"Media.get_media_async called with public_id: {public_id}")
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401)
+    user_id: int = a_result_user.result().id
+
     a_result: AResult[MediaResponse] = await Media.get_media_async(
-        session=session, public_id=public_id
+        session=session, public_id=public_id, user_id=user_id
     )
     if a_result.is_not_ok():
         raise HTTPException(

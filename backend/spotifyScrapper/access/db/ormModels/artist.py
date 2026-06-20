@@ -1,0 +1,89 @@
+from typing import List, TYPE_CHECKING, Dict
+
+from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
+
+from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.spotifyScrapper.access.db.base import SpotifyScrapperBase
+from backend.core.access.db.ormModels.declarativeMixin import (
+    TableDateAdded,
+    TableDateUpdated,
+)
+from backend.spotifyScrapper.access.db.associationTables.song_artists import (
+    song_artists,
+)
+from backend.spotifyScrapper.access.db.associationTables.album_artists import (
+    album_artists,
+)
+from backend.spotifyScrapper.access.db.associationTables.artist_genres import (
+    artist_genres,
+)
+from backend.spotifyScrapper.access.db.associationTables.artist_external_images import (
+    artist_external_images,
+)
+
+if TYPE_CHECKING:
+    from backend.spotifyScrapper.access.db.ormModels.track import TrackRow
+    from backend.spotifyScrapper.access.db.ormModels.album import AlbumRow
+    from backend.spotifyScrapper.access.db.ormModels.genre import GenreRow
+    from backend.spotifyScrapper.access.db.ormModels.externalImage import (
+        ExternalImageRow,
+    )
+
+
+class ArtistRow(SpotifyScrapperBase, TableDateUpdated, TableDateAdded):
+    __tablename__ = "artist"
+    __table_args__ = ({"schema": "spotify_scrapper", "extend_existing": True},)
+
+    id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.media.id"), primary_key=True
+    )
+    spotify_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    followers: Mapped[int] = mapped_column(Integer, nullable=False)
+    popularity: Mapped[int] = mapped_column(Integer, nullable=False)
+    image_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.image.id"), nullable=False
+    )
+
+    songs: Mapped[List["TrackRow"]] = relationship(
+        "TrackRow", secondary=song_artists, back_populates="artists"
+    )
+    albums: Mapped[List["AlbumRow"]] = relationship(
+        "AlbumRow", secondary=album_artists, back_populates="artists"
+    )
+    genres: WriteOnlyMapped[List["GenreRow"]] = relationship(
+        "GenreRow", secondary=artist_genres, back_populates="artists", lazy="write_only"
+    )
+    external_images: WriteOnlyMapped[List["ExternalImageRow"]] = relationship(
+        "ExternalImageRow",
+        secondary=artist_external_images,
+        back_populates="artists",
+        lazy="write_only",
+    )
+
+    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
+
+    core_artist: Mapped["CoreMediaRow"] = relationship(
+        CoreMediaRow, lazy="selectin", uselist=False
+    )
+
+    def __init__(
+        self,
+        id: int,
+        spotify_id: str,
+        name: str,
+        followers: int,
+        popularity: int,
+        image_id: int,
+    ):
+        kwargs: Dict[str, int | str] = {}
+        kwargs["id"] = id
+        kwargs["spotify_id"] = spotify_id
+        kwargs["name"] = name
+        kwargs["followers"] = followers
+        kwargs["popularity"] = popularity
+        kwargs["image_id"] = image_id
+        for k, v in kwargs.items():
+            setattr(self, k, v)

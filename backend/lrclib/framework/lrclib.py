@@ -154,6 +154,12 @@ class Lrclib:
         ] = {}
 
         for media_id, a_result in results:
+            if a_result.code() == AResultCode.NOT_FOUND:
+                logger.warning(
+                    f"Lyrics for media {media_id}. {a_result.info()} not found."
+                )
+                continue
+
             if a_result.is_not_ok():
                 logger.error(
                     f"Error fetching lyrics for media {media_id}. {a_result.info()}"
@@ -217,7 +223,16 @@ class Lrclib:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(request_url, params=params, timeout=10)
+                if response.status_code == 404:
+                    logger.warning(f"Lyrics for params {params=} not found")
+                    return AResult[
+                        Tuple[List[Lyrics] | None, DynamicLyricsData | None]
+                    ](
+                        code=AResultCode.NOT_FOUND,
+                        message=f"Lyrics for params {params=} not found",
+                    )
                 response.raise_for_status()
+
         except httpx.HTTPError as e:
             logger.error(f"Error while making request to Lrclib {params=}: {e}")
             return AResult[Tuple[List[Lyrics] | None, DynamicLyricsData | None]](

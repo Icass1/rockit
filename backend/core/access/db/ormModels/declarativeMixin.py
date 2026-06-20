@@ -201,6 +201,7 @@ class TableDateAdded:
     date_added: Mapped[datetime] = mapped_column(
         TZAwareTimestamp,
         nullable=False,
+        server_default=func.now(),
         default=func.now(),
     )
 

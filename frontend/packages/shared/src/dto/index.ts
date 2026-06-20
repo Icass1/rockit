@@ -364,6 +364,22 @@ export {
     type SpotifyExternalImageResponse,
 } from "./spotifyExternalImageResponse";
 export {
+    SpotifyScrapperAlbumResponseSchema,
+    type SpotifyScrapperAlbumResponse,
+} from "./spotifyScrapperAlbumResponse";
+export {
+    SpotifyScrapperArtistResponseSchema,
+    type SpotifyScrapperArtistResponse,
+} from "./spotifyScrapperArtistResponse";
+export {
+    SpotifyScrapperExternalImageResponseSchema,
+    type SpotifyScrapperExternalImageResponse,
+} from "./spotifyScrapperExternalImageResponse";
+export {
+    SpotifyScrapperTrackResponseSchema,
+    type SpotifyScrapperTrackResponse,
+} from "./spotifyScrapperTrackResponse";
+export {
     SpotifyTrackResponseSchema,
     type SpotifyTrackResponse,
 } from "./spotifyTrackResponse";

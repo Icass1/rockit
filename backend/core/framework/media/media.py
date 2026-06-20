@@ -475,7 +475,7 @@ class Media:
 
     @staticmethod
     async def get_media_async(
-        session: AsyncSession, public_id: str
+        session: AsyncSession, public_id: str, user_id: int = 0
     ) -> AResult[MediaResponse]:
         """Get a media item by public_id without specifying type. Returns song, album, artist, playlist, or video."""
 
@@ -539,8 +539,8 @@ class Media:
             )
 
         elif media_type == MediaTypeEnum.PLAYLIST:
-            a_result = await provider.get_playlists_without_medias_async(
-                session=session, user_id=0, public_ids=[public_id]
+            a_result = await provider.get_playlists_with_medias_async(
+                session=session, user_id=user_id, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())

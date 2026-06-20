@@ -1,0 +1,43 @@
+from typing import TYPE_CHECKING, Dict
+
+from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy.orm import relationship, mapped_column, Mapped
+
+from backend.spotifyScrapper.access.db.base import SpotifyScrapperBase
+from backend.core.access.db.ormModels.declarativeMixin import (
+    TableAutoincrementId,
+    TableDateAdded,
+    TableDateUpdated,
+)
+from backend.spotifyScrapper.access.db.associationTables.album_copyrights import (
+    album_copyrights,
+)
+
+if TYPE_CHECKING:
+    from backend.spotifyScrapper.access.db.ormModels.album import AlbumRow
+    from backend.spotifyScrapper.access.db.ormEnums.copyrightTypeEnum import (
+        CopyrightTypeEnumRow,
+    )
+
+
+class CopyrightRow(
+    SpotifyScrapperBase, TableAutoincrementId, TableDateUpdated, TableDateAdded
+):
+    __tablename__ = "copyright"
+
+    __table_args__ = {"schema": "spotify_scrapper", "extend_existing": True}
+
+    text: Mapped[str] = mapped_column(String, nullable=False)
+    type_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("spotify_scrapper.copyright_type_enum.key"), nullable=False
+    )
+    albums: Mapped["AlbumRow"] = relationship("AlbumRow", secondary=album_copyrights)
+
+    type: Mapped["CopyrightTypeEnumRow"] = relationship("CopyrightTypeEnumRow")
+
+    def __init__(self, text: str, type_key: int):
+        kwargs: Dict[str, int | str] = {}
+        kwargs["text"] = text
+        kwargs["type_key"] = type_key
+        for k, v in kwargs.items():
+            setattr(self, k, v)

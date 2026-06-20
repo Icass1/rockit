@@ -1,0 +1,74 @@
+from typing import List, Dict
+
+from sqlalchemy import String, ForeignKey, Text, Integer
+from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
+
+from backend.core.access.db.ormModels.declarativeMixin import (
+    TableDateAdded,
+    TableDateUpdated,
+)
+from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
+
+from backend.spotifyScrapper.access.db.base import SpotifyScrapperBase
+from backend.spotifyScrapper.access.db.associationTables.playlist_external_images import (
+    playlist_external_images,
+)
+from backend.spotifyScrapper.access.db.ormModels.playlist_tracks import (
+    PlaylistTrackRow,
+)
+from backend.spotifyScrapper.access.db.ormModels.externalImage import ExternalImageRow
+
+
+class PlaylistRow(SpotifyScrapperBase, TableDateUpdated, TableDateAdded):
+    __tablename__ = "playlist"
+    __table_args__ = ({"schema": "spotify_scrapper", "extend_existing": True},)
+
+    id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.media.id"), primary_key=True
+    )
+    spotify_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    image_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("core.image.id"), nullable=True
+    )
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    owner: Mapped[str] = mapped_column(String, nullable=False)
+    followers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    external_images: WriteOnlyMapped[List[ExternalImageRow]] = relationship(
+        ExternalImageRow,
+        secondary=playlist_external_images,
+        back_populates="playlists",
+        lazy="write_only",
+    )
+    playlist_song_links: Mapped[List["PlaylistTrackRow"]] = relationship(
+        "PlaylistTrackRow", back_populates="playlist"
+    )
+
+    core_playlist: Mapped["CoreMediaRow"] = relationship(
+        CoreMediaRow, lazy="selectin", uselist=False
+    )
+
+    image: Mapped["ImageRow"] = relationship(ImageRow, lazy="selectin", uselist=False)
+
+    def __init__(
+        self,
+        id: int,
+        spotify_id: str,
+        name: str,
+        owner: str,
+        image_id: int | None = None,
+        followers: int = 0,
+        description: str | None = None,
+    ):
+        kwargs: Dict[str, None | int | str] = {}
+        kwargs["id"] = id
+        kwargs["spotify_id"] = spotify_id
+        kwargs["name"] = name
+        kwargs["owner"] = owner
+        kwargs["image_id"] = image_id
+        kwargs["followers"] = followers
+        kwargs["description"] = description
+        for k, v in kwargs.items():
+            setattr(self, k, v)

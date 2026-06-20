@@ -163,5 +163,10 @@ export class PlaylistManager {
             );
             return;
         }
+        if (mediaRes.isOk()) {
+            rockIt.notificationManager.notifySuccess(
+                `"${mediaRes.result.data.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_PLAYLIST}`
+            );
+        }
     }
 }

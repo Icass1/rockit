@@ -51,7 +51,9 @@ class TrackRow(
         "ArtistRow", secondary=song_artists, back_populates="songs", lazy="write_only"
     )
 
-    album: Mapped["AlbumRow"] = relationship("AlbumRow", back_populates="songs")
+    album: Mapped["AlbumRow"] = relationship(
+        "AlbumRow", back_populates="songs", lazy="selectin"
+    )
 
     playlist_song_links: Mapped[List["PlaylistTrackRow"]] = relationship(
         "PlaylistTrackRow", back_populates="track"

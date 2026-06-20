@@ -77,6 +77,7 @@ class SpotifyScrapperAccess:
         try:
             stmt: Select[Tuple[AlbumRow]] = (
                 select(AlbumRow)
+                .options(selectinload(AlbumRow.artists))
                 .join(
                     CoreMediaRow,
                     and_(
@@ -90,8 +91,10 @@ class SpotifyScrapperAccess:
             album: AlbumRow | None = result.scalar_one_or_none()
 
             if not album:
-                logger.error("Album not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+                logger.error(f"Album {spotify_id} not found")
+                return AResult(
+                    code=AResultCode.NOT_FOUND, message=f"Album {spotify_id} not found"
+                )
 
             return AResult(code=AResultCode.OK, message="OK", result=album)
 
@@ -554,7 +557,11 @@ class SpotifyScrapperAccess:
         provider_id: int,
     ) -> AResult[AlbumRow]:
         try:
-            stmt = select(AlbumRow).where(AlbumRow.spotify_id == raw.id)
+            stmt = (
+                select(AlbumRow)
+                .options(selectinload(AlbumRow.artists))
+                .where(AlbumRow.spotify_id == raw.id)
+            )
             result = await session.execute(stmt)
             existing: AlbumRow | None = result.scalar_one_or_none()
             if existing:
@@ -642,7 +649,11 @@ class SpotifyScrapperAccess:
             )
             await session.rollback()
             session.expire_all()
-            stmt = select(AlbumRow).where(AlbumRow.spotify_id == raw.id)
+            stmt = (
+                select(AlbumRow)
+                .options(selectinload(AlbumRow.artists))
+                .where(AlbumRow.spotify_id == raw.id)
+            )
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:

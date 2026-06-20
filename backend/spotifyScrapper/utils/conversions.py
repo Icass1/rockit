@@ -101,6 +101,7 @@ async def get_artist_response_async(
 def get_album_without_songs_response(
     provider_name: str,
     album_row: AlbumRow,
+    artist_rows: List[ArtistRow],
 ) -> BaseAlbumWithoutSongsResponse:
     public_id: str = album_row.core_album.public_id
 
@@ -113,7 +114,7 @@ def get_album_without_songs_response(
             name=a.name,
             imageUrl=Image.get_internal_image_url(image=a.image),
         )
-        for a in album_row.artists
+        for a in artist_rows
     ]
 
     return BaseAlbumWithoutSongsResponse(
@@ -161,6 +162,15 @@ async def get_track_response_async(
 
     public_id: str = track_row.core_song.public_id
 
+    a_result_album_artists: AResult[List[ArtistRow]] = (
+        await SpotifyScrapperAccess.get_artists_from_album_id_async(
+            session=session, album_id=track_row.album_id
+        )
+    )
+    album_artists: List[ArtistRow] = (
+        a_result_album_artists.result() if a_result_album_artists.is_ok() else []
+    )
+
     return AResult(
         code=AResultCode.OK,
         message="OK",
@@ -178,7 +188,9 @@ async def get_track_response_async(
             discNumber=track_row.disc_number,
             trackNumber=track_row.track_number,
             album=get_album_without_songs_response(
-                provider_name=provider_name, album_row=track_row.album
+                provider_name=provider_name,
+                album_row=track_row.album,
+                artist_rows=album_artists,
             ),
         ),
     )
@@ -208,6 +220,15 @@ async def get_album_with_songs_response_async(
         a_result_external_images.result() if a_result_external_images.is_ok() else []
     )
 
+    a_result_album_artists: AResult[List[ArtistRow]] = (
+        await SpotifyScrapperAccess.get_artists_from_album_id_async(
+            session=session, album_id=album_row.id
+        )
+    )
+    album_artists: List[ArtistRow] = (
+        a_result_album_artists.result() if a_result_album_artists.is_ok() else []
+    )
+
     album_artist_responses: List[BaseArtistResponse] = [
         BaseArtistResponse(
             provider=provider_name,
@@ -217,7 +238,7 @@ async def get_album_with_songs_response_async(
             name=a.name,
             imageUrl=Image.get_internal_image_url(image=a.image),
         )
-        for a in album_row.artists
+        for a in album_artists
     ]
 
     song_responses: List[BaseSongWithoutAlbumResponse] = []
@@ -258,7 +279,7 @@ async def get_album_with_songs_response_async(
                 artists=track_artist_responses,
                 audioSrc=audio_src,
                 downloaded=is_downloaded,
-                imageUrl=Image.get_internal_image_url(image=track_row.album.image),
+                imageUrl=Image.get_internal_image_url(image=album_row.image),
                 duration_ms=track_row.duration_ms,
                 discNumber=track_row.disc_number,
                 trackNumber=track_row.track_number,
@@ -526,7 +547,9 @@ async def get_tracks_responses_async(
                     discNumber=track_row.disc_number,
                     trackNumber=track_row.track_number,
                     album=get_album_without_songs_response(
-                        provider_name=provider_name, album_row=album_row
+                        provider_name=provider_name,
+                        album_row=album_row,
+                        artist_rows=album_row.artists,
                     ),
                 )
             )

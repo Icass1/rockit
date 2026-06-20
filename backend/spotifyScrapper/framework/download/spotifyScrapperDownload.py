@@ -323,7 +323,7 @@ class SpotifyScrapperDownload(BaseDownload):
                     continue
 
                 score, reason = self.score_video(video, song)
-                logger.info(
+                logger.debug(
                     f"Video: {video.title} | Channel: {video.channel_title} | URL https://www.youtube.com/watch?v={video.video_id} | Score: {score:.2f} ({reason})"
                 )
 

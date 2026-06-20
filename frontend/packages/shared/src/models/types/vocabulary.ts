@@ -355,4 +355,6 @@ export interface Vocabulary {
     UNIQUE_MEDIAS_LISTENED: string;
     UNIQUE_VIDEOS_LISTENED: string;
     NO_MEDIA_FOUND: string;
+    ADDED_TO_LIBRARY: string;
+    ADDING_MEDIA_TO_LIBRARY: string;
 }

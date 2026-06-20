@@ -11,23 +11,10 @@ interface RankingListProps {
     valueLabel?: string;
     initialVisible?: number;
     onPlay?: (item: StatsRankedItemResponse) => void;
+    formatValue?: (value: number) => string;
 }
 
 const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
-
-function formatMs(ms: number): string {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    const pad = (n: number): string => n.toString().padStart(2, "0");
-
-    if (hours > 0) {
-        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-    }
-    return `${pad(minutes)}:${pad(seconds)}`;
-}
 
 export default function RankingList({
     items,
@@ -35,6 +22,7 @@ export default function RankingList({
     valueLabel = "",
     initialVisible = 5,
     onPlay,
+    formatValue,
 }: RankingListProps): JSX.Element {
     const [visibleCount, setVisibleCount] = useState(initialVisible);
 
@@ -75,6 +63,7 @@ export default function RankingList({
                     showImages={showImages}
                     valueLabel={valueLabel}
                     onPlay={onPlay}
+                    formatValue={formatValue}
                 />
             ))}
             <div className="flex justify-center gap-4">
@@ -110,6 +99,7 @@ function RankingRow({
     showImages,
     valueLabel,
     onPlay,
+    formatValue,
 }: {
     item: StatsRankedItemResponse;
     index: number;
@@ -117,6 +107,7 @@ function RankingRow({
     showImages: boolean;
     valueLabel: string;
     onPlay?: (item: StatsRankedItemResponse) => void;
+    formatValue?: (value: number) => string;
 }): JSX.Element {
     const progressPercent = (item.value / maxValue) * 100;
     const isTop3 = index < 3;
@@ -167,7 +158,7 @@ function RankingRow({
                 </div>
 
                 <span className="text-right text-sm font-medium text-neutral-400 tabular-nums md:w-5 md:text-base">
-                    {formatMs(item.value)}
+                    {formatValue ? formatValue(item.value) : item.value}
                     {valueLabel}
                 </span>
             </div>

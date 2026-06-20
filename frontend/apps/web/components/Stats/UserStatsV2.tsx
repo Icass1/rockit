@@ -19,6 +19,20 @@ interface UserStatsV2Props {
     rangeLabel: string;
 }
 
+function formatMs(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const pad = (n: number): string => n.toString().padStart(2, "0");
+
+    if (hours > 0) {
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+    return `${pad(minutes)}:${pad(seconds)}`;
+}
+
 export default function UserStatsV2({
     data,
     range,
@@ -85,6 +99,7 @@ export default function UserStatsV2({
                             items={data.topSongs}
                             showImages
                             onPlay={handlePlaySong}
+                            formatValue={formatMs}
                         />
                     </StatsSection>
 
@@ -92,7 +107,7 @@ export default function UserStatsV2({
                         title={$vocabulary.MOST_LISTENED_ARTISTS}
                         stagger={3}
                     >
-                        <RankingList items={data.topArtists} showImages />
+                        <RankingList items={data.topArtists} showImages formatValue={formatMs} />
                     </StatsSection>
                 </div>
 
@@ -102,11 +117,12 @@ export default function UserStatsV2({
                             items={data.topVideos}
                             showImages
                             onPlay={handlePlayVideo}
+                            formatValue={formatMs}
                         />
                     </StatsSection>
 
                     <StatsSection title={$vocabulary.TOP_ALBUMS} stagger={5}>
-                        <RankingList items={data.topAlbums} showImages />
+                        <RankingList items={data.topAlbums} showImages formatValue={formatMs} />
                     </StatsSection>
                 </div>
             </div>

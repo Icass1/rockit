@@ -1,6 +1,7 @@
 "use client";
 
 import { JSX, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { EWebSocketMessage } from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
@@ -124,9 +125,17 @@ export default function StatsClientV2(): JSX.Element {
                 style={{ animationDelay: "50ms" }}
             >
                 <div className="min-w-0">
-                    <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
-                        {$vocabulary.STATS}
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
+                            {$vocabulary.STATS}
+                        </h1>
+                        <Link
+                            href="/stats"
+                            className="inline-flex items-center rounded-full border border-neutral-700 px-3 py-0.5 text-xs font-medium text-neutral-400 transition-colors hover:border-[#ee1086] hover:text-[#ee1086]"
+                        >
+                            v1
+                        </Link>
+                    </div>
                     <p className="mt-1.5 text-sm text-neutral-500 md:text-base">
                         Showing stats for{" "}
                         <span className="font-medium text-neutral-400">

@@ -140,6 +140,31 @@ async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse
     return a_result.result()
 
 
+@router.get("/frame/{public_id}")
+async def get_frame_async(
+    request: Request, public_id: str, timestamp_ms: float
+) -> Response:
+    """Extract a single frame from a video at the given timestamp (ms)."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result: AResult[bytes] = await Media.get_frame_async(
+        session=session, public_id=public_id, timestamp_ms=timestamp_ms
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return Response(
+        content=a_result.result(),
+        media_type="image/webp",
+        headers={
+            "Content-Disposition": "inline",
+            "Cache-Control": "public, max-age=2592000, immutable",
+        },
+    )
+
+
 @router.get("/station/{public_id}")
 async def get_station_async(request: Request, public_id: str) -> BaseStationResponse:
     """Get a station by its public_id."""

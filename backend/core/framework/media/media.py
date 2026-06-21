@@ -377,6 +377,44 @@ class Media:
         return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
+    async def get_frame_async(
+        session: AsyncSession, public_id: str, timestamp_ms: float
+    ) -> AResult[bytes]:
+        """Extract a single frame from a video at the given timestamp."""
+
+        a_result_video: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_keys=[MediaTypeEnum.VIDEO],
+            )
+        )
+        if a_result_video.is_not_ok():
+            logger.error(
+                f"Error getting video from database for public id {public_id}. {a_result_video.info()}"
+            )
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        video: CoreMediaRow = a_result_video.result()
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            video.provider_id
+        )
+        if provider is None:
+            logger.error(f"No provider found for provider_id {video.provider_id}.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Provider not found for video"
+            )
+
+        a_result: AResult[bytes] = await provider.get_frame_async(
+            session=session, public_id=public_id, timestamp_ms=timestamp_ms
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Provider error getting video frame. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
     async def get_image_async(
         session: AsyncSession, public_id: str
     ) -> AResult[ImageRow]:

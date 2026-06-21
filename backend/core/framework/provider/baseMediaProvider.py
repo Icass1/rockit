@@ -158,6 +158,25 @@ class BaseMediaProvider(BaseProvider):
             message=f"Provider '{self._name}' doesn't implement delete_media_async method.",
         )
 
+    async def get_frame_async(
+        self,
+        session: AsyncSession,
+        public_id: str,
+        timestamp_ms: float,
+    ) -> AResult[bytes]:
+        """Extract a single frame from a video at the given timestamp in miliseconds.
+
+        Returns the image data as bytes (WEBP).
+        """
+
+        logger.warning(
+            f"Provider '{self._name}' doesn't implement get_frame_async method."
+        )
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name}' doesn't implement get_frame_async method.",
+        )
+
     @staticmethod
     def _rename_file_to_backup(file_path: str) -> None:
         """Rename a file by appending .bak<n> where n is the next available number.

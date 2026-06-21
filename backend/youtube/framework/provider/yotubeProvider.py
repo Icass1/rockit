@@ -339,6 +339,38 @@ class YoutubeProvider(BaseMediaProvider):
 
         return AResultCode(code=AResultCode.OK, message="OK")
 
+    async def get_frame_async(
+        self,
+        session: AsyncSession,
+        public_id: str,
+        timestamp_ms: float,
+    ) -> AResult[bytes]:
+        """Extract a single frame from a YouTube video at the given timestamp (ms)."""
+
+        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_video.is_not_ok():
+            logger.error(
+                f"Error getting video for public id {public_id}. {a_result_video.info()}"
+            )
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        video: VideoRow = a_result_video.result()
+
+        if not video.video_path:
+            logger.error(f"Video {public_id} has no downloaded file.")
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Video has not been downloaded yet",
+            )
+
+        return await YouTube.get_frame_async(
+            video_path=video.video_path,
+            public_id=public_id,
+            timestamp_ms=timestamp_ms,
+        )
+
 
 provider = YoutubeProvider()
 name = "YouTube"

@@ -124,10 +124,10 @@ function BookmarkEditForm({
                 <div className="flex items-center gap-1">
                     <button
                         onClick={onBack}
-                        className="rounded p-0.5 text-neutral-500 hover:text-white"
+                        className="ignore-click-player-ui rounded p-0.5 text-neutral-500 hover:text-white"
                         title="Back"
                     >
-                        <ChevronDown className="h-3.5 w-3.5 rotate-90" />
+                        <ChevronDown className="ignore-click-player-ui h-3.5 w-3.5 rotate-90" />
                     </button>
                     <span className="text-xs font-semibold text-neutral-400">
                         {bookmark
@@ -146,7 +146,7 @@ function BookmarkEditForm({
                     {bookmark && (
                         <button
                             onClick={handleDelete}
-                            className="rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
+                            className="ignore-click-player-ui rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
                             title={$vocabulary.DELETE}
                         >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -154,7 +154,7 @@ function BookmarkEditForm({
                     )}
                     <button
                         onClick={handleSave}
-                        className="rounded bg-[#ee1086] px-2 py-0.5 text-[11px] font-medium text-white transition-colors hover:bg-[#fb6467]"
+                        className="ignore-click-player-ui rounded bg-[#ee1086] px-2 py-0.5 text-[11px] font-medium text-white transition-colors hover:bg-[#fb6467]"
                     >
                         {$vocabulary.SAVE}
                     </button>
@@ -358,13 +358,13 @@ export default function BookmarkPopup({
                                 );
                                 onClose();
                             }}
-                            className="min-w-0 flex-1 text-left"
+                            className="ignore-click-player-ui min-w-0 flex-1 text-left"
                         >
-                            <span className="text-xs font-medium text-white">
+                            <span className="ignore-click-player-ui text-xs font-medium text-white">
                                 {getTime(bookmark.timestamp)}
                             </span>
                             {bookmark.description && (
-                                <p className="truncate text-[10px] text-neutral-400">
+                                <p className="ignore-click-player-ui truncate text-[10px] text-neutral-400">
                                     {bookmark.description}
                                 </p>
                             )}
@@ -396,9 +396,9 @@ export default function BookmarkPopup({
 
             <button
                 onClick={(): void => setUserOverride("new")}
-                className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-neutral-700 px-2 py-1.5 text-xs text-neutral-400 transition-colors hover:border-neutral-500 hover:text-white"
+                className="ignore-click-player-ui mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-neutral-700 px-2 py-1.5 text-xs text-neutral-400 transition-colors hover:border-neutral-500 hover:text-white"
             >
-                <Plus className="h-3 w-3" />
+                <Plus className="ignore-click-player-ui h-3 w-3" />
                 {$vocabulary.ADD_BOOKMARK_AT} {getTime($currentTime ?? 0)}
             </button>
         </div>

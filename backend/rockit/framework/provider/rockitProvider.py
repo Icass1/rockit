@@ -28,6 +28,9 @@ from backend.core.requests.uploadSongRequest import UploadSongRequest
 from backend.core.requests.uploadAlbumRequest import UploadAlbumRequest
 from backend.core.requests.uploadVideoRequest import UploadVideoRequest
 
+from backend.rockit.access.rockitAccess import RockitAccess
+from backend.rockit.access.db.ormModels.video import RockitVideoRow
+
 from backend.rockit.framework.rockit import Rockit
 
 logger: Logger = getLogger(__name__)
@@ -202,6 +205,51 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             song_paths=song_paths,
             cover_path=cover_path,
             release_date=request.releaseDate,
+        )
+
+    async def get_frame_async(
+        self,
+        session: AsyncSession,
+        public_id: str,
+        timestamp_ms: float,
+    ) -> AResult[bytes]:
+        """Extract a single frame from a RockIt video at the given timestamp (ms)."""
+
+        a_result_videos: AResult[List[RockitVideoRow]] = (
+            await RockitAccess.get_videos_from_public_ids_async(
+                session=session, public_ids=[public_id]
+            )
+        )
+        if a_result_videos.is_not_ok() or not a_result_videos.result():
+            logger.error(
+                f"Error getting video for public id {public_id}. {a_result_videos.info()}"
+            )
+            return AResult(
+                code=(
+                    a_result_videos.code()
+                    if a_result_videos.is_not_ok()
+                    else AResultCode.NOT_FOUND
+                ),
+                message=(
+                    a_result_videos.message()
+                    if a_result_videos.is_not_ok()
+                    else "Video not found"
+                ),
+            )
+
+        video: RockitVideoRow = a_result_videos.result()[0]
+
+        if not video.file_path:
+            logger.error(f"Video {public_id} has no file path.")
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Video has no file path",
+            )
+
+        return await Rockit.get_frame_async(
+            file_path=video.file_path,
+            public_id=public_id,
+            timestamp_ms=timestamp_ms,
         )
 
     async def upload_video_async(

@@ -1057,6 +1057,23 @@ class Rockit:
             )
 
     @staticmethod
+    async def get_frame_async(
+        file_path: str, public_id: str, timestamp_ms: float
+    ) -> AResult[bytes]:
+        """Extract a single frame from a RockIt video at the given timestamp (ms).
+
+        file_path is an absolute path to the video file on disk.
+        """
+
+        from backend.core.utils.frameExtractor import extract_video_frame
+
+        return extract_video_frame(
+            full_video_path=file_path,
+            public_id=public_id,
+            timestamp_ms=timestamp_ms,
+        )
+
+    @staticmethod
     async def _get_image_for_media_async(
         session: AsyncSession,
         image_id: int,

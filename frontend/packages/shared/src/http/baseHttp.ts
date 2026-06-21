@@ -2,6 +2,7 @@
 // Do not modify this file manually.
 
 import * as dto from "@/dto";
+import { BACKEND_URL } from "@/environment";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
 
@@ -458,7 +459,7 @@ export class BaseHttp {
     }
 
     static getImageURL(path: string) {
-        return `/image/${path}`;
+        return `${BACKEND_URL}/image/${path}`;
     }
 
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
@@ -513,15 +514,15 @@ export class BaseHttp {
     }
 
     static getFrameURL(publicId: string, timestampMs: number) {
-        return `/media/frame/${publicId}?timestamp_ms=${timestampMs}`;
+        return `${BACKEND_URL}/media/frame/${publicId}?timestamp_ms=${timestampMs}`;
     }
 
     static generateImageURL(publicId: string) {
-        return `/media/image/blur/${publicId}`;
+        return `${BACKEND_URL}/media/image/blur/${publicId}`;
     }
 
     static getMediaImageURL(publicId: string) {
-        return `/media/image/${publicId}`;
+        return `${BACKEND_URL}/media/image/${publicId}`;
     }
 
     static async getPlaylist(publicId: string) {
@@ -621,7 +622,7 @@ export class BaseHttp {
     }
 
     static serveRockitAudioURL(publicId: string) {
-        return `/rockit/audio/${publicId}`;
+        return `${BACKEND_URL}/rockit/audio/${publicId}`;
     }
 
     static async getRockitSong(publicId: string) {
@@ -632,7 +633,7 @@ export class BaseHttp {
     }
 
     static serveRockitVideoURL(publicId: string) {
-        return `/rockit/video/${publicId}`;
+        return `${BACKEND_URL}/rockit/video/${publicId}`;
     }
 
     static async getAlbumAsync(spotifyId: string) {
@@ -650,7 +651,7 @@ export class BaseHttp {
     }
 
     static getSpotifyAudioURL(spotifyId: string) {
-        return `/spotify/audio/${spotifyId}`;
+        return `${BACKEND_URL}/spotify/audio/${spotifyId}`;
     }
 
     static async getSpotifyPlaylistAsync(spotifyId: string) {
@@ -682,7 +683,7 @@ export class BaseHttp {
     }
 
     static getSpotifyScrapperAudioURL(spotifyId: string) {
-        return `/spotify_scrapper/audio/${spotifyId}`;
+        return `${BACKEND_URL}/spotify_scrapper/audio/${spotifyId}`;
     }
 
     static async getSpotifyScrapperPlaylistAsync(spotifyId: string) {
@@ -840,7 +841,7 @@ export class BaseHttp {
     }
 
     static downloadApkURL(filename: string) {
-        return `/version/apk/${filename}`;
+        return `${BACKEND_URL}/version/apk/${filename}`;
     }
 
     static async getLatestVersion() {
@@ -851,7 +852,7 @@ export class BaseHttp {
     }
 
     static downloadLatestApkURL() {
-        return `/version/latest/apk`;
+        return `${BACKEND_URL}/version/latest/apk`;
     }
 
     static async getAllLanguages() {
@@ -876,7 +877,7 @@ export class BaseHttp {
     }
 
     static getYoutubeMusicAudioURL(publicId: string) {
-        return `/youtube-music/audio/${publicId}`;
+        return `${BACKEND_URL}/youtube-music/audio/${publicId}`;
     }
 
     static async getChanelAsync(youtubeId: string) {
@@ -894,10 +895,10 @@ export class BaseHttp {
     }
 
     static streamAudioURL(youtubeId: string) {
-        return `/youtube/video/${youtubeId}/audio`;
+        return `${BACKEND_URL}/youtube/video/${youtubeId}/audio`;
     }
 
     static streamVideoURL(youtubeId: string) {
-        return `/youtube/video/${youtubeId}/stream`;
+        return `${BACKEND_URL}/youtube/video/${youtubeId}/stream`;
     }
 }

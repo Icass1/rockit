@@ -11,7 +11,7 @@ export default function DownloaderClient(): JSX.Element {
     const { data, loading } = useFetch(Http.getDownloads);
 
     const startDownload = async (url: string): Promise<void> => {
-        const mediaRes = await Http.addFromUrl({
+        const mediaRes = await Http.addFromUrlAsync({
             url,
             addToLibrary: false,
             addToPlaylist: false,

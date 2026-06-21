@@ -191,7 +191,7 @@ async def main() -> None:
                 from backend.utils.zodGenerator import generate_zod_schemas
                 from backend.utils.httpMethodsGenerator import http_methods_generator
 
-                # await generate_zod_schemas()
+                await generate_zod_schemas()
                 await http_methods_generator()
 
             elif command == "import-vocabulary":

@@ -2,9 +2,10 @@
 
 import type { JSX } from "react";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { type BookmarkResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { BACKEND_URL, isVideo } from "@rockit/packages/shared";
+import { isVideo } from "@rockit/packages/shared";
 import {
     Bookmark,
     BookmarkCheck,
@@ -247,19 +248,14 @@ export default function BookmarkPopup({
     );
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const [formBookmark, setFormBookmark] = useState<
+    const [userOverride, setUserOverride] = useState<
         BookmarkResponse | "new" | null | undefined
     >(undefined);
 
-    const popupRef = useRef<HTMLDivElement>(null);
+    const formBookmark =
+        userOverride !== undefined ? userOverride : $editingBookmark;
 
-    useEffect(() => {
-        if ($editingBookmark) {
-            setFormBookmark($editingBookmark);
-        } else {
-            setFormBookmark(null);
-        }
-    }, [$editingBookmark]);
+    const popupRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent): void => {
@@ -284,7 +280,7 @@ export default function BookmarkPopup({
     );
 
     const handleBackToList = (): void => {
-        setFormBookmark(null);
+        setUserOverride(null);
         rockIt.bookmarkManager.clearEditingBookmark();
     };
 
@@ -333,13 +329,15 @@ export default function BookmarkPopup({
                         className="group flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-800"
                     >
                         {mediaIsVideo && (
-                            <img
-                                src={`${BACKEND_URL}${Http.getFrameURL(
+                            <Image
+                                src={Http.getFrameURL(
                                     $currentMedia.publicId,
                                     Math.round(bookmark.timestamp * 1000)
-                                )}`}
+                                )}
                                 alt=""
                                 className="mt-0.5 h-8 w-14 shrink-0 rounded object-cover"
+                                width={56}
+                                height={32}
                                 loading="lazy"
                             />
                         )}
@@ -374,7 +372,7 @@ export default function BookmarkPopup({
 
                         <div className="flex flex-shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                             <button
-                                onClick={(): void => setFormBookmark(bookmark)}
+                                onClick={(): void => setUserOverride(bookmark)}
                                 className="rounded p-1 text-neutral-500 transition-colors hover:text-white"
                                 title="Edit"
                             >
@@ -397,7 +395,7 @@ export default function BookmarkPopup({
             </div>
 
             <button
-                onClick={(): void => setFormBookmark("new")}
+                onClick={(): void => setUserOverride("new")}
                 className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-neutral-700 px-2 py-1.5 text-xs text-neutral-400 transition-colors hover:border-neutral-500 hover:text-white"
             >
                 <Plus className="h-3 w-3" />

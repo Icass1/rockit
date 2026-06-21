@@ -116,7 +116,8 @@ export default function Navigation(): JSX.Element {
                     <Menu className="h-5 w-5" />
                 </div>
                 {pages.map((page): JSX.Element => {
-                    const hidden = "adminOnly" in page && page.adminOnly && !$admin;
+                    const hidden =
+                        "adminOnly" in page && page.adminOnly && !$admin;
                     return (
                         <Link
                             key={page.href}

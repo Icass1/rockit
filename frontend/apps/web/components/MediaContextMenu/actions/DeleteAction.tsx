@@ -16,7 +16,7 @@ export default function DeleteAction({
     const deleteMedia = async (): Promise<void> => {
         if (isSearchResult(media)) return;
         setLoading(true);
-        const res = await Http.deleteMedia(media.publicId);
+        const res = await Http.deleteMediaAsync(media.publicId);
         if (res.isOk()) {
             rockIt.notificationManager.notifySuccess(vocabulary.DELETE_SUCCESS);
         } else {

@@ -217,7 +217,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     icon: Music,
                     onPress: async () => {
                         hide();
-                        const response = await Http.addFromUrl({
+                        const response = await Http.addFromUrlAsync({
                             url: item.providerUrl,
                             addToPlaylist: true,
                             addToLibrary: false,

@@ -2,6 +2,7 @@
 // Do not modify this file manually.
 
 import * as dto from "@/dto";
+import { BACKEND_URL } from "@/environment";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
 

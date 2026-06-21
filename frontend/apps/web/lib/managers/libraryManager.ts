@@ -45,7 +45,7 @@ export class LibraryManager {
             rockIt.notificationManager.notifyInfo(
                 rockIt.vocabularyManager.vocabulary.ADDING_MEDIA_TO_LIBRARY
             );
-            const res = await Http.addFromUrl({
+            const res = await Http.addFromUrlAsync({
                 url: searchItem.providerUrl,
                 addToPlaylist: false,
                 addToLibrary: true,

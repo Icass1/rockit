@@ -36,7 +36,7 @@ export function useSearch() {
                 setSearching(true);
                 setError(null);
 
-                const response = await Http.search({ query: text });
+                const response = await Http.searchAsync({ query: text });
                 if (response.isOk() && response.result) {
                     setResults(response.result.results);
                 } else {

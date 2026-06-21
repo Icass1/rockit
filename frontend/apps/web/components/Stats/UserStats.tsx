@@ -36,7 +36,7 @@ export default function UserStats({
                 : data.topVideos;
 
             const results = await Promise.all(
-                allItems.map((s) => Http.getMedia(s.publicId))
+                allItems.map((s) => Http.getMediaAsync(s.publicId))
             );
 
             const playable = results

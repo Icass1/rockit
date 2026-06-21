@@ -47,7 +47,8 @@ async def http_methods_generator():
             )
 
         if not route.response_model:
-            output = f"        return `{route.path}`\n".replace("{", "${")
+            backend_url = "{BACKEND_URL}"
+            output = f"        return `{backend_url}{route.path}`\n".replace("{", "${")
 
             for param_name in route.param_convertors.keys():  # type: ignore
                 output = output.replace(param_name, snake_to_camel(param_name))
@@ -65,7 +66,9 @@ async def http_methods_generator():
                         ts_type = "string"
                     params.append(f"{camel_name}: {ts_type}")
                     query_parts.append(f"{qp.name}=${{{camel_name}}}")
-                output = output.rsplit("`\n", 1)[0] + "?" + "&".join(query_parts) + "`\n"
+                output = (
+                    output.rsplit("`\n", 1)[0] + "?" + "&".join(query_parts) + "`\n"
+                )
 
             text += (
                 f"    static {method_name.replace('Async', '')}URL({','.join(params)})"

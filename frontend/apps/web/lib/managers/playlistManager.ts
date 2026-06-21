@@ -147,7 +147,7 @@ export class PlaylistManager {
         url: string,
         playlistPublicId: string
     ): Promise<void> {
-        const mediaRes = await Http.addFromUrl({
+        const mediaRes = await Http.addFromUrlAsync({
             url,
             addToPlaylist: true,
             addToLibrary: false,

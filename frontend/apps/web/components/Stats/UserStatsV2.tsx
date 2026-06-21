@@ -50,7 +50,7 @@ export default function UserStatsV2({
                 : data.topVideos;
 
             const results = await Promise.all(
-                allItems.map((s) => Http.getMedia(s.publicId))
+                allItems.map((s) => Http.getMediaAsync(s.publicId))
             );
 
             const playable = results
@@ -107,7 +107,11 @@ export default function UserStatsV2({
                         title={$vocabulary.MOST_LISTENED_ARTISTS}
                         stagger={3}
                     >
-                        <RankingList items={data.topArtists} showImages formatValue={formatMs} />
+                        <RankingList
+                            items={data.topArtists}
+                            showImages
+                            formatValue={formatMs}
+                        />
                     </StatsSection>
                 </div>
 
@@ -122,7 +126,11 @@ export default function UserStatsV2({
                     </StatsSection>
 
                     <StatsSection title={$vocabulary.TOP_ALBUMS} stagger={5}>
-                        <RankingList items={data.topAlbums} showImages formatValue={formatMs} />
+                        <RankingList
+                            items={data.topAlbums}
+                            showImages
+                            formatValue={formatMs}
+                        />
                     </StatsSection>
                 </div>
             </div>

@@ -128,7 +128,7 @@ export function useDownloads() {
 
     const startDownload = async (url: string) => {
         try {
-            const addResponse = await Http.addFromUrl({
+            const addResponse = await Http.addFromUrlAsync({
                 url,
                 addToLibrary: true,
                 addToPlaylist: false,

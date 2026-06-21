@@ -18,7 +18,7 @@ export function useMedia<T extends TMedia>(media: T): T {
         const handleDownloaded = (data: IMediaDownloadedEvent) => {
             if (data.publicId !== media.publicId) return;
 
-            Http.getMedia(media.publicId)
+            Http.getMediaAsync(media.publicId)
                 .then((response) => {
                     if (response.isOk()) {
                         const resultMedia = response.result.media;

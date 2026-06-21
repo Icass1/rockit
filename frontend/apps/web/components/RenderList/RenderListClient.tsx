@@ -46,7 +46,7 @@ export default function RenderListClient({
         const handleMediaAdded = (data: IMediaAddedToPlaylistEvent): void => {
             if (data.playlistPublicId !== publicId) return;
 
-            Http.getMedia(data.publicId).then((res): void => {
+            Http.getMediaAsync(data.publicId).then((res): void => {
                 if (res.isOk()) {
                     const newMedia = res.result.media;
                     setMedia((prev): TMedia[] => {

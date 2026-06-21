@@ -141,7 +141,7 @@ export default function RadioClient(): JSX.Element {
             setSearching(true);
             setCountryStations(null);
             setSelectedCountry(null);
-            const res = await Http.search({ query: q });
+            const res = await Http.searchAsync({ query: q });
             if (res.isOk()) {
                 const results = res.result.results ?? [];
                 setSearchResults(

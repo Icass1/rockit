@@ -16,33 +16,21 @@ import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 
-interface BookmarkPopupProps {
-    onClose: () => void;
+enum EBookmarkModes {
+    Nothing = "NOTHING",
+    Autoskip = "AUTOSKIP",
+    RepeatFromBeginning = "REPEAT_FROM_BEGINNING",
+    PreviousBookmark = "PREVIOUS_BOOKMARK",
 }
 
-const MODES = [
-    "NOTHING",
-    "AUTOSKIP",
-    "REPEAT_FROM_BEGINNING",
-    "PREVIOUS_BOOKMARK",
-] as const;
-type Mode = (typeof MODES)[number];
-
 const MODE_ICONS: Record<
-    Mode,
+    EBookmarkModes,
     typeof Bookmark | typeof Repeat1 | typeof SkipBack
 > = {
-    NOTHING: Bookmark,
-    AUTOSKIP: BookmarkCheck,
-    REPEAT_FROM_BEGINNING: Repeat1,
-    PREVIOUS_BOOKMARK: SkipBack,
-};
-
-const MODE_LABELS: Record<Mode, string> = {
-    NOTHING: "Marker",
-    AUTOSKIP: "Auto-skip",
-    REPEAT_FROM_BEGINNING: "Repeat from beginning",
-    PREVIOUS_BOOKMARK: "Previous bookmark",
+    [EBookmarkModes.Nothing]: Bookmark,
+    [EBookmarkModes.Autoskip]: BookmarkCheck,
+    [EBookmarkModes.RepeatFromBeginning]: Repeat1,
+    [EBookmarkModes.PreviousBookmark]: SkipBack,
 };
 
 function BookmarkPopupForm({
@@ -55,12 +43,13 @@ function BookmarkPopupForm({
     onClose: () => void;
 }): JSX.Element {
     const editingBookmark = existingAtCurrentTime ?? null;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const [description, setDescription] = useState(
         editingBookmark?.description ?? ""
     );
-    const [mode, setMode] = useState<Mode>(
-        (editingBookmark?.mode as Mode) ?? "NOTHING"
+    const [mode, setMode] = useState<EBookmarkModes>(
+        (editingBookmark?.mode as EBookmarkModes) ?? EBookmarkModes.Nothing
     );
     const [showModeDropdown, setShowModeDropdown] = useState(false);
     const [timestampText, setTimestampText] = useState(
@@ -135,7 +124,9 @@ function BookmarkPopupForm({
         <>
             <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold text-neutral-400">
-                    {editingBookmark ? "Edit bookmark" : "New bookmark"}
+                    {editingBookmark
+                        ? $vocabulary.EDIT_BOOKMARK
+                        : $vocabulary.NEW_BOOKMARK}
                 </span>
                 <div className="flex items-center gap-1">
                     <input
@@ -149,7 +140,7 @@ function BookmarkPopupForm({
                         <button
                             onClick={handleDelete}
                             className="rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
-                            title="Delete"
+                            title={$vocabulary.DELETE}
                         >
                             <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -158,7 +149,7 @@ function BookmarkPopupForm({
                         onClick={handleSave}
                         className="rounded bg-[#ee1086] px-2 py-0.5 text-[11px] font-medium text-white transition-colors hover:bg-[#fb6467]"
                     >
-                        Save
+                        {$vocabulary.SAVE}
                     </button>
                 </div>
             </div>
@@ -169,7 +160,7 @@ function BookmarkPopupForm({
                     value={description}
                     onChange={(e): void => setDescription(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Label (optional)"
+                    placeholder={$vocabulary.BOOKMARK_DESCRIPTION_PLACEHOLDER}
                     className="min-w-0 flex-1 rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-white outline-none placeholder:text-neutral-500 focus:border-[#ee1086]"
                 />
                 <div className="relative">
@@ -179,7 +170,7 @@ function BookmarkPopupForm({
                             setShowModeDropdown(!showModeDropdown)
                         }
                         className="flex items-center gap-0.5 rounded px-1.5 py-1 text-neutral-400 transition-colors hover:text-white"
-                        title={MODE_LABELS[mode]}
+                        title={$vocabulary[mode]}
                     >
                         <span
                             className="h-2 w-2 rounded-full"
@@ -196,33 +187,37 @@ function BookmarkPopupForm({
                             ref={modeDropdownRef}
                             className="absolute top-full right-0 z-50 mt-1 max-h-20 w-56 overflow-y-auto rounded-lg border border-neutral-700 bg-[#1a1a1a] py-1 shadow-xl"
                         >
-                            {MODES.map((m): JSX.Element => {
-                                const Icon = MODE_ICONS[m];
-                                return (
-                                    <button
-                                        key={m}
-                                        onClick={(): void => {
-                                            setMode(m);
-                                            setShowModeDropdown(false);
-                                        }}
-                                        className={`flex w-full items-center gap-2 px-2.5 py-1.5 text-xs transition-colors ${
-                                            m === mode
-                                                ? "text-white"
-                                                : "text-neutral-400 hover:text-white"
-                                        }`}
-                                    >
-                                        <span
-                                            className="h-2 w-2 rounded-full"
-                                            style={{
-                                                backgroundColor:
-                                                    BOOKMARK_MODE_COLORS[m],
+                            {Object.values(EBookmarkModes).map(
+                                (m): JSX.Element => {
+                                    const Icon = MODE_ICONS[m];
+                                    return (
+                                        <button
+                                            key={m}
+                                            onClick={(): void => {
+                                                setMode(m);
+                                                setShowModeDropdown(false);
                                             }}
-                                        />
-                                        <Icon className="h-3.5 w-3.5" />
-                                        <span>{MODE_LABELS[m]}</span>
-                                    </button>
-                                );
-                            })}
+                                            className={`ignore-click-player-ui flex w-full items-center gap-2 px-2.5 py-1.5 text-xs transition-colors ${
+                                                m === mode
+                                                    ? "text-white"
+                                                    : "text-neutral-400 hover:text-white"
+                                            }`}
+                                        >
+                                            <span
+                                                className="ignore-click-player-ui h-2 w-2 rounded-full"
+                                                style={{
+                                                    backgroundColor:
+                                                        BOOKMARK_MODE_COLORS[m],
+                                                }}
+                                            />
+                                            <Icon className="ignore-click-player-ui h-3.5 w-3.5" />
+                                            <span className="ignore-click-player-ui">
+                                                {$vocabulary[m]}
+                                            </span>
+                                        </button>
+                                    );
+                                }
+                            )}
                         </div>
                     )}
                 </div>
@@ -233,7 +228,9 @@ function BookmarkPopupForm({
 
 export default function BookmarkPopup({
     onClose,
-}: BookmarkPopupProps): JSX.Element {
+}: {
+    onClose: () => void;
+}): JSX.Element {
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentMediaBookmarks = useStore(

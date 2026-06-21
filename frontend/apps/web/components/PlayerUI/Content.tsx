@@ -35,7 +35,20 @@ export default function PlayerUIContent(): JSX.Element {
             const insideFooter = document
                 .getElementById("app-footer")
                 ?.contains(target);
-            if (!insidePlayer && !insideFooter) {
+
+            const ignoreClickElements = document.getElementsByClassName(
+                "ignore-click-player-ui"
+            );
+
+            const ignored = Array.from(ignoreClickElements).some((el) =>
+                el.contains(target)
+            );
+
+            const isIgnored = (target as HTMLElement).classList.contains(
+                "ignore-click-player-ui"
+            );
+
+            if (!insidePlayer && !insideFooter && !ignored && !isIgnored) {
                 rockIt.playerUIManager.hide();
             }
         };

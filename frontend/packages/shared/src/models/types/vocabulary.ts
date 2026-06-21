@@ -11,7 +11,9 @@ export interface Vocabulary {
     ADD_TO_LIBRARY: string;
     ADD_TO_LIKED: string;
     ADD_TO_QUEUE: string;
+    ADDED_TO_LIBRARY: string;
     ADDED_TO_PLAYLIST: string;
+    ADDING_MEDIA_TO_LIBRARY: string;
     ADMIN_ADD_BUILD: string;
     ADMIN_ANONYMOUS: string;
     ADMIN_APK_FILE: string;
@@ -85,6 +87,7 @@ export interface Vocabulary {
     ARTIST: string;
     ARTISTS: string;
     AUGUST: string;
+    AUTOSKIP: string;
     AVERAGE_MINUTES_PER_SONG: string;
     BY: string;
     CANCEL: string;
@@ -218,6 +221,7 @@ export interface Vocabulary {
     NO_DATA: string;
     NO_DOWNLOADS: string;
     NO_LYRICS: string;
+    NO_MEDIA_FOUND: string;
     NO_MEDIA_PLAYING: string;
     NO_PLAYLISTS: string;
     NO_REPEAT: string;
@@ -227,6 +231,7 @@ export interface Vocabulary {
     NO_STATE: string;
     NO_STATIONS: string;
     NO_VIDEOS: string;
+    NOTHING: string;
     NOVEMBER: string;
     OCTOBER: string;
     OPEN_LIST: string;
@@ -252,6 +257,7 @@ export interface Vocabulary {
     PLAY_SONG: string;
     PLAYLIST: string;
     PLAYLISTS: string;
+    PREVIOUS_BOOKMARK: string;
     PREVIOUS_MEDIA: string;
     QUEUE: string;
     QUICK_SELECTIONS: string;
@@ -276,6 +282,7 @@ export interface Vocabulary {
     REMOVE_FROM_PLAYLIST: string;
     REMOVE_FROM_QUEUE: string;
     REPEAT_ALL: string;
+    REPEAT_FROM_BEGINNING: string;
     REPEAT_ONE: string;
     REPEAT_PASSWORD: string;
     RETRY: string;
@@ -310,6 +317,9 @@ export interface Vocabulary {
     TOP_ALBUMS: string;
     TOP_SONGS: string;
     TOP_VIDEOS: string;
+    UNIQUE_MEDIAS_LISTENED: string;
+    UNIQUE_SONGS_LISTENED: string;
+    UNIQUE_VIDEOS_LISTENED: string;
     UNPIN: string;
     UNREGISTER: string;
     UNREGISTERED: string;
@@ -351,10 +361,8 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    UNIQUE_SONGS_LISTENED: string;
-    UNIQUE_MEDIAS_LISTENED: string;
-    UNIQUE_VIDEOS_LISTENED: string;
-    NO_MEDIA_FOUND: string;
-    ADDED_TO_LIBRARY: string;
-    ADDING_MEDIA_TO_LIBRARY: string;
+    BOOKMARK_DESCRIPTION_PLACEHOLDER: string;
+    SAVE: string;
+    EDIT_BOOKMARK: string;
+    NEW_BOOKMARK: string;
 }

@@ -8,7 +8,10 @@ import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 function createVocabularyProxy(data: Record<string, string>): VocabularyType {
     return new Proxy(data, {
-        get(target, prop: string) {
+        get(target, prop) {
+            if (typeof prop === "symbol") {
+                return (target as Record<string | symbol, unknown>)[prop];
+            }
             return target[prop] ?? prop;
         },
     }) as unknown as VocabularyType;

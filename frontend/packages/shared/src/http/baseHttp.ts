@@ -457,6 +457,10 @@ export class BaseHttp {
         );
     }
 
+    static getImageURL(path: string) {
+        return `/image/${path}`;
+    }
+
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
         return this.apiPostAsync(
             `/lrclib/lyrics`,
@@ -508,6 +512,18 @@ export class BaseHttp {
         );
     }
 
+    static getFrameURL(publicId: string, timestampMs: number) {
+        return `/media/frame/${publicId}?timestamp_ms=${timestampMs}`;
+    }
+
+    static generateImageURL(publicId: string) {
+        return `/media/image/blur/${publicId}`;
+    }
+
+    static getMediaImageURL(publicId: string) {
+        return `/media/image/${publicId}`;
+    }
+
     static async getPlaylist(publicId: string) {
         return this.apiGetAsync(
             `/media/playlist/${publicId}`,
@@ -515,7 +531,7 @@ export class BaseHttp {
         );
     }
 
-    static async search(payload: dto.SearchRequest) {
+    static async searchAsync(payload: dto.SearchRequest) {
         return this.apiPostAsync(
             `/media/search`,
             dto.SearchRequestSchema,
@@ -538,7 +554,7 @@ export class BaseHttp {
         );
     }
 
-    static async addFromUrl(payload: dto.AddFromUrlRequest) {
+    static async addFromUrlAsync(payload: dto.AddFromUrlRequest) {
         return this.apiPostAsync(
             `/media/url/add`,
             dto.AddFromUrlRequestSchema,
@@ -547,7 +563,7 @@ export class BaseHttp {
         );
     }
 
-    static async matchUrl() {
+    static async matchUrlAsync() {
         return this.apiGetAsync(`/media/url/match`, dto.UrlMatchResponseSchema);
     }
 
@@ -558,11 +574,11 @@ export class BaseHttp {
         );
     }
 
-    static async deleteMedia(publicId: string) {
+    static async deleteMediaAsync(publicId: string) {
         return this.apiDeleteAsync(`/media/${publicId}`, dto.OkResponseSchema);
     }
 
-    static async getMedia(publicId: string) {
+    static async getMediaAsync(publicId: string) {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
     }
 
@@ -604,11 +620,19 @@ export class BaseHttp {
         );
     }
 
+    static serveRockitAudioURL(publicId: string) {
+        return `/rockit/audio/${publicId}`;
+    }
+
     static async getRockitSong(publicId: string) {
         return this.apiGetAsync(
             `/rockit/song/${publicId}`,
             dto.BaseSongWithAlbumResponseSchema
         );
+    }
+
+    static serveRockitVideoURL(publicId: string) {
+        return `/rockit/video/${publicId}`;
     }
 
     static async getAlbumAsync(spotifyId: string) {
@@ -623,6 +647,10 @@ export class BaseHttp {
             `/spotify/artist/${spotifyId}`,
             dto.BaseArtistResponseSchema
         );
+    }
+
+    static getSpotifyAudioURL(spotifyId: string) {
+        return `/spotify/audio/${spotifyId}`;
     }
 
     static async getSpotifyPlaylistAsync(spotifyId: string) {
@@ -651,6 +679,10 @@ export class BaseHttp {
             `/spotify_scrapper/artist/${spotifyId}`,
             dto.BaseArtistResponseSchema
         );
+    }
+
+    static getSpotifyScrapperAudioURL(spotifyId: string) {
+        return `/spotify_scrapper/audio/${spotifyId}`;
     }
 
     static async getSpotifyScrapperPlaylistAsync(spotifyId: string) {
@@ -807,11 +839,19 @@ export class BaseHttp {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
     }
 
+    static downloadApkURL(filename: string) {
+        return `/version/apk/${filename}`;
+    }
+
     static async getLatestVersion() {
         return this.apiGetAsync(
             `/version/latest`,
             dto.LatestVersionResponseSchema
         );
+    }
+
+    static downloadLatestApkURL() {
+        return `/version/latest/apk`;
     }
 
     static async getAllLanguages() {
@@ -835,6 +875,10 @@ export class BaseHttp {
         );
     }
 
+    static getYoutubeMusicAudioURL(publicId: string) {
+        return `/youtube-music/audio/${publicId}`;
+    }
+
     static async getChanelAsync(youtubeId: string) {
         return this.apiGetAsync(
             `/youtube/chanel/${youtubeId}`,
@@ -847,5 +891,13 @@ export class BaseHttp {
             `/youtube/video/${youtubeId}`,
             dto.YoutubeVideoResponseSchema
         );
+    }
+
+    static streamAudioURL(youtubeId: string) {
+        return `/youtube/video/${youtubeId}/audio`;
+    }
+
+    static streamVideoURL(youtubeId: string) {
+        return `/youtube/video/${youtubeId}/stream`;
     }
 }

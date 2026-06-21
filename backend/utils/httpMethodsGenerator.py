@@ -47,7 +47,33 @@ async def http_methods_generator():
             )
 
         if not route.response_model:
-            print("Path", route.path, "doesn't have a response model")
+            output = f"        return `{route.path}`\n".replace("{", "${")
+
+            for param_name in route.param_convertors.keys():  # type: ignore
+                output = output.replace(param_name, snake_to_camel(param_name))
+
+            query_params = route.dependant.query_params
+            if query_params:
+                query_parts: list[str] = []
+                for qp in query_params:
+                    camel_name = snake_to_camel(qp.name)
+                    if qp.type_ is float or qp.type_ is int:
+                        ts_type = "number"
+                    elif qp.type_ is bool:
+                        ts_type = "boolean"
+                    else:
+                        ts_type = "string"
+                    params.append(f"{camel_name}: {ts_type}")
+                    query_parts.append(f"{qp.name}=${{{camel_name}}}")
+                output = output.rsplit("`\n", 1)[0] + "?" + "&".join(query_parts) + "`\n"
+
+            text += (
+                f"    static {method_name.replace('Async', '')}URL({','.join(params)})"
+                + " {\n"
+            )
+            text += output
+            text += "    }"
+
             continue
 
         if method == "GET":

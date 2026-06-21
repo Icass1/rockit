@@ -182,7 +182,7 @@ async def get_station_async(request: Request, public_id: str) -> BaseStationResp
 
 
 @router.post("/search")
-async def search(
+async def search_async(
     request: Request, payload: searchRequest.SearchRequest
 ) -> SearchResultsResponse:
     """Search all providers and return aggregated results."""
@@ -200,7 +200,7 @@ async def search(
 
 
 @router.get("/{public_id}")
-async def get_media(request: Request, public_id: str) -> MediaResponse:
+async def get_media_async(request: Request, public_id: str) -> MediaResponse:
     """Get a media item by its public_id without specifying the type."""
 
     logger.debug(f"Media.get_media_async called with public_id: {public_id}")
@@ -224,7 +224,7 @@ async def get_media(request: Request, public_id: str) -> MediaResponse:
 
 
 @router.get("/image/{public_id}")
-async def get_image(request: Request, public_id: str) -> FileResponse:
+async def get_media_image_async(request: Request, public_id: str) -> FileResponse:
     """Get an image by its public_id."""
 
     logger.debug(f"Getting image with public_id: {public_id}")
@@ -322,7 +322,7 @@ async def generate_image_async(request: Request, public_id: str):
     path="/{public_id}",
     dependencies=[Depends(dependency=AuthMiddleware.admin_dependency)],
 )
-async def delete_media(request: Request, public_id: str) -> OkResponse:
+async def delete_media_async(request: Request, public_id: str) -> OkResponse:
     """Delete the media file for a media item so it can be downloaded again."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
@@ -343,7 +343,7 @@ async def delete_media(request: Request, public_id: str) -> OkResponse:
 
 
 @router.get("/url/match")
-async def match_url(request: Request, url: str) -> UrlMatchResponse:
+async def match_url_async(request: Request, url: str) -> UrlMatchResponse:
     """Match a URL to an internal path based on provider patterns."""
 
     path: str | None = providers.match_url(url)
@@ -351,7 +351,7 @@ async def match_url(request: Request, url: str) -> UrlMatchResponse:
 
 
 @router.post("/url/add")
-async def add_from_url(
+async def add_from_url_async(
     request: Request,
     payload: AddFromUrlRequest,
     _=Depends(dependency=AuthMiddleware.auth_dependency),

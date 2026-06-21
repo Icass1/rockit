@@ -4,14 +4,19 @@ import type { JSX } from "react";
 import { useEffect, useRef, useState } from "react";
 import { type BookmarkResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { BACKEND_URL, isVideo } from "@rockit/packages/shared";
 import {
     Bookmark,
     BookmarkCheck,
     ChevronDown,
+    Pencil,
+    Plus,
     Repeat1,
     SkipBack,
     Trash2,
+    X,
 } from "lucide-react";
+import { Http } from "@/lib/http";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -33,27 +38,23 @@ const MODE_ICONS: Record<
     [EBookmarkModes.PreviousBookmark]: SkipBack,
 };
 
-function BookmarkPopupForm({
-    existingAtCurrentTime,
-    currentTime,
-    onClose,
+function BookmarkEditForm({
+    bookmark,
+    onBack,
 }: {
-    existingAtCurrentTime: BookmarkResponse | undefined;
-    currentTime: number | null;
-    onClose: () => void;
+    bookmark: BookmarkResponse | null;
+    onBack: () => void;
 }): JSX.Element {
-    const editingBookmark = existingAtCurrentTime ?? null;
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
 
-    const [description, setDescription] = useState(
-        editingBookmark?.description ?? ""
-    );
+    const [description, setDescription] = useState(bookmark?.description ?? "");
     const [mode, setMode] = useState<EBookmarkModes>(
-        (editingBookmark?.mode as EBookmarkModes) ?? EBookmarkModes.Nothing
+        (bookmark?.mode as EBookmarkModes) ?? EBookmarkModes.Nothing
     );
     const [showModeDropdown, setShowModeDropdown] = useState(false);
     const [timestampText, setTimestampText] = useState(
-        getTime(editingBookmark?.timestamp ?? currentTime ?? 0)
+        getTime(bookmark?.timestamp ?? $currentTime ?? 0)
     );
 
     const modeBtnRef = useRef<HTMLButtonElement>(null);
@@ -86,9 +87,9 @@ function BookmarkPopupForm({
 
     const handleSave = async (): Promise<void> => {
         const ts = parseTimestamp(timestampText);
-        if (editingBookmark) {
+        if (bookmark) {
             await rockIt.bookmarkManager.updateBookmarkAsync(
-                editingBookmark.publicId,
+                bookmark.publicId,
                 ts,
                 description || null,
                 mode
@@ -100,22 +101,18 @@ function BookmarkPopupForm({
                 mode
             );
         }
-        onClose();
+        onBack();
     };
 
     const handleDelete = async (): Promise<void> => {
-        if (editingBookmark) {
-            await rockIt.bookmarkManager.deleteBookmarkAsync(
-                editingBookmark.publicId
-            );
+        if (bookmark) {
+            await rockIt.bookmarkManager.deleteBookmarkAsync(bookmark.publicId);
         }
-        onClose();
+        onBack();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent): void => {
-        if (e.key === "Enter") {
-            handleSave();
-        }
+        if (e.key === "Enter") handleSave();
     };
 
     const ModeIcon = MODE_ICONS[mode];
@@ -123,11 +120,20 @@ function BookmarkPopupForm({
     return (
         <>
             <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold text-neutral-400">
-                    {editingBookmark
-                        ? $vocabulary.EDIT_BOOKMARK
-                        : $vocabulary.NEW_BOOKMARK}
-                </span>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={onBack}
+                        className="rounded p-0.5 text-neutral-500 hover:text-white"
+                        title="Back"
+                    >
+                        <ChevronDown className="h-3.5 w-3.5 rotate-90" />
+                    </button>
+                    <span className="text-xs font-semibold text-neutral-400">
+                        {bookmark
+                            ? $vocabulary.EDIT_BOOKMARK
+                            : $vocabulary.NEW_BOOKMARK}
+                    </span>
+                </div>
                 <div className="flex items-center gap-1">
                     <input
                         type="text"
@@ -136,7 +142,7 @@ function BookmarkPopupForm({
                         onKeyDown={handleKeyDown}
                         className="w-12 rounded border border-neutral-700 bg-neutral-800 px-1 py-0.5 text-[10px] text-neutral-300 outline-none focus:border-[#ee1086]"
                     />
-                    {editingBookmark && (
+                    {bookmark && (
                         <button
                             onClick={handleDelete}
                             className="rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
@@ -239,14 +245,21 @@ export default function BookmarkPopup({
     const $editingBookmark = useStore(
         rockIt.bookmarkManager.editingBookmarkAtom
     );
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
+    const [formBookmark, setFormBookmark] = useState<
+        BookmarkResponse | "new" | null | undefined
+    >(undefined);
 
     const popupRef = useRef<HTMLDivElement>(null);
 
-    const existingAtCurrentTime = $editingBookmark
-        ? $editingBookmark
-        : $currentMediaBookmarks.find(
-              (b): boolean => Math.abs(b.timestamp - $currentTime) < 0.5
-          );
+    useEffect(() => {
+        if ($editingBookmark) {
+            setFormBookmark($editingBookmark);
+        } else {
+            setFormBookmark(null);
+        }
+    }, [$editingBookmark]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent): void => {
@@ -265,22 +278,131 @@ export default function BookmarkPopup({
 
     if (!$currentMedia) return <></>;
 
-    const popupContentKey = `${
-        $currentMedia.publicId
-    }-${existingAtCurrentTime?.publicId ?? "new"}`;
+    const mediaIsVideo = isVideo($currentMedia);
+    const sortedBookmarks = [...$currentMediaBookmarks].sort(
+        (a, b) => a.timestamp - b.timestamp
+    );
+
+    const handleBackToList = (): void => {
+        setFormBookmark(null);
+        rockIt.bookmarkManager.clearEditingBookmark();
+    };
+
+    if (formBookmark === undefined) return <></>;
+
+    if (formBookmark) {
+        return (
+            <div
+                ref={popupRef}
+                className="absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border border-neutral-700 bg-[#1a1a1a] p-2 shadow-xl"
+            >
+                <BookmarkEditForm
+                    bookmark={formBookmark === "new" ? null : formBookmark}
+                    onBack={handleBackToList}
+                />
+            </div>
+        );
+    }
 
     return (
         <div
             ref={popupRef}
-            className="absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border border-neutral-700 bg-[#1a1a1a] p-2 shadow-xl"
+            className="absolute right-0 bottom-full z-50 mb-2 w-72 rounded-lg border border-neutral-700 bg-[#1a1a1a] p-2 shadow-xl"
         >
-            <div key={popupContentKey}>
-                <BookmarkPopupForm
-                    existingAtCurrentTime={existingAtCurrentTime}
-                    currentTime={$currentTime}
-                    onClose={onClose}
-                />
+            <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-semibold text-neutral-400">
+                    {$vocabulary.BOOKMARKS}
+                </span>
+                <button
+                    onClick={onClose}
+                    className="rounded p-0.5 text-neutral-500 hover:text-white"
+                >
+                    <X className="h-3.5 w-3.5" />
+                </button>
             </div>
+
+            <div className="max-h-60 space-y-0.5 overflow-y-auto">
+                {sortedBookmarks.length === 0 && (
+                    <p className="py-2 text-center text-xs text-neutral-500">
+                        {$vocabulary.NO_BOOKMARKS}
+                    </p>
+                )}
+                {sortedBookmarks.map((bookmark) => (
+                    <div
+                        key={bookmark.publicId}
+                        className="group flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-800"
+                    >
+                        {mediaIsVideo && (
+                            <img
+                                src={`${BACKEND_URL}${Http.getFrameURL(
+                                    $currentMedia.publicId,
+                                    Math.round(bookmark.timestamp * 1000)
+                                )}`}
+                                alt=""
+                                className="mt-0.5 h-8 w-14 shrink-0 rounded object-cover"
+                                loading="lazy"
+                            />
+                        )}
+
+                        <span
+                            className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                            style={{
+                                backgroundColor:
+                                    BOOKMARK_MODE_COLORS[bookmark.mode],
+                            }}
+                        />
+
+                        <button
+                            onClick={(): void => {
+                                rockIt.mediaPlayerManager.setCurrentTime(
+                                    bookmark.timestamp,
+                                    true
+                                );
+                                onClose();
+                            }}
+                            className="min-w-0 flex-1 text-left"
+                        >
+                            <span className="text-xs font-medium text-white">
+                                {getTime(bookmark.timestamp)}
+                            </span>
+                            {bookmark.description && (
+                                <p className="truncate text-[10px] text-neutral-400">
+                                    {bookmark.description}
+                                </p>
+                            )}
+                        </button>
+
+                        <div className="flex flex-shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button
+                                onClick={(): void => setFormBookmark(bookmark)}
+                                className="rounded p-1 text-neutral-500 transition-colors hover:text-white"
+                                title="Edit"
+                            >
+                                <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                                onClick={async (): Promise<void> => {
+                                    await rockIt.bookmarkManager.deleteBookmarkAsync(
+                                        bookmark.publicId
+                                    );
+                                }}
+                                className="rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
+                                title={$vocabulary.DELETE}
+                            >
+                                <Trash2 className="h-3 w-3" />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <button
+                onClick={(): void => setFormBookmark("new")}
+                className="mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-neutral-700 px-2 py-1.5 text-xs text-neutral-400 transition-colors hover:border-neutral-500 hover:text-white"
+            >
+                <Plus className="h-3 w-3" />
+                {$vocabulary.ADD_BOOKMARK_AT} {getTime($currentTime ?? 0)}
+            </button>
         </div>
     );
 }

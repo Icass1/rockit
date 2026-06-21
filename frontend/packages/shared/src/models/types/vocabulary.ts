@@ -365,4 +365,7 @@ export interface Vocabulary {
     SAVE: string;
     EDIT_BOOKMARK: string;
     NEW_BOOKMARK: string;
+    NO_BOOKMARKS: string;
+    BOOKMARKS: string;
+    ADD_BOOKMARK_AT: string;
 }

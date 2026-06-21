@@ -216,6 +216,10 @@ export class BookmarkManager {
         this._showPopupAtom.set(false);
     }
 
+    clearEditingBookmark(): void {
+        this._editingBookmarkAtom.set(null);
+    }
+
     get editingBookmarkAtom(): ReadonlyAtom<BookmarkResponse | null> {
         return this._editingBookmarkAtom.getReadonlyAtom();
     }

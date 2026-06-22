@@ -71,14 +71,6 @@ function smoothScrollTo(
         const elapsed = currentTime - startTime;
         const progress = Math.max(Math.min(elapsed / duration, 1), 0);
         element.scrollTop = startY + diff * easeOutCubic(progress);
-        console.log(
-            startY + diff * easeOutCubic(progress),
-            element.scrollTop,
-            currentTime,
-            progress,
-            diff,
-            easeOutCubic(progress)
-        );
 
         if (progress < 1) {
             activeScrollRaf = requestAnimationFrame(animate);
@@ -141,7 +133,6 @@ function DynamicLyrics(): JSX.Element {
             const targetY =
                 elementTop + elementHeight / 2 - containerHeight / 2;
 
-            console.log(container, targetY);
             smoothScrollTo(container, targetY);
         }
     }, [currentIndex]);

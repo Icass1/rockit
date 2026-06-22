@@ -324,7 +324,7 @@ export class MediaPlayerManager {
     }
 
     setMedia(useSavedCurrentTime: boolean = false): void {
-        console.log("MediaPlayerManager.setMedia", useSavedCurrentTime);
+        // console.log("MediaPlayerManager.setMedia", useSavedCurrentTime);
 
         const currentMedia = rockIt.queueManager.currentMedia;
         if (!currentMedia) return;
@@ -339,7 +339,7 @@ export class MediaPlayerManager {
     }
 
     private setAudio(useSavedCurrentTime: boolean = false): void {
-        console.log("MediaPlayerManager.setAudio", useSavedCurrentTime);
+        // console.log("MediaPlayerManager.setAudio", useSavedCurrentTime);
 
         this._triggeredBookmarkPublicIdsAtom.set([]);
         this.clearVideo();
@@ -391,7 +391,7 @@ export class MediaPlayerManager {
     }
 
     private setVideo(useSavedCurrentTime: boolean = false): void {
-        console.log("MediaPlayerManager.setVideo", useSavedCurrentTime);
+        // console.log("MediaPlayerManager.setVideo", useSavedCurrentTime);
 
         this._triggeredBookmarkPublicIdsAtom.set([]);
         this.clearAudio();

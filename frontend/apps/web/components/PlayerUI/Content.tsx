@@ -48,7 +48,6 @@ export default function PlayerUIContent(): JSX.Element {
                 "ignore-click-player-ui"
             );
 
-            console.log(target);
             if (!insidePlayer && !insideFooter && !ignored && !isIgnored) {
                 rockIt.playerUIManager.hide();
             }

@@ -38,7 +38,6 @@ export default function PlayerUIQueue({
         const el = queueContainerRef.current.querySelector(
             `[data-queue-media-id="${$currentQueueMediaId}"]`
         );
-        console.log("PlayerUIQueue", { el, visible });
         if (el && visible) {
             const container = queueContainerRef.current;
             const element = el as HTMLElement;
@@ -50,7 +49,6 @@ export default function PlayerUIQueue({
                 elementRect.top - containerRect.top + container.scrollTop;
             const scrollTo =
                 relativeTop + elementHeight / 2 - containerHeight / 2;
-            console.log({ scrollTo });
             container.scrollTo({ top: scrollTo, behavior: "smooth" });
         }
     }, [$currentQueueMediaId, $playerUIVisible, visible]);

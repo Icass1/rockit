@@ -282,7 +282,7 @@ export function LibraryLists({
     const lastYear = useMemo(() => new Date().getFullYear() - 1, []);
     const lastYearDigits = String(lastYear).split("");
 
-    const TOP_LIMIT = 10;
+    const TOP_LIMIT = 5;
     const [topAlbums, setTopAlbums] = useState<
         Array<{
             publicId: string;

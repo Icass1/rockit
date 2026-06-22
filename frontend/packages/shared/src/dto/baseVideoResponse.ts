@@ -16,6 +16,7 @@ export const BaseVideoResponseSchema = z.object({
     duration_ms: z.number().nullable(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     downloaded: z.boolean(),
+    dateAdded: z.iso.datetime().nullable(),
 });
 
 export type BaseVideoResponse = z.infer<typeof BaseVideoResponseSchema>;

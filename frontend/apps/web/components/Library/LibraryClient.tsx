@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import {
     ArrowDownAZ,
     ArrowUpAZ,
+    ArrowUpDown,
     ClockArrowDown,
     LayoutGrid,
     List,
@@ -58,13 +59,16 @@ export default function LibraryClient(): JSX.Element {
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
                     >
                         {filterMode === EFilterMode.DEFAULT && (
-                            <ClockArrowDown className="h-5 w-5" />
+                            <ArrowUpDown className="h-5 w-5" />
                         )}
                         {filterMode === EFilterMode.ASC && (
                             <ArrowDownAZ className="h-5 w-5" />
                         )}
                         {filterMode === EFilterMode.DESC && (
                             <ArrowUpAZ className="h-5 w-5" />
+                        )}
+                        {filterMode === EFilterMode.RECENTLY_ADDED && (
+                            <ClockArrowDown className="h-5 w-5" />
                         )}
                     </button>
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal, Optional, List
 from pydantic import BaseModel
 
@@ -18,3 +19,4 @@ class BaseVideoResponse(BaseModel):
     duration_ms: int | None
     artists: List[BaseArtistResponse]
     downloaded: bool
+    dateAdded: datetime | None = None

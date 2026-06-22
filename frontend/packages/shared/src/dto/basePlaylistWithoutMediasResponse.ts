@@ -16,6 +16,7 @@ export const BasePlaylistWithoutMediasResponseSchema = z.object({
     contributors: z.array(z.lazy(() => PlaylistContributorSchema)),
     imageUrl: z.string(),
     owner: z.lazy(() => BaseArtistResponseSchema),
+    dateAdded: z.iso.datetime().nullable(),
 });
 
 export type BasePlaylistWithoutMediasResponse = z.infer<

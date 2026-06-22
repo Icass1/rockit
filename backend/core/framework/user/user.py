@@ -1,5 +1,6 @@
 import asyncio
 from collections import defaultdict
+from datetime import datetime
 from typing import Any, List, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -227,6 +228,11 @@ class User:
         items = a_result_medias.result()
         logger.debug(f"Found {len(items)} media items in user library.")
 
+        # Build date_added map: public_id -> date_added
+        date_map: dict[str, datetime] = {}
+        for um, media, _ in items:
+            date_map[media.public_id] = um.date_added
+
         # Group by (provider_id, media_type_key) so each provider is called once with all IDs
         groups: dict[tuple[int, int], list[str]] = defaultdict(list)
         for _, media, provider_row in items:
@@ -317,7 +323,9 @@ class User:
                     )
                     continue
 
-                library_medias.extend(a_result.result())
+                for item in a_result.result():
+                    item.dateAdded = date_map.get(item.publicId)
+                    library_medias.append(item)
 
         return AResult(code=AResultCode.OK, message="OK", result=library_medias)
 

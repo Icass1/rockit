@@ -17,6 +17,7 @@ export const BaseSongWithoutAlbumResponseSchema = z.object({
     duration_ms: z.number(),
     discNumber: z.number(),
     trackNumber: z.number(),
+    dateAdded: z.iso.datetime().nullable(),
 });
 
 export type BaseSongWithoutAlbumResponse = z.infer<

@@ -19,6 +19,7 @@ export const BaseStationResponseSchema = z.object({
     homepage: z.string().nullable(),
     geoLat: z.number().nullable(),
     geoLong: z.number().nullable(),
+    dateAdded: z.iso.datetime().nullable(),
 });
 
 export type BaseStationResponse = z.infer<typeof BaseStationResponseSchema>;

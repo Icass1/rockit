@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Sequence, Literal
 from pydantic import BaseModel
 
@@ -19,3 +20,4 @@ class BaseSongWithoutAlbumResponse(BaseModel):
     duration_ms: int
     discNumber: int
     trackNumber: int
+    dateAdded: datetime | None = None

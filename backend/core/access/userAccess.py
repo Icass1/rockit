@@ -149,6 +149,7 @@ class UserAccess:
             stmt: Select[Tuple[UserLibraryMediaRow]] = (
                 select(UserLibraryMediaRow)
                 .where(UserLibraryMediaRow.user_id == user_id)
+                .order_by(UserLibraryMediaRow.date_added.desc())
                 .options(
                     selectinload(UserLibraryMediaRow.media).selectinload(
                         CoreMediaRow.provider

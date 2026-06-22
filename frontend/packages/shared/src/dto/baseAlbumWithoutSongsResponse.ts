@@ -15,6 +15,7 @@ export const BaseAlbumWithoutSongsResponseSchema = z.object({
     releaseDate: z.string(),
     imageUrl: z.string(),
     undownloadedCount: z.number().default(0),
+    dateAdded: z.iso.datetime().nullable(),
 });
 
 export type BaseAlbumWithoutSongsResponse = z.infer<

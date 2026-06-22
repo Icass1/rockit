@@ -54,11 +54,18 @@ function filterBySearch<T extends SearchableItem>(
     });
 }
 
-function sortItems<T extends { name?: string }>(
+function sortItems<T extends { name?: string; dateAdded?: string | null }>(
     items: T[],
     mode: EFilterMode
 ): T[] {
     if (mode === EFilterMode.DEFAULT) return items;
+    if (mode === EFilterMode.RECENTLY_ADDED) {
+        return [...items].sort((a, b): number => {
+            const dateA = a.dateAdded ?? "";
+            const dateB = b.dateAdded ?? "";
+            return dateB.localeCompare(dateA);
+        });
+    }
     return [...items].sort((a, b): number => {
         const nameA = a.name?.toLowerCase() ?? "";
         const nameB = b.name?.toLowerCase() ?? "";

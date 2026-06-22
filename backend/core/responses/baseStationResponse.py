@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -21,3 +22,4 @@ class BaseStationResponse(BaseModel):
     homepage: str | None = None
     geoLat: float | None = None
     geoLong: float | None = None
+    dateAdded: datetime | None = None

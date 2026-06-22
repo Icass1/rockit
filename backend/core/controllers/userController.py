@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, cast
 
 from argon2 import PasswordHasher
 from fastapi import Depends, APIRouter, HTTPException, Request
@@ -7,7 +7,13 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import time_it
+
 from backend.core.aResult import AResult
+
+from backend.core.types.libraryMediaTypes import LibraryResponseItem
+
+from backend.core.enums.queueTypeEnum import QueueTypeEnum
+from backend.core.enums.repeatModeEnum import RepeatModeEnum
 
 from backend.core.requests.likeMediaRequest import LikeMediaRequest
 
@@ -19,8 +25,6 @@ from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from backend.core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 
-from backend.core.enums.queueTypeEnum import QueueTypeEnum
-from backend.core.enums.repeatModeEnum import RepeatModeEnum
 
 from backend.core.framework.user.user import User
 from backend.core.framework.media.image import Image
@@ -32,17 +36,20 @@ from backend.core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
 from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.queueResponse import QueueResponse
 from backend.core.responses.sessionResponse import SessionResponse
+from backend.core.responses.likedMediaResponse import LikedMediaResponse
+from backend.core.responses.userSettingsResponse import UserSettingsResponse
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
-from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from backend.core.responses.likedMediaResponse import LikedMediaResponse
-from backend.core.responses.userSettingsResponse import UserSettingsResponse
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
-from backend.core.responses.libraryMediasResponse import LibraryMediasResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseStationResponse import BaseStationResponse
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.responses.libraryMediasResponse import (
+    LibraryMediasResponse,
+)
 
 ph = PasswordHasher(
     time_cost=2,
@@ -141,14 +148,9 @@ async def get_user_library_medias(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result_library_media: AResult[
-        List[
-            BaseAlbumWithoutSongsResponse
-            | BasePlaylistWithoutMediasResponse
-            | BaseSongWithAlbumResponse
-            | BaseVideoResponse
-        ]
-    ] = await User.get_user_library_medias(session, user_id=a_result_user.result().id)
+    a_result_library_media = await User.get_user_library_medias(
+        session, user_id=a_result_user.result().id
+    )
 
     if a_result_library_media.is_not_ok():
         logger.error(
@@ -159,27 +161,27 @@ async def get_user_library_medias(
             detail=a_result_library_media.message(),
         )
 
-    library_media = a_result_library_media.result()
+    library_media = a_result_library_media.result() or []
 
-    albums: List[BaseAlbumWithoutSongsResponse] = (
-        [m for m in library_media if isinstance(m, BaseAlbumWithoutSongsResponse)]
-        if library_media
-        else []
+    albums = cast(
+        List[LibraryResponseItem[BaseAlbumWithoutSongsResponse]],
+        [m for m in library_media if m.item.type == "album"],
     )
-    playlists: List[BasePlaylistWithoutMediasResponse] = (
-        [m for m in library_media if isinstance(m, BasePlaylistWithoutMediasResponse)]
-        if library_media
-        else []
+    playlists = cast(
+        List[LibraryResponseItem[BasePlaylistWithoutMediasResponse]],
+        [m for m in library_media if m.item.type == "playlist"],
     )
-    songs: List[BaseSongWithAlbumResponse] = (
-        [m for m in library_media if isinstance(m, BaseSongWithAlbumResponse)]
-        if library_media
-        else []
+    songs = cast(
+        List[LibraryResponseItem[BaseSongWithAlbumResponse]],
+        [m for m in library_media if m.item.type == "song"],
     )
-    videos: List[BaseVideoResponse] = (
-        [m for m in library_media if isinstance(m, BaseVideoResponse)]
-        if library_media
-        else []
+    videos = cast(
+        List[LibraryResponseItem[BaseVideoResponse]],
+        [m for m in library_media if m.item.type == "video"],
+    )
+    stations = cast(
+        List[LibraryResponseItem[BaseStationResponse]],
+        [m for m in library_media if m.item.type == "station"],
     )
 
     return LibraryMediasResponse(
@@ -187,7 +189,7 @@ async def get_user_library_medias(
         playlists=playlists,
         songs=songs,
         videos=videos,
-        stations=[],
+        stations=stations,
         shared=[],
     )
 

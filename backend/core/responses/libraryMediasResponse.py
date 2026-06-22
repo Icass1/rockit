@@ -1,5 +1,8 @@
-from typing import List
+from typing import List, TypeVar
+
 from pydantic import BaseModel
+
+from backend.core.types.libraryMediaTypes import LibraryResponseItem
 
 from backend.core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
@@ -11,11 +14,13 @@ from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
 
+T = TypeVar("T")
+
 
 class LibraryMediasResponse(BaseModel):
-    albums: List[BaseAlbumWithoutSongsResponse]
-    playlists: List[BasePlaylistWithoutMediasResponse]
-    songs: List[BaseSongWithAlbumResponse]
-    videos: List[BaseVideoResponse]
-    stations: List[BaseStationResponse]
-    shared: List[BasePlaylistWithoutMediasResponse]
+    albums: List[LibraryResponseItem[BaseAlbumWithoutSongsResponse]]
+    playlists: List[LibraryResponseItem[BasePlaylistWithoutMediasResponse]]
+    songs: List[LibraryResponseItem[BaseSongWithAlbumResponse]]
+    videos: List[LibraryResponseItem[BaseVideoResponse]]
+    stations: List[LibraryResponseItem[BaseStationResponse]]
+    shared: List[LibraryResponseItem[BasePlaylistWithoutMediasResponse]]

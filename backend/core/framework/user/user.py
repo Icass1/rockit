@@ -9,6 +9,8 @@ from backend.utils.backendUtils import time_it
 
 from backend.core.aResult import AResult, AResultCode
 
+from backend.core.types.libraryMediaTypes import LibraryMediaItem, LibraryResponseItem
+
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.enums.skipDirectionEnum import SkipDirectionEnum
@@ -46,16 +48,8 @@ from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 
 from backend.core.responses.queueResponse import QueueResponse, QueueResponseItem
 from backend.core.responses.libraryMediaAddedMessage import LibraryMediaAddedMessage
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.libraryMediaRemovedMessage import LibraryMediaRemovedMessage
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
-from backend.core.responses.baseVideoResponse import BaseVideoResponse
-from backend.core.responses.baseAlbumWithoutSongsResponse import (
-    BaseAlbumWithoutSongsResponse,
-)
-from backend.core.responses.basePlaylistWithoutMediasResponse import (
-    BasePlaylistWithoutMediasResponse,
-)
 
 logger = getLogger(__name__)
 
@@ -205,16 +199,8 @@ class User:
     @time_it
     async def get_user_library_medias(
         session: AsyncSession, user_id: int
-    ) -> AResult[
-        List[
-            BaseAlbumWithoutSongsResponse
-            | BasePlaylistWithoutMediasResponse
-            | BaseSongWithAlbumResponse
-            | BaseVideoResponse
-        ]
-    ]:
+    ) -> AResult[List[LibraryMediaItem]]:
         """Get all media in user's library."""
-
         a_result_medias: AResult[
             list[tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]
         ] = await UserAccess.get_user_library_medias(session=session, user_id=user_id)
@@ -238,12 +224,7 @@ class User:
         for _, media, provider_row in items:
             groups[(provider_row.id, media.media_type_key)].append(media.public_id)
 
-        library_medias: List[
-            BaseAlbumWithoutSongsResponse
-            | BasePlaylistWithoutMediasResponse
-            | BaseSongWithAlbumResponse
-            | BaseVideoResponse
-        ] = []
+        library_medias: List[LibraryMediaItem] = []
 
         # Collect all coroutines to run in parallel
         tasks: List[LibraryTask] = []
@@ -324,8 +305,12 @@ class User:
                     continue
 
                 for item in a_result.result():
-                    item.dateAdded = date_map.get(item.publicId)
-                    library_medias.append(item)
+                    library_medias.append(
+                        LibraryResponseItem(
+                            item=item,
+                            addedAt=date_map[item.publicId],
+                        )
+                    )
 
         return AResult(code=AResultCode.OK, message="OK", result=library_medias)
 

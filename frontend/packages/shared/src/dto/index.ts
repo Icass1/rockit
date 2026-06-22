@@ -212,6 +212,10 @@ export {
     type LibraryMediasResponse,
 } from "./libraryMediasResponse";
 export {
+    LibraryResponseItemSchema,
+    type LibraryResponseItem,
+} from "./libraryResponseItem";
+export {
     LikeMediaRequestSchema,
     type LikeMediaRequest,
 } from "./likeMediaRequest";

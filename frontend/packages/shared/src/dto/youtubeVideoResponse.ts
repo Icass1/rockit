@@ -17,7 +17,6 @@ export const YoutubeVideoResponseSchema = z.object({
     duration_ms: z.number().nullable(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     downloaded: z.boolean(),
-    dateAdded: z.iso.datetime().nullable(),
     youtubeId: z.string(),
     viewCount: z.number(),
     likeCount: z.number(),

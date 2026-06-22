@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, Literal, Optional, TypeVar
 
 from pydantic import BaseModel
@@ -20,4 +19,3 @@ class BasePlaylistWithoutMediasResponse(BaseModel):
     contributors: List[PlaylistContributor]
     imageUrl: str
     owner: BaseArtistResponse
-    dateAdded: datetime | None = None

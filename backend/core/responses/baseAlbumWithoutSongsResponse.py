@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Literal, Sequence
 
 from pydantic import BaseModel
@@ -19,4 +18,3 @@ class BaseAlbumWithoutSongsResponse(BaseModel):
     releaseDate: str
     imageUrl: str
     undownloadedCount: int = 0
-    dateAdded: datetime | None = None

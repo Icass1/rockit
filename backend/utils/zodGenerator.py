@@ -90,6 +90,8 @@ def get_base_models_from_folder(
         for _name, obj in inspect.getmembers(module, inspect.isclass):
             if issubclass(obj, BaseModel) and obj is not BaseModel:
                 if obj.__module__ == module.__name__:
+                    if "[" in obj.__name__:
+                        continue
                     base_models.append(obj)
 
         for _name, obj in module.__dict__.items():

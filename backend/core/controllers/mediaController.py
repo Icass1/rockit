@@ -200,7 +200,11 @@ async def search_async(
 
 
 @router.get("/{public_id}")
-async def get_media_async(request: Request, public_id: str) -> MediaResponse:
+async def get_media_async(
+    request: Request,
+    public_id: str,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> MediaResponse:
     """Get a media item by its public_id without specifying the type."""
 
     logger.debug(f"Media.get_media_async called with public_id: {public_id}")
@@ -209,7 +213,10 @@ async def get_media_async(request: Request, public_id: str) -> MediaResponse:
 
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
-        raise HTTPException(status_code=401)
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
     user_id: int = a_result_user.result().id
 
     a_result: AResult[MediaResponse] = await Media.get_media_async(

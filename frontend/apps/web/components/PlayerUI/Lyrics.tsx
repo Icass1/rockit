@@ -48,6 +48,8 @@ function Lyrics(): JSX.Element {
     );
 }
 
+let activeScrollRaf: number | null = null;
+
 function smoothScrollTo(
     element: HTMLElement,
     targetY: number,
@@ -56,18 +58,36 @@ function smoothScrollTo(
     const startY = element.scrollTop;
     const diff = targetY - startY;
     if (Math.abs(diff) < 1) return;
-    const startTime = performance.now();
+
+    if (activeScrollRaf !== null) {
+        cancelAnimationFrame(activeScrollRaf);
+        activeScrollRaf = null;
+    }
 
     const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+    const startTime = performance.now();
 
     const animate = (currentTime: number): void => {
         const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+        const progress = Math.max(Math.min(elapsed / duration, 1), 0);
         element.scrollTop = startY + diff * easeOutCubic(progress);
-        if (progress < 1) requestAnimationFrame(animate);
+        console.log(
+            startY + diff * easeOutCubic(progress),
+            element.scrollTop,
+            currentTime,
+            progress,
+            diff,
+            easeOutCubic(progress)
+        );
+
+        if (progress < 1) {
+            activeScrollRaf = requestAnimationFrame(animate);
+        } else {
+            activeScrollRaf = null;
+        }
     };
 
-    requestAnimationFrame(animate);
+    activeScrollRaf = requestAnimationFrame(animate);
 }
 
 function DynamicLyrics(): JSX.Element {
@@ -120,14 +140,17 @@ function DynamicLyrics(): JSX.Element {
             const containerHeight = container.clientHeight;
             const targetY =
                 elementTop + elementHeight / 2 - containerHeight / 2;
+
+            console.log(container, targetY);
             smoothScrollTo(container, targetY);
         }
     }, [currentIndex]);
 
     const goToLine = (index: number): void => {
-        const timeStamp = lyrics?.lines[index].timestamp_s;
+        if (!lyrics) return;
+        const timeStamp = lyrics.lines[index].timestamp_s;
         if (timeStamp !== undefined) {
-            rockIt.mediaPlayerManager.setCurrentTime(timeStamp);
+            rockIt.mediaPlayerManager.setCurrentTime(timeStamp - lyrics.offset);
         }
     };
 
@@ -150,7 +173,7 @@ function DynamicLyrics(): JSX.Element {
     return (
         <div
             ref={containerRef}
-            className="scrollbar-none h-full w-full overflow-y-auto scroll-smooth pr-20 pb-24 pl-10"
+            className="scrollbar-none h-full w-full overflow-y-auto pr-20 pb-24 pl-10"
         >
             {lyrics?.lines.map((line, index) => (
                 <p

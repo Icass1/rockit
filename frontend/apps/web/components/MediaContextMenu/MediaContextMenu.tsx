@@ -69,7 +69,8 @@ const actionComponents: Partial<
     [EMediaContextAction.RemoveFromQueue]: RemoveFromQueueAction,
     [EMediaContextAction.Download]: DownloadAction,
     [EMediaContextAction.DownloadSearchResult]: DownloadSearchResultAction,
-    [EMediaContextAction.DownloadSearchResultAndAddToLibrary]: DownloadSearchResultAndAddToLibraryAction,
+    [EMediaContextAction.DownloadSearchResultAndAddToLibrary]:
+        DownloadSearchResultAndAddToLibraryAction,
     [EMediaContextAction.RetryDownload]: RetryDownloadAction,
     [EMediaContextAction.DownloadZip]: DownloadZipAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,

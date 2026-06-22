@@ -6,7 +6,6 @@ import { BaseArtistResponse } from "@/dto";
 
 const TARGET_SPEED = 0.75;
 const ACCEL = TARGET_SPEED / 120; // 2s to full speed at 60fps
-const DECEL = ACCEL;
 
 export default function VinylRecord({
     imageUrl,
@@ -32,7 +31,7 @@ export default function VinylRecord({
     }, [isPlaying]);
 
     const startLoop = (): void => {
-        const tick = () => {
+        const tick = (): void => {
             const playing = isPlayingRef.current;
 
             if (playing) {

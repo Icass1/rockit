@@ -238,9 +238,7 @@ function SectionedAllMasonry({
                             <VideoCard key={m.item.publicId} video={m.item} />
                         );
                     case "song":
-                        return (
-                            <SongCard key={m.item.publicId} song={m.item} />
-                        );
+                        return <SongCard key={m.item.publicId} song={m.item} />;
                     case "station":
                         return (
                             <StationCard

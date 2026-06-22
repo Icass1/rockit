@@ -1,7 +1,7 @@
 import type { JSX } from "react";
+import type { BaseSearchResultsItem } from "@/dto";
 import { isSearchResult } from "@rockit/shared";
 import { HardDriveDownload, RefreshCw } from "lucide-react";
-import type { BaseSearchResultsItem } from "@/dto";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -41,7 +41,7 @@ export function RetryDownloadAction({
 
 async function addFromUrlThenDownload(
     media: ActionComponentProps["media"],
-    addToLibrary: boolean,
+    addToLibrary: boolean
 ): Promise<void> {
     const searchItem = media as BaseSearchResultsItem;
     const addResult = await Http.addFromUrlAsync({

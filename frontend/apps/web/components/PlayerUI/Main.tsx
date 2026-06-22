@@ -121,7 +121,7 @@ export default function PlayerUIMain({
                 >
                     {!vinylMode && (
                         <div
-                            className={`absolute top-0 right-0 left-0 z-30 flex flex-row items-start pt-4 pr-5 pb-12 pl-4 bg-linear-to-b from-black/60 to-transparent transition-opacity duration-300 ${
+                            className={`absolute top-0 right-0 left-0 z-30 flex flex-row items-start bg-linear-to-b from-black/60 to-transparent pt-4 pr-5 pb-12 pl-4 transition-opacity duration-300 ${
                                 songHover
                                     ? "opacity-100"
                                     : "pointer-events-none opacity-0"
@@ -133,7 +133,7 @@ export default function PlayerUIMain({
                                     e.stopPropagation();
                                     setVinylMode((p) => !p);
                                 }}
-                                className="flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white ignore-click-player-ui"
+                                className="ignore-click-player-ui flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white"
                                 title="Vinyl record"
                             >
                                 <Disc3 className="pointer-events-none h-8 w-8" />
@@ -154,7 +154,7 @@ export default function PlayerUIMain({
                                     e.stopPropagation();
                                     setVinylMode(false);
                                 }}
-                                className="absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 text-white/80 opacity-0 transition-opacity hover:text-white group-hover:opacity-100 ignore-click-player-ui"
+                                className="ignore-click-player-ui absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 text-white/80 opacity-0 transition-opacity group-hover:opacity-100 hover:text-white"
                                 title="Square cover"
                             >
                                 <DiscAlbum className="pointer-events-none h-10 w-10" />

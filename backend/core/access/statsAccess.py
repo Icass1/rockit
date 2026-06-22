@@ -653,6 +653,8 @@ class StatsAccess:
     ) -> AResult[list[str]]:
         """Get top songs and videos public_ids by play count."""
 
+        limit_clause = f"LIMIT {limit}" if limit > 0 else ""
+
         sql = text(f"""
         WITH {_get_media_info_cte()},
         play_counts AS (
@@ -665,7 +667,7 @@ class StatsAccess:
               AND  mi.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
             GROUP BY uml.media_id
             ORDER BY play_count DESC
-            LIMIT :limit
+            {limit_clause}
         )
         SELECT mi.public_id
         FROM   play_counts pc
@@ -679,7 +681,6 @@ class StatsAccess:
                     "user_id": user_id,
                     "start_date": start_date.astimezone(timezone.utc),
                     "end_date": end_date.astimezone(timezone.utc),
-                    "limit": limit,
                 },
             )
         ).fetchall()

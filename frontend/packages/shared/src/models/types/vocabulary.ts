@@ -368,4 +368,6 @@ export interface Vocabulary {
     NO_BOOKMARKS: string;
     BOOKMARKS: string;
     ADD_BOOKMARK_AT: string;
+    DOWNLOAD_TO_SERVER: string;
+    DOWNLOAD_AND_ADD_TO_LIBRARY: string;
 }

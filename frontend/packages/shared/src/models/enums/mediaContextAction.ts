@@ -19,4 +19,6 @@ export enum EMediaContextAction {
     Delete = "delete",
     Redownload = "redownload",
     EditMetadata = "editMetadata",
+    DownloadSearchResult = "downloadSearchResult",
+    DownloadSearchResultAndAddToLibrary = "downloadSearchResultAndAddToLibrary",
 }

@@ -198,3 +198,31 @@
 .radio-country-tooltip::before {
     border-top-color: rgba(238, 16, 134, 0.9) !important;
 }
+
+/* ── Masonry grid (CSS columns) ────────────
+   Uses `column-width: 250px` for auto-fill behaviour:
+   as many 250px-wide columns as the container allows.
+   Items flow top→bottom, then left→right.
+   Break-inside avoids content splitting across columns.
+   Gaps: 12px horizontal, 16px vertical (mobile)
+         16px horizontal, 20px vertical (desktop)
+   ─────────────────────────────────────── */
+.masonry-grid {
+    column-width: 250px;
+    column-gap: 12px;
+}
+
+.masonry-grid > * {
+    break-inside: avoid;
+    margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+    .masonry-grid {
+        column-gap: 16px;
+    }
+
+    .masonry-grid > * {
+        margin-bottom: 20px;
+    }
+}

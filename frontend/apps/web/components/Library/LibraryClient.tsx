@@ -7,6 +7,7 @@ import {
     ArrowUpAZ,
     ArrowUpDown,
     ClockArrowDown,
+    Kanban,
     LayoutGrid,
     List,
     Upload,
@@ -28,7 +29,7 @@ export default function LibraryClient(): JSX.Element {
     const [activeType, setActiveType] = useState<EContentType>(
         EContentType.All
     );
-    const [viewMode, setViewMode] = useState<EViewMode>(EViewMode.Grid);
+    const [viewMode, setViewMode] = useState<EViewMode>(EViewMode.Masonry);
     const [showUploadModal, setShowUploadModal] = useState(false);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
@@ -72,7 +73,7 @@ export default function LibraryClient(): JSX.Element {
                         )}
                     </button>
 
-                    {/* View toggle */}
+                    {/* View toggle (Grid → List → Masonry) */}
                     <button
                         onClick={(): void =>
                             setViewMode(
@@ -81,15 +82,19 @@ export default function LibraryClient(): JSX.Element {
                         }
                         title={
                             viewMode === EViewMode.Grid
-                                ? "List view"
-                                : "Grid view"
+                                ? "Grid view"
+                                : viewMode === EViewMode.List
+                                  ? "List view"
+                                  : "Masonry view"
                         }
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
                     >
                         {viewMode === EViewMode.Grid ? (
+                            <LayoutGrid className="h-5 w-5" />
+                        ) : viewMode === EViewMode.List ? (
                             <List className="h-5 w-5" />
                         ) : (
-                            <LayoutGrid className="h-5 w-5" />
+                            <Kanban className="h-5 w-5" />
                         )}
                     </button>
 

@@ -197,6 +197,64 @@ function SectionedAllGrid({
 }
 
 /**
+ * "All" tab in masonry mode: all items interleaved in a masonry grid.
+ */
+function SectionedAllMasonry({
+    albums,
+    playlists,
+    videos,
+    songs,
+    stations,
+}: {
+    albums: BaseAlbumWithoutSongsResponse[];
+    playlists: BasePlaylistWithoutMediasResponse[];
+    videos: BaseVideoResponse[];
+    songs: BaseSongWithoutAlbumResponse[];
+    stations: BaseStationResponse[];
+}): JSX.Element {
+    const mixed = useMemo(
+        () => interleaveGridItems(playlists, albums, videos, songs, stations),
+        [playlists, albums, videos, songs, stations]
+    );
+
+    return (
+        <div className="masonry-grid px-4 pt-4 pb-4">
+            <NewPlaylistButton variant="card" />
+            {mixed.map((m): JSX.Element => {
+                switch (m.kind) {
+                    case "playlist":
+                        return (
+                            <PlaylistCard
+                                key={m.item.publicId}
+                                playlist={m.item}
+                            />
+                        );
+                    case "album":
+                        return (
+                            <AlbumCard key={m.item.publicId} album={m.item} />
+                        );
+                    case "video":
+                        return (
+                            <VideoCard key={m.item.publicId} video={m.item} />
+                        );
+                    case "song":
+                        return (
+                            <SongCard key={m.item.publicId} song={m.item} />
+                        );
+                    case "station":
+                        return (
+                            <StationCard
+                                key={m.item.publicId}
+                                station={m.item}
+                            />
+                        );
+                }
+            })}
+        </div>
+    );
+}
+
+/**
  * "All" tab in list mode: all items interleaved in a single grid of rows.
  */
 function SectionedAllList({
@@ -502,6 +560,14 @@ export function LibraryLists({
                             songs={filtered.songs}
                             stations={filtered.stations}
                         />
+                    ) : viewMode === EViewMode.Masonry ? (
+                        <SectionedAllMasonry
+                            albums={filtered.albums}
+                            playlists={filtered.playlists}
+                            videos={filtered.videos}
+                            songs={filtered.songs}
+                            stations={filtered.stations}
+                        />
                     ) : (
                         <SectionedAllGrid
                             albums={filtered.albums}
@@ -534,6 +600,17 @@ export function LibraryLists({
                                 {filtered.albums.map(
                                     (al): JSX.Element => (
                                         <AlbumRow
+                                            key={al.publicId}
+                                            album={al}
+                                        />
+                                    )
+                                )}
+                            </div>
+                        ) : viewMode === EViewMode.Masonry ? (
+                            <div className="masonry-grid px-4 pt-4 pb-4">
+                                {filtered.albums.map(
+                                    (al): JSX.Element => (
+                                        <AlbumCard
                                             key={al.publicId}
                                             album={al}
                                         />
@@ -582,6 +659,18 @@ export function LibraryLists({
                                     )
                                 )}
                             </div>
+                        ) : viewMode === EViewMode.Masonry ? (
+                            <div className="masonry-grid px-4 pt-4 pb-4">
+                                <NewPlaylistButton variant="card" />
+                                {filtered.playlists.map(
+                                    (pl): JSX.Element => (
+                                        <PlaylistCard
+                                            key={pl.publicId}
+                                            playlist={pl}
+                                        />
+                                    )
+                                )}
+                            </div>
                         ) : (
                             <div className={GRID_CLASS}>
                                 <NewPlaylistButton variant="card" />
@@ -621,6 +710,14 @@ export function LibraryLists({
                                     )
                                 )}
                             </div>
+                        ) : viewMode === EViewMode.Masonry ? (
+                            <div className="masonry-grid px-4 pt-4 pb-4">
+                                {filtered.songs.map(
+                                    (s): JSX.Element => (
+                                        <SongCard key={s.publicId} song={s} />
+                                    )
+                                )}
+                            </div>
                         ) : (
                             <div className={GRID_CLASS}>
                                 {filtered.songs.map(
@@ -656,6 +753,14 @@ export function LibraryLists({
                                     )
                                 )}
                             </div>
+                        ) : viewMode === EViewMode.Masonry ? (
+                            <div className="masonry-grid px-4 pt-4 pb-4">
+                                {filtered.videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoCard key={v.publicId} video={v} />
+                                    )
+                                )}
+                            </div>
                         ) : (
                             <div className={GRID_CLASS}>
                                 {filtered.videos.map(
@@ -682,6 +787,17 @@ export function LibraryLists({
                                 {filtered.stations.map(
                                     (st): JSX.Element => (
                                         <StationRow
+                                            key={st.publicId}
+                                            station={st}
+                                        />
+                                    )
+                                )}
+                            </div>
+                        ) : viewMode === EViewMode.Masonry ? (
+                            <div className="masonry-grid px-4 pt-4 pb-4">
+                                {filtered.stations.map(
+                                    (st): JSX.Element => (
+                                        <StationCard
                                             key={st.publicId}
                                             station={st}
                                         />

@@ -24,12 +24,15 @@ export default function VinylRecord({
     const rotationRef = useRef(0);
     const speedRef = useRef(0);
     const isPlayingRef = useRef(isPlaying);
-    isPlayingRef.current = isPlaying;
+    const rafIdRef = useRef<number>(0);
 
+    // Keep ref in sync with prop outside of render
     useEffect(() => {
-        let rafId: number;
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
 
-        const animate = () => {
+    const startLoop = (): void => {
+        const tick = () => {
             const playing = isPlayingRef.current;
 
             if (playing) {
@@ -38,12 +41,12 @@ export default function VinylRecord({
                     TARGET_SPEED
                 );
             } else {
-                speedRef.current = Math.max(
-                    speedRef.current - DECEL,
-                    0
-                );
+                // Smooth exponential decay for a more natural slowdown
+                speedRef.current *= 0.96;
+                if (speedRef.current < 0.001) speedRef.current = 0;
             }
 
+            // Update rotation only when speed > 0
             if (speedRef.current > 0) {
                 rotationRef.current =
                     (rotationRef.current + speedRef.current) % 360;
@@ -51,13 +54,16 @@ export default function VinylRecord({
                     discRef.current.style.transform = `rotate(${rotationRef.current}deg)`;
                 }
             }
-
-            rafId = requestAnimationFrame(animate);
+            // Continue the animation loop regardless of speed
+            rafIdRef.current = requestAnimationFrame(tick);
         };
+        rafIdRef.current = requestAnimationFrame(tick);
+    };
 
-        rafId = requestAnimationFrame(animate);
-
-        return () => cancelAnimationFrame(rafId);
+    // Start the animation loop once on mount.
+    useEffect(() => {
+        startLoop();
+        return () => cancelAnimationFrame(rafIdRef.current);
     }, []);
 
     return (

@@ -7,9 +7,10 @@ import {
     isVideo,
     TPlayableMedia,
 } from "@rockit/packages/shared";
-import { Pause, Play } from "lucide-react";
+import { Disc3, DiscAlbum, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
+import VinylRecord from "@/components/PlayerUI/VinylRecord";
 
 export default function PlayerUIMain({
     currentMedia,
@@ -20,6 +21,7 @@ export default function PlayerUIMain({
     const [showIcon, setShowIcon] = useState(false);
     const [titleVisible, setTitleVisible] = useState(true);
     const [songHover, setSongHover] = useState(false);
+    const [vinylMode, setVinylMode] = useState(true);
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -109,7 +111,7 @@ export default function PlayerUIMain({
     } else if (isSong(currentMedia)) {
         return (
             <div
-                className="relative flex h-full w-full items-center justify-center"
+                className="group ignore-click-player-ui relative flex h-full w-full items-center justify-center"
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
@@ -117,28 +119,76 @@ export default function PlayerUIMain({
                     className="relative aspect-square h-[93%] cursor-pointer overflow-hidden rounded-xl"
                     onClick={handleClick}
                 >
-                    <Image
-                        src={currentMedia.imageUrl}
-                        fill
-                        alt={currentMedia.name}
-                        className="object-cover"
-                    />
+                    {!vinylMode && (
+                        <div
+                            className={`absolute top-0 right-0 left-0 z-30 flex flex-row items-start pt-4 pr-5 pb-12 pl-4 bg-linear-to-b from-black/60 to-transparent transition-opacity duration-300 ${
+                                songHover
+                                    ? "opacity-100"
+                                    : "pointer-events-none opacity-0"
+                            }`}
+                        >
+                            <button
+                                type="button"
+                                onClick={(e): void => {
+                                    e.stopPropagation();
+                                    setVinylMode((p) => !p);
+                                }}
+                                className="flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white ignore-click-player-ui"
+                                title="Vinyl record"
+                            >
+                                <Disc3 className="pointer-events-none h-8 w-8" />
+                            </button>
+                        </div>
+                    )}
+                    {vinylMode ? (
+                        <div className="relative h-full w-full">
+                            <VinylRecord
+                                imageUrl={currentMedia.imageUrl}
+                                name={currentMedia.name}
+                                artists={currentMedia.artists}
+                                isPlaying={$playing}
+                            />
+                            <button
+                                type="button"
+                                onClick={(e): void => {
+                                    e.stopPropagation();
+                                    setVinylMode(false);
+                                }}
+                                className="absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 text-white/80 opacity-0 transition-opacity hover:text-white group-hover:opacity-100 ignore-click-player-ui"
+                                title="Square cover"
+                            >
+                                <DiscAlbum className="pointer-events-none h-10 w-10" />
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <Image
+                                src={currentMedia.imageUrl}
+                                fill
+                                alt={currentMedia.name}
+                                className="object-cover"
+                                draggable={false}
+                            />
+                        </>
+                    )}
                     {iconOverlay}
-                    <div
-                        className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
-                            songHover
-                                ? "opacity-100"
-                                : "pointer-events-none opacity-0"
-                        }`}
-                    >
-                        <label className="truncate text-2xl font-bold">
-                            {currentMedia.name}
-                        </label>
-                        <Artists
-                            className="text-md w-fit flex-nowrap truncate text-left font-semibold"
-                            artists={currentMedia.artists}
-                        />
-                    </div>
+                    {!vinylMode && (
+                        <div
+                            className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
+                                songHover
+                                    ? "opacity-100"
+                                    : "pointer-events-none opacity-0"
+                            }`}
+                        >
+                            <label className="truncate text-2xl font-bold">
+                                {currentMedia.name}
+                            </label>
+                            <Artists
+                                className="text-md w-fit flex-nowrap truncate text-left font-semibold"
+                                artists={currentMedia.artists}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         );

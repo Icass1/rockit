@@ -226,3 +226,89 @@
         margin-bottom: 20px;
     }
 }
+
+/* ── Vinyl Record ────────────────────────────
+   Spinning disc for songs in the player UI.
+   Black grooves background (repeating-radial-gradient), cover
+   clipped inside a circle at ⅔, white separator ring, SVG arc
+   text song · artist near the center, and spindle.
+   ─────────────────────────────────────────── */
+.vinyl-disc {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: repeating-radial-gradient(
+        circle at 50% 50%,
+        #0d0d0d 0px,
+        #0d0d0d 2px,
+        #1c1c1c 2px,
+        #1c1c1c 3px
+    );
+    will-change: transform;
+}
+
+.vinyl-cover-circle {
+    position: absolute;
+    border-radius: 9999px;
+    overflow: hidden;
+    width: 66.667%;
+    height: 66.667%;
+    inset: 0;
+    margin: auto;
+    z-index: 1;
+}
+
+.vinyl-text-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.vinyl-outer-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.vinyl-ring-white {
+    position: absolute;
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    pointer-events: none;
+    width: 66.667%;
+    height: 66.667%;
+    inset: 0;
+    margin: auto;
+    z-index: 2;
+}
+
+.vinyl-black-center {
+    position: absolute;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    z-index: 3;
+    width: 5%;
+    height: 5%;
+    inset: 0;
+    margin: auto;
+}
+
+.vinyl-black-dot {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 9999px;
+    background: #000;
+    pointer-events: none;
+    inset: 0;
+    margin: auto;
+}

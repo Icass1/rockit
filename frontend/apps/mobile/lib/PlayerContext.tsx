@@ -144,18 +144,6 @@ function buildQueuePayload(
     });
 }
 
-async function isMediaDownloaded(publicId: string): Promise<boolean> {
-    try {
-        const [songUri, videoUri] = await Promise.all([
-            mediaStorage.getSongUri(publicId),
-            mediaStorage.getVideoUri(publicId),
-        ]);
-        return !!(songUri || videoUri);
-    } catch {
-        return false;
-    }
-}
-
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -457,13 +445,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
                         if (idx >= q.length) idx = 0;
 
                         const media = q[idx];
-                        const rawUri = getUri(media);
-                        if (rawUri) {
-                            const downloaded = await isMediaDownloaded(
-                                media.publicId
-                            );
-                            if (downloaded) break;
-                        }
+                        if (getUri(media)) break;
                         idx++;
                         checked++;
                     }
@@ -618,7 +600,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         let nextIndex = queue.getNextIndex();
         if (nextIndex === null) return;
 
-        // Scan forward for a downloaded item
+        // Scan forward for a playable item
         let scanned = 0;
         while (scanned < q.length) {
             if (nextIndex >= q.length) nextIndex = 0;
@@ -626,10 +608,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const media = q[nextIndex];
             if (!media) break;
 
-            const rawUri = getUri(media);
-            if (rawUri && (await isMediaDownloaded(media.publicId))) {
-                break;
-            }
+            if (getUri(media)) break;
             nextIndex++;
             scanned++;
         }
@@ -681,7 +660,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        // Scan backward for a downloaded item
+        // Scan backward for a playable item
         let scanned = 0;
         while (scanned < q.length) {
             if (prevIndex < 0) prevIndex = q.length - 1;
@@ -689,10 +668,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             const media = q[prevIndex];
             if (!media) break;
 
-            const rawUri = getUri(media);
-            if (rawUri && (await isMediaDownloaded(media.publicId))) {
-                break;
-            }
+            if (getUri(media)) break;
             prevIndex--;
             scanned++;
         }

@@ -1,7 +1,10 @@
+import { addNetworkStateListener, getNetworkStateAsync } from "expo-network";
+import { atom } from "nanostores";
+
 class SyncManager {
     private static _instance: SyncManager;
-    private _online = false;
     private _initialized = false;
+    isOnlineAtom = atom<boolean>(false);
 
     static getInstance(): SyncManager {
         if (!SyncManager._instance) {
@@ -11,18 +14,22 @@ class SyncManager {
     }
 
     async init(): Promise<void> {
-        if (this._initialized) return;
         console.log("SyncManager.init");
+        if (this._initialized) return;
         this._initialized = true;
-    }
 
-    setOnline(online: boolean): void {
-        this._online = online;
-        console.log("SyncManager.setOnline", { online });
+        const state = await getNetworkStateAsync();
+        console.log("sate 1", state);
+        this.isOnlineAtom.set(state.isConnected ?? false);
+
+        addNetworkStateListener((state) => {
+            console.log("sate 2", state);
+            this.isOnlineAtom.set(state.isConnected ?? false);
+        });
     }
 
     isOnline(): boolean {
-        return this._online;
+        return this.isOnlineAtom.get();
     }
 }
 

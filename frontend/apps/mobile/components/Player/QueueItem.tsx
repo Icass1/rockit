@@ -1,11 +1,13 @@
 import { useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import type { TQueueMedia } from "@rockit/shared";
+import { useStore } from "@nanostores/react";
+import { isDownloadable, type TQueueMedia } from "@rockit/shared";
 import { Image } from "expo-image";
 import { Menu, Trash2 } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useMediaOffline } from "@/hooks/useMediaOffline";
+import { syncManager } from "@/lib/syncManager";
 
 interface QueueItemProps {
     media: TQueueMedia;
@@ -28,8 +30,11 @@ export default function QueueItem({
     onPlay,
 }: QueueItemProps) {
     const swipeableRef = useRef<Swipeable>(null);
-    const isOffline = useMediaOffline(media.publicId);
-    const isNotDownloaded = isOffline === false;
+    const isSavedOffline = useMediaOffline(media.publicId);
+    const isOnline = useStore(syncManager.isOnlineAtom);
+    const isNotDownloaded = isOnline
+        ? isDownloadable(media) && !media.downloaded
+        : !isSavedOffline;
 
     const renderRightActions = (
         _progress: Animated.AnimatedInterpolation<number>,

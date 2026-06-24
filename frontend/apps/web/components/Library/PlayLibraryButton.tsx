@@ -31,13 +31,13 @@ export default function PlayLibraryButton(): JSX.Element {
         } else {
             const res = await Http.getUserLibraryMedias();
             if (res.isOk()) {
-                const songs = res.result.songs ?? [];
-                const videos = res.result.videos ?? [];
+                const songs = (res.result.songs ?? []).map((s) => s.item);
+                const videos = (res.result.videos ?? []).map((v) => v.item);
                 const albumSongs = await expandAlbumsToPlayable(
-                    res.result.albums ?? []
+                    (res.result.albums ?? []).map((a) => a.item)
                 );
                 const playlistSongs = await expandPlaylistsToPlayable(
-                    res.result.playlists ?? []
+                    (res.result.playlists ?? []).map((p) => p.item)
                 );
                 const allMedia = [
                     ...songs,

@@ -161,8 +161,9 @@ export default function RadioClient(): JSX.Element {
 
     const { data, loading } = useFetch(fetchLibrary);
 
-    const libraryStations: BaseStationResponse[] =
-        (data as LibraryMediasResponse | undefined)?.stations ?? [];
+    const libraryStations: BaseStationResponse[] = (
+        (data as LibraryMediasResponse | undefined)?.stations ?? []
+    ).map((s) => s.item);
 
     const isSearching = query.trim().length > 0;
 

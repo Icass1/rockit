@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import {
+    BaseAlbumWithoutSongsResponse,
+    BasePlaylistWithoutMediasResponse,
+    BaseSongWithAlbumResponse,
+    BaseVideoResponse,
     EEvent,
-    EMediaType,
     IMediaAddedToLibraryEvent,
     IMediaRemovedFromLibraryEvent,
     LibraryMediasResponse,
@@ -26,6 +29,17 @@ const EMPTY: TFilteredLibrary = {
     stations: [],
     shared: [],
 };
+
+function extractItems(data: LibraryMediasResponse): TFilteredLibrary {
+    return {
+        albums: data.albums.map((a) => a.item),
+        playlists: data.playlists.map((p) => p.item),
+        songs: data.songs.map((s) => s.item),
+        videos: data.videos.map((v) => v.item),
+        stations: data.stations.map((s) => s.item),
+        shared: data.shared.map((s) => s.item),
+    };
+}
 
 type SearchableItem = {
     name?: string;
@@ -75,39 +89,95 @@ function sortItems<T extends { name?: string; dateAdded?: string | null }>(
     });
 }
 
+type Action =
+    | { type: "INIT"; data: LibraryMediasResponse }
+    | { type: "REMOVE"; publicId: string }
+    | {
+          type: "ADD";
+          media:
+              | BaseSongWithAlbumResponse
+              | BaseVideoResponse
+              | BaseAlbumWithoutSongsResponse
+              | BasePlaylistWithoutMediasResponse;
+      };
+
+function libraryReducer(
+    state: TFilteredLibrary | undefined,
+    action: Action
+): TFilteredLibrary | undefined {
+    switch (action.type) {
+        case "INIT":
+            return extractItems(action.data);
+        case "REMOVE": {
+            if (!state) return state;
+            const filter = <T extends { publicId: string }>(
+                list: T[],
+                publicId: string
+            ): T[] =>
+                list.filter((item): boolean => item.publicId !== publicId);
+            return {
+                songs: filter(state.songs, action.publicId),
+                videos: filter(state.videos, action.publicId),
+                albums: filter(state.albums, action.publicId),
+                playlists: filter(state.playlists, action.publicId),
+                shared: filter(state.shared, action.publicId),
+                stations: filter(state.stations, action.publicId),
+            };
+        }
+        case "ADD": {
+            if (!state) return state;
+            const addToArray = <T extends { publicId: string }>(
+                arr: T[],
+                item: T
+            ): T[] => {
+                if (arr.some((el): boolean => el.publicId === item.publicId))
+                    return arr;
+                return [...arr, item];
+            };
+            const _state = { ...state };
+            switch (action.media.type) {
+                case "song":
+                    _state.songs = addToArray(_state.songs, action.media);
+                    break;
+                case "video":
+                    _state.videos = addToArray(_state.videos, action.media);
+                    break;
+                case "album":
+                    _state.albums = addToArray(_state.albums, action.media);
+                    break;
+                case "playlist":
+                    _state.playlists = addToArray(
+                        _state.playlists,
+                        action.media
+                    );
+                    break;
+                default:
+                    break;
+            }
+            return _state;
+        }
+    }
+}
+
 export function useLibraryData({
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
     const { data: _libraryData, loading } = useFetch(Http.getUserLibraryMedias);
 
-    const [libraryData, setLibraryData] = useState<
-        LibraryMediasResponse | undefined
-    >(_libraryData);
+    const initialData = _libraryData ? extractItems(_libraryData) : undefined;
+
+    const [libraryData, dispatch] = useReducer(libraryReducer, initialData);
 
     useEffect((): void => {
-        setLibraryData(_libraryData);
+        if (_libraryData) {
+            dispatch({ type: "INIT", data: _libraryData });
+        }
     }, [_libraryData]);
 
     useEffect((): (() => void) => {
-        const filter = <T extends { publicId: string }>(
-            list: T[],
-            publicId: string
-        ): T[] => list.filter((item): boolean => item.publicId !== publicId);
-
         const handler = (e: IMediaRemovedFromLibraryEvent): void => {
-            setLibraryData((data): LibraryMediasResponse | undefined => {
-                if (!data) return data;
-
-                return {
-                    songs: filter(data.songs, e.publicId),
-                    videos: filter(data.videos, e.publicId),
-                    albums: filter(data.albums, e.publicId),
-                    playlists: filter(data.playlists, e.publicId),
-                    shared: filter(data.shared, e.publicId),
-                    stations: filter(data.stations, e.publicId),
-                };
-            });
+            dispatch({ type: "REMOVE", publicId: e.publicId });
         };
 
         rockIt.eventManager.addEventListener(
@@ -121,58 +191,18 @@ export function useLibraryData({
             );
     }, []);
 
-    function addMediaToArray<T extends { publicId: string }>(
-        arr: T[],
-        item: T
-    ): T[] {
-        if (arr.some((el): boolean => el.publicId === item.publicId))
-            return arr;
-        return [...arr, item];
-    }
-
     useEffect((): (() => void) => {
         const handler = (e: IMediaAddedToLibraryEvent): void => {
             rockIt.mediaManager.getMedia(e.publicId).then((data): void => {
                 if (data.isOk()) {
-                    setLibraryData(
-                        (libraryData): LibraryMediasResponse | undefined => {
-                            if (!libraryData) return;
-
-                            const _libraryData = { ...libraryData };
-                            const media = data.result.media;
-
-                            switch (media.type) {
-                                case EMediaType.Song:
-                                    _libraryData.songs = addMediaToArray(
-                                        _libraryData.songs,
-                                        media
-                                    );
-                                    break;
-                                case EMediaType.Video:
-                                    _libraryData.videos = addMediaToArray(
-                                        _libraryData.videos,
-                                        media
-                                    );
-                                    break;
-                                case EMediaType.Album:
-                                    _libraryData.albums = addMediaToArray(
-                                        _libraryData.albums,
-                                        media
-                                    );
-                                    break;
-                                case EMediaType.Playlist:
-                                    _libraryData.playlists = addMediaToArray(
-                                        _libraryData.playlists,
-                                        media
-                                    );
-                                    break;
-                                default:
-                                    break;
-                            }
-
-                            return _libraryData;
-                        }
-                    );
+                    dispatch({
+                        type: "ADD",
+                        media: data.result.media as
+                            | BaseSongWithAlbumResponse
+                            | BaseVideoResponse
+                            | BaseAlbumWithoutSongsResponse
+                            | BasePlaylistWithoutMediasResponse,
+                    });
                 } else {
                     rockIt.notificationManager.notifyError(
                         rockIt.vocabularyManager.vocabulary.ERROR_GETTING_MEDIA

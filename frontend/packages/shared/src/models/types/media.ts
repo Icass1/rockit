@@ -170,7 +170,9 @@ export function isVideo(media: TMedia): media is BaseVideoResponse {
     return media.type === "video";
 }
 
-export function isStation(media: TMedia): media is BaseStationResponse {
+export function isStation(
+    media: TMedia | BaseSearchResultsItem
+): media is BaseStationResponse {
     return media.type === "station";
 }
 

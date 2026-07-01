@@ -6,9 +6,10 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
+    isSearchResult,
+    isStation,
     type BaseSearchResultsItem,
     type BaseStationResponse,
-    type LibraryMediasResponse,
 } from "@rockit/shared";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
@@ -116,7 +117,7 @@ function StationSearchRow({
     );
 }
 
-type RadioViewMode = EViewMode.Grid | EViewMode.List | "map";
+type RadioViewMode = EViewMode.Grid | EViewMode.List | EViewMode.Map;
 
 export default function RadioClient(): JSX.Element {
     const [viewMode, setViewMode] = useState<RadioViewMode>(EViewMode.Grid);
@@ -161,9 +162,9 @@ export default function RadioClient(): JSX.Element {
 
     const { data, loading } = useFetch(fetchLibrary);
 
-    const libraryStations: BaseStationResponse[] = (
-        (data as LibraryMediasResponse | undefined)?.stations ?? []
-    ).map((s) => s.item);
+    const libraryStations: BaseStationResponse[] = (data?.stations ?? []).map(
+        (s) => s.item
+    );
 
     const isSearching = query.trim().length > 0;
 
@@ -227,7 +228,7 @@ export default function RadioClient(): JSX.Element {
     const cycleViewMode = (): void => {
         setViewMode((prev) => {
             if (prev === EViewMode.Grid) return EViewMode.List;
-            if (prev === EViewMode.List) return "map";
+            if (prev === EViewMode.List) return EViewMode.Map;
             return EViewMode.Grid;
         });
     };
@@ -358,36 +359,33 @@ export default function RadioClient(): JSX.Element {
                     }
                 >
                     {displayedStations.map((station) => {
-                        const hasPublicId = "publicId" in station;
-                        const key = hasPublicId
-                            ? (station as BaseStationResponse).publicId
-                            : (station as BaseSearchResultsItem).providerUrl +
-                              (station as BaseSearchResultsItem).name;
-
-                        if (viewMode === "map" && hasPublicId) {
+                        if (viewMode === EViewMode.Map && isStation(station)) {
                             return (
                                 <StationCard
-                                    key={key}
-                                    station={station as BaseStationResponse}
+                                    key={station.publicId}
+                                    station={station}
                                 />
                             );
                         }
+                        if (isSearchResult(station)) {
+                            const key = station.providerUrl + station.name;
+                            if (viewMode === EViewMode.List) {
+                                return (
+                                    <StationSearchRow
+                                        key={key}
+                                        station={station}
+                                    />
+                                );
+                            }
 
-                        if (viewMode === EViewMode.List) {
                             return (
-                                <StationSearchRow
+                                <StationSearchCard
                                     key={key}
-                                    station={station as BaseSearchResultsItem}
+                                    station={station}
                                 />
                             );
                         }
-
-                        return (
-                            <StationSearchCard
-                                key={key}
-                                station={station as BaseSearchResultsItem}
-                            />
-                        );
+                        return;
                     })}
                 </div>
             )}

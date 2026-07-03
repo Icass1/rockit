@@ -180,9 +180,12 @@ class StatsAccess:
         end_date: datetime,
         group_by: str,
     ) -> AResult[list[StatsMinutesEntryResponse]]:
-        pg_period = {"hour": "hour", "day": "day", "week": "week", "month": "month"}.get(
-            group_by, "day"
-        )
+        pg_period = {
+            "hour": "hour",
+            "day": "day",
+            "week": "week",
+            "month": "month",
+        }.get(group_by, "day")
 
         sql = text(f"""
         WITH {_get_media_info_cte()},

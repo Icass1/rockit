@@ -197,9 +197,12 @@ class StatsV2Access:
         end_date: datetime,
         group_by: str,
     ) -> AResult[list[StatsMinutesEntryResponse]]:
-        pg_period = {"hour": "hour", "day": "day", "week": "week", "month": "month"}.get(
-            group_by, "day"
-        )
+        pg_period = {
+            "hour": "hour",
+            "day": "day",
+            "week": "week",
+            "month": "month",
+        }.get(group_by, "day")
 
         sql = text(f"""
         WITH {_get_media_info_cte()},
@@ -238,13 +241,11 @@ class StatsV2Access:
             db_data[key] = float(row.minutes)
 
         entries: list[StatsMinutesEntryResponse] = []
-        start = _naive_utc(start_date).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        start = _naive_utc(start_date)
         end = _naive_utc(end_date)
 
         if group_by == "hour":
-            cur = start.replace(hour=0, minute=0, second=0, microsecond=0)
+            cur = start.replace(minute=0, second=0, microsecond=0)
             while cur < end:
                 nxt = cur + timedelta(hours=1)
                 entries.append(
@@ -258,7 +259,7 @@ class StatsV2Access:
                 cur = nxt
 
         elif group_by == "day":
-            cur = start
+            cur = start.replace(hour=0, minute=0, second=0, microsecond=0)
             while cur < end:
                 nxt = cur + timedelta(days=1)
                 entries.append(
@@ -272,7 +273,9 @@ class StatsV2Access:
                 cur = nxt
 
         elif group_by == "week":
-            cur = start - timedelta(days=start.weekday())
+            cur = (start - timedelta(days=start.weekday())).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
             week_num = 1
             while cur < end:
                 nxt = cur + timedelta(weeks=1)
@@ -288,7 +291,7 @@ class StatsV2Access:
                 week_num += 1
 
         elif group_by == "month":
-            cur = start.replace(day=1)
+            cur = start.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             while cur < end:
                 nxt = cur.replace(
                     month=cur.month % 12 + 1,

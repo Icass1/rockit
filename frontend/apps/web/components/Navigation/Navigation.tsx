@@ -78,7 +78,7 @@ export default function Navigation(): JSX.Element {
         {
             name: "Stats",
             title: $vocabulary.STATS,
-            href: "/stats",
+            href: "/stats/v2",
             icon: ChartLine,
         },
         {

@@ -39,10 +39,29 @@ function CustomTooltip({
     const start = new Date(entry.start);
     const end = new Date(entry.end);
 
+    const isHourly = /^\d{2}:\d{2}$/.test(entry.label);
     const isDaily = range === "7d";
-    const label = isDaily
-        ? start.toLocaleDateString("en-US", { weekday: "long" })
-        : `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} — ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    let label: string;
+    if (isHourly) {
+        const fmt: Intl.DateTimeFormatOptions = {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        };
+        label = `${start.toLocaleTimeString("en-US", fmt)} — ${end.toLocaleTimeString("en-US", fmt)}`;
+    } else if (isDaily) {
+        label = start.toLocaleDateString("en-US", { weekday: "long" });
+    } else {
+        const startStr = start.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
+        const endStr = end.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
+        label = startStr === endStr ? startStr : `${startStr} — ${endStr}`;
+    }
 
     return (
         <div className="rounded-xl border border-neutral-800/60 bg-neutral-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">

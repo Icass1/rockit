@@ -18,3 +18,7 @@ export type MonthKey = (typeof MONTH_KEYS)[number];
 export function getPreviousMonthKey(): MonthKey {
     return MONTH_KEYS[(new Date().getMonth() + 11) % 12];
 }
+
+export function utcIsoToLocalDate(isoString: string): Date {
+    return new Date(isoString);
+}

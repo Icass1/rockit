@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { utcIsoToLocalDate } from "@rockit/shared";
 import type { StatsMinutesEntryResponse } from "@rockit/shared";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -53,15 +54,23 @@ export default function MinutesBarChart({ data }: MinutesBarChartProps) {
         entry: StatsMinutesEntryResponse
     ) => {
         const x = LEFT_MARGIN + index * (barWidth + BAR_GAP) + barWidth / 2;
-        const startDate = new Date(entry.start);
-        const endDate = new Date(entry.end);
-        const label = `${startDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-        })} - ${endDate.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-        })}`;
+        const startDate = utcIsoToLocalDate(entry.start);
+        const endDate = utcIsoToLocalDate(entry.end);
+        const isHourly = /^\d{2}:\d{2}$/.test(entry.label);
+        const label = isHourly
+            ? `${startDate.toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+              })} - ${endDate.toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+              })}`
+            : startDate.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+              });
         setSelectedIndex(index);
         setTooltip({ visible: true, x, label, value: entry.minutes });
     };

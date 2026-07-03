@@ -197,7 +197,7 @@ class StatsV2Access:
         end_date: datetime,
         group_by: str,
     ) -> AResult[list[StatsMinutesEntryResponse]]:
-        pg_period = {"day": "day", "week": "week", "month": "month"}.get(
+        pg_period = {"hour": "hour", "day": "day", "week": "week", "month": "month"}.get(
             group_by, "day"
         )
 
@@ -243,7 +243,21 @@ class StatsV2Access:
         )
         end = _naive_utc(end_date)
 
-        if group_by == "day":
+        if group_by == "hour":
+            cur = start.replace(hour=0, minute=0, second=0, microsecond=0)
+            while cur < end:
+                nxt = cur + timedelta(hours=1)
+                entries.append(
+                    StatsMinutesEntryResponse(
+                        minutes=round(db_data.get(cur, 0.0), 1),
+                        start=_utc(cur),
+                        end=_utc(nxt),
+                        label=f"{cur.hour:02d}:00",
+                    )
+                )
+                cur = nxt
+
+        elif group_by == "day":
             cur = start
             while cur < end:
                 nxt = cur + timedelta(days=1)

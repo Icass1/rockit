@@ -49,7 +49,11 @@ def _parse_range(
     return start_date, end_date
 
 
-def _get_group_by(range_value: str) -> str:
+def _get_group_by(
+    range_value: str,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+) -> str:
     if range_value == "7d":
         return "day"
     elif range_value == "30d":
@@ -58,6 +62,16 @@ def _get_group_by(range_value: str) -> str:
         return "month"
     elif range_value == "all":
         return "month"
+    elif range_value == "custom" and start_date and end_date:
+        days = (end_date - start_date).days
+        if days <= 1:
+            return "hour"
+        elif days <= 31:
+            return "day"
+        elif days <= 90:
+            return "week"
+        else:
+            return "month"
     return "week"
 
 
@@ -71,7 +85,7 @@ class StatsV2:
         custom_end: datetime | None = None,
     ) -> AResult[UserStatsV2Response]:
         start_date, end_date = _parse_range(range_value, custom_start, custom_end)
-        group_by: str = _get_group_by(range_value)
+        group_by: str = _get_group_by(range_value, start_date, end_date)
 
         if range_value == "all":
             a_first = await StatsV2Access.get_first_listen_date_async(

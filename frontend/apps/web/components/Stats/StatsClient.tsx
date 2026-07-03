@@ -7,6 +7,7 @@ import { EWebSocketMessage } from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { getLocalEndOfDay, getLocalStartOfDay } from "@/lib/utils/dateUtils";
 import UserStats from "@/components/Stats/UserStats";
 
 type Range = "7d" | "30d" | "1y" | "all" | "custom";
@@ -80,11 +81,11 @@ export default function StatsClient(): JSX.Element {
                 range,
                 start:
                     range === "custom" && customStart
-                        ? new Date(customStart).toISOString()
+                        ? getLocalStartOfDay(customStart)
                         : null,
                 end:
                     range === "custom" && customEnd
-                        ? new Date(customEnd).toISOString()
+                        ? getLocalEndOfDay(customEnd)
                         : null,
             }),
         [range, customStart, customEnd]

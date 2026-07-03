@@ -3,40 +3,26 @@
 import { useEffect, useSyncExternalStore, type JSX } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
+import { MONTH_KEYS } from "@rockit/packages/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 import SongScrollSection from "@/components/Home/sections/SongScrollSection";
 import LoadingComponent from "@/components/Loading";
 
-const MONTH_KEYS = [
-    "JANUARY",
-    "february",
-    "march",
-    "april",
-    "may",
-    "june",
-    "july",
-    "august",
-    "september",
-    "october",
-    "november",
-    "december",
-] as const;
-
 function getPreviousMonthKey():
     | "JANUARY"
-    | "february"
-    | "march"
-    | "april"
-    | "may"
-    | "june"
-    | "july"
-    | "august"
-    | "september"
-    | "october"
-    | "november"
-    | "december" {
+    | "FEBRUARY"
+    | "MARCH"
+    | "APRIL"
+    | "MAY"
+    | "JUNE"
+    | "JULY"
+    | "AUGUST"
+    | "SEPTEMBER"
+    | "OCTOBER"
+    | "NOVEMBER"
+    | "DECEMBER" {
     return MONTH_KEYS[(new Date().getMonth() + 11) % 12];
 }
 

@@ -3,6 +3,7 @@
 import { JSX, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { formatHour, formatHourRange } from "@rockit/shared";
 import {
     Bar,
     BarChart,
@@ -43,12 +44,7 @@ function CustomTooltip({
     const isDaily = range === "7d";
     let label: string;
     if (isHourly) {
-        const fmt: Intl.DateTimeFormatOptions = {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-        };
-        label = `${start.toLocaleTimeString("en-US", fmt)} — ${end.toLocaleTimeString("en-US", fmt)}`;
+        label = formatHourRange(start, end);
     } else if (isDaily) {
         label = start.toLocaleDateString("en-US", { weekday: "long" });
     } else {
@@ -85,10 +81,19 @@ export default function MinutesBarChart({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const data = useMemo(() => {
-        return _data.map((entry) => ({
-            ...entry,
-            label: $vocabulary[entry.label as keyof typeof $vocabulary],
-        }));
+        return _data.map((entry) => {
+            const isHourly = /^\d{2}:\d{2}$/.test(entry.label);
+            if (isHourly) {
+                return {
+                    ...entry,
+                    label: formatHour(new Date(entry.start)),
+                };
+            }
+            return {
+                ...entry,
+                label: $vocabulary[entry.label as keyof typeof $vocabulary],
+            };
+        });
     }, [_data, $vocabulary]);
 
     if (data.length === 0) {

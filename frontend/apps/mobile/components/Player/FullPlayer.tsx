@@ -10,7 +10,9 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePlayer } from "@/lib/PlayerContext";
+import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
+import BookmarkPopup from "./BookmarkPopup";
 import PlayerMediaInfo from "./PlayerMediaInfo";
 import PlayerTabsBar from "./PlayerTabsBar";
 import PlayerTabsPanel from "./PlayerTabsPanel";
@@ -33,8 +35,10 @@ export default function FullPlayer() {
         hasVideo,
     } = usePlayer();
 
+    const { currentTime } = usePlayerTime();
     const insets = useSafeAreaInsets();
     const FOOTER_HEIGHT = 50; // Height of the custom tab bar
+    const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
 
     let containerHeight: number;
 
@@ -77,6 +81,27 @@ export default function FullPlayer() {
         }
         prevVisible.current = isPlayerVisible;
     }, [isPlayerVisible, translateY, isHiding, onHideComplete]);
+
+    // Fetch bookmarks when current media changes
+    useEffect(() => {
+        if (currentMedia?.publicId) {
+            rockIt.bookmarkManager.fetchBookmarksForMediaAsync(
+                currentMedia.publicId
+            );
+        } else {
+            rockIt.bookmarkManager.setBookmarks([]);
+        }
+    }, [currentMedia?.publicId]);
+
+    const handleBookmarkPress = useCallback(() => {
+        if (currentMedia?.publicId) {
+            rockIt.bookmarkManager
+                .fetchBookmarksForMediaAsync(currentMedia.publicId)
+                .then(() => {
+                    setShowBookmarkPopup(true);
+                });
+        }
+    }, [currentMedia?.publicId]);
 
     const handleHide = useCallback(() => {
         if (isHiding.value) return;
@@ -159,6 +184,7 @@ export default function FullPlayer() {
                                 prev === "crossfade" ? null : "crossfade"
                             )
                         }
+                        onBookmarkPress={handleBookmarkPress}
                         media={currentMedia}
                     />
                     <PlayerMediaInfo
@@ -178,6 +204,13 @@ export default function FullPlayer() {
             <PlayerTabsPanel
                 activeTab={activeTab}
                 onClose={() => setActiveTab(null)}
+            />
+
+            <BookmarkPopup
+                visible={showBookmarkPopup}
+                currentTime={currentTime}
+                mediaPublicId={currentMedia?.publicId}
+                onClose={() => setShowBookmarkPopup(false)}
             />
         </Animated.View>
     );

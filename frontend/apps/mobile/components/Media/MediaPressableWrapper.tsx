@@ -39,12 +39,16 @@ interface MediaCardProps {
     media: TMedia | BaseSearchResultsItem;
     allMedia: TMedia[];
     children: React.ReactNode;
+    extraOptions?: ContextMenuOption[];
+    menuOnly?: boolean;
 }
 
 const MediaPressableWrapper = memo(function MediaPressableWrapper({
     media,
     allMedia,
     children,
+    extraOptions,
+    menuOnly,
 }: MediaCardProps) {
     const { show, hide } = useContextMenu();
     const { vocabulary } = useVocabulary();
@@ -179,6 +183,10 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 });
             }
 
+            if (extraOptions) {
+                options.push(...extraOptions);
+            }
+
             return {
                 imageUrl: media.imageUrl,
                 title: media.name,
@@ -187,7 +195,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hide, show]
+        [hide, show, extraOptions]
     );
 
     const showPlaylistPicker = useCallback(
@@ -260,14 +268,14 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     }, [media, show, buildMainMenu]);
 
     const handlePress = useCallback(() => {
-        if (isSearchResult(media)) {
+        if (menuOnly || isSearchResult(media)) {
             show(buildMainMenu(media));
         } else if (isPlayable(media)) {
             handlePlay(media, getAllPlayableMedia(allMedia));
         } else if (isList(media)) {
             router.push(media.url);
         }
-    }, [media, allMedia, router, show, buildMainMenu, handlePlay]);
+    }, [media, allMedia, router, show, buildMainMenu, handlePlay, menuOnly]);
 
     return (
         <>

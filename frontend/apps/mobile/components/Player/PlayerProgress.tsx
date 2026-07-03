@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { useStore } from "@nanostores/react";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
+import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { usePlayerTime } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function formatTime(seconds: number): string {
     if (!isFinite(seconds) || isNaN(seconds)) return "0:00";
@@ -12,25 +15,24 @@ function formatTime(seconds: number): string {
     return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+const THUMB_SIZE = 30;
+const THUMB_HALF = THUMB_SIZE / 2;
+
 interface PlayerProgressProps {
     onSeek: (seconds: number) => void;
 }
 
 export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     const { currentTime, duration } = usePlayerTime();
+    const $bookmarks = useStore(
+        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    );
     const [isSeeking, setIsSeeking] = useState(false);
     const [seekValue, setSeekValue] = useState(currentTime);
     const [trackWidth, setTrackWidth] = useState(0);
 
-    const thumbSize = 30;
-
     const progress = duration > 0 ? seekValue / duration : 0;
-    // The slider pads thumbSize/2 on each side so the thumb doesn't overflow.
-    // Mirror that math so the gradient's right edge aligns with the thumb center.
-    const fillWidth =
-        trackWidth > 0
-            ? thumbSize / 2 + progress * (trackWidth - thumbSize)
-            : 0;
+    const fillWidth = trackWidth > 0 ? progress * trackWidth : 0;
 
     useEffect(() => {
         if (!isSeeking) setSeekValue(currentTime);
@@ -71,6 +73,26 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                     maximumTrackTintColor="transparent"
                     thumbTintColor={COLORS.white}
                 />
+                {trackWidth > 0 &&
+                    $bookmarks.map((bm) => {
+                        if (duration <= 0) return null;
+                        const offset =
+                            THUMB_HALF + (bm.timestamp / duration) * trackWidth;
+                        const color =
+                            BOOKMARK_MODE_COLORS[bm.mode] ?? "#ffffff";
+                        return (
+                            <View
+                                key={bm.publicId}
+                                style={[
+                                    styles.bookmarkMarker,
+                                    {
+                                        left: offset,
+                                        backgroundColor: color,
+                                    },
+                                ]}
+                            />
+                        );
+                    })}
             </View>
             <View style={styles.labels}>
                 <Text style={styles.time}>{formatTime(seekValue)}</Text>
@@ -92,8 +114,8 @@ const styles = StyleSheet.create({
     track: {
         position: "absolute",
         top: 16,
-        left: 0,
-        right: 0,
+        left: THUMB_HALF,
+        right: THUMB_HALF,
         height: 7,
         backgroundColor: "rgba(255,255,255,0.1)",
         borderRadius: 4,
@@ -119,5 +141,13 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: "rgba(255,255,255,0.7)",
         fontWeight: "500",
+    },
+    bookmarkMarker: {
+        position: "absolute",
+        top: 14,
+        width: 4,
+        height: 11,
+        borderRadius: 2,
+        zIndex: 10,
     },
 });

@@ -2,10 +2,8 @@
 
 import type { JSX } from "react";
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { type BookmarkResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { isVideo } from "@rockit/packages/shared";
 import {
     Bookmark,
     BookmarkCheck,
@@ -17,7 +15,6 @@ import {
     Trash2,
     X,
 } from "lucide-react";
-import { Http } from "@/lib/http";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -274,7 +271,6 @@ export default function BookmarkPopup({
 
     if (!$currentMedia) return <></>;
 
-    const mediaIsVideo = isVideo($currentMedia);
     const sortedBookmarks = [...$currentMediaBookmarks].sort(
         (a, b) => a.timestamp - b.timestamp
     );
@@ -328,20 +324,6 @@ export default function BookmarkPopup({
                         key={bookmark.publicId}
                         className="group flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-800"
                     >
-                        {mediaIsVideo && (
-                            <Image
-                                src={Http.getFrameURL(
-                                    $currentMedia.publicId,
-                                    Math.round(bookmark.timestamp * 1000)
-                                )}
-                                alt=""
-                                className="mt-0.5 h-8 w-14 shrink-0 rounded object-cover"
-                                width={56}
-                                height={32}
-                                loading="lazy"
-                            />
-                        )}
-
                         <span
                             className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                             style={{

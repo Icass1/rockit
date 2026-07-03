@@ -34,6 +34,7 @@ import { DEFAULT_CROSSFADE } from "@/lib/audio/useAudioEngine";
 import { useMediaEngine } from "@/lib/audio/useMediaEngine";
 import { useQueue } from "@/lib/audio/useQueue";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { webSocketManager } from "@/lib/webSocketManager";
 
@@ -157,6 +158,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const audioIntegrationInitialized = useRef(false);
     const lastWsSyncTimeRef = useRef(0);
     const currentTimeRef = useRef(0);
+    const lastTimeRef = useRef(0);
+    const triggeredBookmarkIdsRef = useRef<string[]>([]);
+    const seekToRef = useRef<(seconds: number) => Promise<void>>(
+        async () => {}
+    );
+    const skipForwardRef = useRef<() => Promise<void>>(async () => {});
     const queueRef = useRef(queue);
     const listPublicIdByMediaPublicIdRef = useRef<Map<string, string | null>>(
         new Map()
@@ -238,6 +245,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             Math.round(currentTime * 1000)
         );
     }, [isPlaying, currentTime]);
+
+    useEffect(() => {
+        lastTimeRef.current = 0;
+        triggeredBookmarkIdsRef.current = [];
+    }, [queue.currentMedia?.publicId]);
 
     // Sync queue to Android Auto MediaBrowserService
     useEffect(() => {
@@ -394,11 +406,103 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         return cached ?? remoteUri;
     };
 
+    const checkBookmarks = (lastTime: number, currentTime: number): void => {
+        console.log(
+            "checkBookmarks",
+            lastTime,
+            currentTime,
+            queueRef.current.repeatMode,
+            triggeredBookmarkIdsRef.current
+        );
+
+        const repeatModeState = queueRef.current.repeatMode;
+        const isAllMode = repeatModeState === ERepeatMode.ALL;
+        const triggeredIds = triggeredBookmarkIdsRef.current;
+
+        const bookmarks =
+            rockIt.bookmarkManager.currentMediaBookmarksAtom.get();
+
+        const sortedBookmarks = [...bookmarks].sort(
+            (a, b): number => a.timestamp - b.timestamp
+        );
+
+        for (let i = 0; i < sortedBookmarks.length; i++) {
+            const bookmark = sortedBookmarks[i];
+            if (
+                !(
+                    lastTime < bookmark.timestamp &&
+                    bookmark.timestamp <= currentTime &&
+                    currentTime - bookmark.timestamp < 1
+                )
+            ) {
+                continue;
+            }
+
+            if (
+                repeatModeState === ERepeatMode.OFF &&
+                bookmark.mode === "PREVIOUS_BOOKMARK"
+            ) {
+                continue;
+            }
+
+            if (isAllMode && triggeredIds.includes(bookmark.publicId)) {
+                continue;
+            }
+
+            if (bookmark.mode === "AUTOSKIP") {
+                if (isAllMode) {
+                    triggeredBookmarkIdsRef.current = [
+                        ...triggeredIds,
+                        bookmark.publicId,
+                    ];
+                }
+                const nextBookmark = sortedBookmarks[i + 1];
+                if (nextBookmark) {
+                    seekToRef.current(nextBookmark.timestamp);
+                } else {
+                    skipForwardRef.current();
+                }
+                return;
+            }
+
+            if (bookmark.mode === "REPEAT_FROM_BEGINNING") {
+                if (isAllMode) {
+                    triggeredBookmarkIdsRef.current = [
+                        ...triggeredIds,
+                        bookmark.publicId,
+                    ];
+                }
+                seekToRef.current(0);
+                return;
+            }
+
+            if (bookmark.mode === "PREVIOUS_BOOKMARK") {
+                if (isAllMode) {
+                    triggeredBookmarkIdsRef.current = [
+                        ...triggeredIds,
+                        bookmark.publicId,
+                    ];
+                }
+                const prevBookmark = i > 0 ? sortedBookmarks[i - 1] : null;
+                if (prevBookmark) {
+                    seekToRef.current(prevBookmark.timestamp);
+                } else {
+                    seekToRef.current(0);
+                }
+                return;
+            }
+        }
+    };
+
     const mediaEngine = useMediaEngine({
         onTimeUpdate: (pos, dur) => {
             setCurrentTime(pos);
             currentTimeRef.current = pos;
             setDuration(dur);
+
+            const lastTime = lastTimeRef.current;
+            checkBookmarks(lastTime, pos);
+            lastTimeRef.current = pos;
 
             const now = Date.now();
             if (now - lastWsSyncTimeRef.current >= WS_TIME_SYNC_INTERVAL_MS) {
@@ -594,6 +698,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         },
         [mediaEngine]
     );
+    seekToRef.current = seekTo;
 
     const skipForward = useCallback(async () => {
         const q = queue.queue;
@@ -647,6 +752,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             queueType: queue.shuffle ? EQueueType.RANDOM : EQueueType.SORTED,
         });
     }, [mediaEngine, queue]);
+    skipForwardRef.current = skipForward;
 
     const skipBack = useCallback(async () => {
         if (currentTime > 3) {

@@ -35,7 +35,10 @@ export default function PlayerLyrics() {
         const offset = lyrics.offset;
 
         for (let i = lyrics.lines.length - 1; i >= 0; i--) {
-            if (currentTime >= lyrics.lines[i].timestamp_s - offset) {
+            if (
+                Math.round(currentTime * 100) / 100 >=
+                Math.round((lyrics.lines[i].timestamp_s - offset) * 100) / 100
+            ) {
                 return i;
             }
         }

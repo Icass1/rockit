@@ -249,6 +249,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         lastTimeRef.current = 0;
         triggeredBookmarkIdsRef.current = [];
+        if (queue.currentMedia?.publicId) {
+            rockIt.bookmarkManager.fetchBookmarksForMediaAsync(
+                queue.currentMedia.publicId
+            );
+        } else {
+            rockIt.bookmarkManager.setBookmarks([]);
+        }
     }, [queue.currentMedia?.publicId]);
 
     // Sync queue to Android Auto MediaBrowserService
@@ -407,14 +414,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     };
 
     const checkBookmarks = (lastTime: number, currentTime: number): void => {
-        console.log(
-            "checkBookmarks",
-            lastTime,
-            currentTime,
-            queueRef.current.repeatMode,
-            triggeredBookmarkIdsRef.current
-        );
-
         const repeatModeState = queueRef.current.repeatMode;
         const isAllMode = repeatModeState === ERepeatMode.ALL;
         const triggeredIds = triggeredBookmarkIdsRef.current;

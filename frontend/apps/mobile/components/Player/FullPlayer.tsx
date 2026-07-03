@@ -82,17 +82,6 @@ export default function FullPlayer() {
         prevVisible.current = isPlayerVisible;
     }, [isPlayerVisible, translateY, isHiding, onHideComplete]);
 
-    // Fetch bookmarks when current media changes
-    useEffect(() => {
-        if (currentMedia?.publicId) {
-            rockIt.bookmarkManager.fetchBookmarksForMediaAsync(
-                currentMedia.publicId
-            );
-        } else {
-            rockIt.bookmarkManager.setBookmarks([]);
-        }
-    }, [currentMedia?.publicId]);
-
     const handleBookmarkPress = useCallback(() => {
         if (currentMedia?.publicId) {
             rockIt.bookmarkManager

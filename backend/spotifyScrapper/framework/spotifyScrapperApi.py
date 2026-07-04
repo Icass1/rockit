@@ -208,7 +208,7 @@ class SpotifyScrapperApi:
     ) -> AResult[ScrappedPlaylist]:
         try:
             async with AsyncSpotifyClient(timeout=15.0) as client:
-                playlist = await client.get_playlist(id, max_tracks=100)
+                playlist = await client.get_playlist(id, max_tracks=None)
                 result = _playlist_to_scrapped(playlist)
                 return AResult(code=AResultCode.OK, message="OK", result=result)
         except Exception as e:

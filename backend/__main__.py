@@ -155,13 +155,16 @@ async def main() -> None:
     from backend.core.access.db import rockit_db
     from backend.core import add_initial_content_async
 
-    try:
-        await rockit_db.async_init()
-    except Exception as e:
-        logger.critical(f"Error initializing database: {e}")
-        sys.exit()
+    # Only init DB for commands that need it
+    needs_db: bool = command_to_run not in ("", "models")
+    if needs_db:
+        try:
+            await rockit_db.async_init()
+        except Exception as e:
+            logger.critical(f"Error initializing database: {e}")
+            sys.exit()
 
-    await rockit_db.wait_for_session_local_async()
+        await rockit_db.wait_for_session_local_async()
 
     first_loop = True
 

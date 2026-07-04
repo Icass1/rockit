@@ -197,8 +197,11 @@ export class QueueManager {
         const jumped = rockIt.bookmarkManager.skipToPrevBookmark();
         if (jumped) return;
 
-        const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
-        if (currentTime !== null && currentTime >= 3) return;
+        const currentTime = rockIt.mediaPlayerManager.currentTime;
+        if (currentTime >= 3) {
+            rockIt.mediaPlayerManager.setCurrentTime(0, true);
+            return;
+        }
 
         this._lastNavigationDirection = -1;
         if (this.currentMedia?.publicId)

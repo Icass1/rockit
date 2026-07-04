@@ -493,7 +493,7 @@ class SpotifyAccess:
                         CoreMediaRow.media_type_key == MediaTypeEnum.ARTIST.value,
                     ),
                 )
-                .where(CoreMediaRow.public_id == raw.id)
+                .where(ArtistRow.spotify_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: ArtistRow | None = result.scalar_one_or_none()
@@ -616,7 +616,7 @@ class SpotifyAccess:
                         CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
                     ),
                 )
-                .where(CoreMediaRow.public_id == raw.id)
+                .where(AlbumRow.spotify_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: AlbumRow | None = result.scalar_one_or_none()
@@ -709,7 +709,7 @@ class SpotifyAccess:
                         CoreMediaRow.media_type_key == MediaTypeEnum.ALBUM.value,
                     ),
                 )
-                .where(CoreMediaRow.public_id == raw.id)
+                .where(AlbumRow.spotify_id == raw.id)
             )
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
@@ -747,7 +747,7 @@ class SpotifyAccess:
                         CoreMediaRow.media_type_key == MediaTypeEnum.SONG.value,
                     ),
                 )
-                .where(CoreMediaRow.public_id == raw.id)
+                .where(TrackRow.spotify_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: TrackRow | None = result.scalar_one_or_none()
@@ -827,7 +827,7 @@ class SpotifyAccess:
                         CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
                     ),
                 )
-                .where(CoreMediaRow.public_id == raw.id)
+                .where(PlaylistRow.spotify_id == raw.id)
             )
             result = await session.execute(stmt)
             existing: PlaylistRow | None = result.scalar_one_or_none()

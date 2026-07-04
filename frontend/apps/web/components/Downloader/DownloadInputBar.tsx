@@ -82,24 +82,7 @@ export default function DownloadInputBar({
                 {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
             </form>
 
-            <div className="flex items-center gap-3 text-sm text-neutral-400">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-600 bg-neutral-800/20">
-                    <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                    </svg>
-                </div>
-                <span>Supports Spotify & YouTube URLs</span>
-            </div>
+            <span className="text-sm text-neutral-400">Supports Spotify & YouTube URLs</span>
         </div>
     );
 }

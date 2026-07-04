@@ -292,6 +292,10 @@ class Downloader:
                         ]
                         completed_val = float(last_status.completed)
 
+                    content_type: str = MediaTypeEnum(
+                        media.media_type_key
+                    ).name.lower()
+
                     items.append(
                         DownloadItemResponse(
                             publicId=media.public_id,
@@ -303,6 +307,7 @@ class Downloader:
                             progress=completed_val,
                             dateStarted=download.date_started,
                             dateEnded=download.date_ended,
+                            contentType=content_type,
                         )
                     )
 

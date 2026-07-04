@@ -20,6 +20,7 @@ export const DownloadItemResponseSchema = z.object({
     imageUrl: z.string().nullable(),
     dateStarted: z.iso.datetime(),
     dateEnded: z.iso.datetime().nullable(),
+    contentType: z.string(),
 });
 
 export type DownloadItemResponse = z.infer<typeof DownloadItemResponseSchema>;

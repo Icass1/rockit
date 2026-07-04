@@ -28,9 +28,10 @@ export default function DownloadCoverCard({
 
     const isCompleted = item.status === "COMPLETED";
     const isFailed = item.status === "FAILED";
+    const isRetrying = item.status === "RETRYING";
     const progress = Math.max(0, Math.min(100, item.progress ?? 0));
 
-    const ringColor = isFailed ? "#c72e2e" : "#ee1086";
+    const ringColor = isFailed ? "#c72e2e" : isRetrying ? "#fbbf24" : "#ee1086";
     const circumference = 2 * Math.PI * 18;
     const dashOffset = circumference - (progress / 100) * circumference;
 
@@ -68,8 +69,19 @@ export default function DownloadCoverCard({
         }
     }, [fetchMediaAsync]);
 
-    const handleRetry = useCallback((): void => {
-        console.warn("Retry not yet implemented for", item.mediaPublicId);
+    const [retryingManual, setRetryingManual] = useState<boolean>(false);
+
+    const handleRetry = useCallback(async (): Promise<void> => {
+        setRetryingManual(true);
+        try {
+            await Http.retryDownload(item.mediaPublicId);
+        } catch (err) {
+            const message =
+                err instanceof Error ? err.message : "Error al reintentar";
+            rockIt.notificationManager.notifyError(message);
+        } finally {
+            setRetryingManual(false);
+        }
     }, [item.mediaPublicId]);
 
     const handleDelete = useCallback((): void => {
@@ -98,7 +110,17 @@ export default function DownloadCoverCard({
                             </div>
                         )}
 
-                        {!isCompleted && (
+                        {isRetrying && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                                <div className="flex flex-col items-center gap-1">
+                                    <RotateCw size={20} strokeWidth={2.25} className="animate-spin text-[#fbbf24]" />
+                                    <span className="text-[10px] font-medium text-[#fbbf24]">
+                                        ({item.retryCount ?? 0}/3)
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {!isCompleted && !isRetrying && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                 <svg width="44" height="44" viewBox="0 0 44 44" className="-rotate-90">
                                     <circle
@@ -124,13 +146,18 @@ export default function DownloadCoverCard({
                                 {isFailed && (
                                     <button
                                         aria-label="Reintentar descarga"
-                                        className="absolute flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur-sm transition-colors hover:bg-black/90"
+                                        disabled={retryingManual}
+                                        className={`absolute flex h-9 w-9 items-center justify-center rounded-full text-white backdrop-blur-sm transition-colors ${
+                                            retryingManual
+                                                ? "cursor-not-allowed bg-neutral-600"
+                                                : "bg-black/70 hover:bg-black/90"
+                                        }`}
                                         onClick={(e): void => {
                                             e.stopPropagation();
                                             handleRetry();
                                         }}
                                     >
-                                        <RotateCw size={18} strokeWidth={2.25} />
+                                        <RotateCw size={18} strokeWidth={2.25} className={retryingManual ? "animate-spin" : ""} />
                                     </button>
                                 )}
                             </div>

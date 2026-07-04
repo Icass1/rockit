@@ -39,10 +39,9 @@ export default function DownloaderClient(): JSX.Element {
 
     useEffect((): (() => void) => {
         const handleProgress = (msg: DownloadProgressMessage): void => {
-            const { type: _type, ...fields } = msg;
             setLiveProgress((prev) => ({
                 ...prev,
-                [msg.publicId]: fields,
+                [msg.publicId]: msg,
             }));
         };
         rockIt.webSocketManager.onMessage(

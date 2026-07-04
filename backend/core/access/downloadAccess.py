@@ -15,6 +15,7 @@ from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
+from backend.core.access.db.ormModels.media import CoreMediaRow
 
 logger: Logger = getLogger(__name__)
 
@@ -321,5 +322,80 @@ class DownloadAccess:
             return AResult(
                 code=AResultCode.NOT_FOUND,
                 message=f"Download {download_id} not found",
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def increment_retry_count(
+        session: AsyncSession,
+        download_id: int,
+    ) -> AResult[int]:
+        """Increment the retry_count for a download and return the new count."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.id == download_id)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message=f"Download {download_id} not found",
+            )
+
+        download.retry_count += 1
+        await session.flush()
+        return AResult(
+            code=AResultCode.OK, message="OK", result=download.retry_count
+        )
+
+    @staticmethod
+    @safe_async
+    async def reset_download_for_retry(
+        session: AsyncSession,
+        download_id: int,
+    ) -> AResult[DownloadRow]:
+        """Reset a download row to PENDING status with retry_count=0."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.id == download_id)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message=f"Download {download_id} not found",
+            )
+
+        download.status_key = DownloadStatusEnum.PENDING.value
+        download.retry_count = 0
+        download.date_ended = None
+        return AResult(code=AResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def get_download_by_media_public_id(
+        session: AsyncSession,
+        media_public_id: str,
+        user_id: int,
+    ) -> AResult[DownloadRow]:
+        """Get the latest download row for a given media public_id and user."""
+
+        result = await session.execute(
+            select(DownloadRow)
+            .join(DownloadGroupRow, DownloadRow.download_group_id == DownloadGroupRow.id)
+            .join(CoreMediaRow, DownloadRow.media_id == CoreMediaRow.id)
+            .where(
+                CoreMediaRow.public_id == media_public_id,
+                DownloadGroupRow.user_id == user_id,
+            )
+            .order_by(DownloadRow.id.desc())
+            .limit(1)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message=f"No download found for media {media_public_id}",
             )
         return AResult(code=AResultCode.OK, message="OK", result=download)

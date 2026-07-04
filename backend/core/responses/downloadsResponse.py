@@ -18,6 +18,7 @@ class DownloadItemResponse(BaseModel):
     dateStarted: datetime
     dateEnded: datetime | None
     contentType: str
+    retryCount: int = 0
 
     @field_serializer("status")
     def serialize_repeat_mode(self, status: DownloadStatusEnum) -> str:

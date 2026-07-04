@@ -150,7 +150,9 @@ class Downloader:
             )
             return
 
-        downloads_manager.add_download(a_result_base_download.result())
+        base_download: BaseDownload = a_result_base_download.result()
+        base_download.provider_id = media.provider_id
+        downloads_manager.add_download(base_download)
 
     @staticmethod
     async def download_multiple_medias_async(
@@ -205,6 +207,90 @@ class Downloader:
             message="OK",
             result=StartDownloadResponse(downloadGroupId=group.public_id),
         )
+
+    @staticmethod
+    async def retry_download_async(
+        session: AsyncSession,
+        user_id: int,
+        public_id: str,
+    ) -> AResult[bool]:
+        """Reset a failed download and re-queue it for retry."""
+
+        a_result_download: AResult[DownloadRow] = (
+            await DownloadAccess.get_download_by_media_public_id(
+                session=session, media_public_id=public_id, user_id=user_id
+            )
+        )
+        if a_result_download.is_not_ok():
+            logger.error(
+                f"Error finding download for retry. {a_result_download.info()}"
+            )
+            return AResult(
+                code=a_result_download.code(), message=a_result_download.message()
+            )
+
+        download_row: DownloadRow = a_result_download.result()
+
+        if download_row.status_key != DownloadStatusEnum.FAILED.value:
+            return AResult(
+                code=AResultCode.BAD_REQUEST,
+                message="Download is not in a retryable state",
+            )
+
+        a_result_media: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_id_async(
+                session=session, id=download_row.media_id
+            )
+        )
+        if a_result_media.is_not_ok():
+            logger.error(f"Error getting media for retry. {a_result_media.info()}")
+            return AResult(
+                code=a_result_media.code(), message=a_result_media.message()
+            )
+
+        media: CoreMediaRow = a_result_media.result()
+
+        a_result_reset: AResult[DownloadRow] = (
+            await DownloadAccess.reset_download_for_retry(
+                session=session, download_id=download_row.id
+            )
+        )
+        if a_result_reset.is_not_ok():
+            logger.error(f"Error resetting download. {a_result_reset.info()}")
+            return AResult(
+                code=a_result_reset.code(), message=a_result_reset.message()
+            )
+
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            provider_id=media.provider_id
+        )
+        if provider is None:
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Provider not found"
+            )
+
+        a_result_base: AResult[BaseDownload] = (
+            await provider.start_download_async(
+                session=session,
+                public_id=media.public_id,
+                download_id=download_row.id,
+                download_group_id=download_row.download_group_id,
+                user_id=user_id,
+            )
+        )
+        if a_result_base.is_not_ok():
+            logger.error(
+                f"Provider could not create download for retry. {a_result_base.info()}"
+            )
+            return AResult(
+                code=a_result_base.code(), message=a_result_base.message()
+            )
+
+        base_download: BaseDownload = a_result_base.result()
+        base_download.provider_id = media.provider_id
+        downloads_manager.add_download(base_download)
+
+        return AResult(code=AResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def get_downloads_async(
@@ -308,6 +394,7 @@ class Downloader:
                             dateStarted=download.date_started,
                             dateEnded=download.date_ended,
                             contentType=content_type,
+                            retryCount=download.retry_count,
                         )
                     )
 

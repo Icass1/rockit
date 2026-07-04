@@ -414,6 +414,14 @@ export class BaseHttp {
         );
     }
 
+    static async retryDownload(publicId: string) {
+        return this.apiFetchAsync(
+            `/downloader/downloads/${publicId}/retry`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
     static async startDownload(payload: dto.StartDownloadRequest) {
         return this.apiPostAsync(
             `/downloader/start-downloads`,

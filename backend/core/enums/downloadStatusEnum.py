@@ -8,3 +8,4 @@ class DownloadStatusEnum(Enum):
     FAILED = 4
     FETCHING = 5
     WAITING_FOR_QUEUE_SETUP = 6
+    RETRYING = 7

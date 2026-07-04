@@ -18,6 +18,7 @@ class DownloadProgressMessage(BaseModel):
     imageUrl: str | None = None
     dateStarted: datetime
     dateEnded: datetime | None
+    retryCount: int = 0
 
     @field_serializer("status")
     def serialize_repeat_mode(self, status: DownloadStatusEnum) -> str:

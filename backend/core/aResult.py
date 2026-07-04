@@ -11,6 +11,7 @@ class AResultCode:
     NOT_IMPLEMENTED = 0x5
     ALREADY_EXISTS = 0x6
     VALIDATION_ERROR = 0x7
+    RATE_LIMITED = 0x8
 
     _code: int
     _message: str
@@ -24,6 +25,9 @@ class AResultCode:
 
     def is_not_ok(self) -> bool:
         return not self.is_ok()
+
+    def is_retryable(self) -> bool:
+        return self._code in (self.GENERAL_ERROR, self.RATE_LIMITED)
 
     def get_http_code(self):
         if self._code == AResultCode.OK:
@@ -40,6 +44,8 @@ class AResultCode:
             return 501
         if self._code == AResultCode.VALIDATION_ERROR:
             return 403
+        if self._code == AResultCode.RATE_LIMITED:
+            return 429
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -64,6 +70,8 @@ class AResultCode:
             return "NOT_IMPLEMENTED"
         if self._code == AResultCode.VALIDATION_ERROR:
             return "VALIDATION_ERROR"
+        if self._code == AResultCode.RATE_LIMITED:
+            return "RATE_LIMITED"
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -91,6 +99,9 @@ class AResult(Generic[T]):
 
     def is_not_ok(self) -> bool:
         return self._code.is_not_ok()
+
+    def is_retryable(self) -> bool:
+        return self._code.is_retryable()
 
     def get_http_code(self):
         return self._code.get_http_code()

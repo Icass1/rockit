@@ -15,12 +15,14 @@ export const DownloadItemResponseSchema = z.object({
         "FAILED",
         "FETCHING",
         "WAITING_FOR_QUEUE_SETUP",
+        "RETRYING",
     ]),
     progress: z.number(),
     imageUrl: z.string().nullable(),
     dateStarted: z.iso.datetime(),
     dateEnded: z.iso.datetime().nullable(),
     contentType: z.string(),
+    retryCount: z.number().default(0),
 });
 
 export type DownloadItemResponse = z.infer<typeof DownloadItemResponseSchema>;

@@ -81,6 +81,7 @@ class WebSocketManager:
         progress: float,
         date_started: datetime,
         date_ended: datetime | None,
+        retry_count: int = 0,
     ) -> None:
         download_message: DownloadProgressMessage = DownloadProgressMessage(
             publicId=download_public_id,
@@ -91,6 +92,7 @@ class WebSocketManager:
             progress=progress,
             dateStarted=date_started,
             dateEnded=date_ended,
+            retryCount=retry_count,
         )
         await self.send_to_user_async(user_id=user_id, message=download_message)
 

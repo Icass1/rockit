@@ -83,6 +83,31 @@ async def get_downloads(request: Request) -> DownloadsResponse:
     return a_result.result()
 
 
+@router.post("/downloads/{public_id}/retry")
+async def retry_download(request: Request, public_id: str) -> OkResponse:
+    """Reset a failed download and re-queue it for retry."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user: UserRow = a_result_user.result()
+
+    a_result: AResult[bool] = await Downloader.retry_download_async(
+        session=session, user_id=user.id, public_id=public_id
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return OkResponse()
+
+
 @router.get("/downloads/{public_id}/seen")
 async def mark_download_seen(request: Request, public_id: str) -> OkResponse:
     """Mark a download as seen (delete the download group)."""

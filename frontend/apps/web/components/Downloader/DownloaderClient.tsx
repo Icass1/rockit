@@ -16,6 +16,7 @@ import DownloadFilterTabs, {
 } from "@/components/Downloader/DownloadFilterTabs";
 import DownloadGroupSection from "@/components/Downloader/DownloadGroupSection";
 import DownloadEmptyState from "@/components/Downloader/DownloadEmptyState";
+import DownloadSkeleton from "@/components/Downloader/DownloadSkeleton";
 
 function matchesFilter(
     item: DownloadItemResponse,
@@ -98,13 +99,10 @@ export default function DownloaderClient(): JSX.Element {
         );
     };
 
-    if (loading)
-        return (
-            <div className="px-4 py-8 text-neutral-400">Cargando…</div>
-        );
+    if (loading) return <DownloadSkeleton />;
 
     return (
-        <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+        <div className="w-full space-y-8 px-4 py-8 sm:px-6 lg:px-10 xl:px-16">
             <header className="space-y-4">
                 <div>
                     <h1 className="text-2xl font-bold text-white">

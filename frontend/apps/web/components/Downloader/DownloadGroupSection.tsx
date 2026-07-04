@@ -4,6 +4,7 @@ import { type JSX, useState } from "react";
 import { DownloadGroupResponse } from "@/dto";
 import { ChevronDown, Trash2 } from "lucide-react";
 import DownloadCoverCard from "@/components/Downloader/DownloadCoverCard";
+import FadeInOnView from "@/components/Downloader/FadeInOnView";
 
 const VISIBLE_LIMIT = 12;
 
@@ -34,9 +35,11 @@ export default function DownloadGroupSection({
                 )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                {visibleItems.map((item) => (
-                    <DownloadCoverCard key={item.publicId} item={item} />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
+                {visibleItems.map((item, i) => (
+                    <FadeInOnView key={item.publicId} delay={(i % 12) * 40}>
+                        <DownloadCoverCard item={item} />
+                    </FadeInOnView>
                 ))}
             </div>
 

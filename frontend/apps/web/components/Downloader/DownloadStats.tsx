@@ -41,7 +41,7 @@ export default function DownloadStats({
             <StatCard label="Completadas" value={completed} accent="#1cad60" />
             <StatCard label="Fallidas" value={failed} accent="#c72e2e" />
 
-            <div className="col-span-2 rounded-lg border border-neutral-700 bg-neutral-900/50 p-4 sm:col-span-4">
+            <div className="col-span-2 rounded-lg border border-neutral-600 bg-neutral-900/50 p-4 sm:col-span-4">
                 <div className="mb-2 flex items-center justify-between">
                     <span className="text-sm font-medium text-neutral-300">
                         Actividad (últimos {DAYS_TO_SHOW} días)
@@ -66,7 +66,7 @@ function StatCard({
     accent?: string;
 }): JSX.Element {
     return (
-        <div className="rounded-lg border border-neutral-700 bg-neutral-900/50 p-4">
+        <div className="rounded-lg border border-neutral-600 bg-neutral-900/50 p-4">
             <div className="text-2xl font-bold" style={{ color: accent }}>
                 {value}
             </div>

@@ -43,7 +43,7 @@ export default function DownloadCoverCard({
                                 cy="22"
                                 r="18"
                                 fill="none"
-                                stroke="#525252"
+                                stroke="#737373"
                                 strokeWidth="4"
                             />
                             <circle
@@ -59,8 +59,11 @@ export default function DownloadCoverCard({
                             />
                         </svg>
                         {isFailed && (
-                            <button className="absolute text-white hover:text-[#ee1086]">
-                                <RotateCw size={16} />
+                            <button
+                                aria-label="Reintentar descarga"
+                                className="absolute flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur-sm transition-colors hover:bg-black/90"
+                            >
+                                <RotateCw size={18} strokeWidth={2.25} />
                             </button>
                         )}
                     </div>

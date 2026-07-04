@@ -3,7 +3,7 @@
 import { JSX, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { formatHour, formatHourRange } from "@rockit/shared";
+import { toLocalHHMM } from "@rockit/packages/shared";
 import {
     Bar,
     BarChart,
@@ -44,7 +44,7 @@ function CustomTooltip({
     const isDaily = range === "7d";
     let label: string;
     if (isHourly) {
-        label = formatHourRange(start, end);
+        label = `${toLocalHHMM(entry.start)} — ${toLocalHHMM(entry.end)}`;
     } else if (isDaily) {
         label = start.toLocaleDateString("en-US", { weekday: "long" });
     } else {
@@ -86,7 +86,7 @@ export default function MinutesBarChart({
             if (isHourly) {
                 return {
                     ...entry,
-                    label: formatHour(new Date(entry.start)),
+                    label: toLocalHHMM(entry.start),
                 };
             }
             return {

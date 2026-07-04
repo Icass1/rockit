@@ -36,3 +36,8 @@ export function formatHour(date: Date): string {
 export function formatHourRange(start: Date, end: Date): string {
     return `${formatHour(start)} — ${formatHour(end)}`;
 }
+
+export function toLocalHHMM(isoString: string): string {
+    const d = new Date(isoString);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}

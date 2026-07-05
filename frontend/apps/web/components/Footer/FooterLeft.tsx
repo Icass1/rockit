@@ -66,13 +66,13 @@ function FooterLeftForMedia({
                             <span className="truncate">
                                 {currentMedia.name}
                             </span>
-                            <MediaContextMenu
+                            {/* <MediaContextMenu
                                 media={currentMedia}
                                 location={EMediaContextLocation.QUEUE}
                                 openOnLeftClick={true}
                             >
                                 <Ellipsis className="h-6 w-5 shrink-0 text-gray-400 opacity-0 transition group-hover/left:opacity-100 md:hover:scale-105 md:hover:text-white" />
-                            </MediaContextMenu>
+                            </MediaContextMenu> */}
                         </span>
                         <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                             <div className="truncate">

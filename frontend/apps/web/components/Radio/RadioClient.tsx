@@ -270,7 +270,7 @@ export default function RadioClient(): JSX.Element {
                         }
                     }}
                     placeholder={$vocabulary.RADIO_SEARCH}
-                    className="h-11 w-full rounded-full bg-neutral-900 pr-9 pl-10 text-sm font-semibold text-white placeholder-neutral-500 focus:ring-2 focus:ring-#ee1086/40 focus:outline-0"
+                    className="h-11 w-full rounded-full bg-neutral-900 pr-9 pl-10 text-sm font-semibold text-white placeholder-neutral-500 focus:ring-2 focus:ring-(--color-rockit-pink)/40 focus:outline-0"
                 />
                 {query && (
                     <button
@@ -282,7 +282,7 @@ export default function RadioClient(): JSX.Element {
                 )}
                 {searching && (
                     <div className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-#ec5588" />
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-(--color-rockit-pink)" />
                     </div>
                 )}
             </div>
@@ -299,7 +299,7 @@ export default function RadioClient(): JSX.Element {
                     <span className="text-sm font-semibold text-neutral-400">
                         {"Country:"}
                     </span>
-                    <span className="rounded-full bg-#ee1086/20 px-3 py-1 text-sm font-semibold text-#ee1086">
+                    <span className="rounded-full bg-(--color-rockit-pink)/20 px-3 py-1 text-sm font-semibold text-(--color-rockit-pink)">
                         {selectedCountry}
                     </span>
                     <button
@@ -342,7 +342,7 @@ export default function RadioClient(): JSX.Element {
 
             {loadingCountry && (
                 <div className="flex items-center justify-center py-8">
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-600 border-t-#ec5588" />
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-600 border-t-(--color-rockit-pink)" />
                     <span className="ml-3 text-sm text-neutral-400">
                         {"Loading stations..."}
                     </span>

@@ -132,7 +132,7 @@ export default function StatsClientV2(): JSX.Element {
                         </h1>
                         <Link
                             href="/stats"
-                            className="inline-flex items-center rounded-full border border-neutral-700 px-3 py-0.5 text-xs font-medium text-neutral-400 transition-colors hover:border-#ee1086 hover:text-#ee1086"
+                            className="inline-flex items-center rounded-full border border-neutral-700 px-3 py-0.5 text-xs font-medium text-neutral-400 transition-colors hover:border-(--color-rockit-pink) hover:text-(--color-rockit-pink)"
                         >
                             v1
                         </Link>
@@ -153,7 +153,7 @@ export default function StatsClientV2(): JSX.Element {
                             onClick={() => handleRangeChange(opt.value)}
                             className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300 ${
                                 range === opt.value
-                                    ? "bg-#ee1086 text-white"
+                                    ? "bg-(--color-rockit-pink) text-white"
                                     : "text-neutral-500 hover:bg-white/6 hover:text-white"
                             }`}
                         >
@@ -168,7 +168,7 @@ export default function StatsClientV2(): JSX.Element {
                     <div className="relative">
                         <label
                             htmlFor="stats-start"
-                            className="absolute -top-2 left-3 bg-#0b0b0b px-1 text-[10px] text-neutral-500"
+                            className="absolute -top-2 left-3 bg-(--color-bg) px-1 text-[10px] text-neutral-500"
                         >
                             From
                         </label>
@@ -177,14 +177,14 @@ export default function StatsClientV2(): JSX.Element {
                             type="date"
                             value={customStart}
                             onChange={(e) => setCustomStart(e.target.value)}
-                            className="rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-2.5 text-sm text-white transition-colors focus:border-#ee1086 focus:ring-1 focus:ring-#ee1086 focus:outline-none"
+                            className="rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
                         />
                     </div>
                     <span className="text-neutral-600">→</span>
                     <div className="relative">
                         <label
                             htmlFor="stats-end"
-                            className="absolute -top-2 left-3 bg-#0b0b0b px-1 text-[10px] text-neutral-500"
+                            className="absolute -top-2 left-3 bg-(--color-bg) px-1 text-[10px] text-neutral-500"
                         >
                             To
                         </label>
@@ -193,7 +193,7 @@ export default function StatsClientV2(): JSX.Element {
                             type="date"
                             value={customEnd}
                             onChange={(e) => setCustomEnd(e.target.value)}
-                            className="rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-2.5 text-sm text-white transition-colors focus:border-#ee1086 focus:ring-1 focus:ring-#ee1086 focus:outline-none"
+                            className="rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
                         />
                     </div>
                 </div>

@@ -36,7 +36,7 @@ export default function UsernameInput({
                 onChange={onChange}
                 autoComplete="username"
                 required
-                className="text-1xl mt-1 rounded-full bg-#202020 px-5 py-1 text-white"
+                className="text-1xl mt-1 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
                 placeholder="Username"
             />
         </div>

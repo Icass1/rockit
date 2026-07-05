@@ -117,7 +117,7 @@ export default function SignupModal(): JSX.Element {
                             setPassword(e.currentTarget.value)
                         }
                         autoComplete="new-password"
-                        className="text-1xl mt-1 w-4/5 rounded-full bg-#202020 px-5 py-1 text-white"
+                        className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
                         placeholder={$vocabulary.PASSWORD}
                     />
 
@@ -128,13 +128,13 @@ export default function SignupModal(): JSX.Element {
                             setRepeatPassword(e.currentTarget.value)
                         }
                         autoComplete="new-password"
-                        className="text-1xl mt-1 w-4/5 rounded-full bg-#202020 px-5 py-1 text-white"
+                        className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
                         placeholder={$vocabulary.REPEAT_PASSWORD}
                     />
                 </div>
 
                 {error && (
-                    <p className="mx-auto w-fit rounded-md bg-#ed4337 px-2 py-1 text-white">
+                    <p className="mx-auto w-fit rounded-md bg-(--color-error) px-2 py-1 text-white">
                         {error}
                     </p>
                 )}

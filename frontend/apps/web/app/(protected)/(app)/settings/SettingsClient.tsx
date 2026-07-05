@@ -77,7 +77,7 @@ export default function SettingsClient({
                                     }
                                     className={`flex items-center justify-between rounded-md px-4 py-3 text-left transition ${
                                         $lang === lang.langCode
-                                            ? "bg-#ee1086 text-white"
+                                            ? "bg-(--color-rockit-pink) text-white"
                                             : "bg-neutral-700 text-neutral-200 hover:bg-neutral-600"
                                     }`}
                                 >

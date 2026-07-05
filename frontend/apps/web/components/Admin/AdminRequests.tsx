@@ -159,7 +159,7 @@ export default function AdminRequests(): JSX.Element {
                 <p className="text-red-400">{$vocabulary.ADMIN_REQUIRED}</p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="mt-4 rounded-lg bg-#ee1086 px-4 py-2 text-sm font-semibold text-white transition hover:bg-#f53a76"
+                    className="mt-4 rounded-lg bg-(--color-rockit-pink) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid)"
                 >
                     Retry
                 </button>
@@ -181,7 +181,7 @@ export default function AdminRequests(): JSX.Element {
                 <p className="text-red-400">{error}</p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="mt-4 rounded-lg bg-#ee1086 px-4 py-2 text-sm font-semibold text-white transition hover:bg-#f53a76"
+                    className="mt-4 rounded-lg bg-(--color-rockit-pink) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid)"
                 >
                     Retry
                 </button>
@@ -225,7 +225,7 @@ export default function AdminRequests(): JSX.Element {
                         onClick={() => setFilter(f.id)}
                         className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                             filter === f.id
-                                ? "bg-#ee1086 text-white"
+                                ? "bg-(--color-rockit-pink) text-white"
                                 : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white"
                         }`}
                     >

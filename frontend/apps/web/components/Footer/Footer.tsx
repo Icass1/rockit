@@ -11,8 +11,7 @@ export default function Footer(): JSX.Element {
     return (
         <footer
             id="app-footer"
-            className="box-border h-full w-full px-2 pt-2 text-white backdrop-blur-md md:px-5 md:py-4"
-            style={{ backgroundColor: "rgba(26,26,26,0.9)" }}
+            className="box-border h-full w-full bg-(--color-elevated)/90 px-2 pt-2 text-white backdrop-blur-md md:px-5 md:py-4"
         >
             <div className="flex h-full w-full items-center justify-between md:justify-center">
                 <FooterLeft />

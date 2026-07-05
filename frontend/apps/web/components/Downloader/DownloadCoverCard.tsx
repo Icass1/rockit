@@ -113,8 +113,8 @@ export default function DownloadCoverCard({
                         {isRetrying && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                 <div className="flex flex-col items-center gap-1">
-                                    <RotateCw size={20} strokeWidth={2.25} className="animate-spin text-#fbbf24" />
-                                    <span className="text-[10px] font-medium text-#fbbf24">
+                                    <RotateCw size={20} strokeWidth={2.25} className="animate-spin text-(--color-warning)" />
+                                    <span className="text-[10px] font-medium text-(--color-warning)">
                                         ({item.retryCount ?? 0}/3)
                                     </span>
                                 </div>
@@ -165,7 +165,7 @@ export default function DownloadCoverCard({
 
                         {isCompleted && (
                             <>
-                                <div className="absolute top-1.5 right-1.5 rounded-full bg-#1cad60 p-1 text-white">
+                                <div className="absolute top-1.5 right-1.5 rounded-full bg-(--color-success) p-1 text-white">
                                     <Check size={12} />
                                 </div>
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">

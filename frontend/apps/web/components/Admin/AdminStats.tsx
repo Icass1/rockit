@@ -85,7 +85,7 @@ interface SectionHeaderProps {
 function SectionHeader({ title, icon }: SectionHeaderProps): JSX.Element {
     return (
         <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-#ee1086/10">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-(--color-rockit-pink)/10">
                 {icon}
             </div>
             <h2 className="text-lg font-semibold text-white">{title}</h2>
@@ -137,7 +137,7 @@ export default function AdminStats(): JSX.Element {
                 </p>
                 <button
                     onClick={(): void => window.location.reload()}
-                    className="mt-4 rounded-lg bg-#ee1086 px-4 py-2 text-sm font-semibold text-white transition hover:bg-#f53a76"
+                    className="mt-4 rounded-lg bg-(--color-rockit-pink) px-4 py-2 text-sm font-semibold text-white transition hover:bg-(--color-rockit-pink-mid)"
                 >
                     {$vocabulary.RETRY}
                 </button>
@@ -208,7 +208,7 @@ export default function AdminStats(): JSX.Element {
             <div>
                 <SectionHeader
                     title={$vocabulary.ADMIN_REQUESTS_OVER_TIME}
-                    icon={<Activity className="h-4 w-4 text-#ee1086" />}
+                    icon={<Activity className="h-4 w-4 text-(--color-rockit-pink)" />}
                 />
                 <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                     <ResponsiveContainer width="100%" height={280}>
@@ -280,7 +280,7 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_AVG_RESPONSE_TIME}
-                        icon={<Clock className="h-4 w-4 text-#ee1086" />}
+                        icon={<Clock className="h-4 w-4 text-(--color-rockit-pink)" />}
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -342,7 +342,7 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_HOURLY_ACTIVITY}
-                        icon={<BarChart3 className="h-4 w-4 text-#ee1086" />}
+                        icon={<BarChart3 className="h-4 w-4 text-(--color-rockit-pink)" />}
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -395,7 +395,7 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_RESPONSE_CODES}
-                        icon={<Route className="h-4 w-4 text-#ee1086" />}
+                        icon={<Route className="h-4 w-4 text-(--color-rockit-pink)" />}
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -450,7 +450,7 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_HTTP_METHODS}
-                        icon={<Route className="h-4 w-4 text-#ee1086" />}
+                        icon={<Route className="h-4 w-4 text-(--color-rockit-pink)" />}
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -496,7 +496,7 @@ export default function AdminStats(): JSX.Element {
             <div>
                 <SectionHeader
                     title={$vocabulary.ADMIN_TOP_ROUTES}
-                    icon={<Route className="h-4 w-4 text-#ee1086" />}
+                    icon={<Route className="h-4 w-4 text-(--color-rockit-pink)" />}
                 />
                 <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
                     <div className="overflow-x-auto">
@@ -563,7 +563,7 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_USER_ACTIVITY}
-                        icon={<Users className="h-4 w-4 text-#ee1086" />}
+                        icon={<Users className="h-4 w-4 text-(--color-rockit-pink)" />}
                     />
                     <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
                         <div className="overflow-x-auto">
@@ -613,7 +613,7 @@ export default function AdminStats(): JSX.Element {
                     <SectionHeader
                         title={$vocabulary.ADMIN_TOP_IPS}
                         icon={
-                            <Fingerprint className="h-4 w-4 text-#ee1086" />
+                            <Fingerprint className="h-4 w-4 text-(--color-rockit-pink)" />
                         }
                     />
                     <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">

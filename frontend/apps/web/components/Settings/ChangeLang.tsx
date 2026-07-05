@@ -34,7 +34,7 @@ export default function ChangeLang(): JSX.Element {
                 onChange={(e): Promise<boolean> =>
                     rockIt.userManager.setLangAsync(e.currentTarget.value)
                 }
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-#ee1086 focus:ring-1 focus:ring-#ee1086 focus:outline-none"
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
             >
                 {LANGUAGES.map(
                     (l): JSX.Element => (

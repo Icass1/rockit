@@ -138,7 +138,7 @@ function BookmarkEditForm({
                         value={timestampText}
                         onChange={(e): void => setTimestampText(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="focus:border-#ee1086 w-12 rounded border border-neutral-700 bg-neutral-800 px-1 py-0.5 text-[10px] text-neutral-300 outline-none"
+                        className="focus:border-(--color-rockit-pink) w-12 rounded border border-neutral-700 bg-neutral-800 px-1 py-0.5 text-[10px] text-neutral-300 outline-none"
                     />
                     {bookmark && (
                         <button
@@ -151,7 +151,7 @@ function BookmarkEditForm({
                     )}
                     <button
                         onClick={handleSave}
-                        className="ignore-click-player-ui bg-#ee1086 hover:bg-#fb6467 rounded px-2 py-0.5 text-[11px] font-medium text-white transition-colors"
+                        className="ignore-click-player-ui bg-(--color-rockit-pink) hover:bg-(--color-rockit-pink-light) rounded px-2 py-0.5 text-[11px] font-medium text-white transition-colors"
                     >
                         {$vocabulary.SAVE}
                     </button>
@@ -165,7 +165,7 @@ function BookmarkEditForm({
                     onChange={(e): void => setDescription(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={$vocabulary.BOOKMARK_DESCRIPTION_PLACEHOLDER}
-                    className="focus:border-#ee1086 min-w-0 flex-1 rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-white outline-none placeholder:text-neutral-500"
+                    className="focus:border-(--color-rockit-pink) min-w-0 flex-1 rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-white outline-none placeholder:text-neutral-500"
                 />
                 <div className="relative">
                     <button
@@ -189,7 +189,7 @@ function BookmarkEditForm({
                     {showModeDropdown && (
                         <div
                             ref={modeDropdownRef}
-                            className="bg-#1a1a1a absolute top-full right-0 z-50 mt-1 max-h-20 w-56 overflow-y-auto rounded-lg border border-neutral-700 py-1 shadow-xl"
+                            className="bg-(--color-elevated) absolute top-full right-0 z-50 mt-1 max-h-20 w-56 overflow-y-auto rounded-lg border border-neutral-700 py-1 shadow-xl"
                         >
                             {Object.values(EBookmarkModes).map(
                                 (m): JSX.Element => {
@@ -286,7 +286,7 @@ export default function BookmarkPopup({
         return (
             <div
                 ref={popupRef}
-                className="bg-#1a1a1a absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border border-neutral-700 p-2 shadow-xl"
+                className="bg-(--color-elevated) absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border border-neutral-700 p-2 shadow-xl"
             >
                 <BookmarkEditForm
                     bookmark={formBookmark === "new" ? null : formBookmark}
@@ -299,7 +299,7 @@ export default function BookmarkPopup({
     return (
         <div
             ref={popupRef}
-            className="bg-#1a1a1a absolute right-0 bottom-full z-50 mb-2 w-72 rounded-lg border border-neutral-700 p-2 shadow-xl"
+            className="bg-(--color-elevated) absolute right-0 bottom-full z-50 mb-2 w-72 rounded-lg border border-neutral-700 p-2 shadow-xl"
         >
             <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold text-neutral-400">

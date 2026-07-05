@@ -58,7 +58,7 @@ export default function AppClientLayout({
             </div>
 
             {/* Main content area */}
-            <div className="fixed inset-0 bg-#0b0b0b pb-0 md:left-12">
+            <div className="fixed inset-0 bg-(--color-bg) pb-0 md:left-12">
                 <div
                     id="main-scroll-container"
                     className="webkit-scroll h-full w-full overflow-x-hidden overflow-y-auto pt-24 pb-[calc(160px+env(safe-area-inset-bottom,0px))] md:overflow-x-auto md:pb-24"

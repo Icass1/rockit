@@ -6,9 +6,9 @@ import MobilePlayerSheet from "@/components/MobilePlayer/components/MobilePlayer
 
 export default function MobilePlayer(): JSX.Element {
     return (
-        <>
+        <div className="md:hidden">
             <MiniPlayerBar />
             <MobilePlayerSheet />
-        </>
+        </div>
     );
 }

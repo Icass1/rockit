@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState, useEffect, type JSX } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef, useState, type JSX } from "react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { motion, useScroll, useTransform } from "framer-motion";
+import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 import HeroBackgroundDrift from "@/components/Home/HeroBackgroundDrift";
 import QuickAccessCard from "@/components/Home/QuickAccessCard";
-import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 
 interface HeroSlot {
     eyebrow: string;
@@ -61,18 +61,17 @@ export default function HomeHero({
         return <DockedQuickAccessBar visible={false} items={[]} />;
     }
 
-
     return (
         <>
             <motion.section
                 ref={sectionRef}
                 style={{ opacity: heroOpacity, scale: heroScale }}
-                className="relative flex min-h-[90vh] flex-col overflow-hidden px-6 pb-8 pt-20 md:px-12"
+                className="relative flex min-h-[90vh] flex-col overflow-hidden px-6 pt-20 pb-8 md:px-12 md:py-8"
             >
                 <HeroBackgroundDrift songs={ambientSongs} maxParticles={10} />
 
                 <div className="relative z-10 mb-8 md:mb-12">
-                    <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
+                    <h1 className="text-4xl leading-tight font-bold text-white sm:text-5xl md:text-6xl">
                         {greetingName}
                     </h1>
                     {(streak ?? 0) > 0 || (minutesThisWeek ?? 0) > 0 ? (
@@ -80,9 +79,13 @@ export default function HomeHero({
                             {typeof streak === "number" && streak > 0 && (
                                 <span>🔥 {streak} días seguidos</span>
                             )}
-                            {typeof minutesThisWeek === "number" && minutesThisWeek > 0 && (
-                                <span>{Math.round(minutesThisWeek)} min esta semana</span>
-                            )}
+                            {typeof minutesThisWeek === "number" &&
+                                minutesThisWeek > 0 && (
+                                    <span>
+                                        {Math.round(minutesThisWeek)} min esta
+                                        semana
+                                    </span>
+                                )}
                         </div>
                     ) : null}
                 </div>
@@ -115,7 +118,11 @@ export default function HomeHero({
                 </div>
 
                 {/* Sentinel in normal flow at the bottom of the hero */}
-                <div ref={sentinelRef} className="h-px w-full" aria-hidden="true" />
+                <div
+                    ref={sentinelRef}
+                    className="h-px w-full"
+                    aria-hidden="true"
+                />
             </motion.section>
 
             <DockedQuickAccessBar

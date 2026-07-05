@@ -3,7 +3,7 @@ import type { JSX } from "react";
 export default function HomeSkeleton(): JSX.Element {
     return (
         <div className="flex min-h-screen flex-col">
-            <div className="relative flex min-h-[90vh] flex-col overflow-hidden px-6 pb-8 pt-20 md:px-12">
+            <div className="relative flex min-h-[90vh] flex-col overflow-hidden px-6 pt-20 pb-8 md:px-12 md:py-8">
                 <div className="skeleton mb-8 h-5 w-48 rounded md:mb-12" />
 
                 <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">

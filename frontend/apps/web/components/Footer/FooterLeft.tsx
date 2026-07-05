@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { EMediaContextLocation, isStation } from "@rockit/shared";
+import { isStation } from "@rockit/shared";
 import type { BaseStationResponse } from "@rockit/shared";
 import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
 import {
@@ -15,7 +15,7 @@ import {
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
-import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+
 
 function FooterLeftForMedia({
     currentMedia,

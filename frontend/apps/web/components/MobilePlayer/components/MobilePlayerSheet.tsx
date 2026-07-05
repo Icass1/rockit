@@ -63,7 +63,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                     aria-hidden
                 />
             )}
-            <div className="absolute inset-0 bg-black/55" aria-hidden />
+            <div className="absolute inset-0 bg-black/90" aria-hidden />
 
             {/* Drag handle strip — the ONLY area that closes the sheet */}
             <div
@@ -81,9 +81,15 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                 >
                     <ChevronDown size={28} color="white" />
                 </button>
-                {currentMedia?.publicId && (
-                    <LikeButton mediaPublicId={currentMedia.publicId} />
-                )}
+
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src="/logo-banner.png"
+                    alt="rockit"
+                    className="h-14 object-contain"
+                />
+
+                <div className="w-11" />
             </div>
 
             <div className="relative z-10 flex flex-1 flex-col justify-center gap-3 overflow-hidden px-4 pb-5">
@@ -103,6 +109,9 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                                 : ""}
                         </p>
                     </div>
+                    {currentMedia?.publicId && (
+                        <LikeButton mediaPublicId={currentMedia.publicId} />
+                    )}
                 </div>
 
                 <PlayerProgressBar onSeek={seekTo} />
@@ -133,7 +142,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
 
             {/* Sub-panel: slides up, owns its own scroll/drag territory */}
             <div
-                className={`absolute inset-x-0 bottom-0 z-20 h-[65%] rounded-t-2xl bg-[var(--color-surface)] transition-transform duration-200 ${
+                className={`absolute inset-x-0 bottom-0 z-20 h-[65%] rounded-t-2xl bg-neutral-900 transition-transform duration-200 ${
                     tab ? "translate-y-0" : "translate-y-full"
                 }`}
             >

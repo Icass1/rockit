@@ -8,7 +8,7 @@ export default function ToasterProvider(): JSX.Element {
         <>
             <Toaster
                 position="bottom-right"
-                className="!bottom-[172px] md:!bottom-[108px]"
+                className="bottom-43! md:bottom-27!"
                 visibleToasts={3}
                 duration={4000}
                 toastOptions={{

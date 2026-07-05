@@ -128,7 +128,7 @@ export default function PlayerUIQueue({
                         onDragEnd={handleDragLeave}
                         className={`border-t-2 ${
                             dragOverIndex === index
-                                ? "border-[#ee1086]"
+                                ? "border-#ee1086"
                                 : "border-transparent"
                         }`}
                     >

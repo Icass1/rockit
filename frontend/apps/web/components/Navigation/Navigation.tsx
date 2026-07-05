@@ -128,7 +128,7 @@ export default function Navigation(): JSX.Element {
                             className={`relative mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
                                 activePage === page.href
                                     ? "bg-white text-black"
-                                    : "text-white md:hover:bg-[#414141]"
+                                    : "text-white md:hover:bg-#414141"
                             } ${page.disabled === true ? "pointer-events-none opacity-50" : ""} ${hidden ? "hidden" : ""}`}
                         >
                             <div className="relative flex h-8 w-8 items-center justify-center">
@@ -171,7 +171,7 @@ export default function Navigation(): JSX.Element {
                                 key={list.publicId}
                                 href={`/${list.type}/${list.publicId}`}
                                 title={list.name}
-                                className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-[#414141]`}
+                                className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-#414141`}
                             >
                                 <Image
                                     alt={list.name}

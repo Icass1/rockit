@@ -78,7 +78,7 @@ export default function RenderList({
                         <button
                             type="button"
                             onClick={handlePlay}
-                            className="absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 from-[#ee1086] to-[#fb6467] text-white opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
+                            className="absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 from-#ee1086 to-#fb6467 text-white opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
                             aria-label="Play"
                         >
                             <Play className="ml-0.5 h-6 w-6" fill="white" />

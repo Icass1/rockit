@@ -58,7 +58,7 @@ export default function SearchBarInput(): JSX.Element {
 
             {searching && (
                 <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-#ec5588" />
                 </div>
             )}
         </div>

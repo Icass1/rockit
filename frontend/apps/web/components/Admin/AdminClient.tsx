@@ -231,7 +231,7 @@ export default function AdminClient({
                                     onClick={(): void => setActiveTab(tab.id)}
                                     className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
                                         activeTab === tab.id
-                                            ? "bg-[#ee1086] text-white"
+                                            ? "bg-#ee1086 text-white"
                                             : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                                     }`}
                                 >
@@ -260,7 +260,7 @@ export default function AdminClient({
                                 onClick={(): void =>
                                     setShowForm((v): boolean => !v)
                                 }
-                                className="flex items-center gap-2 rounded-lg bg-[#ee1086] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#f53a76] disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg bg-#ee1086 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-#f53a76 disabled:opacity-50"
                             >
                                 {showForm ? (
                                     <>
@@ -301,7 +301,7 @@ export default function AdminClient({
                                                 setVersion(e.target.value)
                                             }
                                             required
-                                            className="rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086]"
+                                            className="rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-#ee1086 focus:ring-1 focus:ring-#ee1086"
                                         />
                                     </div>
 
@@ -344,7 +344,7 @@ export default function AdminClient({
                                                 setDescription(e.target.value)
                                             }
                                             rows={3}
-                                            className="resize-none rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086]"
+                                            className="resize-none rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white placeholder-neutral-500 transition outline-none focus:border-#ee1086 focus:ring-1 focus:ring-#ee1086"
                                         />
                                     </div>
                                 </div>
@@ -375,7 +375,7 @@ export default function AdminClient({
                                         </div>
                                         <div className="h-2 w-full rounded-full bg-neutral-800">
                                             <div
-                                                className="h-2 rounded-full bg-[#ee1086] transition-all duration-300"
+                                                className="h-2 rounded-full bg-#ee1086 transition-all duration-300"
                                                 style={{
                                                     width: `${uploadProgress}%`,
                                                 }}
@@ -387,7 +387,7 @@ export default function AdminClient({
                                 <button
                                     type="submit"
                                     disabled={uploading}
-                                    className="mt-5 flex items-center gap-2 rounded-lg bg-[#ee1086] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#f53a76] disabled:opacity-50"
+                                    className="mt-5 flex items-center gap-2 rounded-lg bg-#ee1086 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-#f53a76 disabled:opacity-50"
                                 >
                                     {uploading ? (
                                         <>
@@ -424,12 +424,12 @@ export default function AdminClient({
                                         >
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex flex-1 items-center gap-4">
-                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ee1086]/10">
-                                                        <Smartphone className="h-6 w-6 text-[#ee1086]" />
+                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-#ee1086/10">
+                                                        <Smartphone className="h-6 w-6 text-#ee1086" />
                                                     </div>
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="rounded-full bg-[#ee1086]/15 px-3 py-0.5 text-sm font-bold text-[#ee1086]">
+                                                            <span className="rounded-full bg-#ee1086/15 px-3 py-0.5 text-sm font-bold text-#ee1086">
                                                                 v{build.version}
                                                             </span>
                                                             {i === 0 && (

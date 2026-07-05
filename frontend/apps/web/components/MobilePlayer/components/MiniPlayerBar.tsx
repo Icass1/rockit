@@ -31,9 +31,9 @@ export default function MiniPlayerBar(): JSX.Element | null {
             }}
         >
             <div
-                className={`absolute top-0 left-0 h-full w-[3px] transition-colors ${
+                className={`absolute top-0 left-0 h-full w-0.75 transition-colors ${
                     isPlaying
-                        ? "bg-[var(--color-rockit-pink)]"
+                        ? "bg-(--color-rockit-pink)"
                         : "bg-transparent"
                 }`}
             />
@@ -49,7 +49,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
                         src={currentMedia.imageUrl}
                         alt=""
                         loading="lazy"
-                        className="h-full w-full rounded bg-[var(--color-surface)] object-cover"
+                        className="h-full w-full rounded bg-(--color-surface) object-cover"
                     />
                 </div>
 
@@ -57,7 +57,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
                     <p className="truncate text-base font-semibold text-white">
                         {currentMedia.name}
                     </p>
-                    <p className="truncate text-sm text-[var(--color-muted)]">
+                    <p className="truncate text-sm text-(--color-muted)">
                         {"artists" in currentMedia
                             ? (currentMedia.artists[0]?.name ?? "")
                             : ""}
@@ -99,9 +99,9 @@ export default function MiniPlayerBar(): JSX.Element | null {
             </button>
 
             {/* Progress hint */}
-            <div className="absolute inset-x-0 bottom-0 h-[2px] bg-white/10">
+            <div className="absolute inset-x-0 bottom-0 h-0.5 bg-white/10">
                 <div
-                    className="h-full bg-gradient-to-r from-[var(--color-rockit-pink)] via-[var(--color-rockit-pink-mid)] to-[var(--color-rockit-pink-light)] transition-[width] duration-300"
+                    className="h-full bg-linear-to-r from-(--color-rockit-pink) via-(--color-rockit-pink-mid) to-(--color-rockit-pink-light) transition-[width] duration-300"
                     style={{ width: `${progressPercent}%` }}
                 />
             </div>

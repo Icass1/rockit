@@ -39,7 +39,7 @@ export default function DownloadFilterTabs({
                     onClick={(): void => onChange(tab.key)}
                     className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
                         value === tab.key
-                            ? "border-[#ee1086] text-white"
+                            ? "border-#ee1086 text-white"
                             : "border-transparent text-neutral-400 hover:text-neutral-200"
                     }`}
                 >

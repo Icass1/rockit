@@ -49,7 +49,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
     return (
         <div
             ref={sheetRef}
-            className={`fixed inset-0 z-50 flex flex-col bg-[var(--color-bg)] ${
+            className={`fixed inset-0 z-50 flex flex-col bg-(--color-bg) ${
                 isDragging ? "" : "transition-transform duration-200"
             }`}
         >
@@ -130,7 +130,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                             }
                             className={`rounded-lg px-5 py-2 text-lg font-bold ${
                                 tab === key
-                                    ? "bg-[var(--color-rockit-pink)]/15 text-[var(--color-rockit-pink)]"
+                                    ? "bg-(--color-rockit-pink)/15 text-(--color-rockit-pink)"
                                     : "text-white"
                             }`}
                         >

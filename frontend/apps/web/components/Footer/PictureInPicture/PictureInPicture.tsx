@@ -111,7 +111,7 @@ export default function PictureInPicture(): JSX.Element | null {
             >
                 <PictureInPicture2
                     size={24}
-                    className={pipWindow ? "text-[#ee1086]" : ""}
+                    className={pipWindow ? "text-#ee1086" : ""}
                 />
             </button>
 

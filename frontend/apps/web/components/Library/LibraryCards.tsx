@@ -26,7 +26,7 @@ import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 /**
  * Maximum rendered cover size in pixels.
  * The `sizes` attribute tells the browser not to download anything larger.
- * Bug fix: each card also sets `max-w-[250px] w-full mx-auto` so grid cells
+ * Bug fix: each card also sets `max-w-62.5 w-full mx-auto` so grid cells
  * wider than 250 px (on very wide screens) don't stretch the cover past this
  * limit.
  */

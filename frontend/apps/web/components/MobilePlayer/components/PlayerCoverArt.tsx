@@ -19,7 +19,7 @@ export default function PlayerCoverArt({
 }: PlayerCoverArtProps): JSX.Element {
     return (
         <div
-            className={`mx-auto w-full max-w-[340px] overflow-hidden bg-[var(--color-surface)] shadow-xl ${aspectClass(mediaType)}`}
+            className={`mx-auto w-full max-w-85 overflow-hidden bg-(--color-surface) shadow-xl ${aspectClass(mediaType)}`}
         >
             {uri ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -30,7 +30,7 @@ export default function PlayerCoverArt({
                     loading="eager"
                 />
             ) : (
-                <div className="h-full w-full bg-[var(--color-surface)]" />
+                <div className="h-full w-full bg-(--color-surface)" />
             )}
         </div>
     );

@@ -23,7 +23,7 @@ import Slider from "@/components/Slider/Slider";
 
 const ICON_BTN =
     "cursor-pointer text-gray-400 transition-all md:hover:scale-105 md:hover:text-white";
-const ACTIVE = "text-[#ee1086]";
+const ACTIVE = "text-#ee1086";
 
 export default function FooterCenter(): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
@@ -167,7 +167,7 @@ export default function FooterCenter(): JSX.Element {
                 <div className="relative flex-1">
                     <Slider
                         id="default-slider"
-                        className="h-1 w-full rounded bg-neutral-700 accent-[#ee1086]"
+                        className="h-1 w-full rounded bg-neutral-700 accent-#ee1086"
                         value={$currentTime}
                         min={0}
                         max={

@@ -34,7 +34,7 @@ export default function QueuePanel(): JSX.Element {
     if (!queue || queue.length === 0) {
         return (
             <div className="flex h-full items-center justify-center">
-                <p className="text-base text-[var(--color-muted)]">
+                <p className="text-base text-(--color-muted)">
                     Tu cola está vacía
                 </p>
             </div>
@@ -50,7 +50,7 @@ export default function QueuePanel(): JSX.Element {
         >
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
                 <p className="text-lg font-bold text-white">Cola</p>
-                <p className="text-sm text-[var(--color-muted)]">
+                <p className="text-sm text-(--color-muted)">
                     {queue.length} canciones
                 </p>
             </div>

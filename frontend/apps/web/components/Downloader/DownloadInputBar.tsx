@@ -41,12 +41,12 @@ export default function DownloadInputBar({
                         value={url}
                         onChange={(e): void => setUrl(e.target.value)}
                         placeholder="Paste Spotify or YouTube URL..."
-                        className="block w-full rounded-md border border-neutral-600 bg-neutral-800/50 px-4 py-2 text-sm text-white placeholder-neutral-400 focus:border-[#ee1086] focus:ring-2 focus:ring-[#ee1086]"
+                        className="block w-full rounded-md border border-neutral-600 bg-neutral-800/50 px-4 py-2 text-sm text-white placeholder-neutral-400 focus:border-#ee1086 focus:ring-2 focus:ring-#ee1086"
                     />
                     <button
                         type="submit"
                         disabled={isDownloading}
-                        className="absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-transparent bg-[#ee1086] px-2.5 text-xs font-medium text-white hover:bg-[#ee1086]/90 disabled:opacity-50"
+                        className="absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-transparent bg-#ee1086 px-2.5 text-xs font-medium text-white hover:bg-#ee1086/90 disabled:opacity-50"
                     >
                         {isDownloading ? (
                             <svg

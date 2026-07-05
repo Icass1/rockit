@@ -109,7 +109,7 @@ export default function LoginModal(): JSX.Element {
                         <input
                             type="text"
                             placeholder={$vocabulary.USERNAME}
-                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-#202020 px-5 py-1 text-white"
                             autoComplete="username"
                             value={username}
                             onChange={(e): void =>
@@ -120,7 +120,7 @@ export default function LoginModal(): JSX.Element {
                         <input
                             type="password"
                             placeholder={$vocabulary.PASSWORD}
-                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-#202020 px-5 py-1 text-white"
                             autoComplete="current-password"
                             value={password}
                             onChange={(e): void =>
@@ -130,7 +130,7 @@ export default function LoginModal(): JSX.Element {
                     </div>
 
                     {error && (
-                        <p className="mx-auto w-fit rounded-md bg-[#ed4337] px-3 py-1 text-white">
+                        <p className="mx-auto w-fit rounded-md bg-#ed4337 px-3 py-1 text-white">
                             {error}
                         </p>
                     )}

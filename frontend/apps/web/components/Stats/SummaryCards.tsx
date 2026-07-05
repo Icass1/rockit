@@ -116,7 +116,7 @@ export default function SummaryCards({
             <div>
                 <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
                     {summary.currentStreak}
-                    <span className="ml-1 text-2xl text-[#ee1086] md:text-3xl">
+                    <span className="ml-1 text-2xl text-#ee1086 md:text-3xl">
                         d
                     </span>
                 </p>

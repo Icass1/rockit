@@ -260,7 +260,7 @@ export default function RadioMap({
                 dragging={true}
                 scrollWheelZoom={true}
                 doubleClickZoom={false}
-                className="h-[300px] w-full md:h-[400px]"
+                className="h-75 w-full md:h-100"
             >
                 <MapBounds />
                 <TileLayer

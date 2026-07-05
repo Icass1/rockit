@@ -31,10 +31,10 @@ export default function QueueRow({
         <div
             ref={(el: HTMLElement | null) => registerRow(index, el)}
             className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${
-                isActive ? "bg-[var(--color-rockit-pink)]/10" : ""
+                isActive ? "bg-(--color-rockit-pink)/10" : ""
             } ${
                 isDropTarget
-                    ? "border-t-2 border-[var(--color-rockit-pink)]"
+                    ? "border-t-2 border-(--color-rockit-pink)"
                     : "border-t-2 border-transparent"
             } ${isDragging ? "opacity-60" : ""}`}
         >
@@ -48,19 +48,19 @@ export default function QueueRow({
                     src={media.imageUrl}
                     alt=""
                     loading="lazy"
-                    className={`h-[46px] w-[46px] shrink-0 rounded bg-[var(--color-surface)] object-cover ${
+                    className={`h-11.5 w-11.5 shrink-0 rounded bg-(--color-surface) object-cover ${
                         isActive ? "opacity-60" : ""
                     }`}
                 />
                 <div className="min-w-0 flex-1">
                     <p
                         className={`truncate text-sm font-semibold ${
-                            isActive ? "text-[var(--color-rockit-pink)]" : "text-white"
+                            isActive ? "text-(--color-rockit-pink)" : "text-white"
                         }`}
                     >
                         {media.name}
                     </p>
-                    <p className="truncate text-xs text-[var(--color-muted)]">
+                    <p className="truncate text-xs text-(--color-muted)">
                         {"artists" in media
                             ? (media.artists?.[0]?.name ?? "")
                             : ""}

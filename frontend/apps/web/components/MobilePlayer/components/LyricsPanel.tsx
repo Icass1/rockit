@@ -63,7 +63,7 @@ export default function LyricsPanel({
     if (loading) {
         return (
             <div className="flex h-full items-center justify-center">
-                <p className="text-base text-[var(--color-muted)]">
+                <p className="text-base text-(--color-muted)">
                     Cargando letra...
                 </p>
             </div>
@@ -73,7 +73,7 @@ export default function LyricsPanel({
     if (!lyrics) {
         return (
             <div className="flex h-full items-center justify-center">
-                <p className="text-base text-[var(--color-muted)]">
+                <p className="text-base text-(--color-muted)">
                     No hay letra disponible
                 </p>
             </div>

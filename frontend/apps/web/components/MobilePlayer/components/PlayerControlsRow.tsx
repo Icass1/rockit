@@ -52,7 +52,7 @@ export default function PlayerControlsRow(): JSX.Element {
             <button
                 type="button"
                 onClick={togglePlayPause}
-                className="flex h-[60px] w-[60px] items-center justify-center rounded-full transition-transform active:scale-95"
+                className="flex h-15 w-15 items-center justify-center rounded-full transition-transform active:scale-95"
                 aria-label={isPlaying ? "Pausar" : "Reproducir"}
             >
                 {isPlaying ? (
@@ -79,7 +79,7 @@ export default function PlayerControlsRow(): JSX.Element {
             >
                 <Repeat size={24} color={repeatColor(repeatMode)} />
                 {repeatMode === ERepeatMode.ONE && (
-                    <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-[var(--color-rockit-pink)]">
+                    <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-(--color-rockit-pink)">
                         1
                     </span>
                 )}

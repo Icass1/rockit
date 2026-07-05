@@ -31,7 +31,7 @@ export default function PlayerProgressBar({
             <div className="relative flex h-8 items-center">
                 <Slider
                     id="default-slider"
-                    className="h-[7px] w-full rounded-full bg-white/10"
+                    className="h-1.75 w-full rounded-full bg-white/10"
                     value={displayTime}
                     min={0}
                     max={max}
@@ -52,7 +52,7 @@ export default function PlayerProgressBar({
                     $bookmarks.map((bm) => (
                         <div
                             key={bm.publicId}
-                            className="pointer-events-none absolute top-1/2 h-[11px] w-1 -translate-y-1/2 rounded-sm"
+                            className="pointer-events-none absolute top-1/2 h-2.75 w-1 -translate-y-1/2 rounded-sm"
                             style={{
                                 left: `${(bm.timestamp / duration) * 100}%`,
                                 backgroundColor:
@@ -63,7 +63,7 @@ export default function PlayerProgressBar({
                     ))}
             </div>
 
-            <div className="mt-[-8px] flex justify-between px-1">
+            <div className="-mt-2 flex justify-between px-1">
                 <span className="text-xs font-medium text-white/70">
                     {formatTime(displayTime)}
                 </span>

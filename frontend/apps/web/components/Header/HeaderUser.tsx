@@ -27,7 +27,7 @@ export default function HeaderUser(): JSX.Element {
     return (
         <PopupMenu>
             <PopupMenuTrigger>
-                <div className="relative grid grid-cols-[1fr_40px] items-center gap-x-2 rounded-lg p-2 transition md:hover:cursor-pointer md:hover:bg-[#272727]">
+                <div className="relative grid grid-cols-[1fr_40px] items-center gap-x-2 rounded-lg p-2 transition md:hover:cursor-pointer md:hover:bg-#272727">
                     <span className="w-full min-w-0 truncate text-sm font-medium">
                         {$username}
                     </span>

@@ -3,15 +3,20 @@
 import { useEffect, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { VocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import KeyboardHandler from "@/components/KeyboardHandler/KeyboardHandler";
-import MiniPlayer from "@/components/MiniPlayer/MiniPlayer";
 import MobileBottomNav from "@/components/Navigation/MobileBottomNav";
 import Navigation from "@/components/Navigation/Navigation";
 import PlayerUI from "@/components/PlayerUI/PlayerUI";
+
+const MobilePlayer = dynamic(
+    () => import("@/components/MobilePlayer/MobilePlayer"),
+    { ssr: false }
+);
 
 export default function AppClientLayout({
     vocabulary,
@@ -80,11 +85,11 @@ export default function AppClientLayout({
                 <Navigation />
             </div>
 
-            {/* Mobile Mini Player - only visible on small screens */}
-            <MiniPlayer />
-
             {/* Mobile Bottom Navigation - only visible on small screens */}
             <MobileBottomNav />
+
+            {/* Mobile Player (MiniPlayerBar + MobilePlayerSheet) - después de MobileBottomNav para que el MiniPlayerBar quede encima */}
+            <MobilePlayer />
         </>
     );
 }

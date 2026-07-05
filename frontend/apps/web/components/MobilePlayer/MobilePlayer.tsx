@@ -1,15 +1,8 @@
 "use client";
 
 import type { JSX } from "react";
-import dynamic from "next/dynamic";
-
-const MiniPlayerBar = dynamic(() => import("./components/MiniPlayerBar"), {
-    ssr: false,
-});
-const MobilePlayerSheet = dynamic(
-    () => import("./components/MobilePlayerSheet"),
-    { ssr: false }
-);
+import MiniPlayerBar from "@/components/MobilePlayer/components/MiniPlayerBar";
+import MobilePlayerSheet from "@/components/MobilePlayer/components/MobilePlayerSheet";
 
 export default function MobilePlayer(): JSX.Element {
     return (

@@ -46,7 +46,7 @@ export default function PlayerControlsRow(): JSX.Element {
                 className="flex h-12 w-12 items-center justify-center"
                 aria-label="Anterior"
             >
-                <SkipBack size={24} color="white" />
+                <SkipBack size={24} className="fill-current text-white" />
             </button>
 
             <button
@@ -56,9 +56,9 @@ export default function PlayerControlsRow(): JSX.Element {
                 aria-label={isPlaying ? "Pausar" : "Reproducir"}
             >
                 {isPlaying ? (
-                    <Pause size={34} color="white" />
+                    <Pause size={34} className="fill-current text-white" />
                 ) : (
-                    <Play size={34} color="white" />
+                    <Play size={34} className="fill-current text-white" />
                 )}
             </button>
 
@@ -68,7 +68,7 @@ export default function PlayerControlsRow(): JSX.Element {
                 className="flex h-12 w-12 items-center justify-center"
                 aria-label="Siguiente"
             >
-                <SkipForward size={24} color="white" />
+                <SkipForward size={24} className="fill-current text-white" />
             </button>
 
             <button

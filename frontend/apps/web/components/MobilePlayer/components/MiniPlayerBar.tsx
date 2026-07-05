@@ -24,12 +24,17 @@ export default function MiniPlayerBar(): JSX.Element | null {
 
     return (
         <div
-            className="fixed inset-x-0 bottom-0 z-40 h-14 bg-black/70 backdrop-blur-md"
-            style={{ height: MINI_PLAYER_HEIGHT }}
+            className="fixed inset-x-0 z-40 h-14 bg-black/80 shadow-lg"
+            style={{
+                height: MINI_PLAYER_HEIGHT,
+                bottom: "calc(56px + env(safe-area-inset-bottom, 0px) + 12px)",
+            }}
         >
             <div
-                className={`absolute left-0 top-0 h-full w-[3px] transition-colors ${
-                    isPlaying ? "bg-[var(--color-rockit-pink)]" : "bg-transparent"
+                className={`absolute top-0 left-0 h-full w-[3px] transition-colors ${
+                    isPlaying
+                        ? "bg-[var(--color-rockit-pink)]"
+                        : "bg-transparent"
                 }`}
             />
 
@@ -44,7 +49,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
                         src={currentMedia.imageUrl}
                         alt=""
                         loading="lazy"
-                        className="h-full w-full rounded object-cover bg-[var(--color-surface)]"
+                        className="h-full w-full rounded bg-[var(--color-surface)] object-cover"
                     />
                 </div>
 
@@ -71,9 +76,9 @@ export default function MiniPlayerBar(): JSX.Element | null {
                     {isLoading ? (
                         <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                     ) : isPlaying ? (
-                        <Pause size={22} color="white" />
+                        <Pause size={22} className="fill-current text-white" />
                     ) : (
-                        <Play size={22} color="white" />
+                        <Play size={22} className="fill-current text-white" />
                     )}
                 </span>
 
@@ -86,7 +91,10 @@ export default function MiniPlayerBar(): JSX.Element | null {
                     }}
                     className="flex h-10 w-10 shrink-0 items-center justify-center"
                 >
-                    <SkipForward size={22} color="white" />
+                    <SkipForward
+                        size={22}
+                        className="fill-current text-white"
+                    />
                 </span>
             </button>
 

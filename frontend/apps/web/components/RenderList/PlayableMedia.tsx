@@ -130,6 +130,7 @@ export function PlayableMedia({
                             <div className="min-w-0 overflow-hidden">
                                 <Artists
                                     artists={artists}
+                                    linkable={false}
                                     className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
                                 />
                             </div>

@@ -2,7 +2,6 @@
 
 import { JSX } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -16,7 +15,6 @@ export default function RecentlyPlayedSong({
     songs: BaseSongWithAlbumResponse[];
 }): JSX.Element {
     const $song = useMedia(song);
-    const router = useRouter();
 
     const handleClick = (): void => {
         // Set the queue with all songs
@@ -25,13 +23,6 @@ export default function RecentlyPlayedSong({
             rockIt.queueManager.setMedia(playableSongs, "");
             rockIt.queueManager.moveToMedia($song.publicId);
             rockIt.mediaPlayerManager.play();
-        }
-    };
-
-    const handleArtistClick = (e: React.MouseEvent): void => {
-        e.stopPropagation();
-        if (song.artists.length > 0) {
-            router.push(`/artist/${song.artists[0].publicId}`);
         }
     };
 
@@ -50,10 +41,7 @@ export default function RecentlyPlayedSong({
             <span className="mt-2 block truncate text-center font-semibold hover:underline">
                 {$song.name}
             </span>
-            <span
-                className="block truncate text-center text-sm text-gray-400 hover:underline"
-                onClick={handleArtistClick}
-            >
+            <span className="block truncate text-center text-sm text-gray-400">
                 {$song.artists[0].name}
             </span>
         </div>

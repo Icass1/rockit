@@ -21,7 +21,7 @@ export default function PlayerUIMain({
     const [showIcon, setShowIcon] = useState(false);
     const [titleVisible, setTitleVisible] = useState(true);
     const [songHover, setSongHover] = useState(false);
-    const [vinylMode, setVinylMode] = useState(true);
+    const [vinylMode, setVinylMode] = useState(false);
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 

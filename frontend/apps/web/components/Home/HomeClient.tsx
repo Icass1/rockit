@@ -1,99 +1,134 @@
 "use client";
 
-import { useEffect, useSyncExternalStore, type JSX } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, type JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { MONTH_KEYS } from "@rockit/packages/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
+import { useGreeting } from "@/components/Home/hooks/useGreeting";
+import HomeHero from "@/components/Home/HomeHero";
+import HomeSkeleton from "@/components/Home/HomeSkeleton";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 import SongScrollSection from "@/components/Home/sections/SongScrollSection";
-import LoadingComponent from "@/components/Loading";
-
-function getPreviousMonthKey():
-    | "JANUARY"
-    | "FEBRUARY"
-    | "MARCH"
-    | "APRIL"
-    | "MAY"
-    | "JUNE"
-    | "JULY"
-    | "AUGUST"
-    | "SEPTEMBER"
-    | "OCTOBER"
-    | "NOVEMBER"
-    | "DECEMBER" {
-    return MONTH_KEYS[(new Date().getMonth() + 11) % 12];
-}
-
-function useOnClient<T>(fn: () => T, initialValue: T): T {
-    return useSyncExternalStore(
-        (): (() => void) => (): void => {},
-        fn,
-        (): T => initialValue
-    );
-}
 
 export default function HomeClient(): JSX.Element {
     const data = useHomeData();
-    const router = useRouter();
-    const previousMonthKey = useOnClient(getPreviousMonthKey, null);
-
+    const greeting = useGreeting();
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $username = useStore(rockIt.userManager.usernameAtom);
 
-    useEffect((): void => {
-        if (data?.isEmpty) router.push("/library");
-    }, [data?.isEmpty, router]);
+    // No redirect — home is always accessible
 
-    if (!data) {
-        return (
-            <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
-                <LoadingComponent />
-                <span>Loading...</span>
-            </div>
-        );
-    }
+    const greetingName = $username
+        ? `${greeting}, ${$username}`
+        : greeting;
 
-    if (!previousMonthKey) {
-        return (
-            <div className="flex h-screen flex-row items-center justify-center gap-2 text-xl font-semibold">
-                <LoadingComponent />
-            </div>
-        );
-    }
+    const heroSlots = useMemo(() => {
+        if (!data) return [];
+        const slots: Array<{
+            eyebrow: string;
+            title: string;
+            subtitle: string;
+            song: import("@/dto").BaseSongWithAlbumResponse;
+            queue: import("@/dto").BaseSongWithAlbumResponse[];
+        }> = [];
+
+        if (data.songsByTimePlayed.length > 0) {
+            slots.push({
+                eyebrow: $vocabulary.RECENTLY_PLAYED,
+                title: data.songsByTimePlayed[0].name,
+                subtitle:
+                    data.songsByTimePlayed[0].artists[0]?.name ?? "",
+                song: data.songsByTimePlayed[0],
+                queue: data.songsByTimePlayed,
+            });
+        }
+
+        if (data.monthlyTop.length > 0) {
+            slots.push({
+                eyebrow: $vocabulary.YOUR_MIX,
+                title: data.monthlyTop[0].name,
+                subtitle: $vocabulary.MOST_LISTENED,
+                song: data.monthlyTop[0],
+                queue: data.monthlyTop,
+            });
+        }
+
+        if (data.hiddenGems.length > 0) {
+            slots.push({
+                eyebrow: $vocabulary.HIDDEN_GEMS,
+                title: data.hiddenGems[0].name,
+                subtitle:
+                    data.hiddenGems[0].artists[0]?.name ?? "",
+                song: data.hiddenGems[0],
+                queue: data.hiddenGems,
+            });
+        }
+
+        return slots;
+    }, [data, $vocabulary]);
+
+    if (!data) return <HomeSkeleton />;
 
     return (
         <div className="flex flex-col">
-            <QuickSelectionsSection
-                title={$vocabulary.QUICK_SELECTIONS}
-                songs={data.randomSongsLastMonth}
-            />
-            <SongScrollSection
-                title={$vocabulary.RECENTLY_PLAYED}
-                songs={data.songsByTimePlayed}
-                className="py-5"
-            />
-            <SongScrollSection
-                title={"NOSTALGIC_MIX"}
-                songs={data.nostalgicMix}
-            />
-            <SongScrollSection
-                title={$vocabulary.HIDDEN_GEMS}
-                songs={data.hiddenGems}
-            />
-            <SongScrollSection
-                title={$vocabulary.COMMUNITY_TOP}
-                songs={data.communityTop}
-                className="py-5"
-            />
-            <SongScrollSection
-                title={`${$vocabulary[previousMonthKey as keyof typeof $vocabulary]} Recap`}
-                songs={data.monthlyTop}
-            />
-            <SongScrollSection
-                title={$vocabulary.MOOD_SONGS}
-                songs={data.moodSongs}
-            />
+            {heroSlots.length > 0 && (
+                <HomeHero
+                    greetingName={greetingName}
+                    ambientSongs={data.songsByTimePlayed}
+                    slots={heroSlots}
+                />
+            )}
+
+            {data.randomSongsLastMonth.length > 0 && (
+                <QuickSelectionsSection
+                    title={$vocabulary.QUICK_SELECTIONS}
+                    songs={data.randomSongsLastMonth}
+                />
+            )}
+
+            {data.songsByTimePlayed.length > 0 && (
+                <SongScrollSection
+                    title={$vocabulary.RECENTLY_PLAYED}
+                    songs={data.songsByTimePlayed}
+                    className="py-5"
+                />
+            )}
+
+            {data.hiddenGems.length > 0 && (
+                <SongScrollSection
+                    title={$vocabulary.HIDDEN_GEMS}
+                    songs={data.hiddenGems}
+                />
+            )}
+
+            {data.communityTop.length > 0 && (
+                <SongScrollSection
+                    title={$vocabulary.COMMUNITY_TOP}
+                    songs={data.communityTop}
+                    className="py-5"
+                />
+            )}
+
+            {data.monthlyTop.length > 0 && (
+                <SongScrollSection
+                    title={$vocabulary.MOST_LISTENED}
+                    songs={data.monthlyTop}
+                />
+            )}
+
+            {data.moodSongs.length > 0 && (
+                <SongScrollSection
+                    title={$vocabulary.MOOD_SONGS}
+                    songs={data.moodSongs}
+                />
+            )}
+
+            {data.nostalgicMix.length > 0 && (
+                <SongScrollSection
+                    title={$vocabulary.RECENT_MIX}
+                    songs={data.nostalgicMix}
+                />
+            )}
         </div>
     );
 }

@@ -19,12 +19,16 @@ interface HomeHeroProps {
     greetingName: string;
     ambientSongs: BaseSongWithAlbumResponse[];
     slots: HeroSlot[];
+    streak?: number;
+    minutesThisWeek?: number;
 }
 
 export default function HomeHero({
     greetingName,
     ambientSongs,
     slots,
+    streak,
+    minutesThisWeek,
 }: HomeHeroProps): JSX.Element {
     const sectionRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
@@ -57,6 +61,7 @@ export default function HomeHero({
         return <DockedQuickAccessBar visible={false} items={[]} />;
     }
 
+
     return (
         <>
             <motion.section
@@ -64,12 +69,22 @@ export default function HomeHero({
                 style={{ opacity: heroOpacity, scale: heroScale }}
                 className="relative flex min-h-[90vh] flex-col overflow-hidden px-6 pb-8 pt-20 md:px-12"
             >
-                <HeroBackgroundDrift songs={ambientSongs} maxParticles={7} />
+                <HeroBackgroundDrift songs={ambientSongs} maxParticles={10} />
 
                 <div className="relative z-10 mb-8 md:mb-12">
-                    <span className="text-sm font-medium uppercase tracking-widest text-white/50">
+                    <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
                         {greetingName}
-                    </span>
+                    </h1>
+                    {(streak ?? 0) > 0 || (minutesThisWeek ?? 0) > 0 ? (
+                        <div className="mt-3 flex items-center gap-4 text-sm text-white/60">
+                            {typeof streak === "number" && streak > 0 && (
+                                <span>🔥 {streak} días seguidos</span>
+                            )}
+                            {typeof minutesThisWeek === "number" && minutesThisWeek > 0 && (
+                                <span>{Math.round(minutesThisWeek)} min esta semana</span>
+                            )}
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="relative z-10 grid flex-1 grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">

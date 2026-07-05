@@ -214,6 +214,26 @@ class Stats:
             :3
         ]
 
+        # --- weekly stats (streak + minutes this week) ---
+        week_ago: datetime = now - timedelta(days=7)
+
+        a_weekly_summary: AResult[dict[str, Any]] = await StatsAccess.get_summary_async(
+            session=session,
+            user_id=user_id,
+            start_date=week_ago,
+            end_date=now,
+        )
+        minutes_this_week: float = (
+            a_weekly_summary.result().get("total_minutes", 0.0)
+            if a_weekly_summary.is_ok()
+            else 0.0
+        )
+
+        a_streak: AResult[int] = await StatsAccess.get_current_streak_async(
+            session=session, user_id=user_id
+        )
+        current_streak: int = a_streak.result() if a_streak.is_ok() else 0
+
         # Resolve all unique song IDs in a single pass
         all_ids: List[str] = list(
             dict.fromkeys(
@@ -238,6 +258,8 @@ class Stats:
                 communityTop=[],  # no multi-user aggregation yet
                 monthlyTop=lookup(monthly_ids),
                 moodSongs=[],  # no mood/genre data yet
+                currentStreak=current_streak,
+                minutesListenedThisWeek=minutes_this_week,
             ),
         )
 

@@ -95,9 +95,9 @@ export function useAmbientDrift(
             );
 
             const depth = rand();
-            const size = 64 + depth * 96;
-            const blurPx = 6 - depth * 4;
-            const opacity = 0.14 + depth * 0.18;
+            const size = 90 + depth * 130;
+            const blurPx = 4 - depth * 2.5;
+            const opacity = 0.22 + depth * 0.28;
 
             return {
                 id: key,

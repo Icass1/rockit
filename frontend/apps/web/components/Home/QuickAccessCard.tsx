@@ -49,7 +49,7 @@ export default function QuickAccessCard({
             <div
                 className="absolute inset-0 transition-colors duration-700"
                 style={{
-                    background: `linear-gradient(135deg, ${hex}55 0%, #00000090 75%)`,
+                    background: `linear-gradient(135deg, ${hex}99 0%, #00000060 100%)`,
                     opacity: isLoading ? 0 : 1,
                 }}
                 aria-hidden="true"

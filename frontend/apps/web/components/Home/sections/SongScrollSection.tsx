@@ -6,12 +6,14 @@ interface SongScrollSectionProps {
     title: string;
     songs: BaseSongWithAlbumResponse[];
     className?: string;
+    featureFirst?: boolean;
 }
 
 export default function SongScrollSection({
     title,
     songs,
     className = "",
+    featureFirst = false,
 }: SongScrollSectionProps): JSX.Element | null {
     if (songs.length === 0) return null;
 
@@ -20,11 +22,16 @@ export default function SongScrollSection({
             <h2 className="px-5 text-2xl font-bold md:text-3xl">{title}</h2>
             <div className="flex gap-4 overflow-x-auto px-10 py-4">
                 {songs.map(
-                    (song): JSX.Element => (
+                    (song, index): JSX.Element => (
                         <RecentlyPlayedSong
                             key={song.publicId}
                             song={song}
                             songs={songs}
+                            className={
+                                featureFirst && index === 0
+                                    ? "w-56 flex-none md:w-64"
+                                    : undefined
+                            }
                         />
                     )
                 )}

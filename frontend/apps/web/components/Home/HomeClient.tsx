@@ -22,6 +22,21 @@ export default function HomeClient(): JSX.Element {
         ? `${greeting}, ${$username}`
         : greeting;
 
+    const ambientPool = useMemo(() => {
+        if (!data) return [];
+        const combined = [
+            ...data.songsByTimePlayed,
+            ...data.randomSongsLastMonth,
+            ...data.nostalgicMix,
+        ];
+        const seen = new Set<string>();
+        return combined.filter((s) => {
+            if (seen.has(s.publicId)) return false;
+            seen.add(s.publicId);
+            return true;
+        });
+    }, [data]);
+
     const heroSlots = useMemo(() => {
         if (!data) return [];
         const slots: Array<{
@@ -74,8 +89,10 @@ export default function HomeClient(): JSX.Element {
             {heroSlots.length > 0 && (
                 <HomeHero
                     greetingName={greetingName}
-                    ambientSongs={data.songsByTimePlayed}
+                    ambientSongs={ambientPool}
                     slots={heroSlots}
+                    streak={data.currentStreak}
+                    minutesThisWeek={data.minutesListenedThisWeek}
                 />
             )}
 
@@ -91,6 +108,7 @@ export default function HomeClient(): JSX.Element {
                     title={$vocabulary.RECENTLY_PLAYED}
                     songs={data.songsByTimePlayed}
                     className="py-5"
+                    featureFirst
                 />
             )}
 

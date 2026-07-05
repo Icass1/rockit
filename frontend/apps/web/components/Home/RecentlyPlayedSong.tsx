@@ -10,9 +10,11 @@ import { rockIt } from "@/lib/rockit/rockIt";
 export default function RecentlyPlayedSong({
     song,
     songs,
+    className,
 }: {
     song: BaseSongWithAlbumResponse;
     songs: BaseSongWithAlbumResponse[];
+    className?: string;
 }): JSX.Element {
     const $song = useMedia(song);
 
@@ -28,7 +30,7 @@ export default function RecentlyPlayedSong({
 
     return (
         <div
-            className="w-40 flex-none cursor-pointer transition md:w-48 md:hover:scale-105"
+            className={`${className ?? "w-40 md:w-48"} flex-none cursor-pointer transition md:hover:scale-105`}
             onClick={handleClick}
         >
             <Image

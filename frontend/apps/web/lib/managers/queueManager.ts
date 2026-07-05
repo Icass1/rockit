@@ -31,6 +31,7 @@ export class QueueManager {
     private _currentListAtom = createAtom<string | undefined>();
 
     private _queueAtom = createArrayAtom<QueueItem>([]);
+    private _sortedQueueAtom = createArrayAtom<QueueItem>([]);
     private _currentQueueMediaIdAtom = createAtom<number | null>(0);
 
     private _lastNavigationDirection: 1 | -1 = 1;
@@ -166,6 +167,7 @@ export class QueueManager {
 
         this._currentMediaAtom.set(currentMedia?.media);
         this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
+        this._sortedQueueAtom.set([...this.sortedQueue]);
         this._sendCurrentQueue();
     }
 
@@ -704,6 +706,10 @@ export class QueueManager {
 
     get queueAtom(): ReadonlyArrayAtom<QueueItem> {
         return this._queueAtom.getReadonlyAtom();
+    }
+
+    get sortedQueueAtom(): ReadonlyArrayAtom<QueueItem> {
+        return this._sortedQueueAtom.getReadonlyAtom();
     }
 
     get queue(): QueueItem[] {

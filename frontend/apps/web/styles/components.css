@@ -154,6 +154,33 @@
     border-color: #f6339a;
 }
 
+/* ── Range scrub (MobilePlayer) ─────────────
+    <input type="range"> nativo estilizado para el progreso
+    del reproductor móvil. El thumb siempre visible en blanco.
+    ─────────────────────────────────────────── */
+.range-scrub {
+    height: 30px;
+}
+.range-scrub::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.range-scrub::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 9999px;
+    background: white;
+}
+.range-scrub::-webkit-slider-runnable-track,
+.range-scrub::-moz-range-track {
+    background: transparent;
+}
+
 /* ── Webkit momentum scroll (Fase 4) ──────
     Habilita momentum/inertial scrolling en iOS Safari.
     Úsalo solo en contenedores con scroll real.

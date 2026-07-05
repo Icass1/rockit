@@ -12,6 +12,7 @@ class AResultCode:
     ALREADY_EXISTS = 0x6
     VALIDATION_ERROR = 0x7
     RATE_LIMITED = 0x8
+    QUOTA_EXHAUSTED = 0x9
 
     _code: int
     _message: str
@@ -46,6 +47,8 @@ class AResultCode:
             return 403
         if self._code == AResultCode.RATE_LIMITED:
             return 429
+        if self._code == AResultCode.QUOTA_EXHAUSTED:
+            return 429
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -72,6 +75,8 @@ class AResultCode:
             return "VALIDATION_ERROR"
         if self._code == AResultCode.RATE_LIMITED:
             return "RATE_LIMITED"
+        if self._code == AResultCode.QUOTA_EXHAUSTED:
+            return "QUOTA_EXHAUSTED"
 
         raise Exception(f"Code {self._code} not implemented")
 

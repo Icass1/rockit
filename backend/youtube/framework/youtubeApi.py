@@ -52,6 +52,24 @@ class YoutubeApi:
         result.update(params)
         return result
 
+    def _classify_error(self, status_code: int, body: dict[str, Any] | None) -> int:
+        if status_code == 429:
+            return AResultCode.RATE_LIMITED
+
+        if body:
+            error: dict[str, Any] | None = body.get("error")
+            if error:
+                status: str = error.get("status", "")
+                if status == "RESOURCE_EXHAUSTED":
+                    return AResultCode.QUOTA_EXHAUSTED
+                errors_list: list[dict[str, Any]] = error.get("errors", [])
+                for e in errors_list:
+                    reason: str = e.get("reason", "")
+                    if reason == "quotaExceeded":
+                        return AResultCode.QUOTA_EXHAUSTED
+
+        return AResultCode.GENERAL_ERROR
+
     async def get_video_async(self, video_id: str) -> AResult[RawYoutubeVideo]:
         try:
             url: str = f"{self.base_url}/videos"
@@ -61,11 +79,17 @@ class YoutubeApi:
             response: requests.Response = requests.get(url, params=params, timeout=10)
 
             if response.status_code != 200:
+                body: dict[str, Any] | None = None
+                try:
+                    body = response.json()
+                except Exception:
+                    pass
+                code: int = self._classify_error(response.status_code, body)
                 logger.error(
                     f"YouTube API error: {response.status_code} - {response.text}"
                 )
                 return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                    code=code,
                     message=f"YouTube API error: {response.status_code}",
                 )
 
@@ -74,7 +98,10 @@ class YoutubeApi:
             if "error" in data:
                 logger.error(f"YouTube API error: {data['error']}")
                 error_message: str = data["error"].get("message", "Unknown error")
-                return AResult(code=AResultCode.GENERAL_ERROR, message=error_message)
+                return AResult(
+                    code=self._classify_error(response.status_code, data),
+                    message=error_message,
+                )
 
             items: list[dict[str, Any]] = data.get("items", [])
             if not items:
@@ -103,11 +130,17 @@ class YoutubeApi:
             response: requests.Response = requests.get(url, params=params, timeout=10)
 
             if response.status_code != 200:
+                body: dict[str, Any] | None = None
+                try:
+                    body = response.json()
+                except Exception:
+                    pass
+                code: int = self._classify_error(response.status_code, body)
                 logger.error(
                     f"YouTube API error: {response.status_code} - {response.text}"
                 )
                 return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                    code=code,
                     message=f"YouTube API error: {response.status_code}",
                 )
 
@@ -116,7 +149,10 @@ class YoutubeApi:
             if "error" in data:
                 logger.error(f"YouTube API error: {data['error']}")
                 error_message: str = data["error"].get("message", "Unknown error")
-                return AResult(code=AResultCode.GENERAL_ERROR, message=error_message)
+                return AResult(
+                    code=self._classify_error(response.status_code, data),
+                    message=error_message,
+                )
 
             items: list[dict[str, Any]] = data.get("items", [])
             if not items:
@@ -154,11 +190,17 @@ class YoutubeApi:
             response: requests.Response = requests.get(url, params=params, timeout=10)
 
             if response.status_code != 200:
+                body: dict[str, Any] | None = None
+                try:
+                    body = response.json()
+                except Exception:
+                    pass
+                code: int = self._classify_error(response.status_code, body)
                 logger.error(
                     f"YouTube Search API error: {response.status_code} - {response.text}"
                 )
                 return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                    code=code,
                     message=f"YouTube Search API error: {response.status_code}",
                 )
 
@@ -167,7 +209,10 @@ class YoutubeApi:
             if "error" in data:
                 logger.error(f"YouTube Search API error: {data['error']}")
                 error_message: str = data["error"].get("message", "Unknown error")
-                return AResult(code=AResultCode.GENERAL_ERROR, message=error_message)
+                return AResult(
+                    code=self._classify_error(response.status_code, data),
+                    message=error_message,
+                )
 
             items: list[dict[str, Any]] = data.get("items", [])
             if not items:

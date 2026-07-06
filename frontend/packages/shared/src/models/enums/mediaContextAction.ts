@@ -22,4 +22,5 @@ export enum EMediaContextAction {
     DownloadSearchResult = "downloadSearchResult",
     DownloadSearchResultAndAddToLibrary = "downloadSearchResultAndAddToLibrary",
     DownloadSearchResultAndPlay = "downloadSearchResultAndPlay",
+    AddToPlaylistAndDownload = "addToPlaylistAndDownload",
 }

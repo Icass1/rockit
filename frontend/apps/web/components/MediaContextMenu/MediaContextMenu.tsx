@@ -4,7 +4,6 @@ import { ReactNode, useCallback, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import {
     BasePlaylistWithoutMediasResponse,
-    BaseSearchResultsItem,
     EMediaContextAction,
     EMediaContextLocation,
     getMediaSubtitle,
@@ -22,7 +21,9 @@ import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
-import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
+import AddToPlaylistAction, {
+    AddToPlaylistAndDownloadAction,
+} from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
 import {
     DownloadAction,
@@ -79,6 +80,7 @@ const actionComponents: Partial<
     [EMediaContextAction.DownloadZip]: DownloadZipAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
+    [EMediaContextAction.AddToPlaylistAndDownload]: AddToPlaylistAndDownloadAction,
     [EMediaContextAction.Delete]: DeleteAction,
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,
@@ -114,8 +116,8 @@ export default function MediaContextMenu({
     const handleAddToPlaylist = useCallback(
         async (playlist: BasePlaylistWithoutMediasResponse): Promise<void> => {
             if (isSearchResult(media)) {
-                rockIt.playlistManager.addUrlToPlaylistAndDownloadAsync(
-                    media as BaseSearchResultsItem,
+                rockIt.playlistManager.addUrlToPlaylistAsync(
+                    media.providerUrl,
                     playlist.publicId
                 );
             } else {

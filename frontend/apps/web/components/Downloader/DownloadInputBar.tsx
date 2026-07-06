@@ -40,7 +40,7 @@ export default function DownloadInputBar({
                         type="url"
                         value={url}
                         onChange={(e): void => setUrl(e.target.value)}
-                        placeholder="Paste Spotify or YouTube URL..."
+                        placeholder="Paste a media URL..."
                         className="block w-full rounded-md border border-neutral-600 bg-neutral-800/50 px-4 py-2 text-sm text-white placeholder-neutral-400 focus:border-(--color-rockit-pink) focus:ring-2 focus:ring-(--color-rockit-pink)"
                     />
                     <button
@@ -81,8 +81,6 @@ export default function DownloadInputBar({
                 </div>
                 {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
             </form>
-
-            <span className="text-sm text-neutral-400">Supports Spotify & YouTube URLs</span>
         </div>
     );
 }

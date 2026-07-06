@@ -3,7 +3,8 @@
 import { useCallback, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { DownloadItemResponse, type MediaResponse } from "@/dto";
-import { isAlbum, isPlayable } from "@rockit/shared";
+import { useStore } from "@nanostores/react";
+import { getMediaSubtitle, isAlbum, isPlayable } from "@rockit/shared";
 import {
     Check,
     ListEnd,
@@ -26,6 +27,7 @@ export default function DownloadCoverCard({
 }: {
     item: DownloadItemResponse;
 }): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [menuCover, setMenuCover] = useState<string | undefined>();
     const [menuTitle, setMenuTitle] = useState<string | undefined>();
     const [menuSubtitle, setMenuSubtitle] = useState<string | undefined>();
@@ -47,20 +49,10 @@ export default function DownloadCoverCard({
         const response = await Http.getMediaAsync(item.mediaPublicId);
         if (response.isOk()) {
             const media = response.result.media;
-            setMenuCover(
-                "imageUrl" in media
-                    ? ((media as { imageUrl?: string }).imageUrl ??
-                          item.imageUrl ??
-                          undefined)
-                    : (item.imageUrl ?? undefined)
-            );
+            setMenuCover(media.imageUrl ?? item.imageUrl ?? undefined);
             setMenuTitle(media.name ?? item.name);
             setMenuSubtitle(
-                "subtitle" in media
-                    ? ((media as { subtitle?: string }).subtitle ??
-                          item.subtitle ??
-                          undefined)
-                    : (item.subtitle ?? undefined)
+                getMediaSubtitle(media) ?? item.subtitle ?? undefined
             );
             fetchedMedia.current = media;
             return media;
@@ -96,12 +88,14 @@ export default function DownloadCoverCard({
             await Http.retryDownload(item.mediaPublicId);
         } catch (err) {
             const message =
-                err instanceof Error ? err.message : "Error al reintentar";
+                err instanceof Error
+                    ? err.message
+                    : $vocabulary.DOWNLOADER_RETRY_ERROR;
             rockIt.notificationManager.notifyError(message);
         } finally {
             setRetryingManual(false);
         }
-    }, [item.mediaPublicId]);
+    }, [item.mediaPublicId, $vocabulary.DOWNLOADER_RETRY_ERROR]);
 
     const handleDelete = useCallback((): void => {
         console.warn("Delete not yet implemented for", item.mediaPublicId);
@@ -173,7 +167,9 @@ export default function DownloadCoverCard({
                                 </svg>
                                 {isFailed && (
                                     <button
-                                        aria-label="Reintentar descarga"
+                                        aria-label={
+                                            $vocabulary.DOWNLOADER_RETRY_ARIA
+                                        }
                                         disabled={retryingManual}
                                         className={`absolute flex h-9 w-9 items-center justify-center rounded-full text-white backdrop-blur-sm transition-colors ${
                                             retryingManual
@@ -235,11 +231,11 @@ export default function DownloadCoverCard({
                     <>
                         <ContextMenuOption onClick={handlePlay}>
                             <Play size={16} />
-                            <span>Reproducir</span>
+                            <span>{$vocabulary.PLAY}</span>
                         </ContextMenuOption>
                         <ContextMenuOption onClick={handleAddToQueue}>
                             <ListEnd size={16} />
-                            <span>Añadir a la cola</span>
+                            <span>{$vocabulary.ADD_TO_QUEUE}</span>
                         </ContextMenuOption>
                         <ContextMenuSplitter />
                     </>
@@ -247,12 +243,12 @@ export default function DownloadCoverCard({
                 {isFailed && (
                     <ContextMenuOption onClick={handleRetry}>
                         <RefreshCw size={16} />
-                        <span>Reintentar</span>
+                        <span>{$vocabulary.RETRY}</span>
                     </ContextMenuOption>
                 )}
                 <ContextMenuOption onClick={handleDelete}>
                     <Trash2 size={16} />
-                    <span>Eliminar</span>
+                    <span>{$vocabulary.DELETE}</span>
                 </ContextMenuOption>
             </ContextMenuContent>
         </ContextMenu>

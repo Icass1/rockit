@@ -125,6 +125,8 @@ export interface Vocabulary {
     DOWNLOAD_STARTED: string;
     DOWNLOAD_TO_SERVER: string;
     DOWNLOAD_ZIP: string;
+    DOWNLOADER_RETRY_ARIA: string;
+    DOWNLOADER_RETRY_ERROR: string;
     DOWNLOADING: string;
     DOWNLOADS: string;
     DURATION: string;

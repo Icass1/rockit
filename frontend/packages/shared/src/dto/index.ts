@@ -396,6 +396,10 @@ export {
     type StartChunkedUploadResponse,
 } from "./startChunkedUploadResponse";
 export {
+    StartDownloadFromUrlResponseSchema,
+    type StartDownloadFromUrlResponse,
+} from "./startDownloadFromUrlResponse";
+export {
     StartDownloadRequestSchema,
     type StartDownloadRequest,
 } from "./startDownloadRequest";

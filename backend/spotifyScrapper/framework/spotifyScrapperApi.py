@@ -145,7 +145,9 @@ class SpotifyScrapperApi:
                         logger.error(f"Error converting album: {e}")
                 return AResult(code=AResultCode.OK, message="OK", result=albums)
         except Exception as e:
-            logger.error(f"Failed to fetch albums from Spotify scraper: {e}", exc_info=True)
+            logger.error(
+                f"Failed to fetch albums from Spotify scraper: {e}", exc_info=True
+            )
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to fetch albums from Spotify: {e}",
@@ -171,7 +173,9 @@ class SpotifyScrapperApi:
                         logger.error(f"Error converting track: {e}")
                 return AResult(code=AResultCode.OK, message="OK", result=tracks)
         except Exception as e:
-            logger.error(f"Failed to fetch tracks from Spotify scraper: {e}", exc_info=True)
+            logger.error(
+                f"Failed to fetch tracks from Spotify scraper: {e}", exc_info=True
+            )
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to fetch tracks from Spotify: {e}",
@@ -197,7 +201,9 @@ class SpotifyScrapperApi:
                         logger.error(f"Error converting artist: {e}")
                 return AResult(code=AResultCode.OK, message="OK", result=artists)
         except Exception as e:
-            logger.error(f"Failed to fetch artists from Spotify scraper: {e}", exc_info=True)
+            logger.error(
+                f"Failed to fetch artists from Spotify scraper: {e}", exc_info=True
+            )
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to fetch artists from Spotify: {e}",

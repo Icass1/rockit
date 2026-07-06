@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, type JSX } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { VocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";

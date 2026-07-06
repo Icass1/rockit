@@ -32,13 +32,10 @@ export function useDragReorder(
     const [overIndex, setOverIndex] = useState<number | null>(null);
     const rowRefs = useRef<Map<number, HTMLElement>>(new Map());
 
-    const registerRow = useCallback(
-        (index: number, el: HTMLElement | null) => {
-            if (el) rowRefs.current.set(index, el);
-            else rowRefs.current.delete(index);
-        },
-        []
-    );
+    const registerRow = useCallback((index: number, el: HTMLElement | null) => {
+        if (el) rowRefs.current.set(index, el);
+        else rowRefs.current.delete(index);
+    }, []);
 
     const handlePointerDown = useCallback(
         (index: number) => (e: React.PointerEvent) => {
@@ -56,17 +53,15 @@ export function useDragReorder(
             const y = e.clientY;
             let closest: number | null = null;
             let closestDist = Infinity;
-            rowRefs.current.forEach(
-                (el: HTMLElement, idx: number) => {
-                    const rect = el.getBoundingClientRect();
-                    const center = rect.top + rect.height / 2;
-                    const dist = Math.abs(center - y);
-                    if (dist < closestDist) {
-                        closestDist = dist;
-                        closest = idx;
-                    }
+            rowRefs.current.forEach((el: HTMLElement, idx: number) => {
+                const rect = el.getBoundingClientRect();
+                const center = rect.top + rect.height / 2;
+                const dist = Math.abs(center - y);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = idx;
                 }
-            );
+            });
             if (closest !== null) setOverIndex(closest);
         },
         [draggingIndex]

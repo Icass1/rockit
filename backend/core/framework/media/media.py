@@ -337,8 +337,14 @@ class Media:
         # Deduplicate: group by (type, name, artist names) — prefer downloaded items.
         seen: dict[tuple[str, str, tuple[str, ...]], BaseSearchResultsItem] = {}
         for item in results:
-            artist_key: tuple[str, ...] = tuple(a.name.lower().strip() for a in item.artists)
-            key: tuple[str, str, tuple[str, ...]] = (item.type, item.name.lower().strip(), artist_key)
+            artist_key: tuple[str, ...] = tuple(
+                a.name.lower().strip() for a in item.artists
+            )
+            key: tuple[str, str, tuple[str, ...]] = (
+                item.type,
+                item.name.lower().strip(),
+                artist_key,
+            )
 
             existing = seen.get(key)
             if existing is None:

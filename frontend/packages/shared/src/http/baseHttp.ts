@@ -407,13 +407,6 @@ export class BaseHttp {
         );
     }
 
-    static async markDownloadSeen(publicId: string) {
-        return this.apiGetAsync(
-            `/downloader/downloads/${publicId}/seen`,
-            dto.OkResponseSchema
-        );
-    }
-
     static async retryDownload(publicId: string) {
         return this.apiFetchAsync(
             `/downloader/downloads/${publicId}/retry`,
@@ -422,11 +415,27 @@ export class BaseHttp {
         );
     }
 
+    static async markDownloadSeen(publicId: string) {
+        return this.apiGetAsync(
+            `/downloader/downloads/${publicId}/seen`,
+            dto.OkResponseSchema
+        );
+    }
+
     static async startDownload(payload: dto.StartDownloadRequest) {
         return this.apiPostAsync(
             `/downloader/start-downloads`,
             dto.StartDownloadRequestSchema,
             dto.StartDownloadResponseSchema,
+            payload
+        );
+    }
+
+    static async startDownloadFromUrl(payload: dto.AddFromUrlRequest) {
+        return this.apiPostAsync(
+            `/downloader/start-from-url`,
+            dto.AddFromUrlRequestSchema,
+            dto.StartDownloadFromUrlResponseSchema,
             payload
         );
     }
@@ -637,6 +646,14 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/rockit/song/${publicId}`,
             dto.BaseSongWithAlbumResponseSchema
+        );
+    }
+
+    static async uploadRockitAlbum() {
+        return this.apiFetchAsync(
+            `/rockit/upload/album`,
+            dto.UploadResponseSchema,
+            { method: "POST" }
         );
     }
 

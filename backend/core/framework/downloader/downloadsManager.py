@@ -117,9 +117,7 @@ class DownloadsManager:
                 for ready_at, d in self.delayed_queue:
                     if ready_at <= now:
                         self.queue.append(d)
-                        logger.info(
-                            f"Retry ready for {d.public_id}, re-queued"
-                        )
+                        logger.info(f"Retry ready for {d.public_id}, re-queued")
                     else:
                         still_delayed.append((ready_at, d))
                 self.delayed_queue = still_delayed
@@ -157,8 +155,8 @@ class DownloadsManager:
                     logger.info(f"Starting new async download: {download.public_id}")
 
                     async def run_download(d: BaseDownload) -> AResultCode:
-                        sem: asyncio.Semaphore = (
-                            self._get_provider_semaphore(d.provider_id)
+                        sem: asyncio.Semaphore = self._get_provider_semaphore(
+                            d.provider_id
                         )
                         async with sem:
                             async with rockit_db.session_scope_async() as session:
@@ -166,10 +164,7 @@ class DownloadsManager:
                                     session
                                 )
 
-                                if (
-                                    a_result.is_not_ok()
-                                    and a_result.is_retryable()
-                                ):
+                                if a_result.is_not_ok() and a_result.is_retryable():
                                     a_result_retry = (
                                         await DownloadAccess.increment_retry_count(
                                             session=session,

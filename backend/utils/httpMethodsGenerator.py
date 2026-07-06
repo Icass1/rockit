@@ -88,7 +88,9 @@ async def http_methods_generator():
             body_params = route.dependant.body_params
 
             if not body_params:
-                print("Path", route.path, "doesn't have a body params")
+                text += f"    static async {method_name}({','.join(params)})" + " {\n"
+                text += f'        return this.apiFetchAsync(`{path}`, dto.{route.response_model.__name__}Schema, {{ method: "POST" }})\n'
+                text += "    }"
                 continue
 
             if len(body_params) != 1:

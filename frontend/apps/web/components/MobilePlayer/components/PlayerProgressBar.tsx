@@ -3,10 +3,10 @@
 import type { JSX } from "react";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
-import { formatTime } from "@/components/MobilePlayer/utils/format";
+import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
+import { formatTime } from "@/components/MobilePlayer/utils/format";
 import Slider from "@/components/Slider/Slider";
 
 interface PlayerProgressBarProps {
@@ -37,14 +37,10 @@ export default function PlayerProgressBar({
                     max={max}
                     step={0.1}
                     onPointerDown={() => setIsSeeking(true)}
-                    onChange={(e) =>
-                        setSeekValue(Number(e.target.value))
-                    }
+                    onChange={(e) => setSeekValue(Number(e.target.value))}
                     onPointerUp={(e) => {
                         setIsSeeking(false);
-                        onSeek(
-                            Number((e.target as HTMLInputElement).value)
-                        );
+                        onSeek(Number((e.target as HTMLInputElement).value));
                     }}
                 />
 
@@ -56,8 +52,7 @@ export default function PlayerProgressBar({
                             style={{
                                 left: `${(bm.timestamp / duration) * 100}%`,
                                 backgroundColor:
-                                    BOOKMARK_MODE_COLORS[bm.mode] ??
-                                    "#ffffff",
+                                    BOOKMARK_MODE_COLORS[bm.mode] ?? "#ffffff",
                             }}
                         />
                     ))}

@@ -345,9 +345,7 @@ class DownloadAccess:
 
         download.retry_count += 1
         await session.flush()
-        return AResult(
-            code=AResultCode.OK, message="OK", result=download.retry_count
-        )
+        return AResult(code=AResultCode.OK, message="OK", result=download.retry_count)
 
     @staticmethod
     @safe_async
@@ -383,7 +381,9 @@ class DownloadAccess:
 
         result = await session.execute(
             select(DownloadRow)
-            .join(DownloadGroupRow, DownloadRow.download_group_id == DownloadGroupRow.id)
+            .join(
+                DownloadGroupRow, DownloadRow.download_group_id == DownloadGroupRow.id
+            )
             .join(CoreMediaRow, DownloadRow.media_id == CoreMediaRow.id)
             .where(
                 CoreMediaRow.public_id == media_public_id,

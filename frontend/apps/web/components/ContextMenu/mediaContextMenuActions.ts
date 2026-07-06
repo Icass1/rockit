@@ -12,6 +12,7 @@ import {
     ListEnd,
     ListIcon,
     ListMinus,
+    ListPlus,
     ListStart,
     Pencil,
     Play,
@@ -59,6 +60,15 @@ const ACTION_REGISTRY: ActionDef[] = [
             EMediaType.Playlist,
             EMediaType.Artist,
         ],
+    },
+    {
+        id: EMediaContextAction.AddToPlaylistAndDownload,
+        type: "submenu",
+        icon: ListPlus,
+        labelKey: "ADD_TO_PLAYLIST_AND_DOWNLOAD",
+        mediaTypes: [EMediaType.Song, EMediaType.Video],
+        locations: [EMediaContextLocation.SEARCH],
+        condition: (m) => isSearchResult(m) && !m.downloaded,
     },
     {
         id: EMediaContextAction.Navigate,
@@ -162,6 +172,15 @@ const ACTION_REGISTRY: ActionDef[] = [
         mediaTypes: [EMediaType.Song, EMediaType.Video],
         condition: (m) =>
             !isSearchResult(m) && isDownloadable(m) && !m.downloaded,
+    },
+    {
+        id: EMediaContextAction.DownloadSearchResultAndPlay,
+        type: "action",
+        icon: Play,
+        labelKey: "DOWNLOAD_AND_PLAY",
+        mediaTypes: [EMediaType.Song, EMediaType.Video],
+        locations: [EMediaContextLocation.SEARCH],
+        condition: (m) => isSearchResult(m) && !m.downloaded,
     },
     {
         id: EMediaContextAction.DownloadSearchResult,
@@ -268,6 +287,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
     [EMediaType.Song]: [
         EMediaContextAction.Play,
         EMediaContextAction.AddToPlaylist,
+        EMediaContextAction.AddToPlaylistAndDownload,
         "---",
         EMediaContextAction.AddSongToQueueTop,
         EMediaContextAction.AddMediaQueueRandom,
@@ -279,6 +299,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.RemoveFromLibrary,
         "---",
         EMediaContextAction.Download,
+        EMediaContextAction.DownloadSearchResultAndPlay,
         EMediaContextAction.DownloadSearchResult,
         EMediaContextAction.DownloadSearchResultAndAddToLibrary,
         EMediaContextAction.RetryDownload,
@@ -290,6 +311,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
     [EMediaType.Video]: [
         EMediaContextAction.Play,
         EMediaContextAction.AddToPlaylist,
+        EMediaContextAction.AddToPlaylistAndDownload,
         "---",
         EMediaContextAction.AddSongToQueueTop,
         EMediaContextAction.AddMediaQueueRandom,
@@ -301,6 +323,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.RemoveFromLibrary,
         "---",
         EMediaContextAction.Download,
+        EMediaContextAction.DownloadSearchResultAndPlay,
         EMediaContextAction.DownloadSearchResult,
         EMediaContextAction.DownloadSearchResultAndAddToLibrary,
         EMediaContextAction.RetryDownload,

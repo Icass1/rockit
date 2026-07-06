@@ -21,12 +21,15 @@ import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
-import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
+import AddToPlaylistAction, {
+    AddToPlaylistAndDownloadAction,
+} from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
 import {
     DownloadAction,
     DownloadSearchResultAction,
     DownloadSearchResultAndAddToLibraryAction,
+    DownloadSearchResultAndPlayAction,
     DownloadZipAction,
     RetryDownloadAction,
 } from "@/components/MediaContextMenu/actions/DownloadActions";
@@ -71,10 +74,13 @@ const actionComponents: Partial<
     [EMediaContextAction.DownloadSearchResult]: DownloadSearchResultAction,
     [EMediaContextAction.DownloadSearchResultAndAddToLibrary]:
         DownloadSearchResultAndAddToLibraryAction,
+    [EMediaContextAction.DownloadSearchResultAndPlay]:
+        DownloadSearchResultAndPlayAction,
     [EMediaContextAction.RetryDownload]: RetryDownloadAction,
     [EMediaContextAction.DownloadZip]: DownloadZipAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
+    [EMediaContextAction.AddToPlaylistAndDownload]: AddToPlaylistAndDownloadAction,
     [EMediaContextAction.Delete]: DeleteAction,
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,

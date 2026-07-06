@@ -1,5 +1,6 @@
 import {
     BasePlaylistWithoutMediasResponse,
+    BaseSearchResultsItem,
     BaseSongWithAlbumResponse,
     EEvent,
     EWebSocketMessage,
@@ -168,5 +169,31 @@ export class PlaylistManager {
                 `"${mediaRes.result.data.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_PLAYLIST}`
             );
         }
+    }
+
+    async addUrlToPlaylistAndDownloadAsync(
+        searchItem: BaseSearchResultsItem,
+        playlistPublicId: string
+    ): Promise<void> {
+        const result = await Http.startDownloadFromUrl({
+            url: searchItem.providerUrl,
+            addToPlaylist: true,
+            addToLibrary: false,
+            playlistPublicId: playlistPublicId,
+        });
+
+        if (!result.isOk()) {
+            rockIt.notificationManager.notifyError("Failed to add media.");
+            console.error(
+                "Error adding media to playlist",
+                result.message,
+                result.detail
+            );
+            return;
+        }
+
+        rockIt.notificationManager.notifySuccess(
+            `"${result.result.data.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_PLAYLIST}`
+        );
     }
 }

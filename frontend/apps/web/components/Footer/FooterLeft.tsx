@@ -16,7 +16,6 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 
-
 function FooterLeftForMedia({
     currentMedia,
 }: {

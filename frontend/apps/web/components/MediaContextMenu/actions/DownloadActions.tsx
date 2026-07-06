@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import type { BaseSearchResultsItem } from "@/dto";
 import { isSearchResult } from "@rockit/shared";
-import { HardDriveDownload, RefreshCw } from "lucide-react";
+import { HardDriveDownload, Play, RefreshCw } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -44,18 +44,37 @@ async function addFromUrlThenDownload(
     addToLibrary: boolean
 ): Promise<void> {
     const searchItem = media as BaseSearchResultsItem;
-    const addResult = await Http.addFromUrlAsync({
+    const result = await Http.startDownloadFromUrl({
         url: searchItem.providerUrl,
         addToPlaylist: false,
         addToLibrary,
         playlistPublicId: null,
     });
-    if (!addResult.isOk()) {
-        rockIt.notificationManager.notifyError(addResult.message);
+    if (!result.isOk()) {
+        rockIt.notificationManager.notifyError(result.message);
         return;
     }
-    const publicId = addResult.result.data.publicId;
-    await rockIt.downloaderManager.startDownloadAsync(publicId, media.name);
+    rockIt.notificationManager.notifySuccess(
+        rockIt.vocabularyManager.vocabulary.DOWNLOAD_STARTED
+    );
+}
+
+export function DownloadSearchResultAndPlayAction({
+    media,
+    vocabulary,
+}: ActionComponentProps): JSX.Element {
+    const downloadAndPlay = (): void => {
+        rockIt.downloaderManager.downloadSearchResultAndPlayAsync(
+            media as BaseSearchResultsItem
+        );
+    };
+
+    return (
+        <ContextMenuOption onClick={downloadAndPlay}>
+            <Play className="h-5 w-5" />
+            {vocabulary.DOWNLOAD_AND_PLAY}
+        </ContextMenuOption>
+    );
 }
 
 export function DownloadSearchResultAction({

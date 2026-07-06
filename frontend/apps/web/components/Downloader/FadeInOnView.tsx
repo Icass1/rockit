@@ -16,9 +16,7 @@ export default function FadeInOnView({
         <div
             ref={ref}
             className={`transition-all duration-500 ease-out ${
-                inView
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-3 opacity-0"
+                inView ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
             }`}
             style={{ transitionDelay: inView ? `${delay}ms` : "0ms" }}
         >

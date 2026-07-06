@@ -1,6 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
+import { ERepeatMode } from "@rockit/shared";
 import {
     Pause,
     Play,
@@ -9,7 +10,6 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { ERepeatMode } from "@rockit/shared";
 import { usePlayer } from "@/lib/PlayerContext";
 
 function repeatColor(mode: ERepeatMode): string {
@@ -79,7 +79,7 @@ export default function PlayerControlsRow(): JSX.Element {
             >
                 <Repeat size={24} color={repeatColor(repeatMode)} />
                 {repeatMode === ERepeatMode.ONE && (
-                    <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-(--color-rockit-pink)">
+                    <span className="absolute -right-0.5 -bottom-1 text-[8px] font-bold text-(--color-rockit-pink)">
                         1
                     </span>
                 )}

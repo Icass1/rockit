@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useState } from "react";
+import { useState, type JSX } from "react";
 import { DownloadGroupResponse } from "@/dto";
 import { ChevronDown, Trash2 } from "lucide-react";
 import DownloadCoverCard from "@/components/Downloader/DownloadCoverCard";
@@ -16,7 +16,9 @@ export default function DownloadGroupSection({
     onClear?: () => void;
 }): JSX.Element {
     const [expanded, setExpanded] = useState(false);
-    const visibleItems = expanded ? group.items : group.items.slice(0, VISIBLE_LIMIT);
+    const visibleItems = expanded
+        ? group.items
+        : group.items.slice(0, VISIBLE_LIMIT);
 
     return (
         <section>
@@ -29,7 +31,10 @@ export default function DownloadGroupSection({
                     </p>
                 </div>
                 {onClear && (
-                    <button onClick={onClear} className="text-neutral-400 hover:text-red-500">
+                    <button
+                        onClick={onClear}
+                        className="text-neutral-400 hover:text-red-500"
+                    >
                         <Trash2 size={16} />
                     </button>
                 )}
@@ -48,8 +53,13 @@ export default function DownloadGroupSection({
                     onClick={(): void => setExpanded(!expanded)}
                     className="mt-3 flex items-center gap-1 text-sm text-neutral-400 hover:text-white"
                 >
-                    <ChevronDown size={14} className={expanded ? "rotate-180" : ""} />
-                    {expanded ? "Ver menos" : `Ver ${group.items.length - VISIBLE_LIMIT} más`}
+                    <ChevronDown
+                        size={14}
+                        className={expanded ? "rotate-180" : ""}
+                    />
+                    {expanded
+                        ? "Ver menos"
+                        : `Ver ${group.items.length - VISIBLE_LIMIT} más`}
                 </button>
             )}
         </section>

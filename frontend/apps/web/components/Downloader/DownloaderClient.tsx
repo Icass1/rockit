@@ -1,22 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState, type JSX } from "react";
+import { DownloadItemResponse, DownloadProgressMessage } from "@/dto";
+import { EWebSocketMessage } from "@rockit/packages/shared";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import {
-    DownloadItemResponse,
-    DownloadProgressMessage,
-} from "@/dto";
-import { EWebSocketMessage } from "@rockit/packages/shared";
-import DownloadInputBar from "@/components/Downloader/DownloadInputBar";
-import DownloadStats from "@/components/Downloader/DownloadStats";
+import DownloadEmptyState from "@/components/Downloader/DownloadEmptyState";
 import DownloadFilterTabs, {
     type DownloadFilter,
 } from "@/components/Downloader/DownloadFilterTabs";
 import DownloadGroupSection from "@/components/Downloader/DownloadGroupSection";
-import DownloadEmptyState from "@/components/Downloader/DownloadEmptyState";
+import DownloadInputBar from "@/components/Downloader/DownloadInputBar";
 import DownloadSkeleton from "@/components/Downloader/DownloadSkeleton";
+import DownloadStats from "@/components/Downloader/DownloadStats";
 
 function matchesFilter(
     item: DownloadItemResponse,
@@ -25,9 +22,7 @@ function matchesFilter(
     if (filter === "all") return true;
     if (filter === "completed") return item.status === "COMPLETED";
     if (filter === "failed") return item.status === "FAILED";
-    return (
-        item.status !== "COMPLETED" && item.status !== "FAILED"
-    );
+    return item.status !== "COMPLETED" && item.status !== "FAILED";
 }
 
 export default function DownloaderClient(): JSX.Element {
@@ -92,10 +87,7 @@ export default function DownloaderClient(): JSX.Element {
             return;
         }
         const publicId = mediaRes.result.data.publicId;
-        await rockIt.downloaderManager.startDownloadAsync(
-            publicId,
-            "Download"
-        );
+        await rockIt.downloaderManager.startDownloadAsync(publicId, "Download");
     };
 
     if (loading) return <DownloadSkeleton />;
@@ -104,9 +96,7 @@ export default function DownloaderClient(): JSX.Element {
         <div className="w-full space-y-8 px-4 py-8 sm:px-6 lg:px-10 xl:px-16">
             <header className="space-y-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">
-                        Descargas
-                    </h1>
+                    <h1 className="text-2xl font-bold text-white">Descargas</h1>
                     <p className="text-sm text-neutral-400">
                         Gestiona y sigue tus descargas de música y vídeo
                     </p>

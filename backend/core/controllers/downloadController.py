@@ -12,9 +12,13 @@ from backend.core.framework.downloader.downloader import Downloader
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 from backend.core.responses.startDownloadResponse import StartDownloadResponse
+from backend.core.responses.startDownloadFromUrlResponse import (
+    StartDownloadFromUrlResponse,
+)
 from backend.core.responses.downloadsResponse import DownloadsResponse
 from backend.core.responses.okResponse import OkResponse
 from backend.core.requests.startDownloadRequest import StartDownloadRequest
+from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
 
 from backend.core.access.db.ormModels.user import UserRow
 
@@ -51,6 +55,42 @@ async def start_download(
         )
     )
     if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.post("/start-from-url")
+async def start_download_from_url(
+    request: Request, payload: AddFromUrlRequest
+) -> StartDownloadFromUrlResponse:
+    """Add media from a URL and immediately queue its download, atomically,
+    so the download starts even if the client disconnects right after."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user: UserRow = a_result_user.result()
+
+    a_result: AResult[StartDownloadFromUrlResponse] = (
+        await Downloader.start_download_from_url_async(
+            session=session,
+            user_id=user.id,
+            url=payload.url,
+            add_to_library=payload.addToLibrary,
+            add_to_playlist=payload.addToPlaylist,
+            playlist_public_id=payload.playlistPublicId,
+        )
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error starting download from URL. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

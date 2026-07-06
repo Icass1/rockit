@@ -47,6 +47,8 @@ app.add_middleware(
 app.add_middleware(DBSessionMiddleware)
 app.add_middleware(RequestLogMiddleware)
 
+routers_included: int = 0
+
 # Search and initialize all routers.
 for dirpath, dirnames, filenames in os.walk("backend"):
     if not dirpath.endswith("/controllers"):
@@ -75,14 +77,19 @@ for dirpath, dirnames, filenames in os.walk("backend"):
                 public_router_included = True
 
             if router_included and public_router_included:
-                logger.info(f"Included router and public router of {module_name}.")
+                logger.debug(f"Included router and public router of {module_name}.")
+                routers_included += 1
             elif router_included:
-                logger.info(f"Included router of {module_name}.")
+                logger.debug(f"Included router of {module_name}.")
+                routers_included += 1
             elif router_included:
-                logger.info(f"Included public router of {module_name}.")
+                logger.debug(f"Included public router of {module_name}.")
+                routers_included += 1
 
         except Exception as e:
             logger.error(f"Error including router {module_name}. ({e})")
+
+logger.info(f"Included {routers_included} router(s).")
 
 
 @app.on_event("startup")

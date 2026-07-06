@@ -2,10 +2,10 @@
 
 import type { JSX } from "react";
 import type { TPlayableMedia } from "@rockit/shared";
-import { usePlayer } from "@/lib/PlayerContext";
-import { useDragReorder } from "@/components/MobilePlayer/hooks/useDragReorder";
-import QueueRow from "@/components/MobilePlayer/components/QueueRow";
 import type { QueueItem } from "@/models/interfaces/queue";
+import { usePlayer } from "@/lib/PlayerContext";
+import QueueRow from "@/components/MobilePlayer/components/QueueRow";
+import { useDragReorder } from "@/components/MobilePlayer/hooks/useDragReorder";
 
 function getPlayableMedia(item: QueueItem): TPlayableMedia {
     return item.media;
@@ -56,37 +56,29 @@ export default function QueuePanel(): JSX.Element {
             </div>
 
             <div className="hide-scroll-thumb flex-1 overflow-y-auto pb-10">
-                {queue.map(
-                    (
-                        item: QueueItem,
-                        index: number
-                    ): JSX.Element => {
-                        const playable = getPlayableMedia(item);
-                        const isActive =
-                            playable.publicId === currentMedia?.publicId;
-                        return (
-                            <QueueRow
-                                key={`${item.queueMediaId}-${index}`}
-                                media={playable}
-                                index={index}
-                                isActive={isActive}
-                                isDragging={draggingIndex === index}
-                                isDropTarget={
-                                    overIndex === index &&
-                                    draggingIndex !== index
-                                }
-                                registerRow={registerRow}
-                                onDragHandlePointerDown={handlePointerDown(
-                                    index
-                                )}
-                                onDelete={(): void => removeFromQueue(index)}
-                                onPlay={(): void => {
-                                    playQueueItem(item.queueMediaId);
-                                }}
-                            />
-                        );
-                    }
-                )}
+                {queue.map((item: QueueItem, index: number): JSX.Element => {
+                    const playable = getPlayableMedia(item);
+                    const isActive =
+                        playable.publicId === currentMedia?.publicId;
+                    return (
+                        <QueueRow
+                            key={`${item.queueMediaId}-${index}`}
+                            media={playable}
+                            index={index}
+                            isActive={isActive}
+                            isDragging={draggingIndex === index}
+                            isDropTarget={
+                                overIndex === index && draggingIndex !== index
+                            }
+                            registerRow={registerRow}
+                            onDragHandlePointerDown={handlePointerDown(index)}
+                            onDelete={(): void => removeFromQueue(index)}
+                            onPlay={(): void => {
+                                playQueueItem(item.queueMediaId);
+                            }}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

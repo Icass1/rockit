@@ -21,9 +21,14 @@ from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.downloader import downloads_manager
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
+from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.downloader.baseDownload import BaseDownload
+from backend.core.framework.user.user import User
 
 from backend.core.responses.startDownloadResponse import StartDownloadResponse
+from backend.core.responses.startDownloadFromUrlResponse import (
+    StartDownloadFromUrlResponse,
+)
 from backend.core.responses.downloadsResponse import (
     DownloadsResponse,
     DownloadGroupResponse,
@@ -64,9 +69,13 @@ class Downloader:
                 session=session, user_id=user_id, public_ids=[public_id]
             )
             if a_result_playlist.is_not_ok():
-                return AResult(code=a_result_playlist.code(), message=a_result_playlist.message())
+                return AResult(
+                    code=a_result_playlist.code(), message=a_result_playlist.message()
+                )
             playlist = a_result_playlist.result()[0]
-            song_ids = [m.item.publicId for m in playlist.medias if hasattr(m.item, "publicId")]
+            song_ids = [
+                m.item.publicId for m in playlist.medias if hasattr(m.item, "publicId")
+            ]
             return AResult(code=AResultCode.OK, message="OK", result=song_ids)
 
         if type_key == MediaTypeEnum.ALBUM.value:
@@ -74,7 +83,9 @@ class Downloader:
                 session=session, public_ids=[public_id]
             )
             if a_result_album.is_not_ok():
-                return AResult(code=a_result_album.code(), message=a_result_album.message())
+                return AResult(
+                    code=a_result_album.code(), message=a_result_album.message()
+                )
             album = a_result_album.result()[0]
             song_ids = [s.publicId for s in album.songs]
             return AResult(code=AResultCode.OK, message="OK", result=song_ids)
@@ -112,12 +123,10 @@ class Downloader:
             logger.error(f"No provider found for media {public_id}.")
             return
 
-        a_result_download: AResult[DownloadRow] = (
-            await DownloadAccess.create_download(
-                session=session,
-                download_group_id=group.id,
-                media_id=media.id,
-            )
+        a_result_download: AResult[DownloadRow] = await DownloadAccess.create_download(
+            session=session,
+            download_group_id=group.id,
+            media_id=media.id,
         )
         if a_result_download.is_not_ok():
             if a_result_download.code() == AResultCode.ALREADY_EXISTS:
@@ -126,7 +135,9 @@ class Downloader:
                     logger.info(f"Download already completed for {public_id}, skipping")
                     return
                 if existing_download.status_key in [1, 2, 5, 6, 7]:
-                    logger.info(f"Download already in progress for {public_id}, skipping")
+                    logger.info(
+                        f"Download already in progress for {public_id}, skipping"
+                    )
                     return
             logger.error(
                 f"Error creating download row for {public_id}. {a_result_download.info()}"
@@ -209,6 +220,77 @@ class Downloader:
         )
 
     @staticmethod
+    async def start_download_from_url_async(
+        session: AsyncSession,
+        user_id: int,
+        url: str,
+        add_to_library: bool,
+        add_to_playlist: bool,
+        playlist_public_id: str | None,
+    ) -> AResult[StartDownloadFromUrlResponse]:
+        """Add media from a URL (optionally to a playlist/library) and queue
+        its download in one atomic operation, so the download is queued even
+        if the client disconnects right after this call returns."""
+
+        a_result_media: AResult[AddFromUrlAResult] = await providers.add_from_url_async(
+            session=session, url=url
+        )
+        if a_result_media.is_not_ok():
+            logger.error(
+                f"Error adding media from URL '{url}'. {a_result_media.info()}"
+            )
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
+        media: AddFromUrlAResult = a_result_media.result()
+
+        if add_to_playlist and playlist_public_id:
+            from backend.default.framework.playlist import Playlist
+
+            a_result_playlist = await Playlist.add_media_to_playlist_async(
+                session=session,
+                playlist_public_id=playlist_public_id,
+                user_id=user_id,
+                media_public_id=media.publicId,
+            )
+            if a_result_playlist.is_not_ok():
+                logger.error(
+                    f"Error adding media to playlist. {a_result_playlist.info()}"
+                )
+
+        if add_to_library:
+            a_result_library = await User.add_media_to_library(
+                session=session, user_id=user_id, media_public_id=media.publicId
+            )
+            if a_result_library.is_not_ok():
+                logger.error(
+                    f"Error adding media to library. {a_result_library.info()}"
+                )
+
+        a_result_download: AResult[StartDownloadResponse] = (
+            await Downloader.download_multiple_medias_async(
+                session=session,
+                user_id=user_id,
+                title=media.name,
+                public_ids=[media.publicId],
+            )
+        )
+        if a_result_download.is_not_ok():
+            logger.error(
+                f"Error starting download for '{media.publicId}'. {a_result_download.info()}"
+            )
+            return AResult(
+                code=a_result_download.code(), message=a_result_download.message()
+            )
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=StartDownloadFromUrlResponse(
+                data=media,
+                downloadGroupId=a_result_download.result().downloadGroupId,
+            ),
+        )
+
+    @staticmethod
     async def retry_download_async(
         session: AsyncSession,
         user_id: int,
@@ -244,9 +326,7 @@ class Downloader:
         )
         if a_result_media.is_not_ok():
             logger.error(f"Error getting media for retry. {a_result_media.info()}")
-            return AResult(
-                code=a_result_media.code(), message=a_result_media.message()
-            )
+            return AResult(code=a_result_media.code(), message=a_result_media.message())
 
         media: CoreMediaRow = a_result_media.result()
 
@@ -257,34 +337,26 @@ class Downloader:
         )
         if a_result_reset.is_not_ok():
             logger.error(f"Error resetting download. {a_result_reset.info()}")
-            return AResult(
-                code=a_result_reset.code(), message=a_result_reset.message()
-            )
+            return AResult(code=a_result_reset.code(), message=a_result_reset.message())
 
         provider: BaseMediaProvider | None = providers.find_media_provider(
             provider_id=media.provider_id
         )
         if provider is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND, message="Provider not found"
-            )
+            return AResult(code=AResultCode.NOT_FOUND, message="Provider not found")
 
-        a_result_base: AResult[BaseDownload] = (
-            await provider.start_download_async(
-                session=session,
-                public_id=media.public_id,
-                download_id=download_row.id,
-                download_group_id=download_row.download_group_id,
-                user_id=user_id,
-            )
+        a_result_base: AResult[BaseDownload] = await provider.start_download_async(
+            session=session,
+            public_id=media.public_id,
+            download_id=download_row.id,
+            download_group_id=download_row.download_group_id,
+            user_id=user_id,
         )
         if a_result_base.is_not_ok():
             logger.error(
                 f"Provider could not create download for retry. {a_result_base.info()}"
             )
-            return AResult(
-                code=a_result_base.code(), message=a_result_base.message()
-            )
+            return AResult(code=a_result_base.code(), message=a_result_base.message())
 
         base_download: BaseDownload = a_result_base.result()
         base_download.provider_id = media.provider_id
@@ -378,9 +450,7 @@ class Downloader:
                         ]
                         completed_val = float(last_status.completed)
 
-                    content_type: str = MediaTypeEnum(
-                        media.media_type_key
-                    ).name.lower()
+                    content_type: str = MediaTypeEnum(media.media_type_key).name.lower()
 
                     items.append(
                         DownloadItemResponse(

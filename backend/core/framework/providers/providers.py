@@ -147,9 +147,7 @@ class Providers:
                 module_path: str = f"{base}.{filename.replace('.py', '')}"
 
                 if module_path in self.DENY_LIST:
-                    logger.info(
-                        f"Skipping denylisted provider {module_path}"
-                    )
+                    logger.info(f"Skipping denylisted provider {module_path}")
                     continue
 
                 if module_path in providers_by_module:

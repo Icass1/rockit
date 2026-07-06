@@ -32,9 +32,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
         >
             <div
                 className={`absolute top-0 left-0 h-full w-0.75 transition-colors ${
-                    isPlaying
-                        ? "bg-(--color-rockit-pink)"
-                        : "bg-transparent"
+                    isPlaying ? "bg-(--color-rockit-pink)" : "bg-transparent"
                 }`}
             />
 

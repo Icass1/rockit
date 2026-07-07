@@ -33,11 +33,7 @@ export default function PlayerUIMain({
     }, [showIcon]);
 
     useEffect((): void => {
-        if (
-            videoContainerRef.current &&
-            isVideo(currentMedia) &&
-            !$audioOnly
-        ) {
+        if (videoContainerRef.current && isVideo(currentMedia) && !$audioOnly) {
             rockIt.mediaPlayerManager.attachVideoToContainer(
                 videoContainerRef.current
             );
@@ -125,9 +121,7 @@ export default function PlayerUIMain({
                                     rockIt.mediaPlayerManager.toggleAudioOnly();
                                 }}
                                 className="ignore-click-player-ui flex items-center justify-center rounded-full bg-black/50 p-2 text-white/80 transition-colors hover:text-white"
-                                title={
-                                    $audioOnly ? "Show video" : "Audio only"
-                                }
+                                title={$audioOnly ? "Show video" : "Audio only"}
                                 aria-label={
                                     $audioOnly ? "Show video" : "Audio only"
                                 }

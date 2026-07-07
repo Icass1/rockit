@@ -89,9 +89,7 @@ export function usePlayer(): PlayerContextType {
     const currentIndex = queueItems.findIndex(
         (i) => i.queueMediaId === currentQueueMediaId
     );
-    const hasVideo = currentMedia
-        ? isVideo(currentMedia) && !audioOnly
-        : false;
+    const hasVideo = currentMedia ? isVideo(currentMedia) && !audioOnly : false;
     const canToggleAudioOnly =
         rockIt.mediaPlayerManager.canPlayAudioOnly(currentMedia);
 

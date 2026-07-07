@@ -134,10 +134,7 @@ class MediaCacheManager {
             // Download to a deterministic path so the file can be found again
             // after a restart. `idempotent` overwrites any stale/partial file
             // left behind rather than throwing.
-            const destination = new File(
-                dir,
-                this._fileNameFor(url, publicId)
-            );
+            const destination = new File(dir, this._fileNameFor(url, publicId));
             const options = { headers, idempotent: true };
 
             const downloadedFile = await File.downloadFileAsync(

@@ -4,7 +4,7 @@ import uuid
 
 from dataclasses import dataclass
 from logging import Logger
-from typing import Literal
+from typing import List, Literal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,6 +14,7 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.adminVersionAccess import AdminVersionAccess
 from backend.core.access.buildUploadSessionAccess import BuildUploadSessionAccess
+from backend.core.access.db.ormModels.appVersion import AppVersionRow
 from backend.core.access.db.ormModels.buildUploadSession import BuildUploadSessionRow
 from backend.constants import BUILDS_PATH, CHUNK_SIZE
 
@@ -43,6 +44,38 @@ class CompleteUploadResult:
 
 
 class AdminBuild:
+    @staticmethod
+    async def get_all_versions_async(
+        session: AsyncSession,
+    ) -> AResult[List[AppVersionRow]]:
+        """Get all build versions."""
+
+        a_result = await AdminVersionAccess.get_all_versions_async(session=session)
+        if a_result.is_not_ok():
+            logger.error(f"Error fetching builds. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
+    @staticmethod
+    async def add_version_async(
+        session: AsyncSession,
+        version: str,
+        apk_filename: str,
+        description: str | None = None,
+    ) -> AResult[AppVersionRow]:
+        """Add a new build version."""
+
+        a_result = await AdminVersionAccess.add_version_async(
+            session=session,
+            version=version,
+            apk_filename=apk_filename,
+            description=description,
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error adding build. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+
     @staticmethod
     async def start_chunked_upload_async(
         session: AsyncSession,

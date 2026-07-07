@@ -3,7 +3,6 @@ from logging import Logger
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.access.adminVersionAccess import AdminVersionAccess
 from backend.core.framework.admin.build import AdminBuild
 from backend.core.framework.admin.requestLogStats import RequestLogStats
 from backend.core.framework.admin.userRequest import UserRequest as UserRequestFramework
@@ -45,7 +44,7 @@ router = APIRouter(
 @router.get("/builds")
 async def get_all_builds(request: Request) -> AllBuildsResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result = await AdminVersionAccess.get_all_versions_async(session=session)
+    a_result = await AdminBuild.get_all_versions_async(session=session)
 
     if a_result.is_not_ok():
         logger.error(f"Error fetching builds. {a_result.info()}")
@@ -70,7 +69,7 @@ async def get_all_builds(request: Request) -> AllBuildsResponse:
 @router.post("/builds")
 async def add_build(request: Request, payload: AddVersionRequest) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result = await AdminVersionAccess.add_version_async(
+    a_result = await AdminBuild.add_version_async(
         session=session,
         version=payload.version,
         apk_filename=payload.apkFilename,

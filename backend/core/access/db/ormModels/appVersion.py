@@ -8,10 +8,13 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableAutoincrementId,
     TableDateAdded,
     TableDateUpdated,
+    TablePublicId,
 )
 
 
-class AppVersionRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpdated):
+class AppVersionRow(
+    CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded, TableDateUpdated
+):
     __tablename__ = "app_version"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
@@ -22,12 +25,14 @@ class AppVersionRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpd
 
     def __init__(
         self,
+        public_id: str,
         version: str,
         apk_filename: str,
         description: str | None = None,
         downloads: int = 0,
     ):
         kwargs: Dict[str, None | int | str] = {}
+        kwargs["public_id"] = public_id
         kwargs["version"] = version
         kwargs["apk_filename"] = apk_filename
         kwargs["description"] = description

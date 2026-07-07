@@ -1,8 +1,9 @@
 import {
     BaseMediaPlayerManager,
     createAtom,
-    getMediaAudioSrc,
-    getMediaVideoSrc,
+    getMediaAudioUrl,
+    getMediaDuration,
+    getMediaVideoUrl,
     type ReadonlyAtom,
     type TMediaKind,
     type TPlayableMedia,
@@ -36,6 +37,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _videoPlayer: VideoPlayer;
     private _videoPlayerAtom = createAtom<VideoPlayer | null>(null);
 
+    // True while the persistent video player is swapping its source. During a
+    // swap expo-video emits spurious playToEnd / timeUpdate / playingChange
+    // events for the outgoing source; handling them would clobber the progress
+    // bar and (via onNativeEnded → _handleEnded) trigger runaway queue skips.
+    private _videoReplacing = false;
+
     private _durationAtom = createAtom<number>(0);
     private _crossfadeSettingsAtom =
         createAtom<CrossfadeSettings>(DEFAULT_CROSSFADE);
@@ -67,30 +74,53 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             ({ isPlaying }): void => {
                 // The persistent video player keeps emitting events even when
                 // the audio deck is the active source; ignore them so it can't
-                // clobber audio playback state.
-                if (this._audioPlayer) return;
+                // clobber audio playback state. Also ignore while swapping the
+                // source (video → video skip), where transient events fire.
+                if (this._audioPlayer || this._videoReplacing) return;
                 if (isPlaying) this.onNativePlaying();
                 else this.onNativePaused();
             }
         );
         this._videoPlayer.addListener("timeUpdate", ({ currentTime }): void => {
             // Same guard: while playing audio the idle video player ticks with
-            // currentTime === 0 and would otherwise reset the progress bar.
-            if (this._audioPlayer) return;
-            this._durationAtom.set(this._videoPlayer.duration ?? 0);
+            // currentTime === 0 and would otherwise reset the progress bar; and
+            // during a source swap it emits stale positions.
+            if (this._audioPlayer || this._videoReplacing) return;
+            this._setDuration(this._videoPlayer.duration);
             this.onNativeTimeUpdate(currentTime);
         });
-        this._videoPlayer.addListener("playToEnd", (): void =>
-            this.onNativeEnded()
-        );
+        this._videoPlayer.addListener("playToEnd", (): void => {
+            // Same guard as playingChange/timeUpdate. Beyond the idle-audio-deck
+            // case, replacing the source (including a video → video skip) makes
+            // expo-video emit playToEnd for the outgoing source; without the
+            // _videoReplacing guard that would fire onNativeEnded → _handleEnded
+            // and skip the queue again, cascading into runaway skips.
+            if (this._audioPlayer || this._videoReplacing) return;
+            this.onNativeEnded();
+        });
         this._videoPlayer.addListener("statusChange", ({ status }): void => {
             if (status === "loading") {
                 this.onNativeLoadStart();
             } else if (status === "readyToPlay") {
                 this.onNativeLoaded();
-                this._durationAtom.set(this._videoPlayer.duration ?? 0);
+                this._setDuration(this._videoPlayer.duration);
             }
         });
+    }
+
+    // ===== Duration =====
+
+    /**
+     * Publish a duration, ignoring anything that isn't a finite positive
+     * number. This filters the native "unknown duration" sentinel
+     * (ExoPlayer/AVPlayer report a huge negative TIME_UNSET value before the
+     * media is ready) as well as transient 0s on status ticks, so a known-good
+     * duration is never clobbered by a bad reading.
+     */
+    private _setDuration(value: number): void {
+        if (typeof value === "number" && isFinite(value) && value > 0) {
+            this._durationAtom.set(value);
+        }
     }
 
     // ===== expo-audio player lifecycle (single deck) =====
@@ -105,12 +135,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             "playbackStatusUpdate",
             (status: AudioStatus): void => {
                 if (!status) return;
-                if (
-                    typeof status.duration === "number" &&
-                    status.duration > 0
-                ) {
-                    this._durationAtom.set(status.duration);
-                }
+                this._setDuration(status.duration);
                 if (status.playing) this.onNativePlaying();
                 else this.onNativePaused();
                 if (typeof status.currentTime === "number") {
@@ -146,7 +171,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._createAudioPlayer(uri);
             return;
         }
-        return this._videoPlayer.replaceAsync({ uri }).then((): void => {});
+        this._videoReplacing = true;
+        return this._videoPlayer
+            .replaceAsync({ uri })
+            .then((): void => {})
+            .finally((): void => {
+                this._videoReplacing = false;
+            });
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {
@@ -155,7 +186,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             return;
         }
         this._videoPlayer.pause();
-        void this._videoPlayer.replaceAsync(null);
+        this._videoReplacing = true;
+        void this._videoPlayer.replaceAsync(null).finally((): void => {
+            this._videoReplacing = false;
+        });
     }
 
     protected override playNative(kind: TMediaKind): void {
@@ -204,10 +238,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     ): string | undefined {
         if (kind === "video") {
             return (
-                getMediaAudioSrc(media) ?? getMediaVideoSrc(media) ?? undefined
+                getMediaVideoUrl(media) ?? getMediaAudioUrl(media) ?? undefined
             );
         }
-        return getMediaAudioSrc(media) ?? undefined;
+        return getMediaAudioUrl(media) ?? undefined;
     }
 
     protected override async resolveMediaUriAsync(
@@ -218,11 +252,20 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (!remoteUri) return undefined;
 
         try {
-            const localUri = await mediaStorage.getSongUri(media.publicId);
+            const localUri =
+                kind === "video"
+                    ? await mediaStorage.getVideoUri(media.publicId)
+                    : await mediaStorage.getSongUri(media.publicId);
             if (localUri) return localUri;
         } catch {
             // Fall through to cache/remote
         }
+
+        // Only the audio deck seeds the disk cache, and the audio/video stream
+        // URLs collide on the same publicId-keyed cache filename — so reading it
+        // for the video deck would load the cached audio (black picture). Videos
+        // therefore stream straight from the remote URL.
+        if (kind === "video") return remoteUri;
 
         const cached = await mediaCacheManager.getCachedUri(
             remoteUri,
@@ -236,6 +279,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         kind: TMediaKind,
         resolvedUri: string
     ): Promise<void> {
+        // Prefer the authoritative duration from the media DTO; the native
+        // player only refines it later (and may report a bogus sentinel).
+        this._setDuration(getMediaDuration(media) ?? 0);
+
         if (kind !== "audio") return;
 
         const remoteUri = this._remoteUri(media, "audio");

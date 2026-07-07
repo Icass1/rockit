@@ -5,12 +5,15 @@ import {
     EEvent,
     EventManager,
     getAllPlayableMedia,
+    getMediaAudioUrl,
     getMediaSubtitle,
+    getMediaVideoUrl,
     isList,
     isPlayable,
     isQueueable,
     isSearchResult,
     isSong,
+    isStation,
     isVideo,
     TMedia,
 } from "@rockit/shared";
@@ -121,11 +124,13 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                 vocabulary.DOWNLOAD_STARTED
                             );
 
-                            const url = isVideo(media)
-                                ? (media.audioSrc ?? media.videoSrc ?? null)
-                                : "audioSrc" in media
-                                  ? media.audioSrc
-                                  : media.streamUrl;
+                            let url: string | null | undefined;
+
+                            if (isVideo(media)) url = getMediaVideoUrl(media);
+                            else if (isSong(media))
+                                url = getMediaAudioUrl(media);
+                            else if (isStation(media)) url = media.streamUrl;
+                            else url = null;
 
                             if (!url) {
                                 toasterManager.notifyError(

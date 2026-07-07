@@ -7,7 +7,7 @@ import {
     isVideo,
     TPlayableMedia,
 } from "@rockit/packages/shared";
-import { Disc3, DiscAlbum, Pause, Play } from "lucide-react";
+import { Disc3, DiscAlbum, Pause, Play, Video, VideoOff } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
@@ -18,6 +18,7 @@ export default function PlayerUIMain({
     currentMedia: TPlayableMedia;
 }): JSX.Element | undefined {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const $audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
     const [showIcon, setShowIcon] = useState(false);
     const [titleVisible, setTitleVisible] = useState(true);
     const [songHover, setSongHover] = useState(false);
@@ -32,12 +33,12 @@ export default function PlayerUIMain({
     }, [showIcon]);
 
     useEffect((): void => {
-        if (videoContainerRef.current && isVideo(currentMedia)) {
+        if (videoContainerRef.current && isVideo(currentMedia) && !$audioOnly) {
             rockIt.mediaPlayerManager.attachVideoToContainer(
                 videoContainerRef.current
             );
         }
-    }, [currentMedia]);
+    }, [currentMedia, $audioOnly]);
 
     useEffect((): (() => void) | undefined => {
         if (!isVideo(currentMedia)) return;
@@ -85,11 +86,54 @@ export default function PlayerUIMain({
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className="relative aspect-video h-[90%] max-w-full cursor-pointer overflow-hidden rounded-xl"
+                    className="relative aspect-video h-[90%] max-w-full cursor-pointer overflow-hidden rounded-xl bg-black"
                     onClick={handleClick}
                 >
-                    <div ref={videoContainerRef} className="absolute inset-0" />
+                    {$audioOnly ? (
+                        <Image
+                            src={currentMedia.imageUrl}
+                            fill
+                            alt={currentMedia.name}
+                            className="object-cover"
+                            draggable={false}
+                        />
+                    ) : (
+                        <div
+                            ref={videoContainerRef}
+                            className="absolute inset-0"
+                        />
+                    )}
                     {iconOverlay}
+                    {rockIt.mediaPlayerManager.canPlayAudioOnly(
+                        currentMedia
+                    ) && (
+                        <div
+                            className={`absolute top-0 right-0 z-20 flex items-start pt-4 pr-4 transition-opacity duration-300 ${
+                                titleVisible
+                                    ? "opacity-100"
+                                    : "pointer-events-none opacity-0"
+                            }`}
+                        >
+                            <button
+                                type="button"
+                                onClick={(e): void => {
+                                    e.stopPropagation();
+                                    rockIt.mediaPlayerManager.toggleAudioOnly();
+                                }}
+                                className="ignore-click-player-ui flex items-center justify-center rounded-full bg-black/50 p-2 text-white/80 transition-colors hover:text-white"
+                                title={$audioOnly ? "Show video" : "Audio only"}
+                                aria-label={
+                                    $audioOnly ? "Show video" : "Audio only"
+                                }
+                            >
+                                {$audioOnly ? (
+                                    <VideoOff className="pointer-events-none h-6 w-6" />
+                                ) : (
+                                    <Video className="pointer-events-none h-6 w-6" />
+                                )}
+                            </button>
+                        </div>
+                    )}
                     <div
                         className={`absolute right-0 bottom-0 left-0 z-10 flex flex-col bg-linear-to-t from-black/60 to-transparent pt-12 pr-5 pb-5 pl-5 transition-opacity duration-300 ${
                             titleVisible

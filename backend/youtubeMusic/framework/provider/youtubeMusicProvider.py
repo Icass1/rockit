@@ -329,7 +329,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
                             name=track.title,
                             artists=artists_list,
-                            audioSrc=None,
+                            audioUrl=None,
                             downloaded=False,
                             imageUrl=track.thumbnail_url,
                             duration_ms=track.duration_ms,

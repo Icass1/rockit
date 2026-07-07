@@ -154,9 +154,7 @@ export class BookmarkManager {
         const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
         if (!bookmarks.length || currentTime === null) return false;
 
-        const sorted = [...bookmarks]
-            .filter((b) => b.mode === "NOTHING")
-            .sort((a, b) => a.timestamp - b.timestamp);
+        const sorted = [...bookmarks].sort((a, b) => a.timestamp - b.timestamp);
 
         const next = sorted.find((b) => b.timestamp > currentTime + 0.5);
         if (next) {
@@ -171,9 +169,7 @@ export class BookmarkManager {
         const currentTime = rockIt.mediaPlayerManager.currentTimeAtom.get();
         if (!bookmarks.length || currentTime === null) return false;
 
-        const sorted = [...bookmarks]
-            .filter((b) => b.mode === "NOTHING")
-            .sort((a, b) => a.timestamp - b.timestamp);
+        const sorted = [...bookmarks].sort((a, b) => a.timestamp - b.timestamp);
         if (sorted.length === 0) return false;
 
         const prev = [...sorted]

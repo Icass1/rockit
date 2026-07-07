@@ -919,11 +919,11 @@ export class BaseHttp {
         );
     }
 
-    static streamAudioURL(youtubeId: string) {
-        return `${BACKEND_URL}/youtube/video/${youtubeId}/audio`;
-    }
-
     static streamVideoURL(youtubeId: string) {
         return `${BACKEND_URL}/youtube/video/${youtubeId}/stream`;
+    }
+
+    static streamAudioURL(youtubeId: string) {
+        return `${BACKEND_URL}/youtube/video/${youtubeId}/stream/audio`;
     }
 }

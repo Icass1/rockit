@@ -242,15 +242,15 @@ export function getMediaAlbum(
     return undefined;
 }
 
-export function getMediaAudioSrc(
+export function getMediaAudioUrl(
     media: TPlayableMedia | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isSong(media)) {
-        return media.audioSrc ?? undefined;
+        return media.audioUrl ?? undefined;
     }
     if (isVideo(media)) {
-        return media.audioSrc ?? undefined;
+        return media.audioUrl ?? undefined;
     }
     if (isStation(media)) {
         return media.streamUrl ?? undefined;
@@ -258,12 +258,12 @@ export function getMediaAudioSrc(
     return undefined;
 }
 
-export function getMediaVideoSrc(
+export function getMediaVideoUrl(
     media: TPlayableMedia | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isVideo(media)) {
-        return media.videoSrc ?? undefined;
+        return media.videoUrl ?? undefined;
     }
     return undefined;
 }

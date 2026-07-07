@@ -1,7 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
-import { ERepeatMode } from "@rockit/shared";
+import { EQueueType, ERepeatMode } from "@rockit/shared";
 import {
     Pause,
     Play,
@@ -22,10 +22,11 @@ export default function PlayerControlsRow(): JSX.Element {
     const {
         isPlaying,
         repeatMode,
+        queueType,
         togglePlayPause,
         skipForward,
         skipBack,
-        toggleShuffle,
+        toggleRandomQueue,
         cycleRepeat,
     } = usePlayer();
 
@@ -33,11 +34,19 @@ export default function PlayerControlsRow(): JSX.Element {
         <div className="flex w-full items-center justify-evenly px-1">
             <button
                 type="button"
-                onClick={toggleShuffle}
+                onClick={toggleRandomQueue}
                 className="flex h-12 w-12 items-center justify-center"
                 aria-label="Aleatorio"
+                aria-pressed={queueType === EQueueType.RANDOM}
             >
-                <Shuffle size={24} color="white" />
+                <Shuffle
+                    size={24}
+                    color={
+                        queueType === EQueueType.RANDOM
+                            ? "var(--color-rockit-pink)"
+                            : "white"
+                    }
+                />
             </button>
 
             <button

@@ -37,6 +37,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _videoPlayer: VideoPlayer;
     private _videoPlayerAtom = createAtom<VideoPlayer | null>(null);
 
+    // True while the persistent video player is swapping its source. During a
+    // swap expo-video emits spurious playToEnd / timeUpdate / playingChange
+    // events for the outgoing source; handling them would clobber the progress
+    // bar and (via onNativeEnded → _handleEnded) trigger runaway queue skips.
+    private _videoReplacing = false;
+
     private _durationAtom = createAtom<number>(0);
     private _crossfadeSettingsAtom =
         createAtom<CrossfadeSettings>(DEFAULT_CROSSFADE);
@@ -68,25 +74,28 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             ({ isPlaying }): void => {
                 // The persistent video player keeps emitting events even when
                 // the audio deck is the active source; ignore them so it can't
-                // clobber audio playback state.
-                if (this._audioPlayer) return;
+                // clobber audio playback state. Also ignore while swapping the
+                // source (video → video skip), where transient events fire.
+                if (this._audioPlayer || this._videoReplacing) return;
                 if (isPlaying) this.onNativePlaying();
                 else this.onNativePaused();
             }
         );
         this._videoPlayer.addListener("timeUpdate", ({ currentTime }): void => {
             // Same guard: while playing audio the idle video player ticks with
-            // currentTime === 0 and would otherwise reset the progress bar.
-            if (this._audioPlayer) return;
+            // currentTime === 0 and would otherwise reset the progress bar; and
+            // during a source swap it emits stale positions.
+            if (this._audioPlayer || this._videoReplacing) return;
             this._setDuration(this._videoPlayer.duration);
             this.onNativeTimeUpdate(currentTime);
         });
         this._videoPlayer.addListener("playToEnd", (): void => {
-            // Same guard as playingChange/timeUpdate: while the audio deck is the
-            // active source the idle video player can still emit playToEnd (e.g.
-            // after its source is replaced with null), which would otherwise skip
-            // to the next track in an endless loop.
-            if (this._audioPlayer) return;
+            // Same guard as playingChange/timeUpdate. Beyond the idle-audio-deck
+            // case, replacing the source (including a video → video skip) makes
+            // expo-video emit playToEnd for the outgoing source; without the
+            // _videoReplacing guard that would fire onNativeEnded → _handleEnded
+            // and skip the queue again, cascading into runaway skips.
+            if (this._audioPlayer || this._videoReplacing) return;
             this.onNativeEnded();
         });
         this._videoPlayer.addListener("statusChange", ({ status }): void => {
@@ -162,7 +171,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._createAudioPlayer(uri);
             return;
         }
-        return this._videoPlayer.replaceAsync({ uri }).then((): void => {});
+        this._videoReplacing = true;
+        return this._videoPlayer
+            .replaceAsync({ uri })
+            .then((): void => {})
+            .finally((): void => {
+                this._videoReplacing = false;
+            });
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {
@@ -171,7 +186,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             return;
         }
         this._videoPlayer.pause();
-        void this._videoPlayer.replaceAsync(null);
+        this._videoReplacing = true;
+        void this._videoPlayer
+            .replaceAsync(null)
+            .finally((): void => {
+                this._videoReplacing = false;
+            });
     }
 
     protected override playNative(kind: TMediaKind): void {

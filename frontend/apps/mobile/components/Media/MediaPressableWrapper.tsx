@@ -20,10 +20,13 @@ import {
 import {
     Download,
     Heart,
+    ListEnd,
+    ListStart,
     Music,
     Pencil,
     Play,
     PlusCircle,
+    Shuffle,
 } from "lucide-react-native";
 import { Pressable } from "react-native";
 import {
@@ -32,6 +35,7 @@ import {
     useContextMenu,
 } from "@/lib/ContextMenuContext";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
@@ -109,6 +113,60 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                         console.log("Playing media from context menu", media);
                         handlePlay(media, getAllPlayableMedia(allMedia));
                         hide();
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isQueueable(media)) {
+                options.push({
+                    label: vocabulary.ADD_SONG_TO_QUEUE,
+                    icon: ListStart,
+                    onPress: () => {
+                        rockIt.queueManager.addMediaNext(media);
+                        hide();
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_RANDOMLY,
+                    icon: Shuffle,
+                    onPress: () => {
+                        rockIt.queueManager.addMediaRandom(media);
+                        hide();
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_TO_BOTTOM,
+                    icon: ListEnd,
+                    onPress: () => {
+                        rockIt.queueManager.addMediaToEnd(media);
+                        hide();
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isList(media)) {
+                options.push({
+                    label: vocabulary.ADD_LIST_TO_QUEUE,
+                    icon: ListStart,
+                    onPress: () => {
+                        hide();
+                        rockIt.queueManager.addListToQueueTopAsync(media);
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_RANDOMLY,
+                    icon: Shuffle,
+                    onPress: () => {
+                        hide();
+                        rockIt.queueManager.addListToQueueRandomAsync(media);
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_TO_BOTTOM,
+                    icon: ListEnd,
+                    onPress: () => {
+                        hide();
+                        rockIt.queueManager.addListToQueueBottomAsync(media);
                     },
                 });
             }

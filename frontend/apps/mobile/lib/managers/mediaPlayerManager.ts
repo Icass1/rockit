@@ -220,7 +220,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     ): string | undefined {
         if (kind === "video") {
             return (
-                getMediaAudioUrl(media) ?? getMediaVideoUrl(media) ?? undefined
+                getMediaVideoUrl(media) ?? getMediaAudioUrl(media) ?? undefined
             );
         }
         return getMediaAudioUrl(media) ?? undefined;
@@ -234,11 +234,20 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (!remoteUri) return undefined;
 
         try {
-            const localUri = await mediaStorage.getSongUri(media.publicId);
+            const localUri =
+                kind === "video"
+                    ? await mediaStorage.getVideoUri(media.publicId)
+                    : await mediaStorage.getSongUri(media.publicId);
             if (localUri) return localUri;
         } catch {
             // Fall through to cache/remote
         }
+
+        // Only the audio deck seeds the disk cache, and the audio/video stream
+        // URLs collide on the same publicId-keyed cache filename — so reading it
+        // for the video deck would load the cached audio (black picture). Videos
+        // therefore stream straight from the remote URL.
+        if (kind === "video") return remoteUri;
 
         const cached = await mediaCacheManager.getCachedUri(
             remoteUri,

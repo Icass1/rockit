@@ -2,7 +2,7 @@ import { COLORS } from "@/constants/theme";
 import { EQueueType, type TQueueMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
-import QueueItem from "./QueueItem";
+import QueueItem from "@/components/Player/QueueItem";
 
 /**
  * PlayerQueue — inline queue list rendered inside the tabs panel.

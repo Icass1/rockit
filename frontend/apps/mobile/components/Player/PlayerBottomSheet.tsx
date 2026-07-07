@@ -7,10 +7,10 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { Radio } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
-import type { PlayerTab } from "./FullPlayer";
-import PlayerLyrics from "./PlayerLyrics";
-import PlayerQueue from "./PlayerQueue";
-import PlayerTabsBar from "./PlayerTabsBar";
+import type { PlayerTab } from "@/components/Player/FullPlayer";
+import PlayerLyrics from "@/components/Player/PlayerLyrics";
+import PlayerQueue from "@/components/Player/PlayerQueue";
+import PlayerTabsBar from "@/components/Player/PlayerTabsBar";
 
 type PlayerBottomSheetProps = {
     activeTab: PlayerTab;

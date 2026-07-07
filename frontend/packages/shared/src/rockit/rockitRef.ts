@@ -8,16 +8,16 @@ import {
     type QueueTypeRequest,
     type SeekMessageRequest,
     type SkipClickedMessageRequest,
-} from "../dto";
-import { type BaseHttp } from "../http/baseHttp";
-import { type BaseMediaPlayerManager } from "../managers/baseMediaPlayerManager";
-import { type BaseQueueManager } from "../managers/baseQueueManager";
-import { type BaseUserManager } from "../managers/baseUserManager";
-import { type Vocabulary } from "../models/types/vocabulary";
+} from "@/dto";
+import { type BaseHttp } from "@/http/baseHttp";
+import { type BaseMediaPlayerManager } from "@/managers/baseMediaPlayerManager";
+import { type BaseQueueManager } from "@/managers/baseQueueManager";
+import { type BaseUserManager } from "@/managers/baseUserManager";
+import { type Vocabulary } from "@/models/types/vocabulary";
 import {
     type EWebSocketMessage,
     type WebSocketMessageHandler,
-} from "../models/types/webSocketMessages";
+} from "@/models/types/webSocketMessages";
 
 // ─────────────────────────────────────────────
 // Collaborator interfaces

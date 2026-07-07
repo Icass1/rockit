@@ -2,7 +2,7 @@ import { isList, isPlayable, type TMedia } from "@rockit/shared";
 import { Text } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { ListMedia } from "@/components/RenderList/ListMedia";
-import { PlayableMedia } from "./PlayableMedia";
+import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
 
 export function Media({
     index,

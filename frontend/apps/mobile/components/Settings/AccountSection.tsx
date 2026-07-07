@@ -4,7 +4,7 @@ import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
 import { Http } from "@/lib/http";
 import { useVocabulary } from "@/lib/vocabulary";
-import SettingRow from "./SettingRow";
+import SettingRow from "@/components/Settings/SettingRow";
 
 export default function AccountSection() {
     const { username, isLoading } = useSettingsUser();

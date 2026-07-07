@@ -1,4 +1,4 @@
-import { type TQueueMedia } from "../types/media";
+import { type TQueueMedia } from "@/models/types/media";
 
 // A single entry in the play queue: the resolved playable media plus the ids
 // used to address/order it. Shared between web and mobile queue managers.

@@ -9,10 +9,10 @@ import {
     Text,
     View,
 } from "react-native";
-import CrossfadeSettings from "../Settings/CrossfadeSettings";
-import type { PlayerTab } from "./FullPlayer";
-import PlayerLyrics from "./PlayerLyrics";
-import PlayerQueue from "./PlayerQueue";
+import type { PlayerTab } from "@/components/Player/FullPlayer";
+import PlayerLyrics from "@/components/Player/PlayerLyrics";
+import PlayerQueue from "@/components/Player/PlayerQueue";
+import CrossfadeSettings from "@/components/Settings/CrossfadeSettings";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const PANEL_HEIGHT = Math.round(SCREEN_HEIGHT * 0.65);

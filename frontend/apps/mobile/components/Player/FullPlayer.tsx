@@ -12,11 +12,11 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
-import BookmarkPopup from "./BookmarkPopup";
-import PlayerMediaInfo from "./PlayerMediaInfo";
-import PlayerTabsBar from "./PlayerTabsBar";
-import PlayerTabsPanel from "./PlayerTabsPanel";
-import PlayerTopBar from "./PlayerTopBar";
+import BookmarkPopup from "@/components/Player/BookmarkPopup";
+import PlayerMediaInfo from "@/components/Player/PlayerMediaInfo";
+import PlayerTabsBar from "@/components/Player/PlayerTabsBar";
+import PlayerTabsPanel from "@/components/Player/PlayerTabsPanel";
+import PlayerTopBar from "@/components/Player/PlayerTopBar";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 

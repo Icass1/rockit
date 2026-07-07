@@ -1,1 +1,1 @@
-export { useSearch } from "./useSearch";
+export { useSearch } from "@/components/Search/hooks/useSearch";

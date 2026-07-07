@@ -309,9 +309,7 @@ class Radio:
                 url=url,
             )
             if a_result_image.is_not_ok():
-                logger.error(
-                    f"Error creating image: {a_result_image.info()}"
-                )
+                logger.error(f"Error creating image: {a_result_image.info()}")
                 return AResult(
                     code=a_result_image.code(),
                     message=a_result_image.message(),

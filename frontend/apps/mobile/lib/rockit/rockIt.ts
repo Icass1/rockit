@@ -8,8 +8,8 @@ import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { QueueManager } from "@/lib/managers/queueManager";
 import { UserManager } from "@/lib/managers/userManager";
 import { VocabularyManager } from "@/lib/managers/vocabularyManager";
+import { toasterManager } from "@/lib/toasterManager";
 import { webSocketManager } from "@/lib/webSocketManager";
-import { toasterManager } from "../toasterManager";
 
 class MediaManager {
     likedMediaAtom = atom<string[]>([]);

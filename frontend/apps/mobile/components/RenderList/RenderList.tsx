@@ -6,7 +6,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Media } from "./Media";
+import { Media } from "@/components/RenderList/Media";
 
 interface RenderListProps {
     title: string;

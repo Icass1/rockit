@@ -65,11 +65,18 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._videoPlayer.addListener(
             "playingChange",
             ({ isPlaying }): void => {
+                // The persistent video player keeps emitting events even when
+                // the audio deck is the active source; ignore them so it can't
+                // clobber audio playback state.
+                if (this._audioPlayer) return;
                 if (isPlaying) this.onNativePlaying();
                 else this.onNativePaused();
             }
         );
         this._videoPlayer.addListener("timeUpdate", ({ currentTime }): void => {
+            // Same guard: while playing audio the idle video player ticks with
+            // currentTime === 0 and would otherwise reset the progress bar.
+            if (this._audioPlayer) return;
             this._durationAtom.set(this._videoPlayer.duration ?? 0);
             this.onNativeTimeUpdate(currentTime);
         });

@@ -1027,8 +1027,10 @@ class Rockit:
             ]
 
             video_src: str | None = None
+            audio_src: str | None = None
             if video.file_path:
-                video_src = f"{BACKEND_URL}/rockit/video/{public_id}"
+                video_src = f"{BACKEND_URL}/rockit/video/{public_id}/stream"
+                audio_src = f"{BACKEND_URL}/rockit/video/{public_id}/stream/audio"
 
             return AResult(
                 code=AResultCode.OK,
@@ -1039,7 +1041,7 @@ class Rockit:
                     providerUrl="",
                     name=video.name,
                     videoUrl=video_src,
-                    audioUrl=None,
+                    audioUrl=audio_src,
                     imageUrl=image_url,
                     duration_ms=video.duration_ms,
                     artists=video_artists,

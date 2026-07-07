@@ -80,7 +80,8 @@ const actionComponents: Partial<
     [EMediaContextAction.DownloadZip]: DownloadZipAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
-    [EMediaContextAction.AddToPlaylistAndDownload]: AddToPlaylistAndDownloadAction,
+    [EMediaContextAction.AddToPlaylistAndDownload]:
+        AddToPlaylistAndDownloadAction,
     [EMediaContextAction.Delete]: DeleteAction,
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,

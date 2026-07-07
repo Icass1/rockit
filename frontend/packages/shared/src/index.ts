@@ -1,5 +1,7 @@
 export { BaseHttp } from "./http/baseHttp";
 
+export * from "./lib/store";
+
 export { AUTH_ENDPOINTS } from "./auth/authEndpoints";
 export * from "./environment";
 
@@ -39,3 +41,11 @@ export * from "./models/interfaces/events/userLogin";
 export * from "./models/interfaces/events/volumeChanged";
 
 export * from "./managers/eventManager";
+
+export * from "./utils/arrayTools";
+export { type QueueMediaItem } from "./models/interfaces/queue";
+
+export * from "./rockit/rockitRef";
+export * from "./managers/baseUserManager";
+export * from "./managers/baseQueueManager";
+export * from "./managers/baseMediaPlayerManager";

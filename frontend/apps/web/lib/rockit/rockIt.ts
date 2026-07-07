@@ -1,4 +1,5 @@
-import { EventManager } from "@rockit/packages/shared";
+import { EventManager, setRockIt } from "@rockit/packages/shared";
+import { Http } from "@/lib/http";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
 import { BookmarkManager } from "@/lib/managers/bookmarkManager";
@@ -49,8 +50,10 @@ export class RockIt {
     eventManager = new EventManager();
     libraryManager = new LibraryManager();
     mediaSessionManager = new MediaSessionManager();
+    http = Http;
 
     constructor() {
+        setRockIt(this);
         if (typeof window === "undefined") return;
         this.webSocketManager.init();
     }

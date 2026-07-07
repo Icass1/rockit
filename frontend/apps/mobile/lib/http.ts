@@ -96,15 +96,7 @@ Http.middlewares = [];
 
 // Add middlewares.
 Http.middlewares.push(async (next, context) => {
-    const startTime = new Date().getTime();
-
     const response = await next();
-    console.log(
-        "Middleware",
-        context.path,
-        "after next",
-        new Date().getTime() - startTime
-    );
 
     if (response.code === 401) {
         return response;
@@ -114,27 +106,17 @@ Http.middlewares.push(async (next, context) => {
     if (filePath) {
         const file = new File(Paths.document, filePath);
         if (response.isOk()) {
-            const normalized = normalizeAndSave(response.result);
-            console.log(
-                "Middleware",
-                context.path,
-                "after normalizeAndSave",
-                new Date().getTime() - startTime
-            );
-            const json = JSON.stringify(normalized);
-            console.log(
-                "Middleware",
-                context.path,
-                "after json",
-                new Date().getTime() - startTime
-            );
-            file.write(json);
-            console.log(
-                "Middleware",
-                context.path,
-                "after write",
-                new Date().getTime() - startTime
-            );
+            // Cache to disk in the background. normalizeAndSave performs one
+            // synchronous file write per media object, which can take several
+            // seconds for large responses — do not block the response on it.
+            void (async () => {
+                try {
+                    const normalized = await normalizeAndSave(response.result);
+                    file.write(JSON.stringify(normalized));
+                } catch {
+                    // Caching is best-effort; ignore write failures.
+                }
+            })();
         } else {
             if (!file.exists) {
                 return new HttpResult({

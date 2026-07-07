@@ -618,10 +618,7 @@ export class BaseQueueManager {
             currentRandomIndex >= 0
                 ? currentRandomIndex + 1
                 : this.randomQueue.length;
-        this.randomQueue.splice(randomInsertIndex, 0, {
-            ...newItem,
-            queueMediaId: currentMaxId + 2,
-        });
+        this.randomQueue.splice(randomInsertIndex, 0, { ...newItem });
 
         this.updateQueue();
     }
@@ -641,7 +638,7 @@ export class BaseQueueManager {
         };
 
         this.sortedQueue.push(newItem);
-        this.randomQueue.push({ ...newItem, queueMediaId: currentMaxId + 2 });
+        this.randomQueue.push({ ...newItem });
 
         this.updateQueue();
     }
@@ -689,10 +686,7 @@ export class BaseQueueManager {
             Math.floor(
                 Math.random() * (this.randomQueue.length - randomStart + 1)
             );
-        this.randomQueue.splice(randomInsertIndex, 0, {
-            ...newItem,
-            queueMediaId: currentMaxId + 2,
-        });
+        this.randomQueue.splice(randomInsertIndex, 0, { ...newItem });
 
         this.updateQueue();
     }

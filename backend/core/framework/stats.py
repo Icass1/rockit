@@ -229,7 +229,7 @@ class Stats:
             session=session, user_id=user_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error getting streak. {a_result.info()}", exc_info=True)
+            logger.error(f"Error getting streak. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())

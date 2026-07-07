@@ -85,7 +85,7 @@ async def get_streak(
     )
 
     if a_result.is_not_ok():
-        logger.error(f"Error getting streak. {a_result.info()}", exc_info=True)
+        logger.error(f"Error getting streak. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message(),

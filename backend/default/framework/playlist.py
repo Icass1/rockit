@@ -113,7 +113,7 @@ class Playlist:
         )
         if a_result_playlist.is_not_ok():
             logger.error(
-                f"Error creating playlist. {a_result_playlist.info()}", exc_info=True
+                f"Error creating playlist. {a_result_playlist.info()}"
             )
             return AResult(
                 code=a_result_playlist.code(),
@@ -164,7 +164,7 @@ class Playlist:
         )
         if a_result_playlist.is_not_ok():
             logger.error(
-                f"Error getting playlist. {a_result_playlist.info()}", exc_info=True
+                f"Error getting playlist. {a_result_playlist.info()}"
             )
             return AResult(
                 code=a_result_playlist.code(),
@@ -191,8 +191,7 @@ class Playlist:
         )
         if a_result_medias.is_not_ok():
             logger.error(
-                f"Error getting playlist medias. {a_result_medias.info()}",
-                exc_info=True,
+                f"Error getting playlist medias. {a_result_medias.info()}"
             )
             return AResult(
                 code=a_result_medias.code(),
@@ -272,8 +271,7 @@ class Playlist:
         )
         if a_result_playlists.is_not_ok():
             logger.error(
-                f"Error getting user playlists. {a_result_playlists.info()}",
-                exc_info=True,
+                f"Error getting user playlists. {a_result_playlists.info()}"
             )
             return AResult(
                 code=a_result_playlists.code(),
@@ -354,7 +352,7 @@ class Playlist:
         )
         if a_result_playlist.is_not_ok():
             logger.error(
-                f"Error updating playlist. {a_result_playlist.info()}", exc_info=True
+                f"Error updating playlist. {a_result_playlist.info()}"
             )
             return AResult(
                 code=a_result_playlist.code(),
@@ -429,7 +427,7 @@ class Playlist:
             session=session, playlist_id=playlist_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error deleting playlist. {a_result.info()}", exc_info=True)
+            logger.error(f"Error deleting playlist. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -512,7 +510,7 @@ class Playlist:
         )
         if a_result.is_not_ok():
             logger.error(
-                f"Error adding media to playlist. {a_result.info()}", exc_info=True
+                f"Error adding media to playlist. {a_result.info()}"
             )
             return AResult(
                 code=a_result.code(),
@@ -619,7 +617,7 @@ class Playlist:
         )
         if a_result.is_not_ok():
             logger.error(
-                f"Error removing media from playlist. {a_result.info()}", exc_info=True
+                f"Error removing media from playlist. {a_result.info()}"
             )
             return AResult(
                 code=a_result.code(),
@@ -682,7 +680,7 @@ class Playlist:
             role_key=role.value,
         )
         if a_result.is_not_ok():
-            logger.error(f"Error adding contributor. {a_result.info()}", exc_info=True)
+            logger.error(f"Error adding contributor. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -750,7 +748,7 @@ class Playlist:
         )
         if a_result.is_not_ok():
             logger.error(
-                f"Error removing contributor. {a_result.info()}", exc_info=True
+                f"Error removing contributor. {a_result.info()}"
             )
             return AResult(
                 code=a_result.code(),
@@ -811,7 +809,7 @@ class Playlist:
             session=session, user_id=user_id, playlist_media_id=playlist_media_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error disabling media. {a_result.info()}", exc_info=True)
+            logger.error(f"Error disabling media. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -871,7 +869,7 @@ class Playlist:
             session=session, user_id=user_id, playlist_media_id=playlist_media_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error enabling media. {a_result.info()}", exc_info=True)
+            logger.error(f"Error enabling media. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),

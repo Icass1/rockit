@@ -187,11 +187,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
         this._videoPlayer.pause();
         this._videoReplacing = true;
-        void this._videoPlayer
-            .replaceAsync(null)
-            .finally((): void => {
-                this._videoReplacing = false;
-            });
+        void this._videoPlayer.replaceAsync(null).finally((): void => {
+            this._videoReplacing = false;
+        });
     }
 
     protected override playNative(kind: TMediaKind): void {

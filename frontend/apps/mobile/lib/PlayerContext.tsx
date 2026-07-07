@@ -27,7 +27,7 @@ interface PlayerContextType {
     isPlaying: boolean;
     isLoading: boolean;
     isPlayerVisible: boolean;
-    shuffle: boolean;
+    queueType: EQueueType;
     repeatMode: ERepeatMode;
     crossfadeSettings: CrossfadeSettings;
     updateCrossfadeSettings: (s: Partial<CrossfadeSettings>) => void;
@@ -44,7 +44,7 @@ interface PlayerContextType {
     seekTo: (seconds: number) => Promise<void>;
     skipForward: () => Promise<void>;
     skipBack: () => Promise<void>;
-    toggleShuffle: () => void;
+    toggleRandomQueue: () => void;
     cycleRepeat: () => void;
     removeFromQueue: (index: number) => void;
     reorderQueue: (fromIndex: number, toIndex: number) => void;
@@ -85,7 +85,6 @@ export function usePlayer(): PlayerContextType {
     const currentIndex = queueItems.findIndex(
         (i) => i.queueMediaId === currentQueueMediaId
     );
-    const shuffle = queueType === EQueueType.RANDOM;
     const hasVideo = currentMedia ? isVideo(currentMedia) : false;
 
     return {
@@ -96,7 +95,7 @@ export function usePlayer(): PlayerContextType {
         isPlaying,
         isLoading,
         isPlayerVisible,
-        shuffle,
+        queueType,
         repeatMode,
         crossfadeSettings: crossfadeSettings ?? DEFAULT_CROSSFADE,
         updateCrossfadeSettings: (s) =>
@@ -139,7 +138,7 @@ export function usePlayer(): PlayerContextType {
         skipBack: async () => {
             rockIt.queueManager.skipBack();
         },
-        toggleShuffle: () => rockIt.userManager.toggleRandomQueue(),
+        toggleRandomQueue: () => rockIt.userManager.toggleRandomQueue(),
         cycleRepeat: () => rockIt.userManager.cycleRepeatMode(),
         removeFromQueue: (index) => {
             const item = rockIt.queueManager.queue[index];

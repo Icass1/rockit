@@ -2,7 +2,7 @@
 
 import React from "react";
 import { COLORS } from "@/constants/theme";
-import { ERepeatMode } from "@rockit/shared";
+import { EQueueType, ERepeatMode } from "@rockit/shared";
 import {
     Pause,
     Play,
@@ -22,11 +22,11 @@ export default function PlayerControls() {
     const {
         isPlaying,
         repeatMode,
-        shuffle,
+        queueType,
         togglePlayPause,
         skipForward,
         skipBack,
-        toggleShuffle,
+        toggleRandomQueue,
         cycleRepeat,
     } = usePlayer();
 
@@ -38,12 +38,16 @@ export default function PlayerControls() {
             {/* Shuffle */}
             <Pressable
                 style={styles.sideButton}
-                onPress={toggleShuffle}
+                onPress={toggleRandomQueue}
                 hitSlop={12}
             >
                 <Shuffle
                     size={24}
-                    color={shuffle ? COLORS.accent : "rgba(255,255,255,1)"}
+                    color={
+                        queueType === EQueueType.RANDOM
+                            ? COLORS.accent
+                            : "rgba(255,255,255,1)"
+                    }
                 />
             </Pressable>
 

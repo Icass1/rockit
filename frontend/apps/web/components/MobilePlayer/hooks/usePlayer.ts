@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { ERepeatMode, getMediaDuration } from "@rockit/shared";
+import { EQueueType, ERepeatMode, getMediaDuration } from "@rockit/shared";
 import type { QueueItem } from "@/models/interfaces/queue";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -17,11 +17,12 @@ export function usePlayer(): {
     isLoading: boolean;
     isPlayerVisible: boolean;
     repeatMode: ERepeatMode;
+    queueType: EQueueType;
     queue: QueueItem[];
     togglePlayPause: () => void;
     skipForward: () => void;
     skipBack: () => void;
-    toggleShuffle: () => void;
+    toggleRandomQueue: () => void;
     cycleRepeat: () => void;
     showPlayer: () => void;
     hidePlayer: () => void;
@@ -37,6 +38,7 @@ export function usePlayer(): {
     const isLoading = useStore(rockIt.mediaPlayerManager.loadingAtom);
     const isPlayerVisible = useStore(rockIt.playerUIManager.visibleAtom);
     const repeatMode = useStore(rockIt.userManager.repeatModeAtom);
+    const queueType = useStore(rockIt.userManager.queueTypeAtom);
     const queue = useStore(rockIt.queueManager.queueAtom);
 
     function togglePlayPause(): void {
@@ -51,7 +53,7 @@ export function usePlayer(): {
         rockIt.queueManager.skipBack();
     }
 
-    function toggleShuffle(): void {
+    function toggleRandomQueue(): void {
         rockIt.userManager.toggleRandomQueue();
     }
 
@@ -99,11 +101,12 @@ export function usePlayer(): {
         isLoading,
         isPlayerVisible,
         repeatMode,
+        queueType,
         queue,
         togglePlayPause,
         skipForward,
         skipBack,
-        toggleShuffle,
+        toggleRandomQueue,
         cycleRepeat,
         showPlayer,
         hidePlayer,

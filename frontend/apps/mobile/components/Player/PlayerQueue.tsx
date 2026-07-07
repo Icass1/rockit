@@ -1,5 +1,5 @@
 import { COLORS } from "@/constants/theme";
-import type { TQueueMedia } from "@rockit/shared";
+import { EQueueType, type TQueueMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
 import QueueItem from "./QueueItem";
@@ -16,7 +16,7 @@ export default function PlayerQueue() {
         currentMedia,
         removeFromQueue,
         playMedia,
-        shuffle,
+        queueType,
         originalQueue,
     } = usePlayer();
 
@@ -46,7 +46,8 @@ export default function PlayerQueue() {
                         onDelete={(idx) => removeFromQueue(idx)}
                         onPlay={(media: TQueueMedia) => {
                             const sortedQueue =
-                                shuffle && originalQueue.length > 0
+                                queueType === EQueueType.RANDOM &&
+                                originalQueue.length > 0
                                     ? originalQueue
                                     : queue;
                             playMedia(media, sortedQueue);

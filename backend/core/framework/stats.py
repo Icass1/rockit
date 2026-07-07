@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,65 +16,9 @@ from backend.core.responses.statsRankedItemResponse import StatsRankedItemRespon
 from backend.core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from backend.core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
 
+from backend.core.utils.statsRange import parse_range, get_group_by
+
 logger = getLogger(__name__)
-
-
-def _parse_range(
-    range_value: str,
-    custom_start: datetime | None = None,
-    custom_end: datetime | None = None,
-) -> tuple[datetime, datetime]:
-    now = datetime.now(timezone.utc)
-    end_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
-        days=1
-    )
-
-    if range_value == "7d":
-        start_date = end_of_today - timedelta(days=7)
-        end_date = end_of_today
-    elif range_value == "30d":
-        start_date = end_of_today - timedelta(days=30)
-        end_date = end_of_today
-    elif range_value == "1y":
-        start_date = end_of_today - timedelta(days=365)
-        end_date = end_of_today
-    elif range_value == "custom" and custom_start and custom_end:
-        start_date = custom_start
-        end_date = custom_end
-    elif range_value == "all":
-        start_date = now
-        end_date = end_of_today
-    else:
-        start_date = end_of_today - timedelta(days=7)
-        end_date = end_of_today
-
-    return start_date, end_date
-
-
-def _get_group_by(
-    range_value: str,
-    start_date: datetime | None = None,
-    end_date: datetime | None = None,
-) -> str:
-    if range_value == "7d":
-        return "day"
-    elif range_value == "30d":
-        return "week"
-    elif range_value == "1y":
-        return "month"
-    elif range_value == "all":
-        return "month"
-    elif range_value == "custom" and start_date and end_date:
-        days = (end_date - start_date).days
-        if days <= 1:
-            return "hour"
-        elif days <= 31:
-            return "day"
-        elif days <= 90:
-            return "week"
-        else:
-            return "month"
-    return "week"
 
 
 class Stats:
@@ -105,8 +49,8 @@ class Stats:
         custom_start: datetime | None = None,
         custom_end: datetime | None = None,
     ) -> AResult[UserStatsResponse]:
-        start_date, end_date = _parse_range(range_value, custom_start, custom_end)
-        group_by: str = _get_group_by(range_value, start_date, end_date)
+        start_date, end_date = parse_range(range_value, custom_start, custom_end)
+        group_by: str = get_group_by(range_value, start_date, end_date)
 
         if range_value == "all":
             a_first = await StatsAccess.get_first_listen_date_async(
@@ -229,7 +173,7 @@ class Stats:
             session=session, user_id=user_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error getting streak. {a_result.info()}", exc_info=True)
+            logger.error(f"Error getting streak. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())

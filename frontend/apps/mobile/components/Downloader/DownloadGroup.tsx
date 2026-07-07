@@ -3,7 +3,7 @@ import { COLORS } from "@/constants/theme";
 import { ChevronDown, ChevronRight, Trash2 } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { DownloadGroup as DownloadGroupType } from "@/hooks/useDownloads";
-import DownloadItem from "./DownloadItem";
+import DownloadItem from "@/components/Downloader/DownloadItem";
 
 interface DownloadGroupProps {
     group: DownloadGroupType;

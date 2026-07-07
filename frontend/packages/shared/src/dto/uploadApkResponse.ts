@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const UploadApkResponseSchema = z.object({
     message: z.string(),
-    id: z.number(),
+    publicId: z.string(),
     filename: z.string(),
 });
 

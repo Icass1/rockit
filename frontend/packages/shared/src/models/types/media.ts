@@ -10,7 +10,7 @@ import {
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "../../dto";
+} from "@/dto";
 
 export type TPlayableMedia =
     | BaseSongWithAlbumResponse

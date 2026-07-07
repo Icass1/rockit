@@ -1,9 +1,9 @@
-import { type QueueTypeMessage } from "../dto";
-import { createAtom, type ReadonlyAtom } from "../lib/store";
-import { EQueueType } from "../models/enums/queueType";
-import { ERepeatMode } from "../models/enums/repeatMode";
-import { EWebSocketMessage } from "../models/types/webSocketMessages";
-import { getRockIt } from "../rockit/rockitRef";
+import { type QueueTypeMessage } from "@/dto";
+import { getRockIt } from "@/rockit/rockitRef";
+import { EQueueType } from "@/models/enums/queueType";
+import { ERepeatMode } from "@/models/enums/repeatMode";
+import { EWebSocketMessage } from "@/models/types/webSocketMessages";
+import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
 /**
  * Shared user/settings state (queue type, repeat mode, saved playback position,

@@ -82,7 +82,7 @@ async def upload_rockit_song(
     if provider is None:
         raise HTTPException(status_code=500, detail="RockIt upload provider not found")
 
-    upload_id: str = create_id(16)
+    upload_id: str = create_id(32)
     temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
     file_path: str = os.path.join(temp_dir, "file")
     image_path: str = os.path.join(temp_dir, "image")
@@ -167,7 +167,7 @@ async def upload_rockit_album(
     else:
         songs_meta = []
 
-    upload_id: str = create_id(16)
+    upload_id: str = create_id(32)
     temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
 
     raw_cover = form.get("cover")

@@ -42,7 +42,7 @@ class Bookmark:
             )
 
         if a_result.is_not_ok():
-            logger.error(f"Error getting bookmarks. {a_result.info()}", exc_info=True)
+            logger.error(f"Error getting bookmarks. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
@@ -74,7 +74,7 @@ class Bookmark:
             description=description,
         )
         if a_result.is_not_ok():
-            logger.error(f"Error creating bookmark. {a_result.info()}", exc_info=True)
+            logger.error(f"Error creating bookmark. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
@@ -107,9 +107,7 @@ class Bookmark:
             description=description,
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error updating bookmark {public_id}. {a_result.info()}", exc_info=True
-            )
+            logger.error(f"Error updating bookmark {public_id}. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
@@ -135,9 +133,7 @@ class Bookmark:
             session=session, bookmark=a_result_bookmark.result()
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error deleting bookmark {public_id}. {a_result.info()}", exc_info=True
-            )
+            logger.error(f"Error deleting bookmark {public_id}. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK")

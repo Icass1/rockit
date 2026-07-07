@@ -11,6 +11,7 @@ export interface Vocabulary {
     ADD_SONG_TO_QUEUE: string;
     ADD_TO_LIBRARY: string;
     ADD_TO_LIKED: string;
+    ADD_TO_PLAYLIST_AND_DOWNLOAD: string;
     ADD_TO_QUEUE: string;
     ADDED_TO_LIBRARY: string;
     ADDED_TO_PLAYLIST: string;
@@ -23,7 +24,6 @@ export interface Vocabulary {
     ADMIN_BUILDS_SUBTITLE: string;
     ADMIN_BUILDS_TITLE: string;
     ADMIN_CANCEL: string;
-    ADD_TO_PLAYLIST_AND_DOWNLOAD: string;
     ADMIN_COUNT: string;
     ADMIN_DESCRIPTION: string;
     ADMIN_DESCRIPTION_PLACEHOLDER: string;

@@ -2,15 +2,11 @@ import {
     type BaseAlbumWithSongsResponse,
     type CurrentMediaMessage,
     type CurrentQueueMessageRequestItem,
-} from "../dto";
-import {
-    createArrayAtom,
-    createAtom,
-    type ReadonlyArrayAtom,
-    type ReadonlyAtom,
-} from "../lib/store";
-import { EQueueType } from "../models/enums/queueType";
-import { type QueueMediaItem } from "../models/interfaces/queue";
+} from "@/dto";
+import { getRockIt } from "@/rockit/rockitRef";
+import { shuffle } from "@/utils/arrayTools";
+import { EQueueType } from "@/models/enums/queueType";
+import { type QueueMediaItem } from "@/models/interfaces/queue";
 import {
     isAlbum,
     isAlbumWithSongs,
@@ -20,10 +16,14 @@ import {
     type TListMedia,
     type TPlayableMedia,
     type TQueueMedia,
-} from "../models/types/media";
-import { EWebSocketMessage } from "../models/types/webSocketMessages";
-import { getRockIt } from "../rockit/rockitRef";
-import { shuffle } from "../utils/arrayTools";
+} from "@/models/types/media";
+import { EWebSocketMessage } from "@/models/types/webSocketMessages";
+import {
+    createArrayAtom,
+    createAtom,
+    type ReadonlyArrayAtom,
+    type ReadonlyAtom,
+} from "@/lib/store";
 
 /**
  * Shared queue orchestration. Contains no direct audio/video API — it drives

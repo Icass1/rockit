@@ -6,10 +6,10 @@ import { VideoView } from "expo-video";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import MediaSubSubTitle from "@/components/MediaSubSubTitle";
 import MediaSubTitle from "@/components/MediaSubTitle";
-import MobileLikeButton from "./MobileLikeButton";
-import PlayerControls from "./PlayerControls";
-import PlayerCover from "./PlayerCover";
-import PlayerProgress from "./PlayerProgress";
+import MobileLikeButton from "@/components/Player/MobileLikeButton";
+import PlayerControls from "@/components/Player/PlayerControls";
+import PlayerCover from "@/components/Player/PlayerCover";
+import PlayerProgress from "@/components/Player/PlayerProgress";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 // Cover size mirrors the old MobilePlayerUI — fills most of the screen width

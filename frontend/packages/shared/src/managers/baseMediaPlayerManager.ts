@@ -1,12 +1,7 @@
-import { resolveNextOnEnd, resolveOnMediaError } from "../audio/queueLogic";
-import {
-    createArrayAtom,
-    createAtom,
-    type ReadonlyArrayAtom,
-    type ReadonlyAtom,
-} from "../lib/store";
-import { EQueueAction } from "../models/enums/queueAction";
-import { ERepeatMode } from "../models/enums/repeatMode";
+import { resolveNextOnEnd, resolveOnMediaError } from "@/audio/queueLogic";
+import { getRockIt } from "@/rockit/rockitRef";
+import { EQueueAction } from "@/models/enums/queueAction";
+import { ERepeatMode } from "@/models/enums/repeatMode";
 import {
     getMediaAudioSrc,
     getMediaVideoSrc,
@@ -14,9 +9,14 @@ import {
     isStation,
     isVideo,
     type TPlayableMedia,
-} from "../models/types/media";
-import { EWebSocketMessage } from "../models/types/webSocketMessages";
-import { getRockIt } from "../rockit/rockitRef";
+} from "@/models/types/media";
+import { EWebSocketMessage } from "@/models/types/webSocketMessages";
+import {
+    createArrayAtom,
+    createAtom,
+    type ReadonlyArrayAtom,
+    type ReadonlyAtom,
+} from "@/lib/store";
 
 const WS_TIME_SYNC_INTERVAL_MS = 1000;
 

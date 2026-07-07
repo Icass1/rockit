@@ -43,7 +43,7 @@ class Media:
         public_ids: List[str],
         media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[List[MediaModel]]:
-        """TODO"""
+        """Get multiple media items from the database by their public IDs."""
 
         a_result: AResult[List[CoreMediaRow]] = (
             await MediaAccess.get_medias_from_public_ids_async(
@@ -74,7 +74,7 @@ class Media:
         public_id: str,
         media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[MediaModel]:
-        """TODO"""
+        """Get a single media item from the database by its public ID."""
 
         a_result_media: AResult[CoreMediaRow] = (
             await MediaAccess.get_media_from_public_id_async(

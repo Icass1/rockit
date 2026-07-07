@@ -43,7 +43,7 @@ export default function PlayerControls() {
             >
                 <Shuffle
                     size={24}
-                    color={shuffle ? COLORS.accent : "rgba(255,255,255,0.5)"}
+                    color={shuffle ? COLORS.accent : "rgba(255,255,255,1)"}
                 />
             </Pressable>
 

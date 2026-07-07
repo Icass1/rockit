@@ -83,6 +83,10 @@ export class BaseUserManager {
         const currentIndex = modes.indexOf(current);
         const next = modes[(currentIndex + 1) % modes.length];
         this._repeatModeAtom.set(next);
+
+        // Persist to the backend. The endpoint cycles server-side in the same
+        // OFF -> ONE -> ALL order, so it stays consistent with the local atom.
+        void getRockIt().http.cycleRepeatMode();
     }
 
     get queueTypeAtom(): ReadonlyAtom<EQueueType> {

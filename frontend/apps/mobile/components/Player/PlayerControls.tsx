@@ -22,6 +22,7 @@ export default function PlayerControls() {
     const {
         isPlaying,
         repeatMode,
+        shuffle,
         togglePlayPause,
         skipForward,
         skipBack,
@@ -40,7 +41,10 @@ export default function PlayerControls() {
                 onPress={toggleShuffle}
                 hitSlop={12}
             >
-                <Shuffle size={24} color={COLORS.white} />
+                <Shuffle
+                    size={24}
+                    color={shuffle ? COLORS.accent : "rgba(255,255,255,0.5)"}
+                />
             </Pressable>
 
             {/* Skip back */}

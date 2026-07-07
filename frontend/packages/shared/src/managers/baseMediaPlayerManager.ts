@@ -3,8 +3,8 @@ import { getRockIt } from "@/rockit/rockitRef";
 import { EQueueAction } from "@/models/enums/queueAction";
 import { ERepeatMode } from "@/models/enums/repeatMode";
 import {
-    getMediaAudioSrc,
-    getMediaVideoSrc,
+    getMediaAudioUrl,
+    getMediaVideoUrl,
     isSong,
     isStation,
     isVideo,
@@ -38,6 +38,10 @@ export abstract class BaseMediaPlayerManager {
     protected _volumeAtom = createAtom<number>(1);
     protected _crossFadeAtom = createAtom<number>(0);
     protected _triggeredBookmarkPublicIdsAtom = createArrayAtom<string>([]);
+
+    // When enabled, videos that expose an audio source play through the audio
+    // deck only (no picture). Persisted as a user preference across tracks.
+    protected _audioOnlyAtom = createAtom<boolean>(false);
 
     protected _muted = false;
     protected _mutePreviousVolume?: number;
@@ -93,8 +97,8 @@ export abstract class BaseMediaPlayerManager {
         kind: TMediaKind
     ): Promise<string | undefined> {
         return kind === "video"
-            ? getMediaVideoSrc(media)
-            : getMediaAudioSrc(media);
+            ? getMediaVideoUrl(media)
+            : getMediaAudioUrl(media);
     }
 
     /** Optional post-load hook (e.g. seed cache). No-op by default. */
@@ -120,6 +124,30 @@ export abstract class BaseMediaPlayerManager {
         this._handleMediaError();
     };
 
+    // ===== Kind resolution =====
+
+    /**
+     * The deck a media should play through. Videos normally use the "video"
+     * deck, but fall back to "audio" when audio-only mode is on and the video
+     * exposes an audio source. Everything non-video plays as "audio".
+     */
+    protected _effectiveKind(media: TPlayableMedia | undefined): TMediaKind {
+        if (
+            media &&
+            isVideo(media) &&
+            this._audioOnlyAtom.get() &&
+            getMediaAudioUrl(media)
+        ) {
+            return "audio";
+        }
+        return media && isVideo(media) ? "video" : "audio";
+    }
+
+    /** Whether audio-only mode is available for the given media. */
+    canPlayAudioOnly(media: TPlayableMedia | undefined): boolean {
+        return !!media && isVideo(media) && !!getMediaAudioUrl(media);
+    }
+
     // ===== Public API =====
 
     init(): void {
@@ -135,12 +163,12 @@ export abstract class BaseMediaPlayerManager {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
-        if (isVideo(currentMedia)) {
+        if (isStation(currentMedia)) {
+            void this._playStream(getMediaAudioUrl(currentMedia) ?? "");
+        } else if (this._effectiveKind(currentMedia) === "video") {
             void this._playVideo();
-        } else if (isSong(currentMedia)) {
+        } else if (isSong(currentMedia) || isVideo(currentMedia)) {
             void this._playAudio();
-        } else if (isStation(currentMedia)) {
-            void this._playStream(getMediaAudioSrc(currentMedia) ?? "");
         }
     }
 
@@ -166,13 +194,9 @@ export abstract class BaseMediaPlayerManager {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
-        if (isVideo(currentMedia)) {
-            if (this.isNativePaused("video")) this.play();
-            else this.pause();
-        } else if (isSong(currentMedia)) {
-            if (this.isNativePaused("audio")) this.play();
-            else this.pause();
-        }
+        const kind = this._effectiveKind(currentMedia);
+        if (this.isNativePaused(kind)) this.play();
+        else this.pause();
     }
 
     togglePlayPauseOrSetMedia(): void {
@@ -184,13 +208,9 @@ export abstract class BaseMediaPlayerManager {
         if (!currentMedia) return;
 
         await this.setMedia();
-        if (isVideo(currentMedia)) {
-            if (this.isNativePaused("video")) this.play();
-            else this.pause();
-        } else {
-            if (this.isNativePaused("audio")) this.play();
-            else this.pause();
-        }
+        const kind = this._effectiveKind(currentMedia);
+        if (this.isNativePaused(kind)) this.play();
+        else this.pause();
     }
 
     playStream(url: string): void {
@@ -213,16 +233,16 @@ export abstract class BaseMediaPlayerManager {
         this._isSeeking = true;
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
-        this._seekFrom = isVideo(currentMedia)
-            ? this.getNativePosition("video")
-            : this.getNativePosition("audio");
+        this._seekFrom = this.getNativePosition(
+            this._effectiveKind(currentMedia)
+        );
     }
 
     setCurrentTime(time: number, sendMessage: boolean = true): void {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
-        const kind: TMediaKind = isVideo(currentMedia) ? "video" : "audio";
+        const kind: TMediaKind = this._effectiveKind(currentMedia);
         const timeFrom = this.getNativePosition(kind);
         this.seekNative(kind, time);
         if (sendMessage) {
@@ -236,7 +256,7 @@ export abstract class BaseMediaPlayerManager {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
-        const kind: TMediaKind = isVideo(currentMedia) ? "video" : "audio";
+        const kind: TMediaKind = this._effectiveKind(currentMedia);
         this.seekNative(kind, time);
         this._currentTimeAtom.set(time);
         this._sendSeek(currentMedia.publicId, this._seekFrom, time);
@@ -283,13 +303,47 @@ export abstract class BaseMediaPlayerManager {
         this._crossFadeAtom.set(Math.max(0, Math.min(12, seconds)));
     }
 
+    toggleAudioOnly(): void {
+        void this.setAudioOnly(!this._audioOnlyAtom.get());
+    }
+
+    /**
+     * Switch a video between full video and audio-only playback, reloading the
+     * current media onto the other deck while preserving position and play
+     * state. No-op when the value is unchanged.
+     */
+    async setAudioOnly(enabled: boolean): Promise<void> {
+        if (this._audioOnlyAtom.get() === enabled) return;
+
+        const currentMedia = getRockIt().queueManager.currentMedia;
+
+        // Nothing is loaded that would be affected — just record the preference.
+        if (!currentMedia || !isVideo(currentMedia)) {
+            this._audioOnlyAtom.set(enabled);
+            return;
+        }
+
+        const wasPlaying = this._playingAtom.get();
+        const position = this.getNativePosition(
+            this._effectiveKind(currentMedia)
+        );
+
+        this._audioOnlyAtom.set(enabled);
+
+        // Reload onto the deck the new mode requires (setMedia clears the other
+        // deck), restore the playhead, then resume if we were playing.
+        await this.setMedia();
+        this.setCurrentTime(position, false);
+        if (wasPlaying) this.play();
+    }
+
     async setMedia(useSavedCurrentTime: boolean = false): Promise<void> {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
         this._lastTime = 0;
 
-        if (isVideo(currentMedia)) {
+        if (this._effectiveKind(currentMedia) === "video") {
             await this._setVideo(useSavedCurrentTime);
         } else {
             await this._setAudio(useSavedCurrentTime);
@@ -303,7 +357,8 @@ export abstract class BaseMediaPlayerManager {
         this._clearVideo();
 
         const currentMedia = getRockIt().queueManager.currentMedia;
-        if (!currentMedia || isVideo(currentMedia)) return;
+        if (!currentMedia || this._effectiveKind(currentMedia) !== "audio")
+            return;
 
         const audioSrc = await this.resolveMediaUriAsync(currentMedia, "audio");
         if (!audioSrc) return;
@@ -329,7 +384,8 @@ export abstract class BaseMediaPlayerManager {
         this._clearAudio();
 
         const currentMedia = getRockIt().queueManager.currentMedia;
-        if (!currentMedia || currentMedia.type !== "video") return;
+        if (!currentMedia || this._effectiveKind(currentMedia) !== "video")
+            return;
 
         const videoSrc = await this.resolveMediaUriAsync(currentMedia, "video");
         if (!videoSrc) return;
@@ -551,16 +607,14 @@ export abstract class BaseMediaPlayerManager {
         const currentMedia = getRockIt().queueManager.currentMedia;
         const clamped = Math.max(0, Math.min(1, value));
 
-        const kind: TMediaKind =
-            currentMedia && isVideo(currentMedia) ? "video" : "audio";
+        const kind: TMediaKind = this._effectiveKind(currentMedia);
         this.setNativeVolume(kind, clamped);
         this._volumeAtom.set(clamped);
     }
 
     get volume(): number {
         const currentMedia = getRockIt().queueManager.currentMedia;
-        const kind: TMediaKind =
-            currentMedia && isVideo(currentMedia) ? "video" : "audio";
+        const kind: TMediaKind = this._effectiveKind(currentMedia);
         return this.getNativeVolume(kind);
     }
 
@@ -586,6 +640,10 @@ export abstract class BaseMediaPlayerManager {
 
     get crossFadeAtom(): ReadonlyAtom<number> {
         return this._crossFadeAtom.getReadonlyAtom();
+    }
+
+    get audioOnlyAtom(): ReadonlyAtom<boolean> {
+        return this._audioOnlyAtom.getReadonlyAtom();
     }
 
     get triggeredBookmarkPublicIdsAtom(): ReadonlyArrayAtom<string> {

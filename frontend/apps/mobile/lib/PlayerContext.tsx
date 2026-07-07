@@ -34,6 +34,9 @@ interface PlayerContextType {
     videoPlayer: VideoPlayer | null;
     videoOpacity: number;
     hasVideo: boolean;
+    audioOnly: boolean;
+    canToggleAudioOnly: boolean;
+    toggleAudioOnly: () => void;
 
     playMedia: (media: TQueueMedia, queue: TQueueMedia[]) => Promise<void>;
     playNext: (media: TQueueMedia, newQueue: TQueueMedia[]) => Promise<void>;
@@ -76,6 +79,7 @@ export function usePlayer(): PlayerContextType {
     const queueType = useStore(rockIt.userManager.queueTypeAtom);
     const repeatMode = useStore(rockIt.userManager.repeatModeAtom);
     const videoPlayer = useStore(rockIt.mediaPlayerManager.videoPlayerAtom);
+    const audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
     const crossfadeSettings = useStore(
         rockIt.mediaPlayerManager.crossfadeSettingsAtom
     );
@@ -85,7 +89,11 @@ export function usePlayer(): PlayerContextType {
     const currentIndex = queueItems.findIndex(
         (i) => i.queueMediaId === currentQueueMediaId
     );
-    const hasVideo = currentMedia ? isVideo(currentMedia) : false;
+    const hasVideo = currentMedia
+        ? isVideo(currentMedia) && !audioOnly
+        : false;
+    const canToggleAudioOnly =
+        rockIt.mediaPlayerManager.canPlayAudioOnly(currentMedia);
 
     return {
         currentMedia,
@@ -103,6 +111,9 @@ export function usePlayer(): PlayerContextType {
         videoPlayer,
         videoOpacity: hasVideo ? 1 : 0,
         hasVideo,
+        audioOnly,
+        canToggleAudioOnly,
+        toggleAudioOnly: () => rockIt.mediaPlayerManager.toggleAudioOnly(),
 
         playMedia: async (media, newQueue) => {
             rockIt.queueManager.setMedia(newQueue, media.publicId);

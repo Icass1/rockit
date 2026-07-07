@@ -173,8 +173,8 @@ class YoutubeProvider(BaseMediaProvider):
                 duration_ms=youtube_video.duration_ms,
                 artists=youtube_video.artists,
                 downloaded=youtube_video.downloaded,
-                videoSrc=youtube_video.videoSrc,
-                audioSrc=youtube_video.audioSrc,
+                videoUrl=youtube_video.videoUrl,
+                audioUrl=youtube_video.audioUrl,
             ),
         )
 
@@ -258,8 +258,8 @@ class YoutubeProvider(BaseMediaProvider):
                     duration_ms=youtube_video.duration_ms,
                     artists=youtube_video.artists,
                     downloaded=youtube_video.downloaded,
-                    videoSrc=youtube_video.videoSrc,
-                    audioSrc=youtube_video.audioSrc,
+                    videoUrl=youtube_video.videoUrl,
+                    audioUrl=youtube_video.audioUrl,
                 )
             )
 

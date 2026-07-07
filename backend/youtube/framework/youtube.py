@@ -127,10 +127,11 @@ class YouTube:
             is_downloaded: bool = video_row.video_path is not None
 
             video_src: str | None = None
+            audio_src: str | None = None
+
             if video_row.video_path:
                 video_src = f"/youtube/video/{video_row.youtube_id}/stream"
-
-            audio_src: str | None = None
+                audio_src = f"/youtube/video/{video_row.youtube_id}/stream/audio"
 
             return AResult(
                 code=AResultCode.OK,
@@ -158,8 +159,8 @@ class YouTube:
                     publishedAt=video_row.published_at,
                     video_path=video_row.video_path,
                     downloaded=is_downloaded,
-                    videoSrc=BACKEND_URL + video_src if video_src else None,
-                    audioSrc=BACKEND_URL + audio_src if audio_src else None,
+                    videoUrl=BACKEND_URL + video_src if video_src else None,
+                    audioUrl=BACKEND_URL + audio_src if audio_src else None,
                 ),
             )
 
@@ -322,10 +323,10 @@ class YouTube:
         is_downloaded: bool = video_row.video_path is not None
 
         video_src: str | None = None
+        audio_src: str | None = None
         if video_row.video_path:
             video_src = f"/youtube/video/{video_row.youtube_id}/stream"
-
-        audio_src: str | None = None
+            audio_src = f"/youtube/video/{video_row.youtube_id}/stream/audio"
 
         return AResult(
             code=AResultCode.OK,
@@ -353,8 +354,8 @@ class YouTube:
                 publishedAt=video_row.published_at,
                 video_path=video_row.video_path,
                 downloaded=is_downloaded,
-                videoSrc=BACKEND_URL + video_src if video_src else None,
-                audioSrc=BACKEND_URL + audio_src if audio_src else None,
+                videoUrl=BACKEND_URL + video_src if video_src else None,
+                audioUrl=BACKEND_URL + audio_src if audio_src else None,
             ),
         )
 

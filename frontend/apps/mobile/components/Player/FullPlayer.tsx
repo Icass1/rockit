@@ -33,6 +33,9 @@ export default function FullPlayer() {
         hidePlayer,
         videoPlayer,
         hasVideo,
+        canToggleAudioOnly,
+        audioOnly,
+        toggleAudioOnly,
     } = usePlayer();
 
     const { currentTime } = usePlayerTime();
@@ -181,6 +184,9 @@ export default function FullPlayer() {
                         onSeek={seekTo}
                         videoPlayer={videoPlayer ?? null}
                         hasVideo={!!hasVideo}
+                        canToggleAudioOnly={canToggleAudioOnly}
+                        audioOnly={audioOnly}
+                        onToggleAudioOnly={toggleAudioOnly}
                     />
                     <PlayerTabsBar
                         activeTab={activeTab}

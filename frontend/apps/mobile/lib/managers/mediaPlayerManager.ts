@@ -1,8 +1,9 @@
 import {
     BaseMediaPlayerManager,
     createAtom,
-    getMediaAudioSrc,
-    getMediaVideoSrc,
+    getMediaAudioUrl,
+    getMediaDuration,
+    getMediaVideoUrl,
     type ReadonlyAtom,
     type TMediaKind,
     type TPlayableMedia,
@@ -77,20 +78,40 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             // Same guard: while playing audio the idle video player ticks with
             // currentTime === 0 and would otherwise reset the progress bar.
             if (this._audioPlayer) return;
-            this._durationAtom.set(this._videoPlayer.duration ?? 0);
+            this._setDuration(this._videoPlayer.duration);
             this.onNativeTimeUpdate(currentTime);
         });
-        this._videoPlayer.addListener("playToEnd", (): void =>
-            this.onNativeEnded()
-        );
+        this._videoPlayer.addListener("playToEnd", (): void => {
+            // Same guard as playingChange/timeUpdate: while the audio deck is the
+            // active source the idle video player can still emit playToEnd (e.g.
+            // after its source is replaced with null), which would otherwise skip
+            // to the next track in an endless loop.
+            if (this._audioPlayer) return;
+            this.onNativeEnded();
+        });
         this._videoPlayer.addListener("statusChange", ({ status }): void => {
             if (status === "loading") {
                 this.onNativeLoadStart();
             } else if (status === "readyToPlay") {
                 this.onNativeLoaded();
-                this._durationAtom.set(this._videoPlayer.duration ?? 0);
+                this._setDuration(this._videoPlayer.duration);
             }
         });
+    }
+
+    // ===== Duration =====
+
+    /**
+     * Publish a duration, ignoring anything that isn't a finite positive
+     * number. This filters the native "unknown duration" sentinel
+     * (ExoPlayer/AVPlayer report a huge negative TIME_UNSET value before the
+     * media is ready) as well as transient 0s on status ticks, so a known-good
+     * duration is never clobbered by a bad reading.
+     */
+    private _setDuration(value: number): void {
+        if (typeof value === "number" && isFinite(value) && value > 0) {
+            this._durationAtom.set(value);
+        }
     }
 
     // ===== expo-audio player lifecycle (single deck) =====
@@ -105,12 +126,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             "playbackStatusUpdate",
             (status: AudioStatus): void => {
                 if (!status) return;
-                if (
-                    typeof status.duration === "number" &&
-                    status.duration > 0
-                ) {
-                    this._durationAtom.set(status.duration);
-                }
+                this._setDuration(status.duration);
                 if (status.playing) this.onNativePlaying();
                 else this.onNativePaused();
                 if (typeof status.currentTime === "number") {
@@ -204,10 +220,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     ): string | undefined {
         if (kind === "video") {
             return (
-                getMediaAudioSrc(media) ?? getMediaVideoSrc(media) ?? undefined
+                getMediaAudioUrl(media) ?? getMediaVideoUrl(media) ?? undefined
             );
         }
-        return getMediaAudioSrc(media) ?? undefined;
+        return getMediaAudioUrl(media) ?? undefined;
     }
 
     protected override async resolveMediaUriAsync(
@@ -236,6 +252,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         kind: TMediaKind,
         resolvedUri: string
     ): Promise<void> {
+        // Prefer the authoritative duration from the media DTO; the native
+        // player only refines it later (and may report a bogus sentinel).
+        this._setDuration(getMediaDuration(media) ?? 0);
+
         if (kind !== "audio") return;
 
         const remoteUri = this._remoteUri(media, "audio");

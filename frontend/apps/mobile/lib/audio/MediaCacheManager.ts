@@ -30,6 +30,27 @@ class MediaCacheManager {
         return this._cacheDir;
     }
 
+    /**
+     * Deterministic filename for a url so a file cached in a previous session
+     * can be located on disk even though the in-memory map starts empty. Keyed
+     * on the media publicId (unique per audio track) plus the url's extension.
+     */
+    private _fileNameFor(url: string, publicId: string): string {
+        const safeId = publicId.replace(/[^a-zA-Z0-9_-]/g, "_");
+        return `${safeId}${this._getExtension(url)}`;
+    }
+
+    private _cachedFileFor(url: string, publicId: string) {
+        const dir = this._getCacheDir();
+        if (!dir) return null;
+        try {
+            const { File } = require("expo-file-system");
+            return new File(dir, this._fileNameFor(url, publicId));
+        } catch {
+            return null;
+        }
+    }
+
     async ensureCacheDir(): Promise<void> {
         if (!IS_NATIVE) return;
         const dir = this._getCacheDir();
@@ -43,6 +64,7 @@ class MediaCacheManager {
 
     async getCachedUri(url: string, publicId: string): Promise<string | null> {
         if (!IS_NATIVE) return null;
+
         const entry = this._cache.get(url);
         if (entry && entry.publicId === publicId) {
             try {
@@ -56,6 +78,25 @@ class MediaCacheManager {
             }
             this._cache.delete(url);
         }
+
+        // The in-memory map is empty after a restart; adopt a file cached in a
+        // previous session by looking it up at its deterministic path on disk.
+        const diskFile = this._cachedFileFor(url, publicId);
+        if (diskFile) {
+            try {
+                if (diskFile.exists) {
+                    this._cache.set(url, {
+                        originalUrl: url,
+                        cachedUri: diskFile.uri,
+                        publicId,
+                    });
+                    return diskFile.uri;
+                }
+            } catch {
+                // Fall through
+            }
+        }
+
         return null;
     }
 
@@ -69,18 +110,11 @@ class MediaCacheManager {
             return null;
         }
 
-        const cachedEntry = this._cache.get(url);
-        if (cachedEntry && cachedEntry.publicId === publicId) {
-            try {
-                const { File } = require("expo-file-system");
-                const cachedFile = new File(cachedEntry.cachedUri);
-                if (cachedFile.exists) {
-                    return cachedEntry.cachedUri;
-                }
-            } catch {
-                // Fall through
-            }
-        }
+        // Reuse an already cached file (this session's map or a previous
+        // session's file on disk) instead of downloading over it — otherwise
+        // downloadFileAsync rejects with "Destination already exists".
+        const existing = await this.getCachedUri(url, publicId);
+        if (existing) return existing;
 
         this._isDownloading.add(url);
 
@@ -97,11 +131,18 @@ class MediaCacheManager {
                 headers.Cookie = `session_id=${cookie}`;
             }
 
-            const options = { headers };
+            // Download to a deterministic path so the file can be found again
+            // after a restart. `idempotent` overwrites any stale/partial file
+            // left behind rather than throwing.
+            const destination = new File(
+                dir,
+                this._fileNameFor(url, publicId)
+            );
+            const options = { headers, idempotent: true };
 
             const downloadedFile = await File.downloadFileAsync(
                 url,
-                dir,
+                destination,
                 options
             );
 

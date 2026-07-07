@@ -3,7 +3,8 @@ import { COLORS } from "@/constants/theme";
 import { TMedia } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { VideoView } from "expo-video";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Video, VideoOff } from "lucide-react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import MediaSubSubTitle from "@/components/MediaSubSubTitle";
 import MediaSubTitle from "@/components/MediaSubTitle";
 import MobileLikeButton from "@/components/Player/MobileLikeButton";
@@ -20,6 +21,9 @@ interface PlayerMediaInfoProps {
     onSeek: (seconds: number) => void;
     videoPlayer: VideoPlayer | null;
     hasVideo: boolean;
+    canToggleAudioOnly: boolean;
+    audioOnly: boolean;
+    onToggleAudioOnly: () => void;
 }
 
 export default function PlayerMediaInfo({
@@ -27,6 +31,9 @@ export default function PlayerMediaInfo({
     onSeek,
     videoPlayer,
     hasVideo,
+    canToggleAudioOnly,
+    audioOnly,
+    onToggleAudioOnly,
 }: PlayerMediaInfoProps) {
     return (
         <View style={styles.container}>
@@ -49,6 +56,23 @@ export default function PlayerMediaInfo({
                         mediaType={currentMedia?.type}
                         size={COVER_SIZE}
                     />
+                )}
+
+                {canToggleAudioOnly && (
+                    <Pressable
+                        onPress={onToggleAudioOnly}
+                        style={styles.audioOnlyButton}
+                        hitSlop={8}
+                        accessibilityLabel={
+                            audioOnly ? "Show video" : "Audio only"
+                        }
+                    >
+                        {audioOnly ? (
+                            <VideoOff size={20} color={COLORS.white} />
+                        ) : (
+                            <Video size={20} color={COLORS.white} />
+                        )}
+                    </Pressable>
                 )}
             </View>
 
@@ -110,6 +134,17 @@ const styles = StyleSheet.create({
     },
     videoView: {
         flex: 1,
+    },
+    audioOnlyButton: {
+        position: "absolute",
+        top: 8,
+        right: 8,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.5)",
     },
     infoRow: {
         flexDirection: "row",

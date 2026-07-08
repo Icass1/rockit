@@ -1,7 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
-import type { TPlayableMedia } from "@rockit/shared";
+import { getMediaArtistsString, type TPlayableMedia } from "@rockit/shared";
 import { GripVertical, Trash2 } from "lucide-react";
 
 interface QueueRowProps {
@@ -63,9 +63,7 @@ export default function QueueRow({
                         {media.name}
                     </p>
                     <p className="truncate text-xs text-(--color-muted)">
-                        {"artists" in media
-                            ? (media.artists?.[0]?.name ?? "")
-                            : ""}
+                        {getMediaArtistsString(media)}
                     </p>
                 </div>
             </button>

@@ -2,6 +2,7 @@
 
 import type { JSX } from "react";
 import { useRef, useState } from "react";
+import { getMediaArtistsString } from "@rockit/shared";
 import { ChevronDown } from "lucide-react";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import LikeButton from "@/components/LikeButton/LikeButton";
@@ -104,9 +105,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                             {currentMedia?.name ?? ""}
                         </p>
                         <p className="truncate text-sm font-medium text-white/70">
-                            {currentMedia && "artists" in currentMedia
-                                ? (currentMedia.artists?.[0]?.name ?? "")
-                                : ""}
+                            {getMediaArtistsString(currentMedia)}
                         </p>
                     </div>
                     {currentMedia?.publicId && (

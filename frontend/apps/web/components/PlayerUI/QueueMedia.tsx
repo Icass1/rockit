@@ -36,7 +36,7 @@ export function QueueMedia({
                 isCurrent
                     ? "bg-[rgba(50,50,50,0.4)]"
                     : "md:hover:bg-[rgba(75,75,75,0.4)]"
-            } ${isDownloadable(media.media) && "downloaded" in media.media && !media.media.downloaded && "pointer-events-none opacity-50"}`}
+            } ${isDownloadable(media.media) && !media.media.downloaded && "pointer-events-none opacity-50"}`}
         >
             <div className="flex cursor-grab items-center active:cursor-grabbing">
                 <GripVertical

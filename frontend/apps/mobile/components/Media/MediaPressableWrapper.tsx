@@ -5,22 +5,28 @@ import {
     EEvent,
     EventManager,
     getAllPlayableMedia,
+    getMediaAudioUrl,
     getMediaSubtitle,
+    getMediaVideoUrl,
     isList,
     isPlayable,
     isQueueable,
     isSearchResult,
     isSong,
+    isStation,
     isVideo,
     TMedia,
 } from "@rockit/shared";
 import {
     Download,
     Heart,
+    ListEnd,
+    ListStart,
     Music,
     Pencil,
     Play,
     PlusCircle,
+    Shuffle,
 } from "lucide-react-native";
 import { Pressable } from "react-native";
 import {
@@ -29,6 +35,7 @@ import {
     useContextMenu,
 } from "@/lib/ContextMenuContext";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
@@ -112,6 +119,60 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
 
             if (!isSearchResult(media) && isQueueable(media)) {
                 options.push({
+                    label: vocabulary.ADD_SONG_TO_QUEUE,
+                    icon: ListStart,
+                    onPress: () => {
+                        rockIt.queueManager.addMediaNext(media);
+                        hide();
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_RANDOMLY,
+                    icon: Shuffle,
+                    onPress: () => {
+                        rockIt.queueManager.addMediaRandom(media);
+                        hide();
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_TO_BOTTOM,
+                    icon: ListEnd,
+                    onPress: () => {
+                        rockIt.queueManager.addMediaToEnd(media);
+                        hide();
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isList(media)) {
+                options.push({
+                    label: vocabulary.ADD_LIST_TO_QUEUE,
+                    icon: ListStart,
+                    onPress: () => {
+                        hide();
+                        rockIt.queueManager.addListToQueueTopAsync(media);
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_RANDOMLY,
+                    icon: Shuffle,
+                    onPress: () => {
+                        hide();
+                        rockIt.queueManager.addListToQueueRandomAsync(media);
+                    },
+                });
+                options.push({
+                    label: vocabulary.ADD_LIST_TO_BOTTOM,
+                    icon: ListEnd,
+                    onPress: () => {
+                        hide();
+                        rockIt.queueManager.addListToQueueBottomAsync(media);
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isQueueable(media)) {
+                options.push({
                     label: vocabulary.DOWNLOAD_MEDIA_TO_DEVICE,
                     icon: Download,
                     onPress: async () => {
@@ -121,11 +182,13 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                                 vocabulary.DOWNLOAD_STARTED
                             );
 
-                            const url = isVideo(media)
-                                ? (media.audioSrc ?? media.videoSrc ?? null)
-                                : "audioSrc" in media
-                                  ? media.audioSrc
-                                  : media.streamUrl;
+                            let url: string | null | undefined;
+
+                            if (isVideo(media)) url = getMediaVideoUrl(media);
+                            else if (isSong(media))
+                                url = getMediaAudioUrl(media);
+                            else if (isStation(media)) url = media.streamUrl;
+                            else url = null;
 
                             if (!url) {
                                 toasterManager.notifyError(

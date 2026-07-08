@@ -419,7 +419,7 @@ export default function AdminClient({
                                 {builds.map(
                                     (build, i): JSX.Element => (
                                         <div
-                                            key={build.id}
+                                            key={build.publicId}
                                             className="group relative rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition hover:border-neutral-700"
                                         >
                                             <div className="flex items-start justify-between gap-4">

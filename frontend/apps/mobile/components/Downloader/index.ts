@@ -1,5 +1,5 @@
-export { default as DownloadInputBar } from "./DownloadInputBar";
-export { default as DownloadItem } from "./DownloadItem";
-export { default as DownloadGroup } from "./DownloadGroup";
-export { default as DownloadEmptyState } from "./DownloadEmptyState";
-export { default as StatsPills } from "./StatsPills";
+export { default as DownloadInputBar } from "@/components/Downloader/DownloadInputBar";
+export { default as DownloadItem } from "@/components/Downloader/DownloadItem";
+export { default as DownloadGroup } from "@/components/Downloader/DownloadGroup";
+export { default as DownloadEmptyState } from "@/components/Downloader/DownloadEmptyState";
+export { default as StatsPills } from "@/components/Downloader/StatsPills";

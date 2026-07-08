@@ -1,6 +1,6 @@
 import { atom } from "nanostores";
-import { EToastType } from "../models/enums/toastType";
-import { IToast } from "../models/interfaces/toast";
+import { EToastType } from "@/models/enums/toastType";
+import { IToast } from "@/models/interfaces/toast";
 
 class ToasterManager {
     private _toastsAtom = atom<IToast[]>([]);

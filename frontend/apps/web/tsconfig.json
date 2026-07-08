@@ -25,6 +25,12 @@
       }
     ],
     "paths": {
+      "@/auth/*": [
+        "../../packages/shared/src/auth/*"
+      ],
+      "@/audio/*": [
+        "../../packages/shared/src/audio/*"
+      ],
       "@/components/*": [
         "./components/*"
       ],
@@ -40,18 +46,31 @@
       "@/hooks/*": [
         "./hooks/*"
       ],
-      "@/styles/*": [
-        "./styles/*"
+      "@/http/*": [
+        "../../packages/shared/src/http/*"
       ],
       "@/lib/*": [
+        "../../packages/shared/src/lib/*",
         "./lib/*"
+      ],
+      "@/managers/*": [
+        "../../packages/shared/src/managers/*"
       ],
       "@/models/*": [
         "../../packages/shared/src/models/*",
         "./models/*"
       ],
+      "@/rockit/*": [
+        "../../packages/shared/src/rockit/*"
+      ],
+      "@/styles/*": [
+        "./styles/*"
+      ],
       "@/types/*": [
         "../../packages/shared/src/types/*"
+      ],
+      "@/utils/*": [
+        "../../packages/shared/src/utils/*"
       ],
       "@rockit/packages/shared": [
         "../../packages/shared/src/index.ts"

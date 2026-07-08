@@ -108,9 +108,7 @@ export default function ContextMenuTrigger({
         }, 500);
     };
 
-    const handleTouchMove = (
-        event: React.TouchEvent<HTMLDivElement>
-    ): void => {
+    const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>): void => {
         if (!touchStartPos.current) return;
 
         const touch = event.touches[0];

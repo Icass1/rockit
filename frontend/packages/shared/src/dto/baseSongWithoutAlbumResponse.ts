@@ -11,7 +11,7 @@ export const BaseSongWithoutAlbumResponseSchema = z.object({
     providerUrl: z.string(),
     name: z.string(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
-    audioSrc: z.string().nullable(),
+    audioUrl: z.string().nullable(),
     downloaded: z.boolean(),
     imageUrl: z.string(),
     duration_ms: z.number(),

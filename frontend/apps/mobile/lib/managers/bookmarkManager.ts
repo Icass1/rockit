@@ -3,6 +3,7 @@ import type {
     CreateBookmarkRequest,
     UpdateBookmarkRequest,
 } from "@rockit/shared";
+import { getRockIt } from "@rockit/shared";
 import { atom } from "nanostores";
 import { Http } from "@/lib/http";
 import { toasterManager } from "@/lib/toasterManager";
@@ -25,6 +26,64 @@ export class BookmarkManager {
     currentMediaBookmarksAtom = atom<BookmarkResponse[]>([]);
     showPopupAtom = atom<boolean>(false);
     editingBookmarkAtom = atom<BookmarkResponse | null>(null);
+    private _initialized = false;
+
+    init(): void {
+        if (this._initialized) return;
+        this._initialized = true;
+
+        // Load bookmarks whenever the current media changes.
+        getRockIt().queueManager.currentMediaAtom.subscribe((): void => {
+            const media = getRockIt().queueManager.currentMedia;
+            if (media?.publicId) {
+                this.fetchBookmarksForMediaAsync(media.publicId);
+            } else {
+                this.setBookmarks([]);
+            }
+        });
+    }
+
+    skipToNextBookmark(): boolean {
+        const bookmarks = this.currentMediaBookmarksAtom.get();
+        const currentTime =
+            getRockIt().mediaPlayerManager.currentTimeAtom.get();
+        if (!bookmarks.length || currentTime === null) return false;
+
+        const sorted = [...bookmarks].sort((a, b) => a.timestamp - b.timestamp);
+
+        const next = sorted.find((b) => b.timestamp > currentTime + 0.5);
+        if (next) {
+            getRockIt().mediaPlayerManager.setCurrentTime(next.timestamp, true);
+            return true;
+        }
+        return false;
+    }
+
+    skipToPrevBookmark(): boolean {
+        const bookmarks = this.currentMediaBookmarksAtom.get();
+        const currentTime =
+            getRockIt().mediaPlayerManager.currentTimeAtom.get();
+        if (!bookmarks.length || currentTime === null) return false;
+
+        const sorted = [...bookmarks].sort((a, b) => a.timestamp - b.timestamp);
+        if (sorted.length === 0) return false;
+
+        const prev = [...sorted]
+            .reverse()
+            .find((b) => b.timestamp < currentTime - 0.5);
+        if (prev) {
+            getRockIt().mediaPlayerManager.setCurrentTime(prev.timestamp, true);
+            return true;
+        }
+        if (
+            currentTime >= sorted[0].timestamp - 0.5 &&
+            sorted[0].timestamp > 0.5
+        ) {
+            getRockIt().mediaPlayerManager.setCurrentTime(0, true);
+            return true;
+        }
+        return false;
+    }
 
     async fetchBookmarksForMediaAsync(mediaPublicId: string): Promise<void> {
         const response = await Http.getBookmarks({ mediaPublicId });

@@ -1,14 +1,9 @@
-import base64
-import os
-import uuid
+from logging import Logger
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
-from collections import defaultdict
-from typing import Any
 
-from backend.core.access.adminVersionAccess import AdminVersionAccess
+from backend.core.framework.admin.build import AdminBuild
 from backend.core.framework.admin.requestLogStats import RequestLogStats
 from backend.core.framework.admin.userRequest import UserRequest as UserRequestFramework
 from backend.core.requests.addVersionRequest import AddVersionRequest
@@ -35,21 +30,9 @@ from backend.core.responses.userRequestResponse import (
 )
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-from backend.constants import BUILDS_PATH, CHUNK_SIZE
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
-
-CHUNKED_UPLOADS: dict[str, Any] = defaultdict(
-    lambda: {
-        "file_path": "",
-        "chunks": [],
-        "total_chunks": 0,
-        "version": "",
-        "description": "",
-        "version_filename": "",
-    }
-)
 
 router = APIRouter(
     prefix="/admin",
@@ -61,7 +44,7 @@ router = APIRouter(
 @router.get("/builds")
 async def get_all_builds(request: Request) -> AllBuildsResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result = await AdminVersionAccess.get_all_versions_async(session=session)
+    a_result = await AdminBuild.get_all_versions_async(session=session)
 
     if a_result.is_not_ok():
         logger.error(f"Error fetching builds. {a_result.info()}")
@@ -71,7 +54,7 @@ async def get_all_builds(request: Request) -> AllBuildsResponse:
 
     builds = [
         BuildResponse(
-            id=row.id,
+            publicId=row.public_id,
             version=row.version,
             apkFilename=row.apk_filename,
             description=row.description,
@@ -86,7 +69,7 @@ async def get_all_builds(request: Request) -> AllBuildsResponse:
 @router.post("/builds")
 async def add_build(request: Request, payload: AddVersionRequest) -> OkResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result = await AdminVersionAccess.add_version_async(
+    a_result = await AdminBuild.add_version_async(
         session=session,
         version=payload.version,
         apk_filename=payload.apkFilename,
@@ -107,45 +90,31 @@ async def upload_apk(request: Request, payload: UploadApkRequest) -> UploadApkRe
     if not payload.fileName.endswith(".apk"):
         raise HTTPException(status_code=400, detail="Only .apk files are allowed.")
 
-    os.makedirs(BUILDS_PATH, exist_ok=True)
-
-    file_ext = os.path.splitext(payload.fileName)[1]
-    version_filename = f"v{payload.version}{file_ext}"
-    file_path = os.path.join(BUILDS_PATH, version_filename)
-
-    if os.path.exists(file_path):
-        raise HTTPException(
-            status_code=400,
-            detail=f"A build with filename '{version_filename}' already exists.",
-        )
-
-    try:
-        file_content = base64.b64decode(payload.fileContent)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid base64 content.")
-
-    with open(file_path, "wb") as f:
-        f.write(file_content)
-
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result = await AdminVersionAccess.add_version_async(
+    a_result_user = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401, detail=a_result_user.message())
+
+    a_result = await AdminBuild.upload_apk_single_async(
         session=session,
+        user_id=a_result_user.result().id,
+        file_name=payload.fileName,
+        file_content=payload.fileContent,
         version=payload.version,
-        apk_filename=version_filename,
         description=payload.description,
     )
 
     if a_result.is_not_ok():
-        os.remove(file_path)
-        logger.error(f"Error adding build. {a_result.info()}")
+        logger.error(f"Error uploading build. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
+    result = a_result.result()
     return UploadApkResponse(
-        message="Build uploaded successfully.",
-        id=a_result.result().id,
-        filename=version_filename,
+        message=result.message,
+        publicId=result.publicId,
+        filename=result.filename,
     )
 
 
@@ -156,35 +125,31 @@ async def start_chunked_upload(
     if not payload.fileName.endswith(".apk"):
         raise HTTPException(status_code=400, detail="Only .apk files are allowed.")
 
-    upload_id = str(uuid.uuid4())
-    total_chunks = (payload.totalSize + CHUNK_SIZE - 1) // CHUNK_SIZE
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401, detail=a_result_user.message())
 
-    os.makedirs(BUILDS_PATH, exist_ok=True)
+    a_result = await AdminBuild.start_chunked_upload_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        file_name=payload.fileName,
+        total_size=payload.totalSize,
+        version=payload.version,
+        description=payload.description,
+    )
 
-    file_ext = os.path.splitext(payload.fileName)[1]
-    version_filename = f"v{payload.version}{file_ext}"
-    file_path = os.path.join(BUILDS_PATH, version_filename)
-
-    if os.path.exists(file_path):
+    if a_result.is_not_ok():
+        logger.error(f"Error starting chunked upload. {a_result.info()}")
         raise HTTPException(
-            status_code=400,
-            detail=f"A build with filename '{version_filename}' already exists.",
+            status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    CHUNKED_UPLOADS[upload_id] = {
-        "file_path": file_path,
-        "chunks": [],
-        "total_chunks": total_chunks,
-        "version": payload.version,
-        "description": payload.description,
-        "version_filename": version_filename,
-    }
-
-    with open(file_path, "wb"):
-        pass
-
+    result = a_result.result()
     return StartChunkedUploadResponse(
-        uploadId=upload_id, chunkSize=CHUNK_SIZE, totalChunks=total_chunks
+        uploadId=result.uploadId,
+        chunkSize=result.chunkSize,
+        totalChunks=result.totalChunks,
     )
 
 
@@ -192,30 +157,28 @@ async def start_chunked_upload(
 async def upload_chunk(
     request: Request, payload: UploadChunkRequest
 ) -> UploadChunkResponse:
-    upload = CHUNKED_UPLOADS.get(payload.uploadId)
-    if not upload:
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await AdminBuild.upload_chunk_async(
+        session=session,
+        upload_id=payload.uploadId,
+        chunk_index=payload.chunkIndex,
+        chunk_data=payload.chunkData,
+        total_chunks=payload.totalChunks,
+    )
+
+    if a_result.is_not_ok():
+        logger.error(f"Error uploading chunk. {a_result.info()}")
         raise HTTPException(
-            status_code=400, detail="Upload session not found or expired."
+            status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    if payload.chunkIndex >= payload.totalChunks:
-        raise HTTPException(status_code=400, detail="Invalid chunk index.")
-
-    try:
-        chunk_data = base64.b64decode(payload.chunkData)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid base64 chunk data.")
-
-    with open(upload["file_path"], "ab") as f:
-        f.write(chunk_data)
-
-    upload["chunks"].append(payload.chunkIndex)
-
+    result = a_result.result()
     return UploadChunkResponse(
-        uploadId=payload.uploadId,
-        chunkIndex=payload.chunkIndex,
-        chunksReceived=len(upload["chunks"]),
-        totalChunks=payload.totalChunks,
+        uploadId=result.uploadId,
+        chunkIndex=result.chunkIndex,
+        chunksReceived=result.chunksReceived,
+        totalChunks=result.totalChunks,
     )
 
 
@@ -223,42 +186,23 @@ async def upload_chunk(
 async def complete_chunked_upload(
     request: Request, payload: CompleteChunkedUploadRequest
 ) -> UploadApkResponse:
-    upload = CHUNKED_UPLOADS.pop(payload.uploadId, None)
-    if not upload:
-        raise HTTPException(
-            status_code=400, detail="Upload session not found or expired."
-        )
-
-    file_path = upload["file_path"]
-    expected_chunks = upload["total_chunks"]
-    received_chunks = len(upload["chunks"])
-
-    if received_chunks != expected_chunks:
-        os.remove(file_path)
-        raise HTTPException(
-            status_code=400,
-            detail=f"Incomplete upload. Expected {expected_chunks} chunks, got {received_chunks}.",
-        )
-
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result = await AdminVersionAccess.add_version_async(
-        session=session,
-        version=upload["version"],
-        apk_filename=upload["version_filename"],
-        description=upload["description"],
+
+    a_result = await AdminBuild.complete_chunked_upload_async(
+        session=session, upload_id=payload.uploadId
     )
 
     if a_result.is_not_ok():
-        os.remove(file_path)
-        logger.error(f"Error adding build. {a_result.info()}")
+        logger.error(f"Error completing chunked upload. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
+    result = a_result.result()
     return UploadApkResponse(
-        message="Build uploaded successfully.",
-        id=a_result.result().id,
-        filename=upload["version_filename"],
+        message=result.message,
+        publicId=result.publicId,
+        filename=result.filename,
     )
 
 

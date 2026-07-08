@@ -13,7 +13,7 @@ import { ChevronDown, ChevronRight } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { webSocketManager } from "@/lib/webSocketManager";
-import { Media } from "./Media";
+import { Media } from "@/components/RenderList/Media";
 
 function ListArtists({ media }: { media: TListMedia }) {
     if (isAlbum(media)) {

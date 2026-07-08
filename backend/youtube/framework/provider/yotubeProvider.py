@@ -70,13 +70,13 @@ YOUTUBE_URL_PATTERNS: list[UrlPattern] = [
 
 
 class YoutubeProvider(BaseMediaProvider):
-    """TODO"""
+    """Provider implementation for YouTube video and channel media."""
 
     def __init__(self) -> None:
         super().__init__()
 
     def set_info(self, provider_id: int, provider_name: str) -> None:
-        """TODO"""
+        """Set the provider ID and name, and register them on the YouTube module."""
 
         YouTube.provider_name = provider_name
         YouTube.provider = self
@@ -88,7 +88,7 @@ class YoutubeProvider(BaseMediaProvider):
     async def search_media_async(
         self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
-        """TODO"""
+        """Search YouTube for videos matching the query string."""
 
         a_result: AResult[List[RawYoutubeSearchResult]] = (
             await youtube_api.search_videos_async(query=query, max_results=10)
@@ -173,8 +173,8 @@ class YoutubeProvider(BaseMediaProvider):
                 duration_ms=youtube_video.duration_ms,
                 artists=youtube_video.artists,
                 downloaded=youtube_video.downloaded,
-                videoSrc=youtube_video.videoSrc,
-                audioSrc=youtube_video.audioSrc,
+                videoUrl=youtube_video.videoUrl,
+                audioUrl=youtube_video.audioUrl,
             ),
         )
 
@@ -186,7 +186,7 @@ class YoutubeProvider(BaseMediaProvider):
         download_group_id: int,
         user_id: int,
     ) -> AResult[BaseDownload]:
-        """TODO"""
+        """Start a download for a YouTube video identified by its public ID."""
 
         a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
             session=session, public_id=public_id
@@ -210,7 +210,7 @@ class YoutubeProvider(BaseMediaProvider):
         )
 
     def _get_thumbnail_url(self, thumbnails: Any) -> str:
-        """TODO"""
+        """Extract the best available thumbnail URL from the YouTube API thumbnail dict."""
 
         if not thumbnails:
             return ""
@@ -258,8 +258,8 @@ class YoutubeProvider(BaseMediaProvider):
                     duration_ms=youtube_video.duration_ms,
                     artists=youtube_video.artists,
                     downloaded=youtube_video.downloaded,
-                    videoSrc=youtube_video.videoSrc,
-                    audioSrc=youtube_video.audioSrc,
+                    videoUrl=youtube_video.videoUrl,
+                    audioUrl=youtube_video.audioUrl,
                 )
             )
 

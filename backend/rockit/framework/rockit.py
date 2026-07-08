@@ -861,7 +861,7 @@ class Rockit:
                     providerUrl="",
                     name=song.name,
                     artists=song_artists,
-                    audioSrc=audio_src,
+                    audioUrl=audio_src,
                     downloaded=True,
                     imageUrl=image_url,
                     duration_ms=song.duration_ms,
@@ -963,7 +963,7 @@ class Rockit:
                             providerUrl="",
                             name=song.name,
                             artists=song_artists,
-                            audioSrc=audio_src,
+                            audioUrl=audio_src,
                             downloaded=True,
                             imageUrl=song_image_url,
                             duration_ms=song.duration_ms,
@@ -1027,8 +1027,10 @@ class Rockit:
             ]
 
             video_src: str | None = None
+            audio_src: str | None = None
             if video.file_path:
-                video_src = f"{BACKEND_URL}/rockit/video/{public_id}"
+                video_src = f"{BACKEND_URL}/rockit/video/{public_id}/stream"
+                audio_src = f"{BACKEND_URL}/rockit/video/{public_id}/stream/audio"
 
             return AResult(
                 code=AResultCode.OK,
@@ -1038,8 +1040,8 @@ class Rockit:
                     publicId=public_id,
                     providerUrl="",
                     name=video.name,
-                    videoSrc=video_src,
-                    audioSrc=None,
+                    videoUrl=video_src,
+                    audioUrl=audio_src,
                     imageUrl=image_url,
                     duration_ms=video.duration_ms,
                     artists=video_artists,

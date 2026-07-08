@@ -208,7 +208,9 @@ export default function AdminStats(): JSX.Element {
             <div>
                 <SectionHeader
                     title={$vocabulary.ADMIN_REQUESTS_OVER_TIME}
-                    icon={<Activity className="h-4 w-4 text-(--color-rockit-pink)" />}
+                    icon={
+                        <Activity className="h-4 w-4 text-(--color-rockit-pink)" />
+                    }
                 />
                 <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                     <ResponsiveContainer width="100%" height={280}>
@@ -280,7 +282,9 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_AVG_RESPONSE_TIME}
-                        icon={<Clock className="h-4 w-4 text-(--color-rockit-pink)" />}
+                        icon={
+                            <Clock className="h-4 w-4 text-(--color-rockit-pink)" />
+                        }
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -342,7 +346,9 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_HOURLY_ACTIVITY}
-                        icon={<BarChart3 className="h-4 w-4 text-(--color-rockit-pink)" />}
+                        icon={
+                            <BarChart3 className="h-4 w-4 text-(--color-rockit-pink)" />
+                        }
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -395,7 +401,9 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_RESPONSE_CODES}
-                        icon={<Route className="h-4 w-4 text-(--color-rockit-pink)" />}
+                        icon={
+                            <Route className="h-4 w-4 text-(--color-rockit-pink)" />
+                        }
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -450,7 +458,9 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_HTTP_METHODS}
-                        icon={<Route className="h-4 w-4 text-(--color-rockit-pink)" />}
+                        icon={
+                            <Route className="h-4 w-4 text-(--color-rockit-pink)" />
+                        }
                     />
                     <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
                         <ResponsiveContainer width="100%" height={260}>
@@ -496,7 +506,9 @@ export default function AdminStats(): JSX.Element {
             <div>
                 <SectionHeader
                     title={$vocabulary.ADMIN_TOP_ROUTES}
-                    icon={<Route className="h-4 w-4 text-(--color-rockit-pink)" />}
+                    icon={
+                        <Route className="h-4 w-4 text-(--color-rockit-pink)" />
+                    }
                 />
                 <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
                     <div className="overflow-x-auto">
@@ -563,7 +575,9 @@ export default function AdminStats(): JSX.Element {
                 <div>
                     <SectionHeader
                         title={$vocabulary.ADMIN_USER_ACTIVITY}
-                        icon={<Users className="h-4 w-4 text-(--color-rockit-pink)" />}
+                        icon={
+                            <Users className="h-4 w-4 text-(--color-rockit-pink)" />
+                        }
                     />
                     <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
                         <div className="overflow-x-auto">

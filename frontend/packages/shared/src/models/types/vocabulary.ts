@@ -2,6 +2,7 @@
 // Do not modify this file manually.
 
 export interface Vocabulary {
+    ADD_BOOKMARK_AT: string;
     ADD_LIST_RANDOMLY: string;
     ADD_LIST_TO_BOTTOM: string;
     ADD_LIST_TO_QUEUE: string;
@@ -10,6 +11,7 @@ export interface Vocabulary {
     ADD_SONG_TO_QUEUE: string;
     ADD_TO_LIBRARY: string;
     ADD_TO_LIKED: string;
+    ADD_TO_PLAYLIST_AND_DOWNLOAD: string;
     ADD_TO_QUEUE: string;
     ADDED_TO_LIBRARY: string;
     ADDED_TO_PLAYLIST: string;
@@ -89,6 +91,8 @@ export interface Vocabulary {
     AUGUST: string;
     AUTOSKIP: string;
     AVERAGE_MINUTES_PER_SONG: string;
+    BOOKMARK_DESCRIPTION_PLACEHOLDER: string;
+    BOOKMARKS: string;
     BY: string;
     CANCEL: string;
     CHANGE_PASSWORD: string;
@@ -110,6 +114,8 @@ export interface Vocabulary {
     DISC: string;
     DISPLAY_NAME: string;
     DOWNLOAD: string;
+    DOWNLOAD_AND_ADD_TO_LIBRARY: string;
+    DOWNLOAD_AND_PLAY: string;
     DOWNLOAD_APP: string;
     DOWNLOAD_INPUT_PLACEHOLDER: string;
     DOWNLOAD_LIST_TO_DEVICE: string;
@@ -118,10 +124,14 @@ export interface Vocabulary {
     DOWNLOAD_MP3: string;
     DOWNLOAD_SONG_TO_DEVICE: string;
     DOWNLOAD_STARTED: string;
+    DOWNLOAD_TO_SERVER: string;
     DOWNLOAD_ZIP: string;
+    DOWNLOADER_RETRY_ARIA: string;
+    DOWNLOADER_RETRY_ERROR: string;
     DOWNLOADING: string;
     DOWNLOADS: string;
     DURATION: string;
+    EDIT_BOOKMARK: string;
     EDIT_METADATA: string;
     EDIT_METADATA_COMMENT: string;
     EDIT_METADATA_COMMENT_PLACEHOLDER: string;
@@ -212,12 +222,14 @@ export interface Vocabulary {
     MOST_LISTENED_ARTISTS: string;
     MOST_LISTENED_SONGS: string;
     NAME: string;
+    NEW_BOOKMARK: string;
     NEW_PASSWORD: string;
     NEW_PLAYLIST: string;
     NEW_PLAYLIST_NAME: string;
     NEW_VERSION_AVAILABLE: string;
     NEXT_MEDIA: string;
     NO_ALBUMS: string;
+    NO_BOOKMARKS: string;
     NO_DATA: string;
     NO_DOWNLOADS: string;
     NO_LYRICS: string;
@@ -287,6 +299,7 @@ export interface Vocabulary {
     REPEAT_PASSWORD: string;
     RETRY: string;
     RETURN_BACK_HOME: string;
+    SAVE: string;
     SAVING: string;
     SEARCH: string;
     SEARCH_BAR: string;
@@ -361,13 +374,4 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    BOOKMARK_DESCRIPTION_PLACEHOLDER: string;
-    SAVE: string;
-    EDIT_BOOKMARK: string;
-    NEW_BOOKMARK: string;
-    NO_BOOKMARKS: string;
-    BOOKMARKS: string;
-    ADD_BOOKMARK_AT: string;
-    DOWNLOAD_TO_SERVER: string;
-    DOWNLOAD_AND_ADD_TO_LIBRARY: string;
 }

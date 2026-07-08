@@ -26,6 +26,9 @@ from backend.core.access.db.ormModels.downloadGroup import (
 from backend.core.access.db.ormModels.vocabulary import VocabularyRow as VocabularyRow
 from backend.core.access.db.ormModels.requestLog import RequestLogRow as RequestLogRow
 from backend.core.access.db.ormModels.appVersion import AppVersionRow as AppVersionRow
+from backend.core.access.db.ormModels.buildUploadSession import (
+    BuildUploadSessionRow as BuildUploadSessionRow,
+)
 from backend.core.access.db.ormModels.user_seeks import UserSeeksRow as UserSeeksRow
 from backend.core.access.db.ormModels.user_queue import UserQueueRow as UserQueueRow
 from backend.core.access.db.ormModels.download import DownloadRow as DownloadRow

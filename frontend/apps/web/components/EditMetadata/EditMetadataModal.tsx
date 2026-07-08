@@ -4,7 +4,13 @@ import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
 import type { BaseDynamicLyricsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { getMediaSubtitle, type TMediaWithSearch } from "@rockit/shared";
+import {
+    getMediaArtistsString,
+    getMediaSubtitle,
+    isSearchResult,
+    isSongWithAlbum,
+    type TMediaWithSearch,
+} from "@rockit/shared";
 import { Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Http } from "@/lib/http";
@@ -57,14 +63,16 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
                 {
                     key: "artist",
                     label: "Artist",
-                    value: media.artists.map((a) => a.name).join(", "),
+                    value: getMediaArtistsString(media),
                     type: "text",
                 },
                 {
                     key: "album",
                     label: "Album",
                     value:
-                        "album" in media && media.album ? media.album.name : "",
+                        !isSearchResult(media) && isSongWithAlbum(media)
+                            ? media.album.name
+                            : "",
                     type: "text",
                 },
                 { key: "genre", label: "Genre", value: "", type: "text" },
@@ -80,7 +88,7 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
                 {
                     key: "artist",
                     label: "Artist",
-                    value: media.artists.map((a) => a.name).join(", "),
+                    value: getMediaArtistsString(media),
                     type: "text",
                 },
                 { key: "genre", label: "Genre", value: "", type: "text" },
@@ -96,16 +104,15 @@ function getOtherFields(media: TMediaWithSearch): FieldDef[] {
                 {
                     key: "artist",
                     label: "Artist",
-                    value: media.artists.map((a) => a.name).join(", "),
+                    value: getMediaArtistsString(media),
                     type: "text",
                 },
                 {
                     key: "releaseDate",
                     label: "Release date",
-                    value:
-                        "releaseDate" in media && media.releaseDate
-                            ? media.releaseDate
-                            : "",
+                    value: isSearchResult(media)
+                        ? ""
+                        : (media.releaseDate ?? ""),
                     type: "text",
                 },
                 { key: "genre", label: "Genre", value: "", type: "text" },
@@ -141,7 +148,7 @@ export default function EditMetadataModal({
     const [error, setError] = useState<string | null>(null);
 
     const isSong = media.type === "song";
-    const mediaPublicId = "publicId" in media ? media.publicId : null;
+    const mediaPublicId = isSearchResult(media) ? null : media.publicId;
 
     useEffect(() => {
         if (!isSong || !mediaPublicId) return;

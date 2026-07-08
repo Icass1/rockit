@@ -6,6 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProvider } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { syncManager } from "@/lib/syncManager";
 import { VocabularyProvider } from "@/lib/vocabulary";
@@ -30,6 +31,7 @@ export default function RootLayout() {
                 await mediaStorage.init();
                 await syncManager.init();
                 await webSocketManager.init();
+                await rockIt.init();
             } catch (e) {
                 console.error("Initialization error:", e);
             } finally {

@@ -26,6 +26,7 @@ from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumRe
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 
 from backend.core.framework import providers
+from backend.core.framework.media.stream import MediaStream
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.provider.baseUploadProvider import BaseUploadProvider
 
@@ -82,7 +83,7 @@ async def upload_rockit_song(
     if provider is None:
         raise HTTPException(status_code=500, detail="RockIt upload provider not found")
 
-    upload_id: str = create_id(16)
+    upload_id: str = create_id(32)
     temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
     file_path: str = os.path.join(temp_dir, "file")
     image_path: str = os.path.join(temp_dir, "image")
@@ -167,7 +168,7 @@ async def upload_rockit_album(
     else:
         songs_meta = []
 
-    upload_id: str = create_id(16)
+    upload_id: str = create_id(32)
     temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
 
     raw_cover = form.get("cover")
@@ -384,7 +385,7 @@ async def serve_rockit_audio(
     )
 
 
-@router.get("/video/{public_id}")
+@router.get("/video/{public_id}/stream")
 async def serve_rockit_video(
     request: Request,
     public_id: str,
@@ -475,6 +476,50 @@ async def serve_rockit_video(
             "Content-Length": str(file_size),
         },
     )
+
+
+@router.get("/video/{public_id}/stream/audio")
+async def serve_rockit_video_audio(
+    request: Request,
+    public_id: str,
+):
+    """Stream audio extracted from a RockIt video using ffmpeg."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+
+    a_result_media: AResult[CoreMediaRow] = (
+        await MediaAccess.get_media_from_public_id_async(
+            session=session, public_id=public_id, media_type_keys=None
+        )
+    )
+    if a_result_media.is_not_ok():
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    media: CoreMediaRow = a_result_media.result()
+
+    a_result_videos: AResult[List[RockitVideoRow]] = (
+        await RockitAccess.get_videos_async(session=session, video_ids=[media.id])
+    )
+    if a_result_videos.is_not_ok() or not a_result_videos.result():
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    video: RockitVideoRow = a_result_videos.result()[0]
+    if not video.file_path or not os.path.exists(video.file_path):
+        raise HTTPException(status_code=404, detail="Video file not found")
+
+    a_result_stream: AResult[StreamingResponse] = (
+        await MediaStream.stream_audio_from_video_async(
+            video_path=video.file_path, range_header=request.headers.get("range")
+        )
+    )
+    if a_result_stream.is_not_ok():
+        logger.error(f"Error streaming audio. {a_result_stream.info()}")
+        raise HTTPException(
+            status_code=a_result_stream.get_http_code(),
+            detail=a_result_stream.message(),
+        )
+
+    return a_result_stream.result()
 
 
 def _get_rockit_media_provider() -> BaseMediaProvider | None:

@@ -1,6 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
+import { EQueueType, ERepeatMode } from "@rockit/shared";
 import {
     Pause,
     Play,
@@ -9,7 +10,6 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { ERepeatMode } from "@rockit/shared";
 import { usePlayer } from "@/lib/PlayerContext";
 
 function repeatColor(mode: ERepeatMode): string {
@@ -22,10 +22,11 @@ export default function PlayerControlsRow(): JSX.Element {
     const {
         isPlaying,
         repeatMode,
+        queueType,
         togglePlayPause,
         skipForward,
         skipBack,
-        toggleShuffle,
+        toggleRandomQueue,
         cycleRepeat,
     } = usePlayer();
 
@@ -33,11 +34,19 @@ export default function PlayerControlsRow(): JSX.Element {
         <div className="flex w-full items-center justify-evenly px-1">
             <button
                 type="button"
-                onClick={toggleShuffle}
+                onClick={toggleRandomQueue}
                 className="flex h-12 w-12 items-center justify-center"
                 aria-label="Aleatorio"
+                aria-pressed={queueType === EQueueType.RANDOM}
             >
-                <Shuffle size={24} color="white" />
+                <Shuffle
+                    size={24}
+                    color={
+                        queueType === EQueueType.RANDOM
+                            ? "var(--color-rockit-pink)"
+                            : "white"
+                    }
+                />
             </button>
 
             <button
@@ -79,7 +88,7 @@ export default function PlayerControlsRow(): JSX.Element {
             >
                 <Repeat size={24} color={repeatColor(repeatMode)} />
                 {repeatMode === ERepeatMode.ONE && (
-                    <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-(--color-rockit-pink)">
+                    <span className="absolute -right-0.5 -bottom-1 text-[8px] font-bold text-(--color-rockit-pink)">
                         1
                     </span>
                 )}

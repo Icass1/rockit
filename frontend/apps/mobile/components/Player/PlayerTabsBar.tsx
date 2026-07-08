@@ -1,6 +1,6 @@
 import { COLORS } from "@/constants/theme";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { PlayerTab } from "./FullPlayer";
+import type { PlayerTab } from "@/components/Player/FullPlayer";
 
 const TABS: {
     key: Exclude<PlayerTab, null | "crossfade">;

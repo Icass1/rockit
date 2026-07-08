@@ -552,9 +552,7 @@ class SpotifyScrapper:
                 code=a_result_playlist.code(), message=a_result_playlist.message()
             )
 
-        logger.info(
-            f"Playlist {spotify_id} not in DB, fetching from Spotify API..."
-        )
+        logger.info(f"Playlist {spotify_id} not in DB, fetching from Spotify API...")
         a_result_api_playlist: AResult[ScrappedPlaylist] = (
             await spotify_scrapper_api.get_playlist_async(
                 session=session, id=spotify_id

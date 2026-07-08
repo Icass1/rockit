@@ -2,10 +2,10 @@
 
 import type { JSX } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { HttpResult } from "@rockit/shared";
-import { usePlayer } from "@/lib/PlayerContext";
-import { Http } from "@/lib/http";
 import type { BaseDynamicLyricsResponse } from "@/dto";
+import type { HttpResult } from "@rockit/shared";
+import { Http } from "@/lib/http";
+import { usePlayer } from "@/lib/PlayerContext";
 
 interface LyricsPanelProps {
     currentTime: number;
@@ -26,15 +26,15 @@ export default function LyricsPanel({
 
         let cancelled = false;
 
-        Http.getDynamicLyricsAsync(
-            currentMedia.publicId
-        ).then((response: HttpResult<BaseDynamicLyricsResponse>) => {
-            if (cancelled) return;
-            if (response.isOk() && response.result) {
-                setLyrics(response.result);
+        Http.getDynamicLyricsAsync(currentMedia.publicId).then(
+            (response: HttpResult<BaseDynamicLyricsResponse>) => {
+                if (cancelled) return;
+                if (response.isOk() && response.result) {
+                    setLyrics(response.result);
+                }
+                setLoading(false);
             }
-            setLoading(false);
-        });
+        );
 
         return (): void => {
             cancelled = true;
@@ -81,7 +81,7 @@ export default function LyricsPanel({
     }
 
     return (
-        <div className="hide-scroll-thumb h-full overflow-y-auto px-6 pb-24 pt-4">
+        <div className="hide-scroll-thumb h-full overflow-y-auto px-6 pt-4 pb-24">
             {lyrics.lines.map(
                 (
                     line: {
@@ -96,13 +96,9 @@ export default function LyricsPanel({
                     return (
                         <p
                             key={index}
-                            ref={
-                                isActive ? activeLineRef : undefined
-                            }
-                            onClick={() =>
-                                onSeek(line.timestamp_s)
-                            }
-                            className={`mb-2 cursor-pointer pr-4 font-semibold leading-9 transition-colors ${
+                            ref={isActive ? activeLineRef : undefined}
+                            onClick={() => onSeek(line.timestamp_s)}
+                            className={`mb-2 cursor-pointer pr-4 leading-9 font-semibold transition-colors ${
                                 isActive
                                     ? "text-[26px] text-white"
                                     : isPast

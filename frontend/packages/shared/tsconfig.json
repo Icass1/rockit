@@ -16,12 +16,18 @@
         "noFallthroughCasesInSwitch": true,
         "types": ["node"],
         "paths": {
+            "@/auth/*": ["./src/auth/*"],
+            "@/audio/*": ["./src/audio/*"],
             "@/dto": ["./src/dto"],
             "@/dto/*": ["./src/dto/*"],
-            "@/lib/*": ["./src/lib/*"],
-            "@/types/*": ["./src/types/*"],
             "@/environment": ["./src/environment"],
-            "@/models/*": ["./src/models/*"]
+            "@/http/*": ["./src/http/*"],
+            "@/lib/*": ["./src/lib/*"],
+            "@/managers/*": ["./src/managers/*"],
+            "@/models/*": ["./src/models/*"],
+            "@/rockit/*": ["./src/rockit/*"],
+            "@/types/*": ["./src/types/*"],
+            "@/utils/*": ["./src/utils/*"]
         }
     },
     "include": ["**/*.ts", "**/*.tsx"],

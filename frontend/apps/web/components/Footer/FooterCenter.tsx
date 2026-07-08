@@ -65,7 +65,9 @@ export default function FooterCenter(): JSX.Element {
 
                 <button
                     aria-label={
-                        $queueType ? "Disable shuffle" : "Enable shuffle"
+                        $queueType === EQueueType.RANDOM
+                            ? "Disable shuffle"
+                            : "Enable shuffle"
                     }
                     aria-pressed={$queueType === EQueueType.RANDOM}
                     onClick={(): void => rockIt.userManager.toggleRandomQueue()}

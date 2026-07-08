@@ -1,13 +1,20 @@
 import { useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
-import { isDownloadable, type TQueueMedia } from "@rockit/shared";
+import {
+    getMediaArtistsString,
+    isDownloadable,
+    type TQueueMedia,
+} from "@rockit/shared";
 import { Image } from "expo-image";
 import { Menu, Trash2 } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { useMediaOffline } from "@/hooks/useMediaOffline";
 import { syncManager } from "@/lib/syncManager";
+
+/** Width of the swipe-to-delete action revealed behind a queue row. */
+const DELETE_WIDTH = 80;
 
 interface QueueItemProps {
     media: TQueueMedia;
@@ -38,26 +45,25 @@ export default function QueueItem({
 
     const renderRightActions = (
         _progress: Animated.AnimatedInterpolation<number>,
-        dragX: Animated.AnimatedInterpolation<number>
+        // Live row translation: 0 (closed) → -DELETE_WIDTH (fully dragged).
+        translation: Animated.AnimatedInterpolation<number>
     ) => {
-        const scale = dragX.interpolate({
-            inputRange: [-80, -40],
-            outputRange: [1, 0.7],
+        // Trash icon starts off-screen to the right and slides into view as
+        // the row is dragged left.
+        const translateX = translation.interpolate({
+            inputRange: [-DELETE_WIDTH, 0],
+            outputRange: [0, DELETE_WIDTH],
             extrapolate: "clamp",
         });
 
         return (
-            <Pressable
-                style={styles.deleteAction}
-                onPress={() => {
-                    swipeableRef.current?.close();
-                    onDelete(index);
-                }}
-            >
-                <Animated.View style={{ transform: [{ scale }] }}>
-                    <Trash2 size={22} color="#fff" />
+            <View style={styles.deleteAction}>
+                <Animated.View style={{ transform: [{ translateX }] }}>
+                    <View style={styles.trashIconContainer}>
+                        <Trash2 size={22} color="#fff" />
+                    </View>
                 </Animated.View>
-            </Pressable>
+            </View>
         );
     };
 
@@ -65,7 +71,11 @@ export default function QueueItem({
         <Swipeable
             ref={swipeableRef}
             renderRightActions={renderRightActions}
-            rightThreshold={40}
+            // Require a deliberate drag past most of the action (or a quick
+            // flick — release velocity is factored in) before deleting, so
+            // scrolling doesn't accidentally remove items.
+            rightThreshold={DELETE_WIDTH * 0.75}
+            dragOffsetFromRightEdge={20}
             onSwipeableWillOpen={() => onDelete(index)}
             friction={2}
             overshootRight={false}
@@ -108,9 +118,7 @@ export default function QueueItem({
                         ]}
                         numberOfLines={1}
                     >
-                        {"artists" in media
-                            ? (media.artists[0]?.name ?? "")
-                            : ""}
+                        {getMediaArtistsString(media)}
                     </Text>
                 </View>
 
@@ -193,9 +201,16 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     deleteAction: {
-        backgroundColor: "#c72e2e",
-        width: 72,
+        width: DELETE_WIDTH,
         alignItems: "center",
         justifyContent: "center",
+        overflow: "hidden",
+    },
+    trashIconContainer: {
+        width: DELETE_WIDTH,
+        height: DELETE_WIDTH,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#c72e2e",
     },
 });

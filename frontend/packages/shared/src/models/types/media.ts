@@ -10,7 +10,7 @@ import {
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "../../dto";
+} from "@/dto";
 
 export type TPlayableMedia =
     | BaseSongWithAlbumResponse
@@ -232,6 +232,17 @@ export function getMediaArtists(
     return [];
 }
 
+export function getMediaArtistsString(
+    media: TMediaWithSearch | undefined
+): string {
+    if (!media) return "";
+    if (isSearchResult(media))
+        return media.artists.map((a) => a.name).join(", ");
+    return getMediaArtists(media)
+        .map((artist) => artist.name)
+        .join(", ");
+}
+
 export function getMediaAlbum(
     media: TPlayableMedia | undefined
 ): BaseAlbumWithoutSongsResponse | undefined {
@@ -242,15 +253,15 @@ export function getMediaAlbum(
     return undefined;
 }
 
-export function getMediaAudioSrc(
+export function getMediaAudioUrl(
     media: TPlayableMedia | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isSong(media)) {
-        return media.audioSrc ?? undefined;
+        return media.audioUrl ?? undefined;
     }
     if (isVideo(media)) {
-        return media.audioSrc ?? undefined;
+        return media.audioUrl ?? undefined;
     }
     if (isStation(media)) {
         return media.streamUrl ?? undefined;
@@ -258,12 +269,12 @@ export function getMediaAudioSrc(
     return undefined;
 }
 
-export function getMediaVideoSrc(
+export function getMediaVideoUrl(
     media: TPlayableMedia | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isVideo(media)) {
-        return media.videoSrc ?? undefined;
+        return media.videoUrl ?? undefined;
     }
     return undefined;
 }

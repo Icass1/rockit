@@ -1,8 +1,8 @@
 "use client";
 
 import type { JSX } from "react";
+import { getMediaArtistsString, type TPlayableMedia } from "@rockit/shared";
 import { GripVertical, Trash2 } from "lucide-react";
-import type { TPlayableMedia } from "@rockit/shared";
 
 interface QueueRowProps {
     media: TPlayableMedia;
@@ -55,15 +55,15 @@ export default function QueueRow({
                 <div className="min-w-0 flex-1">
                     <p
                         className={`truncate text-sm font-semibold ${
-                            isActive ? "text-(--color-rockit-pink)" : "text-white"
+                            isActive
+                                ? "text-(--color-rockit-pink)"
+                                : "text-white"
                         }`}
                     >
                         {media.name}
                     </p>
                     <p className="truncate text-xs text-(--color-muted)">
-                        {"artists" in media
-                            ? (media.artists?.[0]?.name ?? "")
-                            : ""}
+                        {getMediaArtistsString(media)}
                     </p>
                 </div>
             </button>
@@ -81,7 +81,7 @@ export default function QueueRow({
             <button
                 type="button"
                 onPointerDown={onDragHandlePointerDown}
-                className="flex h-9 w-9 shrink-0 cursor-grab items-center justify-center text-white/35 touch-none"
+                className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center text-white/35"
                 aria-label="Reordenar"
             >
                 <GripVertical size={18} />

@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { isQueueable, isSearchResult } from "@rockit/shared";
+import { isDownloadable, isQueueable, isSearchResult } from "@rockit/shared";
 import { Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
@@ -18,7 +18,7 @@ export default function PlayAction({
     };
 
     const disablePlay =
-        !isSearchResult(media) && "downloaded" in media && !media.downloaded;
+        !isSearchResult(media) && isDownloadable(media) && !media.downloaded;
 
     return (
         <ContextMenuOption onClick={play} disable={disablePlay}>

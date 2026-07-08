@@ -1,26 +1,33 @@
 "use client";
 
-import { type JSX, useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { DownloadItemResponse, type MediaResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
+import { getMediaSubtitle, isAlbum, isPlayable } from "@rockit/shared";
 import {
-    isAlbum,
-    isPlayable,
-} from "@rockit/shared";
-import { Check, ListEnd, Music, Play, RefreshCw, RotateCw, Trash2 } from "lucide-react";
+    Check,
+    ListEnd,
+    Music,
+    Play,
+    RefreshCw,
+    RotateCw,
+    Trash2,
+} from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuContent from "@/components/ContextMenu/Content";
-import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 
 export default function DownloadCoverCard({
     item,
 }: {
     item: DownloadItemResponse;
 }): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [menuCover, setMenuCover] = useState<string | undefined>();
     const [menuTitle, setMenuTitle] = useState<string | undefined>();
     const [menuSubtitle, setMenuSubtitle] = useState<string | undefined>();
@@ -35,14 +42,18 @@ export default function DownloadCoverCard({
     const circumference = 2 * Math.PI * 18;
     const dashOffset = circumference - (progress / 100) * circumference;
 
-    const fetchMediaAsync = useCallback(async (): Promise<MediaResponse["media"] | null> => {
+    const fetchMediaAsync = useCallback(async (): Promise<
+        MediaResponse["media"] | null
+    > => {
         if (fetchedMedia.current) return fetchedMedia.current;
         const response = await Http.getMediaAsync(item.mediaPublicId);
         if (response.isOk()) {
             const media = response.result.media;
-            setMenuCover("imageUrl" in media ? (media as { imageUrl?: string }).imageUrl ?? item.imageUrl ?? undefined : item.imageUrl ?? undefined);
+            setMenuCover(media.imageUrl ?? item.imageUrl ?? undefined);
             setMenuTitle(media.name ?? item.name);
-            setMenuSubtitle("subtitle" in media ? (media as { subtitle?: string }).subtitle ?? item.subtitle ?? undefined : item.subtitle ?? undefined);
+            setMenuSubtitle(
+                getMediaSubtitle(media) ?? item.subtitle ?? undefined
+            );
             fetchedMedia.current = media;
             return media;
         }
@@ -77,12 +88,14 @@ export default function DownloadCoverCard({
             await Http.retryDownload(item.mediaPublicId);
         } catch (err) {
             const message =
-                err instanceof Error ? err.message : "Error al reintentar";
+                err instanceof Error
+                    ? err.message
+                    : $vocabulary.DOWNLOADER_RETRY_ERROR;
             rockIt.notificationManager.notifyError(message);
         } finally {
             setRetryingManual(false);
         }
-    }, [item.mediaPublicId]);
+    }, [item.mediaPublicId, $vocabulary.DOWNLOADER_RETRY_ERROR]);
 
     const handleDelete = useCallback((): void => {
         console.warn("Delete not yet implemented for", item.mediaPublicId);
@@ -113,7 +126,11 @@ export default function DownloadCoverCard({
                         {isRetrying && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                 <div className="flex flex-col items-center gap-1">
-                                    <RotateCw size={20} strokeWidth={2.25} className="animate-spin text-(--color-warning)" />
+                                    <RotateCw
+                                        size={20}
+                                        strokeWidth={2.25}
+                                        className="animate-spin text-(--color-warning)"
+                                    />
                                     <span className="text-[10px] font-medium text-(--color-warning)">
                                         ({item.retryCount ?? 0}/3)
                                     </span>
@@ -122,7 +139,12 @@ export default function DownloadCoverCard({
                         )}
                         {!isCompleted && !isRetrying && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                                <svg width="44" height="44" viewBox="0 0 44 44" className="-rotate-90">
+                                <svg
+                                    width="44"
+                                    height="44"
+                                    viewBox="0 0 44 44"
+                                    className="-rotate-90"
+                                >
                                     <circle
                                         cx="22"
                                         cy="22"
@@ -145,7 +167,9 @@ export default function DownloadCoverCard({
                                 </svg>
                                 {isFailed && (
                                     <button
-                                        aria-label="Reintentar descarga"
+                                        aria-label={
+                                            $vocabulary.DOWNLOADER_RETRY_ARIA
+                                        }
                                         disabled={retryingManual}
                                         className={`absolute flex h-9 w-9 items-center justify-center rounded-full text-white backdrop-blur-sm transition-colors ${
                                             retryingManual
@@ -157,7 +181,15 @@ export default function DownloadCoverCard({
                                             handleRetry();
                                         }}
                                     >
-                                        <RotateCw size={18} strokeWidth={2.25} className={retryingManual ? "animate-spin" : ""} />
+                                        <RotateCw
+                                            size={18}
+                                            strokeWidth={2.25}
+                                            className={
+                                                retryingManual
+                                                    ? "animate-spin"
+                                                    : ""
+                                            }
+                                        />
                                     </button>
                                 )}
                             </div>
@@ -170,7 +202,10 @@ export default function DownloadCoverCard({
                                 </div>
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
                                     <div className="rounded-full bg-white/20 p-3 backdrop-blur-sm">
-                                        <Play size={24} className="fill-white text-white" />
+                                        <Play
+                                            size={24}
+                                            className="fill-white text-white"
+                                        />
                                     </div>
                                 </div>
                             </>
@@ -178,8 +213,12 @@ export default function DownloadCoverCard({
                     </div>
 
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-white">{item.name}</p>
-                        <p className="truncate text-xs text-neutral-400">{item.subtitle ?? "—"}</p>
+                        <p className="truncate text-sm font-medium text-white">
+                            {item.name}
+                        </p>
+                        <p className="truncate text-xs text-neutral-400">
+                            {item.subtitle ?? "—"}
+                        </p>
                     </div>
                 </div>
             </ContextMenuTrigger>
@@ -192,11 +231,11 @@ export default function DownloadCoverCard({
                     <>
                         <ContextMenuOption onClick={handlePlay}>
                             <Play size={16} />
-                            <span>Reproducir</span>
+                            <span>{$vocabulary.PLAY}</span>
                         </ContextMenuOption>
                         <ContextMenuOption onClick={handleAddToQueue}>
                             <ListEnd size={16} />
-                            <span>Añadir a la cola</span>
+                            <span>{$vocabulary.ADD_TO_QUEUE}</span>
                         </ContextMenuOption>
                         <ContextMenuSplitter />
                     </>
@@ -204,12 +243,12 @@ export default function DownloadCoverCard({
                 {isFailed && (
                     <ContextMenuOption onClick={handleRetry}>
                         <RefreshCw size={16} />
-                        <span>Reintentar</span>
+                        <span>{$vocabulary.RETRY}</span>
                     </ContextMenuOption>
                 )}
                 <ContextMenuOption onClick={handleDelete}>
                     <Trash2 size={16} />
-                    <span>Eliminar</span>
+                    <span>{$vocabulary.DELETE}</span>
                 </ContextMenuOption>
             </ContextMenuContent>
         </ContextMenu>

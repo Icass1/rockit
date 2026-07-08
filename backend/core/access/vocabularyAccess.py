@@ -75,7 +75,7 @@ class VocabularyAccess:
 
             if existing:
                 existing.value = value
-                await session.commit()
+                await session.flush()
                 await session.refresh(instance=existing)
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
 
@@ -86,14 +86,13 @@ class VocabularyAccess:
             )
 
             session.add(instance=new_vocabulary)
-            await session.commit()
+            await session.flush()
             await session.refresh(instance=new_vocabulary)
 
             return AResult(code=AResultCode.OK, message="OK", result=new_vocabulary)
 
         except Exception as e:
             logger.error(f"Error in upsert_vocabulary: {e}", exc_info=True)
-            await session.rollback()
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to upsert vocabulary: {e}",
@@ -106,13 +105,11 @@ class VocabularyAccess:
         try:
             stmt = delete(VocabularyRow).where(VocabularyRow.key == key)
             await session.execute(statement=stmt)
-            await session.commit()
 
             return AResult(code=AResultCode.OK, message="OK", result=True)
 
         except Exception as e:
             logger.error(f"Error in delete_vocabulary_by_key: {e}", exc_info=True)
-            await session.rollback()
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to delete vocabulary: {e}",

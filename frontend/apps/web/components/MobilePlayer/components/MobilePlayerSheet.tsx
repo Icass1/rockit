@@ -2,14 +2,15 @@
 
 import type { JSX } from "react";
 import { useRef, useState } from "react";
+import { getMediaArtistsString } from "@rockit/shared";
 import { ChevronDown } from "lucide-react";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import LikeButton from "@/components/LikeButton/LikeButton";
-import PlayerCoverArt from "@/components/MobilePlayer/components/PlayerCoverArt";
+import LyricsPanel from "@/components/MobilePlayer/components/LyricsPanel";
 import PlayerControlsRow from "@/components/MobilePlayer/components/PlayerControlsRow";
+import PlayerCoverArt from "@/components/MobilePlayer/components/PlayerCoverArt";
 import PlayerProgressBar from "@/components/MobilePlayer/components/PlayerProgressBar";
 import QueuePanel from "@/components/MobilePlayer/components/QueuePanel";
-import LyricsPanel from "@/components/MobilePlayer/components/LyricsPanel";
 
 type Tab = "queue" | "lyrics" | null;
 
@@ -67,7 +68,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
 
             {/* Drag handle strip — the ONLY area that closes the sheet */}
             <div
-                className="relative z-10 flex items-center justify-between px-4 py-2 touch-none"
+                className="relative z-10 flex touch-none items-center justify-between px-4 py-2"
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
@@ -104,9 +105,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                             {currentMedia?.name ?? ""}
                         </p>
                         <p className="truncate text-sm font-medium text-white/70">
-                            {currentMedia && "artists" in currentMedia
-                                ? (currentMedia.artists?.[0]?.name ?? "")
-                                : ""}
+                            {getMediaArtistsString(currentMedia)}
                         </p>
                     </div>
                     {currentMedia?.publicId && (

@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { getMediaSubtitle, type TMedia } from "@rockit/shared";
+import {
+    getMediaArtistsString,
+    getMediaSubtitle,
+    isSongWithAlbum,
+    type TMedia,
+} from "@rockit/shared";
 import {
     ActivityIndicator,
     KeyboardAvoidingView,
@@ -36,14 +41,13 @@ function getFieldsForMedia(media: TMedia): FieldDef[] {
                 {
                     key: "artist",
                     label: "Artist",
-                    value: media.artists.map((a) => a.name).join(", "),
+                    value: getMediaArtistsString(media),
                     multiline: false,
                 },
                 {
                     key: "album",
                     label: "Album",
-                    value:
-                        "album" in media && media.album ? media.album.name : "",
+                    value: isSongWithAlbum(media) ? media.album.name : "",
                     multiline: false,
                 },
                 { key: "genre", label: "Genre", value: "", multiline: false },
@@ -60,7 +64,7 @@ function getFieldsForMedia(media: TMedia): FieldDef[] {
                 {
                     key: "artist",
                     label: "Artist",
-                    value: media.artists.map((a) => a.name).join(", "),
+                    value: getMediaArtistsString(media),
                     multiline: false,
                 },
                 { key: "genre", label: "Genre", value: "", multiline: false },
@@ -76,16 +80,13 @@ function getFieldsForMedia(media: TMedia): FieldDef[] {
                 {
                     key: "artist",
                     label: "Artist",
-                    value: media.artists.map((a) => a.name).join(", "),
+                    value: getMediaArtistsString(media),
                     multiline: false,
                 },
                 {
                     key: "releaseDate",
                     label: "Release date",
-                    value:
-                        "releaseDate" in media && media.releaseDate
-                            ? media.releaseDate
-                            : "",
+                    value: media.releaseDate ?? "",
                     multiline: false,
                 },
                 { key: "genre", label: "Genre", value: "", multiline: false },

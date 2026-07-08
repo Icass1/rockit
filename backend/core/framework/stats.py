@@ -271,8 +271,8 @@ class Stats:
         custom_start: datetime | None = None,
         custom_end: datetime | None = None,
     ) -> AResult[UserStatsResponse]:
-        start_date, end_date = _parse_range(range_value, custom_start, custom_end)
-        group_by: str = _get_group_by(range_value, start_date, end_date)
+        start_date, end_date = parse_range(range_value, custom_start, custom_end)
+        group_by: str = get_group_by(range_value, start_date, end_date)
 
         if range_value == "all":
             a_first = await StatsAccess.get_first_listen_date_async(
@@ -395,7 +395,7 @@ class Stats:
             session=session, user_id=user_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error getting streak. {a_result.info()}", exc_info=True)
+            logger.error(f"Error getting streak. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())

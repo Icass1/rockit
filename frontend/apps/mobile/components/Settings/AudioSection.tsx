@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { StyleSheet, Switch, View } from "react-native";
 import { AudioIntegrationService } from "@/lib/audio/AudioIntegration";
-import CrossfadeSettings from "./CrossfadeSettings";
-import SettingRow from "./SettingRow";
+import CrossfadeSettings from "@/components/Settings/CrossfadeSettings";
+import SettingRow from "@/components/Settings/SettingRow";
 
 export default function AudioSection() {
     const [autoPlayBluetooth, setAutoPlayBluetooth] = useState(true);

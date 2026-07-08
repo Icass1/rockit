@@ -232,7 +232,12 @@ export function getMediaArtists(
     return [];
 }
 
-export function getMediaArtistsString(media: TMedia | undefined) {
+export function getMediaArtistsString(
+    media: TMediaWithSearch | undefined
+): string {
+    if (!media) return "";
+    if (isSearchResult(media))
+        return media.artists.map((a) => a.name).join(", ");
     return getMediaArtists(media)
         .map((artist) => artist.name)
         .join(", ");

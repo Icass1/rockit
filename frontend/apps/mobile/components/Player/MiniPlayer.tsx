@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { getMediaArtistsString } from "@rockit/shared";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Loader2, Pause, Play, SkipForward } from "lucide-react-native";
@@ -92,9 +93,7 @@ export default function MiniPlayer() {
                         {currentMedia.name}
                     </Text>
                     <Text style={styles.artist} numberOfLines={1}>
-                        {"artists" in currentMedia
-                            ? (currentMedia.artists[0]?.name ?? "")
-                            : ""}
+                        {getMediaArtistsString(currentMedia)}
                     </Text>
                 </View>
 

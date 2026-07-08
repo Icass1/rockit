@@ -32,12 +32,6 @@ class Providers:
 
     _providers: List[BaseProvider] = []
 
-    # Denylist for providers that should NOT be auto-discovered.
-    # Add module paths here to skip them during provider discovery.
-    DENY_LIST: set[str] = {
-        "backend.spotify.framework.provider.spotifyProvider",
-    }
-
     def get_providers(self) -> List[BaseProvider]:
         return self._providers
 
@@ -145,10 +139,6 @@ class Providers:
             for filename in filenames:
                 base: str = ".".join(dirpath.split("/"))
                 module_path: str = f"{base}.{filename.replace('.py', '')}"
-
-                if module_path in self.DENY_LIST:
-                    logger.info(f"Skipping denylisted provider {module_path}")
-                    continue
 
                 if module_path in providers_by_module:
                     db_provider = providers_by_module[module_path]

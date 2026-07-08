@@ -1,6 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
+import { getMediaArtistsString } from "@rockit/packages/shared";
 import { Pause, Play, SkipForward } from "lucide-react";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 
@@ -56,9 +57,7 @@ export default function MiniPlayerBar(): JSX.Element | null {
                         {currentMedia.name}
                     </p>
                     <p className="truncate text-sm text-(--color-muted)">
-                        {"artists" in currentMedia
-                            ? (currentMedia.artists[0]?.name ?? "")
-                            : ""}
+                        {getMediaArtistsString(currentMedia)}
                     </p>
                 </div>
 

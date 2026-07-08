@@ -232,6 +232,12 @@ export function getMediaArtists(
     return [];
 }
 
+export function getMediaArtistsString(media: TMedia | undefined) {
+    return getMediaArtists(media)
+        .map((artist) => artist.name)
+        .join(", ");
+}
+
 export function getMediaAlbum(
     media: TPlayableMedia | undefined
 ): BaseAlbumWithoutSongsResponse | undefined {

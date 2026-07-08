@@ -54,7 +54,7 @@ async def get_all_builds(request: Request) -> AllBuildsResponse:
 
     builds = [
         BuildResponse(
-            public_id=row.public_id,
+            publicId=row.public_id,
             version=row.version,
             apkFilename=row.apk_filename,
             description=row.description,

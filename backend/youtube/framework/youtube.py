@@ -75,8 +75,10 @@ class YouTube:
                 )
             )
             image_url: str = ""
+            dominant_color: str | None = None
             if a_result_internal_image.is_ok():
                 image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
+                dominant_color = a_result_internal_image.result().dominant_color
             else:
                 image_url = (
                     f"https://i.ytimg.com/vi/{video_row.youtube_id}/maxresdefault.jpg"
@@ -151,6 +153,7 @@ class YouTube:
                     likeCount=video_row.like_count,
                     commentCount=video_row.comment_count,
                     imageUrl=image_url,
+                    dominantColor=dominant_color,
                     artists=artists,
                     channel=channel_response,
                     description=video_row.description,
@@ -271,8 +274,10 @@ class YouTube:
             )
         )
         image_url: str = ""
+        dominant_color: str | None = None
         if a_result_internal_image.is_ok():
             image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
+            dominant_color = a_result_internal_image.result().dominant_color
         else:
             image_url = (
                 f"https://i.ytimg.com/vi/{video_row.youtube_id}/maxresdefault.jpg"
@@ -346,6 +351,7 @@ class YouTube:
                 likeCount=video_row.like_count,
                 commentCount=video_row.comment_count,
                 imageUrl=image_url,
+                dominantColor=dominant_color,
                 artists=artists,
                 channel=channel_response,
                 description=video_row.description,

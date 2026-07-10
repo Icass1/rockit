@@ -764,8 +764,10 @@ class Rockit:
                 session=session, image_id=song.image_id
             )
             image_url: str = ""
+            dominant_color: str | None = None
             if a_result_image.is_ok():
                 image_url = Image.get_internal_image_url(a_result_image.result())
+                dominant_color = a_result_image.result().dominant_color
 
             song_artists: List[BaseArtistResponse] = [
                 BaseArtistResponse(
@@ -823,9 +825,13 @@ class Rockit:
                         )
                     )
                     album_image_url: str = ""
+                    album_dominant_color: str | None = None
                     if a_result_album_image.is_ok():
                         album_image_url = Image.get_internal_image_url(
                             a_result_album_image.result()
+                        )
+                        album_dominant_color = (
+                            a_result_album_image.result().dominant_color
                         )
 
                     album_artists_response: List[BaseArtistResponse] = [
@@ -850,6 +856,7 @@ class Rockit:
                         releaseDate=album_row.release_date or "",
                         imageUrl=album_image_url,
                         undownloadedCount=0,
+                        dominantColor=album_dominant_color,
                     )
 
             return AResult(
@@ -868,6 +875,7 @@ class Rockit:
                     discNumber=song.disc_number,
                     trackNumber=song.track_number,
                     album=album_response,
+                    dominantColor=dominant_color,
                 ),
             )
 
@@ -893,8 +901,10 @@ class Rockit:
                 session=session, image_id=album.image_id
             )
             image_url: str = ""
+            dominant_color: str | None = None
             if a_result_image.is_ok():
                 image_url = Image.get_internal_image_url(a_result_image.result())
+                dominant_color = a_result_image.result().dominant_color
 
             album_artists: List[BaseArtistResponse] = [
                 BaseArtistResponse(
@@ -929,6 +939,7 @@ class Rockit:
                 for song in a_result_songs.result():
                     song_pid: str = id_to_public_id.get(song.id, "")
                     song_image_url: str = image_url
+                    song_dominant_color: str | None = dominant_color
 
                     a_result_song_image: AResult[ImageRow] = (
                         await Rockit._get_image_for_media_async(
@@ -938,6 +949,9 @@ class Rockit:
                     if a_result_song_image.is_ok():
                         song_image_url = Image.get_internal_image_url(
                             a_result_song_image.result()
+                        )
+                        song_dominant_color = (
+                            a_result_song_image.result().dominant_color
                         )
 
                     song_artists: List[BaseArtistResponse] = [
@@ -969,6 +983,7 @@ class Rockit:
                             duration_ms=song.duration_ms,
                             discNumber=song.disc_number,
                             trackNumber=song.track_number,
+                            dominantColor=song_dominant_color,
                         )
                     )
 
@@ -986,6 +1001,7 @@ class Rockit:
                     imageUrl=image_url,
                     undownloadedCount=0,
                     songs=song_responses,
+                    dominantColor=dominant_color,
                 ),
             )
 
@@ -1011,8 +1027,10 @@ class Rockit:
                 session=session, image_id=video.image_id
             )
             image_url: str = ""
+            dominant_color: str | None = None
             if a_result_image.is_ok():
                 image_url = Image.get_internal_image_url(a_result_image.result())
+                dominant_color = a_result_image.result().dominant_color
 
             video_artists: List[BaseArtistResponse] = [
                 BaseArtistResponse(
@@ -1046,6 +1064,7 @@ class Rockit:
                     duration_ms=video.duration_ms,
                     artists=video_artists,
                     downloaded=True,
+                    dominantColor=dominant_color,
                 ),
             )
 

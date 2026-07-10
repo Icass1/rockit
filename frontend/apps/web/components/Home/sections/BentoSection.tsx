@@ -123,12 +123,6 @@ function BentoCard({
                 </div>
             </div>
 
-            {/* Playing indicator on small cards */}
-            {size === "s" && isThisPlaying && (
-                <div className="absolute top-2 right-2 z-10">
-                    <span className="cf-eq" aria-hidden="true" />
-                </div>
-            )}
         </div>
     );
 }

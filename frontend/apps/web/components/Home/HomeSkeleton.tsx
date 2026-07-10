@@ -11,7 +11,7 @@ export default function HomeSkeleton(): JSX.Element {
 
                 {/* Coverflow stage placeholder */}
                 <div className="relative mx-auto mt-6 flex items-center justify-center" style={{ height: 300 }}>
-                    <div className="skeleton h-[190px] w-[190px] rounded-[18px]" />
+                    <div className="skeleton h-47.5 w-47.5 rounded-[18px]" />
                 </div>
 
                 {/* Dots placeholder */}

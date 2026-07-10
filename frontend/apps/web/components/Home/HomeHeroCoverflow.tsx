@@ -138,12 +138,6 @@ function CoverflowCardComponent({
                 </div>
             )}
 
-            {/* Equalizer bars — only on center when playing */}
-            {isCenter && isThisPlaying && (
-                <div className="absolute inset-x-0 bottom-2 z-20 flex justify-center">
-                    <span className="cf-eq" aria-hidden="true" />
-                </div>
-            )}
         </>
     );
 }

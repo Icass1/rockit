@@ -1,3 +1,5 @@
+import asyncio
+
 from typing import List, Tuple
 
 from sqlalchemy.sql import Select
@@ -10,8 +12,16 @@ from backend.utils.backendUtils import create_id
 from backend.core.utils.safeAsyncCall import safe_async
 
 from backend.core.aResult import AResult, AResultCode
-
 from backend.core.access.db.ormModels.image import ImageRow
+from backend.constants import IMAGES_PATH
+from backend.utils.colorExtractor import extract_dominant_color
+
+_PLACEHOLDER_PATHS = {
+    "song-placeholder.png",
+    "radio-placeholder.png",
+    "video-placeholder.png",
+    "playlist-placeholder.png",
+}
 
 logger = getLogger(__name__)
 
@@ -96,7 +106,18 @@ class ImageAccess:
             if existing_row is not None:
                 return AResult(code=AResultCode.OK, message="OK", result=existing_row)
 
-            image: ImageRow = ImageRow(public_id=create_id(32), path=path, url=url)
+            dominant_color: str | None = None
+            if path not in _PLACEHOLDER_PATHS:
+                dominant_color = await asyncio.to_thread(
+                    extract_dominant_color, IMAGES_PATH + "/" + path
+                )
+
+            image: ImageRow = ImageRow(
+                public_id=create_id(32),
+                path=path,
+                url=url,
+                dominant_color=dominant_color,
+            )
             session.add(image)
             await session.flush()
 

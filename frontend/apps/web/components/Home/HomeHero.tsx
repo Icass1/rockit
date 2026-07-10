@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, type JSX } from "react";
+import { useStore } from "@nanostores/react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { rockIt } from "@/lib/rockit/rockIt";
 import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 import HeroBackgroundDrift from "@/components/Home/HeroBackgroundDrift";
 import QuickAccessCard from "@/components/Home/QuickAccessCard";
@@ -33,6 +35,7 @@ export default function HomeHero({
     const sectionRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
     const [heroVisible, setHeroVisible] = useState(true);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     useEffect(() => {
         const sentinel = sentinelRef.current;
@@ -77,13 +80,12 @@ export default function HomeHero({
                     {(streak ?? 0) > 0 || (minutesThisWeek ?? 0) > 0 ? (
                         <div className="mt-3 flex items-center gap-4 text-sm text-white/60">
                             {typeof streak === "number" && streak > 0 && (
-                                <span>🔥 {streak} días seguidos</span>
+                                <span>🔥 {streak} {$vocabulary.HOME_STREAK_DAYS}</span>
                             )}
                             {typeof minutesThisWeek === "number" &&
                                 minutesThisWeek > 0 && (
                                     <span>
-                                        {Math.round(minutesThisWeek)} min esta
-                                        semana
+                                        {Math.round(minutesThisWeek)} {$vocabulary.HOME_MINUTES_THIS_WEEK}
                                     </span>
                                 )}
                         </div>

@@ -26,6 +26,7 @@ export default function DockedQuickAccessBar({
 }: DockedQuickAccessBarProps): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     function handleClick(song: BaseSongWithAlbumResponse, queue: BaseSongWithAlbumResponse[]): void {
         const playableSongs = queue.filter(isSongWithAlbum);
@@ -78,7 +79,7 @@ export default function DockedQuickAccessBar({
                                                 e.stopPropagation();
                                                 handleClick(song, queue);
                                             }}
-                                            label={`Pausar ${song.name}`}
+                                            label={$vocabulary.PAUSE_SONG_NAME.replace("{name}", song.name)}
                                         />
                                     )}
                                 </button>

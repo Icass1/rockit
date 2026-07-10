@@ -14,6 +14,7 @@ import type { BaseSongWithAlbumResponse } from "@/dto";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
+import { useHomeSubtitle } from "@/components/Home/hooks/useHomeSubtitle";
 import PlayButton from "@/components/Home/PlayButton";
 
 // ─── Types ──────────────────────────────────────────────
@@ -67,6 +68,7 @@ function CoverflowCardComponent({
 }): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const isCenter = delta === 0;
     const [imgLoaded, setImgLoaded] = useState(false);
     const isThisPlaying =
@@ -129,8 +131,8 @@ function CoverflowCardComponent({
                         size={42}
                         label={
                             isThisPlaying
-                                ? `Pausar ${card.song.name}`
-                                : `Reproducir ${card.song.name}`
+                                ? $vocabulary.PAUSE_SONG_NAME.replace("{name}", card.song.name)
+                                : $vocabulary.PLAY_SONG_NAME.replace("{name}", card.song.name)
                         }
                     />
                 </div>
@@ -284,34 +286,13 @@ export default function HomeHeroCoverflow({
         [n]
     );
 
-    // ── Rotating subtitle tips ──
-    const tips = useMemo(() => {
-        const items: string[] = [];
-        if (typeof streak === "number" && streak > 0)
-            items.push(`${streak} días seguidos`);
-        if (typeof minutesThisWeek === "number" && minutesThisWeek > 0)
-            items.push(`${Math.round(minutesThisWeek)} min esta semana`);
-        if (cards.length > 0) {
-            const top = cards[0].song;
-            items.push(`Escucha ${top.name}`);
-        }
-        if (cards.length > 1)
-            items.push(`Disfruta de ${cards[1].song.name}`);
-        return items;
-    }, [streak, minutesThisWeek, cards]);
-
-    const [tipIndex, setTipIndex] = useState(0);
-    const tipTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    useEffect(() => {
-        if (reducedMotion || tips.length <= 1) return;
-        tipTimerRef.current = setInterval(() => {
-            setTipIndex((prev) => (prev + 1) % tips.length);
-        }, 4000);
-        return () => {
-            if (tipTimerRef.current) clearInterval(tipTimerRef.current);
-        };
-    }, [reducedMotion, tips.length]);
+    const subtitle = useHomeSubtitle({
+        cards,
+        centerIndex: center,
+        streak,
+        minutesThisWeek,
+    });
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     // Early return after all hooks
     if (cards.length === 0) return null;
@@ -351,29 +332,10 @@ export default function HomeHeroCoverflow({
                 <h1 className="text-[clamp(20px,3.4cqw,40px)] font-extrabold leading-tight text-white">
                     {greetingName}
                 </h1>
-                {tips.length > 0 && (
-                    <div className="mt-1.5 h-5.5 overflow-hidden text-[13px] text-white/50">
-                        {tips.map((tip, i) => (
-                            <span
-                                key={tip}
-                                className="block transition-all duration-500"
-                                style={{
-                                    opacity: i === tipIndex ? 1 : 0,
-                                    transform:
-                                        i === tipIndex
-                                            ? "translateY(0)"
-                                            : "translateY(8px)",
-                                    position:
-                                        i === tipIndex ? "relative" : "absolute",
-                                    ...(reducedMotion && i !== tipIndex
-                                        ? { display: "none" }
-                                        : {}),
-                                }}
-                            >
-                                {tip}
-                            </span>
-                        ))}
-                    </div>
+                {subtitle && (
+                    <p className="mt-1.5 text-[13px] text-white/50">
+                        {subtitle}
+                    </p>
                 )}
             </div>
 
@@ -385,7 +347,7 @@ export default function HomeHeroCoverflow({
                 tabIndex={0}
                 role="group"
                 aria-roledescription="coverflow"
-                aria-label="Destacados del home"
+                aria-label={$vocabulary.HOME_HIGHLIGHTS}
                 onKeyDown={handleKeyDown}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
@@ -418,7 +380,7 @@ export default function HomeHeroCoverflow({
             </div>
 
             {/* Dots */}
-            <nav className="relative z-10 flex justify-center gap-1.75 pb-5" aria-label="Navegación del carrusel">
+            <nav className="relative z-10 flex justify-center gap-1.75 pb-5" aria-label={$vocabulary.CAROUSEL_NAVIGATION}>
                 {cards.map((card, i) => (
                     <button
                         key={card.song.publicId}
@@ -432,7 +394,7 @@ export default function HomeHeroCoverflow({
             </nav>
 
             {/* sr-only list for accessibility */}
-            <nav className="sr-only" aria-label="Canciones destacadas">
+            <nav className="sr-only" aria-label={$vocabulary.FEATURED_SONGS}>
                 <ul>
                     {cards.map((card, i) => (
                         <li key={card.song.publicId}>

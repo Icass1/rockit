@@ -26,6 +26,7 @@ export default function QuickAccessCard({
 }: QuickAccessCardProps): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const isThisPlaying =
         $currentMedia?.publicId === song.publicId && $playing;
@@ -80,7 +81,7 @@ export default function QuickAccessCard({
                 <div className="mt-6 flex items-center justify-between">
                     <Image
                         src={song.imageUrl}
-                        alt={`Cover of ${song.name}`}
+                        alt={$vocabulary.COVER_OF.replace("{name}", song.name)}
                         width={56}
                         height={56}
                         className="rounded-lg object-cover shadow-md"
@@ -90,8 +91,8 @@ export default function QuickAccessCard({
                         onClick={handlePlay}
                         label={
                             isThisPlaying
-                                ? `Pausar ${song.name}`
-                                : `Reproducir ${song.name}`
+                                ? $vocabulary.PAUSE_SONG_NAME.replace("{name}", song.name)
+                                : $vocabulary.PLAY_SONG_NAME.replace("{name}", song.name)
                         }
                     />
                 </div>

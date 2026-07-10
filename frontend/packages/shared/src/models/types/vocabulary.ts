@@ -95,6 +95,7 @@ export interface Vocabulary {
     BOOKMARKS: string;
     BY: string;
     CANCEL: string;
+    CAROUSEL_NAVIGATION: string;
     CHANGE_PASSWORD: string;
     CLEAR_DOWNLOADS: string;
     CLICK_TO_DOWNLOAD: string;
@@ -102,6 +103,7 @@ export interface Vocabulary {
     COMPLETED: string;
     COPY_LIST_URL: string;
     COPY_SONG_URL: string;
+    COVER_OF: string;
     CREATE: string;
     CREATE_ACCOUNT: string;
     CREATING: string;
@@ -171,6 +173,7 @@ export interface Vocabulary {
     FAILED_TO_FETCH_PLAYLISTS: string;
     FEATURED_ALBUMS: string;
     FEATURED_LISTS: string;
+    FEATURED_SONGS: string;
     FEBRUARY: string;
     FETCHING: string;
     FOCUS: string;
@@ -187,6 +190,11 @@ export interface Vocabulary {
     GO_TO_ARTIST: string;
     HIDDEN_GEMS: string;
     HOME: string;
+    HOME_HIGHLIGHTS: string;
+    HOME_LISTEN_TO: string;
+    HOME_MINUTES_THIS_WEEK: string;
+    HOME_STREAK_DAYS: string;
+    HOME_YOUR_MUSIC_AWAITS: string;
     IN_PROGRESS: string;
     JANUARY: string;
     JULY: string;
@@ -253,7 +261,9 @@ export interface Vocabulary {
     PARTY: string;
     PASSWORD: string;
     PASSWORDS_DONT_MATCH: string;
+    PAUSE: string;
     PAUSE_SONG: string;
+    PAUSE_SONG_NAME: string;
     PENDING: string;
     PENDING_REQUESTS: string;
     PIN: string;
@@ -267,6 +277,7 @@ export interface Vocabulary {
     PLAY_MEDIA: string;
     PLAY_NEXT: string;
     PLAY_SONG: string;
+    PLAY_SONG_NAME: string;
     PLAYLIST: string;
     PLAYLISTS: string;
     PREVIOUS_BOOKMARK: string;
@@ -333,6 +344,7 @@ export interface Vocabulary {
     UNIQUE_MEDIAS_LISTENED: string;
     UNIQUE_SONGS_LISTENED: string;
     UNIQUE_VIDEOS_LISTENED: string;
+    UNKNOWN: string;
     UNPIN: string;
     UNREGISTER: string;
     UNREGISTERED: string;
@@ -374,4 +386,7 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
+    GOOD_MORNING: string;
+    GOOD_AFTERNOON: string;
+    GOOD_EVENING: string;
 }

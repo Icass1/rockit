@@ -13,6 +13,7 @@ export const BaseVideoResponseSchema = z.object({
     videoUrl: z.string().nullable(),
     audioUrl: z.string().nullable(),
     imageUrl: z.string(),
+    dominantColor: z.string().nullable(),
     duration_ms: z.number().nullable(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     downloaded: z.boolean(),

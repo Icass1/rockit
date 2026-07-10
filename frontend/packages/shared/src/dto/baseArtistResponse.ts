@@ -11,6 +11,7 @@ export const BaseArtistResponseSchema = z.object({
     providerUrl: z.string(),
     name: z.string(),
     imageUrl: z.string(),
+    dominantColor: z.string().nullable(),
 });
 
 export type BaseArtistResponse = z.infer<typeof BaseArtistResponseSchema>;

@@ -11,6 +11,7 @@ export const SpotifyScrapperArtistResponseSchema = z.object({
     providerUrl: z.string(),
     name: z.string(),
     imageUrl: z.string(),
+    dominantColor: z.string().nullable(),
     genres: z.array(z.string()),
 });
 

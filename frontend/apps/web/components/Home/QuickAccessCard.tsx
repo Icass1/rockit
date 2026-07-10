@@ -6,7 +6,7 @@ import type { JSX } from "react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useDominantColor } from "@/components/Home/hooks/useDominantColor";
+import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import PlayButton from "@/components/Home/PlayButton";
 
 interface QuickAccessCardProps {
@@ -29,7 +29,7 @@ export default function QuickAccessCard({
 
     const isThisPlaying =
         $currentMedia?.publicId === song.publicId && $playing;
-    const { hex, isLoading } = useDominantColor(song.imageUrl);
+    const { hex } = parseDominantColor(song.dominantColor);
 
     function handlePlay(e: React.MouseEvent): void {
         e.stopPropagation();
@@ -50,7 +50,6 @@ export default function QuickAccessCard({
                 className="absolute inset-0 transition-colors duration-700"
                 style={{
                     background: `linear-gradient(135deg, ${hex}99 0%, #00000060 100%)`,
-                    opacity: isLoading ? 0 : 1,
                 }}
                 aria-hidden="true"
             />

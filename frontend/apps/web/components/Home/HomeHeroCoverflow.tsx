@@ -29,6 +29,7 @@ interface HomeHeroCoverflowProps {
     streak?: number;
     minutesThisWeek?: number;
     cards: CoverflowCard[];
+    onColorChange?: (hex: string) => void;
 }
 
 // ─── Helpers ────────────────────────────────────────────
@@ -67,7 +68,6 @@ function CoverflowCardComponent({
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const isCenter = delta === 0;
-    const { hex: cardColor } = parseDominantColor(card.song.dominantColor);
     const [imgLoaded, setImgLoaded] = useState(false);
     const isThisPlaying =
         isCenter &&
@@ -98,47 +98,27 @@ function CoverflowCardComponent({
                 onLoad={(): void => setImgLoaded(true)}
             />
 
-            {/* Dark gradient overlay */}
+            {/* Dark gradient overlay — dark at bottom for text readability */}
             <div
-                className="absolute inset-0"
+                className="absolute inset-0 rounded-[18px]"
                 style={{
                     background:
-                        "linear-gradient(160deg, rgba(255,255,255,0.12), rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.55))",
-                }}
-                aria-hidden="true"
-            />
-
-            {/* Colored tint overlay for visual depth */}
-            <div
-                className="absolute inset-0 rounded-[18px] mix-blend-color transition-colors duration-700"
-                style={{
-                    backgroundColor: cardColor,
-                    opacity: isCenter ? 0.25 : 0.1,
-                }}
-                aria-hidden="true"
-            />
-
-            {/* Glow shadow underneath card */}
-            <div
-                className="absolute -bottom-4 left-3 right-3 h-10 rounded-[18px] transition-colors duration-700 blur-xl"
-                style={{
-                    backgroundColor: cardColor,
-                    opacity: isCenter ? 0.5 : 0.2,
+                        "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)",
                 }}
                 aria-hidden="true"
             />
 
             {/* Content — visible only on center card */}
             {isCenter && (
-                <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-3 px-4 pb-5 pt-8">
-                    <div className="text-center">
+                <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between px-4 pb-4">
+                    <div className="min-w-0 flex-1">
                         <span className="block text-[10px] font-semibold uppercase tracking-wider text-white/60">
                             {card.eyebrow}
                         </span>
-                        <span className="mt-0.5 block max-w-[180px] truncate text-sm font-bold text-white">
+                        <span className="mt-0.5 block max-w-40 truncate text-sm font-bold text-white">
                             {card.song.name}
                         </span>
-                        <span className="mt-0.5 block max-w-[160px] truncate text-xs text-white/55">
+                        <span className="mt-0.5 block max-w-35 truncate text-xs text-white/55">
                             {card.song.artists[0]?.name}
                         </span>
                     </div>
@@ -178,6 +158,7 @@ export default function HomeHeroCoverflow({
     streak,
     minutesThisWeek,
     cards,
+    onColorChange,
 }: HomeHeroCoverflowProps): JSX.Element | null {
     const n = cards.length;
 
@@ -190,6 +171,10 @@ export default function HomeHeroCoverflow({
     // Early-return-safe derived values
     const currentCard = cards.length > 0 ? cards[center] : null;
     const { hex: dominantColor } = parseDominantColor(currentCard?.song.dominantColor);
+
+    useEffect(() => {
+        onColorChange?.(dominantColor);
+    }, [dominantColor, onColorChange]);
 
     // ── reduced-motion listener ──
     useEffect(() => {
@@ -361,23 +346,13 @@ export default function HomeHeroCoverflow({
     const stageHeight = Math.round(config.cardSize * 1.25);
 
     return (
-        <section
-            className="cf-section relative overflow-hidden"
-            style={
-                {
-                    "--cf-accent": dominantColor,
-                } as React.CSSProperties
-            }
-        >
-            {/* Ambient glow background */}
-            <div className="cf-glow" aria-hidden="true" />
-
+        <section className="cf-section relative">
             <div className="relative z-10 px-[6%] pt-7 pb-0">
                 <h1 className="text-[clamp(20px,3.4cqw,40px)] font-extrabold leading-tight text-white">
                     {greetingName}
                 </h1>
                 {tips.length > 0 && (
-                    <div className="mt-1.5 h-[22px] overflow-hidden text-[13px] text-white/50">
+                    <div className="mt-1.5 h-5.5 overflow-hidden text-[13px] text-white/50">
                         {tips.map((tip, i) => (
                             <span
                                 key={tip}
@@ -443,7 +418,7 @@ export default function HomeHeroCoverflow({
             </div>
 
             {/* Dots */}
-            <nav className="relative z-10 flex justify-center gap-[7px] pb-5" aria-label="Navegación del carrusel">
+            <nav className="relative z-10 flex justify-center gap-1.75 pb-5" aria-label="Navegación del carrusel">
                 {cards.map((card, i) => (
                     <button
                         key={card.song.publicId}

@@ -19,6 +19,8 @@ export default function HomeClient(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $username = useStore(rockIt.userManager.usernameAtom);
 
+    const [ambientColor, setAmbientColor] = useState("#787882");
+
     const greetingName = $username
         ? `${greeting}, ${$username}`
         : greeting;
@@ -100,46 +102,56 @@ export default function HomeClient(): JSX.Element {
 
     return (
         <div className="flex flex-col">
-            {/* Hero: 3D coverflow */}
-            {coverflowCards.length > 0 && (
-                <HomeHeroCoverflow
-                    greetingName={greetingName}
-                    cards={coverflowCards}
-                    streak={data.currentStreak}
-                    minutesThisWeek={data.minutesListenedThisWeek}
+            {/* Ambient glow — covers Hero + Quick Selections */}
+            <div className="relative -mt-24 pt-24">
+                <div
+                    className="home-ambient-glow pointer-events-none absolute inset-0 -z-10"
+                    style={{ "--cf-accent": ambientColor } as React.CSSProperties}
+                    aria-hidden="true"
                 />
-            )}
 
-            {/* Hero sentinel — marks where the hero ends for the docked bar */}
-            <div
-                ref={heroSentinelRef}
-                className="h-px w-full"
-                aria-hidden="true"
-            />
+                {/* Hero: 3D coverflow */}
+                {coverflowCards.length > 0 && (
+                    <HomeHeroCoverflow
+                        greetingName={greetingName}
+                        cards={coverflowCards}
+                        streak={data.currentStreak}
+                        minutesThisWeek={data.minutesListenedThisWeek}
+                        onColorChange={setAmbientColor}
+                    />
+                )}
 
-            {/* Docked bar — appears when hero is off-screen and a card is playing */}
-            <DockedQuickAccessBar
-                visible={!heroVisible && playingCoverflowCard !== null}
-                items={
-                    playingCoverflowCard
-                        ? [
-                              {
-                                  song: playingCoverflowCard.song,
-                                  queue: playingCoverflowCard.queue,
-                                  label: playingCoverflowCard.eyebrow,
-                              },
-                          ]
-                        : []
-                }
-            />
-
-            {/* Quick selections grid */}
-            {data.randomSongsLastMonth.length > 0 && (
-                <QuickSelectionsSection
-                    title={$vocabulary.QUICK_SELECTIONS}
-                    songs={data.randomSongsLastMonth}
+                {/* Hero sentinel — marks where the hero ends for the docked bar */}
+                <div
+                    ref={heroSentinelRef}
+                    className="h-px w-full"
+                    aria-hidden="true"
                 />
-            )}
+
+                {/* Docked bar — appears when hero is off-screen and a card is playing */}
+                <DockedQuickAccessBar
+                    visible={!heroVisible && playingCoverflowCard !== null}
+                    items={
+                        playingCoverflowCard
+                            ? [
+                                  {
+                                      song: playingCoverflowCard.song,
+                                      queue: playingCoverflowCard.queue,
+                                      label: playingCoverflowCard.eyebrow,
+                                  },
+                              ]
+                            : []
+                    }
+                />
+
+                {/* Quick selections grid */}
+                {data.randomSongsLastMonth.length > 0 && (
+                    <QuickSelectionsSection
+                        title={$vocabulary.QUICK_SELECTIONS}
+                        songs={data.randomSongsLastMonth}
+                    />
+                )}
+            </div>
 
             {/* Bento sections — each section gets its own grid layout */}
             {data.songsByTimePlayed.length > 0 && (

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
@@ -32,8 +32,7 @@ function BentoCard({
     const { hex } = parseDominantColor(song.dominantColor);
     const [imgLoaded, setImgLoaded] = useState(false);
 
-    const isThisPlaying =
-        $currentMedia?.publicId === song.publicId && $playing;
+    const isThisPlaying = $currentMedia?.publicId === song.publicId && $playing;
 
     function handlePlay(e: React.MouseEvent): void {
         e.stopPropagation();
@@ -55,7 +54,11 @@ function BentoCard({
                 src={song.imageUrl}
                 alt=""
                 fill
-                sizes={size === "lg" ? "(max-width: 768px) 90vw, 40vw" : "(max-width: 768px) 60vw, 20vw"}
+                sizes={
+                    size === "lg"
+                        ? "(max-width: 768px) 90vw, 40vw"
+                        : "(max-width: 768px) 60vw, 20vw"
+                }
                 className={`object-cover transition-opacity duration-500 group-hover:opacity-40 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                 loading="lazy"
                 draggable={false}
@@ -100,7 +103,7 @@ function BentoCard({
 
                 {/* Play button — always visible on lg card, on hover for small */}
                 <div
-                    className={`ml-2 flex-shrink-0 ${
+                    className={`ml-2 shrink-0 ${
                         size === "lg"
                             ? "opacity-100"
                             : "opacity-0 transition-opacity group-hover:opacity-100"
@@ -201,12 +204,12 @@ export default function BentoSection({
                     : "opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1)",
             }}
         >
-            {/* Ambient tint — subtle gradient wash from the featured song's dominant color */}
+            {/* Ambient tint — subtle gradient wash, fades in to avoid hard edges between sections */}
             <div
                 className="pointer-events-none absolute inset-0 transition-opacity duration-1000"
                 style={{
-                    background: `linear-gradient(180deg, ${tintHex} 0%, transparent 70%)`,
-                    opacity: 0.08,
+                    background: `linear-gradient(180deg, transparent 0%, transparent 15%, ${tintHex} 50%, transparent 100%)`,
+                    opacity: 0.15,
                 }}
                 aria-hidden="true"
             />

@@ -17,6 +17,7 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.media.image import Image
+from backend.core.access.imageAccess import ImageAccess
 
 # CORE ORM MODELS
 from backend.core.access.db.ormModels.image import ImageRow
@@ -379,10 +380,9 @@ class SpotifyAccess:
             full_path = os.path.join(IMAGES_PATH, filename)
             with open(full_path, "wb") as f:
                 f.write(response.content)
-            img = ImageRow(public_id=create_id(32), url=url, path=filename)
-            session.add(img)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=img)
+            return await ImageAccess.create_image_async(
+                session=session, path=filename, url=url
+            )
         except Exception as e:
             logger.error(f"Failed to download/create internal image: {e}")
             return AResult(
@@ -1455,78 +1455,6 @@ class SpotifyAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to bulk-resolve album public_ids: {e}",
-            )
-
-    # ── Image download helpers ────────────────────────────────────────────────
-
-    @staticmethod
-    @time_it
-    async def download_and_create_album_image_async(
-        session: AsyncSession,
-        url: str,
-    ) -> AResult[ImageRow]:
-        try:
-            response = req.get(url, timeout=10)
-            if response.status_code != 200:
-                logger.warning(f"Failed to download album image from {url}")
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
-                    message="Image download failed",
-                )
-
-            spotify_dir = os.path.join(IMAGES_PATH, "spotify", "album")
-            os.makedirs(spotify_dir, exist_ok=True)
-
-            filename = str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(spotify_dir, filename)
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-
-            img = ImageRow(public_id=create_id(32), url=url, path=filename)
-            session.add(img)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=img)
-
-        except Exception as e:
-            logger.error(f"Failed to download/create album image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to download/create album image: {e}",
-            )
-
-    @staticmethod
-    @time_it
-    async def download_and_create_artist_image_async(
-        session: AsyncSession,
-        url: str,
-    ) -> AResult[ImageRow]:
-        try:
-            response = req.get(url, timeout=10)
-            if response.status_code != 200:
-                logger.warning(f"Failed to download artist image from {url}")
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
-                    message="Image download failed",
-                )
-
-            spotify_dir = os.path.join(IMAGES_PATH, "spotify", "artist")
-            os.makedirs(spotify_dir, exist_ok=True)
-
-            filename = str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(spotify_dir, filename)
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-
-            img = ImageRow(public_id=create_id(32), url=url, path=filename)
-            session.add(img)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=img)
-
-        except Exception as e:
-            logger.error(f"Failed to download/create artist image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to download/create artist image: {e}",
             )
 
     # ── Association helpers ──────────────────────────────────────────────────

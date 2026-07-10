@@ -44,7 +44,7 @@ export default function RecentlyPlayedSong({
                 {$song.name}
             </span>
             <span className="block truncate text-center text-sm text-gray-400">
-                {$song.artists[0].name}
+                {$song.artists[0]?.name ?? "Unknown"}
             </span>
         </div>
     );

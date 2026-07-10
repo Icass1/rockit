@@ -46,7 +46,7 @@ export default function QuickSelectionsSong({
                         {$song.name}
                     </span>
                     <span className="w-full min-w-0 truncate text-xs text-gray-400">
-                        {$song.artists[0].name} {" • "} {$song.album.name}
+                        {$song.artists[0]?.name ?? "Unknown"} {" • "} {$song.album?.name ?? "—"}
                     </span>
                 </div>
             </div>

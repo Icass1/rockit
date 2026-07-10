@@ -1,14 +1,17 @@
 "use client";
 
-import { useMemo, type JSX } from "react";
+import { useMemo, useState, useEffect, useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import { useGreeting } from "@/components/Home/hooks/useGreeting";
-import HomeHero from "@/components/Home/HomeHero";
+import HomeHeroCoverflow, {
+    type CoverflowCard,
+} from "@/components/Home/HomeHeroCoverflow";
 import HomeSkeleton from "@/components/Home/HomeSkeleton";
+import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
-import SongScrollSection from "@/components/Home/sections/SongScrollSection";
+import BentoSection from "@/components/Home/sections/BentoSection";
 
 export default function HomeClient(): JSX.Element {
     const data = useHomeData();
@@ -16,86 +19,121 @@ export default function HomeClient(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $username = useStore(rockIt.userManager.usernameAtom);
 
-    // No redirect — home is always accessible
-
     const greetingName = $username
         ? `${greeting}, ${$username}`
         : greeting;
 
-    const ambientPool = useMemo(() => {
+    // ── Coverflow cards: one per available section ──
+    const coverflowCards = useMemo(() => {
         if (!data) return [];
-        const combined = [
-            ...data.songsByTimePlayed,
-            ...data.randomSongsLastMonth,
-            ...data.nostalgicMix,
-        ];
-        const seen = new Set<string>();
-        return combined.filter((s) => {
-            if (seen.has(s.publicId)) return false;
-            seen.add(s.publicId);
-            return true;
-        });
-    }, [data]);
-
-    const heroSlots = useMemo(() => {
-        if (!data) return [];
-        const slots: Array<{
-            eyebrow: string;
-            title: string;
-            subtitle: string;
-            song: import("@/dto").BaseSongWithAlbumResponse;
-            queue: import("@/dto").BaseSongWithAlbumResponse[];
-        }> = [];
+        const cards: CoverflowCard[] = [];
 
         if (data.songsByTimePlayed.length > 0) {
-            slots.push({
+            cards.push({
                 eyebrow: $vocabulary.RECENTLY_PLAYED,
-                title: data.songsByTimePlayed[0].name,
-                subtitle:
-                    data.songsByTimePlayed[0].artists[0]?.name ?? "",
                 song: data.songsByTimePlayed[0],
                 queue: data.songsByTimePlayed,
             });
         }
-
         if (data.monthlyTop.length > 0) {
-            slots.push({
-                eyebrow: $vocabulary.YOUR_MIX,
-                title: data.monthlyTop[0].name,
-                subtitle: $vocabulary.MOST_LISTENED,
+            cards.push({
+                eyebrow: $vocabulary.MOST_LISTENED,
                 song: data.monthlyTop[0],
                 queue: data.monthlyTop,
             });
         }
-
         if (data.hiddenGems.length > 0) {
-            slots.push({
+            cards.push({
                 eyebrow: $vocabulary.HIDDEN_GEMS,
-                title: data.hiddenGems[0].name,
-                subtitle:
-                    data.hiddenGems[0].artists[0]?.name ?? "",
                 song: data.hiddenGems[0],
                 queue: data.hiddenGems,
             });
         }
+        if (data.nostalgicMix.length > 0) {
+            cards.push({
+                eyebrow: $vocabulary.RECENT_MIX,
+                song: data.nostalgicMix[0],
+                queue: data.nostalgicMix,
+            });
+        }
+        if (data.randomSongsLastMonth.length > 0) {
+            cards.push({
+                eyebrow: $vocabulary.YOUR_MIX,
+                song: data.randomSongsLastMonth[0],
+                queue: data.randomSongsLastMonth,
+            });
+        }
 
-        return slots;
+        return cards;
     }, [data, $vocabulary]);
+
+    // ── Docked bar: show when hero scrolls out and a card is playing ──
+    const [heroVisible, setHeroVisible] = useState(true);
+    const heroSentinelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const sentinel = heroSentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setHeroVisible(entry.isIntersecting);
+            },
+            { threshold: 0 }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, []);
+
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
+    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+
+    const playingCoverflowCard = useMemo(() => {
+        if (!$currentMedia || !$playing) return null;
+        return coverflowCards.find(
+            (c) => c.song.publicId === $currentMedia.publicId
+        ) ?? null;
+    }, [$currentMedia, $playing, coverflowCards]);
 
     if (!data) return <HomeSkeleton />;
 
     return (
         <div className="flex flex-col">
-            {heroSlots.length > 0 && (
-                <HomeHero
+            {/* Hero: 3D coverflow */}
+            {coverflowCards.length > 0 && (
+                <HomeHeroCoverflow
                     greetingName={greetingName}
-                    ambientSongs={ambientPool}
-                    slots={heroSlots}
+                    cards={coverflowCards}
                     streak={data.currentStreak}
                     minutesThisWeek={data.minutesListenedThisWeek}
                 />
             )}
 
+            {/* Hero sentinel — marks where the hero ends for the docked bar */}
+            <div
+                ref={heroSentinelRef}
+                className="h-px w-full"
+                aria-hidden="true"
+            />
+
+            {/* Docked bar — appears when hero is off-screen and a card is playing */}
+            <DockedQuickAccessBar
+                visible={!heroVisible && playingCoverflowCard !== null}
+                items={
+                    playingCoverflowCard
+                        ? [
+                              {
+                                  song: playingCoverflowCard.song,
+                                  queue: playingCoverflowCard.queue,
+                                  label: playingCoverflowCard.eyebrow,
+                              },
+                          ]
+                        : []
+                }
+            />
+
+            {/* Quick selections grid */}
             {data.randomSongsLastMonth.length > 0 && (
                 <QuickSelectionsSection
                     title={$vocabulary.QUICK_SELECTIONS}
@@ -103,46 +141,44 @@ export default function HomeClient(): JSX.Element {
                 />
             )}
 
+            {/* Bento sections — each section gets its own grid layout */}
             {data.songsByTimePlayed.length > 0 && (
-                <SongScrollSection
+                <BentoSection
                     title={$vocabulary.RECENTLY_PLAYED}
                     songs={data.songsByTimePlayed}
-                    className="py-5"
-                    featureFirst
                 />
             )}
 
             {data.hiddenGems.length > 0 && (
-                <SongScrollSection
+                <BentoSection
                     title={$vocabulary.HIDDEN_GEMS}
                     songs={data.hiddenGems}
                 />
             )}
 
             {data.communityTop.length > 0 && (
-                <SongScrollSection
+                <BentoSection
                     title={$vocabulary.COMMUNITY_TOP}
                     songs={data.communityTop}
-                    className="py-5"
                 />
             )}
 
             {data.monthlyTop.length > 0 && (
-                <SongScrollSection
+                <BentoSection
                     title={$vocabulary.MOST_LISTENED}
                     songs={data.monthlyTop}
                 />
             )}
 
             {data.moodSongs.length > 0 && (
-                <SongScrollSection
+                <BentoSection
                     title={$vocabulary.MOOD_SONGS}
                     songs={data.moodSongs}
                 />
             )}
 
             {data.nostalgicMix.length > 0 && (
-                <SongScrollSection
+                <BentoSection
                     title={$vocabulary.RECENT_MIX}
                     songs={data.nostalgicMix}
                 />

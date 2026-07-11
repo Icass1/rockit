@@ -13,7 +13,7 @@ export const YoutubeMusicArtistResponseSchema = z.object({
     providerUrl: z.string(),
     name: z.string(),
     imageUrl: z.string(),
-    dominantColor: z.string().nullable(),
+    dominantColor: z.string(),
     youtubeId: z.string(),
     topSongs: z
         .array(z.lazy(() => BaseSongWithAlbumResponseSchema))

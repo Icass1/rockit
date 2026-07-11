@@ -16,7 +16,7 @@ export const SpotifyScrapperAlbumResponseSchema = z.object({
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     releaseDate: z.string(),
     imageUrl: z.string(),
-    dominantColor: z.string().nullable(),
+    dominantColor: z.string(),
     undownloadedCount: z.number().default(0),
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
     spotifyId: z.string(),

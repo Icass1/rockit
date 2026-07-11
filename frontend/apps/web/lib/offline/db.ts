@@ -53,13 +53,20 @@ export async function saveSongOffline(
     }
 
     const db = await getDB();
-    await db.put("songs", {
-        publicId,
-        audioBlob,
-        coverBlob,
-        downloadedAt: Date.now(),
-        sizeBytes: audioBlob.size + (coverBlob?.size ?? 0),
-    });
+    try {
+        await db.put("songs", {
+            publicId,
+            audioBlob,
+            coverBlob,
+            downloadedAt: Date.now(),
+            sizeBytes: audioBlob.size + (coverBlob?.size ?? 0),
+        });
+    } catch (err) {
+        if (err instanceof DOMException && err.name === "QuotaExceededError") {
+            throw new Error("STORAGE_FULL");
+        }
+        throw err;
+    }
 }
 
 export async function getOfflineSong(publicId: string) {

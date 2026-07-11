@@ -4,7 +4,7 @@ import {
     deleteOfflineSong,
     listOfflineSongIds,
     getOfflineSong,
-} from "./db";
+} from "@/lib/offline/db";
 
 type DownloadStatus = "idle" | "downloading" | "downloaded" | "error";
 
@@ -30,7 +30,6 @@ export async function downloadSongOffline(
         await saveSongOffline(publicId, audioUrl, coverUrl);
         offlineStatusMap.setKey(publicId, "downloaded");
     } catch (err) {
-        console.error("[offline] fallo al descargar", publicId, err);
         offlineStatusMap.setKey(publicId, "error");
         throw err;
     }

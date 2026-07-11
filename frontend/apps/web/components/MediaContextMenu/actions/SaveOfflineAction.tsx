@@ -10,6 +10,7 @@ import {
     removeOfflineSong,
 } from "@/lib/offline/store";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SaveOfflineAction({
     media,
@@ -44,6 +45,10 @@ export default function SaveOfflineAction({
                 audioUrl,
                 media.imageUrl ?? null
             );
+        } catch (err) {
+            if (err instanceof Error && err.message === "STORAGE_FULL") {
+                rockIt.notificationManager.notifyError("Storage full");
+            }
         } finally {
             setDownloading(false);
         }

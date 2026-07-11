@@ -2,7 +2,7 @@ import path from "path";
 import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
 
-const isDev = process.env.NODE_ENV === "development" || true;
+const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
     output: "standalone",

@@ -1,4 +1,5 @@
 from typing import Dict, List, Tuple, cast, TYPE_CHECKING
+from datetime import datetime, timezone
 
 from sqlalchemy.future import select
 from sqlalchemy import Result, Select, and_
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
         YoutubeMusicTrack,
         YoutubeMusicAlbum,
         YoutubeMusicArtist,
+        YoutubeMusicPlaylist,
     )
 
 logger = getLogger(__name__)
@@ -371,7 +373,15 @@ class YoutubeMusicAccess:
 
         track_links: List[PlaylistTrackLink] = []
         for ptr in playlist_track_rows:
-            track_stmt = select(TrackRow).where(TrackRow.id == ptr.song_id)
+            track_stmt = (
+                select(TrackRow)
+                .where(TrackRow.id == ptr.song_id)
+                .options(
+                    selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
+                    selectinload(TrackRow.image),
+                    selectinload(TrackRow.core_song),
+                )
+            )
             track_result = await session.execute(track_stmt)
             track: TrackRow | None = track_result.scalar_one_or_none()
             if track:
@@ -709,6 +719,124 @@ class YoutubeMusicAccess:
             message="OK",
             result={row[0]: row[1] for row in result.all()},
         )
+
+    @staticmethod
+    @safe_async
+    async def get_playlists_youtube_id_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> AResult[Dict[str, str]]:
+        """Bulk-resolve public_ids to youtube_ids for playlists in one query."""
+
+        if not public_ids:
+            return AResult(code=AResultCode.OK, message="OK", result={})
+
+        stmt: Select[Tuple[str, str]] = (
+            select(CoreMediaRow.public_id, PlaylistRow.youtube_id)
+            .join(PlaylistRow, PlaylistRow.id == CoreMediaRow.id)
+            .where(
+                CoreMediaRow.public_id.in_(public_ids),
+                CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
+            )
+        )
+        result: Result[Tuple[str, str]] = await session.execute(stmt)
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result={row[0]: row[1] for row in result.all()},
+        )
+
+    @staticmethod
+    @safe_async
+    async def get_playlists_by_youtube_ids_async(
+        session: AsyncSession,
+        youtube_ids: List[str],
+    ) -> AResult[List[PlaylistRow]]:
+        """Batch fetch playlists by their youtube_ids in a single query."""
+
+        if not youtube_ids:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        stmt: Select[Tuple[PlaylistRow]] = (
+            select(PlaylistRow)
+            .join(
+                CoreMediaRow,
+                and_(
+                    CoreMediaRow.id == PlaylistRow.id,
+                    CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
+                ),
+            )
+            .where(PlaylistRow.youtube_id.in_(youtube_ids))
+        )
+        result: Result[Tuple[PlaylistRow]] = await session.execute(stmt)
+        playlists: List[PlaylistRow] = list(result.scalars().all())
+        return AResult(code=AResultCode.OK, message="OK", result=playlists)
+
+    @staticmethod
+    @safe_async
+    async def get_or_create_playlist_with_image_id_async(
+        session: AsyncSession,
+        raw: "YoutubeMusicPlaylist",
+        track_row_map: Dict[str, TrackRow],
+        provider_id: int,
+        image_id: int | None = None,
+    ) -> AResult[PlaylistRow]:
+        """Create a playlist and its track links in the database if it does not exist."""
+
+        stmt = (
+            select(PlaylistRow)
+            .join(
+                CoreMediaRow,
+                and_(
+                    CoreMediaRow.id == PlaylistRow.id,
+                    CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
+                ),
+            )
+            .where(PlaylistRow.youtube_id == raw.youtube_id)
+        )
+        result = await session.execute(stmt)
+        existing: PlaylistRow | None = result.scalar_one_or_none()
+        if existing:
+            return AResult(code=AResultCode.OK, message="OK", result=existing)
+
+        core_playlist = CoreMediaRow(
+            public_id=create_id(32),
+            provider_id=provider_id,
+            media_type_key=MediaTypeEnum.PLAYLIST.value,
+        )
+        session.add(core_playlist)
+        await session.flush()
+
+        playlist_row = PlaylistRow(
+            id=core_playlist.id,
+            youtube_id=raw.youtube_id,
+            name=raw.title or "",
+            owner="",
+            image_id=image_id,
+            description=raw.description,
+        )
+        session.add(playlist_row)
+        await session.flush()
+        playlist_row.core_playlist = core_playlist
+
+        position = 0
+        for raw_track in raw.tracks:
+            track_row = track_row_map.get(raw_track.youtube_id)
+            if not track_row:
+                continue
+            session.add(
+                PlaylistTrackRow(
+                    playlist_id=playlist_row.id,
+                    song_id=track_row.id,
+                    position=position,
+                    added_at=datetime.now(timezone.utc),
+                    disabled=False,
+                )
+            )
+            position += 1
+
+        await session.flush()
+        return AResult(code=AResultCode.OK, message="OK", result=playlist_row)
 
     @staticmethod
     @safe_async

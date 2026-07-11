@@ -19,6 +19,7 @@ interface GestureState {
     originTarget: EventTarget | null;
     direction: Direction;
     target: GestureTarget | null;
+    scrolledToTop: boolean;
     active: boolean;
 }
 
@@ -30,17 +31,27 @@ export interface GestureDecision {
 }
 
 interface UseGestureDecisionOptions {
+    panelRef: RefObject<HTMLDivElement | null>;
+    panelScrollRef: RefObject<HTMLDivElement | null>;
     panelOpen: boolean;
 }
 
-function startedOnPanelHandle(
+function isInsidePanel(
     target: EventTarget | null,
+    panelEl: HTMLElement | null,
 ): boolean {
+    if (!target || !panelEl || !(target instanceof Node)) return false;
+    return panelEl.contains(target);
+}
+
+function startedOnDragHandle(target: EventTarget | null): boolean {
     if (!target || !(target instanceof HTMLElement)) return false;
-    return target.closest("[data-panel-handle]") !== null;
+    return target.closest("[data-drag-handle]") !== null;
 }
 
 export function useGestureDecision({
+    panelRef,
+    panelScrollRef,
     panelOpen,
 }: UseGestureDecisionOptions): {
     decision: RefObject<GestureDecision | null>;
@@ -58,18 +69,21 @@ export function useGestureDecision({
         originTarget: null,
         direction: null,
         target: null,
+        scrolledToTop: false,
         active: false,
     });
 
     const decision = useRef<GestureDecision | null>(null);
 
     const resolveTarget = useCallback(
-        (origin: EventTarget | null): GestureTarget => {
-            if (!panelOpen) return "sheet";
-            if (startedOnPanelHandle(origin)) return "panel";
+        (origin: EventTarget | null): GestureTarget | null => {
+            if (startedOnDragHandle(origin)) return null;
+            if (panelOpen && isInsidePanel(origin, panelRef.current)) {
+                return "panel";
+            }
             return "sheet";
         },
-        [panelOpen],
+        [panelOpen, panelRef],
     );
 
     const onPointerDown = useCallback(
@@ -84,6 +98,7 @@ export function useGestureDecision({
                 originTarget: e.target,
                 direction: null,
                 target: null,
+                scrolledToTop: false,
                 active: true,
             };
             decision.current = null;
@@ -110,6 +125,19 @@ export function useGestureDecision({
 
             if (s.target === null) {
                 s.target = resolveTarget(s.originTarget);
+                if (s.target === null) {
+                    s.active = false;
+                    return;
+                }
+            }
+
+            if (s.target === "panel") {
+                const scrollEl = panelScrollRef.current;
+                if (scrollEl && scrollEl.scrollTop >= 2) {
+                    scrollEl.scrollTop -= dy;
+                    return;
+                }
+                s.scrolledToTop = true;
             }
 
             const elapsed = now - s.lastTime;
@@ -124,7 +152,7 @@ export function useGestureDecision({
                 dismiss: false,
             };
         },
-        [resolveTarget],
+        [resolveTarget, panelScrollRef],
     );
 
     const onPointerUp = useCallback(
@@ -137,18 +165,34 @@ export function useGestureDecision({
             const elapsed = performance.now() - s.startTime;
             const velocity = elapsed > 0 ? dy / elapsed : 0;
 
-            decision.current = {
-                target: s.target ?? "sheet",
-                dy,
-                velocity,
-                dismiss:
-                    dy > window.innerHeight * DISMISS_RATIO ||
-                    velocity > VELOCITY_THRESHOLD,
-            };
+            if (s.target === "panel") {
+                if (s.scrolledToTop) {
+                    decision.current = {
+                        target: "panel",
+                        dy,
+                        velocity,
+                        dismiss:
+                            dy > window.innerHeight * DISMISS_RATIO ||
+                            velocity > VELOCITY_THRESHOLD,
+                    };
+                } else {
+                    decision.current = null;
+                }
+            } else if (s.target === "sheet") {
+                decision.current = {
+                    target: "sheet",
+                    dy,
+                    velocity,
+                    dismiss:
+                        dy > window.innerHeight * DISMISS_RATIO ||
+                        velocity > VELOCITY_THRESHOLD,
+                };
+            }
 
             s.direction = null;
             s.target = null;
             s.originTarget = null;
+            s.scrolledToTop = false;
         },
         [],
     );

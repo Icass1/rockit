@@ -9,6 +9,7 @@ interface UseSheetGestureOptions {
     sheetRef: RefObject<HTMLDivElement | null>;
     backdropRef: RefObject<HTMLDivElement | null>;
     panelRef: RefObject<HTMLDivElement | null>;
+    panelScrollRef: RefObject<HTMLDivElement | null>;
     panelOpen: boolean;
     onDismissSheet: () => void;
     onDismissPanel: () => void;
@@ -18,6 +19,7 @@ export function useSheetGesture({
     sheetRef,
     backdropRef,
     panelRef,
+    panelScrollRef,
     panelOpen,
     onDismissSheet,
     onDismissPanel,
@@ -41,6 +43,8 @@ export function useSheetGesture({
     });
 
     const { decision, ...gestureHandlers } = useGestureDecision({
+        panelRef,
+        panelScrollRef,
         panelOpen,
     });
 

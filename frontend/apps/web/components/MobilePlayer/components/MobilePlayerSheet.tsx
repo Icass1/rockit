@@ -30,6 +30,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
         sheetRef,
         backdropRef,
         panelRef,
+        panelScrollRef: scrollRef,
         panelOpen: tab !== null,
         onDismissSheet: hidePlayer,
         onDismissPanel: dismissPanel,

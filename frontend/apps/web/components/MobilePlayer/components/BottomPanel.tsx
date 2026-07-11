@@ -34,10 +34,8 @@ export default function BottomPanel({
         >
             <button
                 type="button"
-                data-panel-handle
                 onClick={onClose}
                 className="flex w-full items-center justify-center py-2.5"
-                style={{ touchAction: "none" }}
                 aria-label="Cerrar panel"
             >
                 <span className="h-1 w-9 rounded-full bg-white/25" />
@@ -45,7 +43,10 @@ export default function BottomPanel({
             <div
                 ref={scrollRef}
                 className="h-[calc(100%-32px)] overflow-y-auto"
-                style={{ overscrollBehavior: "contain" }}
+                style={{
+                    touchAction: tab ? "pan-x" : "auto",
+                    overscrollBehavior: "contain",
+                }}
             >
                 {tab === "queue" && <QueuePanel />}
                 {tab === "lyrics" && mediaPublicId && (

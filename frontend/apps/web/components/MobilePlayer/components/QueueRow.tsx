@@ -80,6 +80,7 @@ export default function QueueRow({
             {/* Drag handle — the ONLY element that starts a reorder drag */}
             <button
                 type="button"
+                data-drag-handle
                 onPointerDown={onDragHandlePointerDown}
                 className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center text-white/35"
                 aria-label="Reordenar"

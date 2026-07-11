@@ -31,7 +31,6 @@ from backend.core.responses.uploadResponse import UploadResponse
 from backend.core.access.db.ormModels.image import ImageRow
 
 from backend.core.framework.media.image import Image
-from backend.core.access.imageAccess import ImageAccess
 
 from backend.rockit.access.rockitAccess import RockitAccess
 from backend.rockit.access.db.ormModels.song import RockitSongRow
@@ -116,7 +115,7 @@ class Rockit:
             os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
             shutil.copy2(image_path, image_full_path)
 
-            a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
+            a_result_image: AResult[ImageRow] = await Image.create_image_async(
                 session=session, path=image_rel_path
             )
             if a_result_image.is_not_ok():
@@ -193,7 +192,7 @@ class Rockit:
 
             shutil.copy2(cover_path, image_full_path)
 
-            a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
+            a_result_image: AResult[ImageRow] = await Image.create_image_async(
                 session=session, path=image_rel_path
             )
             if a_result_image.is_not_ok():
@@ -327,7 +326,7 @@ class Rockit:
             os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
             shutil.copy2(image_path, image_full_path)
 
-            a_result_image: AResult[ImageRow] = await ImageAccess.create_image_async(
+            a_result_image: AResult[ImageRow] = await Image.create_image_async(
                 session=session, path=image_rel_path
             )
             if a_result_image.is_not_ok():
@@ -595,11 +594,15 @@ class Rockit:
                                 session=session, image_id=song.image_id
                             )
                         )
-                        image_url: str = ""
-                        if a_result_image.is_ok():
-                            image_url = Image.get_internal_image_url(
-                                a_result_image.result()
+                        if a_result_image.is_not_ok():
+                            logger.warning(
+                                f"Error getting image for song {song.id}. {a_result_image.info()}"
                             )
+                            continue
+
+                        image_url: str = Image.get_internal_image_url(
+                            a_result_image.result()
+                        )
 
                         artists: List[ArtistSearchResultsItem] = [
                             ArtistSearchResultsItem(
@@ -644,11 +647,15 @@ class Rockit:
                                 session=session, image_id=album.image_id
                             )
                         )
-                        img_url: str = ""
-                        if a_result_img.is_ok():
-                            img_url = Image.get_internal_image_url(
-                                a_result_img.result()
+                        if a_result_img.is_not_ok():
+                            logger.warning(
+                                f"Error getting image for album {album.id}. {a_result_img.info()}"
                             )
+                            continue
+
+                        img_url: str = Image.get_internal_image_url(
+                            a_result_img.result()
+                        )
 
                         results.append(
                             BaseSearchResultsItem(
@@ -691,11 +698,15 @@ class Rockit:
                                 session=session, image_id=video.image_id
                             )
                         )
-                        img_url: str = ""
-                        if a_result_img.is_ok():
-                            img_url = Image.get_internal_image_url(
-                                a_result_img.result()
+                        if a_result_img.is_not_ok():
+                            logger.warning(
+                                f"Error getting image for video {video.id}. {a_result_img.info()}"
                             )
+                            continue
+
+                        img_url: str = Image.get_internal_image_url(
+                            a_result_img.result()
+                        )
 
                         results.append(
                             BaseSearchResultsItem(
@@ -763,11 +774,16 @@ class Rockit:
             a_result_image: AResult[ImageRow] = await Rockit._get_image_for_media_async(
                 session=session, image_id=song.image_id
             )
-            image_url: str = ""
-            dominant_color: str | None = None
-            if a_result_image.is_ok():
-                image_url = Image.get_internal_image_url(a_result_image.result())
-                dominant_color = a_result_image.result().dominant_color
+            if a_result_image.is_not_ok():
+                logger.error(
+                    f"Error getting image for song {public_id}. {a_result_image.info()}"
+                )
+                return AResult(
+                    code=a_result_image.code(), message=a_result_image.message()
+                )
+
+            image_url: str = Image.get_internal_image_url(a_result_image.result())
+            dominant_color: str = a_result_image.result().dominant_color
 
             song_artists: List[BaseArtistResponse] = [
                 BaseArtistResponse(
@@ -777,6 +793,7 @@ class Rockit:
                     providerUrl="",
                     name=artist.name,
                     imageUrl=image_url,
+                    dominantColor=dominant_color,
                 )
                 for artist in song.artists
             ]
@@ -795,6 +812,7 @@ class Rockit:
                     artists=[],
                     releaseDate="",
                     imageUrl="",
+                    dominantColor="",
                     undownloadedCount=0,
                 )
             )
@@ -824,15 +842,21 @@ class Rockit:
                             session=session, image_id=album_row.image_id
                         )
                     )
-                    album_image_url: str = ""
-                    album_dominant_color: str | None = None
-                    if a_result_album_image.is_ok():
-                        album_image_url = Image.get_internal_image_url(
-                            a_result_album_image.result()
+                    if a_result_album_image.is_not_ok():
+                        logger.error(
+                            f"Error getting album image for {album_public_id}. {a_result_album_image.info()}"
                         )
-                        album_dominant_color = (
-                            a_result_album_image.result().dominant_color
+                        return AResult(
+                            code=a_result_album_image.code(),
+                            message=a_result_album_image.message(),
                         )
+
+                    album_image_url: str = Image.get_internal_image_url(
+                        a_result_album_image.result()
+                    )
+                    album_dominant_color: str = (
+                        a_result_album_image.result().dominant_color
+                    )
 
                     album_artists_response: List[BaseArtistResponse] = [
                         BaseArtistResponse(
@@ -842,6 +866,7 @@ class Rockit:
                             providerUrl="",
                             name=artist.name,
                             imageUrl=album_image_url,
+                            dominantColor=album_dominant_color,
                         )
                         for artist in album_row.artists
                     ]
@@ -900,11 +925,16 @@ class Rockit:
             a_result_image: AResult[ImageRow] = await Rockit._get_image_for_media_async(
                 session=session, image_id=album.image_id
             )
-            image_url: str = ""
-            dominant_color: str | None = None
-            if a_result_image.is_ok():
-                image_url = Image.get_internal_image_url(a_result_image.result())
-                dominant_color = a_result_image.result().dominant_color
+            if a_result_image.is_not_ok():
+                logger.error(
+                    f"Error getting image for album {public_id}. {a_result_image.info()}"
+                )
+                return AResult(
+                    code=a_result_image.code(), message=a_result_image.message()
+                )
+
+            image_url: str = Image.get_internal_image_url(a_result_image.result())
+            dominant_color: str = a_result_image.result().dominant_color
 
             album_artists: List[BaseArtistResponse] = [
                 BaseArtistResponse(
@@ -914,6 +944,7 @@ class Rockit:
                     providerUrl="",
                     name=artist.name,
                     imageUrl=image_url,
+                    dominantColor=dominant_color,
                 )
                 for artist in album.artists
             ]
@@ -939,7 +970,7 @@ class Rockit:
                 for song in a_result_songs.result():
                     song_pid: str = id_to_public_id.get(song.id, "")
                     song_image_url: str = image_url
-                    song_dominant_color: str | None = dominant_color
+                    song_dominant_color: str = dominant_color
 
                     a_result_song_image: AResult[ImageRow] = (
                         await Rockit._get_image_for_media_async(
@@ -962,6 +993,7 @@ class Rockit:
                             providerUrl="",
                             name=artist.name,
                             imageUrl=song_image_url,
+                            dominantColor=song_dominant_color,
                         )
                         for artist in song.artists
                     ]
@@ -1026,11 +1058,16 @@ class Rockit:
             a_result_image: AResult[ImageRow] = await Rockit._get_image_for_media_async(
                 session=session, image_id=video.image_id
             )
-            image_url: str = ""
-            dominant_color: str | None = None
-            if a_result_image.is_ok():
-                image_url = Image.get_internal_image_url(a_result_image.result())
-                dominant_color = a_result_image.result().dominant_color
+            if a_result_image.is_not_ok():
+                logger.error(
+                    f"Error getting image for video {public_id}. {a_result_image.info()}"
+                )
+                return AResult(
+                    code=a_result_image.code(), message=a_result_image.message()
+                )
+
+            image_url: str = Image.get_internal_image_url(a_result_image.result())
+            dominant_color: str = a_result_image.result().dominant_color
 
             video_artists: List[BaseArtistResponse] = [
                 BaseArtistResponse(
@@ -1040,6 +1077,7 @@ class Rockit:
                     providerUrl="",
                     name=artist.name,
                     imageUrl=image_url,
+                    dominantColor=dominant_color,
                 )
                 for artist in video.artists
             ]

@@ -1,5 +1,3 @@
-import asyncio
-
 from typing import List, Tuple
 
 from sqlalchemy.sql import Select
@@ -13,15 +11,6 @@ from backend.core.utils.safeAsyncCall import safe_async
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.constants import IMAGES_PATH
-from backend.utils.colorExtractor import extract_dominant_color
-
-_PLACEHOLDER_PATHS = {
-    "song-placeholder.png",
-    "radio-placeholder.png",
-    "video-placeholder.png",
-    "playlist-placeholder.png",
-}
 
 logger = getLogger(__name__)
 
@@ -87,12 +76,13 @@ class ImageAccess:
         return AResult(code=AResultCode.OK, message="OK", result=row)
 
     @staticmethod
-    async def create_image_async(
+    async def insert_image_async(
         session: AsyncSession,
         path: str,
+        dominant_color: str,
         url: str | None = None,
     ) -> AResult[ImageRow]:
-        """Create a new ImageRow."""
+        """Insert a new ImageRow into the database."""
 
         try:
             existing_stmt: Select[Tuple[ImageRow]] = select(ImageRow).where(
@@ -106,12 +96,6 @@ class ImageAccess:
             if existing_row is not None:
                 return AResult(code=AResultCode.OK, message="OK", result=existing_row)
 
-            dominant_color: str | None = None
-            if path not in _PLACEHOLDER_PATHS:
-                dominant_color = await asyncio.to_thread(
-                    extract_dominant_color, IMAGES_PATH + "/" + path
-                )
-
             image: ImageRow = ImageRow(
                 public_id=create_id(32),
                 path=path,
@@ -124,7 +108,50 @@ class ImageAccess:
             return AResult(code=AResultCode.OK, message="OK", result=image)
 
         except Exception as e:
-            logger.error(f"Error creating image: {e}", exc_info=True)
+            logger.error(f"Error inserting image: {e}", exc_info=True)
             return AResult(
-                code=AResultCode.GENERAL_ERROR, message="Error creating image"
+                code=AResultCode.GENERAL_ERROR, message="Error inserting image"
+            )
+
+    @staticmethod
+    async def get_images_needing_color_backfill_async(
+        session: AsyncSession,
+    ) -> AResult[List[ImageRow]]:
+        """Get all images that have an empty dominant_color."""
+
+        try:
+            stmt: Select[Tuple[ImageRow]] = select(ImageRow).where(
+                ImageRow.dominant_color == ""
+            )
+            result: Result[Tuple[ImageRow]] = await session.execute(stmt)
+            rows: List[ImageRow] = list(result.scalars().all())
+
+            return AResult(code=AResultCode.OK, message="OK", result=rows)
+
+        except Exception as e:
+            logger.error(f"Error getting images for color backfill: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Error getting images for color backfill",
+            )
+
+    @staticmethod
+    async def update_image_dominant_color_async(
+        session: AsyncSession,
+        image: ImageRow,
+        dominant_color: str,
+    ) -> AResult[ImageRow]:
+        """Update the dominant_color of an image."""
+
+        try:
+            image.dominant_color = dominant_color
+            await session.flush()
+
+            return AResult(code=AResultCode.OK, message="OK", result=image)
+
+        except Exception as e:
+            logger.error(f"Error updating image dominant color: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Error updating image dominant color",
             )

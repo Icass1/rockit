@@ -17,5 +17,5 @@ class BaseAlbumWithoutSongsResponse(BaseModel):
     artists: Sequence[BaseArtistResponse]
     releaseDate: str
     imageUrl: str
-    dominantColor: str | None = None
+    dominantColor: str
     undownloadedCount: int = 0

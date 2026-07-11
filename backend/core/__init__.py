@@ -2,11 +2,8 @@ import os
 import asyncio
 import shutil
 
-from typing import List, Tuple
-
 from logging import Logger
 
-from sqlalchemy import Result, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -15,7 +12,7 @@ from backend.core.access.db import rockit_db
 
 from backend.core.access.enumAccess import EnumAccess
 from backend.core.access.imageAccess import ImageAccess
-from backend.core.access.db.ormModels.image import ImageRow
+from backend.core.framework.media.image import Image
 
 from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
     PlaylistContributorRoleEnumRow,
@@ -87,7 +84,7 @@ async def add_default_images(session: AsyncSession):
             logger.info(f"Image already in database: {filename}")
             continue
 
-        a_result = await ImageAccess.create_image_async(
+        a_result = await Image.create_image_async(
             session=session,
             path=filename,
             url=None,
@@ -100,29 +97,17 @@ async def add_default_images(session: AsyncSession):
             )
 
 
-async def ensure_image_dominant_color_column(session: AsyncSession):
-    """Add dominant_color column to core.image if it does not exist."""
-
-    try:
-        stmt = text(
-            "ALTER TABLE core.image ADD COLUMN IF NOT EXISTS dominant_color VARCHAR"
-        )
-        await session.execute(stmt)
-        logger.info("Ensured dominant_color column exists on core.image")
-    except Exception as e:
-        logger.error(f"Error ensuring dominant_color column: {e}", exc_info=True)
-
-
 async def backfill_dominant_colors(session: AsyncSession):
     """Extract and store dominant_color for all images that are missing it."""
 
-    try:
-        stmt = select(ImageRow).where(ImageRow.dominant_color.is_(None))
-        result: Result[Tuple[ImageRow]] = await session.execute(stmt)
-        images: List[ImageRow] = list(result.scalars().all())
-    except Exception as e:
-        logger.error(f"Error fetching images for backfill: {e}", exc_info=True)
+    a_result = await ImageAccess.get_images_needing_color_backfill_async(
+        session=session
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error fetching images for backfill. {a_result.info()}")
         return
+
+    images = a_result.result()
 
     if not images:
         logger.info("No images need dominant_color backfill")
@@ -132,12 +117,19 @@ async def backfill_dominant_colors(session: AsyncSession):
 
     from backend.utils.colorExtractor import extract_dominant_color
 
-    for image in images:
+    for index, image in enumerate(images):
         image_path = os.path.join(IMAGES_PATH, image.path)
         color = await asyncio.to_thread(extract_dominant_color, image_path)
         if color is not None:
-            image.dominant_color = color
+            await ImageAccess.update_image_dominant_color_async(
+                session=session, image=image, dominant_color=color
+            )
             logger.info(f"Backfilled {image.path} -> {color}")
+
+        if index % 100 == 0:
+            await session.commit()
+
+    await session.commit()
 
     logger.info("Dominant color backfill complete")
 
@@ -145,8 +137,6 @@ async def backfill_dominant_colors(session: AsyncSession):
 async def add_initial_content_async():
 
     async with rockit_db.session_scope_async() as session:
-        await ensure_image_dominant_color_column(session=session)
-
         await providers.async_init(session=session)
 
         await add_default_images(session=session)

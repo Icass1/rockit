@@ -152,7 +152,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         type="song",
                         name=track.title,
                         providerUrl=f"https://music.youtube.com/watch?v={track.youtube_id}",
-                        imageUrl=track.thumbnail_url,
+                        imageUrl=track.thumbnail_url,  # Extremely bad, must change for internal ImageRow
                         artists=[
                             ArtistSearchResultsItem(name=name, url="")
                             for name in track.artists
@@ -185,7 +185,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         type="artist",
                         name=artist.name,
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
-                        imageUrl=artist.thumbnail_url,
+                        imageUrl=artist.thumbnail_url,  # Extremely bad, must change for internal ImageRow
                         artists=[],
                         provider=YoutubeMusic.provider_name,
                         downloaded=None,
@@ -218,7 +218,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         type="album",
                         name=album.title,
                         providerUrl=f"https://music.youtube.com/browse/{album.youtube_id}",
-                        imageUrl=album.thumbnail_url,
+                        imageUrl=album.thumbnail_url,  # Extremely bad, must change for internal ImageRow
                         artists=[
                             ArtistSearchResultsItem(name=name, url="")
                             for name in album.artists
@@ -254,7 +254,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         type="playlist",
                         name=playlist.title,
                         providerUrl=f"https://music.youtube.com/browse/{playlist.youtube_id}",
-                        imageUrl=playlist.thumbnail_url,
+                        imageUrl=playlist.thumbnail_url,  # Extremely bad, must change for internal ImageRow
                         artists=(
                             [ArtistSearchResultsItem(name=playlist.author, url="")]
                             if playlist.author
@@ -306,6 +306,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         providerUrl="",
                         name=artist_name,
                         imageUrl="",
+                        dominantColor="",
                     )
                     for artist_name in track.artists
                 ]
@@ -318,7 +319,8 @@ class YoutubeMusicProvider(BaseMediaProvider):
                     name=track.album,
                     artists=[],
                     releaseDate="",
-                    imageUrl=track.thumbnail_url,
+                    imageUrl=track.thumbnail_url,  # Extremely bad, must change for internal ImageRow
+                    dominantColor="",
                 )
 
                 song_responses.append(
@@ -331,7 +333,8 @@ class YoutubeMusicProvider(BaseMediaProvider):
                             artists=artists_list,
                             audioUrl=None,
                             downloaded=False,
-                            imageUrl=track.thumbnail_url,
+                            imageUrl=track.thumbnail_url,  # Extremely bad, must change for internal ImageRow
+                            dominantColor="",
                             duration_ms=track.duration_ms,
                             discNumber=1,
                             trackNumber=1,
@@ -360,6 +363,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         providerUrl="",
                         name="",
                         imageUrl="",
+                        dominantColor="",
                     ),
                 )
             )
@@ -395,7 +399,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                     providerUrl=f"https://music.youtube.com/playlist?list={public_id}",
                     name=playlist.title,
                     contributors=[],
-                    imageUrl=playlist.thumbnail_url,
+                    imageUrl=playlist.thumbnail_url,  # Extremely bad, must change for internal ImageRow
                     owner=BaseArtistResponse(
                         provider=YoutubeMusic.provider_name,
                         publicId="",
@@ -403,6 +407,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
                         providerUrl="",
                         name="",
                         imageUrl="",
+                        dominantColor="",
                     ),
                 )
             )

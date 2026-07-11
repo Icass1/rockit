@@ -16,7 +16,7 @@ class BaseSongWithoutAlbumResponse(BaseModel):
     audioUrl: str | None
     downloaded: bool
     imageUrl: str
-    dominantColor: str | None = None
+    dominantColor: str
     duration_ms: int
     discNumber: int
     trackNumber: int

@@ -83,6 +83,7 @@ async def get_playlist_list_response(
                     providerUrl="",
                     name=owner_name,
                     imageUrl=Image.get_internal_image_url(owner.image),
+                    dominantColor=owner.image.dominant_color,
                 ),
             )
         )
@@ -139,6 +140,7 @@ async def create_playlist_async(
             providerUrl="",
             name=user.result().username,
             imageUrl=Image.get_internal_image_url(user.result().image),
+            dominantColor=user.result().image.dominant_color,
         ),
     )
 
@@ -212,6 +214,7 @@ async def get_default_playlist_async(
                 providerUrl="",
                 name=owner_user.username,
                 imageUrl=Image.get_internal_image_url(owner_user.image),
+                dominantColor=owner_user.image.dominant_color,
             ),
             user_id=user.result().id,
         )
@@ -283,6 +286,7 @@ async def update_playlist_async(
                     providerUrl="",
                     name=owner_user.username,
                     imageUrl=Image.get_internal_image_url(owner_user.image),
+                    dominantColor=owner_user.image.dominant_color,
                 ),
                 user_id=user.result().id,
             )
@@ -315,6 +319,7 @@ async def update_playlist_async(
             providerUrl="",
             name=user.result().username,
             imageUrl=Image.get_internal_image_url(user.result().image),
+            dominantColor=user.result().image.dominant_color,
         ),
     )
 

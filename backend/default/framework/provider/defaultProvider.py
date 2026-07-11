@@ -108,6 +108,7 @@ class DefaultProvider(BaseMediaProvider):
                         providerUrl="",
                         name=owner_name,
                         imageUrl=Image.get_internal_image_url(owner.image),
+                        dominantColor=owner.image.dominant_color,
                     ),
                     user_id=user_id,
                     _visited_playlist_ids=_visited_playlist_ids,
@@ -199,6 +200,7 @@ class DefaultProvider(BaseMediaProvider):
                         providerUrl="",
                         name=owner_name,
                         imageUrl=Image.get_internal_image_url(owner.image),
+                        dominantColor=owner.image.dominant_color,
                     ),
                 )
             )

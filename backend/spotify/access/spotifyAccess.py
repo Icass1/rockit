@@ -1,8 +1,5 @@
-import os
-import uuid
 from datetime import datetime, timezone
 
-import requests as req
 from typing import Dict, List, Tuple, cast
 
 from sqlalchemy.future import select
@@ -17,7 +14,6 @@ from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.media.image import Image
-from backend.core.access.imageAccess import ImageAccess
 
 # CORE ORM MODELS
 from backend.core.access.db.ormModels.image import ImageRow
@@ -59,8 +55,6 @@ from backend.spotify.spotifyApiTypes.rawSpotifyApiPlaylist import RawSpotifyApiP
 
 from backend.spotify.framework.models.playlistTrackLink import PlaylistTrackLink
 from backend.spotify.framework.models.trackWithCoreMedia import TrackWithCoreMedia
-
-from backend.constants import IMAGES_PATH
 
 logger = getLogger(__name__)
 
@@ -362,33 +356,7 @@ class SpotifyAccess:
                 message=f"Failed to get playlist from id {id}: {e}",
             )
 
-    # ── Image helpers ────────────────────────────────────────────────────────
-
-    @staticmethod
-    @time_it
-    async def _download_and_create_internal_image(
-        session: AsyncSession,
-        url: str,
-    ) -> AResult[ImageRow]:
-        try:
-            response = req.get(url, timeout=10)
-            if response.status_code != 200:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR, message="Image download failed"
-                )
-            filename = str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(IMAGES_PATH, filename)
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-            return await ImageAccess.create_image_async(
-                session=session, path=filename, url=url
-            )
-        except Exception as e:
-            logger.error(f"Failed to download/create internal image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to download/create internal image: {e}",
-            )
+    #  Image helpers
 
     @staticmethod
     @time_it
@@ -482,6 +450,7 @@ class SpotifyAccess:
         session: AsyncSession,
         raw: RawSpotifyApiArtist,
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[ArtistRow]:
         try:
             stmt = (
@@ -499,15 +468,6 @@ class SpotifyAccess:
             existing: ArtistRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            # Download highest-res image
-            image_id: int | None = None
-            if raw.images:
-                a_img = await SpotifyAccess._download_and_create_internal_image(
-                    session, raw.images[0].url
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             if image_id is None:
                 a_result_image: AResult[ImageRow] = (
@@ -605,6 +565,7 @@ class SpotifyAccess:
         raw: RawSpotifyApiAlbum,
         artist_map: Dict[str, ArtistRow],
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[AlbumRow]:
         try:
             stmt = (
@@ -627,17 +588,6 @@ class SpotifyAccess:
             disc_count = 1
             if raw.tracks and raw.tracks.items:
                 disc_count = max((item.disc_number or 1) for item in raw.tracks.items)
-
-            # Download highest-res image
-            image_id: int | None = None
-            if raw.images:
-                a_img: AResult[ImageRow] = (
-                    await SpotifyAccess._download_and_create_internal_image(
-                        session, raw.images[0].url
-                    )
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             if image_id is None:
                 return AResult(
@@ -816,6 +766,7 @@ class SpotifyAccess:
         raw: RawSpotifyApiPlaylist,
         track_row_map: Dict[str, TrackRow],
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[PlaylistRow]:
         try:
             stmt = (
@@ -833,15 +784,6 @@ class SpotifyAccess:
             existing: PlaylistRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            # Download image
-            image_id: int | None = None
-            if raw.images:
-                a_img = await SpotifyAccess._download_and_create_internal_image(
-                    session, raw.images[0].url
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             owner = ""
             if raw.owner:

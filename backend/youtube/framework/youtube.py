@@ -1,14 +1,17 @@
 import os
+import uuid
+import requests as req
 from typing import Any, List, TYPE_CHECKING
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.constants import BACKEND_URL, MEDIA_PATH
+from backend.constants import BACKEND_URL, IMAGES_PATH, MEDIA_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.mediaAccess import MediaAccess
+from backend.core.framework.media.image import Image
 
 from backend.youtube.access.youtubeAccess import YouTubeAccess
 from backend.youtube.access.db.ormModels.video import VideoRow
@@ -33,6 +36,34 @@ logger = getLogger(__name__)
 class YouTube:
     provider: "YoutubeProvider"
     provider_name: str
+
+    @staticmethod
+    async def _download_and_create_internal_image(
+        session: AsyncSession,
+        url: str,
+    ) -> AResult[ImageRow]:
+        """Download an image from a URL, save it locally, and create an ImageRow."""
+
+        try:
+            response = req.get(url, timeout=10)
+            if response.status_code != 200:
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR, message="Image download failed"
+                )
+            filename = "youtube/" + str(uuid.uuid4()) + ".jpg"
+            full_path = os.path.join(IMAGES_PATH, filename)
+            os.makedirs(name=os.path.dirname(p=full_path), exist_ok=True)
+            with open(full_path, "wb") as f:
+                f.write(response.content)
+            return await Image.create_image_async(
+                session=session, path=filename, url=url
+            )
+        except Exception as e:
+            logger.error(f"Failed to download/create internal image: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to download/create internal image: {e}",
+            )
 
     @staticmethod
     async def get_video_async(
@@ -74,35 +105,46 @@ class YouTube:
                     session=session, id=video_row.image_id
                 )
             )
-            image_url: str = ""
-            dominant_color: str | None = None
-            if a_result_internal_image.is_ok():
-                image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
-                dominant_color = a_result_internal_image.result().dominant_color
-            else:
-                image_url = (
-                    f"https://i.ytimg.com/vi/{video_row.youtube_id}/maxresdefault.jpg"
+            if a_result_internal_image.is_not_ok():
+                logger.error(
+                    f"Error getting video image. {a_result_internal_image.info()}"
+                )
+                return AResult(
+                    code=a_result_internal_image.code(),
+                    message=a_result_internal_image.message(),
                 )
 
+            image_url: str = Image.get_internal_image_url(
+                a_result_internal_image.result()
+            )
+            dominant_color: str = a_result_internal_image.result().dominant_color
+
             channel_response: YoutubeChannelResponse | None = None
+            channel_dominant_color: str = ""
             if channel:
-                channel_internal_image_url: str = ""
-                if channel.image_id:
-                    a_result_channel_image: AResult[ImageRow] = (
-                        await MediaAccess.get_image_from_id_async(
-                            session, id=channel.image_id
-                        )
+                a_result_channel_image: AResult[ImageRow] = (
+                    await MediaAccess.get_image_from_id_async(
+                        session, id=channel.image_id
                     )
-                    if a_result_channel_image.is_ok():
-                        channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
-                    else:
-                        channel_internal_image_url = ""
+                )
+                if a_result_channel_image.is_not_ok():
+                    logger.error(
+                        f"Error getting channel image. {a_result_channel_image.info()}"
+                    )
+                    return AResult(
+                        code=a_result_channel_image.code(),
+                        message=a_result_channel_image.message(),
+                    )
+
+                channel_dominant_color = a_result_channel_image.result().dominant_color
 
                 channel_response = YoutubeChannelResponse(
                     provider=YouTube.provider_name,
                     publicId=channel.youtube_id,
                     name=channel.name,
-                    imageUrl=channel_internal_image_url,
+                    imageUrl=Image.get_internal_image_url(
+                        a_result_channel_image.result()
+                    ),
                     subscriberCount=channel.subscriber_count,
                     videoCount=channel.video_count,
                     viewCount=channel.view_count,
@@ -123,6 +165,7 @@ class YouTube:
                         providerUrl=f"https://www.youtube.com/channel/{channel_response.publicId}",
                         name=channel_response.name,
                         imageUrl=channel_response.imageUrl or "",
+                        dominantColor=channel_dominant_color,
                     )
                 ]
 
@@ -210,9 +253,30 @@ class YouTube:
         provider_id: int = a_result_provider_id.result()
 
         try:
+            channel_snippet: dict[str, Any] = raw_channel.snippet or {}
+            channel_thumbnails: dict[str, Any] = channel_snippet.get("thumbnails", {})
+            channel_thumbnail_url: str = ""
+            if "high" in channel_thumbnails:
+                channel_thumbnail_url = channel_thumbnails["high"].get("url", "")
+            elif "medium" in channel_thumbnails:
+                channel_thumbnail_url = channel_thumbnails["medium"].get("url", "")
+            elif "default" in channel_thumbnails:
+                channel_thumbnail_url = channel_thumbnails["default"].get("url", "")
+
+            channel_image_id: int | None = None
+            if channel_thumbnail_url:
+                a_img = await YouTube._download_and_create_internal_image(
+                    session, channel_thumbnail_url
+                )
+                if a_img.is_ok():
+                    channel_image_id = a_img.result().id
+
             a_result_channel_row: AResult[ChannelRow] = (
                 await YouTubeAccess.get_or_create_channel(
-                    session, raw=raw_channel, provider_id=provider_id
+                    session,
+                    raw=raw_channel,
+                    provider_id=provider_id,
+                    image_id=channel_image_id,
                 )
             )
             if a_result_channel_row.is_not_ok():
@@ -223,12 +287,31 @@ class YouTube:
 
             channel_row: ChannelRow = a_result_channel_row.result()
 
+            video_snippet: dict[str, Any] = raw_video.snippet or {}
+            video_thumbnails: dict[str, Any] = video_snippet.get("thumbnails", {})
+            video_thumbnail_url: str = ""
+            if "high" in video_thumbnails:
+                video_thumbnail_url = video_thumbnails["high"].get("url", "")
+            elif "medium" in video_thumbnails:
+                video_thumbnail_url = video_thumbnails["medium"].get("url", "")
+            elif "default" in video_thumbnails:
+                video_thumbnail_url = video_thumbnails["default"].get("url", "")
+
+            video_image_id: int | None = None
+            if video_thumbnail_url:
+                a_img = await YouTube._download_and_create_internal_image(
+                    session, video_thumbnail_url
+                )
+                if a_img.is_ok():
+                    video_image_id = a_img.result().id
+
             a_result_video_row: AResult[VideoRow] = (
                 await YouTubeAccess.get_or_create_video(
                     session,
                     raw=raw_video,
                     channel_id=channel_row.id,
                     provider_id=provider_id,
+                    image_id=video_image_id,
                 )
             )
             if a_result_video_row.is_not_ok():
@@ -273,35 +356,40 @@ class YouTube:
                 session=session, id=video_row.image_id
             )
         )
-        image_url: str = ""
-        dominant_color: str | None = None
-        if a_result_internal_image.is_ok():
-            image_url = f"{BACKEND_URL}/media/image/{a_result_internal_image.result().public_id}"
-            dominant_color = a_result_internal_image.result().dominant_color
-        else:
-            image_url = (
-                f"https://i.ytimg.com/vi/{video_row.youtube_id}/maxresdefault.jpg"
+        if a_result_internal_image.is_not_ok():
+            logger.error(f"Error getting video image. {a_result_internal_image.info()}")
+            return AResult(
+                code=a_result_internal_image.code(),
+                message=a_result_internal_image.message(),
             )
 
+        image_url: str = Image.get_internal_image_url(a_result_internal_image.result())
+        dominant_color: str = a_result_internal_image.result().dominant_color
+
         channel_response: YoutubeChannelResponse | None = None
+        channel_dominant_color: str = ""
         if fetched_channel:
-            channel_internal_image_url: str = ""
-            if fetched_channel.image_id:
-                a_result_channel_image: AResult[ImageRow] = (
-                    await MediaAccess.get_image_from_id_async(
-                        session, id=fetched_channel.image_id
-                    )
+            a_result_channel_image: AResult[ImageRow] = (
+                await MediaAccess.get_image_from_id_async(
+                    session, id=fetched_channel.image_id
                 )
-                if a_result_channel_image.is_ok():
-                    channel_internal_image_url = f"{BACKEND_URL}/media/image/{a_result_channel_image.result().public_id}"
-                else:
-                    channel_internal_image_url = ""
+            )
+            if a_result_channel_image.is_not_ok():
+                logger.error(
+                    f"Error getting channel image. {a_result_channel_image.info()}"
+                )
+                return AResult(
+                    code=a_result_channel_image.code(),
+                    message=a_result_channel_image.message(),
+                )
+
+            channel_dominant_color = a_result_channel_image.result().dominant_color
 
             channel_response = YoutubeChannelResponse(
                 provider=YouTube.provider_name,
                 publicId=fetched_channel.youtube_id,
                 name=fetched_channel.name,
-                imageUrl=channel_internal_image_url,
+                imageUrl=Image.get_internal_image_url(a_result_channel_image.result()),
                 subscriberCount=fetched_channel.subscriber_count,
                 videoCount=fetched_channel.video_count,
                 viewCount=fetched_channel.view_count,
@@ -322,6 +410,7 @@ class YouTube:
                     providerUrl=f"https://www.youtube.com/channel/{channel_response.publicId}",
                     name=channel_response.name,
                     imageUrl=channel_response.imageUrl or "",
+                    dominantColor=channel_dominant_color,
                 )
             ]
 

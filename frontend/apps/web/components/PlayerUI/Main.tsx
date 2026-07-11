@@ -11,6 +11,7 @@ import { Disc3, DiscAlbum, Pause, Play, Video, VideoOff } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
+import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 
 export default function PlayerUIMain({
     currentMedia,
@@ -25,6 +26,28 @@ export default function PlayerUIMain({
     const [vinylMode, setVinylMode] = useState(false);
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+    const [offlineCover, setOfflineCover] = useState<{
+        publicId: string;
+        url: string;
+    } | null>(null);
+
+    useEffect((): (() => void) | undefined => {
+        let cancelled = false;
+        if (isSong(currentMedia)) {
+            resolveOfflineCoverUrl(currentMedia.publicId).then((url) => {
+                if (!cancelled && url)
+                    setOfflineCover({ publicId: currentMedia.publicId, url });
+            });
+        }
+        return (): void => {
+            cancelled = true;
+        };
+    }, [currentMedia]);
+
+    const coverSrc =
+        offlineCover?.publicId === currentMedia.publicId
+            ? offlineCover.url
+            : currentMedia.imageUrl;
 
     useEffect((): (() => void) | undefined => {
         if (!showIcon) return;
@@ -91,7 +114,7 @@ export default function PlayerUIMain({
                 >
                     {$audioOnly ? (
                         <Image
-                            src={currentMedia.imageUrl}
+                            src={coverSrc}
                             fill
                             alt={currentMedia.name}
                             className="object-cover"
@@ -187,10 +210,11 @@ export default function PlayerUIMain({
                     {vinylMode ? (
                         <div className="relative h-full w-full">
                             <VinylRecord
-                                imageUrl={currentMedia.imageUrl}
+                                imageUrl={coverSrc}
                                 name={currentMedia.name}
                                 artists={currentMedia.artists}
                                 isPlaying={$playing}
+                                publicId={currentMedia.publicId}
                             />
                             <button
                                 type="button"
@@ -207,7 +231,7 @@ export default function PlayerUIMain({
                     ) : (
                         <>
                             <Image
-                                src={currentMedia.imageUrl}
+                                src={coverSrc}
                                 fill
                                 alt={currentMedia.name}
                                 className="object-cover"

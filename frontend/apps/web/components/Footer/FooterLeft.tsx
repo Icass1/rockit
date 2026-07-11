@@ -1,6 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
@@ -13,6 +14,7 @@ import {
     TPlayableMedia,
 } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 
@@ -23,6 +25,22 @@ function FooterLeftForMedia({
 }): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
+    const [offlineCoverUrl, setOfflineCoverUrl] = useState<string | null>(
+        null
+    );
+
+    useEffect((): (() => void) => {
+        setOfflineCoverUrl(null);
+        let cancelled = false;
+        resolveOfflineCoverUrl(currentMedia.publicId).then((url) => {
+            if (!cancelled && url) setOfflineCoverUrl(url);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [currentMedia.publicId]);
+
+    const coverSrc = offlineCoverUrl ?? currentMedia.imageUrl;
 
     if (!$queue) {
         return (
@@ -44,7 +62,7 @@ function FooterLeftForMedia({
                 <Image
                     width={64}
                     height={64}
-                    src={currentMedia.imageUrl}
+                    src={coverSrc}
                     alt={`Cover of ${currentMedia.name}`}
                     className="absolute h-9 w-9 rounded-md object-cover transition duration-300 select-none group-hover:brightness-50 md:h-16 md:w-16"
                 />

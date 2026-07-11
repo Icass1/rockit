@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-    type JSX,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
@@ -15,6 +8,7 @@ import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import { useHomeSubtitle } from "@/components/Home/hooks/useHomeSubtitle";
+import { useCoverflow } from "@/components/Home/hooks/useCoverflow";
 import PlayButton from "@/components/Home/PlayButton";
 
 // ─── Types ──────────────────────────────────────────────
@@ -158,11 +152,18 @@ export default function HomeHeroCoverflow({
 }: HomeHeroCoverflowProps): JSX.Element | null {
     const n = cards.length;
 
-    const [center, setCenter] = useState(0);
     const [stageWidth, setStageWidth] = useState(0);
     const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
     const stageRef = useRef<HTMLDivElement>(null);
-    const autoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const {
+        center,
+        next,
+        prev,
+        goTo,
+        startAuto,
+        stopAuto,
+    } = useCoverflow({ length: n, reducedMotion });
 
     // Early-return-safe derived values
     const currentCard = cards.length > 0 ? cards[center] : null;
@@ -184,21 +185,6 @@ export default function HomeHeroCoverflow({
     const config = useMemo(() => getConfig(stageWidth), [stageWidth]);
 
     // ── IntersectionObserver: pause auto-advance off-screen ──
-    const startAuto = useCallback((): void => {
-        if (reducedMotion) return;
-        if (autoTimerRef.current) return;
-        autoTimerRef.current = setInterval(() => {
-            setCenter((prev) => (prev + 1) % n);
-        }, 3200);
-    }, [reducedMotion, n]);
-
-    const stopAuto = useCallback((): void => {
-        if (autoTimerRef.current) {
-            clearInterval(autoTimerRef.current);
-            autoTimerRef.current = null;
-        }
-    }, []);
-
     useEffect(() => {
         const sentinel = stageRef.current?.parentElement;
         if (!sentinel) return;
@@ -254,16 +240,13 @@ export default function HomeHeroCoverflow({
 
             if (!dragMovedRef.current) return;
 
-            const step =
-                delta < 0 ? 1 : -1;
-            setCenter((prev) => {
-                const next = prev + step;
-                if (next < 0) return n - 1;
-                if (next >= n) return 0;
-                return next;
-            });
+            if (delta < 0) {
+                next();
+            } else {
+                prev();
+            }
         },
-        [n]
+        [next, prev]
     );
 
     // ── Keyboard ──
@@ -271,13 +254,13 @@ export default function HomeHeroCoverflow({
         (e: React.KeyboardEvent): void => {
             if (e.key === "ArrowLeft") {
                 e.preventDefault();
-                setCenter((prev) => (prev - 1 + n) % n);
+                prev();
             } else if (e.key === "ArrowRight") {
                 e.preventDefault();
-                setCenter((prev) => (prev + 1) % n);
+                next();
             }
         },
-        [n]
+        [next, prev]
     );
 
     const subtitle = useHomeSubtitle({
@@ -359,7 +342,7 @@ export default function HomeHeroCoverflow({
                                 onClick={(): void => {
                                     if (dragMovedRef.current) return;
                                     if (delta !== 0) {
-                                        setCenter(i);
+                                        goTo(i);
                                     }
                                 }}
                             >
@@ -382,7 +365,7 @@ export default function HomeHeroCoverflow({
                         className={`cf-dot ${i === center ? "active" : ""}`}
                         aria-label={`${card.song.name} — ${card.eyebrow}`}
                         aria-current={i === center ? "true" : undefined}
-                        onClick={(): void => setCenter(i)}
+                        onClick={(): void => goTo(i)}
                     />
                 ))}
             </nav>
@@ -394,7 +377,7 @@ export default function HomeHeroCoverflow({
                         <li key={card.song.publicId}>
                             <button
                                 type="button"
-                                onClick={(): void => setCenter(i)}
+                                onClick={(): void => goTo(i)}
                             >
                                 {card.song.name} — {card.eyebrow}
                             </button>

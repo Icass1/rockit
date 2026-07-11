@@ -223,7 +223,6 @@ export default function HomeHeroCoverflow({
     const handlePointerDown = useCallback((e: React.PointerEvent): void => {
         dragStartRef.current = e.clientX;
         dragMovedRef.current = false;
-        (e.target as HTMLElement).setPointerCapture(e.pointerId);
     }, []);
 
     const handlePointerMove = useCallback((e: React.PointerEvent): void => {
@@ -238,15 +237,21 @@ export default function HomeHeroCoverflow({
             const delta = e.clientX - dragStartRef.current;
             dragStartRef.current = null;
 
-            if (!dragMovedRef.current) return;
-
-            if (delta < 0) {
-                next();
-            } else {
-                prev();
+            if (dragMovedRef.current) {
+                if (delta < 0) next();
+                else prev();
+                return;
             }
+
+            const stageEl = stageRef.current;
+            if (!stageEl) return;
+            const rect = stageEl.getBoundingClientRect();
+            const offsetFromCenter = e.clientX - (rect.left + rect.width / 2);
+            const closestDelta = Math.round(offsetFromCenter / config.spacing);
+            const idx = ((center + closestDelta) % n + n) % n;
+            if (idx !== center) goTo(idx);
         },
-        [next, prev]
+        [center, n, config.spacing, next, prev, goTo]
     );
 
     // ── Keyboard ──
@@ -339,12 +344,6 @@ export default function HomeHeroCoverflow({
                                 key={card.song.publicId}
                                 className="cf-card absolute left-1/2 top-1/2"
                                 style={getCardStyle(delta)}
-                                onClick={(): void => {
-                                    if (dragMovedRef.current) return;
-                                    if (delta !== 0) {
-                                        goTo(i);
-                                    }
-                                }}
                             >
                                 <CoverflowCardComponent
                                     card={card}

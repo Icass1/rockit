@@ -124,6 +124,8 @@ async def backfill_dominant_colors(session: AsyncSession):
                 session=session, image=image, dominant_color=color
             )
             logger.info(f"Backfilled {image.path} -> {color}")
+        else:
+            logger.warning(f"Error backfilling {image.path}")
 
         if index % 100 == 0:
             await session.commit()

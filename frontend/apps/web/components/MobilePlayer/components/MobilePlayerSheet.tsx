@@ -41,7 +41,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
     return (
         <div
             ref={sheetRef}
-            className="fixed inset-0 z-50 flex flex-col bg-(--color-bg)"
+            className="animate-sheet-enter fixed inset-0 z-50 flex flex-col bg-(--color-bg)"
             onPointerDown={gesture.onPointerDown}
             onPointerMove={gesture.onPointerMove}
             onPointerUp={gesture.onPointerUp}

@@ -2,8 +2,8 @@
 
 import { JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";

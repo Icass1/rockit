@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
@@ -116,13 +116,18 @@ function BentoCard({
                         size={size === "lg" ? 40 : 32}
                         label={
                             isThisPlaying
-                                ? $vocabulary.PAUSE_SONG_NAME.replace("{name}", song.name)
-                                : $vocabulary.PLAY_SONG_NAME.replace("{name}", song.name)
+                                ? $vocabulary.PAUSE_SONG_NAME.replace(
+                                      "{name}",
+                                      song.name
+                                  )
+                                : $vocabulary.PLAY_SONG_NAME.replace(
+                                      "{name}",
+                                      song.name
+                                  )
                         }
                     />
                 </div>
             </div>
-
         </div>
     );
 }

@@ -2,9 +2,9 @@
 
 import type { JSX } from "react";
 import Image from "next/image";
+import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { BaseSongWithAlbumResponse } from "@/dto";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import PlayButton from "@/components/Home/PlayButton";
@@ -28,7 +28,10 @@ export default function DockedQuickAccessBar({
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    function handleClick(song: BaseSongWithAlbumResponse, queue: BaseSongWithAlbumResponse[]): void {
+    function handleClick(
+        song: BaseSongWithAlbumResponse,
+        queue: BaseSongWithAlbumResponse[]
+    ): void {
         const playableSongs = queue.filter(isSongWithAlbum);
         if (playableSongs.length > 0) {
             rockIt.queueManager.setMedia(playableSongs, "home");
@@ -59,7 +62,7 @@ export default function DockedQuickAccessBar({
                                     type="button"
                                     aria-label={label}
                                     onClick={() => handleClick(song, queue)}
-                                    className="group flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition hover:bg-white/10"
+                                    className="group flex items-center gap-2 rounded-full py-1 pr-3 pl-1 transition hover:bg-white/10"
                                 >
                                     <Image
                                         src={song.imageUrl}
@@ -79,7 +82,10 @@ export default function DockedQuickAccessBar({
                                                 e.stopPropagation();
                                                 handleClick(song, queue);
                                             }}
-                                            label={$vocabulary.PAUSE_SONG_NAME.replace("{name}", song.name)}
+                                            label={$vocabulary.PAUSE_SONG_NAME.replace(
+                                                "{name}",
+                                                song.name
+                                            )}
                                         />
                                     )}
                                 </button>

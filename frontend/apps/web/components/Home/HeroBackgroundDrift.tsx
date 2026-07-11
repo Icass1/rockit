@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { motion } from "framer-motion";
 import type { JSX } from "react";
+import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { motion } from "framer-motion";
 import { useAmbientDrift } from "@/components/Home/hooks/useAmbientDrift";
 
 interface HeroBackgroundDriftProps {
@@ -19,7 +19,12 @@ export default function HeroBackgroundDrift({
     const particles = useAmbientDrift(seedKeys, { maxParticles });
 
     if (particles.length === 0) {
-        return <div className="pointer-events-none absolute inset-0" aria-hidden="true" />;
+        return (
+            <div
+                className="pointer-events-none absolute inset-0"
+                aria-hidden="true"
+            />
+        );
     }
 
     return (

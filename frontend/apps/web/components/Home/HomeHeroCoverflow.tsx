@@ -1,14 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type JSX,
+} from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useCoverflow } from "@/components/Home/hooks/useCoverflow";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import { useHomeSubtitle } from "@/components/Home/hooks/useHomeSubtitle";
-import { useCoverflow } from "@/components/Home/hooks/useCoverflow";
 import PlayButton from "@/components/Home/PlayButton";
 
 // ─── Types ──────────────────────────────────────────────
@@ -41,7 +48,7 @@ function getConfig(width: number): {
     spacing: number;
     cardSize: number;
 } {
-    const cardSize = Math.min(380, Math.max(200, width * 0.20));
+    const cardSize = Math.min(380, Math.max(200, width * 0.2));
     let maxVisible: number;
     if (width < 640) maxVisible = 1;
     else if (width < 1024) maxVisible = 2;
@@ -66,9 +73,7 @@ function CoverflowCardComponent({
     const isCenter = delta === 0;
     const [imgLoaded, setImgLoaded] = useState(false);
     const isThisPlaying =
-        isCenter &&
-        $currentMedia?.publicId === card.song.publicId &&
-        $playing;
+        isCenter && $currentMedia?.publicId === card.song.publicId && $playing;
 
     function handlePlay(e: React.MouseEvent): void {
         e.stopPropagation();
@@ -108,7 +113,7 @@ function CoverflowCardComponent({
             {isCenter && (
                 <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between px-4 pb-4">
                     <div className="min-w-0 flex-1">
-                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-white/60">
+                        <span className="block text-[10px] font-semibold tracking-wider text-white/60 uppercase">
                             {card.eyebrow}
                         </span>
                         <span className="mt-0.5 block max-w-40 truncate text-sm font-bold text-white">
@@ -125,13 +130,18 @@ function CoverflowCardComponent({
                         size={42}
                         label={
                             isThisPlaying
-                                ? $vocabulary.PAUSE_SONG_NAME.replace("{name}", card.song.name)
-                                : $vocabulary.PLAY_SONG_NAME.replace("{name}", card.song.name)
+                                ? $vocabulary.PAUSE_SONG_NAME.replace(
+                                      "{name}",
+                                      card.song.name
+                                  )
+                                : $vocabulary.PLAY_SONG_NAME.replace(
+                                      "{name}",
+                                      card.song.name
+                                  )
                         }
                     />
                 </div>
             )}
-
         </>
     );
 }
@@ -156,18 +166,16 @@ export default function HomeHeroCoverflow({
     const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
     const stageRef = useRef<HTMLDivElement>(null);
 
-    const {
-        center,
-        next,
-        prev,
-        goTo,
-        startAuto,
-        stopAuto,
-    } = useCoverflow({ length: n, reducedMotion });
+    const { center, next, prev, goTo, startAuto, stopAuto } = useCoverflow({
+        length: n,
+        reducedMotion,
+    });
 
     // Early-return-safe derived values
     const currentCard = cards.length > 0 ? cards[center] : null;
-    const { hex: dominantColor } = parseDominantColor(currentCard?.song.dominantColor);
+    const { hex: dominantColor } = parseDominantColor(
+        currentCard?.song.dominantColor
+    );
 
     useEffect(() => {
         onColorChange?.(dominantColor);
@@ -176,7 +184,8 @@ export default function HomeHeroCoverflow({
     // ── reduced-motion listener ──
     useEffect(() => {
         const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-        const handler = (e: MediaQueryListEvent): void => setReducedMotion(e.matches);
+        const handler = (e: MediaQueryListEvent): void =>
+            setReducedMotion(e.matches);
         mq.addEventListener("change", handler);
         return () => mq.removeEventListener("change", handler);
     }, []);
@@ -248,7 +257,7 @@ export default function HomeHeroCoverflow({
             const rect = stageEl.getBoundingClientRect();
             const offsetFromCenter = e.clientX - (rect.left + rect.width / 2);
             const closestDelta = Math.round(offsetFromCenter / config.spacing);
-            const idx = ((center + closestDelta) % n + n) % n;
+            const idx = (((center + closestDelta) % n) + n) % n;
             if (idx !== center) goTo(idx);
         },
         [center, n, config.spacing, next, prev, goTo]
@@ -286,10 +295,7 @@ export default function HomeHeroCoverflow({
         const x = delta * config.spacing;
         const rot = Math.max(-38, Math.min(38, -delta * 34));
         const z = -ad * 90;
-        const scale =
-            ad === 0
-                ? 1
-                : Math.max(0.4, 1 - Math.min(ad, 3) * 0.2);
+        const scale = ad === 0 ? 1 : Math.max(0.4, 1 - Math.min(ad, 3) * 0.2);
         const opacity = visible
             ? Math.max(0, 1 - ad * (1 / (config.maxVisible + 0.6)))
             : 0;
@@ -311,7 +317,7 @@ export default function HomeHeroCoverflow({
     return (
         <section className="cf-section relative">
             <div className="relative z-10 px-[6%] pt-7 pb-0">
-                <h1 className="text-[clamp(20px,3.4cqw,40px)] font-extrabold leading-tight text-white">
+                <h1 className="text-[clamp(20px,3.4cqw,40px)] leading-tight font-extrabold text-white">
                     {greetingName}
                 </h1>
                 {subtitle && (
@@ -324,7 +330,7 @@ export default function HomeHeroCoverflow({
             {/* Stage */}
             <div
                 ref={stageRef}
-                className="cf-stage relative mx-auto flex items-center justify-center touch-pan-y select-none"
+                className="cf-stage relative mx-auto flex touch-pan-y items-center justify-center select-none"
                 style={{ height: stageHeight }}
                 tabIndex={0}
                 role="group"
@@ -342,7 +348,7 @@ export default function HomeHeroCoverflow({
                         return (
                             <div
                                 key={card.song.publicId}
-                                className="cf-card absolute left-1/2 top-1/2"
+                                className="cf-card absolute top-1/2 left-1/2"
                                 style={getCardStyle(delta)}
                             >
                                 <CoverflowCardComponent
@@ -356,7 +362,10 @@ export default function HomeHeroCoverflow({
             </div>
 
             {/* Dots */}
-            <nav className="relative z-10 flex justify-center gap-1.75 pb-5" aria-label={$vocabulary.CAROUSEL_NAVIGATION}>
+            <nav
+                className="relative z-10 flex justify-center gap-1.75 pb-5"
+                aria-label={$vocabulary.CAROUSEL_NAVIGATION}
+            >
                 {cards.map((card, i) => (
                     <button
                         key={card.song.publicId}
@@ -374,10 +383,7 @@ export default function HomeHeroCoverflow({
                 <ul>
                     {cards.map((card, i) => (
                         <li key={card.song.publicId}>
-                            <button
-                                type="button"
-                                onClick={(): void => goTo(i)}
-                            >
+                            <button type="button" onClick={(): void => goTo(i)}>
                                 {card.song.name} — {card.eyebrow}
                             </button>
                         </li>

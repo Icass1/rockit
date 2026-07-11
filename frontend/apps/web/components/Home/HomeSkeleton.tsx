@@ -10,14 +10,20 @@ export default function HomeSkeleton(): JSX.Element {
                 <div className="skeleton h-4 w-40 rounded" />
 
                 {/* Coverflow stage placeholder */}
-                <div className="relative mx-auto mt-6 flex items-center justify-center" style={{ height: 300 }}>
+                <div
+                    className="relative mx-auto mt-6 flex items-center justify-center"
+                    style={{ height: 300 }}
+                >
                     <div className="skeleton h-47.5 w-47.5 rounded-[18px]" />
                 </div>
 
                 {/* Dots placeholder */}
                 <div className="flex justify-center gap-2 pb-5">
                     {[0, 1, 2, 3, 4].map((i) => (
-                        <div key={i} className="skeleton h-1.5 w-1.5 rounded-full" />
+                        <div
+                            key={i}
+                            className="skeleton h-1.5 w-1.5 rounded-full"
+                        />
                     ))}
                 </div>
             </div>
@@ -32,7 +38,10 @@ export default function HomeSkeleton(): JSX.Element {
                             className="flex w-[51%] max-w-50 flex-none flex-col gap-1 md:w-[calc(25%-10px)] md:max-w-87.5"
                         >
                             {[0, 1, 2, 3].map((row) => (
-                                <div key={row} className="flex items-center gap-3 rounded-lg bg-white/5 p-2">
+                                <div
+                                    key={row}
+                                    className="flex items-center gap-3 rounded-lg bg-white/5 p-2"
+                                >
                                     <div className="skeleton h-12 w-12 flex-none rounded" />
                                     <div className="flex-1 space-y-1.5">
                                         <div className="skeleton h-3.5 w-3/4 rounded" />

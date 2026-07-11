@@ -2,8 +2,8 @@
 
 import { useCallback, type JSX } from "react";
 import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -48,7 +48,8 @@ export default function QuickSelectionsSong({
                         {$song.name}
                     </span>
                     <span className="w-full min-w-0 truncate text-xs text-gray-400">
-                        {$song.artists[0]?.name ?? $vocabulary.UNKNOWN} {" • "} {$song.album?.name ?? "—"}
+                        {$song.artists[0]?.name ?? $vocabulary.UNKNOWN} {" • "}{" "}
+                        {$song.album?.name ?? "—"}
                     </span>
                 </div>
             </div>

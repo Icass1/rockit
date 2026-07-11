@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { useStore } from "@nanostores/react";
 import type { JSX } from "react";
+import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { isSongWithAlbum } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
@@ -28,8 +28,7 @@ export default function QuickAccessCard({
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const isThisPlaying =
-        $currentMedia?.publicId === song.publicId && $playing;
+    const isThisPlaying = $currentMedia?.publicId === song.publicId && $playing;
     const { hex } = parseDominantColor(song.dominantColor);
 
     function handlePlay(e: React.MouseEvent): void {
@@ -40,7 +39,7 @@ export default function QuickAccessCard({
             rockIt.queueManager.moveToMedia(song.publicId);
             rockIt.mediaPlayerManager.play();
         }
-    };
+    }
 
     return (
         <div
@@ -54,7 +53,10 @@ export default function QuickAccessCard({
                 }}
                 aria-hidden="true"
             />
-            <div className="absolute inset-0 bg-zinc-900" style={{ zIndex: -1 }} />
+            <div
+                className="absolute inset-0 bg-zinc-900"
+                style={{ zIndex: -1 }}
+            />
 
             <Image
                 src={song.imageUrl}
@@ -67,7 +69,7 @@ export default function QuickAccessCard({
 
             <div className="relative z-10 flex w-full flex-col justify-between p-5">
                 <div>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                    <span className="text-xs font-semibold tracking-wide text-white/70 uppercase">
                         {eyebrow}
                     </span>
                     <h3 className="mt-2 line-clamp-2 text-2xl font-bold text-white">
@@ -91,8 +93,14 @@ export default function QuickAccessCard({
                         onClick={handlePlay}
                         label={
                             isThisPlaying
-                                ? $vocabulary.PAUSE_SONG_NAME.replace("{name}", song.name)
-                                : $vocabulary.PLAY_SONG_NAME.replace("{name}", song.name)
+                                ? $vocabulary.PAUSE_SONG_NAME.replace(
+                                      "{name}",
+                                      song.name
+                                  )
+                                : $vocabulary.PLAY_SONG_NAME.replace(
+                                      "{name}",
+                                      song.name
+                                  )
                         }
                     />
                 </div>

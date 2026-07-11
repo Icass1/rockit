@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useHomeData } from "@/components/Home/hooks/useHomeData";
-import { useGreeting } from "@/components/Home/hooks/useGreeting";
+import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
 import HomeHeroCoverflow, {
     type CoverflowCard,
 } from "@/components/Home/HomeHeroCoverflow";
 import HomeSkeleton from "@/components/Home/HomeSkeleton";
-import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
-import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
+import { useGreeting } from "@/components/Home/hooks/useGreeting";
+import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import BentoSection from "@/components/Home/sections/BentoSection";
+import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 
 export default function HomeClient(): JSX.Element {
     const data = useHomeData();
@@ -21,9 +21,7 @@ export default function HomeClient(): JSX.Element {
 
     const [ambientColor, setAmbientColor] = useState("#787882");
 
-    const greetingName = $username
-        ? `${greeting}, ${$username}`
-        : greeting;
+    const greetingName = $username ? `${greeting}, ${$username}` : greeting;
 
     // ── Coverflow cards: one per available section ──
     const coverflowCards = useMemo(() => {
@@ -93,9 +91,11 @@ export default function HomeClient(): JSX.Element {
 
     const playingCoverflowCard = useMemo(() => {
         if (!$currentMedia || !$playing) return null;
-        return coverflowCards.find(
-            (c) => c.song.publicId === $currentMedia.publicId
-        ) ?? null;
+        return (
+            coverflowCards.find(
+                (c) => c.song.publicId === $currentMedia.publicId
+            ) ?? null
+        );
     }, [$currentMedia, $playing, coverflowCards]);
 
     if (!data) return <HomeSkeleton />;
@@ -106,7 +106,9 @@ export default function HomeClient(): JSX.Element {
             <div className="relative -mt-24 pt-24">
                 <div
                     className="home-ambient-glow pointer-events-none absolute inset-0 -z-10"
-                    style={{ "--cf-accent": ambientColor } as React.CSSProperties}
+                    style={
+                        { "--cf-accent": ambientColor } as React.CSSProperties
+                    }
                     aria-hidden="true"
                 />
 

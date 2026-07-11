@@ -10,7 +10,9 @@ function getPeriod(hour: number): string {
 
 export function useGreeting(): string {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [period, setPeriod] = useState(() => getPeriod(new Date().getHours()));
+    const [period, setPeriod] = useState(() =>
+        getPeriod(new Date().getHours())
+    );
 
     useEffect(() => {
         const timer = setInterval(() => {

@@ -106,9 +106,7 @@ export function useAmbientDrift(
                 size: Math.round(size),
                 blurPx: Math.max(1, Math.round(blurPx)),
                 opacity: Number(opacity.toFixed(2)),
-                duration: reducedMotion
-                    ? 0
-                    : Math.round(18 + (1 - depth) * 14),
+                duration: reducedMotion ? 0 : Math.round(18 + (1 - depth) * 14),
                 delay: reducedMotion ? 0 : Number((rand() * 4).toFixed(2)),
                 driftX: reducedMotion
                     ? 0

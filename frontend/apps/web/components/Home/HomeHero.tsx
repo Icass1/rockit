@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type JSX } from "react";
-import { useStore } from "@nanostores/react";
 import type { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DockedQuickAccessBar from "@/components/Home/DockedQuickAccessBar";
@@ -80,12 +80,15 @@ export default function HomeHero({
                     {(streak ?? 0) > 0 || (minutesThisWeek ?? 0) > 0 ? (
                         <div className="mt-3 flex items-center gap-4 text-sm text-white/60">
                             {typeof streak === "number" && streak > 0 && (
-                                <span>🔥 {streak} {$vocabulary.HOME_STREAK_DAYS}</span>
+                                <span>
+                                    🔥 {streak} {$vocabulary.HOME_STREAK_DAYS}
+                                </span>
                             )}
                             {typeof minutesThisWeek === "number" &&
                                 minutesThisWeek > 0 && (
                                     <span>
-                                        {Math.round(minutesThisWeek)} {$vocabulary.HOME_MINUTES_THIS_WEEK}
+                                        {Math.round(minutesThisWeek)}{" "}
+                                        {$vocabulary.HOME_MINUTES_THIS_WEEK}
                                     </span>
                                 )}
                         </div>

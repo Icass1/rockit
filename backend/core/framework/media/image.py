@@ -1,5 +1,3 @@
-import asyncio
-
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,9 +29,7 @@ class Image:
             return existing
 
         dominant_color: str = ""
-        extracted: str | None = await asyncio.to_thread(
-            extract_dominant_color, IMAGES_PATH + "/" + path
-        )
+        extracted: str | None = await extract_dominant_color(IMAGES_PATH + "/" + path)
         if extracted is not None:
             dominant_color = extracted
 

@@ -5,6 +5,7 @@ Similar to Android Palette / Vibrant.js — prioritizes saturated colors
 over the most numerically common (which is usually black or white).
 """
 
+import asyncio
 import os
 from typing import Any
 
@@ -43,13 +44,15 @@ def _rgb_to_hsl(r: int, g: int, b: int) -> tuple[float, float, float]:
     return h, s, l
 
 
-def extract_dominant_color(image_path: str) -> str | None:
+async def extract_dominant_color(
+    image_path: str,
+) -> str | None:  # This should return AResult when AResult is moved to this directory.
     """Extract the dominant vibrant color from an image file.
 
     Returns a hex string like "#ee1086" or None on failure.
     """
 
-    try:
+    def _extract_sync() -> str | None:
         from PIL import Image
 
         if not os.path.exists(image_path):
@@ -106,6 +109,8 @@ def extract_dominant_color(image_path: str) -> str | None:
 
         return f"#{largest_r:02x}{largest_g:02x}{largest_b:02x}"
 
+    try:
+        return await asyncio.to_thread(_extract_sync)
     except Exception as e:
         logger.error(f"Error extracting dominant color from {image_path}: {e}")
         return None

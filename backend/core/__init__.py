@@ -1,5 +1,4 @@
 import os
-import asyncio
 import shutil
 
 from logging import Logger
@@ -119,7 +118,7 @@ async def backfill_dominant_colors(session: AsyncSession):
 
     for index, image in enumerate(images):
         image_path = os.path.join(IMAGES_PATH, image.path)
-        color = await asyncio.to_thread(extract_dominant_color, image_path)
+        color = await extract_dominant_color(image_path)
         if color is not None:
             await ImageAccess.update_image_dominant_color_async(
                 session=session, image=image, dominant_color=color

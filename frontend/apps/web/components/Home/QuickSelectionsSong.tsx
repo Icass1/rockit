@@ -3,6 +3,7 @@
 import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -17,6 +18,7 @@ export default function QuickSelectionsSong({
     songs: BaseSongWithAlbumResponse[];
 }): JSX.Element {
     const $song = useMedia(song);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const handleClick = useCallback((): void => {
         // Set the queue with all songs
@@ -39,14 +41,15 @@ export default function QuickSelectionsSong({
                     height={100}
                     className="aspect-square h-12 min-h-12 w-12 min-w-12 rounded-sm object-cover"
                     src={$song.imageUrl}
-                    alt={`Cover of {$song.name}`}
+                    alt={$vocabulary.COVER_OF.replace("{name}", $song.name)}
                 />
                 <div className="flex w-full min-w-0 flex-col justify-center">
                     <span className="w-full min-w-0 truncate text-sm font-semibold text-white">
                         {$song.name}
                     </span>
                     <span className="w-full min-w-0 truncate text-xs text-gray-400">
-                        {$song.artists[0].name} {" • "} {$song.album.name}
+                        {$song.artists[0]?.name ?? $vocabulary.UNKNOWN} {" • "}{" "}
+                        {$song.album?.name ?? "—"}
                     </span>
                 </div>
             </div>

@@ -661,6 +661,44 @@ class StatsAccess:
         )
 
     @staticmethod
+    async def get_recently_played_songs_since_async(
+        session: AsyncSession,
+        user_id: int,
+        since_date: datetime,
+        limit: int = 500,
+    ) -> AResult[list[str]]:
+        """Get song public_ids played after since_date, ordered by most recent first."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+          AND  uml.date_added >= :since_date
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) DESC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "since_date": since_date.astimezone(timezone.utc),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
     async def get_top_media_public_ids_async(
         session: AsyncSession,
         user_id: int,
@@ -732,6 +770,82 @@ class StatsAccess:
                 sql,
                 {
                     "user_id": user_id,
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_least_recently_played_songs_async(
+        session: AsyncSession,
+        user_id: int,
+        limit: int = 12,
+    ) -> AResult[list[str]]:
+        """Get song public_ids ordered by oldest last-played date ASC."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) ASC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_random_songs_last_month_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 30,
+    ) -> AResult[list[str]]:
+        """Get a random selection of songs listened to in the given date range."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+          AND  uml.date_added >= :start_date
+          AND  uml.date_added <  :end_date
+        GROUP BY mi.public_id
+        ORDER BY random()
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
                     "limit": limit,
                 },
             )

@@ -10,3 +10,4 @@ class BaseArtistResponse(BaseModel):
     providerUrl: str
     name: str
     imageUrl: str
+    dominantColor: str

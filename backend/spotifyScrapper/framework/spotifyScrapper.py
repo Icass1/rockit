@@ -1,5 +1,7 @@
 import os
 import re
+import uuid
+import requests as req
 from typing import Dict, List, Set, TYPE_CHECKING, Tuple
 
 from fastapi import Request
@@ -7,10 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import time_it
-from backend.constants import MEDIA_PATH
+from backend.constants import IMAGES_PATH, MEDIA_PATH
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.framework.media.image import Image
 
+from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 
 from backend.core.responses.basePlaylistWithMediasResponse import (
@@ -43,6 +47,8 @@ from backend.spotifyScrapper.framework.spotifyScrapperApi import (
     ScrappedSearchResults,
 )
 
+from backend.spotifyScrapper.framework.models.spotifyScrapperApi import ScrappedImage
+
 from backend.spotifyScrapper.responses.songResponse import SpotifyScrapperTrackResponse
 from backend.spotifyScrapper.responses.albumResponse import (
     SpotifyScrapperAlbumResponse,
@@ -63,6 +69,45 @@ class SpotifyScrapper:
 
     provider: "SpotifyScrapperProvider"
     provider_name: str
+
+    @staticmethod
+    @time_it
+    async def _download_and_create_internal_image(
+        session: AsyncSession,
+        url: str,
+    ) -> AResult[ImageRow]:
+        """Download an image from a URL, save it locally, and create an ImageRow."""
+
+        try:
+            response = req.get(url, timeout=10)
+            if response.status_code != 200:
+                return AResult(
+                    code=AResultCode.GENERAL_ERROR, message="Image download failed"
+                )
+            filename = str(uuid.uuid4()) + ".jpg"
+            full_path = os.path.join(IMAGES_PATH, filename)
+            with open(full_path, "wb") as f:
+                f.write(response.content)
+            return await Image.create_image_async(
+                session=session, path=filename, url=url
+            )
+        except Exception as e:
+            logger.error(f"Failed to download/create internal image: {e}")
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to download/create internal image: {e}",
+            )
+
+    @staticmethod
+    def _get_largest_image(images: List[ScrappedImage]) -> ScrappedImage | None:
+        """Return the largest image by area, or None if empty."""
+
+        if not images:
+            return None
+        return max(
+            images,
+            key=lambda img: (img.width or 0) * (img.height or 0),
+        )
 
     @staticmethod
     async def search_async(query: str) -> AResult[List[BaseSearchResultsItem]]:
@@ -257,19 +302,39 @@ class SpotifyScrapper:
         for raw_artist in api_artists:
             if not raw_artist.id:
                 continue
+            artist_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_artist.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    artist_image_id = a_img.result().id
             a_result_create_artist: AResult[ArtistRow] = (
                 await SpotifyScrapperAccess.get_or_create_artist(
-                    raw=raw_artist, session=session, provider_id=provider_id
+                    raw=raw_artist,
+                    session=session,
+                    provider_id=provider_id,
+                    image_id=artist_image_id,
                 )
             )
             if a_result_create_artist.is_ok():
                 artist_map[raw_artist.id] = a_result_create_artist.result()
 
+        album_image_id: int | None = None
+        largest = SpotifyScrapper._get_largest_image(raw_album.images)
+        if largest and largest.url:
+            a_img = await SpotifyScrapper._download_and_create_internal_image(
+                session, largest.url
+            )
+            if a_img.is_ok():
+                album_image_id = a_img.result().id
         a_album: AResult[AlbumRow] = await SpotifyScrapperAccess.get_or_create_album(
             raw=raw_album,
             artist_map=artist_map,
             session=session,
             provider_id=provider_id,
+            image_id=album_image_id,
         )
         if a_album.is_not_ok():
             return AResult(code=a_album.code(), message=a_album.message())
@@ -390,10 +455,19 @@ class SpotifyScrapper:
         for raw_artist in raw_artists:
             if not raw_artist.id:
                 continue
+            artist_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_artist.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    artist_image_id = a_img.result().id
             a = await SpotifyScrapperAccess.get_or_create_artist(
                 session=session,
                 raw=raw_artist,
                 provider_id=provider_id,
+                image_id=artist_image_id,
             )
             if a.is_ok():
                 artist_map[raw_artist.id] = a.result()
@@ -402,12 +476,21 @@ class SpotifyScrapper:
                     f"Failed to get/create artist {raw_artist.id}: {a.message()}"
                 )
 
+        album_image_id: int | None = None
+        largest = SpotifyScrapper._get_largest_image(raw_album.images)
+        if largest and largest.url:
+            a_img = await SpotifyScrapper._download_and_create_internal_image(
+                session, largest.url
+            )
+            if a_img.is_ok():
+                album_image_id = a_img.result().id
         a_result_album: AResult[AlbumRow] = (
             await SpotifyScrapperAccess.get_or_create_album(
                 raw=raw_album,
                 artist_map=artist_map,
                 session=session,
                 provider_id=provider_id,
+                image_id=album_image_id,
             )
         )
         if a_result_album.is_not_ok():
@@ -506,8 +589,19 @@ class SpotifyScrapper:
 
         provider_id: int = a_result_provider_id.result()
 
+        artist_image_id: int | None = None
+        largest = SpotifyScrapper._get_largest_image(raw_artist.images)
+        if largest and largest.url:
+            a_img = await SpotifyScrapper._download_and_create_internal_image(
+                session, largest.url
+            )
+            if a_img.is_ok():
+                artist_image_id = a_img.result().id
         a: AResult[ArtistRow] = await SpotifyScrapperAccess.get_or_create_artist(
-            session=session, raw=raw_artist, provider_id=provider_id
+            session=session,
+            raw=raw_artist,
+            provider_id=provider_id,
+            image_id=artist_image_id,
         )
         if a.is_not_ok():
             return AResult(code=a.code(), message=a.message())
@@ -628,8 +722,19 @@ class SpotifyScrapper:
         for raw_artist in raw_artists:
             if not raw_artist.id:
                 continue
+            artist_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_artist.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    artist_image_id = a_img.result().id
             a: AResult[ArtistRow] = await SpotifyScrapperAccess.get_or_create_artist(
-                raw=raw_artist, provider_id=provider_id, session=session
+                raw=raw_artist,
+                provider_id=provider_id,
+                session=session,
+                image_id=artist_image_id,
             )
             if a.is_ok():
                 artist_map[raw_artist.id] = a.result()
@@ -638,12 +743,21 @@ class SpotifyScrapper:
         for raw_album in raw_albums:
             if not raw_album.id:
                 continue
+            album_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_album.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    album_image_id = a_img.result().id
             a_result_album: AResult[AlbumRow] = (
                 await SpotifyScrapperAccess.get_or_create_album(
                     raw=raw_album,
                     artist_map=artist_map,
                     session=session,
                     provider_id=provider_id,
+                    image_id=album_image_id,
                 )
             )
             if a_result_album.is_ok():
@@ -670,11 +784,20 @@ class SpotifyScrapper:
             if a_result_track.is_ok():
                 track_row_map[raw_track.id] = a_result_track.result()[0]
 
+        playlist_image_id: int | None = None
+        largest = SpotifyScrapper._get_largest_image(raw_playlist.images)
+        if largest and largest.url:
+            a_img = await SpotifyScrapper._download_and_create_internal_image(
+                session, largest.url
+            )
+            if a_img.is_ok():
+                playlist_image_id = a_img.result().id
         a_result_playlist = await SpotifyScrapperAccess.get_or_create_playlist(
             raw=raw_playlist,
             track_row_map=track_row_map,
             session=session,
             provider_id=provider_id,
+            image_id=playlist_image_id,
         )
 
         if a_result_playlist.is_not_ok():
@@ -857,8 +980,19 @@ class SpotifyScrapper:
         for raw_artist in raw_artists:
             if not raw_artist.id:
                 continue
+            artist_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_artist.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    artist_image_id = a_img.result().id
             a_result_artist = await SpotifyScrapperAccess.get_or_create_artist(
-                session=session, raw=raw_artist, provider_id=provider_id
+                session=session,
+                raw=raw_artist,
+                provider_id=provider_id,
+                image_id=artist_image_id,
             )
             if a_result_artist.is_ok():
                 artist_map[raw_artist.id] = a_result_artist.result()
@@ -867,11 +1001,20 @@ class SpotifyScrapper:
         for raw_album in raw_albums:
             if not raw_album.id:
                 continue
+            album_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_album.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    album_image_id = a_img.result().id
             a_result_album = await SpotifyScrapperAccess.get_or_create_album(
                 session=session,
                 raw=raw_album,
                 artist_map=artist_map,
                 provider_id=provider_id,
+                image_id=album_image_id,
             )
             if a_result_album.is_ok():
                 album_map[raw_album.id] = a_result_album.result()
@@ -1076,8 +1219,19 @@ class SpotifyScrapper:
         for raw_artist in raw_artists:
             if not raw_artist.id:
                 continue
+            artist_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_artist.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    artist_image_id = a_img.result().id
             a_result_artist = await SpotifyScrapperAccess.get_or_create_artist(
-                session=session, raw=raw_artist, provider_id=provider_id
+                session=session,
+                raw=raw_artist,
+                provider_id=provider_id,
+                image_id=artist_image_id,
             )
             if a_result_artist.is_ok():
                 artist_map[raw_artist.id] = a_result_artist.result()
@@ -1214,11 +1368,20 @@ class SpotifyScrapper:
             )
             track_row_map: Dict[str, TrackRow] = {t.spotify_id: t for t in db_tracks}
 
+            playlist_image_id: int | None = None
+            largest = SpotifyScrapper._get_largest_image(raw_playlist.images)
+            if largest and largest.url:
+                a_img = await SpotifyScrapper._download_and_create_internal_image(
+                    session, largest.url
+                )
+                if a_img.is_ok():
+                    playlist_image_id = a_img.result().id
             await SpotifyScrapperAccess.get_or_create_playlist(
                 session=session,
                 raw=raw_playlist,
                 track_row_map=track_row_map,
                 provider_id=provider_id,
+                image_id=playlist_image_id,
             )
 
         return await SpotifyScrapper.get_playlists_from_db(

@@ -10,6 +10,8 @@ export interface HomeData {
     communityTop: BaseSongWithAlbumResponse[];
     monthlyTop: BaseSongWithAlbumResponse[];
     moodSongs: BaseSongWithAlbumResponse[];
+    currentStreak: number;
+    minutesListenedThisWeek: number;
     isEmpty: boolean;
 }
 
@@ -53,6 +55,8 @@ function transformStats(dataResponse: HomeStatsResponse): HomeData {
         communityTop,
         monthlyTop,
         moodSongs,
+        currentStreak: dataResponse.currentStreak,
+        minutesListenedThisWeek: dataResponse.minutesListenedThisWeek,
         isEmpty,
     };
 }

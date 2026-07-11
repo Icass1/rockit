@@ -1,8 +1,5 @@
-import os
-import uuid
 from datetime import datetime, timezone
 
-import requests as req
 from typing import Dict, List, Tuple, cast
 
 from sqlalchemy.future import select
@@ -51,9 +48,6 @@ from backend.spotifyScrapper.framework.spotifyScrapperApi import (
     ScrappedArtist,
     ScrappedPlaylist,
 )
-from backend.spotifyScrapper.framework.models.spotifyScrapperApi import (
-    ScrappedImage,
-)
 
 from backend.spotifyScrapper.framework.models.playlistTrackLink import (
     PlaylistTrackLink,
@@ -61,8 +55,6 @@ from backend.spotifyScrapper.framework.models.playlistTrackLink import (
 from backend.spotifyScrapper.framework.models.trackWithCoreMedia import (
     TrackWithCoreMedia,
 )
-
-from backend.constants import IMAGES_PATH
 
 logger = getLogger(__name__)
 
@@ -319,34 +311,7 @@ class SpotifyScrapperAccess:
                 message=f"Failed to get playlist from id {spotify_id}: {e}",
             )
 
-    # ── Image helpers ────────────────────────────────────────────────────────
-
-    @staticmethod
-    @time_it
-    async def _download_and_create_internal_image(
-        session: AsyncSession,
-        url: str,
-    ) -> AResult[ImageRow]:
-        try:
-            response = req.get(url, timeout=10)
-            if response.status_code != 200:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR, message="Image download failed"
-                )
-            filename = str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(IMAGES_PATH, filename)
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-            img = ImageRow(public_id=create_id(32), url=url, path=filename)
-            session.add(img)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=img)
-        except Exception as e:
-            logger.error(f"Failed to download/create internal image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to download/create internal image: {e}",
-            )
+    # Image helpers
 
     @staticmethod
     @time_it
@@ -392,15 +357,6 @@ class SpotifyScrapperAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create external image: {e}",
             )
-
-    @staticmethod
-    def _get_largest_image(images: List[ScrappedImage]) -> ScrappedImage | None:
-        if not images:
-            return None
-        return max(
-            images,
-            key=lambda img: (img.width or 0) * (img.height or 0),
-        )
 
     @staticmethod
     @time_it
@@ -449,6 +405,7 @@ class SpotifyScrapperAccess:
         session: AsyncSession,
         raw: ScrappedArtist,
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[ArtistRow]:
         try:
             stmt = select(ArtistRow).where(ArtistRow.spotify_id == raw.id)
@@ -456,15 +413,6 @@ class SpotifyScrapperAccess:
             existing: ArtistRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            image_id: int | None = None
-            largest = SpotifyScrapperAccess._get_largest_image(raw.images)
-            if largest and largest.url:
-                a_img = await SpotifyScrapperAccess._download_and_create_internal_image(
-                    session, largest.url
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             if image_id is None:
                 a_result_image: AResult[ImageRow] = (
@@ -555,6 +503,7 @@ class SpotifyScrapperAccess:
         raw: ScrappedAlbum,
         artist_map: Dict[str, ArtistRow],
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[AlbumRow]:
         try:
             stmt = (
@@ -570,17 +519,6 @@ class SpotifyScrapperAccess:
             disc_count = (
                 max((t.disc_number or 1) for t in raw.tracks) if raw.tracks else 1
             )
-
-            image_id: int | None = None
-            largest = SpotifyScrapperAccess._get_largest_image(raw.images)
-            if largest and largest.url:
-                a_img: AResult[ImageRow] = (
-                    await SpotifyScrapperAccess._download_and_create_internal_image(
-                        session, largest.url
-                    )
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             if image_id is None:
                 return AResult(
@@ -774,6 +712,7 @@ class SpotifyScrapperAccess:
         raw: ScrappedPlaylist,
         track_row_map: Dict[str, TrackRow],
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[PlaylistRow]:
         try:
             stmt = select(PlaylistRow).where(PlaylistRow.spotify_id == raw.id)
@@ -781,15 +720,6 @@ class SpotifyScrapperAccess:
             existing: PlaylistRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            image_id: int | None = None
-            largest = SpotifyScrapperAccess._get_largest_image(raw.images)
-            if largest and largest.url:
-                a_img = await SpotifyScrapperAccess._download_and_create_internal_image(
-                    session, largest.url
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             core_playlist = CoreMediaRow(
                 public_id=create_id(32),

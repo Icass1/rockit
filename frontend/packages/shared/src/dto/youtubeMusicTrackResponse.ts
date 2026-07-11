@@ -15,6 +15,7 @@ export const YoutubeMusicTrackResponseSchema = z.object({
     audioUrl: z.string().nullable(),
     downloaded: z.boolean(),
     imageUrl: z.string(),
+    dominantColor: z.string(),
     duration_ms: z.number(),
     discNumber: z.number(),
     trackNumber: z.number(),

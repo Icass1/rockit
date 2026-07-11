@@ -658,7 +658,11 @@ export class BaseHttp {
     }
 
     static serveRockitVideoURL(publicId: string) {
-        return `${BACKEND_URL}/rockit/video/${publicId}`;
+        return `${BACKEND_URL}/rockit/video/${publicId}/stream`;
+    }
+
+    static serveRockitVideoAudioURL(publicId: string) {
+        return `${BACKEND_URL}/rockit/video/${publicId}/stream/audio`;
     }
 
     static async getAlbumAsync(spotifyId: string) {

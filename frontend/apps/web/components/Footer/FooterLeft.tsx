@@ -25,22 +25,29 @@ function FooterLeftForMedia({
 }): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
-    const [offlineCoverUrl, setOfflineCoverUrl] = useState<string | null>(
-        null
-    );
+    const [offlineCover, setOfflineCover] = useState<{
+        publicId: string;
+        url: string;
+    } | null>(null);
 
     useEffect((): (() => void) => {
-        setOfflineCoverUrl(null);
         let cancelled = false;
         resolveOfflineCoverUrl(currentMedia.publicId).then((url) => {
-            if (!cancelled && url) setOfflineCoverUrl(url);
+            if (!cancelled && url)
+                setOfflineCover({
+                    publicId: currentMedia.publicId,
+                    url,
+                });
         });
-        return () => {
+        return (): void => {
             cancelled = true;
         };
     }, [currentMedia.publicId]);
 
-    const coverSrc = offlineCoverUrl ?? currentMedia.imageUrl;
+    const coverSrc =
+        offlineCover?.publicId === currentMedia.publicId
+            ? offlineCover.url
+            : currentMedia.imageUrl;
 
     if (!$queue) {
         return (

@@ -2,7 +2,7 @@
 
 import { JSX, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { EPlaylistAction as EServiceWorkerAction } from "@/models/enums/serviceWorkerAction";
+import { EServiceWorkerAction } from "@/models/enums/serviceWorkerAction";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ServiceWorkerInfo(): JSX.Element {

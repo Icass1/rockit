@@ -22,24 +22,31 @@ export default function PlayerUIContent(): JSX.Element {
     const { height, width } = useWindowSize();
 
     const [selectedTab, setSelectedTab] = useState<"QUEUE" | "LYRICS">("QUEUE");
-    const [offlineBgCoverUrl, setOfflineBgCoverUrl] = useState<string | null>(
-        null
-    );
+    const [offlineBgCover, setOfflineBgCover] = useState<{
+        publicId: string;
+        url: string;
+    } | null>(null);
 
     useEffect((): (() => void) | undefined => {
         if (!$currentMedia) return;
-        setOfflineBgCoverUrl(null);
         if (!isSong($currentMedia)) return;
         let cancelled = false;
         resolveOfflineCoverUrl($currentMedia.publicId).then((url) => {
-            if (!cancelled && url) setOfflineBgCoverUrl(url);
+            if (!cancelled && url)
+                setOfflineBgCover({
+                    publicId: $currentMedia.publicId,
+                    url,
+                });
         });
-        return () => {
+        return (): void => {
             cancelled = true;
         };
     }, [$currentMedia]);
 
-    const bgCoverSrc = offlineBgCoverUrl ?? $currentMedia?.imageUrl ?? "";
+    const bgCoverSrc =
+        offlineBgCover && offlineBgCover.publicId === $currentMedia?.publicId
+            ? offlineBgCover.url
+            : $currentMedia?.imageUrl ?? "";
 
     // Close player when clicking outside
     useEffect((): (() => void) => {

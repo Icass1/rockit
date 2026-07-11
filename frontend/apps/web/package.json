@@ -12,7 +12,7 @@
     "dependencies": {
         "@nanostores/react": "^0.8.4",
         "@rockit/packages": "file:../../packages",
-        "@serwist/next": "^9.5.11",
+        "@serwist/turbopack": "^9.5.11",
         "@types/lodash": "^4.17.21",
         "framer-motion": "^12.42.2",
         "idb": "^8.0.3",
@@ -42,6 +42,7 @@
         "@types/topojson-client": "^3.1.5",
         "@types/topojson-specification": "^1.0.5",
         "autoprefixer": "^10.4.27",
+        "esbuild": "^0.28.1",
         "eslint": "^9",
         "eslint-config-next": "16.1.6",
         "postcss": "^8.5.8",

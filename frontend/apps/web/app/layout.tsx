@@ -5,12 +5,12 @@ import "@/styles/globals.css";
 import "@/styles/tokens/colors.css";
 import { JSX } from "react";
 import type { Metadata, Viewport } from "next";
+import { SerwistProvider } from "@serwist/turbopack/react";
 import ToasterProvider from "@/components/Toaster/ToasterProvider";
 
 export const metadata: Metadata = {
     title: "RockIt",
     description: "The best music player in the world",
-    manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
@@ -26,11 +26,12 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
-                <link rel="manifest" href="/manifest.json" />
             </head>
             <body className="antialiased" suppressHydrationWarning>
-                {children}
-                <ToasterProvider />
+                <SerwistProvider swUrl="/serwist/sw.js">
+                    {children}
+                    <ToasterProvider />
+                </SerwistProvider>
             </body>
         </html>
     );

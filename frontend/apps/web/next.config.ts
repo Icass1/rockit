@@ -1,5 +1,6 @@
 import path from "path";
 import type { NextConfig } from "next";
+import { withSerwist } from "@serwist/turbopack";
 
 const isDev = process.env.NODE_ENV === "development" || true;
 
@@ -55,4 +56,4 @@ const nextConfig: NextConfig = {
     allowedDevOrigins: ["ignaciodev"],
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

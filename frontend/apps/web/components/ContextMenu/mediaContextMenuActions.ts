@@ -6,6 +6,7 @@ import {
 } from "@rockit/shared";
 import type { LucideIcon } from "lucide-react";
 import {
+    CloudDownload,
     ExternalLink,
     HardDriveDownload,
     Library,
@@ -273,6 +274,13 @@ const ACTION_REGISTRY: ActionDef[] = [
         ],
         condition: (m) => !isSearchResult(m),
     },
+    {
+        id: EMediaContextAction.SaveOffline,
+        type: "action",
+        icon: CloudDownload,
+        labelKey: "SAVE_OFFLINE",
+        mediaTypes: [EMediaType.Song],
+    },
 ];
 
 const ACTION_MAP = new Map<EMediaContextAction, ActionDef>(
@@ -298,6 +306,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddToLibrary,
         EMediaContextAction.RemoveFromLibrary,
         "---",
+        EMediaContextAction.SaveOffline,
         EMediaContextAction.Download,
         EMediaContextAction.DownloadSearchResultAndPlay,
         EMediaContextAction.DownloadSearchResult,

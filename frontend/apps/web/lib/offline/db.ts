@@ -43,10 +43,12 @@ export async function saveSongOffline(
     let coverBlob: Blob | null = null;
     if (coverUrl) {
         try {
-            const coverRes = await fetch(coverUrl);
+            const proxyUrl = `/_next/image?url=${encodeURIComponent(coverUrl)}&w=600&q=75`;
+            const coverRes = await fetch(proxyUrl);
             if (coverRes.ok) coverBlob = await coverRes.blob();
         } catch {
-            // La portada es "nice to have" -- si falla, seguimos sin ella.
+            // La portada es "nice to have" -- si falla, seguimos sin ella,
+            // NO abortamos la descarga de la canción por esto.
         }
     }
 

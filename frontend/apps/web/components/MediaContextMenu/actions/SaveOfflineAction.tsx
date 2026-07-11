@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { useState, useEffect } from "react";
 import { useStore } from "@nanostores/react";
-import { HardDriveDownload, Trash2, Loader2 } from "lucide-react";
+import { CircleArrowDown, Trash2, Loader2 } from "lucide-react";
 import { isSearchResult, type TMedia } from "@rockit/shared";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import {
@@ -55,7 +55,7 @@ export default function SaveOfflineAction({
         ) : status === "downloaded" ? (
             <Trash2 className="h-5 w-5" />
         ) : (
-            <HardDriveDownload className="h-5 w-5" />
+            <CircleArrowDown className="h-5 w-5" />
         );
 
     const label =

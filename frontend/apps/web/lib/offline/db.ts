@@ -43,8 +43,11 @@ export async function saveSongOffline(
     let coverBlob: Blob | null = null;
     if (coverUrl) {
         try {
-            const proxyUrl = `/_next/image?url=${encodeURIComponent(coverUrl)}&w=600&q=75`;
-            const coverRes = await fetch(proxyUrl);
+            const coverFetchUrl =
+                process.env.NODE_ENV === "development"
+                    ? coverUrl
+                    : `/_next/image?url=${encodeURIComponent(coverUrl)}&w=600&q=75`;
+            const coverRes = await fetch(coverFetchUrl);
             if (coverRes.ok) coverBlob = await coverRes.blob();
         } catch {
             // La portada es "nice to have" -- si falla, seguimos sin ella,

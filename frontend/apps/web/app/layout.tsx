@@ -22,16 +22,22 @@ export const viewport: Viewport = {
 export default function RootLayout({
     children,
 }: Readonly<{ children: React.ReactNode }>): JSX.Element {
+    const isDev = process.env.NODE_ENV === "development";
+
+    const content = (
+        <>
+            {children}
+            <ToasterProvider />
+        </>
+    );
+
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
             </head>
             <body className="antialiased" suppressHydrationWarning>
-                <SerwistProvider swUrl="/serwist/sw.js">
-                    {children}
-                    <ToasterProvider />
-                </SerwistProvider>
+                {isDev ? content : <SerwistProvider swUrl="/serwist/sw.js">{content}</SerwistProvider>}
             </body>
         </html>
     );

@@ -29,6 +29,17 @@ export class NotificationManager {
         toast(message, { dismissible: true });
     }
 
+    notifyWarn(message: string): void {
+        console.warn("NotificationManager.notifyWarn", message);
+        const id = this._nextId++;
+        this._notificationsAtom.push({
+            id,
+            message,
+            type: ENotificationType.WARN,
+        });
+        toast.warning(message, { dismissible: true });
+    }
+
     notifySuccess(message: string): void {
         console.info("NotificationManager.notifySuccess", message);
         const id = this._nextId++;

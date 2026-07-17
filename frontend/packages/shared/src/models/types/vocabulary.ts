@@ -389,6 +389,9 @@ export interface Vocabulary {
     GOOD_MORNING: string;
     GOOD_AFTERNOON: string;
     GOOD_EVENING: string;
+    ERROR_GETTING_ALBUM: string;
+    MEDIA_NOT_DOWNLOADED: string;
+    PLAYLIST_WITHOUT_MEDIAS: string;
     SAVE_OFFLINE: string;
     REMOVE_OFFLINE: string;
     APP_AVAILABLE_OFFLINE: string;

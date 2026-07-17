@@ -86,7 +86,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             // currentTime === 0 and would otherwise reset the progress bar; and
             // during a source swap it emits stale positions.
             if (this._audioPlayer || this._videoReplacing) return;
-            this._setDuration(this._videoPlayer.duration);
             this.onNativeTimeUpdate(currentTime);
         });
         this._videoPlayer.addListener("playToEnd", (): void => {
@@ -103,7 +102,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 this.onNativeLoadStart();
             } else if (status === "readyToPlay") {
                 this.onNativeLoaded();
-                this._setDuration(this._videoPlayer.duration);
             }
         });
     }
@@ -112,10 +110,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     /**
      * Publish a duration, ignoring anything that isn't a finite positive
-     * number. This filters the native "unknown duration" sentinel
-     * (ExoPlayer/AVPlayer report a huge negative TIME_UNSET value before the
-     * media is ready) as well as transient 0s on status ticks, so a known-good
-     * duration is never clobbered by a bad reading.
+     * number. Duration comes exclusively from the media DTO (see
+     * afterMediaLoadedAsync); the native audio/video objects are never used,
+     * since their reported duration differs between the audio and video decks
+     * and would make the progress bar jump when toggling audio-only.
      */
     private _setDuration(value: number): void {
         if (typeof value === "number" && isFinite(value) && value > 0) {
@@ -135,7 +133,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             "playbackStatusUpdate",
             (status: AudioStatus): void => {
                 if (!status) return;
-                this._setDuration(status.duration);
                 if (status.playing) this.onNativePlaying();
                 else this.onNativePaused();
                 if (typeof status.currentTime === "number") {
@@ -279,8 +276,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         kind: TMediaKind,
         resolvedUri: string
     ): Promise<void> {
-        // Prefer the authoritative duration from the media DTO; the native
-        // player only refines it later (and may report a bogus sentinel).
+        // Duration is taken solely from the media DTO. The native audio/video
+        // objects report differing durations per deck, so relying on them makes
+        // the progress bar jump when toggling audio-only.
         this._setDuration(getMediaDuration(media) ?? 0);
 
         if (kind !== "audio") return;

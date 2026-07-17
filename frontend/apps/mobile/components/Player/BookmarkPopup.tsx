@@ -6,6 +6,7 @@ import {
     Bookmark,
     BookmarkCheck,
     ChevronDown,
+    LucideProps,
     Pencil,
     Plus,
     Repeat1,
@@ -27,26 +28,30 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/lib/vocabulary";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-const MODE_OPTIONS = [
-    { key: "NOTHING", label: "Nothing", Icon: Bookmark, color: "#ffffff" },
+const MODE_OPTIONS: {
+    key: "NOTHING" | "AUTOSKIP" | "REPEAT_FROM_BEGINNING" | "PREVIOUS_BOOKMARK";
+    Icon: React.ForwardRefExoticComponent<
+        LucideProps & React.RefAttributes<SVGSVGElement>
+    >;
+    color: string;
+}[] = [
+    { key: "NOTHING", Icon: Bookmark, color: "#ffffff" },
     {
         key: "AUTOSKIP",
-        label: "Autoskip",
         Icon: BookmarkCheck,
         color: "#00ff00",
     },
     {
         key: "REPEAT_FROM_BEGINNING",
-        label: "Repeat from beginning",
         Icon: Repeat1,
         color: "#00ffff",
     },
     {
         key: "PREVIOUS_BOOKMARK",
-        label: "Previous bookmark",
         Icon: SkipBack,
         color: "#ff8000",
     },
@@ -82,6 +87,9 @@ export default function BookmarkPopup({
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );
+
+    const { vocabulary } = useVocabulary();
+
     const insets = useSafeAreaInsets();
     const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -325,7 +333,7 @@ export default function BookmarkPopup({
                                                             styles.dropdownLabel
                                                         }
                                                     >
-                                                        {opt.label}
+                                                        {vocabulary[opt.key]}
                                                     </Text>
                                                 </TouchableOpacity>
                                             );
@@ -381,7 +389,11 @@ export default function BookmarkPopup({
                                                             styles.bookmarkInfo
                                                         }
                                                         onPress={() => {
-                                                            // Seek to bookmark - caller handles seeking
+                                                            // Seek the current media to the bookmark timestamp
+                                                            rockIt.mediaPlayerManager.setCurrentTime(
+                                                                item.timestamp,
+                                                                true
+                                                            );
                                                             handleClose();
                                                         }}
                                                     >

@@ -389,4 +389,7 @@ export interface Vocabulary {
     GOOD_MORNING: string;
     GOOD_AFTERNOON: string;
     GOOD_EVENING: string;
+    ERROR_GETTING_ALBUM: string;
+    MEDIA_NOT_DOWNLOADED: string;
+    PLAYLIST_WITHOUT_MEDIAS: string;
 }

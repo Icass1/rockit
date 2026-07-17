@@ -38,7 +38,11 @@ export default function ToasterProvider(): JSX.Element {
                     background: #7f1d1d !important;
                     color: #fecaca !important;
                 }
-                [data-sonner-toast]:not([data-type="success"]):not([data-type="error"]) {
+                [data-sonner-toast][data-type="warning"] {
+                    background: #713f12 !important;
+                    color: #fef08a !important;
+                }
+                [data-sonner-toast]:not([data-type="success"]):not([data-type="error"]):not([data-type="warning"]) {
                     background: #262626 !important;
                     color: #d4d4d4 !important;
                 }

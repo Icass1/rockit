@@ -146,7 +146,9 @@ export class BaseQueueManager {
         if (response.isOk()) {
             return response.result;
         }
-        console.error("Error getting album", response.message, response.detail);
+        getRockIt().notificationManager.notifyError(
+            getRockIt().vocabularyManager.vocabulary.ERROR_GETTING_ALBUM
+        );
         return undefined;
     }
 
@@ -337,7 +339,10 @@ export class BaseQueueManager {
             }
 
             if (!isStation(media.media) && !media.media.downloaded) {
-                console.warn("Current media is not downloaded");
+                getRockIt().notificationManager.notifyWarn(
+                    getRockIt().vocabularyManager.vocabulary
+                        .MEDIA_NOT_DOWNLOADED
+                );
                 const index = queue.indexOf(media);
                 for (let i = 1; i < queue.length; i++) {
                     const nextIndex =
@@ -524,7 +529,9 @@ export class BaseQueueManager {
                 return album.songs;
             }
         } else if (isPlaylist(media)) {
-            console.warn("playlist without songs");
+            getRockIt().notificationManager.notifyWarn(
+                getRockIt().vocabularyManager.vocabulary.PLAYLIST_WITHOUT_MEDIAS
+            );
         }
 
         return medias;

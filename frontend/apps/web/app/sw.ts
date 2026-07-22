@@ -19,15 +19,10 @@ declare const self: ServiceWorkerGlobalScope;
 
 const runtimeCaching = [
     {
-        matcher: ({ url }: { url: URL }) =>
-            url.pathname.startsWith("/api/") ||
-            url.pathname.startsWith("/stats") ||
-            url.pathname.startsWith("/user/"),
-        handler: new NetworkOnly(),
-    },
-    {
-        matcher: ({ url }: { url: URL }) =>
-            url.pathname.startsWith("/api/song/audio"),
+        matcher: ({ url, request }: { url: URL; request: Request }) =>
+            url.origin !== self.location.origin ||
+            (url.pathname.startsWith("/api/") &&
+                request.destination !== "document"),
         handler: new NetworkOnly(),
     },
     {

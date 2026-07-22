@@ -11,6 +11,15 @@ import ToasterProvider from "@/components/Toaster/ToasterProvider";
 export const metadata: Metadata = {
     title: "RockIt",
     description: "The best music player in the world",
+    icons: {
+        icon: "/rockit-logo.ico",
+        apple: "/logos/logo-192.png",
+    },
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "black-translucent",
+        title: "RockIt",
+    },
 };
 
 export const viewport: Viewport = {

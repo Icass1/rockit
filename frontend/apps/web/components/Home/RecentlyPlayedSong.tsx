@@ -7,6 +7,7 @@ import { useStore } from "@nanostores/react";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 export default function RecentlyPlayedSong({
     song,
@@ -35,13 +36,19 @@ export default function RecentlyPlayedSong({
             className={`${className ?? "w-40 md:w-48"} flex-none cursor-pointer transition md:hover:scale-105`}
             onClick={handleClick}
         >
-            <Image
-                width={400}
-                height={400}
-                className="aspect-square w-full rounded-lg object-cover"
-                src={$song.imageUrl}
-                alt={$vocabulary.COVER_OF.replace("{name}", $song.name)}
-            />
+            <div className="relative">
+                <Image
+                    width={400}
+                    height={400}
+                    className="aspect-square w-full rounded-lg object-cover"
+                    src={$song.imageUrl}
+                    alt={$vocabulary.COVER_OF.replace("{name}", $song.name)}
+                />
+                <OfflineIndicator
+                    publicId={$song.publicId}
+                    className="absolute top-1 right-1 h-5 w-5 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]"
+                />
+            </div>
             <span className="mt-2 block truncate text-center font-semibold hover:underline">
                 {$song.name}
             </span>

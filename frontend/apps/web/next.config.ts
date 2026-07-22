@@ -1,7 +1,8 @@
 import path from "path";
 import type { NextConfig } from "next";
+import { withSerwist } from "@serwist/turbopack";
 
-const isDev = process.env.NODE_ENV === "development" || true;
+const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
     output: "standalone",
@@ -33,6 +34,8 @@ const nextConfig: NextConfig = {
     images: {
         // Only disable image optimization in dev
         unoptimized: isDev,
+        dangerouslyAllowLocalIP: isDev || process.env.ALLOW_LOCAL_IP === "true",
+        deviceSizes: [16, 32, 48, 64, 96, 128, 256, 384, 600, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
         remotePatterns: [
             {
                 protocol: "http",
@@ -47,6 +50,11 @@ const nextConfig: NextConfig = {
             },
             {
                 protocol: "https",
+                hostname: "yt3.googleusercontent.com",
+                pathname: "/**",
+            },
+            {
+                protocol: "https",
                 hostname: "api-beta-rockit.rockhosting.org",
                 pathname: "/image/**",
             },
@@ -55,4 +63,4 @@ const nextConfig: NextConfig = {
     allowedDevOrigins: ["ignaciodev"],
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

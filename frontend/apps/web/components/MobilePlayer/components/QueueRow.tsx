@@ -3,6 +3,7 @@
 import type { JSX } from "react";
 import { getMediaArtistsString, type TPlayableMedia } from "@rockit/shared";
 import { GripVertical, Trash2 } from "lucide-react";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 interface QueueRowProps {
     media: TPlayableMedia;
@@ -53,15 +54,23 @@ export default function QueueRow({
                     }`}
                 />
                 <div className="min-w-0 flex-1">
-                    <p
-                        className={`truncate text-sm font-semibold ${
-                            isActive
-                                ? "text-(--color-rockit-pink)"
-                                : "text-white"
-                        }`}
-                    >
-                        {media.name}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <p
+                            className={`truncate text-sm font-semibold ${
+                                isActive
+                                    ? "text-(--color-rockit-pink)"
+                                    : "text-white"
+                            }`}
+                        >
+                            {media.name}
+                        </p>
+                        {"publicId" in media && (
+                            <OfflineIndicator
+                                publicId={media.publicId}
+                                className="h-5 w-5"
+                            />
+                        )}
+                    </div>
                     <p className="truncate text-xs text-(--color-muted)">
                         {getMediaArtistsString(media)}
                     </p>

@@ -21,6 +21,7 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 /**
@@ -303,6 +304,10 @@ export function SongCard({
                 stroke={0.8}
                 publicId={$song.publicId}
                 className="absolute h-full w-full"
+            />
+            <OfflineIndicator
+                publicId={$song.publicId}
+                className="absolute top-1 right-1 h-5 w-5 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]"
             />
         </LibraryCard>
     );

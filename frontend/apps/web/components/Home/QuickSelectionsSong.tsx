@@ -8,6 +8,7 @@ import { EMediaContextLocation } from "@rockit/shared";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 export default function QuickSelectionsSong({
@@ -44,9 +45,15 @@ export default function QuickSelectionsSong({
                     alt={$vocabulary.COVER_OF.replace("{name}", $song.name)}
                 />
                 <div className="flex w-full min-w-0 flex-col justify-center">
-                    <span className="w-full min-w-0 truncate text-sm font-semibold text-white">
-                        {$song.name}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-full min-w-0 truncate text-sm font-semibold text-white">
+                            {$song.name}
+                        </span>
+                        <OfflineIndicator
+                            publicId={$song.publicId}
+                            className="h-5 w-5"
+                        />
+                    </div>
                     <span className="w-full min-w-0 truncate text-xs text-gray-400">
                         {$song.artists[0]?.name ?? $vocabulary.UNKNOWN} {" • "}{" "}
                         {$song.album?.name ?? "—"}

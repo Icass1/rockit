@@ -1,59 +1,35 @@
 "use client";
 
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { Download, Loader2 } from "lucide-react";
+import { CloudOff, Wifi } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
-import {
-    clearResources,
-    downloadResources,
-} from "@/lib/utils/downloadResources";
+import { networkStatus } from "@/lib/stores/networkStatus";
 
 export default function DownloadAppButton(): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [resources, setResources] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
+    const $network = useStore(networkStatus);
+    const [swReady, setSwReady] = useState(false);
 
-    const handleClick = async (): Promise<void> => {
-        setLoading(true);
-        try {
-            await clearResources();
-            await downloadResources({ setResources });
-        } finally {
-            setLoading(false);
-        }
-    };
+    useEffect(() => {
+        if (typeof navigator === "undefined" || !navigator.serviceWorker) return;
+        navigator.serviceWorker.ready.then((): void => setSwReady(true));
+    }, []);
 
     return (
         <div className="flex flex-col gap-2">
-            <button
-                type="button"
-                onClick={handleClick}
-                disabled={loading}
-                className="flex w-fit items-center gap-2 rounded-xl bg-neutral-800 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-                {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="flex items-center gap-2 rounded-xl bg-neutral-800 px-4 py-2.5 text-sm font-semibold text-white">
+                {$network === "online" ? (
+                    <Wifi className="h-4 w-4 text-green-400" />
                 ) : (
-                    <Download className="h-4 w-4" />
+                    <CloudOff className="h-4 w-4 text-neutral-400" />
                 )}
-                {$vocabulary.DOWNLOAD_APP}
-            </button>
-
-            {resources.length > 0 && (
-                <div className="grid grid-cols-2 gap-x-2 rounded-xl bg-neutral-800/50 p-3">
-                    {resources.map(
-                        (resource): JSX.Element => (
-                            <span
-                                key={resource}
-                                className="w-full max-w-full min-w-0 truncate text-xs text-neutral-400"
-                            >
-                                {resource}
-                            </span>
-                        )
-                    )}
-                </div>
-            )}
+                <span>
+                    {swReady
+                        ? $vocabulary.APP_AVAILABLE_OFFLINE
+                        : $vocabulary.APP_OFFLINE_UNAVAILABLE}
+                </span>
+            </div>
         </div>
     );
 }

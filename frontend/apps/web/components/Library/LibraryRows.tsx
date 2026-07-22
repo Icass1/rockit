@@ -10,9 +10,11 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { CircleCheck } from "lucide-react";
 import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 /* ------------------------------------------------------- */
@@ -90,9 +92,14 @@ export function AlbumRow({
                     alt={album.name}
                 />
                 <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-white">
-                        {album.name}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <p className="truncate font-medium text-white">
+                            {album.name}
+                        </p>
+                        {album.undownloadedCount === 0 && (
+                            <CircleCheck className="h-5 w-5 shrink-0 text-(--color-rockit-pink)" />
+                        )}
+                    </div>
                     <p className="truncate text-sm text-neutral-400">
                         {album.artists.map((a): string => a.name).join(", ")}
                     </p>
@@ -205,9 +212,15 @@ export function SongRow({
                     alt={$song.name}
                 />
                 <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-white">
-                        {$song.name}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <p className="truncate font-medium text-white">
+                            {$song.name}
+                        </p>
+                        <OfflineIndicator
+                            publicId={$song.publicId}
+                            className="h-5 w-5"
+                        />
+                    </div>
                     <p className="truncate text-sm text-neutral-400">
                         {$song.artists?.map((a): string => a.name).join(", ") ??
                             "Unknown Artist"}

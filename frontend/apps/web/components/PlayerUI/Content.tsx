@@ -3,9 +3,10 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { isVideo } from "@rockit/shared";
+import { isSong, isVideo } from "@rockit/shared";
 import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import PlayerUILyrics from "@/components/PlayerUI/Lyrics";
 import PlayerUIMain from "@/components/PlayerUI/Main";
 import PlayerUIQueue from "@/components/PlayerUI/Queue";
@@ -21,6 +22,31 @@ export default function PlayerUIContent(): JSX.Element {
     const { height, width } = useWindowSize();
 
     const [selectedTab, setSelectedTab] = useState<"QUEUE" | "LYRICS">("QUEUE");
+    const [offlineBgCover, setOfflineBgCover] = useState<{
+        publicId: string;
+        url: string;
+    } | null>(null);
+
+    useEffect((): (() => void) | undefined => {
+        if (!$currentMedia) return;
+        if (!isSong($currentMedia)) return;
+        let cancelled = false;
+        resolveOfflineCoverUrl($currentMedia.publicId).then((url) => {
+            if (!cancelled && url)
+                setOfflineBgCover({
+                    publicId: $currentMedia.publicId,
+                    url,
+                });
+        });
+        return (): void => {
+            cancelled = true;
+        };
+    }, [$currentMedia]);
+
+    const bgCoverSrc =
+        offlineBgCover && offlineBgCover.publicId === $currentMedia?.publicId
+            ? offlineBgCover.url
+            : $currentMedia?.imageUrl ?? "";
 
     // Close player when clicking outside
     useEffect((): (() => void) => {
@@ -108,7 +134,7 @@ export default function PlayerUIContent(): JSX.Element {
             <div className="absolute inset-0 overflow-hidden">
                 <Image
                     alt={$currentMedia.name}
-                    src={$currentMedia.imageUrl}
+                    src={bgCoverSrc}
                     fill
                     className="object-cover blur-3xl brightness-50 select-none"
                 />

@@ -5,12 +5,21 @@ import "@/styles/globals.css";
 import "@/styles/tokens/colors.css";
 import { JSX } from "react";
 import type { Metadata, Viewport } from "next";
+import { SerwistProvider } from "@serwist/turbopack/react";
 import ToasterProvider from "@/components/Toaster/ToasterProvider";
 
 export const metadata: Metadata = {
     title: "RockIt",
     description: "The best music player in the world",
-    manifest: "/manifest.json",
+    icons: {
+        icon: "/rockit-logo.ico",
+        apple: "/logos/logo-192.png",
+    },
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "black-translucent",
+        title: "RockIt",
+    },
 };
 
 export const viewport: Viewport = {
@@ -22,15 +31,22 @@ export const viewport: Viewport = {
 export default function RootLayout({
     children,
 }: Readonly<{ children: React.ReactNode }>): JSX.Element {
+    const isDev = process.env.NODE_ENV === "development";
+
+    const content = (
+        <>
+            {children}
+            <ToasterProvider />
+        </>
+    );
+
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
                 <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
-                <link rel="manifest" href="/manifest.json" />
             </head>
             <body className="antialiased" suppressHydrationWarning>
-                {children}
-                <ToasterProvider />
+                {isDev ? content : <SerwistProvider swUrl="/serwist/sw.js">{content}</SerwistProvider>}
             </body>
         </html>
     );

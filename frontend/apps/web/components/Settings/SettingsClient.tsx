@@ -12,7 +12,7 @@ import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
-import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
+
 
 function SettingsSection({
     title,
@@ -180,10 +180,6 @@ export default function SettingsClient(): JSX.Element {
 
                     <SettingsSection title={$vocabulary.DOWNLOAD_APP}>
                         <DownloadAppButton />
-                    </SettingsSection>
-
-                    <SettingsSection title="Service Worker">
-                        <ServiceWorkerInfo />
                     </SettingsSection>
                 </div>
             </div>

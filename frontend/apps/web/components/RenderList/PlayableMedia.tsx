@@ -19,6 +19,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
@@ -115,6 +116,10 @@ export function PlayableMedia({
                 <div className={`relative flex w-full min-w-0 flex-col`}>
                     <div className="flex min-w-0 items-center gap-1.5">
                         <DownloadStatusIcon publicId={$media.publicId} />
+                        <OfflineIndicator
+                            publicId={$media.publicId}
+                            className="h-5 w-5"
+                        />
                         <p
                             className={`text-md truncate font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
                         >

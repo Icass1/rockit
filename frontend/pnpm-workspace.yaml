@@ -1,7 +1,8 @@
 packages:
-    - "apps/*"
-    - "packages/*"
-allowBuilds:
-    esbuild: true
-    sharp: true
-    unrs-resolver: true
+  - "apps/*"
+  - "packages/*"
+onlyBuiltDependencies:
+  - "@swc/core"
+  - esbuild
+  - sharp
+  - unrs-resolver

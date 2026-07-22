@@ -1,4 +1,12 @@
-import { BaseMediaPlayerManager, type TMediaKind } from "@rockit/shared";
+import {
+    BaseMediaPlayerManager,
+    type TMediaKind,
+    type TPlayableMedia,
+    isSong,
+    getMediaAudioUrl,
+    getMediaVideoUrl,
+} from "@rockit/shared";
+import { resolveOfflineAudioUrl } from "@/lib/offline/store";
 
 /**
  * Web media player: implements the shared BaseMediaPlayerManager primitives
@@ -49,6 +57,22 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         MediaPlayerManager.#instance = this;
 
         return MediaPlayerManager.#instance;
+    }
+
+    // ===== Offline URI resolution =====
+
+    protected override async resolveMediaUriAsync(
+        media: TPlayableMedia,
+        kind: TMediaKind
+    ): Promise<string | undefined> {
+        if (kind === "audio" && isSong(media)) {
+            const offlineUrl = await resolveOfflineAudioUrl(media.publicId);
+            if (offlineUrl) return offlineUrl;
+        }
+
+        return kind === "video"
+            ? getMediaVideoUrl(media)
+            : getMediaAudioUrl(media);
     }
 
     // ===== Platform primitives =====

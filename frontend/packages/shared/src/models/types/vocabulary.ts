@@ -389,4 +389,8 @@ export interface Vocabulary {
     GOOD_MORNING: string;
     GOOD_AFTERNOON: string;
     GOOD_EVENING: string;
+    SAVE_OFFLINE: string;
+    REMOVE_OFFLINE: string;
+    APP_AVAILABLE_OFFLINE: string;
+    APP_OFFLINE_UNAVAILABLE: string;
 }

@@ -1,7 +1,7 @@
 import path from "path";
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV === "development" || true;
+const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
     output: "standalone",
@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
             {
                 protocol: "https",
                 hostname: "api-beta-rockit.rockhosting.org",
-                pathname: "/image/**",
+                pathname: "/media/image/**",
             },
         ],
     },

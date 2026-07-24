@@ -1,4 +1,9 @@
-import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import {
+    openDB,
+    type DBSchema,
+    type IDBPDatabase,
+} from "idb";
+import type { SessionResponse, VocabularyResponse } from "@/dto";
 
 interface RockItOfflineDB extends DBSchema {
     songs: {
@@ -11,10 +16,18 @@ interface RockItOfflineDB extends DBSchema {
             sizeBytes: number;
         };
     };
+    session: {
+        key: string;
+        value: { data: SessionResponse; savedAt: number };
+    };
+    vocabulary: {
+        key: string;
+        value: { data: VocabularyResponse; savedAt: number };
+    };
 }
 
 const DB_NAME = "rockit-offline-media";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 let dbPromise: Promise<IDBPDatabase<RockItOfflineDB>> | null = null;
 
 function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
@@ -23,6 +36,12 @@ function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
             upgrade(db) {
                 if (!db.objectStoreNames.contains("songs")) {
                     db.createObjectStore("songs", { keyPath: "publicId" });
+                }
+                if (!db.objectStoreNames.contains("session")) {
+                    db.createObjectStore("session");
+                }
+                if (!db.objectStoreNames.contains("vocabulary")) {
+                    db.createObjectStore("vocabulary");
                 }
             },
         });
@@ -88,4 +107,36 @@ export async function getOfflineStorageBytes(): Promise<number> {
     const db = await getDB();
     const all = await db.getAll("songs");
     return all.reduce((sum, s) => sum + s.sizeBytes, 0);
+}
+
+const OFFLINE_CACHE_KEY = "current";
+
+export async function saveSessionOffline(
+    session: SessionResponse
+): Promise<void> {
+    const db = await getDB();
+    await db.put("session", { data: session, savedAt: Date.now() }, OFFLINE_CACHE_KEY);
+}
+
+export async function loadSessionOffline(): Promise<SessionResponse | null> {
+    const db = await getDB();
+    const record = await db.get("session", OFFLINE_CACHE_KEY);
+    return record?.data ?? null;
+}
+
+export async function saveVocabularyOffline(
+    vocabulary: VocabularyResponse
+): Promise<void> {
+    const db = await getDB();
+    await db.put(
+        "vocabulary",
+        { data: vocabulary, savedAt: Date.now() },
+        OFFLINE_CACHE_KEY
+    );
+}
+
+export async function loadVocabularyOffline(): Promise<VocabularyResponse | null> {
+    const db = await getDB();
+    const record = await db.get("vocabulary", OFFLINE_CACHE_KEY);
+    return record?.data ?? null;
 }

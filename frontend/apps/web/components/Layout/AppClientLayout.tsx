@@ -6,6 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { VocabularyResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { Http } from "@/lib/http";
+import { loadVocabularyOffline } from "@/lib/offline/db";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import KeyboardHandler from "@/components/KeyboardHandler/KeyboardHandler";
@@ -27,7 +29,26 @@ export default function AppClientLayout({
 }): JSX.Element {
     useEffect((): void => {
         rockIt.mediaManager.fetchLikedMedia();
-        rockIt.vocabularyManager.setVocabulary(vocabulary);
+
+        const hasVocab =
+            vocabulary.vocabulary &&
+            Object.keys(vocabulary.vocabulary).length > 0;
+
+        if (hasVocab) {
+            rockIt.vocabularyManager.setVocabulary(vocabulary);
+        } else {
+            Http.getUserVocabulary().then((res) => {
+                if (res.isOk()) {
+                    rockIt.vocabularyManager.setVocabulary(res.result);
+                    return;
+                }
+                loadVocabularyOffline().then((cached) => {
+                    if (cached) {
+                        rockIt.vocabularyManager.setVocabulary(cached);
+                    }
+                });
+            });
+        }
 
         const onFirstGesture = (): void => {
             rockIt.mediaSessionManager.activateOnGesture();

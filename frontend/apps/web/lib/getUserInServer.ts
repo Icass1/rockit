@@ -1,25 +1,14 @@
-import { cookies } from "next/headers";
 import { type SessionResponse } from "@/dto";
-import { BACKEND_URL } from "@/environment";
 import { Http } from "@/lib/http";
 
-export async function getUserInServer(): Promise<SessionResponse | undefined> {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get("session_id")?.value;
+export type GetUserResult = SessionResponse | "offline" | undefined;
 
-    const headers: Record<string, string> = {};
-    if (sessionId) {
-        headers.Cookie = `session_id=${sessionId}`;
-    }
-
+export async function getUserInServer(): Promise<GetUserResult> {
     const session = await Http.getSession();
 
     if (session.isOk()) return session.result;
 
-    console.error(
-        `Unable to connect with backend at ${BACKEND_URL}`,
-        session.message,
-        session.detail
-    );
-    return undefined;
+    if (session.code === 401) return undefined;
+
+    return "offline";
 }

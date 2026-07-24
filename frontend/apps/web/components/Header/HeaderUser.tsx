@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { LogOut, Settings } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { networkStatus } from "@/lib/stores/networkStatus";
 import {
     PopupMenu,
     PopupMenuContent,
@@ -18,8 +19,10 @@ export default function HeaderUser(): JSX.Element {
     const $username = useStore(rockIt.userManager.usernameAtom);
     const $image = useStore(rockIt.userManager.imageAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $networkStatus = useStore(networkStatus);
 
     const handleLogOut = (): void => {
+        if ($networkStatus === "offline") return;
         rockIt.userManager.signOut();
         router.push("/login");
     };
@@ -50,7 +53,10 @@ export default function HeaderUser(): JSX.Element {
                     <span>{$vocabulary.SETTINGS}</span>
                 </PopupMenuOption>
 
-                <PopupMenuOption onClick={handleLogOut}>
+                <PopupMenuOption
+                    onClick={handleLogOut}
+                    disable={$networkStatus === "offline"}
+                >
                     <LogOut className="h-5 w-5" />
                     <span>{$vocabulary.LOG_OUT}</span>
                 </PopupMenuOption>

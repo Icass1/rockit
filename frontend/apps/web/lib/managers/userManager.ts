@@ -4,6 +4,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import {
     saveSessionOffline,
     loadSessionOffline,
+    clearSessionOffline,
 } from "@/lib/offline/db";
 
 /**
@@ -25,7 +26,7 @@ export class UserManager extends BaseUserManager {
             this._loggedIn.set(true);
 
             saveSessionOffline(res.result).catch(() => {});
-        } else if (res.code === 0) {
+        } else if (res.code !== 401) {
             const cached = await loadSessionOffline();
             if (cached) {
                 this._queueTypeAtom.set(EQueueType[cached.queueType]);
@@ -40,6 +41,7 @@ export class UserManager extends BaseUserManager {
             }
         } else {
             this._loggedIn.set(false);
+            clearSessionOffline().catch(() => {});
             console.error(res.detail);
         }
     }
@@ -66,6 +68,8 @@ export class UserManager extends BaseUserManager {
         const response = await Http.logoutUser();
         if (response.isOk()) {
             rockIt.searchManager.clearResults();
+            await clearSessionOffline().catch(() => {});
+            this._loggedIn.set(false);
         } else {
             console.error(
                 "Error logging out",

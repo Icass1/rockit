@@ -124,6 +124,11 @@ export async function loadSessionOffline(): Promise<SessionResponse | null> {
     return record?.data ?? null;
 }
 
+export async function clearSessionOffline(): Promise<void> {
+    const db = await getDB();
+    await db.delete("session", OFFLINE_CACHE_KEY);
+}
+
 export async function saveVocabularyOffline(
     vocabulary: VocabularyResponse
 ): Promise<void> {

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { JSX } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useContextMenu } from "@/components/ContextMenu/context";
@@ -53,7 +54,7 @@ export default function ContextMenuContent({
     if (_contextMenuPos[0] === 0 && _contextMenuPos[1] === 0) return;
     if (!innerWidth) return;
 
-    return (
+    return createPortal(
         <PosAfterRenderDiv
             divRef={_contextMenuDivRef}
             onDimensionsCalculated={
@@ -93,6 +94,7 @@ export default function ContextMenuContent({
                 {children}
                 <div className="min-h-2 md:hidden"></div>
             </div>
-        </PosAfterRenderDiv>
+        </PosAfterRenderDiv>,
+        document.body
     );
 }

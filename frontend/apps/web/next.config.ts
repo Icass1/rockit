@@ -56,7 +56,7 @@ const nextConfig: NextConfig = {
             {
                 protocol: "https",
                 hostname: "api-beta-rockit.rockhosting.org",
-                pathname: "/image/**",
+                pathname: "/media/image/**",
             },
         ],
     },

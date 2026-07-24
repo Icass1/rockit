@@ -9,7 +9,7 @@ export default async function ProtectedLayout({
 }): Promise<JSX.Element> {
     const user = await getUserInServer();
 
-    if (!user) {
+    if (user === undefined) {
         redirect("/login");
     }
 

@@ -6,6 +6,7 @@ import {
     Serwist,
     StaleWhileRevalidate,
     CacheFirst,
+    NetworkFirst,
     NetworkOnly,
     ExpirationPlugin,
 } from "serwist";
@@ -18,6 +19,40 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const runtimeCaching = [
+    // Session — NetworkFirst with short timeout (falls back to SW cache if offline/slow)
+    {
+        matcher: ({ url }: { url: URL }) =>
+            url.origin !== self.location.origin &&
+            url.pathname === "/user/session",
+        handler: new NetworkFirst({
+            cacheName: "rockit-session",
+            networkTimeoutSeconds: 3,
+            plugins: [
+                new ExpirationPlugin({
+                    maxEntries: 1,
+                    maxAgeSeconds: 7 * 24 * 60 * 60,
+                    purgeOnQuotaError: true,
+                }),
+            ],
+        }),
+    },
+    // Vocabulary — StaleWhileRevalidate (serve cache immediately, update in background)
+    {
+        matcher: ({ url }: { url: URL }) =>
+            url.origin !== self.location.origin &&
+            url.pathname.startsWith("/vocabulary/"),
+        handler: new StaleWhileRevalidate({
+            cacheName: "rockit-vocabulary",
+            plugins: [
+                new ExpirationPlugin({
+                    maxEntries: 1,
+                    maxAgeSeconds: 30 * 24 * 60 * 60,
+                    purgeOnQuotaError: true,
+                }),
+            ],
+        }),
+    },
+    // Catch-all for other cross-origin requests — no caching
     {
         matcher: ({ url, request }: { url: URL; request: Request }) =>
             url.origin !== self.location.origin ||

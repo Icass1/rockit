@@ -56,11 +56,11 @@ export default function HomeClient(): JSX.Element {
                 queue: data.nostalgicMix,
             });
         }
-        if (data.randomSongsLastMonth.length > 0) {
+        if (data.yourMix.length > 0) {
             cards.push({
                 eyebrow: $vocabulary.YOUR_MIX,
-                song: data.randomSongsLastMonth[0],
-                queue: data.randomSongsLastMonth,
+                song: data.yourMix[0],
+                queue: data.yourMix,
             });
         }
 

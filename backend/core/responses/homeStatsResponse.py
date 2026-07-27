@@ -12,5 +12,6 @@ class HomeStatsResponse(BaseModel):
     communityTop: List[BaseSongWithAlbumResponse]
     monthlyTop: List[BaseSongWithAlbumResponse]
     moodSongs: List[BaseSongWithAlbumResponse]
+    yourMix: List[BaseSongWithAlbumResponse]
     currentStreak: int = 0
     minutesListenedThisWeek: float = 0.0

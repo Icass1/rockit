@@ -10,6 +10,7 @@ export interface HomeData {
     communityTop: BaseSongWithAlbumResponse[];
     monthlyTop: BaseSongWithAlbumResponse[];
     moodSongs: BaseSongWithAlbumResponse[];
+    yourMix: BaseSongWithAlbumResponse[];
     currentStreak: number;
     minutesListenedThisWeek: number;
     isEmpty: boolean;
@@ -37,6 +38,9 @@ function transformStats(dataResponse: HomeStatsResponse): HomeData {
     const moodSongs = dataResponse.moodSongs.map(
         (song): BaseSongWithAlbumResponse => song
     );
+    const yourMix = dataResponse.yourMix.map(
+        (song): BaseSongWithAlbumResponse => song
+    );
 
     const isEmpty =
         songsByTimePlayed.length === 0 &&
@@ -45,7 +49,8 @@ function transformStats(dataResponse: HomeStatsResponse): HomeData {
         hiddenGems.length === 0 &&
         communityTop.length === 0 &&
         monthlyTop.length === 0 &&
-        moodSongs.length === 0;
+        moodSongs.length === 0 &&
+        yourMix.length === 0;
 
     return {
         songsByTimePlayed,
@@ -55,6 +60,7 @@ function transformStats(dataResponse: HomeStatsResponse): HomeData {
         communityTop,
         monthlyTop,
         moodSongs,
+        yourMix,
         currentStreak: dataResponse.currentStreak,
         minutesListenedThisWeek: dataResponse.minutesListenedThisWeek,
         isEmpty,

@@ -8,7 +8,7 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.statsAccess import StatsAccess
-from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
+from backend.core.access.homeImpressionsAccess import HomeImpressionsAccess
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
@@ -26,6 +26,48 @@ from backend.core.responses.statsMinutesEntryResponse import StatsMinutesEntryRe
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 
 logger = getLogger(__name__)
+
+# Cooldown windows per section (hours). After showing a track in a section,
+# it is excluded from that section's candidate pool for this duration.
+SECTION_COOLDOWN_HOURS: dict[str, int] = {
+    "recently_played": 3,
+    "most_listened": 12,
+    "recent_mix": 24,
+    "hidden_gems": 48,
+    "quick_selections": 2,
+    "your_mix": 6,
+}
+
+# Maximum tracks from the same artist in a single section output.
+MAX_PER_ARTIST: dict[str, int] = {
+    "recently_played": 2,
+    "most_listened": 2,
+    "recent_mix": 2,
+    "hidden_gems": 2,
+    "quick_selections": 3,
+    "your_mix": 2,
+}
+
+
+def _apply_diversity(
+    songs: list[BaseSongWithAlbumResponse],
+    max_per_artist: int,
+) -> list[BaseSongWithAlbumResponse]:
+    """Post-filter: limit tracks per artist to max_per_artist.
+
+    Iterates in order and keeps the first N tracks per artist, dropping excess.
+    """
+    artist_counts: dict[str, int] = {}
+    result: list[BaseSongWithAlbumResponse] = []
+
+    for song in songs:
+        artist_key = song.artists[0].publicId if song.artists else song.publicId
+        count = artist_counts.get(artist_key, 0)
+        if count < max_per_artist:
+            result.append(song)
+            artist_counts[artist_key] = count + 1
+
+    return result
 
 
 def _parse_range(
@@ -140,81 +182,236 @@ class Stats:
         session: AsyncSession,
         user_id: int,
     ) -> AResult[HomeStatsResponse]:
-        """Assemble home page sections from real listening data.
+        """Assemble home page sections using weighted sampling with rotation.
 
-        Each section uses its own query — no arbitrary slicing or fake data.
-        Sections without available data (communityTop, moodSongs) return empty.
+        Each section:
+        1. Loads impressed media_ids (recently shown) from the impressions table.
+        2. Queries a weighted-sampled candidate pool, excluding impressed tracks.
+        3. Records the newly shown tracks as impressions (fire-and-forget).
+        4. Applies a per-artist diversity cap as a post-filter.
+        5. Carousel cards reuse the same generated lists — no duplicate queries.
         """
 
         now: datetime = datetime.now(timezone.utc)
         month_ago: datetime = now - timedelta(days=30)
+        ninety_days_ago: datetime = now - timedelta(days=90)
 
-        # --- songsByTimePlayed: recent listens ---
-        a_recent: AResult[List[str]] = (
-            await StatsAccess.get_recently_played_songs_async(
-                session=session, user_id=user_id, limit=3
-            )
+        # --- Section 1: Recently Played (anchor + weighted sample) ---
+        a_anchor: AResult[str | None] = await StatsAccess.get_most_recent_play_async(
+            session=session,
+            user_id=user_id,
         )
-        recent_ids: List[str] = a_recent.result() if a_recent.is_ok() else []
+        anchor_id: str | None = a_anchor.result() if a_anchor.is_ok() else None
 
-        # --- randomSongsLastMonth: random songs from last 30 days ---
-        a_random: AResult[List[str]] = (
-            await StatsAccess.get_random_songs_last_month_async(
+        a_rp_impressed: AResult[list[int]] = (
+            await HomeImpressionsAccess.get_impressed_media_ids_async(
                 session=session,
                 user_id=user_id,
-                start_date=month_ago,
-                end_date=now,
-                limit=30,
+                section="recently_played",
+                cooldown_hours=SECTION_COOLDOWN_HOURS["recently_played"],
             )
         )
-        random_ids: List[str] = a_random.result() if a_random.is_ok() else []
+        rp_impressed: list[int] = (
+            a_rp_impressed.result() if a_rp_impressed.is_ok() else []
+        )
 
-        # --- monthlyTop: top songs from last 30 days ---
-        a_top_month: AResult[List[str]] = (
-            await StatsAccess.get_top_media_public_ids_async(
+        a_recent_pool: AResult[list[str]] = (
+            await StatsAccess.get_weighted_recently_played_pool_async(
+                session=session,
+                user_id=user_id,
+                pool_size=10,
+                limit=3,
+                impressed_ids=rp_impressed,
+            )
+        )
+        recent_pool_ids: list[str] = (
+            a_recent_pool.result() if a_recent_pool.is_ok() else []
+        )
+
+        recent_ids: list[str] = []
+        if anchor_id:
+            rest = [pid for pid in recent_pool_ids if pid != anchor_id][:2]
+            recent_ids = [anchor_id] + rest
+        else:
+            recent_ids = recent_pool_ids[:3]
+
+        # Record impressions for recently_played
+        recent_media_ids = await Stats._media_ids_from_public_ids(session, recent_ids)
+        await HomeImpressionsAccess.record_impressions_async(
+            session=session,
+            user_id=user_id,
+            section="recently_played",
+            media_ids=recent_media_ids,
+        )
+
+        # --- Section 2: Most Listened (weighted sampling) ---
+        a_ml_impressed: AResult[list[int]] = (
+            await HomeImpressionsAccess.get_impressed_media_ids_async(
+                session=session,
+                user_id=user_id,
+                section="most_listened",
+                cooldown_hours=SECTION_COOLDOWN_HOURS["most_listened"],
+            )
+        )
+        ml_impressed: list[int] = (
+            a_ml_impressed.result() if a_ml_impressed.is_ok() else []
+        )
+
+        a_monthly: AResult[list[str]] = (
+            await StatsAccess.get_weighted_most_listened_async(
                 session=session,
                 user_id=user_id,
                 start_date=month_ago,
                 end_date=now,
                 limit=15,
+                pool_multiplier=4,
+                impressed_ids=ml_impressed,
             )
         )
-        monthly_ids: List[str] = a_top_month.result() if a_top_month.is_ok() else []
+        monthly_ids: list[str] = a_monthly.result() if a_monthly.is_ok() else []
 
-        # --- nostalgicMix: songs played longest ago ---
-        a_nostalgic: AResult[List[str]] = (
-            await StatsAccess.get_least_recently_played_songs_async(
-                session=session, user_id=user_id, limit=6
-            )
+        monthly_media_ids = await Stats._media_ids_from_public_ids(session, monthly_ids)
+        await HomeImpressionsAccess.record_impressions_async(
+            session=session,
+            user_id=user_id,
+            section="most_listened",
+            media_ids=monthly_media_ids,
         )
-        nostalgic_ids: List[str] = a_nostalgic.result() if a_nostalgic.is_ok() else []
 
-        # --- hiddenGems: liked songs not played in the last 90 days ---
-        ninety_days_ago: datetime = now - timedelta(days=90)
-
-        a_played_since_90d: AResult[List[str]] = (
-            await StatsAccess.get_recently_played_songs_since_async(
+        # --- Section 3: Recent Mix (weighted sampling) ---
+        a_rm_impressed: AResult[list[int]] = (
+            await HomeImpressionsAccess.get_impressed_media_ids_async(
                 session=session,
                 user_id=user_id,
-                since_date=ninety_days_ago,
+                section="recent_mix",
+                cooldown_hours=SECTION_COOLDOWN_HOURS["recent_mix"],
             )
         )
-        played_ids_since_90d: List[str] = (
-            a_played_since_90d.result() if a_played_since_90d.is_ok() else []
+        rm_impressed: list[int] = (
+            a_rm_impressed.result() if a_rm_impressed.is_ok() else []
         )
 
-        a_liked: AResult[List[str]] = (
-            await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
-                session=session, user_id=user_id
+        a_nostalgic: AResult[list[str]] = (
+            await StatsAccess.get_weighted_recent_mix_async(
+                session=session,
+                user_id=user_id,
+                limit=6,
+                pool_multiplier=5,
+                impressed_ids=rm_impressed,
             )
         )
-        all_liked_ids: List[str] = a_liked.result() if a_liked.is_ok() else []
-        played_set: set[str] = set(played_ids_since_90d)
-        hidden_ids: List[str] = [pid for pid in all_liked_ids if pid not in played_set][
-            :3
-        ]
+        nostalgic_ids: list[str] = a_nostalgic.result() if a_nostalgic.is_ok() else []
 
-        # --- weekly stats (streak + minutes this week) ---
+        nostalgic_media_ids = await Stats._media_ids_from_public_ids(
+            session, nostalgic_ids
+        )
+        await HomeImpressionsAccess.record_impressions_async(
+            session=session,
+            user_id=user_id,
+            section="recent_mix",
+            media_ids=nostalgic_media_ids,
+        )
+
+        # --- Section 4: Hidden Gems (weighted sampling) ---
+        a_hg_impressed: AResult[list[int]] = (
+            await HomeImpressionsAccess.get_impressed_media_ids_async(
+                session=session,
+                user_id=user_id,
+                section="hidden_gems",
+                cooldown_hours=SECTION_COOLDOWN_HOURS["hidden_gems"],
+            )
+        )
+        hg_impressed: list[int] = (
+            a_hg_impressed.result() if a_hg_impressed.is_ok() else []
+        )
+
+        a_hidden: AResult[list[str]] = (
+            await StatsAccess.get_weighted_hidden_gems_pool_async(
+                session=session,
+                user_id=user_id,
+                ninety_days_ago=ninety_days_ago,
+                limit=3,
+                pool_multiplier=3,
+                impressed_ids=hg_impressed,
+            )
+        )
+        hidden_ids: list[str] = a_hidden.result() if a_hidden.is_ok() else []
+
+        hidden_media_ids = await Stats._media_ids_from_public_ids(session, hidden_ids)
+        await HomeImpressionsAccess.record_impressions_async(
+            session=session,
+            user_id=user_id,
+            section="hidden_gems",
+            media_ids=hidden_media_ids,
+        )
+
+        # --- Section 5: Quick Selections (weighted sampling) ---
+        a_qs_impressed: AResult[list[int]] = (
+            await HomeImpressionsAccess.get_impressed_media_ids_async(
+                session=session,
+                user_id=user_id,
+                section="quick_selections",
+                cooldown_hours=SECTION_COOLDOWN_HOURS["quick_selections"],
+            )
+        )
+        qs_impressed: list[int] = (
+            a_qs_impressed.result() if a_qs_impressed.is_ok() else []
+        )
+
+        a_random: AResult[list[str]] = (
+            await StatsAccess.get_weighted_quick_selections_async(
+                session=session,
+                user_id=user_id,
+                start_date=month_ago,
+                end_date=now,
+                limit=36,
+                pool_multiplier=5,
+                impressed_ids=qs_impressed,
+            )
+        )
+        random_ids: list[str] = a_random.result() if a_random.is_ok() else []
+
+        random_media_ids = await Stats._media_ids_from_public_ids(session, random_ids)
+        await HomeImpressionsAccess.record_impressions_async(
+            session=session,
+            user_id=user_id,
+            section="quick_selections",
+            media_ids=random_media_ids,
+        )
+
+        # --- Section 6: Your Mix / Carousel wildcard (weighted sampling) ---
+        a_ym_impressed: AResult[list[int]] = (
+            await HomeImpressionsAccess.get_impressed_media_ids_async(
+                session=session,
+                user_id=user_id,
+                section="your_mix",
+                cooldown_hours=SECTION_COOLDOWN_HOURS["your_mix"],
+            )
+        )
+        ym_impressed: list[int] = (
+            a_ym_impressed.result() if a_ym_impressed.is_ok() else []
+        )
+
+        a_your_mix: AResult[list[str]] = await StatsAccess.get_weighted_your_mix_async(
+            session=session,
+            user_id=user_id,
+            limit=5,
+            pool_multiplier=10,
+            impressed_ids=ym_impressed,
+        )
+        your_mix_ids: list[str] = a_your_mix.result() if a_your_mix.is_ok() else []
+
+        your_mix_media_ids = await Stats._media_ids_from_public_ids(
+            session, your_mix_ids
+        )
+        await HomeImpressionsAccess.record_impressions_async(
+            session=session,
+            user_id=user_id,
+            section="your_mix",
+            media_ids=your_mix_media_ids,
+        )
+
+        # --- Weekly stats (streak + minutes this week) ---
         week_ago: datetime = now - timedelta(days=7)
 
         a_weekly_summary: AResult[dict[str, Any]] = await StatsAccess.get_summary_async(
@@ -234,10 +431,15 @@ class Stats:
         )
         current_streak: int = a_streak.result() if a_streak.is_ok() else 0
 
-        # Resolve all unique song IDs in a single pass
+        # --- Resolve all unique song IDs in a single batch ---
         all_ids: List[str] = list(
             dict.fromkeys(
-                recent_ids + random_ids + monthly_ids + nostalgic_ids + hidden_ids
+                recent_ids
+                + random_ids
+                + monthly_ids
+                + nostalgic_ids
+                + hidden_ids
+                + your_mix_ids
             )
         )
         resolved: dict[str, BaseSongWithAlbumResponse] = (
@@ -247,21 +449,60 @@ class Stats:
         def lookup(ids: List[str]) -> List[BaseSongWithAlbumResponse]:
             return [resolved[pid] for pid in ids if pid in resolved]
 
+        def lookup_diverse(
+            ids: List[str], section: str
+        ) -> List[BaseSongWithAlbumResponse]:
+            songs = lookup(ids)
+            max_pa = MAX_PER_ARTIST.get(section, 2)
+            return _apply_diversity(songs, max_pa)
+
+        # --- Assemble response ---
+        # Carousel reuses the same generated lists as the bento sections.
+        # "Your Mix" serves as the wildcard carousel card.
+        recent_diverse = lookup_diverse(recent_ids, "recently_played")
+        monthly_diverse = lookup_diverse(monthly_ids, "most_listened")
+        nostalgic_diverse = lookup_diverse(nostalgic_ids, "recent_mix")
+        hidden_diverse = lookup_diverse(hidden_ids, "hidden_gems")
+        your_mix_diverse = lookup_diverse(your_mix_ids, "your_mix")
+        random_diverse = lookup_diverse(random_ids, "quick_selections")
+
         return AResult(
             code=AResultCode.OK,
             message="OK",
             result=HomeStatsResponse(
-                songsByTimePlayed=lookup(recent_ids),
-                randomSongsLastMonth=lookup(random_ids),
-                nostalgicMix=lookup(nostalgic_ids),
-                hiddenGems=lookup(hidden_ids),
-                communityTop=[],  # no multi-user aggregation yet
-                monthlyTop=lookup(monthly_ids),
-                moodSongs=[],  # no mood/genre data yet
+                songsByTimePlayed=recent_diverse,
+                randomSongsLastMonth=random_diverse,
+                nostalgicMix=nostalgic_diverse,
+                hiddenGems=hidden_diverse,
+                communityTop=[],
+                monthlyTop=monthly_diverse,
+                moodSongs=[],
+                yourMix=your_mix_diverse,
                 currentStreak=current_streak,
                 minutesListenedThisWeek=minutes_this_week,
             ),
         )
+
+    @staticmethod
+    async def _media_ids_from_public_ids(
+        session: AsyncSession,
+        public_ids: list[str],
+    ) -> list[int]:
+        """Resolve public_ids to internal media_ids for impressions recording."""
+        if not public_ids:
+            return []
+
+        a_medias: AResult[List[MediaModel]] = (
+            await Media.get_medias_from_public_ids_async(
+                session=session,
+                public_ids=list(dict.fromkeys(public_ids)),
+                media_type_keys=[MediaTypeEnum.SONG],
+            )
+        )
+        if a_medias.is_not_ok() or not a_medias.result():
+            return []
+
+        return [m.id for m in a_medias.result()]
 
     @staticmethod
     async def get_user_stats_async(

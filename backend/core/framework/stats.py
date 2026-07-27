@@ -50,6 +50,10 @@ MAX_PER_ARTIST: dict[str, int] = {
     "your_mix": 2,
 }
 
+# ~1% chance per home load — keeps impressions table bounded without
+# a dedicated background task. Over enough traffic this is sufficient.
+IMPRESSIONS_CLEANUP_PROBABILITY = 0.01
+
 
 def _apply_diversity(
     songs: list[BaseSongWithAlbumResponse],
@@ -197,6 +201,10 @@ class Stats:
         now: datetime = datetime.now(timezone.utc)
         month_ago: datetime = now - timedelta(days=30)
         ninety_days_ago: datetime = now - timedelta(days=90)
+
+        # Opportunistic cleanup — ~1% chance per call, no scheduler needed.
+        if random.random() < IMPRESSIONS_CLEANUP_PROBABILITY:
+            await HomeImpressionsAccess.cleanup_old_impressions_async(session=session)
 
         # --- Section 1: Recently Played (anchor + weighted sample) ---
         a_anchor: AResult[str | None] = await StatsAccess.get_most_recent_play_async(

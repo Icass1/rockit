@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any, List
-
 import random
+from typing import Any, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

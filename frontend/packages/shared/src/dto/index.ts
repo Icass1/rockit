@@ -255,6 +255,10 @@ export {
     MediaListenedMessageSchema,
     type MediaListenedMessage,
 } from "./mediaListenedMessage";
+export {
+    MediaRemovedFromPlaylistMessageSchema,
+    type MediaRemovedFromPlaylistMessage,
+} from "./mediaRemovedFromPlaylistMessage";
 export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {

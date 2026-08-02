@@ -400,4 +400,9 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
+    ERROR_GETTING_ALBUM: string;
+    PLAYLIST_WITHOUT_MEDIAS: string;
+    MEDIA_NOT_DOWNLOADED: string;
+    ERROR_REMOVING_MEDIA_FROM_PLAYLIST: string;
+    DELETE_MEDIA_FILE: string;
 }

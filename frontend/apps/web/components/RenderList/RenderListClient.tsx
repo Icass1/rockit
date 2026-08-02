@@ -5,6 +5,7 @@ import { BaseArtistResponse } from "@/dto";
 import { EMediaType, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
+import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/mediaRemovedFromPlaylist";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
@@ -70,15 +71,32 @@ export default function RenderListClient({
             });
         };
 
+        const handleMediaRemoved = (
+            data: IMediaRemovedFromPlaylistEvent
+        ): void => {
+            if (data.playlistPublicId !== publicId) return;
+            setMedia((prev): TMedia[] =>
+                prev.filter((m) => m.publicId !== data.publicId)
+            );
+        };
+
         rockIt.eventManager.addEventListener(
             EEvent.MediaAddedToPlaylist,
             handleMediaAdded
+        );
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaRemovedFromPlaylist,
+            handleMediaRemoved
         );
 
         return (): void => {
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaAddedToPlaylist,
                 handleMediaAdded
+            );
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaRemovedFromPlaylist,
+                handleMediaRemoved
             );
         };
     }, [publicId, type]);

@@ -24,7 +24,7 @@ import type { ActionComponentProps } from "@/components/MediaContextMenu/actions
 import AddToPlaylistAction, {
     AddToPlaylistAndDownloadAction,
 } from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
-import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
+import DeleteMediaFileAction from "@/components/MediaContextMenu/actions/DeleteAction";
 import {
     DownloadAction,
     DownloadSearchResultAction,
@@ -83,7 +83,7 @@ const actionComponents: Partial<
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
     [EMediaContextAction.AddToPlaylistAndDownload]:
         AddToPlaylistAndDownloadAction,
-    [EMediaContextAction.Delete]: DeleteAction,
+    [EMediaContextAction.DeleteMediaFile]: DeleteMediaFileAction,
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,
     [EMediaContextAction.SaveOffline]: SaveOfflineAction,

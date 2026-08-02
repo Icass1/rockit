@@ -7,6 +7,7 @@ import {
     HttpResult,
     TMedia,
     type MediaAddedToPlaylistMessage,
+    type MediaRemovedFromPlaylistMessage,
     type PlaylistCreatedMessage,
     type PlaylistDeletedMessage,
     type PlaylistRenamedMessage,
@@ -48,6 +49,10 @@ export class PlaylistManager {
             EWebSocketMessage.MediaAddedToPlaylist,
             this.handleMediaAddedToPlaylist
         );
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.MediaRemovedFromPlaylist,
+            this.handleMediaRemovedFromPlaylist
+        );
     }
 
     private handlePlaylistCreated = async (
@@ -85,6 +90,15 @@ export class PlaylistManager {
             publicId: data.publicId,
             playlistPublicId: data.playlistPublicId,
             position: data.position,
+        });
+    };
+
+    private handleMediaRemovedFromPlaylist = async (
+        data: MediaRemovedFromPlaylistMessage
+    ): Promise<void> => {
+        rockIt.eventManager.dispatchEvent(EEvent.MediaRemovedFromPlaylist, {
+            publicId: data.publicId,
+            playlistPublicId: data.playlistPublicId,
         });
     };
 

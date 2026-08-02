@@ -329,11 +329,11 @@ async def generate_image_async(request: Request, public_id: str):
     path="/{public_id}",
     dependencies=[Depends(dependency=AuthMiddleware.admin_dependency)],
 )
-async def delete_media_async(request: Request, public_id: str) -> OkResponse:
+async def delete_media_file_async(request: Request, public_id: str) -> OkResponse:
     """Delete the media file for a media item so it can be downloaded again."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResultCode = await Media.delete_media_async(
+    a_result: AResultCode = await Media.delete_media_file_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():

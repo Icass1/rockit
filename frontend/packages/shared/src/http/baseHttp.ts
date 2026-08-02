@@ -618,7 +618,7 @@ export class BaseHttp {
         );
     }
 
-    static async deleteMediaAsync(publicId: string) {
+    static async deleteMediaFileAsync(publicId: string) {
         return this.apiDeleteAsync(`/media/${publicId}`, dto.OkResponseSchema);
     }
 

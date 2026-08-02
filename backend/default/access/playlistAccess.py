@@ -1,7 +1,8 @@
 from logging import Logger
 from typing import List, Tuple
 from sqlalchemy.future import select
-from sqlalchemy import Result, Select
+from sqlalchemy import Result, Select, delete
+from sqlalchemy.sql.dml import Delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.backendUtils import create_id
@@ -249,6 +250,17 @@ class PlaylistAccess:
                 return AResult(
                     code=AResultCode.NOT_FOUND, message="Playlist media not found."
                 )
+
+            stmt_expanded: Delete[Tuple[UserPlaylistMediaExpandedRow]] = delete(
+                UserPlaylistMediaExpandedRow
+            ).where(UserPlaylistMediaExpandedRow.playlist_media_id == playlist_media_id)
+            await session.execute(statement=stmt_expanded)
+
+            stmt_disabled: Delete[Tuple[UserDisabledPlaylistMediaRow]] = delete(
+                UserDisabledPlaylistMediaRow
+            ).where(UserDisabledPlaylistMediaRow.playlist_media_id == playlist_media_id)
+            await session.execute(statement=stmt_disabled)
+
             await session.delete(instance=playlist_media)
             await session.commit()
             return AResult(code=AResultCode.OK, message="OK", result=True)

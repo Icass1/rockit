@@ -4,6 +4,7 @@ import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAdde
 import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import { IMediaDownloadStatus } from "@/models/interfaces/events/mediaDownloadStatus";
 import { IMediaRemovedFromLibraryEvent } from "@/models/interfaces/events/mediaRemovedFromLibrary";
+import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/mediaRemovedFromPlaylist";
 import { IPlaylistCreatedEvent } from "@/models/interfaces/events/playlistCreated";
 import { IPlaylistDeletedEvent } from "@/models/interfaces/events/playlistDeleted";
 import { IPlaylistRenamedEvent } from "@/models/interfaces/events/playlistRenamed";
@@ -19,6 +20,7 @@ export interface IEventPayloadMap {
     [EEvent.PlaylistRenamed]: IPlaylistRenamedEvent;
     [EEvent.PlaylistDeleted]: IPlaylistDeletedEvent;
     [EEvent.MediaAddedToPlaylist]: IMediaAddedToPlaylistEvent;
+    [EEvent.MediaRemovedFromPlaylist]: IMediaRemovedFromPlaylistEvent;
     [EEvent.MediaDownloaded]: IMediaDownloadedEvent;
     [EEvent.MediaDownloadStatus]: IMediaDownloadStatus;
     [EEvent.MediaAddedToLibrary]: IMediaAddedToLibraryEvent;

@@ -16,7 +16,7 @@ export enum EMediaContextAction {
     AddMediaQueueRandom = "addSongQueueRandom",
     AddMediaToQueueBottom = "addSongToQueueBottom",
     RemoveFromPlaylist = "removeFromPlaylist",
-    Delete = "delete",
+    DeleteMediaFile = "deleteMediaFile",
     Redownload = "redownload",
     EditMetadata = "editMetadata",
     DownloadSearchResult = "downloadSearchResult",

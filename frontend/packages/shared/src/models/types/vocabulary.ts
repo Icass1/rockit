@@ -55,6 +55,12 @@ export interface Vocabulary {
     ADMIN_REQUIRED: string;
     ADMIN_RESPONSE_CODES: string;
     ADMIN_ROUTE: string;
+    ADMIN_SEARCH_NO_RESULTS: string;
+    ADMIN_SEARCH_PLACEHOLDER: string;
+    ADMIN_SEARCH_PROMPT: string;
+    ADMIN_SEARCH_RESULTS: string;
+    ADMIN_SEARCH_SUBTITLE: string;
+    ADMIN_SEARCH_TITLE: string;
     ADMIN_SELECT_APK: string;
     ADMIN_SELECTED: string;
     ADMIN_SETTINGS_COMING_SOON: string;
@@ -62,6 +68,7 @@ export interface Vocabulary {
     ADMIN_SETTINGS_TITLE: string;
     ADMIN_TAB_BUILDS: string;
     ADMIN_TAB_REQUESTS: string;
+    ADMIN_TAB_SEARCH: string;
     ADMIN_TAB_SETTINGS: string;
     ADMIN_TAB_USERS: string;
     ADMIN_TOP_IPS: string;
@@ -85,6 +92,8 @@ export interface Vocabulary {
     ALL: string;
     ALL_FIELDS_REQUIRED: string;
     ALREADY_LOGGED_IN: string;
+    APP_AVAILABLE_OFFLINE: string;
+    APP_OFFLINE_UNAVAILABLE: string;
     APRIL: string;
     ARTIST: string;
     ARTISTS: string;
@@ -188,6 +197,9 @@ export interface Vocabulary {
     GO_HOME: string;
     GO_TO_ALBUM: string;
     GO_TO_ARTIST: string;
+    GOOD_AFTERNOON: string;
+    GOOD_EVENING: string;
+    GOOD_MORNING: string;
     HIDDEN_GEMS: string;
     HOME: string;
     HOME_HIGHLIGHTS: string;
@@ -304,6 +316,7 @@ export interface Vocabulary {
     REMOVE_FROM_LIKED: string;
     REMOVE_FROM_PLAYLIST: string;
     REMOVE_FROM_QUEUE: string;
+    REMOVE_OFFLINE: string;
     REPEAT_ALL: string;
     REPEAT_FROM_BEGINNING: string;
     REPEAT_ONE: string;
@@ -311,6 +324,7 @@ export interface Vocabulary {
     RETRY: string;
     RETURN_BACK_HOME: string;
     SAVE: string;
+    SAVE_OFFLINE: string;
     SAVING: string;
     SEARCH: string;
     SEARCH_BAR: string;
@@ -386,21 +400,4 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
-    GOOD_MORNING: string;
-    GOOD_AFTERNOON: string;
-    GOOD_EVENING: string;
-    ERROR_GETTING_ALBUM: string;
-    MEDIA_NOT_DOWNLOADED: string;
-    PLAYLIST_WITHOUT_MEDIAS: string;
-    SAVE_OFFLINE: string;
-    REMOVE_OFFLINE: string;
-    APP_AVAILABLE_OFFLINE: string;
-    APP_OFFLINE_UNAVAILABLE: string;
-    ADMIN_SEARCH_TITLE: string;
-    ADMIN_SEARCH_SUBTITLE: string;
-    ADMIN_SEARCH_PLACEHOLDER: string;
-    ADMIN_SEARCH_RESULTS: string;
-    ADMIN_SEARCH_NO_RESULTS: string;
-    ADMIN_SEARCH_PROMPT: string;
-    ADMIN_TAB_SEARCH: string;
 }

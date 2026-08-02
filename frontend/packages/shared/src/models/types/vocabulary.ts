@@ -399,4 +399,5 @@ export interface Vocabulary {
     ADMIN_SEARCH_RESULTS: string;
     ADMIN_SEARCH_NO_RESULTS: string;
     ADMIN_SEARCH_PROMPT: string;
+    ADMIN_TAB_SEARCH: string;
 }

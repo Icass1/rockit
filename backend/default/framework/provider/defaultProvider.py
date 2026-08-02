@@ -217,6 +217,7 @@ class DefaultProvider(BaseMediaProvider):
         return f"""    SELECT cm.id                          AS internal_id,
            cm.public_id                    AS public_id,
            pl.name                         AS name,
+           NULL                            AS subtitle,
            {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
            p.name                          AS provider_name,
            ci.url                          AS image_url

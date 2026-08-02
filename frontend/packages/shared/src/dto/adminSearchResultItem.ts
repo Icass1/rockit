@@ -7,6 +7,7 @@ export const AdminSearchResultItemSchema = z.object({
     internalId: z.number(),
     publicId: z.string().nullable(),
     name: z.string(),
+    subtitle: z.string().nullable(),
     type: z.union([
         z.literal("artist"),
         z.literal("album"),

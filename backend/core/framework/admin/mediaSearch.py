@@ -53,6 +53,7 @@ class AdminMediaSearch:
                     internalId=entry.internal_id,
                     publicId=entry.public_id,
                     name=entry.name,
+                    subtitle=entry.subtitle,
                     type=media_type_name,
                     provider=entry.provider_name,
                     imageUrl=entry.image_url,

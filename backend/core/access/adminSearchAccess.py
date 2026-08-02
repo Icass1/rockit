@@ -29,8 +29,10 @@ class AdminSearchAccess:
         fragment.
 
         Ranks exact internal id / public id matches first, then by PostgreSQL
-        trigram similarity (pg_trgm) on the name, and applies the limit directly
-        in the database instead of scoring the full catalog in Python.
+        trigram similarity (pg_trgm) on both the item name and its related
+        context (e.g. artist / channel / album names in the subtitle column),
+        and applies the limit directly in the database instead of scoring the
+        full catalog in Python.
         """
 
         from backend.core.framework import providers
@@ -50,7 +52,15 @@ class AdminSearchAccess:
         WITH search_index AS (
             {search_index_cte}
         )
-        SELECT internal_id, public_id, name, media_type_key, provider_name, image_url, score
+        SELECT
+            internal_id,
+            public_id,
+            name,
+            subtitle,
+            media_type_key,
+            provider_name,
+            image_url,
+            score
         FROM (
             SELECT
                 si.*,
@@ -60,7 +70,9 @@ class AdminSearchAccess:
                     WHEN starts_with(si.public_id, :query) THEN :exact_score
                     ELSE GREATEST(
                         similarity(lower(si.name), lower(:query)),
-                        word_similarity(lower(:query), lower(si.name))
+                        word_similarity(lower(:query), lower(si.name)),
+                        similarity(lower(si.subtitle), lower(:query)),
+                        word_similarity(lower(:query), lower(si.subtitle))
                     ) * 100.0
                 END AS score
             FROM search_index si
@@ -91,10 +103,11 @@ class AdminSearchAccess:
                     internal_id=int(row[0]),
                     public_id=row[1],
                     name=row[2],
-                    media_type_key=int(row[3]),
-                    provider_name=row[4],
-                    image_url=row[5],
-                    score=float(row[6]),
+                    subtitle=row[3],
+                    media_type_key=int(row[4]),
+                    provider_name=row[5],
+                    image_url=row[6],
+                    score=float(row[7]),
                 )
                 for row in rows
             ],

@@ -89,6 +89,11 @@ function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
 
             <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-white">{item.name}</p>
+                {item.subtitle && (
+                    <p className="truncate text-sm text-neutral-400">
+                        {item.subtitle}
+                    </p>
+                )}
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                     <span
                         className={`rounded-full px-2 py-0.5 font-medium ${meta.badge}`}

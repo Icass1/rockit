@@ -9,6 +9,7 @@ class AdminSearchResultItem(BaseModel):
     internalId: int
     publicId: str | None
     name: str
+    subtitle: str | None = None
     type: _MediaTypeName
     provider: str
     imageUrl: str | None

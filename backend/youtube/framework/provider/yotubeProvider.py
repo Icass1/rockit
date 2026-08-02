@@ -297,6 +297,7 @@ class YoutubeProvider(BaseMediaProvider):
         return f"""    SELECT cm.id                          AS internal_id,
            cm.public_id                    AS public_id,
            v.name                          AS name,
+           ch.name                         AS subtitle,
            {MediaTypeEnum.VIDEO.value}     AS media_type_key,
            p.name                          AS provider_name,
            ci.url                          AS image_url
@@ -304,10 +305,12 @@ class YoutubeProvider(BaseMediaProvider):
     JOIN   core.media    cm ON cm.id = v.id
     JOIN   core.provider p  ON p.id = cm.provider_id
     JOIN   core.image    ci ON ci.id = v.image_id
+    JOIN   youtube.channel ch ON ch.id = v.channel_id
     UNION ALL
     SELECT cm.id                          AS internal_id,
            cm.public_id                    AS public_id,
            ch.name                         AS name,
+           NULL                            AS subtitle,
            {MediaTypeEnum.ARTIST.value}    AS media_type_key,
            p.name                          AS provider_name,
            ci.url                          AS image_url
@@ -319,6 +322,7 @@ class YoutubeProvider(BaseMediaProvider):
     SELECT cm.id                          AS internal_id,
            cm.public_id                    AS public_id,
            pl.name                         AS name,
+           NULL                            AS subtitle,
            {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
            p.name                          AS provider_name,
            ci.url                          AS image_url

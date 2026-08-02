@@ -213,7 +213,11 @@ class BaseMediaProvider(BaseProvider):
         return None
 
     def get_search_index_cte_fragment(self) -> str | None:
-        """SELECT fragment for search_index (internal_id, public_id, name, media_type_key, provider_name, image_url).
+        """SELECT fragment for search_index (internal_id, public_id, name, subtitle, media_type_key, provider_name, image_url).
+
+        The subtitle column carries the item's related context (e.g. artist /
+        channel / album names for songs, albums and videos; NULL otherwise). It
+        is matched by the admin fuzzy-search and shown alongside the item name.
 
         Used by the admin fuzzy-search feature to build a full index of every
         searchable media item across all providers. Return None if the provider

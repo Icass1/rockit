@@ -335,6 +335,10 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         return f"""    SELECT cm.id                          AS internal_id,
            cm.public_id                    AS public_id,
            rs.name                         AS name,
+           CONCAT_WS(', ',
+               NULLIF(string_agg(DISTINCT rart.name, ', '), ''),
+               NULLIF(ra.name, '')
+           )                               AS subtitle,
            {MediaTypeEnum.SONG.value}      AS media_type_key,
            p.name                          AS provider_name,
            ci.url                          AS image_url
@@ -342,10 +346,15 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.media    cm ON cm.id = rs.id
     JOIN   core.provider p  ON p.id = cm.provider_id
     JOIN   core.image    ci ON ci.id = rs.image_id
+    LEFT JOIN rockit.album       ra   ON ra.id = rs.album_id
+    LEFT JOIN rockit.song_artists rsa ON rsa.song_id = rs.id
+    LEFT JOIN rockit.artist      rart ON rart.id = rsa.artist_id
+    GROUP BY cm.id, cm.public_id, rs.name, ra.name, p.name, ci.url
     UNION ALL
     SELECT cm.id                          AS internal_id,
            cm.public_id                    AS public_id,
            rv.name                         AS name,
+           NULLIF(string_agg(DISTINCT rart.name, ', '), '') AS subtitle,
            {MediaTypeEnum.VIDEO.value}     AS media_type_key,
            p.name                          AS provider_name,
            ci.url                          AS image_url
@@ -353,10 +362,14 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.media    cm ON cm.id = rv.id
     JOIN   core.provider p  ON p.id = cm.provider_id
     JOIN   core.image    ci ON ci.id = rv.image_id
+    LEFT JOIN rockit.video_artists rva   ON rva.video_id = rv.id
+    LEFT JOIN rockit.artist       rart   ON rart.id = rva.artist_id
+    GROUP BY cm.id, cm.public_id, rv.name, p.name, ci.url
     UNION ALL
     SELECT cm.id                          AS internal_id,
            cm.public_id                    AS public_id,
            ra.name                         AS name,
+           NULLIF(string_agg(DISTINCT rart.name, ', '), '') AS subtitle,
            {MediaTypeEnum.ALBUM.value}     AS media_type_key,
            p.name                          AS provider_name,
            ci.url                          AS image_url
@@ -364,10 +377,14 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.media    cm ON cm.id = ra.id
     JOIN   core.provider p  ON p.id = cm.provider_id
     JOIN   core.image    ci ON ci.id = ra.image_id
+    LEFT JOIN rockit.album_artists raa   ON raa.album_id = ra.id
+    LEFT JOIN rockit.artist      rart   ON rart.id = raa.artist_id
+    GROUP BY cm.id, cm.public_id, ra.name, p.name, ci.url
     UNION ALL
     SELECT rart.id                         AS internal_id,
            NULL::text                      AS public_id,
            rart.name                       AS name,
+           NULL                            AS subtitle,
            {MediaTypeEnum.ARTIST.value}    AS media_type_key,
            'RockIt'                        AS provider_name,
            ci.url                          AS image_url

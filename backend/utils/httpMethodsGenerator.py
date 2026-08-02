@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from fastapi._compat import ModelField
 from fastapi.routing import APIRoute
 from pydantic import BaseModel
 
@@ -8,12 +9,14 @@ def snake_to_pascal(string: str) -> str:
     return "".join(x.capitalize() for x in string.lower().split("_"))
 
 
-def snake_to_camel(snake_str: str):
+def snake_to_camel(snake_str: str) -> str:
     camel_string = snake_to_pascal(snake_str)
     return snake_str[0].lower() + camel_string[1:]
 
 
-def build_query_params(query_params) -> tuple[list[str], str, str]:
+def build_query_params(
+    query_params: list[ModelField],
+) -> tuple[list[str], str, str]:
     """Build the TS signature, query-building preamble and path suffix.
 
     Query params without a default value (required) become required TS params

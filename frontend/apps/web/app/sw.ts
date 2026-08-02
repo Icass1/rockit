@@ -3,12 +3,12 @@
 import { defaultCache } from "@serwist/turbopack/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import {
-    Serwist,
-    StaleWhileRevalidate,
     CacheFirst,
+    ExpirationPlugin,
     NetworkFirst,
     NetworkOnly,
-    ExpirationPlugin,
+    Serwist,
+    StaleWhileRevalidate,
 } from "serwist";
 
 declare global {
@@ -76,7 +76,13 @@ const runtimeCaching = [
         }),
     },
     {
-        matcher: ({ request, sameOrigin }: { request: Request; sameOrigin: boolean }) =>
+        matcher: ({
+            request,
+            sameOrigin,
+        }: {
+            request: Request;
+            sameOrigin: boolean;
+        }) =>
             sameOrigin &&
             (request.headers.get("RSC") === "1" ||
                 request.destination === "document"),

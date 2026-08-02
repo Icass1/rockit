@@ -21,8 +21,8 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
-import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 /**
  * Maximum rendered cover size in pixels.

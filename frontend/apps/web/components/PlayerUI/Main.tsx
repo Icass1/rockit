@@ -8,10 +8,10 @@ import {
     TPlayableMedia,
 } from "@rockit/packages/shared";
 import { Disc3, DiscAlbum, Pause, Play, Video, VideoOff } from "lucide-react";
+import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
-import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 
 export default function PlayerUIMain({
     currentMedia,

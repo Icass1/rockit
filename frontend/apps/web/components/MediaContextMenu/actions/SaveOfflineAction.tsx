@@ -1,16 +1,16 @@
 import type { JSX } from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { CircleArrowDown, Trash2, Loader2 } from "lucide-react";
 import { isSearchResult, type TMedia } from "@rockit/shared";
-import ContextMenuOption from "@/components/ContextMenu/Option";
+import { CircleArrowDown, Loader2, Trash2 } from "lucide-react";
 import {
-    offlineStatusMap,
     downloadSongOffline,
+    offlineStatusMap,
     removeOfflineSong,
 } from "@/lib/offline/store";
-import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 export default function SaveOfflineAction({
     media,

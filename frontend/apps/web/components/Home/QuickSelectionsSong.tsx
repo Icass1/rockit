@@ -8,8 +8,8 @@ import { EMediaContextLocation } from "@rockit/shared";
 import { isSongWithAlbum } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 export default function QuickSelectionsSong({
     song,

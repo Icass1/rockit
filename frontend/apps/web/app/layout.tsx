@@ -46,7 +46,13 @@ export default function RootLayout({
                 <link rel="icon" type="image/svg+xml" href="/rockit-logo.ico" />
             </head>
             <body className="antialiased" suppressHydrationWarning>
-                {isDev ? content : <SerwistProvider swUrl="/serwist/sw.js">{content}</SerwistProvider>}
+                {isDev ? (
+                    content
+                ) : (
+                    <SerwistProvider swUrl="/serwist/sw.js">
+                        {content}
+                    </SerwistProvider>
+                )}
             </body>
         </html>
     );

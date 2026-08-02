@@ -1,8 +1,12 @@
 "use client";
 
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
-import { EMediaType, type AdminSearchResultItem, type Vocabulary } from "@rockit/shared";
 import { useStore } from "@nanostores/react";
+import {
+    EMediaType,
+    type AdminSearchResultItem,
+    type Vocabulary,
+} from "@rockit/shared";
 import {
     Disc3,
     ListMusic,

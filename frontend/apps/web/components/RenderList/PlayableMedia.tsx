@@ -19,9 +19,9 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
-import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 function getArtistNames(

@@ -17,9 +17,9 @@ import { StationManager } from "@/lib/managers/stationManager";
 import { UserManager } from "@/lib/managers/userManager";
 import { VocabularyManager } from "@/lib/managers/vocabularyManager";
 import { WebSocketManager } from "@/lib/managers/webSocketManger";
-import { hydrateOfflineIds } from "@/lib/offline/store";
 import { cleanupLegacyIndexedDB } from "@/lib/offline/cleanup-legacy-db";
 import { cleanupLegacyServiceWorker } from "@/lib/offline/cleanup-legacy-sw";
+import { hydrateOfflineIds } from "@/lib/offline/store";
 
 export class RockIt {
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
@@ -76,15 +76,9 @@ export class RockIt {
         cleanupLegacyServiceWorker();
         await hydrateOfflineIds();
 
-        if (
-            typeof navigator !== "undefined" &&
-            navigator.storage?.persist
-        ) {
+        if (typeof navigator !== "undefined" && navigator.storage?.persist) {
             navigator.storage.persist().then((granted) => {
-                console.log(
-                    "[offline] almacenamiento persistente:",
-                    granted
-                );
+                console.log("[offline] almacenamiento persistente:", granted);
             });
         }
     }

@@ -26,6 +26,14 @@ export {
     type AdminRequestStatsResponse,
 } from "./adminRequestStatsResponse";
 export {
+    AdminSearchResponseSchema,
+    type AdminSearchResponse,
+} from "./adminSearchResponse";
+export {
+    AdminSearchResultItemSchema,
+    type AdminSearchResultItem,
+} from "./adminSearchResultItem";
+export {
     AllBuildsResponseSchema,
     type AllBuildsResponse,
 } from "./allBuildsResponse";

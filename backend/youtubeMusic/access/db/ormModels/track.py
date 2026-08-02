@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import String, ForeignKey, Integer
+from sqlalchemy import String, ForeignKey, Integer, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -26,7 +26,15 @@ class TrackRow(
     YoutubeMusicBase, TableAutoincrementId, TableDateUpdated, TableDateAdded
 ):
     __tablename__ = "track"
-    __table_args__ = ({"schema": "youtube_music", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_youtube_music_track_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
+        {"schema": "youtube_music", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

@@ -555,6 +555,43 @@ class SpotifyScrapperProvider(BaseMediaProvider):
     JOIN   core.media      cm_al ON cm_al.id = al.id
     JOIN   core.image      ai    ON ai.id    = al.image_id"""
 
+    def get_search_index_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+        return f"""    SELECT cm.id                       AS internal_id,
+           cm.public_id                 AS public_id,
+           t.name                       AS name,
+           {MediaTypeEnum.SONG.value}   AS media_type_key,
+           p.name                       AS provider_name,
+           ci.url                       AS image_url
+    FROM   spotify_scrapper.track t
+    JOIN   core.media    cm ON cm.id = t.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   spotify_scrapper.album al ON al.id = t.album_id
+    JOIN   core.image    ci ON ci.id = al.image_id
+    UNION ALL
+    SELECT cm.id                       AS internal_id,
+           cm.public_id                 AS public_id,
+           al.name                      AS name,
+           {MediaTypeEnum.ALBUM.value}  AS media_type_key,
+           p.name                       AS provider_name,
+           ci.url                       AS image_url
+    FROM   spotify_scrapper.album al
+    JOIN   core.media    cm ON cm.id = al.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = al.image_id
+    UNION ALL
+    SELECT cm.id                        AS internal_id,
+           cm.public_id                  AS public_id,
+           a.name                        AS name,
+           {MediaTypeEnum.ARTIST.value}  AS media_type_key,
+           p.name                        AS provider_name,
+           ci.url                        AS image_url
+    FROM   spotify_scrapper.artist a
+    JOIN   core.media    cm ON cm.id = a.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = a.image_id"""
+
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[int]:

@@ -211,3 +211,12 @@ class BaseMediaProvider(BaseProvider):
     def get_stats_album_info_cte_fragment(self) -> str | None:
         """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url)."""
         return None
+
+    def get_search_index_cte_fragment(self) -> str | None:
+        """SELECT fragment for search_index (internal_id, public_id, name, media_type_key, provider_name, image_url).
+
+        Used by the admin fuzzy-search feature to build a full index of every
+        searchable media item across all providers. Return None if the provider
+        has no contribution.
+        """
+        return None

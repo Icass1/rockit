@@ -329,6 +329,51 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.media      cm    ON cm.id        = ra.id
     JOIN   core.image      ci    ON ci.id        = ra.image_id"""
 
+    def get_search_index_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+        return f"""    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           rs.name                         AS name,
+           {MediaTypeEnum.SONG.value}      AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.song rs
+    JOIN   core.media    cm ON cm.id = rs.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = rs.image_id
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           rv.name                         AS name,
+           {MediaTypeEnum.VIDEO.value}     AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.video rv
+    JOIN   core.media    cm ON cm.id = rv.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = rv.image_id
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           ra.name                         AS name,
+           {MediaTypeEnum.ALBUM.value}     AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.album ra
+    JOIN   core.media    cm ON cm.id = ra.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = ra.image_id
+    UNION ALL
+    SELECT rart.id                         AS internal_id,
+           NULL::text                      AS public_id,
+           rart.name                       AS name,
+           {MediaTypeEnum.ARTIST.value}    AS media_type_key,
+           'RockIt'                        AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.artist rart
+    JOIN   core.image    ci ON ci.id = rart.image_id"""
+
 
 provider = RockItProvider()
 name = "RockIt"

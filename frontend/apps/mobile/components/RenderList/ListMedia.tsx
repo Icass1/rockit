@@ -10,9 +10,10 @@ import {
 } from "@rockit/shared";
 import { Image } from "expo-image";
 import { ChevronDown, ChevronRight } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { webSocketManager } from "@/lib/webSocketManager";
+import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 import { Media } from "@/components/RenderList/Media";
 
 function ListArtists({ media }: { media: TListMedia }) {
@@ -80,24 +81,31 @@ export function ListMedia({
 
     return (
         <View style={styles.container}>
-            <Pressable onPress={handleToggle} style={styles.header}>
-                <Image
-                    source={{ uri: $media.imageUrl }}
-                    style={styles.image}
-                    contentFit="cover"
-                />
-                <View style={styles.info}>
-                    <Text style={styles.title} numberOfLines={1}>
-                        {$media.name}
-                    </Text>
-                    <ListArtists media={$media} />
+            <MediaPressableWrapper
+                media={$media}
+                allMedia={allMedia ?? []}
+                listPublicId={listPublicId}
+                onPress={handleToggle}
+            >
+                <View style={styles.header}>
+                    <Image
+                        source={{ uri: $media.imageUrl }}
+                        style={styles.image}
+                        contentFit="cover"
+                    />
+                    <View style={styles.info}>
+                        <Text style={styles.title} numberOfLines={1}>
+                            {$media.name}
+                        </Text>
+                        <ListArtists media={$media} />
+                    </View>
+                    {expanded ? (
+                        <ChevronDown size={16} color={COLORS.gray400} />
+                    ) : (
+                        <ChevronRight size={16} color={COLORS.gray400} />
+                    )}
                 </View>
-                {expanded ? (
-                    <ChevronDown size={16} color={COLORS.gray400} />
-                ) : (
-                    <ChevronRight size={16} color={COLORS.gray400} />
-                )}
-            </Pressable>
+            </MediaPressableWrapper>
             {expanded && medias.length > 0 && (
                 <View style={styles.mediaList}>
                     {medias.map((media, i) => (
@@ -109,6 +117,7 @@ export function ListMedia({
                             substractArtists={substractArtists}
                             showMediaIndex={isAlbum($media)}
                             showMediaImage={!isAlbum($media)}
+                            listPublicId={listPublicId}
                         />
                     ))}
                 </View>

@@ -54,6 +54,9 @@ from backend.core.responses.playlistDeletedMessage import PlaylistDeletedMessage
 from backend.core.responses.mediaAddedToPlaylistMessage import (
     MediaAddedToPlaylistMessage,
 )
+from backend.core.responses.mediaRemovedFromPlaylistMessage import (
+    MediaRemovedFromPlaylistMessage,
+)
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
@@ -609,6 +612,21 @@ class Playlist:
                 code=a_result.code(),
                 message=a_result.message(),
             )
+
+        a_result_contributors: AResult[List[PlaylistContributorRow]] = (
+            await PlaylistAccess.get_contributors_async(
+                session=session, playlist_id=playlist_id
+            )
+        )
+        if a_result_contributors.is_ok():
+            message = MediaRemovedFromPlaylistMessage(
+                publicId=media_row.public_id,
+                playlistPublicId=playlist_public_id,
+            )
+            for contributor in a_result_contributors.result():
+                await SendToUser.send_to_user(
+                    user_id=contributor.user_id, message=message
+                )
 
         return AResult(code=AResultCode.OK, message="OK", result=True)
 

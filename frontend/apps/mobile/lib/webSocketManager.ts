@@ -15,6 +15,7 @@ import {
     TWebSocketIncomingMessage,
     type DownloadProgressMessage,
     type IWebSocketMessagePayloadMap,
+    type MediaRemovedFromPlaylistMessage,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
 import { getSessionCookie, refreshSessionFromBackend } from "@/lib/api";
@@ -47,6 +48,17 @@ export class WebSocketManager {
             if (handlers) {
                 handlers.forEach((handler) =>
                     handler(data as IWebSocketMessagePayloadMap[typeof type])
+                );
+            }
+
+            if (type === EWebSocketMessage.MediaRemovedFromPlaylist) {
+                const msg = data as MediaRemovedFromPlaylistMessage;
+                EventManager.getInstance().dispatchEvent(
+                    EEvent.MediaRemovedFromPlaylist,
+                    {
+                        publicId: msg.publicId,
+                        playlistPublicId: msg.playlistPublicId,
+                    }
                 );
             }
 

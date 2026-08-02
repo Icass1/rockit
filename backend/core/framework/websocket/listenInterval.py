@@ -261,6 +261,14 @@ async def maybe_flush_listen_interval_async(
     ):
         return
 
+    if current_time_ms <= playback_state.active_interval_start_ms:
+        logger.debug(
+            f"Skipping flush for user={user_id} — current_time_ms={current_time_ms} "
+            f"is not after interval start={playback_state.active_interval_start_ms} "
+            f"(stale or out-of-order current_time message)"
+        )
+        return
+
     now = time_module.time()
 
     if playback_state.active_interval_db_id is None:

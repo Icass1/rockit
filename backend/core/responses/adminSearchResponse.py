@@ -1,13 +1,15 @@
-from typing import List, Literal
+from typing import List
 
 from pydantic import BaseModel
+
+from backend.core.enums.mediaTypeEnum import MediaTypeName as _MediaTypeName
 
 
 class AdminSearchResultItem(BaseModel):
     internalId: int
     publicId: str | None
     name: str
-    type: Literal["artist", "album", "playlist", "song", "video", "radio"]
+    type: _MediaTypeName
     provider: str
     imageUrl: str | None
     score: float

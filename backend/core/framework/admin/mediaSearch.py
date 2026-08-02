@@ -1,11 +1,11 @@
 from logging import Logger
-from typing import Dict, List, Literal
+from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.access.adminSearchAccess import AdminSearchAccess
 from backend.core.aResult import AResult, AResultCode
-from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.enums.mediaTypeEnum import MEDIA_TYPE_NAMES
 from backend.core.responses.adminSearchResponse import (
     AdminSearchResponse,
     AdminSearchResultItem,
@@ -13,17 +13,6 @@ from backend.core.responses.adminSearchResponse import (
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
-
-_MediaTypeName = Literal["artist", "album", "playlist", "song", "video", "radio"]
-
-_MEDIA_TYPE_NAMES: Dict[int, _MediaTypeName] = {
-    MediaTypeEnum.ARTIST.value: "artist",
-    MediaTypeEnum.ALBUM.value: "album",
-    MediaTypeEnum.PLAYLIST.value: "playlist",
-    MediaTypeEnum.SONG.value: "song",
-    MediaTypeEnum.VIDEO.value: "video",
-    MediaTypeEnum.RADIO.value: "radio",
-}
 
 
 class AdminMediaSearch:
@@ -52,7 +41,7 @@ class AdminMediaSearch:
 
         results: List[AdminSearchResultItem] = []
         for entry in a_result_index.result():
-            media_type_name = _MEDIA_TYPE_NAMES.get(entry.media_type_key)
+            media_type_name = MEDIA_TYPE_NAMES.get(entry.media_type_key)
             if media_type_name is None:
                 logger.warning(
                     f"Unknown media_type_key {entry.media_type_key} in search index, skipping."

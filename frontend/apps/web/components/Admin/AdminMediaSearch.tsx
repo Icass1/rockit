@@ -1,7 +1,7 @@
 "use client";
 
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
-import { type AdminSearchResultItem } from "@/dto";
+import { EMediaType, type AdminSearchResultItem, type Vocabulary } from "@rockit/shared";
 import { useStore } from "@nanostores/react";
 import {
     Disc3,
@@ -16,40 +16,53 @@ import {
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-const TYPE_META: Record<
-    AdminSearchResultItem["type"],
-    { icon: typeof Music2; label: string; badge: string }
-> = {
-    song: { icon: Music2, label: "Song", badge: "bg-sky-500/15 text-sky-300" },
-    album: {
+type MediaTypeMeta = {
+    icon: typeof Music2;
+    badge: string;
+    vocabularyKey: keyof Vocabulary;
+};
+
+const TYPE_META: Record<EMediaType, MediaTypeMeta> = {
+    [EMediaType.Song]: {
+        icon: Music2,
+        badge: "bg-sky-500/15 text-sky-300",
+        vocabularyKey: "SONG",
+    },
+    [EMediaType.Album]: {
         icon: Disc3,
-        label: "Album",
         badge: "bg-violet-500/15 text-violet-300",
+        vocabularyKey: "ALBUM",
     },
-    artist: {
+    [EMediaType.Artist]: {
         icon: Mic2,
-        label: "Artist",
         badge: "bg-amber-500/15 text-amber-300",
+        vocabularyKey: "ARTIST",
     },
-    playlist: {
+    [EMediaType.Playlist]: {
         icon: ListMusic,
-        label: "Playlist",
         badge: "bg-emerald-500/15 text-emerald-300",
+        vocabularyKey: "PLAYLIST",
     },
-    video: {
+    [EMediaType.Video]: {
         icon: Video,
-        label: "Video",
         badge: "bg-rose-500/15 text-rose-300",
+        vocabularyKey: "VIDEO",
     },
-    radio: {
+    [EMediaType.Radio]: {
         icon: Radio,
-        label: "Radio",
         badge: "bg-teal-500/15 text-teal-300",
+        vocabularyKey: "RADIO",
+    },
+    [EMediaType.Station]: {
+        icon: Radio,
+        badge: "bg-teal-500/15 text-teal-300",
+        vocabularyKey: "RADIO_STATION",
     },
 };
 
 function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
-    const meta = TYPE_META[item.type];
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const meta = TYPE_META[item.type as EMediaType];
     const Icon = meta.icon;
     const [imgError, setImgError] = useState(false);
     const showImage = item.imageUrl && !imgError;
@@ -76,7 +89,7 @@ function ResultRow({ item }: { item: AdminSearchResultItem }): JSX.Element {
                     <span
                         className={`rounded-full px-2 py-0.5 font-medium ${meta.badge}`}
                     >
-                        {meta.label}
+                        {$vocabulary[meta.vocabularyKey]}
                     </span>
                     <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-neutral-300">
                         {item.provider}

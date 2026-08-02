@@ -393,4 +393,10 @@ export interface Vocabulary {
     REMOVE_OFFLINE: string;
     APP_AVAILABLE_OFFLINE: string;
     APP_OFFLINE_UNAVAILABLE: string;
+    ADMIN_SEARCH_TITLE: string;
+    ADMIN_SEARCH_SUBTITLE: string;
+    ADMIN_SEARCH_PLACEHOLDER: string;
+    ADMIN_SEARCH_RESULTS: string;
+    ADMIN_SEARCH_NO_RESULTS: string;
+    ADMIN_SEARCH_PROMPT: string;
 }

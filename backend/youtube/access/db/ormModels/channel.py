@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import String, Integer, BigInteger, ForeignKey
+from sqlalchemy import String, Integer, BigInteger, ForeignKey, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.youtube.access.db.base import YoutubeBase
@@ -16,7 +16,15 @@ if TYPE_CHECKING:
 
 class ChannelRow(YoutubeBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "channel"
-    __table_args__ = ({"schema": "youtube", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_youtube_channel_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "youtube", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

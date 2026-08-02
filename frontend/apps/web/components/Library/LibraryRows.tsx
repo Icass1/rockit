@@ -10,12 +10,12 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { CircleCheck } from "lucide-react";
 import { EMediaContextLocation } from "@rockit/shared";
+import { CircleCheck } from "lucide-react";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 /* ------------------------------------------------------- */
 /* GROUP BY FIRST ARTIST                                   */

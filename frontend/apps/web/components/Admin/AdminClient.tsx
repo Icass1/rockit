@@ -10,6 +10,7 @@ import {
     MessageSquare,
     Package,
     Plus,
+    Search,
     Settings,
     Smartphone,
     Trash2,
@@ -20,6 +21,7 @@ import {
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import AdminMediaSearch from "@/components/Admin/AdminMediaSearch";
 import AdminRequests from "@/components/Admin/AdminRequests";
 import AdminStats from "@/components/Admin/AdminStats";
 
@@ -196,6 +198,11 @@ export default function AdminClient({
             id: EAdminClientTab.BUILDS,
             label: $vocabulary.ADMIN_TAB_BUILDS,
             icon: Smartphone,
+        },
+        {
+            id: EAdminClientTab.SEARCH,
+            label: $vocabulary.ADMIN_TAB_SEARCH,
+            icon: Search,
         },
         {
             id: EAdminClientTab.REQUESTS,
@@ -481,6 +488,8 @@ export default function AdminClient({
                         )}
                     </div>
                 )}
+
+                {activeTab === EAdminClientTab.SEARCH && <AdminMediaSearch />}
 
                 {activeTab === EAdminClientTab.REQUESTS && <AdminRequests />}
 

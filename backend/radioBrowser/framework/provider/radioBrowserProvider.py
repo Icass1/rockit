@@ -99,6 +99,23 @@ class RadioBrowserProvider(BaseMediaProvider):
     ) -> AResult[int]:
         return AResult(code=AResultCode.OK, message="OK", result=0)
 
+    def get_search_index_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+        return f"""    SELECT cm.id                       AS internal_id,
+           cm.public_id                 AS public_id,
+           s.name                       AS name,
+           NULLIF(string_agg(DISTINCT tg.tag, ', '), '') AS subtitle,
+           {MediaTypeEnum.RADIO.value}  AS media_type_key,
+           p.name                       AS provider_name,
+           s.favicon_url                AS image_url
+    FROM   radio_browser.station s
+    JOIN   core.media    cm ON cm.id = s.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    LEFT JOIN radio_browser.station_tag st ON st.station_id = s.id
+    LEFT JOIN radio_browser.tag        tg ON tg.id = st.tag_id
+    GROUP BY cm.id, cm.public_id, s.name, s.favicon_url, p.name"""
+
 
 provider = RadioBrowserProvider()
 name = "Radio"

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.framework.admin.build import AdminBuild
+from backend.core.framework.admin.mediaSearch import AdminMediaSearch
 from backend.core.framework.admin.requestLogStats import RequestLogStats
 from backend.core.framework.admin.userRequest import UserRequest as UserRequestFramework
 from backend.core.requests.addVersionRequest import AddVersionRequest
@@ -17,6 +18,7 @@ from backend.core.requests.userRequestRequest import (
     GetAllRequestsRequest,
     ReviewUserRequestRequest,
 )
+from backend.core.responses.adminSearchResponse import AdminSearchResponse
 from backend.core.responses.buildResponse import AllBuildsResponse, BuildResponse
 from backend.core.responses.okResponse import OkResponse
 from backend.core.responses.requestLogStatsResponse import RequestLogStatsResponse
@@ -215,6 +217,26 @@ async def get_request_log_stats(request: Request) -> RequestLogStatsResponse:
 
     if a_result.is_not_ok():
         logger.error(f"Error getting request log stats. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.get("/media/search")
+async def search_media(
+    request: Request, q: str, limit: int = 50
+) -> AdminSearchResponse:
+    """Fuzzy, typo-tolerant search across all media types and providers."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await AdminMediaSearch.search_async(
+        session=session, query=q, limit=limit
+    )
+
+    if a_result.is_not_ok():
+        logger.error(f"Error searching media. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

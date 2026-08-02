@@ -1,9 +1,5 @@
-import {
-    openDB,
-    type DBSchema,
-    type IDBPDatabase,
-} from "idb";
 import type { SessionResponse, VocabularyResponse } from "@/dto";
+import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 
 interface RockItOfflineDB extends DBSchema {
     songs: {
@@ -115,7 +111,11 @@ export async function saveSessionOffline(
     session: SessionResponse
 ): Promise<void> {
     const db = await getDB();
-    await db.put("session", { data: session, savedAt: Date.now() }, OFFLINE_CACHE_KEY);
+    await db.put(
+        "session",
+        { data: session, savedAt: Date.now() },
+        OFFLINE_CACHE_KEY
+    );
 }
 
 export async function loadSessionOffline(): Promise<SessionResponse | null> {

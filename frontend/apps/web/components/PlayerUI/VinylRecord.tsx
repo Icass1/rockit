@@ -27,9 +27,7 @@ export default function VinylRecord({
     const speedRef = useRef(0);
     const isPlayingRef = useRef(isPlaying);
     const rafIdRef = useRef<number>(0);
-    const [offlineCoverUrl, setOfflineCoverUrl] = useState<string | null>(
-        null
-    );
+    const [offlineCoverUrl, setOfflineCoverUrl] = useState<string | null>(null);
 
     useEffect((): (() => void) => {
         let cancelled = false;

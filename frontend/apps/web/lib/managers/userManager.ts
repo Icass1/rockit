@@ -1,11 +1,11 @@
 import { BaseUserManager, EQueueType, ERepeatMode } from "@rockit/shared";
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import {
-    saveSessionOffline,
-    loadSessionOffline,
     clearSessionOffline,
+    loadSessionOffline,
+    saveSessionOffline,
 } from "@/lib/offline/db";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 /**
  * Web user manager. Queue-type / repeat / profile state lives in the shared

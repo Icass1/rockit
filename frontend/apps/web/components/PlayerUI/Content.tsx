@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { isSong, isVideo } from "@rockit/shared";
 import useWindowSize from "@/hooks/useWindowSize";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
+import { rockIt } from "@/lib/rockit/rockIt";
 import PlayerUILyrics from "@/components/PlayerUI/Lyrics";
 import PlayerUIMain from "@/components/PlayerUI/Main";
 import PlayerUIQueue from "@/components/PlayerUI/Queue";
@@ -46,7 +46,7 @@ export default function PlayerUIContent(): JSX.Element {
     const bgCoverSrc =
         offlineBgCover && offlineBgCover.publicId === $currentMedia?.publicId
             ? offlineBgCover.url
-            : $currentMedia?.imageUrl ?? "";
+            : ($currentMedia?.imageUrl ?? "");
 
     // Close player when clicking outside
     useEffect((): (() => void) => {

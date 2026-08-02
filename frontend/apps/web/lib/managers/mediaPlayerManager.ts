@@ -1,10 +1,10 @@
 import {
     BaseMediaPlayerManager,
-    type TMediaKind,
-    type TPlayableMedia,
-    isSong,
     getMediaAudioUrl,
     getMediaVideoUrl,
+    isSong,
+    type TMediaKind,
+    type TPlayableMedia,
 } from "@rockit/shared";
 import { resolveOfflineAudioUrl } from "@/lib/offline/store";
 

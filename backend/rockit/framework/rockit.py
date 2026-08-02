@@ -85,6 +85,85 @@ class Rockit:
         return 0
 
     @staticmethod
+    async def _create_artist_images_async(
+        session: AsyncSession,
+        artist_names: List[str],
+        source_image_id: int,
+    ) -> AResult[dict[str, int]]:
+        """Create a unique image row for each new artist by copying the source image file.
+
+        Returns a mapping from new artist name to its dedicated image row id, so
+        artists never share an image row with a song, album, or video.
+        """
+
+        try:
+            if not artist_names:
+                return AResult(code=AResultCode.OK, message="OK", result={})
+
+            unique_names: List[str] = list(dict.fromkeys(artist_names))
+
+            a_result_existing: AResult[set[str]] = (
+                await RockitAccess.get_existing_artist_names_async(
+                    session=session, artist_names=unique_names
+                )
+            )
+            if a_result_existing.is_not_ok():
+                logger.error(
+                    f"Error getting existing artists. {a_result_existing.info()}"
+                )
+                return AResult(
+                    code=a_result_existing.code(), message=a_result_existing.message()
+                )
+
+            new_names: List[str] = [
+                name for name in unique_names if name not in a_result_existing.result()
+            ]
+            if not new_names:
+                return AResult(code=AResultCode.OK, message="OK", result={})
+
+            a_result_source: AResult[ImageRow] = (
+                await Rockit._get_image_for_media_async(
+                    session=session, image_id=source_image_id
+                )
+            )
+            if a_result_source.is_not_ok():
+                logger.error(f"Error getting source image. {a_result_source.info()}")
+                return AResult(
+                    code=a_result_source.code(), message=a_result_source.message()
+                )
+
+            source_path: str = a_result_source.result().path
+
+            artist_image_ids: dict[str, int] = {}
+            for name in new_names:
+                image_file_name: str = f"{create_id(32)}.jpg"
+                image_rel_path: str = f"rockit/{image_file_name}"
+                image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
+                os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
+                shutil.copy2(f"{IMAGES_PATH}/{source_path}", image_full_path)
+
+                a_result_image: AResult[ImageRow] = await Image.create_image_async(
+                    session=session, path=image_rel_path
+                )
+                if a_result_image.is_not_ok():
+                    logger.error(
+                        f"Error creating artist image. {a_result_image.info()}"
+                    )
+                    return AResult(
+                        code=a_result_image.code(), message=a_result_image.message()
+                    )
+
+                artist_image_ids[name] = a_result_image.result().id
+
+            return AResult(code=AResultCode.OK, message="OK", result=artist_image_ids)
+
+        except Exception as e:
+            logger.error(f"Error creating artist images: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error creating artist images"
+            )
+
+    @staticmethod
     async def upload_song_async(
         session: AsyncSession,
         title: str,
@@ -124,6 +203,22 @@ class Rockit:
                     code=a_result_image.code(), message=a_result_image.message()
                 )
 
+            a_result_artist_images: AResult[dict[str, int]] = (
+                await Rockit._create_artist_images_async(
+                    session=session,
+                    artist_names=artist_names,
+                    source_image_id=a_result_image.result().id,
+                )
+            )
+            if a_result_artist_images.is_not_ok():
+                logger.error(
+                    f"Error creating artist images. {a_result_artist_images.info()}"
+                )
+                return AResult(
+                    code=a_result_artist_images.code(),
+                    message=a_result_artist_images.message(),
+                )
+
             a_result_song: AResult[RockitSongRow] = (
                 await RockitAccess.create_song_async(
                     session=session,
@@ -135,6 +230,7 @@ class Rockit:
                     file_path=final_file_path,
                     disc_number=disc_number,
                     track_number=track_number,
+                    artist_image_ids=a_result_artist_images.result(),
                 )
             )
             if a_result_song.is_not_ok():
@@ -202,6 +298,23 @@ class Rockit:
                 )
             image_id: int = a_result_image.result().id
 
+            a_result_artist_images: AResult[dict[str, int]] = (
+                await Rockit._create_artist_images_async(
+                    session=session,
+                    artist_names=artist_name,
+                    source_image_id=image_id,
+                )
+            )
+            if a_result_artist_images.is_not_ok():
+                logger.error(
+                    f"Error creating artist images. {a_result_artist_images.info()}"
+                )
+                return AResult(
+                    code=a_result_artist_images.code(),
+                    message=a_result_artist_images.message(),
+                )
+            artist_image_ids: dict[str, int] = a_result_artist_images.result()
+
             a_result_album: AResult[RockitAlbumRow] = (
                 await RockitAccess.create_album_async(
                     session=session,
@@ -210,6 +323,7 @@ class Rockit:
                     provider_id=Rockit.provider_id,
                     image_id=image_id,
                     release_date=release_date,
+                    artist_image_ids=artist_image_ids,
                 )
             )
             if a_result_album.is_not_ok():
@@ -250,6 +364,7 @@ class Rockit:
                         file_path=song_dst_path,
                         disc_number=1,
                         track_number=track_number,
+                        artist_image_ids=artist_image_ids,
                     )
                 )
                 if a_result_song.is_not_ok():
@@ -335,6 +450,22 @@ class Rockit:
                     code=a_result_image.code(), message=a_result_image.message()
                 )
 
+            a_result_artist_images: AResult[dict[str, int]] = (
+                await Rockit._create_artist_images_async(
+                    session=session,
+                    artist_names=artist_names,
+                    source_image_id=a_result_image.result().id,
+                )
+            )
+            if a_result_artist_images.is_not_ok():
+                logger.error(
+                    f"Error creating artist images. {a_result_artist_images.info()}"
+                )
+                return AResult(
+                    code=a_result_artist_images.code(),
+                    message=a_result_artist_images.message(),
+                )
+
             a_result_video: AResult[RockitVideoRow] = (
                 await RockitAccess.create_video_async(
                     session=session,
@@ -344,6 +475,7 @@ class Rockit:
                     image_id=a_result_image.result().id,
                     duration_ms=duration_ms,
                     file_path=final_file_path,
+                    artist_image_ids=a_result_artist_images.result(),
                 )
             )
             if a_result_video.is_not_ok():

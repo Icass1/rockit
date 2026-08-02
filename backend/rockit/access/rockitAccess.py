@@ -38,8 +38,13 @@ class RockitAccess:
         disc_number: int,
         track_number: int,
         file_path: str,
+        artist_image_ids: dict[str, int],
     ) -> AResult[RockitSongRow]:
-        """Create a new song in core.media and rockit.song."""
+        """Create a new song in core.media and rockit.song.
+
+        artist_image_ids maps each new artist name to the dedicated image row to
+        use when creating it, so artists never share the media image row.
+        """
 
         try:
             core_media: CoreMediaRow = CoreMediaRow(
@@ -66,6 +71,7 @@ class RockitAccess:
                 session=session,
                 artist_names=artist_names,
                 image_id=image_id,
+                artist_image_ids=artist_image_ids,
                 target=song,
             )
             if a_result_artists.is_not_ok():
@@ -87,8 +93,13 @@ class RockitAccess:
         provider_id: int,
         image_id: int,
         release_date: str,
+        artist_image_ids: dict[str, int],
     ) -> AResult[RockitAlbumRow]:
-        """Create a new album in core.media and rockit.album."""
+        """Create a new album in core.media and rockit.album.
+
+        artist_image_ids maps each new artist name to the dedicated image row to
+        use when creating it, so artists never share the media image row.
+        """
 
         try:
             core_media: CoreMediaRow = CoreMediaRow(
@@ -112,6 +123,7 @@ class RockitAccess:
                 session=session,
                 artist_names=artist_names,
                 image_id=image_id,
+                artist_image_ids=artist_image_ids,
                 target=album,
             )
             if a_result_artists.is_not_ok():
@@ -368,18 +380,52 @@ class RockitAccess:
             )
 
     @staticmethod
+    async def get_existing_artist_names_async(
+        session: AsyncSession,
+        artist_names: list[str],
+    ) -> AResult[set[str]]:
+        """Get the set of artist names that already exist in the database."""
+
+        try:
+            if not artist_names:
+                return AResult(code=AResultCode.OK, message="OK", result=set())
+
+            stmt: Select[Tuple[str]] = select(RockitArtistRow.name).where(
+                RockitArtistRow.name.in_(artist_names)
+            )
+            result: Result[Tuple[str]] = await session.execute(stmt)
+            names: set[str] = set(result.scalars().all())
+
+            return AResult(code=AResultCode.OK, message="OK", result=names)
+
+        except Exception as e:
+            logger.error(f"Error getting existing artist names: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Error getting existing artist names",
+            )
+
+    @staticmethod
     async def _link_artists_by_name_async(
         session: AsyncSession,
         artist_names: list[str],
         image_id: int,
+        artist_image_ids: dict[str, int],
         target: RockitSongRow | RockitAlbumRow | RockitVideoRow,
     ) -> AResult[bool]:
-        """Find or create artists by name and link to target via association table."""
+        """Find or create artists by name and link to target via association table.
+
+        image_id is the media image row, used as a fallback only. artist_image_ids
+        maps each new artist name to its dedicated image row.
+        """
 
         try:
             for name in artist_names:
                 a_result_artist = await RockitAccess._get_or_create_artist_async(
-                    session=session, name=name, image_id=image_id
+                    session=session,
+                    name=name,
+                    image_id=image_id,
+                    artist_image_ids=artist_image_ids,
                 )
                 if a_result_artist.is_ok():
                     artist: RockitArtistRow = a_result_artist.result()
@@ -417,8 +463,13 @@ class RockitAccess:
         session: AsyncSession,
         name: str,
         image_id: int,
+        artist_image_ids: dict[str, int],
     ) -> AResult[RockitArtistRow]:
-        """Find an artist by name, or create a new one."""
+        """Find an artist by name, or create a new one.
+
+        Existing artists keep their own image row. New artists use the dedicated
+        image row from artist_image_ids, falling back to the media image row.
+        """
 
         try:
             stmt: Select[Tuple[RockitArtistRow]] = select(RockitArtistRow).where(
@@ -430,7 +481,9 @@ class RockitAccess:
             if artist is not None:
                 return AResult(code=AResultCode.OK, message="OK", result=artist)
 
-            artist = RockitArtistRow(name=name, image_id=image_id)
+            artist_image_id: int = artist_image_ids.get(name, image_id)
+
+            artist = RockitArtistRow(name=name, image_id=artist_image_id)
             session.add(artist)
             await session.flush()
 
@@ -452,8 +505,13 @@ class RockitAccess:
         image_id: int,
         duration_ms: int,
         file_path: str,
+        artist_image_ids: dict[str, int],
     ) -> AResult[RockitVideoRow]:
-        """Create a new video in core.media and rockit.video."""
+        """Create a new video in core.media and rockit.video.
+
+        artist_image_ids maps each new artist name to the dedicated image row to
+        use when creating it, so artists never share the media image row.
+        """
 
         try:
             core_media: CoreMediaRow = CoreMediaRow(
@@ -478,6 +536,7 @@ class RockitAccess:
                 session=session,
                 artist_names=artist_names,
                 image_id=image_id,
+                artist_image_ids=artist_image_ids,
                 target=video,
             )
             if a_result_artists.is_not_ok():

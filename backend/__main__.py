@@ -155,8 +155,8 @@ async def main() -> None:
     from backend.core.access.db import rockit_db
     from backend.core import add_initial_content_async
 
-    # Only init DB for commands that need it
-    needs_db: bool = command_to_run not in ("", "models")
+    # Only init DB for commands that need it.
+    needs_db: bool = not command_to_run in ["models"]
     if needs_db:
         try:
             await rockit_db.async_init()
@@ -262,6 +262,84 @@ async def main() -> None:
                         logger.error(f"Error deleting {rel_path}: {e}")
 
                 logger.info(f"Deleted {deleted_count} files")
+
+            elif command == "fix-images":
+                import requests as req
+
+                from backend.core.access.imageAccess import ImageAccess
+                from backend.constants import IMAGES_PATH
+
+                async with rockit_db.session_scope_async() as session:
+                    a_result = await ImageAccess.get_all_images_async(session=session)
+                    if a_result.is_not_ok():
+                        logger.error(f"Error getting images: {a_result.message()}")
+                        continue
+
+                    images = a_result.result()
+                    logger.info(f"Found {len(images)} images in database")
+
+                    missing_count = 0
+                    fixed_count = 0
+                    error_count = 0
+                    skipped_count = 0
+
+                    for image in images:
+                        if image.path.startswith("/"):
+                            logger.error(
+                                f"Image path ({image.path}) starts with /, modify it in database."
+                            )
+                            error_count += 1
+                            continue
+
+                        full_path = os.path.join(IMAGES_PATH, image.path)
+                        if os.path.exists(full_path):
+                            continue
+
+                        missing_count += 1
+                        if not image.url:
+                            logger.warning(
+                                f"Image {image.path} is missing and has no url to re-download"
+                            )
+                            skipped_count += 1
+                            continue
+
+                        try:
+                            response = req.get(image.url, timeout=30)
+                            if response.status_code != 200:
+                                logger.error(
+                                    f"Download failed for {image.path}: "
+                                    f"status {response.status_code}"
+                                )
+                                error_count += 1
+                                continue
+
+                            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                            with open(full_path, "wb") as f:
+                                f.write(response.content)
+
+                            if not image.dominant_color:
+                                from backend.utils.colorExtractor import (
+                                    extract_dominant_color,
+                                )
+
+                                color = await extract_dominant_color(full_path)
+                                if color is not None:
+                                    image.dominant_color = color
+                                    await session.flush()
+
+                            await session.commit()
+                            logger.info(
+                                f"Downloaded missing image: {image.path}, full path {full_path}, url {image.url}"
+                            )
+                            fixed_count += 1
+                        except Exception as e:
+                            logger.error(f"Error fixing image {image.path}: {e}")
+                            error_count += 1
+
+                    logger.info(
+                        f"Fixed {fixed_count} images, "
+                        f"skipped {skipped_count} (no url), {error_count} errors"
+                    )
 
             elif command == "update-video-durations":
                 from backend.constants import MEDIA_PATH

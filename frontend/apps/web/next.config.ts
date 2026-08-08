@@ -61,6 +61,11 @@ const nextConfig: NextConfig = {
                 hostname: "api-beta-rockit.rockhosting.org",
                 pathname: "/media/image/**",
             },
+            {
+                protocol: "https",
+                hostname: "api-rockit.rockhosting.org",
+                pathname: "/media/image/**",
+            },
         ],
     },
     allowedDevOrigins: ["ignaciodev"],

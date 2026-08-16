@@ -16,13 +16,13 @@ export default function OfflinePage(): JSX.Element {
             <h1 className="mb-2 text-2xl font-bold">Sin conexion</h1>
             <p className="mb-6 max-w-sm text-neutral-400">
                 No hay conexion a internet. Puedes seguir escuchando tu musica
-                descargada.
+                descargada desde tu biblioteca.
             </p>
             <Link
-                href="/"
+                href="/library"
                 className="rounded-full bg-[var(--rockit-pink,#ee1086)] px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-80"
             >
-                Ir al inicio
+                Ir a mi biblioteca
             </Link>
         </div>
     );

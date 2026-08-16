@@ -2,7 +2,11 @@
 
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { BaseArtistResponse } from "@/dto";
-import { EMediaType, TMedia } from "@rockit/packages/shared";
+import {
+    EMediaType,
+    TListMedia,
+    TMedia,
+} from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
 import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/mediaRemovedFromPlaylist";
@@ -18,6 +22,7 @@ export default function RenderListClient({
     type,
     image,
     media: initialMedia,
+    listMedia,
     showMediaIndex,
     showMediaImage,
     expandedByMediaId,
@@ -29,6 +34,7 @@ export default function RenderListClient({
     artists: BaseArtistResponse[];
     image: string;
     media: TMedia[];
+    listMedia: TListMedia;
     showMediaIndex: boolean;
     showMediaImage: boolean;
     expandedByMediaId?: Record<string, boolean>;
@@ -114,6 +120,7 @@ export default function RenderListClient({
                 artists={artists}
                 image={image}
                 media={media}
+                listMedia={listMedia}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
                 listPublicId={publicId}

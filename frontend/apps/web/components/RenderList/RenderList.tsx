@@ -4,11 +4,17 @@ import { useCallback, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { Play } from "lucide-react";
-import { getAllPlayableMedia, isQueueable, TMedia } from "@/models/types/media";
+import { EMediaContextLocation } from "@rockit/shared";
+import { MoreHorizontal, Play } from "lucide-react";
+import {
+    getAllPlayableMedia,
+    isQueueable,
+    TListMedia,
+    TMedia,
+} from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
-import ListOptionsMenu from "@/components/RenderList/ListOptionsMenu";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { Media } from "@/components/RenderList/Media";
 
 export default function RenderList({
@@ -16,6 +22,7 @@ export default function RenderList({
     artists,
     image,
     media,
+    listMedia,
     showMediaIndex,
     showMediaImage,
     listPublicId,
@@ -26,6 +33,7 @@ export default function RenderList({
     artists: BaseArtistResponse[];
     image: string;
     media: TMedia[];
+    listMedia: TListMedia;
     showMediaIndex: boolean;
     showMediaImage: boolean;
     listPublicId?: string;
@@ -89,11 +97,19 @@ export default function RenderList({
                             {title}
                         </h1>
                         <div className="absolute top-1/2 right-0 -translate-y-1/2">
-                            <ListOptionsMenu
-                                media={media}
-                                listPublicId={listPublicId}
-                                title={title}
-                            />
+                            <MediaContextMenu
+                                media={listMedia}
+                                location={EMediaContextLocation.PLAYLIST}
+                                openOnLeftClick
+                            >
+                                <button
+                                    type="button"
+                                    aria-label="More options"
+                                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+                                >
+                                    <MoreHorizontal className="h-5 w-5" />
+                                </button>
+                            </MediaContextMenu>
                         </div>
                     </div>
                     <Artists

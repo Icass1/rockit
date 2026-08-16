@@ -25,6 +25,7 @@ import AddToPlaylistAction, {
     AddToPlaylistAndDownloadAction,
 } from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteMediaFileAction from "@/components/MediaContextMenu/actions/DeleteAction";
+import DownloadListAction from "@/components/MediaContextMenu/actions/DownloadListAction";
 import {
     DownloadAction,
     DownloadSearchResultAction,
@@ -79,6 +80,7 @@ const actionComponents: Partial<
         DownloadSearchResultAndPlayAction,
     [EMediaContextAction.RetryDownload]: RetryDownloadAction,
     [EMediaContextAction.DownloadZip]: DownloadZipAction,
+    [EMediaContextAction.DownloadList]: DownloadListAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
     [EMediaContextAction.AddToPlaylistAndDownload]:

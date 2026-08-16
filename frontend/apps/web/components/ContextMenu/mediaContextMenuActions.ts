@@ -7,6 +7,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import {
     CloudDownload,
+    Download,
     ExternalLink,
     HardDriveDownload,
     Library,
@@ -147,6 +148,15 @@ const ACTION_REGISTRY: ActionDef[] = [
         icon: HardDriveDownload,
         labelKey: "DOWNLOAD_ZIP",
         mediaTypes: [EMediaType.Album],
+        condition: (m) => !isSearchResult(m),
+    },
+    {
+        id: EMediaContextAction.DownloadList,
+        type: "action",
+        icon: Download,
+        labelKey: "DOWNLOAD_LIST_TO_SERVER",
+        mediaTypes: [EMediaType.Album, EMediaType.Playlist],
+        locations: [EMediaContextLocation.PLAYLIST],
         condition: (m) => !isSearchResult(m),
     },
     {
@@ -375,6 +385,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddToQueueBottom,
         "---",
         EMediaContextAction.DownloadZip,
+        EMediaContextAction.DownloadList,
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Playlist]: [
@@ -388,6 +399,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddToQueueTop,
         EMediaContextAction.AddQueueRandom,
         EMediaContextAction.AddToQueueBottom,
+        EMediaContextAction.DownloadList,
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Artist]: [

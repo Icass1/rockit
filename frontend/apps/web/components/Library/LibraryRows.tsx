@@ -85,7 +85,7 @@ export function AlbumRow({
             <Link
                 prefetch={false}
                 href={album.url}
-                className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
+                className="flex items-center gap-3 rounded-md px-2 py-2 select-none transition-colors [-webkit-touch-callout:none] hover:bg-neutral-800"
             >
                 <SquareCover
                     src={album.imageUrl ?? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL}
@@ -122,7 +122,7 @@ export function PlaylistRow({
             <Link
                 prefetch={false}
                 href={playlist.url}
-                className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
+                className="flex items-center gap-3 rounded-md px-2 py-2 select-none transition-colors [-webkit-touch-callout:none] hover:bg-neutral-800"
             >
                 <SquareCover
                     src={

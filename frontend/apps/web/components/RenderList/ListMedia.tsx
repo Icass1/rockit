@@ -78,7 +78,7 @@ export function ListMedia({
                         <Link
                             prefetch={false}
                             href={$media.url}
-                            className="flex w-fit min-w-0 flex-1 flex-col hover:underline"
+                            className="flex w-fit min-w-0 flex-1 flex-col select-none [-webkit-touch-callout:none] hover:underline"
                         >
                             <p className="w-fit truncate font-medium text-white">
                                 {$media.name}

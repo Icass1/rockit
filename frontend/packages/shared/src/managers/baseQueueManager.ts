@@ -364,14 +364,17 @@ export class BaseQueueManager {
             this._currentMediaAtom.set(media.media);
             this._currentListAtom.set(media.listPublicId ?? undefined);
         } else {
+            const queue = this.queue;
+            if (queue.length === 0) return;
+
             if (getRockIt().userManager.queueType === EQueueType.RANDOM) {
-                this.setQueueMediaId(
-                    Math.floor(Math.random() * this.queue.length)
-                );
+                const randomItem =
+                    queue[Math.floor(Math.random() * queue.length)];
+                this.setQueueMediaId(randomItem.queueMediaId);
             } else if (
                 getRockIt().userManager.queueType === EQueueType.SORTED
             ) {
-                this.setQueueMediaId(0);
+                this.setQueueMediaId(queue[0].queueMediaId);
             } else {
                 throw `Unkown queue type ${getRockIt().userManager.queueType}`;
             }
@@ -509,9 +512,6 @@ export class BaseQueueManager {
 
         if (medias.length === 0) return;
 
-        this.setMedia(medias.filter(isQueueable), media.publicId);
-        this.setQueueMediaId(0);
-        getRockIt().mediaPlayerManager.play();
         this.setMedia(medias.filter(isQueueable), media.publicId);
         this.setQueueMediaId(0);
         getRockIt().mediaPlayerManager.play();

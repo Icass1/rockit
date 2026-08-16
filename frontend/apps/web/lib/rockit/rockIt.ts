@@ -64,12 +64,14 @@ export class RockIt {
     async init(): Promise<void> {
         console.log("RockIt! int");
         rockIt.mediaPlayerManager.init();
-        rockIt.queueManager.init();
-        rockIt.userManager.init();
-        rockIt.downloaderManager.init();
-        rockIt.bookmarkManager.init();
+        await rockIt.userManager.init();
+        await rockIt.queueManager.init();
+        await Promise.all([
+            rockIt.downloaderManager.init(),
+            rockIt.bookmarkManager.init(),
+            rockIt.playlistManager.init(),
+        ]);
         rockIt.libraryManager.init();
-        rockIt.playlistManager.init();
         rockIt.mediaSessionManager.init();
 
         cleanupLegacyIndexedDB();

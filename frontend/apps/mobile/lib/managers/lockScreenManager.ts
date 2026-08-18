@@ -14,6 +14,12 @@ import {
     type AutoQueueItem,
 } from "@/lib/audio/NativeMediaBridge";
 
+// NativeMediaBridge expects durations in milliseconds; getMediaDuration()
+// returns seconds, so every value crossing that bridge must be converted.
+function toDurationMs(seconds: number | undefined): number {
+    return Math.round((seconds ?? 0) * 1000);
+}
+
 function lockScreenMetadata(media: TPlayableMedia): LockScreenMetadata {
     return {
         title: media.name,
@@ -72,6 +78,7 @@ export class LockScreenManager {
             onBluetoothDisconnected: () => {},
             onAutoPlay: () => player.play(),
             onAutoPause: () => player.pause(),
+            onAutoStop: () => player.pause(),
             onAutoNext: () => queue.skipForward(),
             onAutoPrevious: () => queue.skipBack(),
             onAutoSeekTo: (seconds) => player.setCurrentTime(seconds, true),
@@ -81,6 +88,16 @@ export class LockScreenManager {
                     queue.setQueueMediaId(item.queueMediaId);
                     player.play();
                 }
+            },
+            // Best-effort recovery for a Bluetooth car stereo that silently
+            // drops the A2DP audio stream mid-track (song keeps advancing,
+            // no sound) without a full profile disconnect. A quick
+            // pause/resume forces expo-audio to re-engage the audio route;
+            // it's a no-op audible blip if the route was actually fine.
+            onAudioRouteChanged: () => {
+                if (!player.playingAtom.get()) return;
+                player.pause();
+                setTimeout(() => player.play(), 300);
             },
         });
 
@@ -100,7 +117,7 @@ export class LockScreenManager {
                         .join(", "),
                     getMediaSubtitle(media),
                     media.imageUrl,
-                    getMediaDuration(media)
+                    toDurationMs(getMediaDuration(media))
                 );
             } else {
                 AudioIntegrationService.setLockScreenActive(false);
@@ -118,7 +135,20 @@ export class LockScreenManager {
             );
         };
         player.playingAtom.subscribe(pushPlaybackState);
-        player.currentTimeAtom.subscribe(pushPlaybackState);
+
+        // currentTimeAtom ticks ~4x/sec (see mediaPlayerManager's
+        // updateInterval); pushing every tick rebuilds the Android
+        // notification + queue that often, which is unnecessary churn — the
+        // OS extrapolates position between updates, so once a second is
+        // plenty and cuts down on background binder/notification load.
+        const POSITION_PUSH_INTERVAL_MS = 1000;
+        let lastPositionPushAt = 0;
+        player.currentTimeAtom.subscribe(() => {
+            const now = Date.now();
+            if (now - lastPositionPushAt < POSITION_PUSH_INTERVAL_MS) return;
+            lastPositionPushAt = now;
+            pushPlaybackState();
+        });
 
         // Queue → Android Auto browsable queue
         queue.queueAtom.subscribe((): void => {
@@ -130,7 +160,7 @@ export class LockScreenManager {
                     .join(", "),
                 album: getMediaSubtitle(item.media),
                 artworkUrl: item.media.imageUrl,
-                duration: getMediaDuration(item.media) ?? 0,
+                duration: toDurationMs(getMediaDuration(item.media)),
             }));
             const currentIndex = queue.queue.findIndex(
                 (item) => item.queueMediaId === queue.currentQueueMediaId

@@ -5,6 +5,7 @@ import { DeviceEventEmitter, NativeModules, Platform } from "react-native";
 export type AutoCommand =
     | "play"
     | "pause"
+    | "stop"
     | "next"
     | "previous"
     | "seekTo"
@@ -15,10 +16,19 @@ interface NativeMediaBridgeCallbacks {
     onBluetoothDisconnected: () => void;
     onAutoPlay: () => void;
     onAutoPause: () => void;
+    // Fired by the notification's Stop action (or the OS media Stop
+    // transport control). The native side already tears down the
+    // foreground service/notification itself — this just keeps the
+    // in-app player state in sync.
+    onAutoStop: () => void;
     onAutoNext: () => void;
     onAutoPrevious: () => void;
     onAutoSeekTo: (seconds: number) => void;
     onAutoSkipToIndex: (index: number) => void;
+    // Fired when the native side sees the Bluetooth output device get
+    // re-added while media is playing — a possible silent A2DP route drop
+    // recovering on its own (see RockItAutoMediaService.kt).
+    onAudioRouteChanged: () => void;
 }
 
 export interface AutoQueueItem {
@@ -55,6 +65,8 @@ class NativeMediaBridgeClass {
                             return this.callbacks?.onAutoPlay();
                         case "pause":
                             return this.callbacks?.onAutoPause();
+                        case "stop":
+                            return this.callbacks?.onAutoStop();
                         case "next":
                             return this.callbacks?.onAutoNext();
                         case "previous":
@@ -69,6 +81,9 @@ class NativeMediaBridgeClass {
             DeviceEventEmitter.addListener(
                 "autoCommandData_skipToIndex",
                 (index: number) => this.callbacks?.onAutoSkipToIndex(index)
+            ),
+            DeviceEventEmitter.addListener("audioRouteChanged", () =>
+                this.callbacks?.onAudioRouteChanged()
             )
         );
     }

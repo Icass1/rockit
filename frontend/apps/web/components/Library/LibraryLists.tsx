@@ -407,7 +407,7 @@ export function LibraryLists({
             <div className="scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent mb-4 flex gap-4 overflow-x-auto px-4 py-2 pb-2">
                 <Link
                     href="/playlist/liked"
-                    className="w-40 flex-none select-none transition duration-75 [-webkit-touch-callout:none] md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -430,7 +430,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/most-listened"
-                    className="w-40 flex-none select-none transition duration-75 [-webkit-touch-callout:none] md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -450,7 +450,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/recent-mix"
-                    className="w-40 flex-none select-none transition duration-75 [-webkit-touch-callout:none] md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -470,7 +470,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/year-recap"
-                    className="w-40 flex-none select-none transition duration-75 [-webkit-touch-callout:none] md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -503,7 +503,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/last-month"
-                    className="w-40 flex-none select-none transition duration-75 [-webkit-touch-callout:none] md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -524,7 +524,7 @@ export function LibraryLists({
                     <Link
                         key={album.publicId}
                         href={album.href}
-                        className="w-40 flex-none select-none transition duration-75 [-webkit-touch-callout:none] md:hover:scale-105"
+                        className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                     >
                         <Image
                             alt={album.name}

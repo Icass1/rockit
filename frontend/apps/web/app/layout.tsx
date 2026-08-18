@@ -5,8 +5,8 @@ import "@/styles/globals.css";
 import "@/styles/tokens/colors.css";
 import { JSX } from "react";
 import type { Metadata, Viewport } from "next";
-import { SerwistProvider } from "@serwist/turbopack/react";
 import { SITE_URL } from "@/environment";
+import { SerwistProvider } from "@serwist/turbopack/react";
 import ToasterProvider from "@/components/Toaster/ToasterProvider";
 
 const TITLE = "RockIt!";

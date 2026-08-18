@@ -2,6 +2,19 @@
    components.css — Utilidades y estilos de componentes globales
    ───────────────────────────────────────────── */
 
+/* ── Imágenes: sin callout de iOS / sin arrastre ──
+   Al mantener pulsado una cover en iOS, evita que Safari
+   muestre su callout (guardar imagen / vista previa del link)
+   y deje el menú contextual de la app abrirse en su lugar.
+   También evita seleccionar/arrastrar la imagen.
+   ───────────────────────────────────────────── */
+img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
 /* ── Scrollbar global ─────────────────────────
    Mobile: oculto (0px) para no consumir espacio táctil.
    Desktop (≥768px): 7px, sutil y consistente.

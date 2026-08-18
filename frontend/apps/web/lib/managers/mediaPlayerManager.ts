@@ -81,9 +81,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         return kind === "video" ? this._video : this._audio;
     }
 
-    protected override loadNativeSource(kind: TMediaKind, uri: string): void {
+    protected override loadNativeSource(
+        kind: TMediaKind,
+        uri: string
+    ): Promise<void> {
         const el = this._el(kind);
-        if (!el) return;
+        if (!el) return Promise.resolve();
 
         if (kind === "video" && this._video && !this._video.isConnected) {
             const root = document.getElementById("rockit-video-root");
@@ -94,8 +97,21 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             }
         }
 
-        el.src = uri;
-        el.currentTime = 0;
+        return new Promise<void>((resolve): void => {
+            const onReady = (): void => {
+                el.removeEventListener("loadeddata", onReady);
+                el.removeEventListener("error", onError);
+                resolve();
+            };
+            const onError = (): void => {
+                el.removeEventListener("loadeddata", onReady);
+                el.removeEventListener("error", onError);
+                resolve();
+            };
+            el.addEventListener("loadeddata", onReady, { once: false });
+            el.addEventListener("error", onError, { once: false });
+            el.src = uri;
+        });
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {

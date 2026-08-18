@@ -2,5 +2,6 @@
     "typeCheckingMode": "strict",
     "venvPath": ".",
     "venv": "venv",
-    "analyzeUnannotatedFunctions": true
+    "analyzeUnannotatedFunctions": true,
+    "stubPath": "typings"
 }

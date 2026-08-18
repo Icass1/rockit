@@ -78,7 +78,7 @@ function LibraryCard({
     children,
 }: LibraryCardProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const linkClass = `library-item relative flex flex-col transition-transform md:hover:scale-105 ${className}`;
+    const linkClass = `library-item relative flex flex-col select-none transition-transform [-webkit-touch-callout:none] md:hover:scale-105 ${className}`;
     const isVideo = aspectRatio === "video";
     const [cardImgSrc, setCardImgSrc] = useState(
         imageUrl || "/radio-placeholder.png"

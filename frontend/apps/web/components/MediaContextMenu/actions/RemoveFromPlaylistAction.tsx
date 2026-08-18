@@ -9,7 +9,9 @@ export default function RemoveFromPlaylistAction({
     media,
     vocabulary,
     listPublicId,
-}: ActionComponentProps): JSX.Element {
+}: ActionComponentProps): JSX.Element | null {
+    if (!listPublicId) return null;
+
     const removeFromPlaylist = async (): Promise<void> => {
         if (!isSearchResult(media) && listPublicId) {
             const res =

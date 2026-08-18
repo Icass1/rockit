@@ -1,16 +1,22 @@
-import type { SessionResponse, VocabularyResponse } from "@/dto";
+import type {
+    LibraryMediasResponse,
+    SessionResponse,
+    VocabularyResponse,
+} from "@/dto";
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+
+interface OfflineSongRecord {
+    publicId: string;
+    audioBlob: Blob;
+    coverBlob: Blob | null;
+    downloadedAt: number;
+    sizeBytes: number;
+}
 
 interface RockItOfflineDB extends DBSchema {
     songs: {
         key: string;
-        value: {
-            publicId: string;
-            audioBlob: Blob;
-            coverBlob: Blob | null;
-            downloadedAt: number;
-            sizeBytes: number;
-        };
+        value: OfflineSongRecord;
     };
     session: {
         key: string;
@@ -20,10 +26,14 @@ interface RockItOfflineDB extends DBSchema {
         key: string;
         value: { data: VocabularyResponse; savedAt: number };
     };
+    library: {
+        key: string;
+        value: { data: LibraryMediasResponse; savedAt: number };
+    };
 }
 
 const DB_NAME = "rockit-offline-media";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 let dbPromise: Promise<IDBPDatabase<RockItOfflineDB>> | null = null;
 
 function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
@@ -38,6 +48,9 @@ function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
                 }
                 if (!db.objectStoreNames.contains("vocabulary")) {
                     db.createObjectStore("vocabulary");
+                }
+                if (!db.objectStoreNames.contains("library")) {
+                    db.createObjectStore("library");
                 }
             },
         });
@@ -84,7 +97,9 @@ export async function saveSongOffline(
     }
 }
 
-export async function getOfflineSong(publicId: string) {
+export async function getOfflineSong(
+    publicId: string
+): Promise<OfflineSongRecord | undefined> {
     const db = await getDB();
     return db.get("songs", publicId);
 }
@@ -143,5 +158,22 @@ export async function saveVocabularyOffline(
 export async function loadVocabularyOffline(): Promise<VocabularyResponse | null> {
     const db = await getDB();
     const record = await db.get("vocabulary", OFFLINE_CACHE_KEY);
+    return record?.data ?? null;
+}
+
+export async function saveLibraryOffline(
+    library: LibraryMediasResponse
+): Promise<void> {
+    const db = await getDB();
+    await db.put(
+        "library",
+        { data: library, savedAt: Date.now() },
+        OFFLINE_CACHE_KEY
+    );
+}
+
+export async function loadLibraryOffline(): Promise<LibraryMediasResponse | null> {
+    const db = await getDB();
+    const record = await db.get("library", OFFLINE_CACHE_KEY);
     return record?.data ?? null;
 }

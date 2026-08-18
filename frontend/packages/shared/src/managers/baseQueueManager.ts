@@ -698,6 +698,20 @@ export class BaseQueueManager {
         this.updateQueue();
     }
 
+    peekNextQueueItem(): QueueMediaItem | undefined {
+        const currentQueueMediaId = this.currentQueueMediaId;
+        const queue = this.queue;
+        if (queue.length === 0) return undefined;
+
+        const currentIndex = queue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+        if (currentIndex === -1) return queue[0];
+
+        const nextIndex = (currentIndex + 1) % queue.length;
+        return queue[nextIndex];
+    }
+
     // #endregion: Methods
 
     // #region: Getters

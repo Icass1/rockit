@@ -2,11 +2,15 @@ import {
     BaseMediaPlayerManager,
     getMediaAudioUrl,
     getMediaVideoUrl,
+    getRockIt,
     isSong,
+    isVideo,
     type TMediaKind,
     type TPlayableMedia,
 } from "@rockit/shared";
 import { resolveOfflineAudioUrl } from "@/lib/offline/store";
+
+let _visibilityBound = false;
 
 /**
  * Web media player: implements the shared BaseMediaPlayerManager primitives
@@ -19,6 +23,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _audio?: HTMLAudioElement;
     private _video?: HTMLVideoElement;
     private _videoContainer?: HTMLDivElement;
+    private _preloadAudio?: HTMLAudioElement;
+    private _preloadedUri?: string;
+    private _preloadedForQueueMediaId?: number;
 
     constructor() {
         super();
@@ -54,6 +61,18 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.onended = this.onNativeEnded;
         this._video.onerror = (e): void => this.onNativeError(e);
 
+        this._preloadAudio = new Audio();
+        this._preloadAudio.preload = "auto";
+        this._preloadAudio.muted = true;
+        this._preloadAudio.volume = 0;
+
+        if (typeof document !== "undefined" && !_visibilityBound) {
+            _visibilityBound = true;
+            document.addEventListener("visibilitychange", (): void => {
+                if (!document.hidden) void this.preloadNextTrack();
+            });
+        }
+
         MediaPlayerManager.#instance = this;
 
         return MediaPlayerManager.#instance;
@@ -81,12 +100,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         return kind === "video" ? this._video : this._audio;
     }
 
-    protected override loadNativeSource(
-        kind: TMediaKind,
-        uri: string
-    ): Promise<void> {
+    protected override loadNativeSource(kind: TMediaKind, uri: string): void {
         const el = this._el(kind);
-        if (!el) return Promise.resolve();
+        if (!el) return;
 
         if (kind === "video" && this._video && !this._video.isConnected) {
             const root = document.getElementById("rockit-video-root");
@@ -97,21 +113,21 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             }
         }
 
-        return new Promise<void>((resolve): void => {
-            const onReady = (): void => {
-                el.removeEventListener("loadeddata", onReady);
-                el.removeEventListener("error", onError);
-                resolve();
-            };
-            const onError = (): void => {
-                el.removeEventListener("loadeddata", onReady);
-                el.removeEventListener("error", onError);
-                resolve();
-            };
-            el.addEventListener("loadeddata", onReady, { once: false });
-            el.addEventListener("error", onError, { once: false });
+        if (
+            kind === "audio" &&
+            this._preloadAudio &&
+            this._preloadedUri === uri &&
+            this._preloadAudio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+        ) {
+            this._preloadAudio.removeAttribute("src");
             el.src = uri;
-        });
+            this._preloadedUri = undefined;
+            this._preloadedForQueueMediaId = undefined;
+            return;
+        }
+
+        el.src = uri;
+        el.load();
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {
@@ -166,6 +182,32 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     protected override isNativePaused(kind: TMediaKind): boolean {
         return this._el(kind)?.paused ?? true;
+    }
+
+    protected override _onPlayingStarted(): void {
+        if (typeof document !== "undefined" && document.hidden) return;
+        void this.preloadNextTrack();
+    }
+
+    async preloadNextTrack(): Promise<void> {
+        const next = getRockIt().queueManager.peekNextQueueItem();
+        if (!next || !this._preloadAudio) return;
+        if (!isSong(next.media) && !isVideo(next.media)) return;
+
+        if (this._preloadedForQueueMediaId === next.queueMediaId) return;
+
+        let uri: string | undefined;
+        if (isSong(next.media)) {
+            const offline = await resolveOfflineAudioUrl(next.media.publicId);
+            if (offline) uri = offline;
+        }
+        if (!uri) uri = getMediaAudioUrl(next.media);
+        if (!uri) return;
+
+        this._preloadAudio.src = uri;
+        this._preloadAudio.load();
+        this._preloadedUri = uri;
+        this._preloadedForQueueMediaId = next.queueMediaId;
     }
 
     private _retryPlayOnGesture(kind: TMediaKind): void {

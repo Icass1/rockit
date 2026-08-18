@@ -25,6 +25,7 @@ export class MediaSessionManager {
     private _keepaliveCtx?: AudioContext;
     private _keepaliveOsc?: OscillatorNode;
     private _keepaliveGain?: GainNode;
+    private _keepaliveAudio?: HTMLAudioElement;
     private _unsubscribers: (() => void)[] = [];
 
     private static _isiOS(): boolean {
@@ -60,6 +61,7 @@ export class MediaSessionManager {
             if (MediaSessionManager._needsOscillatorKeepalive()) {
                 this._startKeepalive();
             }
+            this._startAudioKeepalive();
             this._unlockAudioElements();
             this._unlockVideoElement();
         }
@@ -69,6 +71,7 @@ export class MediaSessionManager {
         this._unsubscribers.forEach((fn): void => fn());
         this._unsubscribers = [];
         this._stopKeepalive();
+        this._stopAudioKeepalive();
 
         if (this._supported) {
             for (const action of ACTION_HANDLERS) {
@@ -140,6 +143,30 @@ export class MediaSessionManager {
         this._keepaliveOsc = undefined;
         this._keepaliveGain = undefined;
         this._keepaliveCtx = undefined;
+    }
+
+    // ── Silent audio keepalive (iOS background track transitions) ────────
+
+    private _startAudioKeepalive(): void {
+        if (this._keepaliveAudio) return;
+
+        const el = new Audio();
+        el.loop = true;
+        el.muted = true;
+        el.volume = 0;
+        el.src = SILENT_WAV;
+        el.play().catch((): void => {
+            /* ignore */
+        });
+        this._keepaliveAudio = el;
+    }
+
+    private _stopAudioKeepalive(): void {
+        if (!this._keepaliveAudio) return;
+        this._keepaliveAudio.pause();
+        this._keepaliveAudio.removeAttribute("src");
+        this._keepaliveAudio.load();
+        this._keepaliveAudio = undefined;
     }
 
     // ── Silent WAV unlock trick ────────────────────────────────────────

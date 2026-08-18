@@ -2,11 +2,7 @@
 
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { BaseArtistResponse } from "@/dto";
-import {
-    EMediaType,
-    TListMedia,
-    TMedia,
-} from "@rockit/packages/shared";
+import { EMediaType, TListMedia, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
 import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/mediaRemovedFromPlaylist";

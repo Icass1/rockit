@@ -135,8 +135,11 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
         el.pause();
         el.currentTime = 0;
+        const hadContent =
+            el.hasAttribute("src") || el.srcObject !== null;
         el.removeAttribute("src");
-        el.load();
+        el.srcObject = null;
+        if (hadContent) el.load();
     }
 
     protected override playNative(kind: TMediaKind): void {

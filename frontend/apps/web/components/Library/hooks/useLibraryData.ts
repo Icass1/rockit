@@ -164,9 +164,11 @@ export function useLibraryData({
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
-    const { data: _libraryData, loading, error } = useFetch(
-        Http.getUserLibraryMedias
-    );
+    const {
+        data: _libraryData,
+        loading,
+        error,
+    } = useFetch(Http.getUserLibraryMedias);
 
     const initialData = _libraryData ? extractItems(_libraryData) : undefined;
 

@@ -126,7 +126,7 @@ export default function PlayerUIQueue({
                         onDragLeave={handleDragLeave}
                         onDrop={(e): void => handleDrop(e, index)}
                         onDragEnd={handleDragLeave}
-                        className={`select-none border-t-2 [-webkit-touch-callout:none] ${
+                        className={`border-t-2 select-none [-webkit-touch-callout:none] ${
                             dragOverIndex === index
                                 ? "border-(--color-rockit-pink)"
                                 : "border-transparent"

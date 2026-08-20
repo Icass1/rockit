@@ -25,7 +25,6 @@ import AddToPlaylistAction, {
     AddToPlaylistAndDownloadAction,
 } from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
 import DeleteMediaFileAction from "@/components/MediaContextMenu/actions/DeleteAction";
-import DownloadListAction from "@/components/MediaContextMenu/actions/DownloadListAction";
 import {
     DownloadAction,
     DownloadSearchResultAction,
@@ -34,6 +33,7 @@ import {
     DownloadZipAction,
     RetryDownloadAction,
 } from "@/components/MediaContextMenu/actions/DownloadActions";
+import DownloadListAction from "@/components/MediaContextMenu/actions/DownloadListAction";
 import EditMetadataAction from "@/components/MediaContextMenu/actions/EditMetadataAction";
 import {
     AddToLibraryAction,

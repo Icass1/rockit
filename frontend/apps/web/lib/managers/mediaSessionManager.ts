@@ -48,6 +48,16 @@ export class MediaSessionManager {
         if (!this._supported) return;
         this._registerActionHandlers();
         this._subscribeToChanges();
+
+        if (typeof document !== "undefined") {
+            document.addEventListener(
+                "visibilitychange",
+                (): void => {
+                    if (document.hidden) return;
+                    this._recoverKeepaliveOnVisible();
+                }
+            );
+        }
     }
 
     /** Call inside the FIRST user gesture (click/touchend).
@@ -167,6 +177,19 @@ export class MediaSessionManager {
         this._keepaliveAudio.removeAttribute("src");
         this._keepaliveAudio.load();
         this._keepaliveAudio = undefined;
+    }
+
+    private async _recoverKeepaliveOnVisible(): Promise<void> {
+        if (!this._keepaliveCtx) return;
+
+        if (this._keepaliveCtx.state === "running") return;
+
+        try {
+            await this._keepaliveCtx.resume();
+        } catch {
+            this._stopKeepalive();
+            this._startKeepalive();
+        }
     }
 
     // ── Silent WAV unlock trick ────────────────────────────────────────

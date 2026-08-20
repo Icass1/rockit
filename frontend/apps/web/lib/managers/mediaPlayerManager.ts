@@ -119,15 +119,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._preloadedUri === uri &&
             this._preloadAudio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
         ) {
-            this._preloadAudio.removeAttribute("src");
             el.src = uri;
             this._preloadedUri = undefined;
             this._preloadedForQueueMediaId = undefined;
+            this._preloadAudio.removeAttribute("src");
             return;
         }
 
         el.src = uri;
-        el.load();
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {

@@ -35,10 +35,6 @@ export class MediaSessionManager {
         );
     }
 
-    private static _needsOscillatorKeepalive(): boolean {
-        return !("audioSession" in navigator);
-    }
-
     constructor() {
         this._supported =
             typeof window !== "undefined" && "mediaSession" in navigator;
@@ -68,9 +64,7 @@ export class MediaSessionManager {
         this._setAudioSession();
 
         if (MediaSessionManager._isiOS()) {
-            if (MediaSessionManager._needsOscillatorKeepalive()) {
-                this._startKeepalive();
-            }
+            this._startKeepalive();
             this._startAudioKeepalive();
             this._unlockAudioElements();
             this._unlockVideoElement();
@@ -162,8 +156,8 @@ export class MediaSessionManager {
 
         const el = new Audio();
         el.loop = true;
-        el.muted = true;
-        el.volume = 0;
+        el.muted = false;
+        el.volume = 0.001;
         el.src = SILENT_WAV;
         el.play().catch((): void => {
             /* ignore */

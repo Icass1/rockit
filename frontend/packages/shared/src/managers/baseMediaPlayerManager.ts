@@ -165,17 +165,16 @@ export abstract class BaseMediaPlayerManager {
 
         if (typeof document !== "undefined") {
             document.addEventListener("visibilitychange", (): void => {
-                if (!document.hidden) return;
+                if (document.hidden) return;
+
                 const currentMedia =
                     getRockIt().queueManager.currentMedia;
                 if (
+                    this._playingAtom.get() &&
                     currentMedia &&
-                    isVideo(currentMedia) &&
-                    !this._audioOnlyAtom.get() &&
-                    this.canPlayAudioOnly(currentMedia) &&
-                    this._playingAtom.get()
+                    this.isNativePaused(this._effectiveKind(currentMedia))
                 ) {
-                    void this.setAudioOnly(true);
+                    this.play();
                 }
             });
         }

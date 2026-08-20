@@ -20,12 +20,21 @@ let _visibilityBound = false;
 export class MediaPlayerManager extends BaseMediaPlayerManager {
     static #instance: MediaPlayerManager;
 
+    private static _isiOS(): boolean {
+        return (
+            typeof navigator !== "undefined" &&
+            /iPad|iPhone|iPod/.test(navigator.userAgent ?? "")
+        );
+    }
+
     private _audio?: HTMLAudioElement;
     private _video?: HTMLVideoElement;
     private _videoContainer?: HTMLDivElement;
     private _preloadAudio?: HTMLAudioElement;
     private _preloadedUri?: string;
     private _preloadedForQueueMediaId?: number;
+    private _endedPollTimer?: ReturnType<typeof setInterval>;
+    private _lastEndedTime = 0;
 
     constructor() {
         super();
@@ -43,7 +52,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audio.onloadeddata = this.onNativeLoaded;
         this._audio.ontimeupdate = (): void =>
             this.onNativeTimeUpdate(this._audio?.currentTime ?? 0);
-        this._audio.onended = this.onNativeEnded;
+        this._audio.onended = (): void => {
+            const now = Date.now();
+            if (now - this._lastEndedTime < 500) return;
+            this._lastEndedTime = now;
+            this._stopEndedPoll();
+            this.onNativeEnded();
+        };
         this._audio.onerror = (e): void => this.onNativeError(e);
 
         this._video = document.createElement("video");
@@ -69,7 +84,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (typeof document !== "undefined" && !_visibilityBound) {
             _visibilityBound = true;
             document.addEventListener("visibilitychange", (): void => {
-                if (!document.hidden) void this.preloadNextTrack();
+                if (!document.hidden) {
+                    void this.preloadNextTrack();
+                    this._stopEndedPoll();
+                } else if (MediaPlayerManager._isiOS()) {
+                    this._startEndedPoll();
+                }
             });
         }
 
@@ -119,41 +139,55 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._preloadedUri === uri &&
             this._preloadAudio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
         ) {
-            this._preloadAudio.removeAttribute("src");
             el.src = uri;
             this._preloadedUri = undefined;
             this._preloadedForQueueMediaId = undefined;
+            this._preloadAudio.removeAttribute("src");
             return;
         }
 
         el.src = uri;
-        el.load();
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {
         const el = this._el(kind);
         if (!el) return;
 
+        if (kind === "audio") this._stopEndedPoll();
+
         el.pause();
         el.currentTime = 0;
+        const hadContent =
+            el.hasAttribute("src") || el.srcObject !== null;
         el.removeAttribute("src");
-        el.load();
+        el.srcObject = null;
+        if (hadContent) el.load();
     }
 
     protected override playNative(kind: TMediaKind): void {
         const el = this._el(kind);
         if (!el) return;
 
-        el.play().catch((err): void => {
-            console.warn(
-                `MediaPlayerManager: ${kind} play failed`,
-                err.name,
-                err.message
-            );
-            if (err.name === "NotAllowedError") {
-                this._retryPlayOnGesture(kind);
-            }
-        });
+        el.play()
+            .then((): void => {
+                if (
+                    kind === "audio" &&
+                    document.hidden &&
+                    MediaPlayerManager._isiOS()
+                ) {
+                    this._startEndedPoll();
+                }
+            })
+            .catch((err): void => {
+                console.warn(
+                    `MediaPlayerManager: ${kind} play failed`,
+                    err.name,
+                    err.message
+                );
+                if (err.name === "NotAllowedError") {
+                    this._retryPlayOnGesture(kind);
+                }
+            });
     }
 
     protected override pauseNative(kind: TMediaKind): void {
@@ -223,6 +257,30 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         };
         document.addEventListener("pointerup", handler, { once: true });
         document.addEventListener("keydown", handler, { once: true });
+    }
+
+    private _startEndedPoll(): void {
+        if (!MediaPlayerManager._isiOS() || this._endedPollTimer) return;
+
+        this._endedPollTimer = setInterval((): void => {
+            const el = this._audio;
+            if (!el || el.paused || !el.duration || isNaN(el.duration)) return;
+
+            if (el.currentTime >= el.duration - 0.3) {
+                const now = Date.now();
+                if (now - this._lastEndedTime < 500) return;
+                this._lastEndedTime = now;
+                this._stopEndedPoll();
+                this.onNativeEnded();
+            }
+        }, 1000);
+    }
+
+    private _stopEndedPoll(): void {
+        if (this._endedPollTimer) {
+            clearInterval(this._endedPollTimer);
+            this._endedPollTimer = undefined;
+        }
     }
 
     // ===== Web-only DOM helpers (consumed by the player UI / iOS unlock) =====

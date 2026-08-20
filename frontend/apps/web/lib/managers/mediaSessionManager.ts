@@ -35,10 +35,6 @@ export class MediaSessionManager {
         );
     }
 
-    private static _needsOscillatorKeepalive(): boolean {
-        return !("audioSession" in navigator);
-    }
-
     constructor() {
         this._supported =
             typeof window !== "undefined" && "mediaSession" in navigator;
@@ -48,6 +44,16 @@ export class MediaSessionManager {
         if (!this._supported) return;
         this._registerActionHandlers();
         this._subscribeToChanges();
+
+        if (typeof document !== "undefined") {
+            document.addEventListener(
+                "visibilitychange",
+                (): void => {
+                    if (document.hidden) return;
+                    this._recoverKeepaliveOnVisible();
+                }
+            );
+        }
     }
 
     /** Call inside the FIRST user gesture (click/touchend).
@@ -58,9 +64,7 @@ export class MediaSessionManager {
         this._setAudioSession();
 
         if (MediaSessionManager._isiOS()) {
-            if (MediaSessionManager._needsOscillatorKeepalive()) {
-                this._startKeepalive();
-            }
+            this._startKeepalive();
             this._startAudioKeepalive();
             this._unlockAudioElements();
             this._unlockVideoElement();
@@ -152,8 +156,8 @@ export class MediaSessionManager {
 
         const el = new Audio();
         el.loop = true;
-        el.muted = true;
-        el.volume = 0;
+        el.muted = false;
+        el.volume = 0.001;
         el.src = SILENT_WAV;
         el.play().catch((): void => {
             /* ignore */
@@ -167,6 +171,19 @@ export class MediaSessionManager {
         this._keepaliveAudio.removeAttribute("src");
         this._keepaliveAudio.load();
         this._keepaliveAudio = undefined;
+    }
+
+    private async _recoverKeepaliveOnVisible(): Promise<void> {
+        if (!this._keepaliveCtx) return;
+
+        if (this._keepaliveCtx.state === "running") return;
+
+        try {
+            await this._keepaliveCtx.resume();
+        } catch {
+            this._stopKeepalive();
+            this._startKeepalive();
+        }
     }
 
     // ── Silent WAV unlock trick ────────────────────────────────────────

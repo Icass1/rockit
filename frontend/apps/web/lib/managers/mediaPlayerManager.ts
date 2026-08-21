@@ -12,6 +12,14 @@ import { resolveOfflineAudioUrl } from "@/lib/offline/store";
 
 let _visibilityBound = false;
 
+/*
+ * Audio URLs already sent to the service worker cache this session.
+ * The warm-up is a plain full fetch (no Range header): the SW caches the
+ * 200 response, so later <audio> Range requests are served from cache —
+ * including when offline. See the "rockit-audio" route in app/sw.ts.
+ */
+const _warmedAudioUrls = new Set<string>();
+
 /**
  * Web media player: implements the shared BaseMediaPlayerManager primitives
  * against HTML <audio>/<video> elements. All playback/queue orchestration lives
@@ -100,6 +108,28 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     // ===== Offline URI resolution =====
 
+    /**
+     * Fire-and-forget full fetch so the service worker caches the complete
+     * audio file while the current one streams. Only full 200 responses are
+     * cacheable, which is why the warm-up must omit the Range header.
+     */
+    private _warmNetworkAudioCache(uri: string | undefined): void {
+        if (!uri || _warmedAudioUrls.has(uri)) return;
+
+        _warmedAudioUrls.add(uri);
+        // Media element requests carry cookies even when cross-origin;
+        // the warm-up must match them so both hit the same cache entry.
+        fetch(uri, { credentials: "include" })
+            .then((response): void => {
+                // Non-OK statuses (401/404/500...) must not count as warmed.
+                if (!response.ok) throw new Error(String(response.status));
+            })
+            .catch((): void => {
+                // Allow retrying on the next play if the warm-up failed.
+                _warmedAudioUrls.delete(uri);
+            });
+    }
+
     protected override async resolveMediaUriAsync(
         media: TPlayableMedia,
         kind: TMediaKind
@@ -107,6 +137,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (kind === "audio" && isSong(media)) {
             const offlineUrl = await resolveOfflineAudioUrl(media.publicId);
             if (offlineUrl) return offlineUrl;
+
+            const networkUri = getMediaAudioUrl(media);
+            this._warmNetworkAudioCache(networkUri);
+            return networkUri;
         }
 
         return kind === "video"

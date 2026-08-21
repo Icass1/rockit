@@ -142,6 +142,18 @@ export async function loadSessionOffline(): Promise<SessionResponse | null> {
 export async function clearSessionOffline(): Promise<void> {
     const db = await getDB();
     await db.delete("session", OFFLINE_CACHE_KEY);
+
+    // Service worker caches hold user-scoped API data keyed by URL only.
+    // Purge them on auth transitions so another account on this device
+    // can never be served the previous account's session, lists or
+    // private playlists. Audio and images are global content and stay.
+    if (typeof caches === "undefined") return;
+
+    await Promise.all(
+        ["rockit-session", "rockit-lists", "rockit-details"].map((cacheName) =>
+            caches.delete(cacheName)
+        )
+    );
 }
 
 export async function saveVocabularyOffline(

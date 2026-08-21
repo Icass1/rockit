@@ -117,10 +117,15 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (!uri || _warmedAudioUrls.has(uri)) return;
 
         _warmedAudioUrls.add(uri);
-        fetch(uri).catch((): void => {
-            // Allow retrying on the next play if the warm-up failed.
-            _warmedAudioUrls.delete(uri);
-        });
+        fetch(uri)
+            .then((response): void => {
+                // Non-OK statuses (401/404/500...) must not count as warmed.
+                if (!response.ok) throw new Error(String(response.status));
+            })
+            .catch((): void => {
+                // Allow retrying on the next play if the warm-up failed.
+                _warmedAudioUrls.delete(uri);
+            });
     }
 
     protected override async resolveMediaUriAsync(

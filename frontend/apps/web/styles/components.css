@@ -240,15 +240,16 @@ img {
 }
 
 /* ── Masonry grid (CSS columns) ────────────
-   Uses `column-width: 250px` for auto-fill behaviour:
-   as many 250px-wide columns as the container allows.
+   Mobile-first: `column-width: 160px` guarantees two columns
+   on phone-sized screens (~360px usable width) so albums fit
+   two per row. Desktop overrides to `250px` auto-fill.
    Items flow top→bottom, then left→right.
    Break-inside avoids content splitting across columns.
    Gaps: 12px horizontal, 16px vertical (mobile)
          16px horizontal, 20px vertical (desktop)
    ─────────────────────────────────────── */
 .masonry-grid {
-    column-width: 250px;
+    column-width: 160px;
     column-gap: 12px;
 }
 
@@ -259,6 +260,7 @@ img {
 
 @media (min-width: 768px) {
     .masonry-grid {
+        column-width: 250px;
         column-gap: 16px;
     }
 

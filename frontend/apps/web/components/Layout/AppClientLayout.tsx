@@ -30,6 +30,15 @@ export default function AppClientLayout({
     useEffect((): void => {
         rockIt.mediaManager.fetchLikedMedia();
 
+        /*
+         * Ask WebKit to keep our caches and IndexedDB out of LRU eviction
+         * under storage pressure. Granted heuristically for home screen
+         * web apps (iOS 17+); silently ignored elsewhere.
+         */
+        if (typeof navigator.storage?.persist === "function") {
+            navigator.storage.persist().catch(() => {});
+        }
+
         const hasVocab =
             vocabulary.vocabulary &&
             Object.keys(vocabulary.vocabulary).length > 0;

@@ -117,7 +117,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (!uri || _warmedAudioUrls.has(uri)) return;
 
         _warmedAudioUrls.add(uri);
-        fetch(uri)
+        // Media element requests carry cookies even when cross-origin;
+        // the warm-up must match them so both hit the same cache entry.
+        fetch(uri, { credentials: "include" })
             .then((response): void => {
                 // Non-OK statuses (401/404/500...) must not count as warmed.
                 if (!response.ok) throw new Error(String(response.status));

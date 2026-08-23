@@ -252,10 +252,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         return this._el(kind)?.paused ?? true;
     }
 
-    protected override getNativeReadyState(kind: TMediaKind): number {
-        return this._el(kind)?.readyState ?? -1;
-    }
-
     protected override _onPlayingStarted(): void {
         if (typeof document !== "undefined" && document.hidden) return;
         void this.preloadNextTrack();

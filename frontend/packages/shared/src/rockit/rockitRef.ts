@@ -55,7 +55,7 @@ export interface IBookmarkManager {
 }
 
 export interface INotificationManager {
-    notifyError(message: string, durationMs?: number): void;
+    notifyError(message: string): void;
     notifyInfo(message: string): void;
     notifyWarn(message: string): void;
     notifySuccess(message: string): void;

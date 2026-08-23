@@ -12,9 +12,9 @@ export class NotificationManager {
     private _dismissListenerRegistered = false;
     private _pointerDownPosition: { x: number; y: number } | null = null;
 
-    notifyError(message: string, durationMs?: number): void {
+    notifyError(message: string): void {
         console.error("NotificationManager.notifyError", message);
-        this._notify(ENotificationType.ERROR, message, durationMs);
+        this._notify(ENotificationType.ERROR, message);
     }
 
     notifyInfo(message: string): void {
@@ -47,11 +47,7 @@ export class NotificationManager {
         return this._notificationsAtom;
     }
 
-    private _notify(
-        type: ENotificationType,
-        message: string,
-        durationMs?: number
-    ): void {
+    private _notify(type: ENotificationType, message: string): void {
         const numericId = this._nextId++;
         const sonnerId = `rockit-notification-${numericId}`;
 
@@ -79,7 +75,6 @@ export class NotificationManager {
         const data = {
             id: sonnerId,
             dismissible: true,
-            duration: durationMs,
         };
 
         switch (type) {

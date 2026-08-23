@@ -20,6 +20,28 @@ import {
 
 const WS_TIME_SYNC_INTERVAL_MS = 1000;
 
+/** Human-readable names for HTMLMediaElement.error.code values. */
+const MEDIA_ERROR_NAMES: Record<number, string> = {
+    1: "ABORTED",
+    2: "NETWORK",
+    3: "DECODE",
+    4: "SRC_NOT_SUPPORTED",
+};
+
+/**
+ * Context of the most recent native source load. Kept after successful loads
+ * so that a late element error (e.g. network timeout seconds later) can still
+ * be correlated with the media, its queue position and the restore seek.
+ */
+interface TLastLoadContext {
+    kind: TMediaKind;
+    publicId: string;
+    queueMediaId: number | null;
+    startAt: number;
+    isBlobSource: boolean;
+    uriHint: string;
+}
+
 export type TMediaKind = "audio" | "video";
 
 /**
@@ -55,6 +77,10 @@ export abstract class BaseMediaPlayerManager {
     protected _loadedAudioUri?: string;
     protected _loadedVideoUri?: string;
 
+    // Diagnostics for cold-start restore failures (iOS PWA): context of the
+    // last source load, dumped by `onNativeError` when an element errors.
+    protected _lastLoadContext?: TLastLoadContext;
+
     // ===== Platform primitives (subclass overrides — throw by default) =====
 
     protected loadNativeSource(
@@ -87,6 +113,9 @@ export abstract class BaseMediaPlayerManager {
     protected isNativePaused(_kind: TMediaKind): boolean {
         throw new Error("Not implemented: isNativePaused");
     }
+    protected getNativeReadyState(_kind: TMediaKind): number {
+        return -1;
+    }
 
     /**
      * Resolve the playable URI for a media. Default returns the network URL;
@@ -110,6 +139,20 @@ export abstract class BaseMediaPlayerManager {
         return Promise.resolve();
     }
 
+    /**
+     * Short label of a resolved URI for diagnostics: distinguishes offline
+     * blob sources from network streams and names the provider path.
+     */
+    protected _sourceLabel(uri: string): string {
+        if (uri.startsWith("blob:")) return "blob";
+        try {
+            const url = new URL(uri);
+            return `network:${url.pathname.split("/").slice(0, 3).join("/")}`;
+        } catch {
+            return `raw:${uri.slice(0, 40)}`;
+        }
+    }
+
     // ===== Native → base status handlers (subclass calls these) =====
 
     protected onNativePlaying = (): void => {
@@ -123,7 +166,31 @@ export abstract class BaseMediaPlayerManager {
         this._handleTimeUpdate(sec);
     protected onNativeEnded = (): void => this._handleEnded();
     protected onNativeError = (err?: unknown): void => {
-        console.error("MediaPlayerManager: media error", err);
+        const element = (err as Event | undefined)?.target as
+            | HTMLMediaElement
+            | undefined;
+        const mediaError = element?.error;
+        const context = this._lastLoadContext;
+
+        console.error(
+            `MediaPlayerManager: media error ` +
+                `code=${mediaError?.code} ` +
+                `(${(mediaError?.code && MEDIA_ERROR_NAMES[mediaError.code]) || "?"}) ` +
+                `message="${mediaError?.message ?? ""}" ` +
+                `readyState=${element?.readyState ?? -1} ` +
+                `networkState=${element?.networkState ?? -1} ` +
+                `sourceType=${context?.isBlobSource ? "blob-offline" : "network"} ` +
+                `uriHint=${context?.uriHint ?? "?"} ` +
+                `publicId=${context?.publicId ?? "?"} ` +
+                `queueMediaId=${context?.queueMediaId ?? "?"} ` +
+                `lastStartAt=${context?.startAt ?? 0}`,
+            {
+                currentSrc: element?.currentSrc,
+                loadedAudioUri: this._loadedAudioUri,
+                loadedVideoUri: this._loadedVideoUri,
+            },
+            err
+        );
         this._handleMediaError();
     };
 
@@ -385,13 +452,33 @@ export abstract class BaseMediaPlayerManager {
         if (!audioSrc) return;
         if (this._loadedAudioUri === audioSrc) return;
 
-        this._loadedAudioUri = audioSrc;
-        await this.loadNativeSource("audio", audioSrc);
-        this.setNativeVolume("audio", this._volumeAtom.get());
-
         const startAt = useSavedCurrentTime
             ? (getRockIt().userManager.currentTimeMsAtom.get() ?? 0) / 1000
             : 0;
+
+        this._loadedAudioUri = audioSrc;
+        this._lastLoadContext = {
+            kind: "audio",
+            publicId: currentMedia.publicId,
+            queueMediaId: getRockIt().queueManager.currentQueueMediaId,
+            startAt,
+            isBlobSource: audioSrc.startsWith("blob:"),
+            uriHint: this._sourceLabel(audioSrc),
+        };
+
+        await this.loadNativeSource("audio", audioSrc);
+        this.setNativeVolume("audio", this._volumeAtom.get());
+
+        if (startAt > 0) {
+            console.warn(
+                `MediaPlayerManager: restore-seek audio to ` +
+                    `${startAt.toFixed(1)}s before metadata ` +
+                    `(publicId=${currentMedia.publicId}, ` +
+                    `queueMediaId=${this._lastLoadContext.queueMediaId}, ` +
+                    `source=${this._lastLoadContext.uriHint}, ` +
+                    `readyState=${this.getNativeReadyState("audio")})`
+            );
+        }
         this.seekNative("audio", startAt);
 
         await this.afterMediaLoadedAsync(currentMedia, "audio", audioSrc);
@@ -412,13 +499,33 @@ export abstract class BaseMediaPlayerManager {
         if (!videoSrc) return;
         if (this._loadedVideoUri === videoSrc) return;
 
-        this._loadedVideoUri = videoSrc;
-        await this.loadNativeSource("video", videoSrc);
-        this.setNativeVolume("video", this._volumeAtom.get());
-
         const startAt = useSavedCurrentTime
             ? (getRockIt().userManager.currentTimeMsAtom.get() ?? 0) / 1000
             : 0;
+
+        this._loadedVideoUri = videoSrc;
+        this._lastLoadContext = {
+            kind: "video",
+            publicId: currentMedia.publicId,
+            queueMediaId: getRockIt().queueManager.currentQueueMediaId,
+            startAt,
+            isBlobSource: videoSrc.startsWith("blob:"),
+            uriHint: this._sourceLabel(videoSrc),
+        };
+
+        await this.loadNativeSource("video", videoSrc);
+        this.setNativeVolume("video", this._volumeAtom.get());
+
+        if (startAt > 0) {
+            console.warn(
+                `MediaPlayerManager: restore-seek video to ` +
+                    `${startAt.toFixed(1)}s before metadata ` +
+                    `(publicId=${currentMedia.publicId}, ` +
+                    `queueMediaId=${this._lastLoadContext.queueMediaId}, ` +
+                    `source=${this._lastLoadContext.uriHint}, ` +
+                    `readyState=${this.getNativeReadyState("video")})`
+            );
+        }
         this.seekNative("video", startAt);
 
         await this.afterMediaLoadedAsync(currentMedia, "video", videoSrc);

@@ -81,6 +81,11 @@ export abstract class BaseMediaPlayerManager {
     // last source load, dumped by `onNativeError` when an element errors.
     protected _lastLoadContext?: TLastLoadContext;
 
+    // TODO(remove): temporary on-device diagnostics for the iOS PWA media
+    // error investigation. Ring buffer of recent diagnostic lines, surfaced
+    // through the error toast so no console/inspector is required.
+    protected _diagnosticLog: string[] = [];
+
     // ===== Platform primitives (subclass overrides — throw by default) =====
 
     protected loadNativeSource(
@@ -153,6 +158,13 @@ export abstract class BaseMediaPlayerManager {
         }
     }
 
+    // TODO(remove): temporary — see _diagnosticLog.
+    protected _logDiagnostic(line: string): void {
+        const timestamp = new Date().toISOString().slice(11, 23);
+        this._diagnosticLog.push(`${timestamp} ${line}`);
+        if (this._diagnosticLog.length > 10) this._diagnosticLog.shift();
+    }
+
     // ===== Native → base status handlers (subclass calls these) =====
 
     protected onNativePlaying = (): void => {
@@ -190,6 +202,16 @@ export abstract class BaseMediaPlayerManager {
                 loadedVideoUri: this._loadedVideoUri,
             },
             err
+        );
+        this._logDiagnostic(
+            `media-error code=${mediaError?.code ?? -1}` +
+                `(${(mediaError?.code && MEDIA_ERROR_NAMES[mediaError.code]) || "?"})` +
+                ` readyState=${element?.readyState ?? -1}` +
+                ` networkState=${element?.networkState ?? -1}` +
+                ` source=${context?.uriHint ?? "?"}` +
+                ` startAt=${context?.startAt ?? 0}` +
+                ` publicId=${context?.publicId ?? "?"}` +
+                ` qId=${context?.queueMediaId ?? "?"}`
         );
         this._handleMediaError();
     };
@@ -470,14 +492,14 @@ export abstract class BaseMediaPlayerManager {
         this.setNativeVolume("audio", this._volumeAtom.get());
 
         if (startAt > 0) {
-            console.warn(
-                `MediaPlayerManager: restore-seek audio to ` +
-                    `${startAt.toFixed(1)}s before metadata ` +
-                    `(publicId=${currentMedia.publicId}, ` +
-                    `queueMediaId=${this._lastLoadContext.queueMediaId}, ` +
-                    `source=${this._lastLoadContext.uriHint}, ` +
-                    `readyState=${this.getNativeReadyState("audio")})`
-            );
+            const seekLine =
+                `restore-seek audio to ${startAt.toFixed(1)}s before metadata ` +
+                `(publicId=${currentMedia.publicId}, ` +
+                `queueMediaId=${this._lastLoadContext.queueMediaId}, ` +
+                `source=${this._lastLoadContext.uriHint}, ` +
+                `readyState=${this.getNativeReadyState("audio")})`;
+            console.warn(`MediaPlayerManager: ${seekLine}`);
+            this._logDiagnostic(seekLine);
         }
         this.seekNative("audio", startAt);
 
@@ -517,14 +539,14 @@ export abstract class BaseMediaPlayerManager {
         this.setNativeVolume("video", this._volumeAtom.get());
 
         if (startAt > 0) {
-            console.warn(
-                `MediaPlayerManager: restore-seek video to ` +
-                    `${startAt.toFixed(1)}s before metadata ` +
-                    `(publicId=${currentMedia.publicId}, ` +
-                    `queueMediaId=${this._lastLoadContext.queueMediaId}, ` +
-                    `source=${this._lastLoadContext.uriHint}, ` +
-                    `readyState=${this.getNativeReadyState("video")})`
-            );
+            const seekLine =
+                `restore-seek video to ${startAt.toFixed(1)}s before metadata ` +
+                `(publicId=${currentMedia.publicId}, ` +
+                `queueMediaId=${this._lastLoadContext.queueMediaId}, ` +
+                `source=${this._lastLoadContext.uriHint}, ` +
+                `readyState=${this.getNativeReadyState("video")})`;
+            console.warn(`MediaPlayerManager: ${seekLine}`);
+            this._logDiagnostic(seekLine);
         }
         this.seekNative("video", startAt);
 
@@ -665,9 +687,19 @@ export abstract class BaseMediaPlayerManager {
         const currentId = getRockIt().queueManager.currentQueueMediaId;
         const direction = getRockIt().queueManager.lastNavigationDirection;
 
-        getRockIt().notificationManager.notifyError(
-            getRockIt().vocabularyManager.vocabulary.ERROR_LOADING_MEDIA_FILE
-        );
+        const baseMessage =
+            getRockIt().vocabularyManager.vocabulary.ERROR_LOADING_MEDIA_FILE;
+
+        // TODO(remove): temporary — append recent diagnostic lines to the
+        // toast and keep it on screen long enough to read/screenshot on an
+        // iPhone without a console attached.
+        const diagnosticSuffix = this._diagnosticLog
+            .slice(-3)
+            .join(" | ");
+        const message = diagnosticSuffix
+            ? `${baseMessage} | ${diagnosticSuffix}`
+            : baseMessage;
+        getRockIt().notificationManager.notifyError(message, 20000);
 
         const queueItems = queue.map(
             (item): { publicId: string; queueMediaId: number } => ({

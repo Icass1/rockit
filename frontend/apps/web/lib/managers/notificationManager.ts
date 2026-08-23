@@ -7,7 +7,7 @@ export class NotificationManager {
     private _notificationsAtom = createArrayAtom<INotification>([]);
     private _nextId = 0;
 
-    notifyError(message: string): void {
+    notifyError(message: string, durationMs?: number): void {
         console.error("NotificationManager.notifyError", message);
         const id = this._nextId++;
         this._notificationsAtom.push({
@@ -15,7 +15,10 @@ export class NotificationManager {
             message,
             type: ENotificationType.ERROR,
         });
-        toast.error(message, { dismissible: true });
+        toast.error(message, {
+            dismissible: true,
+            duration: durationMs,
+        });
     }
 
     notifyInfo(message: string): void {

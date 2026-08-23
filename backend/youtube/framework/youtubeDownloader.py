@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import subprocess
 from datetime import datetime, timezone
@@ -67,6 +68,55 @@ def _get_duration_with_ffprobe(filepath: str) -> Optional[int]:
     except Exception as e:
         logger.error(f"FFprobe exception for {filepath}: {e}", exc_info=True)
     return None
+
+
+def _log_downloaded_codecs(filepath: str) -> None:
+    """Log the codecs of a downloaded file and warn if WebKit-incompatible."""
+
+    try:
+        cmd: List[str] = [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=codec_type,codec_name,profile,level",
+            "-of",
+            "json",
+            filepath,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        if result.returncode != 0:
+            logger.warning(
+                f"ffprobe failed to read codecs for {filepath}: "
+                f"returncode={result.returncode}, stderr='{result.stderr.strip()}'"
+            )
+            return
+
+        streams: List[Dict[str, Any]] = json.loads(result.stdout).get("streams", [])
+        summary: List[str] = []
+        webkit_unsafe: bool = False
+        for stream in streams:
+            codec_type: str = stream.get("codec_type", "unknown")
+            codec_name: str = stream.get("codec_name", "unknown")
+            detail: str = codec_name
+            profile: str = stream.get("profile") or ""
+            level: Any = stream.get("level")
+            if profile:
+                detail += f" {profile}"
+            if level is not None:
+                detail += f"@{int(level)}"
+            summary.append(f"{codec_type}={detail}")
+            if codec_type == "video" and codec_name.lower() in ("vp8", "vp9", "av1"):
+                webkit_unsafe = True
+
+        logger.info(f"Codecs for {filepath}: {', '.join(summary)}")
+        if webkit_unsafe:
+            logger.warning(
+                f"{filepath} uses a video codec not supported by iOS Safari/PWA "
+                f"(WebKit); playback will fail there until re-downloaded with avc1"
+            )
+    except Exception as e:
+        logger.error(f"Codec probe exception for {filepath}: {e}", exc_info=True)
 
 
 logger = getLogger(__name__)
@@ -204,12 +254,20 @@ class YouTubeDownloader:
             }
             expected_ext = "mp3"
         else:
-            # No [ext=mp4] constraint — YouTube serves 1080p as WebM (VP9).
-            # merge_output_format handles remuxing to mp4 via ffmpeg.
-            format_string: str = "bestvideo[height<=1080]+bestaudio/best"
+            # Prefer H.264/AAC (avc1) for WebKit compatibility: iOS Safari/PWA
+            # cannot play VP9/Opus inside an MP4 container, which is what plain
+            # bestvideo picks for <=1080p. Falls back progressively when avc1
+            # is unavailable. faststart moves the moov atom to the front of the
+            # merged file, required by Safari for progressive/Range playback.
+            format_string: str = (
+                "bestvideo[height<=1080][vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
+                "bestvideo[height<=1080][vcodec^=avc1]+bestaudio/"
+                "best[height<=1080]/best"
+            )
             ydl_opts = {
                 "format": format_string,
                 "merge_output_format": "mp4",
+                "postprocessor_args": {"merger": ["-movflags", "+faststart"]},
                 "outtmpl": output_template,
                 "logger": _YtDlpLogger(),
                 "retries": 15,
@@ -315,6 +373,8 @@ class YouTubeDownloader:
             real_duration_ms: Optional[int] = (
                 _get_duration_with_ffprobe(final_path) if final_path else None
             )
+            if final_path:
+                _log_downloaded_codecs(final_path)
 
             return AResult(
                 code=AResultCode.OK,

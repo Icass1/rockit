@@ -9,4 +9,6 @@ export const StartChunkedUploadResponseSchema = z.object({
     totalChunks: z.number(),
 });
 
-export type StartChunkedUploadResponse = z.infer<typeof StartChunkedUploadResponseSchema>;
+export type StartChunkedUploadResponse = z.infer<
+    typeof StartChunkedUploadResponseSchema
+>;

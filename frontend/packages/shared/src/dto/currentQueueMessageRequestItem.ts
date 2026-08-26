@@ -11,4 +11,6 @@ export const CurrentQueueMessageRequestItemSchema = z.object({
     sortedIndex: z.number(),
 });
 
-export type CurrentQueueMessageRequestItem = z.infer<typeof CurrentQueueMessageRequestItemSchema>;
+export type CurrentQueueMessageRequestItem = z.infer<
+    typeof CurrentQueueMessageRequestItemSchema
+>;

@@ -9,4 +9,6 @@ export const PlaylistRenamedMessageSchema = z.object({
     name: z.string(),
 });
 
-export type PlaylistRenamedMessage = z.infer<typeof PlaylistRenamedMessageSchema>;
+export type PlaylistRenamedMessage = z.infer<
+    typeof PlaylistRenamedMessageSchema
+>;

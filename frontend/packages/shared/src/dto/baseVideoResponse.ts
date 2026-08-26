@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseArtistResponseSchema } from './baseArtistResponse';
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
 
 export const BaseVideoResponseSchema = z.object({
     type: z.union([z.literal("video")]).default("video"),

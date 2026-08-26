@@ -2,10 +2,12 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { CurrentQueueMessageRequestItemSchema } from './currentQueueMessageRequestItem';
+import { CurrentQueueMessageRequestItemSchema } from "./currentQueueMessageRequestItem";
 
 export const CurrentQueueMessageRequestSchema = z.object({
     queue: z.array(z.lazy(() => CurrentQueueMessageRequestItemSchema)),
 });
 
-export type CurrentQueueMessageRequest = z.infer<typeof CurrentQueueMessageRequestSchema>;
+export type CurrentQueueMessageRequest = z.infer<
+    typeof CurrentQueueMessageRequestSchema
+>;

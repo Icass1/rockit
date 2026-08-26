@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { AdminSearchResultItemSchema } from './adminSearchResultItem';
+import { AdminSearchResultItemSchema } from "./adminSearchResultItem";
 
 export const AdminSearchResponseSchema = z.object({
     results: z.array(z.lazy(() => AdminSearchResultItemSchema)),

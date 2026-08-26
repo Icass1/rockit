@@ -2,14 +2,14 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { PlaylistResponseItemSchema } from './playlistResponseItem';
-import { BaseSongWithAlbumResponseSchema } from './baseSongWithAlbumResponse';
-import { BasePlaylistForPlaylistResponseSchema } from './basePlaylistForPlaylistResponse';
-import { PlaylistContributorSchema } from './playlistContributor';
-import { BaseVideoResponseSchema } from './baseVideoResponse';
-import { BaseStationResponseSchema } from './baseStationResponse';
-import { BaseArtistResponseSchema } from './baseArtistResponse';
-import { BaseAlbumWithSongsResponseSchema } from './baseAlbumWithSongsResponse';
+import { BaseAlbumWithSongsResponseSchema } from "./baseAlbumWithSongsResponse";
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
+import { BasePlaylistForPlaylistResponseSchema } from "./basePlaylistForPlaylistResponse";
+import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
+import { BaseStationResponseSchema } from "./baseStationResponse";
+import { BaseVideoResponseSchema } from "./baseVideoResponse";
+import { PlaylistContributorSchema } from "./playlistContributor";
+import { PlaylistResponseItemSchema } from "./playlistResponseItem";
 
 export const BasePlaylistWithMediasResponseSchema = z.object({
     type: z.union([z.literal("playlist")]).default("playlist"),
@@ -22,7 +22,48 @@ export const BasePlaylistWithMediasResponseSchema = z.object({
     contributors: z.array(z.lazy(() => PlaylistContributorSchema)),
     imageUrl: z.string(),
     owner: z.lazy(() => BaseArtistResponseSchema),
-    medias: z.array(z.union([z.lazy(() => PlaylistResponseItemSchema).unwrap().extend({ item: z.union([z.lazy(() => BaseSongWithAlbumResponseSchema)]) }), z.lazy(() => PlaylistResponseItemSchema).unwrap().extend({ item: z.union([z.lazy(() => BaseVideoResponseSchema)]) }), z.lazy(() => PlaylistResponseItemSchema).unwrap().extend({ item: z.union([z.lazy(() => BaseStationResponseSchema)]) }), z.lazy(() => PlaylistResponseItemSchema).unwrap().extend({ item: z.union([z.lazy(() => BasePlaylistForPlaylistResponseSchema)]) }), z.lazy(() => PlaylistResponseItemSchema).unwrap().extend({ item: z.union([z.lazy(() => BaseAlbumWithSongsResponseSchema)]) })])),
+    medias: z.array(
+        z.union([
+            z
+                .lazy(() => PlaylistResponseItemSchema)
+                .unwrap()
+                .extend({
+                    item: z.union([
+                        z.lazy(() => BaseSongWithAlbumResponseSchema),
+                    ]),
+                }),
+            z
+                .lazy(() => PlaylistResponseItemSchema)
+                .unwrap()
+                .extend({
+                    item: z.union([z.lazy(() => BaseVideoResponseSchema)]),
+                }),
+            z
+                .lazy(() => PlaylistResponseItemSchema)
+                .unwrap()
+                .extend({
+                    item: z.union([z.lazy(() => BaseStationResponseSchema)]),
+                }),
+            z
+                .lazy(() => PlaylistResponseItemSchema)
+                .unwrap()
+                .extend({
+                    item: z.union([
+                        z.lazy(() => BasePlaylistForPlaylistResponseSchema),
+                    ]),
+                }),
+            z
+                .lazy(() => PlaylistResponseItemSchema)
+                .unwrap()
+                .extend({
+                    item: z.union([
+                        z.lazy(() => BaseAlbumWithSongsResponseSchema),
+                    ]),
+                }),
+        ])
+    ),
 });
 
-export type BasePlaylistWithMediasResponse = z.infer<typeof BasePlaylistWithMediasResponseSchema>;
+export type BasePlaylistWithMediasResponse = z.infer<
+    typeof BasePlaylistWithMediasResponseSchema
+>;

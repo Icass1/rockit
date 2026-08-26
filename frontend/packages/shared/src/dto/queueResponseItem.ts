@@ -2,14 +2,18 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseVideoResponseSchema } from './baseVideoResponse';
-import { BaseSongWithoutAlbumResponseSchema } from './baseSongWithoutAlbumResponse';
-import { BaseSongWithAlbumResponseSchema } from './baseSongWithAlbumResponse';
+import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
+import { BaseSongWithoutAlbumResponseSchema } from "./baseSongWithoutAlbumResponse";
+import { BaseVideoResponseSchema } from "./baseVideoResponse";
 
 export const QueueResponseItemSchema = z.object({
     queueMediaId: z.number(),
     listPublicId: z.string().nullable(),
-    media: z.union([z.lazy(() => BaseSongWithAlbumResponseSchema), z.lazy(() => BaseVideoResponseSchema), z.lazy(() => BaseSongWithoutAlbumResponseSchema)]),
+    media: z.union([
+        z.lazy(() => BaseSongWithAlbumResponseSchema),
+        z.lazy(() => BaseVideoResponseSchema),
+        z.lazy(() => BaseSongWithoutAlbumResponseSchema),
+    ]),
     randomIndex: z.number(),
     sortedIndex: z.number(),
 });

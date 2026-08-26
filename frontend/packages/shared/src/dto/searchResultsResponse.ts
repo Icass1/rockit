@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseSearchResultsItemSchema } from './baseSearchResultsItem';
+import { BaseSearchResultsItemSchema } from "./baseSearchResultsItem";
 
 export const SearchResultsResponseSchema = z.object({
     results: z.array(z.lazy(() => BaseSearchResultsItemSchema)),

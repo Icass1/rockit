@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseArtistResponseSchema } from './baseArtistResponse';
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
 
 export const BaseSongWithoutAlbumResponseSchema = z.object({
     type: z.union([z.literal("song")]).default("song"),
@@ -20,4 +20,6 @@ export const BaseSongWithoutAlbumResponseSchema = z.object({
     trackNumber: z.number(),
 });
 
-export type BaseSongWithoutAlbumResponse = z.infer<typeof BaseSongWithoutAlbumResponseSchema>;
+export type BaseSongWithoutAlbumResponse = z.infer<
+    typeof BaseSongWithoutAlbumResponseSchema
+>;

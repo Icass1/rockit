@@ -10,4 +10,6 @@ export const StatsMinutesEntryResponseSchema = z.object({
     label: z.string().default(""),
 });
 
-export type StatsMinutesEntryResponse = z.infer<typeof StatsMinutesEntryResponseSchema>;
+export type StatsMinutesEntryResponse = z.infer<
+    typeof StatsMinutesEntryResponseSchema
+>;

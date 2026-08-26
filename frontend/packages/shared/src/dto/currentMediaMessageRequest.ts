@@ -9,4 +9,6 @@ export const CurrentMediaMessageRequestSchema = z.object({
     queueType: z.enum(["RANDOM", "SORTED"]),
 });
 
-export type CurrentMediaMessageRequest = z.infer<typeof CurrentMediaMessageRequestSchema>;
+export type CurrentMediaMessageRequest = z.infer<
+    typeof CurrentMediaMessageRequestSchema
+>;

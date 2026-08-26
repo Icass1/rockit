@@ -10,4 +10,6 @@ export const RequestLogLatencyPercentilesSchema = z.object({
     p99Ms: z.number(),
 });
 
-export type RequestLogLatencyPercentiles = z.infer<typeof RequestLogLatencyPercentilesSchema>;
+export type RequestLogLatencyPercentiles = z.infer<
+    typeof RequestLogLatencyPercentilesSchema
+>;

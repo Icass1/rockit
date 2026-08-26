@@ -2,9 +2,9 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { SpotifyScrapperExternalImageResponseSchema } from './spotifyScrapperExternalImageResponse';
-import { BaseArtistResponseSchema } from './baseArtistResponse';
-import { BaseSongWithoutAlbumResponseSchema } from './baseSongWithoutAlbumResponse';
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
+import { BaseSongWithoutAlbumResponseSchema } from "./baseSongWithoutAlbumResponse";
+import { SpotifyScrapperExternalImageResponseSchema } from "./spotifyScrapperExternalImageResponse";
 
 export const SpotifyScrapperAlbumResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),
@@ -20,7 +20,11 @@ export const SpotifyScrapperAlbumResponseSchema = z.object({
     undownloadedCount: z.number().default(0),
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
     spotifyId: z.string(),
-    externalImages: z.array(z.lazy(() => SpotifyScrapperExternalImageResponseSchema)),
+    externalImages: z.array(
+        z.lazy(() => SpotifyScrapperExternalImageResponseSchema)
+    ),
 });
 
-export type SpotifyScrapperAlbumResponse = z.infer<typeof SpotifyScrapperAlbumResponseSchema>;
+export type SpotifyScrapperAlbumResponse = z.infer<
+    typeof SpotifyScrapperAlbumResponseSchema
+>;

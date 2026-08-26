@@ -9,4 +9,6 @@ export const MediaExpandedMessageRequestSchema = z.object({
     expanded: z.boolean(),
 });
 
-export type MediaExpandedMessageRequest = z.infer<typeof MediaExpandedMessageRequestSchema>;
+export type MediaExpandedMessageRequest = z.infer<
+    typeof MediaExpandedMessageRequestSchema
+>;

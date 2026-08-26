@@ -10,4 +10,6 @@ export const StartChunkedUploadRequestSchema = z.object({
     description: z.string().nullable(),
 });
 
-export type StartChunkedUploadRequest = z.infer<typeof StartChunkedUploadRequestSchema>;
+export type StartChunkedUploadRequest = z.infer<
+    typeof StartChunkedUploadRequestSchema
+>;

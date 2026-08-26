@@ -9,4 +9,6 @@ export const RequestLogTimeSeriesPointSchema = z.object({
     avgTimeMs: z.number(),
 });
 
-export type RequestLogTimeSeriesPoint = z.infer<typeof RequestLogTimeSeriesPointSchema>;
+export type RequestLogTimeSeriesPoint = z.infer<
+    typeof RequestLogTimeSeriesPointSchema
+>;

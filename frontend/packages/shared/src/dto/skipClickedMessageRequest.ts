@@ -8,4 +8,6 @@ export const SkipClickedMessageRequestSchema = z.object({
     mediaPublicId: z.string(),
 });
 
-export type SkipClickedMessageRequest = z.infer<typeof SkipClickedMessageRequestSchema>;
+export type SkipClickedMessageRequest = z.infer<
+    typeof SkipClickedMessageRequestSchema
+>;

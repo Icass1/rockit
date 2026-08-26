@@ -6,7 +6,6 @@ import {
     type BaseSearchResultsItem,
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { Image } from "expo-image";
 import { Download, Radio } from "lucide-react-native";
 import {
@@ -17,8 +16,9 @@ import {
     Text,
     View,
 } from "react-native";
-import { usePlayer } from "@/lib/PlayerContext";
 import { Http } from "@/lib/http";
+import { usePlayer } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { toasterManager } from "@/lib/toasterManager";
 
 const RELATED_LIMIT = 20;
@@ -75,6 +75,7 @@ export default function PlayerRelated() {
             url: item.providerUrl,
             addToLibrary: true,
             addToPlaylist: false,
+            playlistPublicId: null,
         });
 
         setDownloadingUrls((prev) => {
@@ -176,12 +177,18 @@ export default function PlayerRelated() {
                                 />
                                 <View style={styles.info}>
                                     <Text
-                                        style={[styles.title, styles.titleDiscover]}
+                                        style={[
+                                            styles.title,
+                                            styles.titleDiscover,
+                                        ]}
                                         numberOfLines={1}
                                     >
                                         {item.name}
                                     </Text>
-                                    <Text style={styles.artist} numberOfLines={1}>
+                                    <Text
+                                        style={styles.artist}
+                                        numberOfLines={1}
+                                    >
                                         {item.artists
                                             .map((a) => a.name)
                                             .join(", ")}
@@ -193,7 +200,10 @@ export default function PlayerRelated() {
                                         color={COLORS.gray400}
                                     />
                                 ) : (
-                                    <Download size={18} color={COLORS.gray400} />
+                                    <Download
+                                        size={18}
+                                        color={COLORS.gray400}
+                                    />
                                 )}
                             </Pressable>
                         );

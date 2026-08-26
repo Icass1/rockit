@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseArtistResponseSchema } from './baseArtistResponse';
-import { BaseSongWithoutAlbumResponseSchema } from './baseSongWithoutAlbumResponse';
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
+import { BaseSongWithoutAlbumResponseSchema } from "./baseSongWithoutAlbumResponse";
 
 export const YoutubeMusicAlbumResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),
@@ -22,4 +22,6 @@ export const YoutubeMusicAlbumResponseSchema = z.object({
     year: z.number().nullable(),
 });
 
-export type YoutubeMusicAlbumResponse = z.infer<typeof YoutubeMusicAlbumResponseSchema>;
+export type YoutubeMusicAlbumResponse = z.infer<
+    typeof YoutubeMusicAlbumResponseSchema
+>;

@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseSearchResultsItemSchema } from './baseSearchResultsItem';
-import { BaseSongWithAlbumResponseSchema } from './baseSongWithAlbumResponse';
+import { BaseSearchResultsItemSchema } from "./baseSearchResultsItem";
+import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
 
 export const SongListResponseSchema = z.object({
     songs: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),

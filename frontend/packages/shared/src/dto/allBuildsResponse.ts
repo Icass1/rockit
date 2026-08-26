@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BuildResponseSchema } from './buildResponse';
+import { BuildResponseSchema } from "./buildResponse";
 
 export const AllBuildsResponseSchema = z.object({
     builds: z.array(z.lazy(() => BuildResponseSchema)),

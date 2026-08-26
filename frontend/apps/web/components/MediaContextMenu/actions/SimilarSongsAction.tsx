@@ -1,10 +1,10 @@
 import type { JSX } from "react";
 import { useRouter } from "next/navigation";
-import { isSong } from "@rockit/shared";
+import { isSearchResult, type TMedia } from "@rockit/shared";
 import { Radio } from "lucide-react";
-import ContextMenuOption from "@/components/ContextMenu/Option";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
 const SIMILAR_SONGS_PLAYLIST_LIMIT = 20;
@@ -21,13 +21,19 @@ export default function SimilarSongsAction({
 }: ActionComponentProps): JSX.Element | null {
     const router = useRouter();
 
-    if (!isSong(media)) return null;
+    if (isSearchResult(media) || (media as TMedia).type !== "song") return null;
+
+    const songMedia = media as TMedia & {
+        type: "song";
+        publicId: string;
+        name: string;
+    };
 
     const handleClick = async (): Promise<void> => {
         setLoading(true);
         try {
             const relatedRes = await Http.getRelatedSongs(
-                media.publicId,
+                songMedia.publicId,
                 SIMILAR_SONGS_PLAYLIST_LIMIT
             );
             if (!relatedRes.isOk() || relatedRes.result.songs.length === 0) {
@@ -38,7 +44,7 @@ export default function SimilarSongsAction({
             }
 
             const playlistRes = await Http.createPlaylistAsync({
-                name: `${vocabulary.SIMILAR_TO_SONG_PLAYLIST_PREFIX} ${media.name}`,
+                name: `${vocabulary.SIMILAR_TO_SONG_PLAYLIST_PREFIX} ${songMedia.name}`,
                 description: null,
                 isPublic: true,
             });
@@ -68,7 +74,7 @@ export default function SimilarSongsAction({
     };
 
     return (
-        <ContextMenuOption onClick={handleClick} disabled={loading}>
+        <ContextMenuOption onClick={handleClick} disable={loading}>
             <Radio />
             {vocabulary.SIMILAR_TO_SONG}
         </ContextMenuOption>

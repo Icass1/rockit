@@ -9,4 +9,6 @@ export const SpotifyExternalImageResponseSchema = z.object({
     height: z.number().nullable(),
 });
 
-export type SpotifyExternalImageResponse = z.infer<typeof SpotifyExternalImageResponseSchema>;
+export type SpotifyExternalImageResponse = z.infer<
+    typeof SpotifyExternalImageResponseSchema
+>;

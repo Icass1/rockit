@@ -2,24 +2,16 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseAlbumWithSongsResponseSchema } from "./baseAlbumWithSongsResponse";
-import { BaseArtistResponseSchema } from "./baseArtistResponse";
-import { BasePlaylistWithMediasResponseSchema } from "./basePlaylistWithMediasResponse";
-import { BasePlaylistWithoutMediasResponseSchema } from "./basePlaylistWithoutMediasResponse";
-import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
-import { BaseStationResponseSchema } from "./baseStationResponse";
-import { BaseVideoResponseSchema } from "./baseVideoResponse";
+import { BaseSongWithAlbumResponseSchema } from './baseSongWithAlbumResponse';
+import { BasePlaylistWithMediasResponseSchema } from './basePlaylistWithMediasResponse';
+import { BaseVideoResponseSchema } from './baseVideoResponse';
+import { BaseStationResponseSchema } from './baseStationResponse';
+import { BaseArtistResponseSchema } from './baseArtistResponse';
+import { BasePlaylistWithoutMediasResponseSchema } from './basePlaylistWithoutMediasResponse';
+import { BaseAlbumWithSongsResponseSchema } from './baseAlbumWithSongsResponse';
 
 export const AddFromUrlResponseSchema = z.object({
-    data: z.union([
-        z.lazy(() => BaseSongWithAlbumResponseSchema),
-        z.lazy(() => BaseVideoResponseSchema),
-        z.lazy(() => BasePlaylistWithoutMediasResponseSchema),
-        z.lazy(() => BasePlaylistWithMediasResponseSchema),
-        z.lazy(() => BaseAlbumWithSongsResponseSchema),
-        z.lazy(() => BaseArtistResponseSchema),
-        z.lazy(() => BaseStationResponseSchema),
-    ]),
+    data: z.union([z.lazy(() => BaseSongWithAlbumResponseSchema), z.lazy(() => BaseVideoResponseSchema), z.lazy(() => BasePlaylistWithoutMediasResponseSchema), z.lazy(() => BasePlaylistWithMediasResponseSchema), z.lazy(() => BaseAlbumWithSongsResponseSchema), z.lazy(() => BaseArtistResponseSchema), z.lazy(() => BaseStationResponseSchema)]),
 });
 
 export type AddFromUrlResponse = z.infer<typeof AddFromUrlResponseSchema>;

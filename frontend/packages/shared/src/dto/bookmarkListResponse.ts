@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BookmarkResponseSchema } from "./bookmarkResponse";
+import { BookmarkResponseSchema } from './bookmarkResponse';
 
 export const BookmarkListResponseSchema = z.object({
     bookmarks: z.array(z.lazy(() => BookmarkResponseSchema)),

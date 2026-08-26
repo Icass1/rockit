@@ -12,6 +12,4 @@ export const StatsRankedItemResponseSchema = z.object({
     subtitle: z.string().nullable(),
 });
 
-export type StatsRankedItemResponse = z.infer<
-    typeof StatsRankedItemResponseSchema
->;
+export type StatsRankedItemResponse = z.infer<typeof StatsRankedItemResponseSchema>;

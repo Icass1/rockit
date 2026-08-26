@@ -4,22 +4,12 @@
 import { z } from "zod";
 
 export const DownloadProgressMessageSchema = z.object({
-    type: z
-        .union([z.literal("download_progress")])
-        .default("download_progress"),
+    type: z.union([z.literal("download_progress")]).default("download_progress"),
     publicId: z.string(),
     mediaPublicId: z.string(),
     name: z.string(),
     subtitle: z.string().nullable(),
-    status: z.enum([
-        "PENDING",
-        "IN_PROGRESS",
-        "COMPLETED",
-        "FAILED",
-        "FETCHING",
-        "WAITING_FOR_QUEUE_SETUP",
-        "RETRYING",
-    ]),
+    status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "FETCHING", "WAITING_FOR_QUEUE_SETUP", "RETRYING"]),
     progress: z.number(),
     imageUrl: z.string().nullable(),
     dateStarted: z.iso.datetime(),
@@ -27,6 +17,4 @@ export const DownloadProgressMessageSchema = z.object({
     retryCount: z.number().default(0),
 });
 
-export type DownloadProgressMessage = z.infer<
-    typeof DownloadProgressMessageSchema
->;
+export type DownloadProgressMessage = z.infer<typeof DownloadProgressMessageSchema>;

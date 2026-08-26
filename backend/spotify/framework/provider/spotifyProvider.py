@@ -438,6 +438,14 @@ class SpotifyProvider(BaseMediaProvider):
     JOIN   core.media      cm_al ON cm_al.id = al.id
     JOIN   core.image      ai    ON ai.id    = al.image_id"""
 
+    def get_stats_genre_info_cte_fragment(self) -> str | None:
+        return """    SELECT t.id     AS media_id,
+           g.name   AS genre_name
+    FROM   spotify.track        t
+    JOIN   spotify.track_artist ta ON ta.track_id  = t.id
+    JOIN   spotify.artist_genre ag ON ag.artist_id = ta.artist_id
+    JOIN   spotify.genre        g  ON g.id         = ag.genre_id"""
+
     def get_search_index_cte_fragment(self) -> str | None:
         from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 

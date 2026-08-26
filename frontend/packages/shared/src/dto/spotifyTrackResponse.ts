@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseAlbumWithoutSongsResponseSchema } from "./baseAlbumWithoutSongsResponse";
-import { BaseArtistResponseSchema } from "./baseArtistResponse";
+import { BaseArtistResponseSchema } from './baseArtistResponse';
+import { BaseAlbumWithoutSongsResponseSchema } from './baseAlbumWithoutSongsResponse';
 
 export const SpotifyTrackResponseSchema = z.object({
     type: z.union([z.literal("song")]).default("song"),

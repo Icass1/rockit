@@ -9,6 +9,4 @@ export const RequestLogMethodDistributionSchema = z.object({
     avgTimeMs: z.number(),
 });
 
-export type RequestLogMethodDistribution = z.infer<
-    typeof RequestLogMethodDistributionSchema
->;
+export type RequestLogMethodDistribution = z.infer<typeof RequestLogMethodDistributionSchema>;

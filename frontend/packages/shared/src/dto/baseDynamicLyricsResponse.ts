@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseDynamicLyricsItemSchema } from "./baseDynamicLyricsItem";
+import { BaseDynamicLyricsItemSchema } from './baseDynamicLyricsItem';
 
 export const BaseDynamicLyricsResponseSchema = z.object({
     provider: z.string(),
@@ -11,6 +11,4 @@ export const BaseDynamicLyricsResponseSchema = z.object({
     lines: z.array(z.lazy(() => BaseDynamicLyricsItemSchema)),
 });
 
-export type BaseDynamicLyricsResponse = z.infer<
-    typeof BaseDynamicLyricsResponseSchema
->;
+export type BaseDynamicLyricsResponse = z.infer<typeof BaseDynamicLyricsResponseSchema>;

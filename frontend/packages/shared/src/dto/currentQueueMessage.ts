@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { QueueItemSchema } from "./queueItem";
+import { QueueItemSchema } from './queueItem';
 
 export const CurrentQueueMessageSchema = z.object({
     type: z.union([z.literal("current_queue")]).default("current_queue"),

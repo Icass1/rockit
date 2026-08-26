@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseArtistResponseSchema } from "./baseArtistResponse";
-import { BaseSongWithoutAlbumResponseSchema } from "./baseSongWithoutAlbumResponse";
+import { BaseArtistResponseSchema } from './baseArtistResponse';
+import { BaseSongWithoutAlbumResponseSchema } from './baseSongWithoutAlbumResponse';
 
 export const BaseAlbumWithSongsResponseSchema = z.object({
     type: z.union([z.literal("album")]).default("album"),
@@ -20,6 +20,4 @@ export const BaseAlbumWithSongsResponseSchema = z.object({
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
 });
 
-export type BaseAlbumWithSongsResponse = z.infer<
-    typeof BaseAlbumWithSongsResponseSchema
->;
+export type BaseAlbumWithSongsResponse = z.infer<typeof BaseAlbumWithSongsResponseSchema>;

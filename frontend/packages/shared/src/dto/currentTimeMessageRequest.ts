@@ -8,6 +8,4 @@ export const CurrentTimeMessageRequestSchema = z.object({
     mediaPublicId: z.string(),
 });
 
-export type CurrentTimeMessageRequest = z.infer<
-    typeof CurrentTimeMessageRequestSchema
->;
+export type CurrentTimeMessageRequest = z.infer<typeof CurrentTimeMessageRequestSchema>;

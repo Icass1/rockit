@@ -8,6 +8,4 @@ export const PlaylistCreatedMessageSchema = z.object({
     publicId: z.string(),
 });
 
-export type PlaylistCreatedMessage = z.infer<
-    typeof PlaylistCreatedMessageSchema
->;
+export type PlaylistCreatedMessage = z.infer<typeof PlaylistCreatedMessageSchema>;

@@ -8,6 +8,4 @@ export const PlaylistDeletedMessageSchema = z.object({
     publicId: z.string(),
 });
 
-export type PlaylistDeletedMessage = z.infer<
-    typeof PlaylistDeletedMessageSchema
->;
+export type PlaylistDeletedMessage = z.infer<typeof PlaylistDeletedMessageSchema>;

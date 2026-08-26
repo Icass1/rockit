@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BasePlaylistWithMediasResponseSchema } from "./basePlaylistWithMediasResponse";
+import { BasePlaylistWithMediasResponseSchema } from './basePlaylistWithMediasResponse';
 
 export const UserPlaylistsResponseSchema = z.object({
     playlists: z.array(z.lazy(() => BasePlaylistWithMediasResponseSchema)),

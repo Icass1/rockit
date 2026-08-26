@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { UploadSongRequestSchema } from "./uploadSongRequest";
+import { UploadSongRequestSchema } from './uploadSongRequest';
 
 export const UploadAlbumRequestSchema = z.object({
     title: z.string(),

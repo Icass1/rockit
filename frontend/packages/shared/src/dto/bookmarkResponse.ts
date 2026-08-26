@@ -8,12 +8,7 @@ export const BookmarkResponseSchema = z.object({
     mediaPublicId: z.string(),
     timestamp: z.number(),
     description: z.string().nullable(),
-    mode: z.enum([
-        "NOTHING",
-        "AUTOSKIP",
-        "REPEAT_FROM_BEGINNING",
-        "PREVIOUS_BOOKMARK",
-    ]),
+    mode: z.enum(["NOTHING", "AUTOSKIP", "REPEAT_FROM_BEGINNING", "PREVIOUS_BOOKMARK"]),
     dateAdded: z.iso.datetime(),
     dateUpdated: z.iso.datetime(),
 });

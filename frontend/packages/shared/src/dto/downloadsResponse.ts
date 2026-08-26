@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { DownloadGroupResponseSchema } from "./downloadGroupResponse";
+import { DownloadGroupResponseSchema } from './downloadGroupResponse';
 
 export const DownloadsResponseSchema = z.object({
     downloads: z.array(z.lazy(() => DownloadGroupResponseSchema)),

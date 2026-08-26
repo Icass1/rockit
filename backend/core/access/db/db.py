@@ -14,6 +14,9 @@ from backend.core.access.db.ormModels.user_library_media import (
 from backend.core.access.db.ormModels.user_media_listened import (
     UserMediaListenedRow as UserMediaListenedRow,
 )
+from backend.core.access.db.ormModels.user_media_listen_interval import (
+    UserMediaListenIntervalRow as UserMediaListenIntervalRow,
+)
 from backend.core.access.db.ormModels.user_liked_media import (
     UserLikedMediaRow as UserLikedMediaRow,
 )
@@ -43,6 +46,9 @@ from backend.core.access.db.ormModels.pendingUpload import (
 )
 from backend.core.access.db.ormModels.user import UserRow as UserRow
 from backend.core.access.db.ormModels.bookmark import BookmarkRow as BookmarkRow
+from backend.core.access.db.ormModels.lastfmCache import (
+    LastfmCacheRow as LastfmCacheRow,
+)
 
 # ENUMS
 from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
@@ -65,6 +71,15 @@ from backend.core.access.db.ormEnums.queueTypeEnum import (
 )
 from backend.core.access.db.ormEnums.bookmarkModeEnum import (
     BookmarkModeEnumRow as BookmarkModeEnumRow,
+)
+from backend.core.access.db.ormEnums.requestTypeEnum import (
+    RequestTypeEnumRow as RequestTypeEnumRow,
+)
+from backend.core.access.db.ormEnums.requestStatusEnum import (
+    RequestStatusEnumRow as RequestStatusEnumRow,
+)
+from backend.core.access.db.ormEnums.platformEnum import (
+    PlatformEnumRow as PlatformEnumRow,
 )
 
 schemas = ["core"]

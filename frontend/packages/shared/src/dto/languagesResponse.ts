@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { LanguageItemSchema } from "./languageItem";
+import { LanguageItemSchema } from './languageItem';
 
 export const LanguagesResponseSchema = z.object({
     languages: z.array(z.lazy(() => LanguageItemSchema)),

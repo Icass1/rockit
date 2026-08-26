@@ -9,6 +9,4 @@ export const StatsHeatmapCellResponseSchema = z.object({
     value: z.number(),
 });
 
-export type StatsHeatmapCellResponse = z.infer<
-    typeof StatsHeatmapCellResponseSchema
->;
+export type StatsHeatmapCellResponse = z.infer<typeof StatsHeatmapCellResponseSchema>;

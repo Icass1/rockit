@@ -9,6 +9,4 @@ export const SpotifyScrapperExternalImageResponseSchema = z.object({
     height: z.number().nullable(),
 });
 
-export type SpotifyScrapperExternalImageResponse = z.infer<
-    typeof SpotifyScrapperExternalImageResponseSchema
->;
+export type SpotifyScrapperExternalImageResponse = z.infer<typeof SpotifyScrapperExternalImageResponseSchema>;

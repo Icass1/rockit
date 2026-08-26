@@ -14,6 +14,4 @@ export const StatsV2SummaryResponseSchema = z.object({
     currentStreak: z.number(),
 });
 
-export type StatsV2SummaryResponse = z.infer<
-    typeof StatsV2SummaryResponseSchema
->;
+export type StatsV2SummaryResponse = z.infer<typeof StatsV2SummaryResponseSchema>;

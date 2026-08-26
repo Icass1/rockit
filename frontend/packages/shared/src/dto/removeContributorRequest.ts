@@ -7,6 +7,4 @@ export const RemoveContributorRequestSchema = z.object({
     targetUserPublicId: z.string(),
 });
 
-export type RemoveContributorRequest = z.infer<
-    typeof RemoveContributorRequestSchema
->;
+export type RemoveContributorRequest = z.infer<typeof RemoveContributorRequestSchema>;

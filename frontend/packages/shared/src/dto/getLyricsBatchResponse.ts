@@ -2,15 +2,10 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { GetLyricsResponseSchema } from "./getLyricsResponse";
+import { GetLyricsResponseSchema } from './getLyricsResponse';
 
 export const GetLyricsBatchResponseSchema = z.object({
-    lyrics: z.record(
-        z.string(),
-        z.lazy(() => GetLyricsResponseSchema)
-    ),
+    lyrics: z.record(z.string(), z.lazy(() => GetLyricsResponseSchema)),
 });
 
-export type GetLyricsBatchResponse = z.infer<
-    typeof GetLyricsBatchResponseSchema
->;
+export type GetLyricsBatchResponse = z.infer<typeof GetLyricsBatchResponseSchema>;

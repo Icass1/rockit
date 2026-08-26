@@ -23,6 +23,4 @@ export const RadioBrowserStationResponseSchema = z.object({
     geo_long: z.number().nullable(),
 });
 
-export type RadioBrowserStationResponse = z.infer<
-    typeof RadioBrowserStationResponseSchema
->;
+export type RadioBrowserStationResponse = z.infer<typeof RadioBrowserStationResponseSchema>;

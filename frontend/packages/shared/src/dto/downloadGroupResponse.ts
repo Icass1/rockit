@@ -2,7 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { DownloadItemResponseSchema } from "./downloadItemResponse";
+import { DownloadItemResponseSchema } from './downloadItemResponse';
 
 export const DownloadGroupResponseSchema = z.object({
     publicId: z.string(),

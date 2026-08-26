@@ -14,6 +14,4 @@ export const YoutubeChannelResponseSchema = z.object({
     description: z.string().nullable(),
 });
 
-export type YoutubeChannelResponse = z.infer<
-    typeof YoutubeChannelResponseSchema
->;
+export type YoutubeChannelResponse = z.infer<typeof YoutubeChannelResponseSchema>;

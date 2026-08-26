@@ -8,6 +8,4 @@ export const ArtistSearchResultsItemSchema = z.object({
     url: z.string(),
 });
 
-export type ArtistSearchResultsItem = z.infer<
-    typeof ArtistSearchResultsItemSchema
->;
+export type ArtistSearchResultsItem = z.infer<typeof ArtistSearchResultsItemSchema>;

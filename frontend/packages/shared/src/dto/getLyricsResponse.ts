@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { DynamicLyricsItemSchema } from "./dynamicLyricsItem";
-import { LyricsItemSchema } from "./lyricsItem";
+import { DynamicLyricsItemSchema } from './dynamicLyricsItem';
+import { LyricsItemSchema } from './lyricsItem';
 
 export const GetLyricsResponseSchema = z.object({
     lyrics: z.array(z.lazy(() => LyricsItemSchema)).nullable(),

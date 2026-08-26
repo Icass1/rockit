@@ -8,6 +8,4 @@ export const RequestLogCodeDistributionSchema = z.object({
     count: z.number(),
 });
 
-export type RequestLogCodeDistribution = z.infer<
-    typeof RequestLogCodeDistributionSchema
->;
+export type RequestLogCodeDistribution = z.infer<typeof RequestLogCodeDistributionSchema>;

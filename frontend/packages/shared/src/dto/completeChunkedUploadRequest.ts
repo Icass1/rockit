@@ -7,6 +7,4 @@ export const CompleteChunkedUploadRequestSchema = z.object({
     uploadId: z.string(),
 });
 
-export type CompleteChunkedUploadRequest = z.infer<
-    typeof CompleteChunkedUploadRequestSchema
->;
+export type CompleteChunkedUploadRequest = z.infer<typeof CompleteChunkedUploadRequestSchema>;

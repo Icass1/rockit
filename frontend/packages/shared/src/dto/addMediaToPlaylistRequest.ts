@@ -7,6 +7,4 @@ export const AddMediaToPlaylistRequestSchema = z.object({
     mediaPublicId: z.string(),
 });
 
-export type AddMediaToPlaylistRequest = z.infer<
-    typeof AddMediaToPlaylistRequestSchema
->;
+export type AddMediaToPlaylistRequest = z.infer<typeof AddMediaToPlaylistRequestSchema>;

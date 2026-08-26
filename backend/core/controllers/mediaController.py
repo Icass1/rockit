@@ -21,6 +21,7 @@ from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.framework import providers
 from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
+from backend.core.framework.recommendation import Recommendation, RecommendationResult
 from backend.core.framework.provider.types import AddFromUrlAResult
 
 from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
@@ -34,6 +35,7 @@ from backend.core.responses.searchResponse import SearchResultsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.songListResponse import SongListResponse
 from backend.core.responses.addFromUrlResponse import AddFromUrlResponse
 from backend.core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
@@ -61,6 +63,32 @@ async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumRespons
         )
 
     return a_result.result()
+
+
+@router.get("/song/{public_id}/related")
+async def get_related_songs(
+    request: Request,
+    public_id: str,
+    limit: int = 20,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> SongListResponse:
+    """Songs similar to this one (playlist/listening co-occurrence), plus
+    Last.fm-sourced discovery for songs not downloaded here yet."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result: AResult[RecommendationResult] = (
+        await Recommendation.get_related_songs_async(
+            session=session, public_id=public_id, limit=limit
+        )
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return SongListResponse(
+        songs=a_result.result().songs, discover=a_result.result().discover
+    )
 
 
 @router.get("/album/{public_id}")

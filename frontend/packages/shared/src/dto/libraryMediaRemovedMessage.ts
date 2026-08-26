@@ -4,12 +4,8 @@
 import { z } from "zod";
 
 export const LibraryMediaRemovedMessageSchema = z.object({
-    type: z
-        .union([z.literal("library_media_removed")])
-        .default("library_media_removed"),
+    type: z.union([z.literal("library_media_removed")]).default("library_media_removed"),
     publicId: z.string(),
 });
 
-export type LibraryMediaRemovedMessage = z.infer<
-    typeof LibraryMediaRemovedMessageSchema
->;
+export type LibraryMediaRemovedMessage = z.infer<typeof LibraryMediaRemovedMessageSchema>;

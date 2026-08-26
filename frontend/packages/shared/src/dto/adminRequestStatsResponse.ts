@@ -10,6 +10,4 @@ export const AdminRequestStatsResponseSchema = z.object({
     rejected: z.number(),
 });
 
-export type AdminRequestStatsResponse = z.infer<
-    typeof AdminRequestStatsResponseSchema
->;
+export type AdminRequestStatsResponse = z.infer<typeof AdminRequestStatsResponseSchema>;

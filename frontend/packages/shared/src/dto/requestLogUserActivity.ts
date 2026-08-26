@@ -10,6 +10,4 @@ export const RequestLogUserActivitySchema = z.object({
     avgTimeMs: z.number(),
 });
 
-export type RequestLogUserActivity = z.infer<
-    typeof RequestLogUserActivitySchema
->;
+export type RequestLogUserActivity = z.infer<typeof RequestLogUserActivitySchema>;

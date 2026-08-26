@@ -2,10 +2,10 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { StatsHeatmapCellResponseSchema } from "./statsHeatmapCellResponse";
-import { StatsMinutesEntryResponseSchema } from "./statsMinutesEntryResponse";
-import { StatsRankedItemResponseSchema } from "./statsRankedItemResponse";
-import { StatsSummaryResponseSchema } from "./statsSummaryResponse";
+import { StatsSummaryResponseSchema } from './statsSummaryResponse';
+import { StatsRankedItemResponseSchema } from './statsRankedItemResponse';
+import { StatsHeatmapCellResponseSchema } from './statsHeatmapCellResponse';
+import { StatsMinutesEntryResponseSchema } from './statsMinutesEntryResponse';
 
 export const UserStatsResponseSchema = z.object({
     summary: z.lazy(() => StatsSummaryResponseSchema),

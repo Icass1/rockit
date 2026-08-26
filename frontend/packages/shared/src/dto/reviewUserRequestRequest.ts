@@ -8,6 +8,4 @@ export const ReviewUserRequestRequestSchema = z.object({
     reviewComment: z.string().nullable(),
 });
 
-export type ReviewUserRequestRequest = z.infer<
-    typeof ReviewUserRequestRequestSchema
->;
+export type ReviewUserRequestRequest = z.infer<typeof ReviewUserRequestRequestSchema>;

@@ -15,6 +15,4 @@ export const SpotifyScrapperArtistResponseSchema = z.object({
     genres: z.array(z.string()),
 });
 
-export type SpotifyScrapperArtistResponse = z.infer<
-    typeof SpotifyScrapperArtistResponseSchema
->;
+export type SpotifyScrapperArtistResponse = z.infer<typeof SpotifyScrapperArtistResponseSchema>;

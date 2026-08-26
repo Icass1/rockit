@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseArtistResponseSchema } from "./baseArtistResponse";
-import { PlaylistContributorSchema } from "./playlistContributor";
+import { BaseArtistResponseSchema } from './baseArtistResponse';
+import { PlaylistContributorSchema } from './playlistContributor';
 
 export const BasePlaylistWithoutMediasResponseSchema = z.object({
     type: z.union([z.literal("playlist")]).default("playlist"),
@@ -18,6 +18,4 @@ export const BasePlaylistWithoutMediasResponseSchema = z.object({
     owner: z.lazy(() => BaseArtistResponseSchema),
 });
 
-export type BasePlaylistWithoutMediasResponse = z.infer<
-    typeof BasePlaylistWithoutMediasResponseSchema
->;
+export type BasePlaylistWithoutMediasResponse = z.infer<typeof BasePlaylistWithoutMediasResponseSchema>;

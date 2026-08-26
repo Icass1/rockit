@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseArtistResponseSchema } from "./baseArtistResponse";
-import { YoutubeChannelResponseSchema } from "./youtubeChannelResponse";
+import { YoutubeChannelResponseSchema } from './youtubeChannelResponse';
+import { BaseArtistResponseSchema } from './baseArtistResponse';
 
 export const YoutubeVideoResponseSchema = z.object({
     type: z.union([z.literal("video")]).default("video"),

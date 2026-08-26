@@ -2,8 +2,8 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { BaseAlbumWithoutSongsResponseSchema } from "./baseAlbumWithoutSongsResponse";
-import { BaseArtistResponseSchema } from "./baseArtistResponse";
+import { BaseArtistResponseSchema } from './baseArtistResponse';
+import { BaseAlbumWithoutSongsResponseSchema } from './baseAlbumWithoutSongsResponse';
 
 export const SpotifyScrapperTrackResponseSchema = z.object({
     type: z.union([z.literal("song")]).default("song"),
@@ -23,6 +23,4 @@ export const SpotifyScrapperTrackResponseSchema = z.object({
     spotifyId: z.string(),
 });
 
-export type SpotifyScrapperTrackResponse = z.infer<
-    typeof SpotifyScrapperTrackResponseSchema
->;
+export type SpotifyScrapperTrackResponse = z.infer<typeof SpotifyScrapperTrackResponseSchema>;

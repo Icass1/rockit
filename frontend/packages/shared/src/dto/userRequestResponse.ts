@@ -6,16 +6,7 @@ import { z } from "zod";
 export const UserRequestResponseSchema = z.object({
     publicId: z.string(),
     mediaPublicId: z.string().nullable(),
-    requestType: z.enum([
-        "LYRICS",
-        "TITLE",
-        "ARTIST",
-        "ALBUM",
-        "GENRE",
-        "METADATA",
-        "COVER_ART",
-        "OTHER",
-    ]),
+    requestType: z.enum(["LYRICS", "TITLE", "ARTIST", "ALBUM", "GENRE", "METADATA", "COVER_ART", "OTHER"]),
     proposedValue: z.string(),
     comment: z.string().nullable(),
     status: z.enum(["PENDING", "ACCEPTED", "REJECTED"]),

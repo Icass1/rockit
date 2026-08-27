@@ -30,7 +30,6 @@ import {
     DownloadSearchResultAction,
     DownloadSearchResultAndAddToLibraryAction,
     DownloadSearchResultAndPlayAction,
-    DownloadZipAction,
     RetryDownloadAction,
 } from "@/components/MediaContextMenu/actions/DownloadActions";
 import DownloadListAction from "@/components/MediaContextMenu/actions/DownloadListAction";
@@ -79,7 +78,6 @@ const actionComponents: Partial<
     [EMediaContextAction.DownloadSearchResultAndPlay]:
         DownloadSearchResultAndPlayAction,
     [EMediaContextAction.RetryDownload]: RetryDownloadAction,
-    [EMediaContextAction.DownloadZip]: DownloadZipAction,
     [EMediaContextAction.DownloadList]: DownloadListAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,

@@ -143,20 +143,15 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
-        id: EMediaContextAction.DownloadZip,
-        type: "action",
-        icon: HardDriveDownload,
-        labelKey: "DOWNLOAD_ZIP",
-        mediaTypes: [EMediaType.Album],
-        condition: (m) => !isSearchResult(m),
-    },
-    {
         id: EMediaContextAction.DownloadList,
         type: "action",
         icon: Download,
         labelKey: "DOWNLOAD_LIST_TO_SERVER",
         mediaTypes: [EMediaType.Album, EMediaType.Playlist],
-        locations: [EMediaContextLocation.PLAYLIST],
+        locations: [
+            EMediaContextLocation.LIBRARY,
+            EMediaContextLocation.PLAYLIST,
+        ],
         condition: (m) => !isSearchResult(m),
     },
     {
@@ -384,7 +379,6 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddQueueRandom,
         EMediaContextAction.AddToQueueBottom,
         "---",
-        EMediaContextAction.DownloadZip,
         EMediaContextAction.DownloadList,
         EMediaContextAction.RemoveFromPlaylist,
     ],

@@ -3,20 +3,18 @@ import json
 import os
 import subprocess
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from yt_dlp import YoutubeDL
 
 from backend.constants import TEMP_PATH
-from backend.utils.logger import getLogger
-
-from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db import rockit_db
-from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
-
+from backend.core.access.downloadAccess import DownloadAccess
+from backend.core.aResult import AResult, AResultCode
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.framework.websocket.webSocketManager import ws_manager
+from backend.utils.logger import getLogger
 
 
 def _retry_sleep(n: int) -> int:
@@ -40,13 +38,13 @@ class _YtDlpLogger:
         logger.error(f"[yt-dlp] {msg}")
 
 
-def _create_youtube_dl(opts: Dict[str, Any]) -> YoutubeDL:
+def _create_youtube_dl(opts: dict[str, Any]) -> YoutubeDL:
     return YoutubeDL(opts)  # type: ignore[arg-type]
 
 
-def _get_duration_with_ffprobe(filepath: str) -> Optional[int]:
+def _get_duration_with_ffprobe(filepath: str) -> int | None:
     try:
-        cmd: List[str] = [
+        cmd: list[str] = [
             "ffprobe",
             "-v",
             "error",
@@ -74,7 +72,7 @@ def _log_downloaded_codecs(filepath: str) -> None:
     """Log the codecs of a downloaded file and warn if WebKit-incompatible."""
 
     try:
-        cmd: List[str] = [
+        cmd: list[str] = [
             "ffprobe",
             "-v",
             "error",
@@ -92,8 +90,8 @@ def _log_downloaded_codecs(filepath: str) -> None:
             )
             return
 
-        streams: List[Dict[str, Any]] = json.loads(result.stdout).get("streams", [])
-        summary: List[str] = []
+        streams: list[dict[str, Any]] = json.loads(result.stdout).get("streams", [])
+        summary: list[str] = []
         webkit_unsafe: bool = False
         for stream in streams:
             codec_type: str = stream.get("codec_type", "unknown")
@@ -170,7 +168,7 @@ class YouTubeDownloader:
         title: str,
         artist: str,
         filename: str,
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
@@ -191,7 +189,7 @@ class YouTubeDownloader:
         title: str,
         artist: str,
         filename: str,
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             download_id=download_id,
@@ -213,7 +211,7 @@ class YouTubeDownloader:
         artist: str,
         filename: str,
         format_type: str,
-    ) -> AResult[Dict[str, Any]]:
+    ) -> AResult[dict[str, Any]]:
         async with rockit_db.session_scope_async() as session:
             a_result_row = await DownloadAccess.get_download_by_id(
                 session=session, download_id=download_id
@@ -234,7 +232,7 @@ class YouTubeDownloader:
 
         expected_ext: str | None
         if format_type == "mp3":
-            ydl_opts: Dict[str, Any] = {
+            ydl_opts: dict[str, Any] = {
                 "format": "bestaudio/best",
                 "outtmpl": output_template,
                 "postprocessors": [
@@ -284,8 +282,8 @@ class YouTubeDownloader:
 
         loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
-        def progress_hook(d: Dict[str, Any]) -> None:
-            status: Optional[str] = d.get("status")
+        def progress_hook(d: dict[str, Any]) -> None:
+            status: str | None = d.get("status")
             if status == "downloading":
                 total_bytes: float = float(
                     d.get("total_bytes") or d.get("total_bytes_estimate", 0)
@@ -370,7 +368,7 @@ class YouTubeDownloader:
                     final_path = os.path.join(output_path, matching[0])
                     final_filename = matching[0]
 
-            real_duration_ms: Optional[int] = (
+            real_duration_ms: int | None = (
                 _get_duration_with_ffprobe(final_path) if final_path else None
             )
             if final_path:
@@ -383,7 +381,8 @@ class YouTubeDownloader:
             )
 
         except Exception as e:
-            logger.error(f"Error downloading YouTube video: {e}", exc_info=True)
+            logger.error(f"Error downloading YouTube video: {e}", exc_info=False)
+            logger.debug(f"Error downloading YouTube video: {e}", exc_info=True)
             await _insert_and_broadcast(
                 download_id=download_id,
                 download_public_id=download_public_id,
@@ -393,7 +392,7 @@ class YouTubeDownloader:
                 artist=artist,
                 status=DownloadStatusEnum.FAILED,
                 progress=0,
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 date_started=date_started,
                 date_ended=datetime.now(timezone.utc),
             )

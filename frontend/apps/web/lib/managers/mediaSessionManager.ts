@@ -49,13 +49,10 @@ export class MediaSessionManager {
         this._subscribeToChanges();
 
         if (typeof document !== "undefined") {
-            document.addEventListener(
-                "visibilitychange",
-                (): void => {
-                    if (document.hidden) return;
-                    this._recoverKeepaliveOnVisible();
-                }
-            );
+            document.addEventListener("visibilitychange", (): void => {
+                if (document.hidden) return;
+                this._recoverKeepaliveOnVisible();
+            });
         }
     }
 

@@ -1,7 +1,6 @@
 "use client";
 
-import type { JSX } from "react";
-import type { RefObject } from "react";
+import type { JSX, RefObject } from "react";
 import LyricsPanel from "@/components/MobilePlayer/components/LyricsPanel";
 import QueuePanel from "@/components/MobilePlayer/components/QueuePanel";
 
@@ -31,7 +30,9 @@ export default function BottomPanel({
             className={`absolute inset-x-0 bottom-0 z-20 h-[65%] rounded-t-2xl bg-neutral-900 ${
                 tab ? "translate-y-0" : "translate-y-full"
             }`}
-            style={{ transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)" }}
+            style={{
+                transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
         >
             <button
                 type="button"

@@ -1,4 +1,4 @@
-import { ReactNode, createElement } from "react";
+import { createElement, ReactNode } from "react";
 import { toast } from "sonner";
 import { ENotificationType } from "@/models/enums/notificationType";
 import { INotification } from "@/models/interfaces/notification";

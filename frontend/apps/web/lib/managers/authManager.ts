@@ -1,6 +1,6 @@
 import { Http } from "@/lib/http";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { clearSessionOffline } from "@/lib/offline/db";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export interface AuthResult {
     success: boolean;

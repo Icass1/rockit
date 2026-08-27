@@ -219,10 +219,7 @@ export function formatDuration(
     return `${hours} h ${paddedMinutes} min`;
 }
 
-function buildSongCountWithDuration(
-    count: number,
-    durationMs: number
-): string {
+function buildSongCountWithDuration(count: number, durationMs: number): string {
     const label = `${count} song${count !== 1 ? "s" : ""}`;
     if (durationMs === 0) return label;
     return `${label} • ${formatDuration(durationMs)}`;
@@ -245,18 +242,14 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
         return buildSongCountWithDuration(totalSongs, totalMs);
     } else if (isPlaylistWithMedias(media)) {
         if (media.description) {
-            const totalMs = getTotalDuration(
-                media.medias.map((m) => m.item)
-            );
+            const totalMs = getTotalDuration(media.medias.map((m) => m.item));
             if (totalMs > 0) {
                 return `${media.description} • ${formatDuration(totalMs)}`;
             }
             return media.description;
         }
         const totalSongs = media.medias?.length ?? 0;
-        const totalMs = getTotalDuration(
-            media.medias.map((m) => m.item)
-        );
+        const totalMs = getTotalDuration(media.medias.map((m) => m.item));
         return buildSongCountWithDuration(totalSongs, totalMs);
     } else if (isPlaylist(media)) {
         return media.description ?? "";

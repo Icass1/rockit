@@ -158,8 +158,8 @@ export default function LibraryClient(): JSX.Element {
                         {/* View toggle (Grid → List → Masonry) */}
                         <button
                             onClick={(): void =>
-                                setViewMode((v): EViewMode =>
-                                    cycleEnum(EViewMode, v)
+                                setViewMode(
+                                    (v): EViewMode => cycleEnum(EViewMode, v)
                                 )
                             }
                             title={

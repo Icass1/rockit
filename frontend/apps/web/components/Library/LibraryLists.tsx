@@ -13,6 +13,7 @@ import Link from "next/link";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
+    BaseSongWithAlbumResponse,
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
@@ -30,6 +31,8 @@ import {
 } from "@/lib/services/mediaService";
 import DownloadLibraryButton from "@/components/Library/DownloadLibraryButton";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
+import { useInView } from "@/hooks/useInView";
+import { useIncrementalList } from "@/hooks/useIncrementalList";
 import {
     AlbumCard,
     PlaylistCard,
@@ -46,7 +49,7 @@ import {
 } from "@/components/Library/LibraryRows";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
-import LoadingComponent from "@/components/Loading";
+import LibrarySkeleton from "@/components/Library/LibrarySkeleton";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -322,6 +325,21 @@ export function LibraryLists({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
+    // Incremental rendering for the lists that can grow very large (songs,
+    // videos). Small libraries render everything immediately — zero overhead.
+    const [songsSentinel, songsSentinelInView] =
+        useInView<HTMLDivElement>();
+    const [videosSentinel, videosSentinelInView] =
+        useInView<HTMLDivElement>();
+    const songs = useIncrementalList<BaseSongWithAlbumResponse>(
+        filtered.songs,
+        songsSentinelInView
+    );
+    const videos = useIncrementalList<BaseVideoResponse>(
+        filtered.videos,
+        videosSentinelInView
+    );
+
     const lastMonthDate = useMemo(() => {
         const d = new Date();
         d.setMonth(d.getMonth() - 1);
@@ -399,7 +417,7 @@ export function LibraryLists({
         rockIt.mediaPlayerManager.play();
     };
 
-    if (loading) return <LoadingComponent />;
+    if (loading) return <LibrarySkeleton />;
 
     return (
         <section>
@@ -687,23 +705,30 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {filtered.songs.map((s): JSX.Element => (
-                                    <SongRow key={s.publicId} song={s} />
-                                ))}
+                                {songs.map(
+                                    (s): JSX.Element => (
+                                        <SongRow key={s.publicId} song={s} />
+                                    )
+                                )}
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {filtered.songs.map((s): JSX.Element => (
-                                    <SongCard key={s.publicId} song={s} />
-                                ))}
+                                {songs.map(
+                                    (s): JSX.Element => (
+                                        <SongCard key={s.publicId} song={s} />
+                                    )
+                                )}
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {filtered.songs.map((s): JSX.Element => (
-                                    <SongCard key={s.publicId} song={s} />
-                                ))}
+                                {songs.map(
+                                    (s): JSX.Element => (
+                                        <SongCard key={s.publicId} song={s} />
+                                    )
+                                )}
                             </div>
                         )}
+                        <div ref={songsSentinel} aria-hidden />
                     </>
                 ))}
 
@@ -724,23 +749,30 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {filtered.videos.map((v): JSX.Element => (
-                                    <VideoRow key={v.publicId} video={v} />
-                                ))}
+                                {videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoRow key={v.publicId} video={v} />
+                                    )
+                                )}
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {filtered.videos.map((v): JSX.Element => (
-                                    <VideoCard key={v.publicId} video={v} />
-                                ))}
+                                {videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoCard key={v.publicId} video={v} />
+                                    )
+                                )}
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {filtered.videos.map((v): JSX.Element => (
-                                    <VideoCard key={v.publicId} video={v} />
-                                ))}
+                                {videos.map(
+                                    (v): JSX.Element => (
+                                        <VideoCard key={v.publicId} video={v} />
+                                    )
+                                )}
                             </div>
                         )}
+                        <div ref={videosSentinel} aria-hidden />
                     </>
                 ))}
 

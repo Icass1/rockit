@@ -22,6 +22,7 @@ export function LibraryFilters({
         { key: EContentType.Videos, label: $vocabulary.VIDEOS },
         { key: EContentType.Stations, label: $vocabulary.RADIO_STATIONS },
         { key: EContentType.Shared, label: $vocabulary.SHARED_2_YOU },
+        { key: EContentType.Offline, label: $vocabulary.OFFLINE },
     ];
 
     return (

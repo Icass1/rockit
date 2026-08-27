@@ -255,6 +255,7 @@ export interface Vocabulary {
     NO_LYRICS: string;
     NO_MEDIA_FOUND: string;
     NO_MEDIA_PLAYING: string;
+    NO_OFFLINE_MEDIA: string;
     NO_PLAYLISTS: string;
     NO_REPEAT: string;
     NO_RESULTS: string;
@@ -266,6 +267,10 @@ export interface Vocabulary {
     NOTHING: string;
     NOVEMBER: string;
     OCTOBER: string;
+    OFFLINE: string;
+    OFFLINE_DOWNLOAD_FAILED_SUMMARY: string;
+    OFFLINE_DOWNLOAD_SUMMARY: string;
+    OFFLINE_REMOVE_SUMMARY: string;
     OPEN_LIST: string;
     OPEN_SONG: string;
     OR_CREATE_ACCOUNT: string;

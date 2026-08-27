@@ -15,6 +15,7 @@ import type { ActionComponentProps } from "@/components/MediaContextMenu/actions
 export default function SaveOfflineAction({
     media,
     vocabulary,
+    listPublicId,
 }: ActionComponentProps): JSX.Element {
     const $status = useStore(offlineStatusMap);
     const isSongType =
@@ -38,12 +39,24 @@ export default function SaveOfflineAction({
         const audioUrl = (media as TMedia & { audioUrl?: string | null })
             .audioUrl;
         if (!audioUrl) return;
+
+        // Settle parent references at save time so the Offline chip can group
+        // albums/playlists without any network call later.
+        const songAlbum = (media as TMedia & { album?: { publicId?: string } })
+            .album;
+        const parentAlbumIds = songAlbum?.publicId
+            ? [songAlbum.publicId]
+            : [];
+        const parentPlaylistIds = listPublicId ? [listPublicId] : [];
+
         setDownloading(true);
         try {
             await downloadSongOffline(
                 publicId,
                 audioUrl,
-                media.imageUrl ?? null
+                media.imageUrl ?? null,
+                parentAlbumIds,
+                parentPlaylistIds
             );
         } catch (err) {
             if (err instanceof Error && err.message === "STORAGE_FULL") {

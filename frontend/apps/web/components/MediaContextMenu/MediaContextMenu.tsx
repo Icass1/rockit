@@ -50,6 +50,7 @@ import PlayAction from "@/components/MediaContextMenu/actions/PlayAction";
 import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAction";
 import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/RemoveFromPlaylistAction";
 import SaveOfflineAction from "@/components/MediaContextMenu/actions/SaveOfflineAction";
+import SaveOfflineListAction from "@/components/MediaContextMenu/actions/SaveOfflineListAction";
 import {
     AddSongQueueRandomAction,
     AddSongToQueueBottomAction,
@@ -89,6 +90,7 @@ const actionComponents: Partial<
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,
     [EMediaContextAction.SaveOffline]: SaveOfflineAction,
+    [EMediaContextAction.DownloadOfflineList]: SaveOfflineListAction,
 };
 
 function getMediaCover(media: TMediaWithSearch): string | undefined {

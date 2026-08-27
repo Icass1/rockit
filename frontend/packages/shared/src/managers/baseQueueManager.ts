@@ -39,6 +39,11 @@ export class BaseQueueManager {
     protected _queueAtom = createArrayAtom<QueueMediaItem>([]);
     protected _sortedQueueAtom = createArrayAtom<QueueMediaItem>([]);
     protected _currentQueueMediaIdAtom = createAtom<number | null>(0);
+    /** Recommended songs shown under the queue and played once it runs out. */
+    protected _autoplayAtom = createArrayAtom<TQueueMedia>([]);
+    /** Song the current suggestions were built from, so they are only
+     * refetched when the queue actually moves on to something else. */
+    protected _autoplaySeedPublicId: string | undefined;
 
     protected _lastNavigationDirection: 1 | -1 = 1;
     protected _init = false;
@@ -64,6 +69,14 @@ export class BaseQueueManager {
             EWebSocketMessage.CurrentMedia,
             this._handleCurrentMedia
         );
+
+        // Keep the suggestions in step with whatever is playing, from every
+        // path that changes it (skip, click, websocket sync). The loader
+        // no-ops while the seed song is unchanged, so this stays cheap.
+        this._currentMediaAtom.listen((): void => {
+            void this.loadAutoplaySuggestionsAsync();
+        });
+        void this.loadAutoplaySuggestionsAsync();
     }
 
     protected _handleCurrentQueue = async (): Promise<void> => {
@@ -756,5 +769,91 @@ export class BaseQueueManager {
         return this._lastNavigationDirection;
     }
 
+    get autoplayAtom(): ReadonlyArrayAtom<TQueueMedia> {
+        return this._autoplayAtom.getReadonlyAtom();
+    }
+
+    get autoplay(): TQueueMedia[] {
+        return this._autoplayAtom.get();
+    }
+
     // #endregion: Getters
+
+    // #region: Autoplay
+
+    /**
+     * Fetch songs recommended from whatever is playing now, so the UI can
+     * show what comes after the queue before it actually ends.
+     *
+     * Only already-downloaded songs are kept: the rest have no audio file
+     * on the server and would play nothing. Safe to call repeatedly — it
+     * no-ops while the seed song hasn't changed.
+     */
+    async loadAutoplaySuggestionsAsync(): Promise<void> {
+        const seed = this.currentMedia;
+        if (!seed) {
+            this._autoplayAtom.set([]);
+            this._autoplaySeedPublicId = undefined;
+            return;
+        }
+
+        if (this._autoplaySeedPublicId === seed.publicId) return;
+        this._autoplaySeedPublicId = seed.publicId;
+
+        const response = await getRockIt().http.getRelatedSongs(seed.publicId);
+        if (!response.isOk()) {
+            this._autoplayAtom.set([]);
+            return;
+        }
+
+        const queuedPublicIds = new Set(
+            this.queue.map((item): string => item.media.publicId)
+        );
+        this._autoplayAtom.set(
+            response.result.songs.filter(
+                (song): boolean =>
+                    song.downloaded && !queuedPublicIds.has(song.publicId)
+            )
+        );
+    }
+
+    /**
+     * Append the suggested songs to the queue and continue playing from the
+     * first of them. Returns false when there is nothing to continue with,
+     * so the caller can fall back to its previous end-of-queue behaviour.
+     */
+    async startAutoplayAsync(): Promise<boolean> {
+        if (this.autoplay.length === 0) {
+            await this.loadAutoplaySuggestionsAsync();
+        }
+
+        const suggestions = this.autoplay;
+        if (suggestions.length === 0) return false;
+
+        const listPublicId = this.currentList ?? "";
+        let nextQueueMediaId = this.sortedQueue.reduce(
+            (max, item): number => Math.max(max, item.queueMediaId),
+            -1
+        );
+
+        const appended: QueueMediaItem[] = suggestions.map(
+            (media): QueueMediaItem => ({
+                media,
+                listPublicId,
+                queueMediaId: ++nextQueueMediaId,
+            })
+        );
+
+        this.sortedQueue = [...this.sortedQueue, ...appended];
+        this.randomQueue = [...this.randomQueue, ...appended];
+        this._autoplayAtom.set([]);
+        this._autoplaySeedPublicId = undefined;
+
+        this.updateQueue();
+        this.setQueueMediaId(appended[0].queueMediaId);
+        this._sendCurrentQueue();
+        return true;
+    }
+
+    // #endregion: Autoplay
 }

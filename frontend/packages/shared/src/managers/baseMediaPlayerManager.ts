@@ -618,6 +618,29 @@ export abstract class BaseMediaPlayerManager {
         } else if (action === EQueueAction.PLAY && nextId !== null) {
             getRockIt().queueManager.setQueueMediaId(nextId);
             this.play();
+        } else if (action === EQueueAction.AUTOPLAY) {
+            void getRockIt()
+                .queueManager.startAutoplayAsync()
+                .then((started): void => {
+                    if (started) {
+                        this.play();
+                        return;
+                    }
+                    // No suggestions available: keep the previous behaviour of
+                    // looping back to the top of the queue rather than stopping.
+                    const first = queue[0];
+                    if (first) {
+                        getRockIt().queueManager.setQueueMediaId(
+                            first.queueMediaId
+                        );
+                        this.play();
+                    } else {
+                        this._playingAtom.set(false);
+                    }
+                })
+                .catch((): void => {
+                    this._playingAtom.set(false);
+                });
         } else {
             this._playingAtom.set(false);
         }

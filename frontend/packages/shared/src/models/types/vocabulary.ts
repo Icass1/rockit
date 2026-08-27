@@ -418,4 +418,5 @@ export interface Vocabulary {
     SIMILAR_TO_SONG_PLAYLIST_PREFIX: string;
     SIMILAR_SONGS_PLAYLIST_CREATED: string;
     SIMILAR_TO_SONG: string;
+    AUTOPLAY_ON: string;
 }

@@ -8,6 +8,7 @@ import {
     type JSX,
     type ReactNode,
 } from "react";
+import { isDownloadable, isList, isSearchResult } from "@rockit/shared";
 import type { TMediaWithSearch } from "@/models/types/media";
 
 interface LibrarySelectionContextValue {
@@ -22,6 +23,16 @@ interface LibrarySelectionContextValue {
 const LibrarySelectionContext = createContext<
     LibrarySelectionContextValue | undefined
 >(undefined);
+
+/**
+ * Songs, videos, albums and playlists are the only types that resolve to files
+ * the backend can put inside a ZIP. Radio stations and artists have nothing
+ * downloadable behind them, so they must not be selectable.
+ */
+export function isZippable(media: TMediaWithSearch): boolean {
+    if (isSearchResult(media)) return false;
+    return isDownloadable(media) || isList(media);
+}
 
 function getPublicId(media: TMediaWithSearch): string | undefined {
     return "publicId" in media ? media.publicId : undefined;
@@ -43,7 +54,7 @@ export function LibrarySelectionProvider({
                 selectedMedia.some((media) => getPublicId(media) === publicId),
             toggleSelection: (media: TMediaWithSearch): void => {
                 const publicId = getPublicId(media);
-                if (!publicId) return;
+                if (!publicId || !isZippable(media)) return;
                 setSelectedMedia((current) =>
                     current.some((item) => getPublicId(item) === publicId)
                         ? current.filter(

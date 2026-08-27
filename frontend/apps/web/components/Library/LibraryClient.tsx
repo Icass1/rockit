@@ -10,6 +10,7 @@ import {
     Kanban,
     LayoutGrid,
     List,
+    LoaderCircle,
     Upload,
 } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
@@ -30,6 +31,20 @@ function LibrarySelectionBar(): JSX.Element | null {
     const { selectionMode, selectedMedia, clearSelection } =
         useLibrarySelection();
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const [downloading, setDownloading] = useState(false);
+
+    // Packaging runs on the server and can take a while, so the button stays
+    // disabled until it finishes instead of queueing another archive.
+    const downloadSelection = async (): Promise<void> => {
+        if (downloading) return;
+
+        setDownloading(true);
+        try {
+            await downloadMediaAsZip(selectedMedia, "Library");
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     if (!selectionMode) return null;
 
@@ -41,13 +56,17 @@ function LibrarySelectionBar(): JSX.Element | null {
             <div className="flex items-center gap-2">
                 <button
                     type="button"
-                    disabled={selectedMedia.length === 0}
+                    disabled={downloading || selectedMedia.length === 0}
                     onClick={(): void => {
-                        void downloadMediaAsZip(selectedMedia, "Library");
+                        void downloadSelection();
                     }}
-                    className="flex items-center gap-1.5 rounded-md bg-(--color-rockit-pink) px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-md bg-(--color-rockit-pink) px-3 py-1.5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-50"
                 >
-                    <Upload className="h-4 w-4 rotate-180" />
+                    {downloading ? (
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <Upload className="h-4 w-4 rotate-180" />
+                    )}
                     {$vocabulary.LIBRARY_ZIP}
                 </button>
                 <button
@@ -139,8 +158,8 @@ export default function LibraryClient(): JSX.Element {
                         {/* View toggle (Grid → List → Masonry) */}
                         <button
                             onClick={(): void =>
-                                setViewMode(
-                                    (v): EViewMode => cycleEnum(EViewMode, v)
+                                setViewMode((v): EViewMode =>
+                                    cycleEnum(EViewMode, v)
                                 )
                             }
                             title={

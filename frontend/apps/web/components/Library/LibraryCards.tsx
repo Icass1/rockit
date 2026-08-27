@@ -21,7 +21,10 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
-import { useLibrarySelection } from "@/components/Library/LibrarySelectionContext";
+import {
+    isZippable,
+    useLibrarySelection,
+} from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
@@ -87,13 +90,31 @@ function LibraryCard({
     const { selectionMode, isSelected, toggleSelection } =
         useLibrarySelection();
 
+    // Stations and artists cannot be packaged into a ZIP, so they keep
+    // navigating normally and show no checkbox while selecting.
+    const selectable = selectionMode && isZippable(media);
+
+    const toggleCurrent = (): void => {
+        if ("publicId" in media) toggleSelection(media);
+    };
+
     const handleSelectionClick = (
         event: React.MouseEvent<HTMLElement>
     ): void => {
-        if (!selectionMode) return;
+        if (!selectable) return;
         event.preventDefault();
         event.stopPropagation();
-        if ("publicId" in media) toggleSelection(media);
+        toggleCurrent();
+    };
+
+    const handleSelectionKeyDown = (
+        event: React.KeyboardEvent<HTMLElement>
+    ): void => {
+        if (!selectable) return;
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        toggleCurrent();
     };
 
     const imageBlock = (
@@ -169,12 +190,14 @@ function LibraryCard({
         </>
     );
 
-    const selectionOverlay = selectionMode ? (
+    const selectionOverlay = selectable ? (
         <div
             role="checkbox"
             aria-checked={"publicId" in media && isSelected(media.publicId)}
+            aria-label={name}
             tabIndex={0}
             onClick={handleSelectionClick}
+            onKeyDown={handleSelectionKeyDown}
             className={`absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-black/60 ${
                 "publicId" in media && isSelected(media.publicId)
                     ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
@@ -193,7 +216,7 @@ function LibraryCard({
                 {href ? (
                     <>
                         <Link
-                            href={selectionMode ? "#" : href}
+                            href={href}
                             className={linkClass}
                             onClick={handleSelectionClick}
                         >
@@ -207,7 +230,7 @@ function LibraryCard({
                     <div
                         className={`${linkClass} cursor-pointer`}
                         onClick={(event): void => {
-                            if (selectionMode) {
+                            if (selectable) {
                                 handleSelectionClick(event);
                             } else {
                                 onClick?.(event);

@@ -113,13 +113,19 @@ export function DownloadSearchResultAndAddToLibraryAction({
 export function DownloadZipAction({
     media,
     vocabulary,
+    loading,
+    setLoading,
 }: ActionComponentProps): JSX.Element {
-    const downloadZip = (): void => {
-        void downloadMediaAsZip([media], media.name);
+    // Packaging runs on the server and can take a while, so the option stays
+    // disabled until it finishes instead of queueing another archive.
+    const downloadZip = async (): Promise<void> => {
+        setLoading(true);
+        await downloadMediaAsZip([media], media.name);
+        setLoading(false);
     };
 
     return (
-        <ContextMenuOption onClick={downloadZip}>
+        <ContextMenuOption onClick={downloadZip} disable={loading}>
             <HardDriveDownload className="h-5 w-5" />
             {vocabulary.DOWNLOAD_ZIP}
         </ContextMenuOption>

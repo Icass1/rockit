@@ -11,14 +11,28 @@ export class Http extends BaseHttp {
     static async downloadZip(
         payload: DownloadZipRequest
     ): Promise<HttpResult<Blob>> {
-        const response = await this.baseApiFetchAsync(
-            "/downloader/download-zip",
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(DownloadZipRequestSchema.parse(payload)),
-            }
-        );
+        // This bypasses apiFetchAsync because the response is binary, so the
+        // network error handling it normally provides has to be repeated here.
+        let response: Response;
+        try {
+            response = await this.baseApiFetchAsync(
+                "/downloader/download-zip",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(
+                        DownloadZipRequestSchema.parse(payload)
+                    ),
+                }
+            );
+        } catch (err) {
+            return new HttpResult({
+                ok: false,
+                code: 0,
+                message: "Network Error",
+                detail: (err as Error).message,
+            });
+        }
 
         if (!response.ok) {
             let detail: string | unknown[] | Record<string, unknown> =

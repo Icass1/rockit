@@ -408,4 +408,5 @@ export interface Vocabulary {
     LIBRARY_SELECTED: string;
     LIBRARY_SELECT_ITEMS: string;
     LIBRARY_ZIP: string;
+    LIBRARY_DOWNLOAD_ALL: string;
 }

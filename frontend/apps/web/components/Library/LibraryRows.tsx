@@ -15,7 +15,10 @@ import { CircleCheck } from "lucide-react";
 import type { TMediaWithSearch } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { useLibrarySelection } from "@/components/Library/LibrarySelectionContext";
+import {
+    isZippable,
+    useLibrarySelection,
+} from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
@@ -29,18 +32,22 @@ function SelectableRow({
     const { selectionMode, isSelected, toggleSelection } =
         useLibrarySelection();
 
+    // Stations and artists cannot be packaged into a ZIP, so they stay
+    // clickable and show no checkbox while selecting.
+    const selectable = selectionMode && isZippable(media);
+
     return (
         <div
             className="relative"
             onClickCapture={(event): void => {
-                if (!selectionMode) return;
+                if (!selectable) return;
                 event.preventDefault();
                 event.stopPropagation();
                 toggleSelection(media);
             }}
         >
             {children}
-            {selectionMode && (
+            {selectable && (
                 <div
                     className={`pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-black/60 ${
                         "publicId" in media && isSelected(media.publicId)
@@ -351,18 +358,14 @@ export function AlbumListView({
 
     return (
         <div className="px-4">
-            {groups.map(
-                ([artist, artistAlbums]): JSX.Element => (
-                    <div key={artist}>
-                        <ArtistGroupHeader name={artist} />
-                        {artistAlbums.map(
-                            (album): JSX.Element => (
-                                <AlbumRow key={album.publicId} album={album} />
-                            )
-                        )}
-                    </div>
-                )
-            )}
+            {groups.map(([artist, artistAlbums]): JSX.Element => (
+                <div key={artist}>
+                    <ArtistGroupHeader name={artist} />
+                    {artistAlbums.map((album): JSX.Element => (
+                        <AlbumRow key={album.publicId} album={album} />
+                    ))}
+                </div>
+            ))}
         </div>
     );
 }

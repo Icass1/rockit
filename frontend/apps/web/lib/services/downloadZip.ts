@@ -18,19 +18,37 @@ export async function downloadMediaAsZip(
     }
 
     const response = await Http.downloadZip({ ids, title: archiveName });
-    if (response.isNotOk()) {
+    if (response.isNotOk() || !response.result) {
+        // The backend explains why (nothing downloaded yet, selection too
+        // large), which is far more useful than the generic message. Transport
+        // failures carry a raw fetch error instead, so those stay generic.
+        const backendMessage =
+            response.code >= 400 && typeof response.detail === "string"
+                ? response.detail
+                : undefined;
+
         rockIt.notificationManager.notifyError(
-            rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
+            backendMessage ||
+                rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
         );
         return;
     }
 
-    if (!response.result) return;
-    const blob = response.result;
-    const url = URL.createObjectURL(blob);
+    if (typeof document === "undefined") return;
+
+    const url = URL.createObjectURL(response.result);
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = `${filenamePart(archiveName)}.zip`;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
     anchor.click();
-    URL.revokeObjectURL(url);
+
+    // Firefox only downloads from an anchor attached to the document, and
+    // revoking the object URL synchronously can abort the download that the
+    // click just started.
+    setTimeout((): void => {
+        anchor.remove();
+        URL.revokeObjectURL(url);
+    }, 0);
 }

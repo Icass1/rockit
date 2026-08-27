@@ -18,9 +18,7 @@ export default function DurationToggle({
         <button
             type="button"
             onClick={() =>
-                setStyle((prev) =>
-                    prev === "normal" ? "minutes" : "normal"
-                )
+                setStyle((prev) => (prev === "normal" ? "minutes" : "normal"))
             }
             className="cursor-pointer hover:underline"
         >

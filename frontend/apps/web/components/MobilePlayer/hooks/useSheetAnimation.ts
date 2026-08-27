@@ -39,11 +39,11 @@ export function useSheetAnimation({
             if (backdropRef.current) {
                 backdropRef.current.style.transition = "none";
                 backdropRef.current.style.opacity = String(
-                    Math.max(0, 1 - dy / (window.innerHeight * 0.6)),
+                    Math.max(0, 1 - dy / (window.innerHeight * 0.6))
                 );
             }
         },
-        [sheetRef, backdropRef],
+        [sheetRef, backdropRef]
     );
 
     const snapSheet = useCallback((): void => {
@@ -86,7 +86,7 @@ export function useSheetAnimation({
             el.style.transition = "none";
             el.style.transform = `translateY(${dy}px)`;
         },
-        [panelRef],
+        [panelRef]
     );
 
     const snapPanel = useCallback((): void => {
@@ -120,7 +120,7 @@ export function useSheetAnimation({
                 else snapSheet();
             }
         },
-        [dismissPanel, snapPanel, dismissSheet, snapSheet],
+        [dismissPanel, snapPanel, dismissSheet, snapSheet]
     );
 
     return { apply, moveSheet, movePanel };

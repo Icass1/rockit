@@ -2,8 +2,8 @@
 
 import type { JSX } from "react";
 import type { TPlayableMedia } from "@rockit/shared";
-import type { QueueItem } from "@/models/interfaces/queue";
 import { getTotalDuration } from "@rockit/shared";
+import type { QueueItem } from "@/models/interfaces/queue";
 import { usePlayer } from "@/lib/PlayerContext";
 import DurationToggle from "@/components/DurationToggle";
 import QueueRow from "@/components/MobilePlayer/components/QueueRow";

@@ -3,7 +3,9 @@
 import type { JSX } from "react";
 import type { TPlayableMedia } from "@rockit/shared";
 import type { QueueItem } from "@/models/interfaces/queue";
+import { getTotalDuration } from "@rockit/shared";
 import { usePlayer } from "@/lib/PlayerContext";
+import DurationToggle from "@/components/DurationToggle";
 import QueueRow from "@/components/MobilePlayer/components/QueueRow";
 import { useDragReorder } from "@/components/MobilePlayer/hooks/useDragReorder";
 
@@ -50,8 +52,13 @@ export default function QueuePanel(): JSX.Element {
         >
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
                 <p className="text-lg font-bold text-white">Cola</p>
-                <p className="text-sm text-(--color-muted)">
-                    {queue.length} canciones
+                <p className="flex items-center gap-2 text-sm text-(--color-muted)">
+                    <span>{queue.length} canciones</span>
+                    <DurationToggle
+                        durationMs={getTotalDuration(
+                            queue.map((item) => item.media)
+                        )}
+                    />
                 </p>
             </div>
 

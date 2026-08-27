@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { getPlaylistAsync } from "@/services/mediaService";
 import { BasePlaylistWithMediasResponse } from "@/shared/dto";
+import {
+    EEvent,
+    EventManager,
+    IMediaRemovedFromPlaylistEvent,
+} from "@rockit/shared";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import RenderList from "@/components/RenderList/RenderList";
@@ -16,6 +21,30 @@ export default function PlaylistPage() {
         setPlaylist(undefined);
         if (!publicId) return;
         getPlaylistAsync(publicId).then(setPlaylist);
+    }, [publicId]);
+
+    useEffect(() => {
+        if (!publicId) return;
+
+        const handleMediaRemoved = (
+            data: IMediaRemovedFromPlaylistEvent
+        ): void => {
+            if (data.playlistPublicId !== publicId) return;
+            getPlaylistAsync(publicId).then(setPlaylist);
+        };
+
+        const eventManager = EventManager.getInstance();
+        eventManager.addEventListener(
+            EEvent.MediaRemovedFromPlaylist,
+            handleMediaRemoved
+        );
+
+        return (): void => {
+            eventManager.removeEventListener(
+                EEvent.MediaRemovedFromPlaylist,
+                handleMediaRemoved
+            );
+        };
     }, [publicId]);
 
     if (!playlist) {

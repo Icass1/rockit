@@ -19,7 +19,7 @@ from backend.core.responses.searchResponse import (
 )
 from backend.core.responses.baseStationResponse import BaseStationResponse
 
-from backend.core.access.imageAccess import ImageAccess
+from backend.core.framework.media.image import Image
 
 from backend.radioBrowser.access.radioAccess import RadioAccess
 from backend.radioBrowser.access.db.ormModels.station import StationRow
@@ -303,7 +303,7 @@ class Radio:
                     f.write(response.content)
 
             path = "radio/" + filename
-            a_result_image = await ImageAccess.create_image_async(
+            a_result_image = await Image.create_image_async(
                 session=session,
                 path=path,
                 url=url,

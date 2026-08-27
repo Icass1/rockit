@@ -1,4 +1,4 @@
-export enum EPlaylistAction {
+export enum EServiceWorkerAction {
     GET_INFO,
     UPDATE,
     REGISTER,

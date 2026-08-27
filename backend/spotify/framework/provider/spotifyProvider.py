@@ -438,6 +438,55 @@ class SpotifyProvider(BaseMediaProvider):
     JOIN   core.media      cm_al ON cm_al.id = al.id
     JOIN   core.image      ai    ON ai.id    = al.image_id"""
 
+    def get_search_index_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+        return f"""    SELECT cm.id                       AS internal_id,
+           cm.public_id                 AS public_id,
+           t.name                       AS name,
+           CONCAT_WS(', ',
+               NULLIF(string_agg(DISTINCT ar.name, ', '), ''),
+               NULLIF(al.name, '')
+           )                            AS subtitle,
+           {MediaTypeEnum.SONG.value}   AS media_type_key,
+           p.name                       AS provider_name,
+           ci.url                       AS image_url
+    FROM   spotify.track t
+    JOIN   core.media    cm ON cm.id = t.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   spotify.album al ON al.id = t.album_id
+    JOIN   core.image    ci ON ci.id = al.image_id
+    LEFT JOIN spotify.track_artist ta ON ta.track_id = t.id
+    LEFT JOIN spotify.artist     ar ON ar.id = ta.artist_id
+    GROUP BY cm.id, cm.public_id, t.name, al.name, p.name, ci.url
+    UNION ALL
+    SELECT cm.id                       AS internal_id,
+           cm.public_id                 AS public_id,
+           al.name                      AS name,
+           NULLIF(string_agg(DISTINCT ar.name, ', '), '') AS subtitle,
+           {MediaTypeEnum.ALBUM.value}  AS media_type_key,
+           p.name                       AS provider_name,
+           ci.url                       AS image_url
+    FROM   spotify.album al
+    JOIN   core.media    cm ON cm.id = al.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = al.image_id
+    LEFT JOIN spotify.album_artist aa ON aa.album_id = al.id
+    LEFT JOIN spotify.artist     ar ON ar.id = aa.artist_id
+    GROUP BY cm.id, cm.public_id, al.name, p.name, ci.url
+    UNION ALL
+    SELECT cm.id                        AS internal_id,
+           cm.public_id                  AS public_id,
+           a.name                        AS name,
+           NULL                          AS subtitle,
+           {MediaTypeEnum.ARTIST.value}  AS media_type_key,
+           p.name                        AS provider_name,
+           ci.url                        AS image_url
+    FROM   spotify.artist a
+    JOIN   core.media    cm ON cm.id = a.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = a.image_id"""
+
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
     ) -> AResult[int]:

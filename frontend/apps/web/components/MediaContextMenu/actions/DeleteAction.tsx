@@ -16,7 +16,7 @@ export default function DeleteAction({
     const deleteMedia = async (): Promise<void> => {
         if (isSearchResult(media)) return;
         setLoading(true);
-        const res = await Http.deleteMediaAsync(media.publicId);
+        const res = await Http.deleteMediaFileAsync(media.publicId);
         if (res.isOk()) {
             rockIt.notificationManager.notifySuccess(vocabulary.DELETE_SUCCESS);
         } else {
@@ -32,7 +32,7 @@ export default function DeleteAction({
     return (
         <ContextMenuOption onClick={deleteMedia}>
             <Trash2 className="h-5 w-5" />
-            {vocabulary.DELETE}
+            {vocabulary.DELETE_MEDIA_FILE}
         </ContextMenuOption>
     );
 }

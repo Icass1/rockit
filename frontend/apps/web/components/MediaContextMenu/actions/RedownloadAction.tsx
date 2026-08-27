@@ -17,7 +17,7 @@ export default function RedownloadAction({
         if (isSearchResult(media)) return;
         setLoading(true);
 
-        const res = await Http.deleteMediaAsync(media.publicId);
+        const res = await Http.deleteMediaFileAsync(media.publicId);
         if (res.isOk()) {
             rockIt.notificationManager.notifySuccess(vocabulary.DELETE_SUCCESS);
             await rockIt.mediaManager.downloadMedia(media);

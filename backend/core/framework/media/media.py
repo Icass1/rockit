@@ -359,7 +359,9 @@ class Media:
         )
 
     @staticmethod
-    async def delete_media_async(session: AsyncSession, public_id: str) -> AResultCode:
+    async def delete_media_file_async(
+        session: AsyncSession, public_id: str
+    ) -> AResultCode:
         """Delete the media file for a media item so it can be downloaded again."""
 
         a_result_media: AResult[CoreMediaRow] = (

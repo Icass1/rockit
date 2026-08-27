@@ -12,12 +12,10 @@ import type ContextMenuProps from "@/components/ContextMenu/Props";
 export default function ContextMenu({
     children,
     closeRef,
-    openRef,
     onOpen,
 }: {
     children: ReactNode[];
     closeRef?: { current?: () => void };
-    openRef?: { current: ((pos: [number, number]) => void) | null };
     onOpen?: () => void;
 }): JSX.Element {
     const [_contextMenuOpen, _setContextMenuOpen] = useState<boolean>(false);

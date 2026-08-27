@@ -438,6 +438,6 @@ class UserAccess:
                 code=AResultCode.NOT_FOUND, message="Listen interval not found"
             )
 
-        interval.time_ms_end = time_ms_end
+        interval.time_ms_end = max(interval.time_ms_end, time_ms_end)
         await session.commit()
         return AResultCode(code=AResultCode.OK, message="OK")

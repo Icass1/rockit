@@ -21,6 +21,7 @@ import {
     Download,
     Heart,
     ListEnd,
+    ListMinus,
     ListStart,
     Music,
     Pencil,
@@ -47,7 +48,9 @@ interface MediaCardProps {
     allMedia: TMedia[];
     children: React.ReactNode;
     extraOptions?: ContextMenuOption[];
+    listPublicId?: string;
     menuOnly?: boolean;
+    onPress?: () => void;
 }
 
 const MediaPressableWrapper = memo(function MediaPressableWrapper({
@@ -55,7 +58,9 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     allMedia,
     children,
     extraOptions,
+    listPublicId,
     menuOnly,
+    onPress,
 }: MediaCardProps) {
     const { show, hide } = useContextMenu();
     const { vocabulary } = useVocabulary();
@@ -246,6 +251,30 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                 });
             }
 
+            if (!isSearchResult(media) && listPublicId) {
+                options.push({
+                    label: vocabulary.REMOVE_FROM_PLAYLIST,
+                    icon: ListMinus,
+                    destructive: true,
+                    onPress: async () => {
+                        hide();
+                        const response =
+                            await Http.removeMediaFromPlaylistAsync(
+                                listPublicId,
+                                media.publicId
+                            );
+
+                        if (response.isOk()) {
+                            toasterManager.notifySuccess(
+                                `${media.name} ${vocabulary.REMOVE_FROM_PLAYLIST}`
+                            );
+                        } else {
+                            toasterManager.notifyError(response.message);
+                        }
+                    },
+                });
+            }
+
             if (extraOptions) {
                 options.push(...extraOptions);
             }
@@ -258,7 +287,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
             };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [hide, show, extraOptions]
+        [hide, show, extraOptions, listPublicId]
     );
 
     const showPlaylistPicker = useCallback(
@@ -331,14 +360,25 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     }, [media, show, buildMainMenu]);
 
     const handlePress = useCallback(() => {
-        if (menuOnly || isSearchResult(media)) {
+        if (onPress) {
+            onPress();
+        } else if (menuOnly || isSearchResult(media)) {
             show(buildMainMenu(media));
         } else if (isPlayable(media)) {
             handlePlay(media, getAllPlayableMedia(allMedia));
         } else if (isList(media)) {
             router.push(media.url);
         }
-    }, [media, allMedia, router, show, buildMainMenu, handlePlay, menuOnly]);
+    }, [
+        media,
+        allMedia,
+        router,
+        show,
+        buildMainMenu,
+        handlePlay,
+        menuOnly,
+        onPress,
+    ]);
 
     return (
         <>

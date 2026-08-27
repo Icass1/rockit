@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { VocabularyResponse } from "@/dto";
+import { Http } from "@/lib/http";
+import { loadVocabularyOffline } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
@@ -27,7 +29,35 @@ export default function AppClientLayout({
 }): JSX.Element {
     useEffect((): void => {
         rockIt.mediaManager.fetchLikedMedia();
-        rockIt.vocabularyManager.setVocabulary(vocabulary);
+
+        /*
+         * Ask WebKit to keep our caches and IndexedDB out of LRU eviction
+         * under storage pressure. Granted heuristically for home screen
+         * web apps (iOS 17+); silently ignored elsewhere.
+         */
+        if (typeof navigator.storage?.persist === "function") {
+            navigator.storage.persist().catch(() => {});
+        }
+
+        const hasVocab =
+            vocabulary.vocabulary &&
+            Object.keys(vocabulary.vocabulary).length > 0;
+
+        if (hasVocab) {
+            rockIt.vocabularyManager.setVocabulary(vocabulary);
+        } else {
+            Http.getUserVocabulary().then((res) => {
+                if (res.isOk()) {
+                    rockIt.vocabularyManager.setVocabulary(res.result);
+                    return;
+                }
+                loadVocabularyOffline().then((cached) => {
+                    if (cached) {
+                        rockIt.vocabularyManager.setVocabulary(cached);
+                    }
+                });
+            });
+        }
 
         const onFirstGesture = (): void => {
             rockIt.mediaSessionManager.activateOnGesture();

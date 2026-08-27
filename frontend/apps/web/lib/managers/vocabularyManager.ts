@@ -4,6 +4,7 @@ import {
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
+import { saveVocabularyOffline } from "@/lib/offline/db";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 function createVocabularyProxy(data: Record<string, string>): VocabularyType {
@@ -47,6 +48,7 @@ export class VocabularyManager {
     setVocabulary(data: VocabularyResponse): void {
         this._vocabularyAtom.set(createVocabularyProxy(data.vocabulary));
         this._langAtom.set(data.currentLang);
+        saveVocabularyOffline(data).catch(() => {});
     }
 
     get vocabularyAtom(): ReadonlyAtom<VocabularyType> {

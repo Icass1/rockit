@@ -92,9 +92,21 @@ async def handle_current_time(
         )
         playback_state.has_reached_listen_threshold = False
 
-    playback_state.media_public_id = media_public_id
-    playback_state.last_time_ms = current_time
-    playback_state.last_timestamp = time_module.time()
+    is_stale_position = (
+        playback_state.active_interval_start_ms is not None
+        and current_time < playback_state.active_interval_start_ms
+    )
+    if not is_stale_position:
+        playback_state.media_public_id = media_public_id
+        playback_state.last_time_ms = current_time
+        playback_state.last_timestamp = time_module.time()
+    else:
+        logger.debug(
+            f"[current_time] user={user_id} media={media_public_id} — "
+            f"dropping stale position {current_time}ms (< interval start "
+            f"{playback_state.active_interval_start_ms}ms), keeping last_time_ms "
+            f"={playback_state.last_time_ms}ms"
+        )
 
     await maybe_flush_listen_interval_async(
         session=session,

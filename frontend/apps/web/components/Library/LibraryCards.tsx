@@ -21,7 +21,12 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import {
+    isZippable,
+    useLibrarySelection,
+} from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -77,11 +82,40 @@ function LibraryCard({
     children,
 }: LibraryCardProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const linkClass = `library-item relative flex flex-col transition-transform md:hover:scale-105 ${className}`;
+    const linkClass = `library-item relative flex flex-col select-none transition-transform [-webkit-touch-callout:none] md:hover:scale-105 ${className}`;
     const isVideo = aspectRatio === "video";
     const [cardImgSrc, setCardImgSrc] = useState(
         imageUrl || "/radio-placeholder.png"
     );
+    const { selectionMode, isSelected, toggleSelection } =
+        useLibrarySelection();
+
+    // Stations and artists cannot be packaged into a ZIP, so they keep
+    // navigating normally and show no checkbox while selecting.
+    const selectable = selectionMode && isZippable(media);
+
+    const toggleCurrent = (): void => {
+        if ("publicId" in media) toggleSelection(media);
+    };
+
+    const handleSelectionClick = (
+        event: React.MouseEvent<HTMLElement>
+    ): void => {
+        if (!selectable) return;
+        event.preventDefault();
+        event.stopPropagation();
+        toggleCurrent();
+    };
+
+    const handleSelectionKeyDown = (
+        event: React.KeyboardEvent<HTMLElement>
+    ): void => {
+        if (!selectable) return;
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        toggleCurrent();
+    };
 
     const imageBlock = (
         <div
@@ -156,23 +190,55 @@ function LibraryCard({
         </>
     );
 
+    const selectionOverlay = selectable ? (
+        <div
+            role="checkbox"
+            aria-checked={"publicId" in media && isSelected(media.publicId)}
+            aria-label={name}
+            tabIndex={0}
+            onClick={handleSelectionClick}
+            onKeyDown={handleSelectionKeyDown}
+            className={`absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-black/60 ${
+                "publicId" in media && isSelected(media.publicId)
+                    ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
+                    : "border-white/80"
+            }`}
+        >
+            {"publicId" in media && isSelected(media.publicId) && (
+                <span className="text-xs font-bold text-white">✓</span>
+            )}
+        </div>
+    ) : null;
+
     return (
         <CardShell>
             <MediaContextMenu media={media} location={location}>
                 {href ? (
                     <>
-                        <Link href={href} className={linkClass}>
+                        <Link
+                            href={href}
+                            className={linkClass}
+                            onClick={handleSelectionClick}
+                        >
                             {imageBlock}
                             {textBlock}
+                            {selectionOverlay}
                         </Link>
                         {children}
                     </>
                 ) : (
                     <div
                         className={`${linkClass} cursor-pointer`}
-                        onClick={onClick}
+                        onClick={(event): void => {
+                            if (selectable) {
+                                handleSelectionClick(event);
+                            } else {
+                                onClick?.(event);
+                            }
+                        }}
                     >
                         {inner}
+                        {selectionOverlay}
                         {children}
                     </div>
                 )}
@@ -303,6 +369,10 @@ export function SongCard({
                 stroke={0.8}
                 publicId={$song.publicId}
                 className="absolute h-full w-full"
+            />
+            <OfflineIndicator
+                publicId={$song.publicId}
+                className="absolute top-1 right-1 h-5 w-5 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]"
             />
         </LibraryCard>
     );

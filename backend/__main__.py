@@ -1,8 +1,13 @@
+import json
 import os
+import shutil
+import sqlite3
 import sys
+import uuid
 import asyncio
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 from concurrent.futures import ThreadPoolExecutor
 import argparse
 
@@ -17,6 +22,12 @@ parser.add_argument(
     type=str,
     default="../lrclib-db-dump-20260519T172012Z.sqlite3",
     help="Path to LRCLIB SQLite dump",
+)
+parser.add_argument(
+    "--db",
+    type=str,
+    default="database.db",
+    help="Path to the legacy SQLite database.db",
 )
 parser.add_argument("command", nargs="?", help="Command to run")
 args, _ = parser.parse_known_args()
@@ -151,12 +162,368 @@ async def import_vocabulary() -> None:
     logger.info("Import complete!")
 
 
+async def fix_shared_images_async(sqlite_path: str) -> None:
+    """Fix images referenced by more than one media row.
+
+    Images referenced by both a Spotify media and a non-Spotify media (e.g. a
+    YouTube channel/video) keep the non-Spotify reference and get a brand new
+    image for each Spotify media. Images referenced by two Spotify medias keep
+    one image and get a new image for each of the others. The original Spotify
+    image URLs are looked up in the legacy SQLite database.db.
+    """
+
+    import requests as req
+
+    from sqlalchemy import select, update
+
+    from backend.constants import IMAGES_PATH
+    from backend.utils.colorExtractor import extract_dominant_color
+
+    from backend.core.aResult import AResult
+    from backend.core.access.db import rockit_db
+    from backend.core.access.imageAccess import ImageAccess
+    from backend.core.access.db.ormModels.image import ImageRow
+    from backend.core.access.db.ormModels.user import UserRow
+
+    from backend.default.access.db.ormModels.playlist import (
+        PlaylistRow as DefaultPlaylistRow,
+    )
+
+    from backend.rockit.access.db.ormModels.album import RockitAlbumRow
+    from backend.rockit.access.db.ormModels.artist import RockitArtistRow
+    from backend.rockit.access.db.ormModels.song import RockitSongRow
+    from backend.rockit.access.db.ormModels.video import RockitVideoRow
+
+    from backend.spotify.access.db.ormModels.album import AlbumRow as SpotifyAlbumRow
+    from backend.spotify.access.db.ormModels.artist import (
+        ArtistRow as SpotifyArtistRow,
+    )
+    from backend.spotify.access.db.ormModels.playlist import (
+        PlaylistRow as SpotifyPlaylistRow,
+    )
+
+    from backend.spotifyScrapper.access.db.ormModels.album import (
+        AlbumRow as ScrapperAlbumRow,
+    )
+    from backend.spotifyScrapper.access.db.ormModels.artist import (
+        ArtistRow as ScrapperArtistRow,
+    )
+    from backend.spotifyScrapper.access.db.ormModels.playlist import (
+        PlaylistRow as ScrapperPlaylistRow,
+    )
+
+    from backend.youtube.access.db.ormModels.channel import ChannelRow
+    from backend.youtube.access.db.ormModels.playlist import YoutubePlaylistRow
+    from backend.youtube.access.db.ormModels.video import VideoRow as YoutubeVideoRow
+
+    from backend.youtubeMusic.access.db.ormModels.album import (
+        AlbumRow as YoutubeMusicAlbumRow,
+    )
+    from backend.youtubeMusic.access.db.ormModels.artist import (
+        ArtistRow as YoutubeMusicArtistRow,
+    )
+    from backend.youtubeMusic.access.db.ormModels.playlist import (
+        PlaylistRow as YoutubeMusicPlaylistRow,
+    )
+    from backend.youtubeMusic.access.db.ormModels.track import (
+        TrackRow as YoutubeMusicTrackRow,
+    )
+
+    if not os.path.exists(sqlite_path):
+        logger.error(f"SQLite database not found: {sqlite_path}")
+        return
+
+    @dataclass
+    class ImageReference:
+        """Reference of a media row to an image."""
+
+        label: str
+        image_id: int
+        media_id: int
+        model: Any
+        spotify_id: str | None = None
+        image_folder: str | None = None
+        sqlite_table: str | None = None
+
+    spotify_tables: List[Tuple[Any, str, str, str]] = [
+        # (model, label, image folder for new paths, sqlite table for url lookup)
+        (SpotifyAlbumRow, "spotify album", "albums", "album"),
+        (SpotifyArtistRow, "spotify artist", "artists", "artist"),
+        (SpotifyPlaylistRow, "spotify playlist", "playlists", "playlist"),
+        (ScrapperAlbumRow, "spotify_scrapper album", "albums", "album"),
+        (ScrapperArtistRow, "spotify_scrapper artist", "artists", "artist"),
+        (ScrapperPlaylistRow, "spotify_scrapper playlist", "playlists", "playlist"),
+    ]
+
+    keep_tables: List[Tuple[Any, str]] = [
+        (UserRow, "core user"),
+        (DefaultPlaylistRow, "default playlist"),
+        (RockitAlbumRow, "rockit album"),
+        (RockitArtistRow, "rockit artist"),
+        (RockitSongRow, "rockit song"),
+        (RockitVideoRow, "rockit video"),
+        (ChannelRow, "youtube channel"),
+        (YoutubeVideoRow, "youtube video"),
+        (YoutubePlaylistRow, "youtube playlist"),
+        (YoutubeMusicAlbumRow, "youtube_music album"),
+        (YoutubeMusicArtistRow, "youtube_music artist"),
+        (YoutubeMusicPlaylistRow, "youtube_music playlist"),
+        (YoutubeMusicTrackRow, "youtube_music track"),
+    ]
+
+    def get_spotify_image_url(
+        sqlite_conn: sqlite3.Connection,
+        sqlite_table: str,
+        spotify_id: str,
+    ) -> str | None:
+        """Get the first Spotify CDN image URL from database.db for a media id."""
+
+        try:
+            cursor = sqlite_conn.execute(
+                f'SELECT images FROM "{sqlite_table}" WHERE id = ?',
+                (spotify_id,),
+            )
+            row = cursor.fetchone()
+            if row is None or not row[0]:
+                return None
+            images_data = json.loads(row[0])
+            if not images_data:
+                return None
+            url = images_data[0].get("url")
+            return url if isinstance(url, str) and url else None
+        except Exception as e:
+            logger.error(
+                f"Error getting Spotify image url for {sqlite_table}/{spotify_id}: {e}"
+            )
+            return None
+
+    async def create_spotify_image(
+        session: Any,
+        sqlite_conn: sqlite3.Connection,
+        original_image: ImageRow,
+        existing_paths: set[str],
+        ref: ImageReference,
+    ) -> ImageRow | None:
+        """Create a new image row for a Spotify media and download its file."""
+
+        spotify_id: str | None = ref.spotify_id
+        if not spotify_id:
+            logger.error(f"Skipping {ref.label} media {ref.media_id}: no spotify id")
+            return None
+
+        url: str | None = None
+        if ref.sqlite_table:
+            url = get_spotify_image_url(sqlite_conn, ref.sqlite_table, spotify_id)
+
+        new_path: str = f"spotify/{ref.image_folder}/{spotify_id}.png"
+        if new_path in existing_paths:
+            new_path = (
+                f"spotify/{ref.image_folder}/{spotify_id}-{uuid.uuid4().hex[:8]}.png"
+            )
+
+        full_path: str = os.path.join(IMAGES_PATH, new_path)
+
+        if url and not os.path.exists(full_path):
+            try:
+                response = req.get(url, timeout=30)
+                if response.status_code == 200:
+                    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                    with open(full_path, "wb") as f:
+                        f.write(response.content)
+                else:
+                    logger.warning(
+                        f"Download failed for {url}: status {response.status_code}"
+                    )
+            except Exception as e:
+                logger.error(f"Error downloading image {url}: {e}")
+
+        if not os.path.exists(full_path):
+            original_full_path: str = os.path.join(IMAGES_PATH, original_image.path)
+            if os.path.exists(original_full_path):
+                try:
+                    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                    shutil.copy2(original_full_path, full_path)
+                    logger.info(f"Copied {original_image.path} to {new_path}")
+                except Exception as e:
+                    logger.error(f"Error copying image to {new_path}: {e}")
+
+        dominant_color: str = original_image.dominant_color
+        extracted: str | None = await extract_dominant_color(full_path)
+        if extracted:
+            dominant_color = extracted
+
+        a_result: AResult[ImageRow] = await ImageAccess.insert_image_async(
+            session=session,
+            path=new_path,
+            url=url,
+            dominant_color=dominant_color,
+        )
+        if a_result.is_not_ok():
+            logger.error(
+                f"Error creating image for {ref.label} {spotify_id}: {a_result.message()}"
+            )
+            return None
+
+        new_image: ImageRow = a_result.result()
+        logger.info(
+            f"Created image id={new_image.id} path={new_image.path} url={url} "
+            f"for {ref.label} {spotify_id}"
+        )
+        return new_image
+
+    sqlite_conn = sqlite3.connect(sqlite_path)
+
+    try:
+        async with rockit_db.session_scope_async() as session:
+            keep_image_ids: set[int] = set()
+            spotify_refs: Dict[int, List[ImageReference]] = {}
+
+            for model, _label in keep_tables:
+                result = await session.execute(select(model.id, model.image_id))
+                for row in result.all():
+                    if row.image_id is not None:
+                        keep_image_ids.add(row.image_id)
+
+            existing_paths: set[str] = set()
+            a_result_images: AResult[List[ImageRow]] = (
+                await ImageAccess.get_all_images_async(session=session)
+            )
+            if a_result_images.is_ok():
+                existing_paths = {img.path for img in a_result_images.result()}
+
+            for model, label, image_folder, sqlite_table in spotify_tables:
+                result = await session.execute(
+                    select(model.id, model.image_id, model.spotify_id)
+                )
+                for row in result.all():
+                    if row.image_id is None:
+                        continue
+                    spotify_refs.setdefault(row.image_id, []).append(
+                        ImageReference(
+                            label=label,
+                            image_id=row.image_id,
+                            media_id=row.id,
+                            model=model,
+                            spotify_id=row.spotify_id,
+                            image_folder=image_folder,
+                            sqlite_table=sqlite_table,
+                        )
+                    )
+
+            candidate_ids: List[int] = [
+                image_id
+                for image_id, refs in spotify_refs.items()
+                if len(refs) + (1 if image_id in keep_image_ids else 0) > 1
+            ]
+
+            logger.info(f"Found {len(candidate_ids)} shared images to fix")
+            for image_id in sorted(candidate_ids):
+                labels = ", ".join(ref.label for ref in spotify_refs[image_id])
+                logger.info(f"  - image {image_id}: {labels}")
+
+            processed_count: int = 0
+            created_count: int = 0
+            error_count: int = 0
+
+            for image_id in sorted(candidate_ids):
+                refs: List[ImageReference] = spotify_refs[image_id]
+                has_keep: bool = image_id in keep_image_ids
+
+                a_result_image: AResult[ImageRow] = (
+                    await ImageAccess.get_image_from_id_async(
+                        session=session, id=image_id
+                    )
+                )
+                if a_result_image.is_not_ok():
+                    logger.error(
+                        f"Image {image_id} not found, skipping. {a_result_image.message()}"
+                    )
+                    error_count += 1
+                    continue
+                original_image: ImageRow = a_result_image.result()
+
+                refs_to_keep: List[ImageReference] = []
+                refs_to_split: List[ImageReference] = refs
+
+                if not has_keep:
+                    keep_ref: ImageReference | None = None
+                    for ref in refs:
+                        if (
+                            ref.image_folder
+                            and ref.spotify_id
+                            and original_image.path
+                            == f"spotify/{ref.image_folder}/{ref.spotify_id}.png"
+                        ):
+                            keep_ref = ref
+                            break
+                    if keep_ref is None:
+                        keep_ref = refs[0]
+                    refs_to_keep = [keep_ref]
+                    refs_to_split = [r for r in refs if r is not keep_ref]
+
+                for ref in refs_to_keep:
+                    if has_keep:
+                        logger.info(
+                            f"Image {image_id} (path={original_image.path}) "
+                            f"kept for non-Spotify media"
+                        )
+                        continue
+                    if ref.spotify_id and ref.sqlite_table:
+                        url = get_spotify_image_url(
+                            sqlite_conn, ref.sqlite_table, ref.spotify_id
+                        )
+                        if url and url != original_image.url:
+                            original_image.url = url
+                            logger.info(
+                                f"Image {image_id} kept for {ref.label} "
+                                f"(media {ref.media_id}), url set to {url}"
+                            )
+                    else:
+                        logger.info(
+                            f"Image {image_id} kept for {ref.label} (media {ref.media_id})"
+                        )
+
+                for ref in refs_to_split:
+                    new_image = await create_spotify_image(
+                        session=session,
+                        sqlite_conn=sqlite_conn,
+                        original_image=original_image,
+                        existing_paths=existing_paths,
+                        ref=ref,
+                    )
+                    if new_image is None:
+                        error_count += 1
+                        continue
+                    existing_paths.add(new_image.path)
+                    await session.execute(
+                        update(ref.model)
+                        .where(ref.model.id == ref.media_id)
+                        .values(image_id=new_image.id)
+                    )
+                    logger.info(
+                        f"Image id={ref.image_id} of {ref.label} media "
+                        f"{ref.media_id} updated to image id={new_image.id}"
+                    )
+                    created_count += 1
+
+                if refs_to_split:
+                    processed_count += 1
+                await session.commit()
+
+            logger.info(
+                f"Fixed {processed_count} shared images, created {created_count} "
+                f"new images, {error_count} errors"
+            )
+    finally:
+        sqlite_conn.close()
+
+
 async def main() -> None:
     from backend.core.access.db import rockit_db
     from backend.core import add_initial_content_async
 
-    # Only init DB for commands that need it
-    needs_db: bool = command_to_run not in ("", "models")
+    # Only init DB for commands that need it.
+    needs_db: bool = not command_to_run in ["models"]
     if needs_db:
         try:
             await rockit_db.async_init()
@@ -263,6 +630,84 @@ async def main() -> None:
 
                 logger.info(f"Deleted {deleted_count} files")
 
+            elif command == "fix-images":
+                import requests as req
+
+                from backend.core.access.imageAccess import ImageAccess
+                from backend.constants import IMAGES_PATH
+
+                async with rockit_db.session_scope_async() as session:
+                    a_result = await ImageAccess.get_all_images_async(session=session)
+                    if a_result.is_not_ok():
+                        logger.error(f"Error getting images: {a_result.message()}")
+                        continue
+
+                    images = a_result.result()
+                    logger.info(f"Found {len(images)} images in database")
+
+                    missing_count = 0
+                    fixed_count = 0
+                    error_count = 0
+                    skipped_count = 0
+
+                    for image in images:
+                        if image.path.startswith("/"):
+                            logger.error(
+                                f"Image path ({image.path}) starts with /, modify it in database."
+                            )
+                            error_count += 1
+                            continue
+
+                        full_path = os.path.join(IMAGES_PATH, image.path)
+                        if os.path.exists(full_path):
+                            continue
+
+                        missing_count += 1
+                        if not image.url:
+                            logger.warning(
+                                f"Image {image.path} is missing and has no url to re-download"
+                            )
+                            skipped_count += 1
+                            continue
+
+                        try:
+                            response = req.get(image.url, timeout=30)
+                            if response.status_code != 200:
+                                logger.error(
+                                    f"Download failed for {image.path}: "
+                                    f"status {response.status_code}"
+                                )
+                                error_count += 1
+                                continue
+
+                            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                            with open(full_path, "wb") as f:
+                                f.write(response.content)
+
+                            if not image.dominant_color:
+                                from backend.utils.colorExtractor import (
+                                    extract_dominant_color,
+                                )
+
+                                color = await extract_dominant_color(full_path)
+                                if color is not None:
+                                    image.dominant_color = color
+                                    await session.flush()
+
+                            await session.commit()
+                            logger.info(
+                                f"Downloaded missing image: {image.path}, full path {full_path}, url {image.url}"
+                            )
+                            fixed_count += 1
+                        except Exception as e:
+                            logger.error(f"Error fixing image {image.path}: {e}")
+                            error_count += 1
+
+                    logger.info(
+                        f"Fixed {fixed_count} images, "
+                        f"skipped {skipped_count} (no url), {error_count} errors"
+                    )
+
             elif command == "update-video-durations":
                 from backend.constants import MEDIA_PATH
                 from backend.youtube.access.videoAccess import VideoAccess
@@ -330,6 +775,16 @@ async def main() -> None:
                             error_count += 1
 
                     logger.info(f"Updated {updated_count} videos, {error_count} errors")
+
+            elif command.startswith("fix-shared-images"):
+                parts = command.split()
+                sqlite_db: str = args.db
+
+                for i, part in enumerate(parts):
+                    if part == "--db" and i + 1 < len(parts):
+                        sqlite_db = parts[i + 1]
+
+                await fix_shared_images_async(sqlite_path=sqlite_db)
 
             elif command.startswith("migrate-playlist"):
                 from backend.migratePlaylist import migrate_playlist_async

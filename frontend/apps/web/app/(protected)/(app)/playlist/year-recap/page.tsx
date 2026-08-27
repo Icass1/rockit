@@ -46,6 +46,7 @@ export default async function YearRecapPage(): Promise<JSX.Element> {
             title={playlistResponse.name}
             artists={[playlistResponse.owner]}
             media={playlistMedia}
+            listMedia={playlistResponse}
             image={playlistResponse.imageUrl}
             showMediaImage
             showMediaIndex={false}

@@ -13,6 +13,7 @@ import {
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Artists from "@/components/Artists/Artists";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export function QueueMedia({
@@ -82,9 +83,17 @@ export function QueueMedia({
             </div>
 
             <div className="max-w-full min-w-0 flex-1">
-                <p className="truncate text-base font-semibold text-white">
-                    {media.media.name}
-                </p>
+                <div className="flex items-center gap-1.5">
+                    <p className="truncate text-base font-semibold text-white">
+                        {media.media.name}
+                    </p>
+                    {"publicId" in media.media && (
+                        <OfflineIndicator
+                            publicId={media.media.publicId}
+                            className="h-5 w-5"
+                        />
+                    )}
+                </div>
                 <div className="flex flex-row items-center gap-2">
                     <ProviderTag name={media.media.provider} iconOnly={true} />
                     <Artists

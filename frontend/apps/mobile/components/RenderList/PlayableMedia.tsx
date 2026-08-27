@@ -28,6 +28,7 @@ export const PlayableMedia = memo(function PlayableMedia({
     substractArtists = [],
     showMediaIndex,
     showMediaImage,
+    listPublicId,
 }: {
     index: number;
     media: TPlayableMedia;
@@ -35,6 +36,7 @@ export const PlayableMedia = memo(function PlayableMedia({
     substractArtists?: string[];
     showMediaIndex: boolean;
     showMediaImage: boolean;
+    listPublicId?: string;
 }) {
     const $media = useMedia(_media);
 
@@ -43,7 +45,11 @@ export const PlayableMedia = memo(function PlayableMedia({
     const downloaded = !isDownloadable($media) || $media.downloaded;
 
     return (
-        <MediaPressableWrapper media={$media} allMedia={allMedia}>
+        <MediaPressableWrapper
+            media={$media}
+            allMedia={allMedia}
+            listPublicId={listPublicId}
+        >
             <View style={styles.container}>
                 <View style={styles.imageWrapper}>
                     {showMediaIndex && (

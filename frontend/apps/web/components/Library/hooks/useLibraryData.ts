@@ -19,6 +19,7 @@ import {
 } from "@/models/interfaces/useLibraryData";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
+import { loadLibraryOffline, saveLibraryOffline } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 const EMPTY: TFilteredLibrary = {
@@ -163,7 +164,11 @@ export function useLibraryData({
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
-    const { data: _libraryData, loading } = useFetch(Http.getUserLibraryMedias);
+    const {
+        data: _libraryData,
+        loading,
+        error,
+    } = useFetch(Http.getUserLibraryMedias);
 
     const initialData = _libraryData ? extractItems(_libraryData) : undefined;
 
@@ -172,8 +177,24 @@ export function useLibraryData({
     useEffect((): void => {
         if (_libraryData) {
             dispatch({ type: "INIT", data: _libraryData });
+            saveLibraryOffline(_libraryData).catch(() => {});
         }
     }, [_libraryData]);
+
+    useEffect((): (() => void) | undefined => {
+        if (error === undefined || _libraryData !== undefined) return;
+        let cancelled = false;
+        loadLibraryOffline()
+            .then((cached): void => {
+                if (!cancelled && cached) {
+                    dispatch({ type: "INIT", data: cached });
+                }
+            })
+            .catch(() => {});
+        return (): void => {
+            cancelled = true;
+        };
+    }, [error, _libraryData]);
 
     useEffect((): (() => void) => {
         const handler = (e: IMediaRemovedFromLibraryEvent): void => {

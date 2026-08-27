@@ -2,9 +2,10 @@
 
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { BaseArtistResponse } from "@/dto";
-import { EMediaType, TMedia } from "@rockit/packages/shared";
+import { EMediaType, TListMedia, TMedia } from "@rockit/packages/shared";
 import { EEvent } from "@/models/enums/events";
 import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
+import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/mediaRemovedFromPlaylist";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
@@ -17,6 +18,7 @@ export default function RenderListClient({
     type,
     image,
     media: initialMedia,
+    listMedia,
     showMediaIndex,
     showMediaImage,
     expandedByMediaId,
@@ -28,6 +30,7 @@ export default function RenderListClient({
     artists: BaseArtistResponse[];
     image: string;
     media: TMedia[];
+    listMedia: TListMedia;
     showMediaIndex: boolean;
     showMediaImage: boolean;
     expandedByMediaId?: Record<string, boolean>;
@@ -70,15 +73,32 @@ export default function RenderListClient({
             });
         };
 
+        const handleMediaRemoved = (
+            data: IMediaRemovedFromPlaylistEvent
+        ): void => {
+            if (data.playlistPublicId !== publicId) return;
+            setMedia((prev): TMedia[] =>
+                prev.filter((m) => m.publicId !== data.publicId)
+            );
+        };
+
         rockIt.eventManager.addEventListener(
             EEvent.MediaAddedToPlaylist,
             handleMediaAdded
+        );
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaRemovedFromPlaylist,
+            handleMediaRemoved
         );
 
         return (): void => {
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaAddedToPlaylist,
                 handleMediaAdded
+            );
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaRemovedFromPlaylist,
+                handleMediaRemoved
             );
         };
     }, [publicId, type]);
@@ -96,6 +116,7 @@ export default function RenderListClient({
                 artists={artists}
                 image={image}
                 media={media}
+                listMedia={listMedia}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
                 listPublicId={publicId}

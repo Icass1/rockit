@@ -249,16 +249,20 @@ class DownloadAccess:
 
     @staticmethod
     @safe_async
-    async def get_downloads_by_group_id_with_status(
+    async def get_downloads_by_group_ids(
         session: AsyncSession,
-        download_group_id: int,
+        download_group_ids: list[int],
     ) -> AResult[list[DownloadRow]]:
-        """Get all download rows for a download group with their status list."""
+        """Get all download rows for multiple download groups in a single query.
+
+        Uses selectinload to eager load the download status list and avoids the
+        N+1 pattern of querying each group separately.
+        """
 
         result = await session.execute(
             select(DownloadRow)
             .options(selectinload(DownloadRow.download_status_list))
-            .where(DownloadRow.download_group_id == download_group_id)
+            .where(DownloadRow.download_group_id.in_(download_group_ids))
         )
         downloads: list[DownloadRow] = list(result.scalars().all())
         return AResult(code=AResultCode.OK, message="OK", result=downloads)

@@ -108,6 +108,7 @@ class DefaultProvider(BaseMediaProvider):
                         providerUrl="",
                         name=owner_name,
                         imageUrl=Image.get_internal_image_url(owner.image),
+                        dominantColor=owner.image.dominant_color,
                     ),
                     user_id=user_id,
                     _visited_playlist_ids=_visited_playlist_ids,
@@ -199,6 +200,7 @@ class DefaultProvider(BaseMediaProvider):
                         providerUrl="",
                         name=owner_name,
                         imageUrl=Image.get_internal_image_url(owner.image),
+                        dominantColor=owner.image.dominant_color,
                     ),
                 )
             )
@@ -210,6 +212,19 @@ class DefaultProvider(BaseMediaProvider):
     ) -> AResult[int]:
         """Get the duration of a default playlist in milliseconds."""
         return AResult(code=AResultCode.OK, message="OK", result=0)
+
+    def get_search_index_cte_fragment(self) -> str | None:
+        return f"""    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           pl.name                         AS name,
+           NULL                            AS subtitle,
+           {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   default_schema.playlist pl
+    JOIN   core.media    cm ON cm.id = pl.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = pl.image_id"""
 
 
 provider = DefaultProvider()

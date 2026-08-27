@@ -34,6 +34,7 @@ export function Media({
                 substractArtists={substractArtists}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
+                listPublicId={listPublicId}
             />
         );
     } else if (isList($media)) {

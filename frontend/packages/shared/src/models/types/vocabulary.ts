@@ -55,6 +55,12 @@ export interface Vocabulary {
     ADMIN_REQUIRED: string;
     ADMIN_RESPONSE_CODES: string;
     ADMIN_ROUTE: string;
+    ADMIN_SEARCH_NO_RESULTS: string;
+    ADMIN_SEARCH_PLACEHOLDER: string;
+    ADMIN_SEARCH_PROMPT: string;
+    ADMIN_SEARCH_RESULTS: string;
+    ADMIN_SEARCH_SUBTITLE: string;
+    ADMIN_SEARCH_TITLE: string;
     ADMIN_SELECT_APK: string;
     ADMIN_SELECTED: string;
     ADMIN_SETTINGS_COMING_SOON: string;
@@ -62,6 +68,7 @@ export interface Vocabulary {
     ADMIN_SETTINGS_TITLE: string;
     ADMIN_TAB_BUILDS: string;
     ADMIN_TAB_REQUESTS: string;
+    ADMIN_TAB_SEARCH: string;
     ADMIN_TAB_SETTINGS: string;
     ADMIN_TAB_USERS: string;
     ADMIN_TOP_IPS: string;
@@ -85,6 +92,8 @@ export interface Vocabulary {
     ALL: string;
     ALL_FIELDS_REQUIRED: string;
     ALREADY_LOGGED_IN: string;
+    APP_AVAILABLE_OFFLINE: string;
+    APP_OFFLINE_UNAVAILABLE: string;
     APRIL: string;
     ARTIST: string;
     ARTISTS: string;
@@ -95,6 +104,7 @@ export interface Vocabulary {
     BOOKMARKS: string;
     BY: string;
     CANCEL: string;
+    CAROUSEL_NAVIGATION: string;
     CHANGE_PASSWORD: string;
     CLEAR_DOWNLOADS: string;
     CLICK_TO_DOWNLOAD: string;
@@ -102,6 +112,7 @@ export interface Vocabulary {
     COMPLETED: string;
     COPY_LIST_URL: string;
     COPY_SONG_URL: string;
+    COVER_OF: string;
     CREATE: string;
     CREATE_ACCOUNT: string;
     CREATING: string;
@@ -171,6 +182,7 @@ export interface Vocabulary {
     FAILED_TO_FETCH_PLAYLISTS: string;
     FEATURED_ALBUMS: string;
     FEATURED_LISTS: string;
+    FEATURED_SONGS: string;
     FEBRUARY: string;
     FETCHING: string;
     FOCUS: string;
@@ -185,8 +197,16 @@ export interface Vocabulary {
     GO_HOME: string;
     GO_TO_ALBUM: string;
     GO_TO_ARTIST: string;
+    GOOD_AFTERNOON: string;
+    GOOD_EVENING: string;
+    GOOD_MORNING: string;
     HIDDEN_GEMS: string;
     HOME: string;
+    HOME_HIGHLIGHTS: string;
+    HOME_LISTEN_TO: string;
+    HOME_MINUTES_THIS_WEEK: string;
+    HOME_STREAK_DAYS: string;
+    HOME_YOUR_MUSIC_AWAITS: string;
     IN_PROGRESS: string;
     JANUARY: string;
     JULY: string;
@@ -253,7 +273,9 @@ export interface Vocabulary {
     PARTY: string;
     PASSWORD: string;
     PASSWORDS_DONT_MATCH: string;
+    PAUSE: string;
     PAUSE_SONG: string;
+    PAUSE_SONG_NAME: string;
     PENDING: string;
     PENDING_REQUESTS: string;
     PIN: string;
@@ -267,6 +289,7 @@ export interface Vocabulary {
     PLAY_MEDIA: string;
     PLAY_NEXT: string;
     PLAY_SONG: string;
+    PLAY_SONG_NAME: string;
     PLAYLIST: string;
     PLAYLISTS: string;
     PREVIOUS_BOOKMARK: string;
@@ -293,6 +316,7 @@ export interface Vocabulary {
     REMOVE_FROM_LIKED: string;
     REMOVE_FROM_PLAYLIST: string;
     REMOVE_FROM_QUEUE: string;
+    REMOVE_OFFLINE: string;
     REPEAT_ALL: string;
     REPEAT_FROM_BEGINNING: string;
     REPEAT_ONE: string;
@@ -300,6 +324,7 @@ export interface Vocabulary {
     RETRY: string;
     RETURN_BACK_HOME: string;
     SAVE: string;
+    SAVE_OFFLINE: string;
     SAVING: string;
     SEARCH: string;
     SEARCH_BAR: string;
@@ -333,6 +358,7 @@ export interface Vocabulary {
     UNIQUE_MEDIAS_LISTENED: string;
     UNIQUE_SONGS_LISTENED: string;
     UNIQUE_VIDEOS_LISTENED: string;
+    UNKNOWN: string;
     UNPIN: string;
     UNREGISTER: string;
     UNREGISTERED: string;
@@ -374,4 +400,13 @@ export interface Vocabulary {
     YOUR_ALBUMS_PLAYLISTS: string;
     YOUR_MIX: string;
     YT_VIDEOS: string;
+    ERROR_GETTING_ALBUM: string;
+    PLAYLIST_WITHOUT_MEDIAS: string;
+    MEDIA_NOT_DOWNLOADED: string;
+    ERROR_REMOVING_MEDIA_FROM_PLAYLIST: string;
+    DELETE_MEDIA_FILE: string;
+    LIBRARY_SELECTED: string;
+    LIBRARY_SELECT_ITEMS: string;
+    LIBRARY_ZIP: string;
+    LIBRARY_DOWNLOAD_ALL: string;
 }

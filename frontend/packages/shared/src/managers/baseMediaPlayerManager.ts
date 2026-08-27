@@ -112,7 +112,10 @@ export abstract class BaseMediaPlayerManager {
 
     // ===== Native → base status handlers (subclass calls these) =====
 
-    protected onNativePlaying = (): void => this._playingAtom.set(true);
+    protected onNativePlaying = (): void => {
+        this._playingAtom.set(true);
+        this._onPlayingStarted();
+    };
     protected onNativePaused = (): void => this._playingAtom.set(false);
     protected onNativeLoadStart = (): void => this._loadingAtom.set(true);
     protected onNativeLoaded = (): void => this._loadingAtom.set(false);
@@ -123,6 +126,8 @@ export abstract class BaseMediaPlayerManager {
         console.error("MediaPlayerManager: media error", err);
         this._handleMediaError();
     };
+
+    protected _onPlayingStarted(): void {}
 
     // ===== Kind resolution =====
 
@@ -157,6 +162,22 @@ export abstract class BaseMediaPlayerManager {
                 this._currentTimeAtom.set(data.currentTimeMs / 1000);
             }
         );
+
+        if (typeof document !== "undefined") {
+            document.addEventListener("visibilitychange", (): void => {
+                if (document.hidden) return;
+
+                const currentMedia =
+                    getRockIt().queueManager.currentMedia;
+                if (
+                    this._playingAtom.get() &&
+                    currentMedia &&
+                    this.isNativePaused(this._effectiveKind(currentMedia))
+                ) {
+                    this.play();
+                }
+            });
+        }
     }
 
     play(): void {

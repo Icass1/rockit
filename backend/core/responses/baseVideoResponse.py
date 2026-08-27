@@ -15,6 +15,7 @@ class BaseVideoResponse(BaseModel):
     videoUrl: Optional[str] = None
     audioUrl: Optional[str] = None
     imageUrl: str
+    dominantColor: str
     duration_ms: int | None
     artists: List[BaseArtistResponse]
     downloaded: bool

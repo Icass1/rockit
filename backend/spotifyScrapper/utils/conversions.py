@@ -93,6 +93,7 @@ async def get_artist_response_async(
             providerUrl=f"https://open.spotify.com/artist/{artist_row.spotify_id}",
             name=artist_row.name,
             imageUrl=Image.get_internal_image_url(image=artist_row.image),
+            dominantColor=artist_row.image.dominant_color,
             genres=genres,
         ),
     )
@@ -113,6 +114,7 @@ def get_album_without_songs_response(
             providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
             name=a.name,
             imageUrl=Image.get_internal_image_url(image=a.image),
+            dominantColor=a.image.dominant_color,
         )
         for a in artist_rows
     ]
@@ -124,6 +126,7 @@ def get_album_without_songs_response(
         providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
         name=album_row.name,
         imageUrl=Image.get_internal_image_url(image=album_row.image),
+        dominantColor=album_row.image.dominant_color,
         artists=artist_responses,
         releaseDate=album_row.release_date,
     )
@@ -184,6 +187,7 @@ async def get_track_response_async(
             audioUrl=audio_src,
             downloaded=is_downloaded,
             imageUrl=Image.get_internal_image_url(image=track_row.album.image),
+            dominantColor=track_row.album.image.dominant_color,
             duration_ms=track_row.duration_ms,
             discNumber=track_row.disc_number,
             trackNumber=track_row.track_number,
@@ -237,6 +241,7 @@ async def get_album_with_songs_response_async(
             providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
             name=a.name,
             imageUrl=Image.get_internal_image_url(image=a.image),
+            dominantColor=a.image.dominant_color,
         )
         for a in album_artists
     ]
@@ -280,6 +285,7 @@ async def get_album_with_songs_response_async(
                 audioUrl=audio_src,
                 downloaded=is_downloaded,
                 imageUrl=Image.get_internal_image_url(image=album_row.image),
+                dominantColor=album_row.image.dominant_color,
                 duration_ms=track_row.duration_ms,
                 discNumber=track_row.disc_number,
                 trackNumber=track_row.track_number,
@@ -305,6 +311,7 @@ async def get_album_with_songs_response_async(
             providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
             name=album_row.name,
             imageUrl=Image.get_internal_image_url(image=album_row.image),
+            dominantColor=album_row.image.dominant_color,
             artists=album_artist_responses,
             releaseDate=album_row.release_date,
             spotifyId=album_row.spotify_id,
@@ -352,6 +359,7 @@ async def get_playlist_without_medias_response_async(
                 providerUrl="",
                 name=playlist_row.owner,
                 imageUrl="",
+                dominantColor="",
             ),
         ),
     )
@@ -399,6 +407,7 @@ async def get_playlist_with_medias_response_async(
                     audioUrl=track_response.audioUrl,
                     downloaded=track_response.downloaded,
                     imageUrl=track_response.imageUrl,
+                    dominantColor="",
                     duration_ms=track_response.duration_ms,
                     discNumber=track_response.discNumber,
                     trackNumber=track_response.trackNumber,
@@ -442,6 +451,7 @@ async def get_playlist_with_medias_response_async(
                 providerUrl="",
                 name=playlist_row.owner,
                 imageUrl="",
+                dominantColor="",
             ),
         ),
     )
@@ -520,6 +530,7 @@ async def get_tracks_responses_async(
                     providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
                     name=a.name,
                     imageUrl=Image.get_internal_image_url(image=a.image),
+                    dominantColor=a.image.dominant_color,
                     genres=artist_genre_map.get(a.id, []),
                 )
                 for a in track_artists
@@ -543,6 +554,7 @@ async def get_tracks_responses_async(
                     audioUrl=audio_src,
                     downloaded=is_downloaded,
                     imageUrl=Image.get_internal_image_url(image=album_row.image),
+                    dominantColor=album_row.image.dominant_color,
                     duration_ms=track_row.duration_ms,
                     discNumber=track_row.disc_number,
                     trackNumber=track_row.track_number,
@@ -591,6 +603,7 @@ async def get_artists_responses_async(
                 providerUrl=f"https://open.spotify.com/artist/{artist_row.spotify_id}",
                 name=artist_row.name,
                 imageUrl=Image.get_internal_image_url(image=artist_row.image),
+                dominantColor=artist_row.image.dominant_color,
                 genres=artist_genre_map.get(artist_row.id, []),
             )
             for artist_row in artist_rows
@@ -701,6 +714,7 @@ async def get_albums_with_songs_responses_async(
                     providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
                     name=a.name,
                     imageUrl=Image.get_internal_image_url(image=a.image),
+                    dominantColor=a.image.dominant_color,
                 )
                 for a in album_row.artists
             ]
@@ -716,6 +730,7 @@ async def get_albums_with_songs_responses_async(
                         providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
                         name=a.name,
                         imageUrl=Image.get_internal_image_url(image=a.image),
+                        dominantColor=a.image.dominant_color,
                         genres=artist_genre_map.get(a.id, []),
                     )
                     for a in track_artists
@@ -738,6 +753,7 @@ async def get_albums_with_songs_responses_async(
                         audioUrl=audio_src,
                         downloaded=is_downloaded,
                         imageUrl=Image.get_internal_image_url(image=album_row.image),
+                        dominantColor=album_row.image.dominant_color,
                         duration_ms=track.duration_ms,
                         discNumber=track.disc_number,
                         trackNumber=track.track_number,
@@ -761,6 +777,7 @@ async def get_albums_with_songs_responses_async(
                     providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
                     name=album_row.name,
                     imageUrl=Image.get_internal_image_url(image=album_row.image),
+                    dominantColor=album_row.image.dominant_color,
                     artists=album_artist_responses,
                     releaseDate=album_row.release_date,
                     spotifyId=album_row.spotify_id,

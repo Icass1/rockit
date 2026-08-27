@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import BIGINT, String, ForeignKey, Text, Integer
+from sqlalchemy import BIGINT, String, ForeignKey, Text, Integer, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -19,7 +19,15 @@ if TYPE_CHECKING:
 
 class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "video"
-    __table_args__ = ({"schema": "youtube", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_youtube_video_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "youtube", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

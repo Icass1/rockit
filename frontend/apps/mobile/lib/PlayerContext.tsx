@@ -2,6 +2,7 @@ import { useStore } from "@nanostores/react";
 import {
     EQueueType,
     ERepeatMode,
+    isDownloadable,
     isVideo,
     type TQueueMedia,
 } from "@rockit/shared";
@@ -55,6 +56,21 @@ interface PlayerContextType {
     addToQueueNext: (media: TQueueMedia | TQueueMedia[]) => void;
     showPlayer: () => void;
     hidePlayer: () => void;
+}
+
+/**
+ * A media that hasn't been downloaded has no playable source. Attempting to
+ * play it would fall through to the queue's skip-to-next logic and start a
+ * different (previous) track, so we reject it up-front and warn the user.
+ */
+function isPlayableSource(media: TQueueMedia): boolean {
+    if (isDownloadable(media) && media.downloaded !== true) {
+        rockIt.notificationManager.notifyWarn(
+            rockIt.vocabularyManager.vocabulary.MEDIA_NOT_DOWNLOADED
+        );
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -114,6 +130,7 @@ export function usePlayer(): PlayerContextType {
         toggleAudioOnly: () => rockIt.mediaPlayerManager.toggleAudioOnly(),
 
         playMedia: async (media, newQueue) => {
+            if (!isPlayableSource(media)) return;
             rockIt.queueManager.setMedia(newQueue, media.publicId);
             const idx = newQueue.findIndex(
                 (m) => m.publicId === media.publicId
@@ -122,6 +139,7 @@ export function usePlayer(): PlayerContextType {
             rockIt.mediaPlayerManager.play();
         },
         playNext: async (media, newQueue) => {
+            if (!isPlayableSource(media)) return;
             rockIt.queueManager.setMedia(newQueue, media.publicId);
             const idx = newQueue.findIndex(
                 (m) => m.publicId === media.publicId

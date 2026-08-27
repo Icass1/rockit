@@ -170,6 +170,7 @@ class YoutubeProvider(BaseMediaProvider):
                 providerUrl=youtube_video.providerUrl,
                 name=youtube_video.name,
                 imageUrl=youtube_video.imageUrl,
+                dominantColor=youtube_video.dominantColor,
                 duration_ms=youtube_video.duration_ms,
                 artists=youtube_video.artists,
                 downloaded=youtube_video.downloaded,
@@ -255,6 +256,7 @@ class YoutubeProvider(BaseMediaProvider):
                     providerUrl=youtube_video.providerUrl,
                     name=youtube_video.name,
                     imageUrl=youtube_video.imageUrl or "",
+                    dominantColor=youtube_video.dominantColor,
                     duration_ms=youtube_video.duration_ms,
                     artists=youtube_video.artists,
                     downloaded=youtube_video.downloaded,
@@ -288,6 +290,46 @@ class YoutubeProvider(BaseMediaProvider):
     JOIN   youtube.channel       ch    ON ch.id         = vc.channel_id
     JOIN   core.media            cm_ch ON cm_ch.id      = ch.id
     JOIN   core.image            ci    ON ci.id         = ch.image_id"""
+
+    def get_search_index_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+        return f"""    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           v.name                          AS name,
+           ch.name                         AS subtitle,
+           {MediaTypeEnum.VIDEO.value}     AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   youtube.video v
+    JOIN   core.media    cm ON cm.id = v.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = v.image_id
+    JOIN   youtube.channel ch ON ch.id = v.channel_id
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           ch.name                         AS name,
+           NULL                            AS subtitle,
+           {MediaTypeEnum.ARTIST.value}    AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   youtube.channel ch
+    JOIN   core.media    cm ON cm.id = ch.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = ch.image_id
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           pl.name                         AS name,
+           NULL                            AS subtitle,
+           {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   youtube.playlist pl
+    JOIN   core.media    cm ON cm.id = pl.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = pl.image_id"""
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str

@@ -5,8 +5,8 @@ import { useCallback, useRef, useState } from "react";
 import { getMediaArtistsString } from "@rockit/shared";
 import { ChevronDown } from "lucide-react";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
-import BottomPanel from "@/components/MobilePlayer/components/BottomPanel";
 import LikeButton from "@/components/LikeButton/LikeButton";
+import BottomPanel from "@/components/MobilePlayer/components/BottomPanel";
 import PlayerControlsRow from "@/components/MobilePlayer/components/PlayerControlsRow";
 import PlayerCoverArt from "@/components/MobilePlayer/components/PlayerCoverArt";
 import PlayerProgressBar from "@/components/MobilePlayer/components/PlayerProgressBar";
@@ -84,7 +84,10 @@ export default function MobilePlayerSheet(): JSX.Element | null {
             </div>
 
             {/* Player content */}
-            <div className="relative z-10 flex flex-1 flex-col justify-center gap-3 overflow-hidden px-4 pb-5">
+            <div
+                className="relative z-10 flex flex-1 flex-col justify-center gap-3 overflow-hidden px-4 pb-5"
+                style={{ touchAction: "none" }}
+            >
                 <PlayerCoverArt
                     uri={currentMedia?.imageUrl}
                     mediaType={currentMedia?.type}
@@ -114,7 +117,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                             type="button"
                             onClick={() =>
                                 setTab((prev: Tab) =>
-                                    prev === key ? null : key,
+                                    prev === key ? null : key
                                 )
                             }
                             className={`rounded-lg px-5 py-2 text-lg font-bold ${

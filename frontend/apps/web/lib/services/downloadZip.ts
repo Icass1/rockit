@@ -17,7 +17,10 @@ export async function downloadMediaAsZip(
         return;
     }
 
-    const response = await Http.downloadZip({ ids, title: archiveName });
+    const response = await Http.downloadBinary(Http.downloadZipURL(), {
+        ids,
+        title: archiveName,
+    });
     if (response.isNotOk() || !response.result) {
         // The backend explains why (nothing downloaded yet, selection too
         // large), which is far more useful than the generic message. Transport

@@ -6,9 +6,18 @@ from importlib import import_module
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar
 
-from sqlalchemy import Connection, Inspector, Table, UniqueConstraint, text, inspect
+from sqlalchemy import (
+    Connection,
+    Inspector,
+    Table,
+    UniqueConstraint,
+    event,
+    text,
+    inspect,
+)
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.util.concurrency import greenlet_spawn
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -66,6 +75,22 @@ async def _init_connection(conn: Any) -> None:
             logger.warning(
                 f"Could not register asyncpg '{type_name}' codec.", exc_info=True
             )
+
+
+def _on_sync_engine_connect(dbapi_connection: Any, connection_record: Any) -> None:
+    """Run the async asyncpg codec setup on each new raw connection.
+
+    SQLAlchemy's asyncpg dialect exposes the underlying asyncpg ``Connection``
+    via ``AsyncAdapt_asyncpg_connection._connection``. The ``set_type_codec``
+    call is async, so it is executed synchronously here through
+    ``greenlet_spawn`` in the context of the current greenlet.
+    """
+
+    raw_connection: Any = getattr(dbapi_connection, "_connection", None)
+    if raw_connection is None:
+        return
+
+    _ = greenlet_spawn(_init_connection, raw_connection)
 
 
 @dataclass
@@ -177,7 +202,17 @@ class RockItDB:
         self.engine: AsyncEngine = create_async_engine(
             url=connection_string,
             echo=verbose,
-            connect_args={"init": _init_connection},
+        )
+
+        # asyncpg only supports the ``connection_init`` per-connection hook on
+        # the async ``Connection`` class, not through ``connect()`` arguments.
+        # Register a sync "connect" event on the underlying sync engine and run
+        # the async codec setup against the raw asyncpg connection via
+        # greenlet_spawn, so timestamps come back timezone-aware (UTC).
+        event.listen(
+            self.engine.sync_engine,
+            "connect",
+            _on_sync_engine_connect,
         )
 
     @time_it

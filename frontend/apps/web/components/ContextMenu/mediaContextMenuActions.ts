@@ -147,7 +147,12 @@ const ACTION_REGISTRY: ActionDef[] = [
         type: "action",
         icon: HardDriveDownload,
         labelKey: "DOWNLOAD_ZIP",
-        mediaTypes: [EMediaType.Album],
+        mediaTypes: [
+            EMediaType.Song,
+            EMediaType.Video,
+            EMediaType.Album,
+            EMediaType.Playlist,
+        ],
         condition: (m) => !isSearchResult(m),
     },
     {
@@ -156,7 +161,10 @@ const ACTION_REGISTRY: ActionDef[] = [
         icon: Download,
         labelKey: "DOWNLOAD_LIST_TO_SERVER",
         mediaTypes: [EMediaType.Album, EMediaType.Playlist],
-        locations: [EMediaContextLocation.PLAYLIST],
+        locations: [
+            EMediaContextLocation.LIBRARY,
+            EMediaContextLocation.PLAYLIST,
+        ],
         condition: (m) => !isSearchResult(m),
     },
     {
@@ -324,6 +332,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         "---",
         EMediaContextAction.SaveOffline,
         EMediaContextAction.Download,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.DownloadSearchResultAndPlay,
         EMediaContextAction.DownloadSearchResult,
         EMediaContextAction.DownloadSearchResultAndAddToLibrary,
@@ -348,6 +357,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.RemoveFromLibrary,
         "---",
         EMediaContextAction.Download,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.DownloadSearchResultAndPlay,
         EMediaContextAction.DownloadSearchResult,
         EMediaContextAction.DownloadSearchResultAndAddToLibrary,
@@ -384,8 +394,8 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddQueueRandom,
         EMediaContextAction.AddToQueueBottom,
         "---",
-        EMediaContextAction.DownloadZip,
         EMediaContextAction.DownloadList,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Playlist]: [
@@ -400,6 +410,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddQueueRandom,
         EMediaContextAction.AddToQueueBottom,
         EMediaContextAction.DownloadList,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Artist]: [

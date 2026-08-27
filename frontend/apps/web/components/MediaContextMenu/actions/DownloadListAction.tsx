@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import {
+    EMediaType,
     isAlbumWithSongs,
     isDownloadable,
     isPlaylistWithMedias,
@@ -11,35 +12,56 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
+/**
+ * Number of children still missing from the server, or undefined when the
+ * container was loaded without them (the library sends albums and playlists
+ * with no children, so nothing can be counted there).
+ */
+function getPendingCount(media: TMedia): number | undefined {
+    if (
+        "undownloadedCount" in media &&
+        typeof media.undownloadedCount === "number"
+    ) {
+        return media.undownloadedCount;
+    }
+
+    let children: TMedia[] | undefined;
+    if (isAlbumWithSongs(media)) {
+        children = media.songs;
+    } else if (isPlaylistWithMedias(media)) {
+        children = media.medias.map((m): TMedia => m.item);
+    }
+    if (!children) return undefined;
+
+    return children.filter(
+        (m): boolean => isDownloadable(m) && m.downloaded !== true
+    ).length;
+}
+
 export default function DownloadListAction({
     media,
     vocabulary,
 }: ActionComponentProps): JSX.Element | null {
     if (isSearchResult(media)) return null;
 
-    const downloadableMedia: TMedia[] = [];
-    if (isAlbumWithSongs(media)) {
-        downloadableMedia.push(...media.songs);
-    } else if (isPlaylistWithMedias(media)) {
-        downloadableMedia.push(...media.medias.map((m) => m.item));
-    }
+    if (media.type !== EMediaType.Album && media.type !== EMediaType.Playlist)
+        return null;
 
-    const notDownloaded = downloadableMedia.filter(
-        (m): boolean => isDownloadable(m) && m.downloaded !== true
-    );
-
-    if (notDownloaded.length === 0) return null;
+    const pendingCount = getPendingCount(media);
+    if (pendingCount === 0) return null;
 
     const downloadAll = (): void => {
-        const ids = notDownloaded.map((m) => m.publicId);
-        rockIt.downloaderManager.downloadMediaAsync(ids, media.name);
+        rockIt.downloaderManager.downloadMediaAsync(
+            [media.publicId],
+            media.name
+        );
     };
 
     return (
         <ContextMenuOption onClick={downloadAll}>
             <Download className="h-5 w-5" />
             {vocabulary.DOWNLOAD_LIST_TO_SERVER}
-            {` (${notDownloaded.length})`}
+            {pendingCount !== undefined && ` (${pendingCount})`}
         </ContextMenuOption>
     );
 }

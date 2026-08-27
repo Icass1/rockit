@@ -115,11 +115,19 @@ export default function PlayerUIContent(): JSX.Element {
 
     const showLyrics = !($currentMedia && isVideo($currentMedia));
 
+    const sideCol = "minmax(0,clamp(280px,22vw,26rem))";
+
+    const gridStyle = isLandscape
+        ? {
+              gridTemplateColumns: showLyrics
+                  ? `${sideCol} minmax(0,1fr) ${sideCol}`
+                  : `0fr minmax(0,1fr) ${sideCol}`,
+          }
+        : undefined;
+
     const gridClass = isLandscape
         ? `transition-all ease-in-out ${
-              showLyrics
-                  ? "grid-cols-[2fr_4fr_2fr] duration-500"
-                  : "grid-cols-[0fr_6fr_2fr] duration-0"
+              showLyrics ? "duration-500" : "duration-0"
           }`
         : isPortrait
           ? "grid-rows-[1fr_1fr]"
@@ -130,7 +138,7 @@ export default function PlayerUIContent(): JSX.Element {
     // In landscape mode, CSS `order` is used to visually place queue before
     // main and lyrics after, without changing DOM order.
     return (
-        <div ref={divRef} className={defaultStyles + " " + gridClass}>
+        <div ref={divRef} style={gridStyle} className={defaultStyles + " " + gridClass}>
             <div className="absolute inset-0 overflow-hidden">
                 <Image
                     alt={$currentMedia.name}

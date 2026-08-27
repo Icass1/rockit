@@ -76,12 +76,23 @@ async def get_related_songs(
     Last.fm-sourced discovery for songs not downloaded here yet."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
     a_result: AResult[RecommendationResult] = (
         await Recommendation.get_related_songs_async(
-            session=session, public_id=public_id, limit=limit
+            session=session,
+            user_id=a_result_user.result().id,
+            public_id=public_id,
+            limit=limit,
         )
     )
     if a_result.is_not_ok():
+        logger.error(f"Error getting related songs for {public_id}. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

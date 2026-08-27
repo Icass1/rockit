@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Set
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +35,15 @@ DISCOVER_LIMIT = 8
 # How many Last.fm suggestions to try resolving to fill DISCOVER_LIMIT slots
 # (some won't match anything searchable, or will already be downloaded).
 DISCOVER_CANDIDATE_POOL = 15
+# How many recommended songs to fetch to the server automatically per request.
+# Each one costs a yt-dlp download, so this stays well below DISCOVER_LIMIT:
+# the rest remain visible and downloadable on demand. Set to 0 to disable
+# auto-downloading entirely.
+AUTO_DOWNLOAD_LIMIT = 3
+
+# Strong references to in-flight auto-download tasks. asyncio only keeps weak
+# references, so without this a task can be garbage collected mid-download.
+_BACKGROUND_TASKS: Set["asyncio.Task[None]"] = set()
 
 
 class RecommendationResult(NamedTuple):
@@ -46,6 +55,86 @@ class RecommendationResult(NamedTuple):
 
 
 class Recommendation:
+    @staticmethod
+    async def _auto_download_async(
+        user_id: int,
+        media_public_ids: List[str],
+        urls: List[str],
+    ) -> None:
+        """Queue server-side downloads for recommended songs that have no
+        audio file yet.
+
+        Runs detached from the request, on its own session, because the
+        request's session is closed as soon as the response is sent and
+        resolving a URL costs a provider round-trip. Re-queueing is safe:
+        the downloader skips media already downloaded or in progress.
+        """
+
+        from backend.core.access.db import rockit_db
+        from backend.core.framework.downloader.downloader import Downloader
+
+        try:
+            async with rockit_db.session_scope_async() as session:
+                if media_public_ids:
+                    a_result = await Downloader.download_multiple_medias_async(
+                        session=session,
+                        user_id=user_id,
+                        title="Recommendations",
+                        public_ids=media_public_ids,
+                    )
+                    if a_result.is_not_ok():
+                        logger.error(
+                            f"Error auto-downloading recommended media. {a_result.info()}"
+                        )
+
+                for url in urls:
+                    a_result_url = await Downloader.start_download_from_url_async(
+                        session=session,
+                        user_id=user_id,
+                        url=url,
+                        add_to_library=False,
+                        add_to_playlist=False,
+                        playlist_public_id=None,
+                    )
+                    if a_result_url.is_not_ok():
+                        logger.error(
+                            f"Error auto-downloading recommendation '{url}'. "
+                            f"{a_result_url.info()}"
+                        )
+        except Exception as e:
+            # Never let a background failure surface as an unhandled task error;
+            # the recommendation response has already been sent by now.
+            logger.error(f"Auto-download task failed: {e}", exc_info=True)
+
+    @staticmethod
+    def _schedule_auto_downloads(
+        user_id: int,
+        songs: List[BaseSongWithAlbumResponse],
+        discover: List[BaseSearchResultsItem],
+    ) -> None:
+        """Fire-and-forget the download of recommendations lacking audio,
+        newest-first, capped at AUTO_DOWNLOAD_LIMIT items in total."""
+
+        if AUTO_DOWNLOAD_LIMIT <= 0:
+            return
+
+        missing_public_ids: List[str] = [s.publicId for s in songs if not s.downloaded]
+        remaining: int = max(0, AUTO_DOWNLOAD_LIMIT - len(missing_public_ids))
+        urls: List[str] = [d.providerUrl for d in discover[:remaining]]
+        missing_public_ids = missing_public_ids[:AUTO_DOWNLOAD_LIMIT]
+
+        if not missing_public_ids and not urls:
+            return
+
+        task = asyncio.create_task(
+            Recommendation._auto_download_async(
+                user_id=user_id, media_public_ids=missing_public_ids, urls=urls
+            )
+        )
+        # Keep a reference so the task isn't garbage collected mid-flight.
+        _BACKGROUND_TASKS.add(task)
+        task.add_done_callback(_BACKGROUND_TASKS.discard)
+
     @staticmethod
     async def _get_discover_songs_async(
         session: AsyncSession,
@@ -119,6 +208,7 @@ class Recommendation:
     @staticmethod
     async def get_related_songs_async(
         session: AsyncSession,
+        user_id: int,
         public_id: str,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
     ) -> AResult[RecommendationResult]:
@@ -172,6 +262,10 @@ class Recommendation:
             )
             if seed_song is not None
             else []
+        )
+
+        Recommendation._schedule_auto_downloads(
+            user_id=user_id, songs=songs, discover=discover
         )
 
         return AResult(
@@ -289,6 +383,10 @@ class Recommendation:
             else []
         )
 
+        Recommendation._schedule_auto_downloads(
+            user_id=user_id, songs=songs, discover=discover
+        )
+
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -375,6 +473,10 @@ class Recommendation:
             )
             if top_seed_songs
             else []
+        )
+
+        Recommendation._schedule_auto_downloads(
+            user_id=user_id, songs=songs, discover=discover
         )
 
         return AResult(

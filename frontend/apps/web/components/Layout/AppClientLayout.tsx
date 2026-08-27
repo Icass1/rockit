@@ -5,9 +5,9 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { VocabularyResponse } from "@/dto";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { Http } from "@/lib/http";
 import { loadVocabularyOffline } from "@/lib/offline/db";
+import { rockIt } from "@/lib/rockit/rockIt";
 import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import KeyboardHandler from "@/components/KeyboardHandler/KeyboardHandler";
@@ -29,6 +29,15 @@ export default function AppClientLayout({
 }): JSX.Element {
     useEffect((): void => {
         rockIt.mediaManager.fetchLikedMedia();
+
+        /*
+         * Ask WebKit to keep our caches and IndexedDB out of LRU eviction
+         * under storage pressure. Granted heuristically for home screen
+         * web apps (iOS 17+); silently ignored elsewhere.
+         */
+        if (typeof navigator.storage?.persist === "function") {
+            navigator.storage.persist().catch(() => {});
+        }
 
         const hasVocab =
             vocabulary.vocabulary &&

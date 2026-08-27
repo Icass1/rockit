@@ -45,6 +45,35 @@ body {
     overscroll-behavior: none;
 }
 
+/*
+ * Native app UX: no text selection anywhere in the app.
+ *
+ * user-select does not affect taps/clicks — buttons, links and gestures
+ * keep working as usual. It only removes the iOS selection loupe,
+ * the blue highlight and the "Copy | Share" menu on long press.
+ *
+ * -webkit-user-select and -webkit-touch-callout are mandatory:
+ * Safari/WebKit (iOS) ignores the unprefixed versions for these cases.
+ */
+html {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Exception: editable fields remain selectable
+ * (login, register, search, settings, metadata, admin...).
+ */
+input,
+textarea,
+[contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
 code {
     font-family:
         Menlo, Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono",

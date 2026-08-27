@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type JSX } from "react";
+import { useMemo, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,12 +10,59 @@ import {
     BaseStationResponse,
     BaseVideoResponse,
 } from "@/dto";
-import { CircleCheck } from "lucide-react";
 import { EMediaContextLocation } from "@rockit/shared";
+import { CircleCheck } from "lucide-react";
+import type { TMediaWithSearch } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import {
+    isZippable,
+    useLibrarySelection,
+} from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+
+function SelectableRow({
+    media,
+    children,
+}: {
+    media: TMediaWithSearch;
+    children: ReactNode;
+}): JSX.Element {
+    const { selectionMode, isSelected, toggleSelection } =
+        useLibrarySelection();
+
+    // Stations and artists cannot be packaged into a ZIP, so they stay
+    // clickable and show no checkbox while selecting.
+    const selectable = selectionMode && isZippable(media);
+
+    return (
+        <div
+            className="relative"
+            onClickCapture={(event): void => {
+                if (!selectable) return;
+                event.preventDefault();
+                event.stopPropagation();
+                toggleSelection(media);
+            }}
+        >
+            {children}
+            {selectable && (
+                <div
+                    className={`pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-black/60 ${
+                        "publicId" in media && isSelected(media.publicId)
+                            ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
+                            : "border-white/80"
+                    }`}
+                >
+                    {"publicId" in media && isSelected(media.publicId) && (
+                        <span className="text-xs font-bold text-white">✓</span>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
 
 /* ------------------------------------------------------- */
 /* GROUP BY FIRST ARTIST                                   */
@@ -82,29 +129,35 @@ export function AlbumRow({
             media={album}
             location={EMediaContextLocation.LIBRARY}
         >
-            <Link
-                prefetch={false}
-                href={album.url}
-                className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
-            >
-                <SquareCover
-                    src={album.imageUrl ?? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL}
-                    alt={album.name}
-                />
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                        <p className="truncate font-medium text-white">
-                            {album.name}
+            <SelectableRow media={album}>
+                <Link
+                    prefetch={false}
+                    href={album.url}
+                    className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none [-webkit-touch-callout:none] hover:bg-neutral-800"
+                >
+                    <SquareCover
+                        src={
+                            album.imageUrl ?? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                        }
+                        alt={album.name}
+                    />
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                            <p className="truncate font-medium text-white">
+                                {album.name}
+                            </p>
+                            {album.undownloadedCount === 0 && (
+                                <CircleCheck className="h-5 w-5 shrink-0 text-(--color-rockit-pink)" />
+                            )}
+                        </div>
+                        <p className="truncate text-sm text-neutral-400">
+                            {album.artists
+                                .map((a): string => a.name)
+                                .join(", ")}
                         </p>
-                        {album.undownloadedCount === 0 && (
-                            <CircleCheck className="h-5 w-5 shrink-0 text-(--color-rockit-pink)" />
-                        )}
                     </div>
-                    <p className="truncate text-sm text-neutral-400">
-                        {album.artists.map((a): string => a.name).join(", ")}
-                    </p>
-                </div>
-            </Link>
+                </Link>
+            </SelectableRow>
         </MediaContextMenu>
     );
 }
@@ -119,27 +172,29 @@ export function PlaylistRow({
             media={playlist}
             location={EMediaContextLocation.LIBRARY}
         >
-            <Link
-                prefetch={false}
-                href={playlist.url}
-                className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
-            >
-                <SquareCover
-                    src={
-                        playlist.imageUrl ??
-                        rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
-                    }
-                    alt={playlist.name}
-                />
-                <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-white">
-                        {playlist.name}
-                    </p>
-                    <p className="truncate text-sm text-neutral-400">
-                        {playlist.owner.name}
-                    </p>
-                </div>
-            </Link>
+            <SelectableRow media={playlist}>
+                <Link
+                    prefetch={false}
+                    href={playlist.url}
+                    className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none [-webkit-touch-callout:none] hover:bg-neutral-800"
+                >
+                    <SquareCover
+                        src={
+                            playlist.imageUrl ??
+                            rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL
+                        }
+                        alt={playlist.name}
+                    />
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-white">
+                            {playlist.name}
+                        </p>
+                        <p className="truncate text-sm text-neutral-400">
+                            {playlist.owner.name}
+                        </p>
+                    </div>
+                </Link>
+            </SelectableRow>
         </MediaContextMenu>
     );
 }
@@ -162,25 +217,29 @@ export function VideoRow({
             media={$video}
             location={EMediaContextLocation.LIBRARY}
         >
-            <div
-                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
-                onClick={handlePlay}
-            >
-                <VideoCover
-                    src={$video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
-                    alt={$video.name}
-                />
-                <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-white">
-                        {$video.name}
-                    </p>
-                    <p className="truncate text-sm text-neutral-400">
-                        {$video.artists
-                            ?.map((a): string => a.name)
-                            .join(", ") ?? ""}
-                    </p>
+            <SelectableRow media={$video}>
+                <div
+                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-neutral-800"
+                    onClick={handlePlay}
+                >
+                    <VideoCover
+                        src={
+                            $video.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        }
+                        alt={$video.name}
+                    />
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-white">
+                            {$video.name}
+                        </p>
+                        <p className="truncate text-sm text-neutral-400">
+                            {$video.artists
+                                ?.map((a): string => a.name)
+                                .join(", ") ?? ""}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </SelectableRow>
         </MediaContextMenu>
     );
 }
@@ -203,30 +262,35 @@ export function SongRow({
             media={$song}
             location={EMediaContextLocation.LIBRARY}
         >
-            <div
-                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
-                onClick={handlePlay}
-            >
-                <SquareCover
-                    src={$song.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL}
-                    alt={$song.name}
-                />
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                        <p className="truncate font-medium text-white">
-                            {$song.name}
+            <SelectableRow media={$song}>
+                <div
+                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
+                    onClick={handlePlay}
+                >
+                    <SquareCover
+                        src={
+                            $song.imageUrl ?? rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        }
+                        alt={$song.name}
+                    />
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                            <p className="truncate font-medium text-white">
+                                {$song.name}
+                            </p>
+                            <OfflineIndicator
+                                publicId={$song.publicId}
+                                className="h-5 w-5"
+                            />
+                        </div>
+                        <p className="truncate text-sm text-neutral-400">
+                            {$song.artists
+                                ?.map((a): string => a.name)
+                                .join(", ") ?? "Unknown Artist"}
                         </p>
-                        <OfflineIndicator
-                            publicId={$song.publicId}
-                            className="h-5 w-5"
-                        />
                     </div>
-                    <p className="truncate text-sm text-neutral-400">
-                        {$song.artists?.map((a): string => a.name).join(", ") ??
-                            "Unknown Artist"}
-                    </p>
                 </div>
-            </div>
+            </SelectableRow>
         </MediaContextMenu>
     );
 }
@@ -249,20 +313,22 @@ export function StationRow({
             media={$station}
             location={EMediaContextLocation.LIBRARY}
         >
-            <div
-                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
-                onClick={handlePlay}
-            >
-                <SquareCover src={$station.imageUrl} alt={$station.name} />
-                <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-white">
-                        {$station.name}
-                    </p>
-                    <p className="truncate text-sm text-neutral-400">
-                        Radio Station
-                    </p>
+            <SelectableRow media={$station}>
+                <div
+                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
+                    onClick={handlePlay}
+                >
+                    <SquareCover src={$station.imageUrl} alt={$station.name} />
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-white">
+                            {$station.name}
+                        </p>
+                        <p className="truncate text-sm text-neutral-400">
+                            Radio Station
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </SelectableRow>
         </MediaContextMenu>
     );
 }
@@ -292,18 +358,14 @@ export function AlbumListView({
 
     return (
         <div className="px-4">
-            {groups.map(
-                ([artist, artistAlbums]): JSX.Element => (
-                    <div key={artist}>
-                        <ArtistGroupHeader name={artist} />
-                        {artistAlbums.map(
-                            (album): JSX.Element => (
-                                <AlbumRow key={album.publicId} album={album} />
-                            )
-                        )}
-                    </div>
-                )
-            )}
+            {groups.map(([artist, artistAlbums]): JSX.Element => (
+                <div key={artist}>
+                    <ArtistGroupHeader name={artist} />
+                    {artistAlbums.map((album): JSX.Element => (
+                        <AlbumRow key={album.publicId} album={album} />
+                    ))}
+                </div>
+            ))}
         </div>
     );
 }

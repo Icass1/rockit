@@ -2,6 +2,19 @@
    components.css — Utilidades y estilos de componentes globales
    ───────────────────────────────────────────── */
 
+/* ── Imágenes: sin callout de iOS / sin arrastre ──
+   Al mantener pulsado una cover en iOS, evita que Safari
+   muestre su callout (guardar imagen / vista previa del link)
+   y deje el menú contextual de la app abrirse en su lugar.
+   También evita seleccionar/arrastrar la imagen.
+   ───────────────────────────────────────────── */
+img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
 /* ── Scrollbar global ─────────────────────────
    Mobile: oculto (0px) para no consumir espacio táctil.
    Desktop (≥768px): 7px, sutil y consistente.
@@ -227,15 +240,16 @@
 }
 
 /* ── Masonry grid (CSS columns) ────────────
-   Uses `column-width: 250px` for auto-fill behaviour:
-   as many 250px-wide columns as the container allows.
+   Mobile-first: `column-width: 160px` guarantees two columns
+   on phone-sized screens (~360px usable width) so albums fit
+   two per row. Desktop overrides to `250px` auto-fill.
    Items flow top→bottom, then left→right.
    Break-inside avoids content splitting across columns.
    Gaps: 12px horizontal, 16px vertical (mobile)
          16px horizontal, 20px vertical (desktop)
    ─────────────────────────────────────── */
 .masonry-grid {
-    column-width: 250px;
+    column-width: 160px;
     column-gap: 12px;
 }
 
@@ -246,6 +260,7 @@
 
 @media (min-width: 768px) {
     .masonry-grid {
+        column-width: 250px;
         column-gap: 16px;
     }
 

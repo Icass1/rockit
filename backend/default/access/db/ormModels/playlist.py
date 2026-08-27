@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict, List
 
-from sqlalchemy import ForeignKey, Integer, String, Boolean
+from sqlalchemy import ForeignKey, Integer, String, Boolean, Index
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -23,7 +23,15 @@ if TYPE_CHECKING:
 
 class PlaylistRow(DefaultBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "playlist"
-    __table_args__ = ({"schema": "default_schema", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_default_schema_playlist_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "default_schema", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

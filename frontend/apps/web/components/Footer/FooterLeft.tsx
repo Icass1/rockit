@@ -13,8 +13,8 @@ import {
     getMediaArtists,
     TPlayableMedia,
 } from "@/models/types/media";
-import { rockIt } from "@/lib/rockit/rockIt";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
+import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
 

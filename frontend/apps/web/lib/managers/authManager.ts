@@ -1,5 +1,6 @@
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { clearSessionOffline } from "@/lib/offline/db";
 
 export interface AuthResult {
     success: boolean;
@@ -25,6 +26,9 @@ export class AuthManager {
         });
 
         if (res.isOk()) {
+            // Defensive: if a previous account never signed out, stale
+            // user-scoped SW caches must not leak into the new session.
+            await clearSessionOffline().catch(() => {});
             rockIt.init();
             return { success: true };
         } else if (res.isNotOk()) {
@@ -49,6 +53,9 @@ export class AuthManager {
         });
 
         if (res.isOk()) {
+            // Defensive: if a previous account never signed out, stale
+            // user-scoped SW caches must not leak into the new session.
+            await clearSessionOffline().catch(() => {});
             rockIt.init();
             return { success: true };
         } else if (res.isNotOk()) {

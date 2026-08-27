@@ -724,15 +724,44 @@ class User:
         user_id: int,
         queue_items: List[QueueItem],
     ) -> AResultCode:
+        # The queue is replaced below. If the stored current queue id does not
+        # exist in the new queue, the reference is stale (queue ids are reused
+        # across plays), which would make a later restart resume the wrong song.
+        # The reset is performed atomically with the save.
+        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+            session=session, user_id=user_id
+        )
+        if a_result_user.is_not_ok():
+            logger.error(f"Error getting user. {a_result_user.info()}")
+            return AResultCode(
+                code=a_result_user.code(), message=a_result_user.message()
+            )
+
+        current_queue_id: int | None = a_result_user.result().current_queue_id
+        valid_queue_ids: List[int] = [item.queue_id for item in queue_items]
+        reset_current_queue_id: bool = (
+            current_queue_id is not None and current_queue_id not in valid_queue_ids
+        )
+
         a_result: AResult[bool] = await UserQueueAccess.save_user_queue_async(
             session=session,
             user_id=user_id,
             queue_items=queue_items,
+            reset_current_queue_id=reset_current_queue_id,
+            expected_current_queue_id=(
+                current_queue_id if reset_current_queue_id else None
+            ),
         )
 
         if a_result.is_not_ok():
             logger.error(f"Error saving user queue. {a_result.info()}")
             return AResultCode(code=a_result.code(), message=a_result.message())
+
+        if reset_current_queue_id:
+            logger.warning(
+                f"Queue replaced without current queue id {current_queue_id}; "
+                f"resetting current queue id."
+            )
 
         return AResultCode(code=AResultCode.OK, message="OK")
 

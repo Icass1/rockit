@@ -24,7 +24,7 @@ import type { ActionComponentProps } from "@/components/MediaContextMenu/actions
 import AddToPlaylistAction, {
     AddToPlaylistAndDownloadAction,
 } from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
-import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
+import DeleteMediaFileAction from "@/components/MediaContextMenu/actions/DeleteAction";
 import {
     DownloadAction,
     DownloadSearchResultAction,
@@ -33,6 +33,7 @@ import {
     DownloadZipAction,
     RetryDownloadAction,
 } from "@/components/MediaContextMenu/actions/DownloadActions";
+import DownloadListAction from "@/components/MediaContextMenu/actions/DownloadListAction";
 import EditMetadataAction from "@/components/MediaContextMenu/actions/EditMetadataAction";
 import {
     AddToLibraryAction,
@@ -78,12 +79,13 @@ const actionComponents: Partial<
     [EMediaContextAction.DownloadSearchResultAndPlay]:
         DownloadSearchResultAndPlayAction,
     [EMediaContextAction.RetryDownload]: RetryDownloadAction,
+    [EMediaContextAction.DownloadList]: DownloadListAction,
     [EMediaContextAction.DownloadZip]: DownloadZipAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
     [EMediaContextAction.AddToPlaylistAndDownload]:
         AddToPlaylistAndDownloadAction,
-    [EMediaContextAction.Delete]: DeleteAction,
+    [EMediaContextAction.DeleteMediaFile]: DeleteMediaFileAction,
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,
     [EMediaContextAction.SaveOffline]: SaveOfflineAction,

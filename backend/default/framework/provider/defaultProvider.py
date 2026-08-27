@@ -213,6 +213,19 @@ class DefaultProvider(BaseMediaProvider):
         """Get the duration of a default playlist in milliseconds."""
         return AResult(code=AResultCode.OK, message="OK", result=0)
 
+    def get_search_index_cte_fragment(self) -> str | None:
+        return f"""    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           pl.name                         AS name,
+           NULL                            AS subtitle,
+           {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   default_schema.playlist pl
+    JOIN   core.media    cm ON cm.id = pl.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = pl.image_id"""
+
 
 provider = DefaultProvider()
 name = "Default"

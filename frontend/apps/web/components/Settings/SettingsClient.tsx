@@ -13,7 +13,6 @@ import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
 
-
 function SettingsSection({
     title,
     children,

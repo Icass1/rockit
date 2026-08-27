@@ -35,7 +35,10 @@ const nextConfig: NextConfig = {
         // Only disable image optimization in dev
         unoptimized: isDev,
         dangerouslyAllowLocalIP: isDev || process.env.ALLOW_LOCAL_IP === "true",
-        deviceSizes: [16, 32, 48, 64, 96, 128, 256, 384, 600, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+        deviceSizes: [
+            16, 32, 48, 64, 96, 128, 256, 384, 600, 640, 750, 828, 1080, 1200,
+            1920, 2048, 3840,
+        ],
         remotePatterns: [
             {
                 protocol: "http",
@@ -56,6 +59,11 @@ const nextConfig: NextConfig = {
             {
                 protocol: "https",
                 hostname: "api-beta-rockit.rockhosting.org",
+                pathname: "/media/image/**",
+            },
+            {
+                protocol: "https",
+                hostname: "api-rockit.rockhosting.org",
                 pathname: "/media/image/**",
             },
         ],

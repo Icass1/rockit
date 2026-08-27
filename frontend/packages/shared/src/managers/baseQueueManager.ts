@@ -146,7 +146,9 @@ export class BaseQueueManager {
         if (response.isOk()) {
             return response.result;
         }
-        console.error("Error getting album", response.message, response.detail);
+        getRockIt().notificationManager.notifyError(
+            getRockIt().vocabularyManager.vocabulary.ERROR_GETTING_ALBUM
+        );
         return undefined;
     }
 
@@ -337,7 +339,10 @@ export class BaseQueueManager {
             }
 
             if (!isStation(media.media) && !media.media.downloaded) {
-                console.warn("Current media is not downloaded");
+                getRockIt().notificationManager.notifyWarn(
+                    getRockIt().vocabularyManager.vocabulary
+                        .MEDIA_NOT_DOWNLOADED
+                );
                 const index = queue.indexOf(media);
                 for (let i = 1; i < queue.length; i++) {
                     const nextIndex =
@@ -359,14 +364,17 @@ export class BaseQueueManager {
             this._currentMediaAtom.set(media.media);
             this._currentListAtom.set(media.listPublicId ?? undefined);
         } else {
+            const queue = this.queue;
+            if (queue.length === 0) return;
+
             if (getRockIt().userManager.queueType === EQueueType.RANDOM) {
-                this.setQueueMediaId(
-                    Math.floor(Math.random() * this.queue.length)
-                );
+                const randomItem =
+                    queue[Math.floor(Math.random() * queue.length)];
+                this.setQueueMediaId(randomItem.queueMediaId);
             } else if (
                 getRockIt().userManager.queueType === EQueueType.SORTED
             ) {
-                this.setQueueMediaId(0);
+                this.setQueueMediaId(queue[0].queueMediaId);
             } else {
                 throw `Unkown queue type ${getRockIt().userManager.queueType}`;
             }
@@ -507,9 +515,6 @@ export class BaseQueueManager {
         this.setMedia(medias.filter(isQueueable), media.publicId);
         this.setQueueMediaId(0);
         getRockIt().mediaPlayerManager.play();
-        this.setMedia(medias.filter(isQueueable), media.publicId);
-        this.setQueueMediaId(0);
-        getRockIt().mediaPlayerManager.play();
     }
 
     async getListMediasAsync(media: TListMedia): Promise<TPlayableMedia[]> {
@@ -524,7 +529,9 @@ export class BaseQueueManager {
                 return album.songs;
             }
         } else if (isPlaylist(media)) {
-            console.warn("playlist without songs");
+            getRockIt().notificationManager.notifyWarn(
+                getRockIt().vocabularyManager.vocabulary.PLAYLIST_WITHOUT_MEDIAS
+            );
         }
 
         return medias;
@@ -689,6 +696,20 @@ export class BaseQueueManager {
         this.randomQueue.splice(randomInsertIndex, 0, { ...newItem });
 
         this.updateQueue();
+    }
+
+    peekNextQueueItem(): QueueMediaItem | undefined {
+        const currentQueueMediaId = this.currentQueueMediaId;
+        const queue = this.queue;
+        if (queue.length === 0) return undefined;
+
+        const currentIndex = queue.findIndex(
+            (item): boolean => item.queueMediaId === currentQueueMediaId
+        );
+        if (currentIndex === -1) return queue[0];
+
+        const nextIndex = (currentIndex + 1) % queue.length;
+        return queue[nextIndex];
     }
 
     // #endregion: Methods

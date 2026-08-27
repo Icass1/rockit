@@ -17,9 +17,9 @@ import { StationManager } from "@/lib/managers/stationManager";
 import { UserManager } from "@/lib/managers/userManager";
 import { VocabularyManager } from "@/lib/managers/vocabularyManager";
 import { WebSocketManager } from "@/lib/managers/webSocketManger";
-import { hydrateOfflineIds } from "@/lib/offline/store";
 import { cleanupLegacyIndexedDB } from "@/lib/offline/cleanup-legacy-db";
 import { cleanupLegacyServiceWorker } from "@/lib/offline/cleanup-legacy-sw";
+import { hydrateOfflineIds } from "@/lib/offline/store";
 
 export class RockIt {
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
@@ -64,27 +64,23 @@ export class RockIt {
     async init(): Promise<void> {
         console.log("RockIt! int");
         rockIt.mediaPlayerManager.init();
-        rockIt.queueManager.init();
-        rockIt.userManager.init();
-        rockIt.downloaderManager.init();
-        rockIt.bookmarkManager.init();
+        await rockIt.userManager.init();
+        await rockIt.queueManager.init();
+        await Promise.all([
+            rockIt.downloaderManager.init(),
+            rockIt.bookmarkManager.init(),
+            rockIt.playlistManager.init(),
+        ]);
         rockIt.libraryManager.init();
-        rockIt.playlistManager.init();
         rockIt.mediaSessionManager.init();
 
         cleanupLegacyIndexedDB();
         cleanupLegacyServiceWorker();
         await hydrateOfflineIds();
 
-        if (
-            typeof navigator !== "undefined" &&
-            navigator.storage?.persist
-        ) {
+        if (typeof navigator !== "undefined" && navigator.storage?.persist) {
             navigator.storage.persist().then((granted) => {
-                console.log(
-                    "[offline] almacenamiento persistente:",
-                    granted
-                );
+                console.log("[offline] almacenamiento persistente:", granted);
             });
         }
     }

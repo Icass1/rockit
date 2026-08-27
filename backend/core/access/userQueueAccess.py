@@ -1,7 +1,7 @@
 from typing import List, Tuple
 from logging import Logger
 from sqlalchemy.future import select
-from sqlalchemy import Result, Select, delete
+from sqlalchemy import Result, Select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -11,6 +11,7 @@ from backend.core.utils.safeAsyncCall import safe_async
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.db.ormModels.user_queue import UserQueueRow
+from backend.core.access.db.ormModels.user import UserRow
 
 from backend.core.framework.models.queue import QueueItem
 
@@ -48,8 +49,16 @@ class UserQueueAccess:
         session: AsyncSession,
         user_id: int,
         queue_items: List[QueueItem],
+        reset_current_queue_id: bool = False,
+        expected_current_queue_id: int | None = None,
     ) -> AResult[bool]:
-        """Save the user's queue. Replaces existing queue for the given type."""
+        """Save the user's queue. Replaces existing queue for the given type.
+
+        If ``reset_current_queue_id`` is set, the stored current queue id is
+        cleared when it still equals ``expected_current_queue_id``. The
+        conditional WHERE keeps the reset atomic with the replace and avoids
+        clobbering a concurrent ``current_media`` update.
+        """
         delete_stmt = delete(UserQueueRow).where(UserQueueRow.user_id == user_id)
         await session.execute(delete_stmt)
 
@@ -63,6 +72,15 @@ class UserQueueAccess:
                 random_index=item.random_index,
             )
             session.add(instance=user_queue)
+
+        if reset_current_queue_id:
+            reset_stmt = (
+                update(UserRow)
+                .where(UserRow.id == user_id)
+                .where(UserRow.current_queue_id == expected_current_queue_id)
+                .values(current_queue_id=None)
+            )
+            await session.execute(reset_stmt)
 
         await session.commit()
 

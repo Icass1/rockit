@@ -12,7 +12,8 @@ export default function DownloadAppButton(): JSX.Element {
     const [swReady, setSwReady] = useState(false);
 
     useEffect(() => {
-        if (typeof navigator === "undefined" || !navigator.serviceWorker) return;
+        if (typeof navigator === "undefined" || !navigator.serviceWorker)
+            return;
         navigator.serviceWorker.ready.then((): void => setSwReady(true));
     }, []);
 

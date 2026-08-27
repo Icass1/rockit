@@ -4,8 +4,8 @@ import {
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
-import { createAtom, ReadonlyAtom } from "@/lib/store";
 import { saveVocabularyOffline } from "@/lib/offline/db";
+import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 function createVocabularyProxy(data: Record<string, string>): VocabularyType {
     return new Proxy(data, {

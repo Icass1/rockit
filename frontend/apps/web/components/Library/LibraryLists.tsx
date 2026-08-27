@@ -13,6 +13,7 @@ import Link from "next/link";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
+    BaseSongWithAlbumResponse,
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
@@ -28,7 +29,10 @@ import {
     expandAlbumsToPlayable,
     expandPlaylistsToPlayable,
 } from "@/lib/services/mediaService";
+import DownloadLibraryButton from "@/components/Library/DownloadLibraryButton";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
+import { useInView } from "@/hooks/useInView";
+import { useIncrementalList } from "@/hooks/useIncrementalList";
 import {
     AlbumCard,
     PlaylistCard,
@@ -45,7 +49,7 @@ import {
 } from "@/components/Library/LibraryRows";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
-import LoadingComponent from "@/components/Loading";
+import LibrarySkeleton from "@/components/Library/LibrarySkeleton";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -321,6 +325,21 @@ export function LibraryLists({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
+    // Incremental rendering for the lists that can grow very large (songs,
+    // videos). Small libraries render everything immediately — zero overhead.
+    const [songsSentinel, songsSentinelInView] =
+        useInView<HTMLDivElement>();
+    const [videosSentinel, videosSentinelInView] =
+        useInView<HTMLDivElement>();
+    const songs = useIncrementalList<BaseSongWithAlbumResponse>(
+        filtered.songs,
+        songsSentinelInView
+    );
+    const videos = useIncrementalList<BaseVideoResponse>(
+        filtered.videos,
+        videosSentinelInView
+    );
+
     const lastMonthDate = useMemo(() => {
         const d = new Date();
         d.setMonth(d.getMonth() - 1);
@@ -398,7 +417,7 @@ export function LibraryLists({
         rockIt.mediaPlayerManager.play();
     };
 
-    if (loading) return <LoadingComponent />;
+    if (loading) return <LibrarySkeleton />;
 
     return (
         <section>
@@ -407,7 +426,7 @@ export function LibraryLists({
             <div className="scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent mb-4 flex gap-4 overflow-x-auto px-4 py-2 pb-2">
                 <Link
                     href="/playlist/liked"
-                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -430,7 +449,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/most-listened"
-                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -450,7 +469,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/recent-mix"
-                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -470,7 +489,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/year-recap"
-                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -503,7 +522,7 @@ export function LibraryLists({
 
                 <Link
                     href="/playlist/last-month"
-                    className="w-40 flex-none transition duration-75 md:hover:scale-105"
+                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                 >
                     <div
                         className="relative aspect-square w-full rounded-lg bg-cover"
@@ -524,7 +543,7 @@ export function LibraryLists({
                     <Link
                         key={album.publicId}
                         href={album.href}
-                        className="w-40 flex-none transition duration-75 md:hover:scale-105"
+                        className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
                     >
                         <Image
                             alt={album.name}
@@ -547,7 +566,12 @@ export function LibraryLists({
                 <>
                     <SectionHeader
                         title={$vocabulary.YOUR_ALBUMS_PLAYLISTS}
-                        rightElement={<PlayLibraryButton />}
+                        rightElement={
+                            <div className="flex items-center gap-2">
+                                <PlayLibraryButton />
+                                <DownloadLibraryButton />
+                            </div>
+                        }
                     />
 
                     {viewMode === EViewMode.List ? (
@@ -595,36 +619,21 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {filtered.albums.map(
-                                    (al): JSX.Element => (
-                                        <AlbumRow
-                                            key={al.publicId}
-                                            album={al}
-                                        />
-                                    )
-                                )}
+                                {filtered.albums.map((al): JSX.Element => (
+                                    <AlbumRow key={al.publicId} album={al} />
+                                ))}
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {filtered.albums.map(
-                                    (al): JSX.Element => (
-                                        <AlbumCard
-                                            key={al.publicId}
-                                            album={al}
-                                        />
-                                    )
-                                )}
+                                {filtered.albums.map((al): JSX.Element => (
+                                    <AlbumCard key={al.publicId} album={al} />
+                                ))}
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {filtered.albums.map(
-                                    (al): JSX.Element => (
-                                        <AlbumCard
-                                            key={al.publicId}
-                                            album={al}
-                                        />
-                                    )
-                                )}
+                                {filtered.albums.map((al): JSX.Element => (
+                                    <AlbumCard key={al.publicId} album={al} />
+                                ))}
                             </div>
                         )}
                     </>
@@ -648,38 +657,32 @@ export function LibraryLists({
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
                                 <NewPlaylistButton variant="row" />
-                                {filtered.playlists.map(
-                                    (pl): JSX.Element => (
-                                        <PlaylistRow
-                                            key={pl.publicId}
-                                            playlist={pl}
-                                        />
-                                    )
-                                )}
+                                {filtered.playlists.map((pl): JSX.Element => (
+                                    <PlaylistRow
+                                        key={pl.publicId}
+                                        playlist={pl}
+                                    />
+                                ))}
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
                                 <NewPlaylistButton variant="card" />
-                                {filtered.playlists.map(
-                                    (pl): JSX.Element => (
-                                        <PlaylistCard
-                                            key={pl.publicId}
-                                            playlist={pl}
-                                        />
-                                    )
-                                )}
+                                {filtered.playlists.map((pl): JSX.Element => (
+                                    <PlaylistCard
+                                        key={pl.publicId}
+                                        playlist={pl}
+                                    />
+                                ))}
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
                                 <NewPlaylistButton variant="card" />
-                                {filtered.playlists.map(
-                                    (pl): JSX.Element => (
-                                        <PlaylistCard
-                                            key={pl.publicId}
-                                            playlist={pl}
-                                        />
-                                    )
-                                )}
+                                {filtered.playlists.map((pl): JSX.Element => (
+                                    <PlaylistCard
+                                        key={pl.publicId}
+                                        playlist={pl}
+                                    />
+                                ))}
                             </div>
                         )}
                     </>
@@ -702,7 +705,7 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {filtered.songs.map(
+                                {songs.map(
                                     (s): JSX.Element => (
                                         <SongRow key={s.publicId} song={s} />
                                     )
@@ -710,7 +713,7 @@ export function LibraryLists({
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {filtered.songs.map(
+                                {songs.map(
                                     (s): JSX.Element => (
                                         <SongCard key={s.publicId} song={s} />
                                     )
@@ -718,13 +721,14 @@ export function LibraryLists({
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {filtered.songs.map(
+                                {songs.map(
                                     (s): JSX.Element => (
                                         <SongCard key={s.publicId} song={s} />
                                     )
                                 )}
                             </div>
                         )}
+                        <div ref={songsSentinel} aria-hidden />
                     </>
                 ))}
 
@@ -745,7 +749,7 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {filtered.videos.map(
+                                {videos.map(
                                     (v): JSX.Element => (
                                         <VideoRow key={v.publicId} video={v} />
                                     )
@@ -753,7 +757,7 @@ export function LibraryLists({
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {filtered.videos.map(
+                                {videos.map(
                                     (v): JSX.Element => (
                                         <VideoCard key={v.publicId} video={v} />
                                     )
@@ -761,13 +765,14 @@ export function LibraryLists({
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {filtered.videos.map(
+                                {videos.map(
                                     (v): JSX.Element => (
                                         <VideoCard key={v.publicId} video={v} />
                                     )
                                 )}
                             </div>
                         )}
+                        <div ref={videosSentinel} aria-hidden />
                     </>
                 ))}
 
@@ -782,36 +787,30 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {filtered.stations.map(
-                                    (st): JSX.Element => (
-                                        <StationRow
-                                            key={st.publicId}
-                                            station={st}
-                                        />
-                                    )
-                                )}
+                                {filtered.stations.map((st): JSX.Element => (
+                                    <StationRow
+                                        key={st.publicId}
+                                        station={st}
+                                    />
+                                ))}
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {filtered.stations.map(
-                                    (st): JSX.Element => (
-                                        <StationCard
-                                            key={st.publicId}
-                                            station={st}
-                                        />
-                                    )
-                                )}
+                                {filtered.stations.map((st): JSX.Element => (
+                                    <StationCard
+                                        key={st.publicId}
+                                        station={st}
+                                    />
+                                ))}
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {filtered.stations.map(
-                                    (st): JSX.Element => (
-                                        <StationCard
-                                            key={st.publicId}
-                                            station={st}
-                                        />
-                                    )
-                                )}
+                                {filtered.stations.map((st): JSX.Element => (
+                                    <StationCard
+                                        key={st.publicId}
+                                        station={st}
+                                    />
+                                ))}
                             </div>
                         )}
                     </>

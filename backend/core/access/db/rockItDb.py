@@ -141,6 +141,7 @@ class RockItDB:
     @time_it
     async def async_init(self):
         await self.create_schemas()
+        await self.create_extensions()
 
         # Create tables with run_sync (single call — all bases share the same metadata)
         async with self.engine.begin() as conn:
@@ -177,6 +178,14 @@ class RockItDB:
         async with self.engine.begin() as conn:
             for schema in schemas:
                 await conn.execute(text(f"DROP SCHEMA IF EXISTS {schema.name} CASCADE"))
+            await conn.commit()
+
+    async def create_extensions(self):
+        """Enable PostgreSQL extensions required by ORM-defined indexes (e.g.
+        gin_trgm_ops for trigram similarity search)."""
+
+        async with self.engine.begin() as conn:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
             await conn.commit()
 
     async def after_all_providers_tables_init(self):
@@ -355,6 +364,8 @@ class RockItDB:
         logger.info("Creating schemas...")
         await self.create_schemas()
         logger.info("All schemas created")
+
+        await self.create_extensions()
 
         async with self.engine.begin() as conn:
             await conn.run_sync(CoreBase.metadata.create_all)

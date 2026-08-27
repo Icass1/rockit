@@ -21,6 +21,7 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import { useLibrarySelection } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
@@ -83,6 +84,17 @@ function LibraryCard({
     const [cardImgSrc, setCardImgSrc] = useState(
         imageUrl || "/radio-placeholder.png"
     );
+    const { selectionMode, isSelected, toggleSelection } =
+        useLibrarySelection();
+
+    const handleSelectionClick = (
+        event: React.MouseEvent<HTMLElement>
+    ): void => {
+        if (!selectionMode) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if ("publicId" in media) toggleSelection(media);
+    };
 
     const imageBlock = (
         <div
@@ -157,23 +169,53 @@ function LibraryCard({
         </>
     );
 
+    const selectionOverlay = selectionMode ? (
+        <div
+            role="checkbox"
+            aria-checked={"publicId" in media && isSelected(media.publicId)}
+            tabIndex={0}
+            onClick={handleSelectionClick}
+            className={`absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-black/60 ${
+                "publicId" in media && isSelected(media.publicId)
+                    ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
+                    : "border-white/80"
+            }`}
+        >
+            {"publicId" in media && isSelected(media.publicId) && (
+                <span className="text-xs font-bold text-white">✓</span>
+            )}
+        </div>
+    ) : null;
+
     return (
         <CardShell>
             <MediaContextMenu media={media} location={location}>
                 {href ? (
                     <>
-                        <Link href={href} className={linkClass}>
+                        <Link
+                            href={selectionMode ? "#" : href}
+                            className={linkClass}
+                            onClick={handleSelectionClick}
+                        >
                             {imageBlock}
                             {textBlock}
+                            {selectionOverlay}
                         </Link>
                         {children}
                     </>
                 ) : (
                     <div
                         className={`${linkClass} cursor-pointer`}
-                        onClick={onClick}
+                        onClick={(event): void => {
+                            if (selectionMode) {
+                                handleSelectionClick(event);
+                            } else {
+                                onClick?.(event);
+                            }
+                        }}
                     >
                         {inner}
+                        {selectionOverlay}
                         {children}
                     </div>
                 )}

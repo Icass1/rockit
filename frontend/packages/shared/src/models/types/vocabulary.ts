@@ -405,4 +405,7 @@ export interface Vocabulary {
     MEDIA_NOT_DOWNLOADED: string;
     ERROR_REMOVING_MEDIA_FROM_PLAYLIST: string;
     DELETE_MEDIA_FILE: string;
+    LIBRARY_SELECTED: string;
+    LIBRARY_SELECT_ITEMS: string;
+    LIBRARY_ZIP: string;
 }

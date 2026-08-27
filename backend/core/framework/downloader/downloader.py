@@ -40,7 +40,7 @@ logger: Logger = getLogger(__name__)
 
 class Downloader:
     @staticmethod
-    async def _expand_container_async(
+    async def expand_container_async(
         session: AsyncSession,
         public_id: str,
         user_id: int,
@@ -197,7 +197,7 @@ class Downloader:
                     session=session, public_id=public_id, group=group, user_id=user_id
                 )
             else:
-                a_result_expanded = await Downloader._expand_container_async(
+                a_result_expanded = await Downloader.expand_container_async(
                     session=session, public_id=public_id, user_id=user_id
                 )
                 if a_result_expanded.is_ok():

@@ -143,6 +143,19 @@ const ACTION_REGISTRY: ActionDef[] = [
         condition: (m) => !isSearchResult(m),
     },
     {
+        id: EMediaContextAction.DownloadZip,
+        type: "action",
+        icon: HardDriveDownload,
+        labelKey: "DOWNLOAD_ZIP",
+        mediaTypes: [
+            EMediaType.Song,
+            EMediaType.Video,
+            EMediaType.Album,
+            EMediaType.Playlist,
+        ],
+        condition: (m) => !isSearchResult(m),
+    },
+    {
         id: EMediaContextAction.DownloadList,
         type: "action",
         icon: Download,
@@ -319,6 +332,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         "---",
         EMediaContextAction.SaveOffline,
         EMediaContextAction.Download,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.DownloadSearchResultAndPlay,
         EMediaContextAction.DownloadSearchResult,
         EMediaContextAction.DownloadSearchResultAndAddToLibrary,
@@ -343,6 +357,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.RemoveFromLibrary,
         "---",
         EMediaContextAction.Download,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.DownloadSearchResultAndPlay,
         EMediaContextAction.DownloadSearchResult,
         EMediaContextAction.DownloadSearchResultAndAddToLibrary,
@@ -380,6 +395,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddToQueueBottom,
         "---",
         EMediaContextAction.DownloadList,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Playlist]: [
@@ -394,6 +410,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddQueueRandom,
         EMediaContextAction.AddToQueueBottom,
         EMediaContextAction.DownloadList,
+        EMediaContextAction.DownloadZip,
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Artist]: [

@@ -4,6 +4,7 @@ import { isSearchResult } from "@rockit/shared";
 import { HardDriveDownload, Play, RefreshCw } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { downloadMediaAsZip } from "@/lib/services/downloadZip";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
 
@@ -110,10 +111,11 @@ export function DownloadSearchResultAndAddToLibraryAction({
 }
 
 export function DownloadZipAction({
+    media,
     vocabulary,
 }: ActionComponentProps): JSX.Element {
     const downloadZip = (): void => {
-        console.warn("TODO: Download ZIP");
+        void downloadMediaAsZip([media], media.name);
     };
 
     return (

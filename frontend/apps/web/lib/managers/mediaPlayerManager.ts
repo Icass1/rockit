@@ -138,9 +138,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             const offlineUrl = await resolveOfflineAudioUrl(media.publicId);
             if (offlineUrl) return offlineUrl;
 
-            const networkUri = getMediaAudioUrl(media);
-            this._warmNetworkAudioCache(networkUri);
-            return networkUri;
+            // Do NOT warm the network cache here: the full-file fetch would
+            // compete with the streaming <audio> element for bandwidth and
+            // cause underruns (audible stutter) on weak connections. The
+            // warm-up is deferred until playback has started (see
+            // _onPlayingStarted/_scheduleCurrentWarmUp).
+            return getMediaAudioUrl(media);
         }
 
         return kind === "video"
@@ -255,6 +258,26 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     protected override _onPlayingStarted(): void {
         if (typeof document !== "undefined" && document.hidden) return;
         void this.preloadNextTrack();
+        this._scheduleCurrentWarmUp();
+    }
+
+    /**
+     * Defers the service-worker audio warm-up until after the current song is
+     * actually playing. Warming the full file while the <audio> element is
+     * still streaming competes for the same bandwidth and causes audible
+     * underruns on weak connections, so we let the stream start first and only
+     * cache the rest once playback is stable.
+     */
+    private _scheduleCurrentWarmUp(): void {
+        const current = getRockIt().queueManager.currentMedia;
+        if (!current || !isSong(current)) return;
+
+        const uri = getMediaAudioUrl(current);
+        if (!uri || _warmedAudioUrls.has(uri)) return;
+
+        window.setTimeout((): void => {
+            this._warmNetworkAudioCache(uri);
+        }, 1500);
     }
 
     async preloadNextTrack(): Promise<void> {

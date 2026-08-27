@@ -3,6 +3,7 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isSong, isVideo } from "@rockit/shared";
 import useWindowSize from "@/hooks/useWindowSize";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
@@ -113,14 +114,22 @@ export default function PlayerUIContent(): JSX.Element {
     const isLandscape = aspectRatio > 1.5;
     const isPortrait = aspectRatio < 1 / 1.5;
 
-    const showLyrics = !($currentMedia && isVideo($currentMedia));
+    const isVideoMedia = $currentMedia ? isVideo($currentMedia) : false;
+
+    const sideCol = "minmax(0,clamp(280px,22vw,26rem))";
+
+    // The lyrics column keeps a constant track width so the center (cover)
+    // never shifts; only the inner content slides. The queue column is 1fr.
+    const gridStyle = isLandscape
+        ? {
+              gridTemplateColumns: isVideoMedia
+                  ? `0fr minmax(0,1fr) ${sideCol}`
+                  : `${sideCol} minmax(0,1fr) minmax(0,1fr)`,
+          }
+        : undefined;
 
     const gridClass = isLandscape
-        ? `transition-all ease-in-out ${
-              showLyrics
-                  ? "grid-cols-[2fr_4fr_2fr] duration-500"
-                  : "grid-cols-[0fr_6fr_2fr] duration-0"
-          }`
+        ? "transition-all ease-in-out duration-500"
         : isPortrait
           ? "grid-rows-[1fr_1fr]"
           : "grid-cols-[3fr_1fr]";
@@ -130,7 +139,7 @@ export default function PlayerUIContent(): JSX.Element {
     // In landscape mode, CSS `order` is used to visually place queue before
     // main and lyrics after, without changing DOM order.
     return (
-        <div ref={divRef} className={defaultStyles + " " + gridClass}>
+        <div ref={divRef} style={gridStyle} className={defaultStyles + " " + gridClass}>
             <div className="absolute inset-0 overflow-hidden">
                 <Image
                     alt={$currentMedia.name}
@@ -154,15 +163,10 @@ export default function PlayerUIContent(): JSX.Element {
 
             {isLandscape ? (
                 <>
-                    <div
-                        className={`z-10 order-1 overflow-hidden transition-all ease-in-out ${
-                            showLyrics
-                                ? "max-w-full translate-x-0 opacity-100 duration-500"
-                                : "max-w-0 -translate-x-8 opacity-0 duration-0"
-                        }`}
-                    >
-                        <PlayerUILyrics />
-                    </div>
+                    <LyricsPanel
+                        key={$currentMedia?.publicId}
+                        isVideo={isVideoMedia}
+                    />
                     <div className="z-10 order-3 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
                         <PlayerUIQueue visible={true} />
                     </div>
@@ -218,3 +222,43 @@ export default function PlayerUIContent(): JSX.Element {
         </div>
     );
 }
+
+function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
+    const [lyricsOpen, setLyricsOpen] = useState<boolean>(true);
+
+    return (
+        <div className="relative z-10 order-1 h-full max-h-full min-h-0 min-w-0 overflow-hidden">
+            {!isVideo && (
+                <>
+                    <button
+                        type="button"
+                        onClick={(): void => setLyricsOpen((p) => !p)}
+                        className={`ignore-click-player-ui absolute top-3 z-30 flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white ${
+                            lyricsOpen ? "left-3" : "right-1/2 translate-x-1/2"
+                        }`}
+                        title={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
+                        aria-label={
+                            lyricsOpen ? "Hide lyrics" : "Show lyrics"
+                        }
+                    >
+                        {lyricsOpen ? (
+                            <ChevronLeft className="pointer-events-none h-5 w-5" />
+                        ) : (
+                            <ChevronRight className="pointer-events-none h-5 w-5" />
+                        )}
+                    </button>
+                    <div
+                        className={`h-full min-h-0 overflow-hidden transition-all ease-in-out duration-500 ${
+                            lyricsOpen
+                                ? "max-w-full translate-x-0 opacity-100 pointer-events-auto"
+                                : "max-w-0 -translate-x-full opacity-0 pointer-events-none"
+                        }`}
+                    >
+                        <PlayerUILyrics />
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+

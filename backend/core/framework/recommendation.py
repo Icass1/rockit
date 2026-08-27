@@ -19,7 +19,10 @@ from backend.core.framework.models.media import MediaModel
 from backend.core.framework.lastfmClient import LastfmClient, SimilarTrack
 
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
-from backend.core.responses.searchResponse import BaseSearchResultsItem
+from backend.core.responses.searchResponse import (
+    ArtistSearchResultsItem,
+    BaseSearchResultsItem,
+)
 
 logger = getLogger(__name__)
 
@@ -40,6 +43,9 @@ DISCOVER_CANDIDATE_POOL = 15
 # the rest remain visible and downloadable on demand. Set to 0 to disable
 # auto-downloading entirely.
 AUTO_DOWNLOAD_LIMIT = 3
+# Marks a suggestion that no provider could resolve to a fetchable URL. The
+# frontend shows these greyed out and offers no download action.
+LASTFM_PROVIDER_NAME = "Last.fm"
 
 # Strong references to in-flight auto-download tasks. asyncio only keeps weak
 # references, so without this a task can be garbage collected mid-download.
@@ -120,7 +126,10 @@ class Recommendation:
 
         missing_public_ids: List[str] = [s.publicId for s in songs if not s.downloaded]
         remaining: int = max(0, AUTO_DOWNLOAD_LIMIT - len(missing_public_ids))
-        urls: List[str] = [d.providerUrl for d in discover[:remaining]]
+        # Suggestions with no providerUrl could not be resolved to anything
+        # fetchable — they are display-only.
+        fetchable: List[str] = [d.providerUrl for d in discover if d.providerUrl]
+        urls: List[str] = fetchable[:remaining]
         missing_public_ids = missing_public_ids[:AUTO_DOWNLOAD_LIMIT]
 
         if not missing_public_ids and not urls:
@@ -186,22 +195,55 @@ class Recommendation:
 
         discover: List[BaseSearchResultsItem] = []
         seen_names: set[str] = {seed_song.name.strip().lower()}
-        for result in search_results:
+
+        for track, result in zip(similar_tracks, search_results):
             if len(discover) >= limit:
                 break
-            if isinstance(result, BaseException):
-                logger.warning(f"Discover search failed: {result}")
-                continue
-            if result.is_not_ok():
+
+            dedup_key = track["track_name"].strip().lower()
+            if dedup_key in seen_names:
                 continue
 
-            for item in result.result().results:
-                dedup_key = item.name.strip().lower()
-                if item.type != "song" or item.downloaded or dedup_key in seen_names:
-                    continue
-                seen_names.add(dedup_key)
-                discover.append(item)
-                break
+            if isinstance(result, BaseException):
+                logger.warning(f"Discover search failed: {result}")
+                resolved = None
+            elif result.is_not_ok():
+                resolved = None
+            else:
+                resolved = next(
+                    (
+                        item
+                        for item in result.result().results
+                        if item.type == "song"
+                        and not item.downloaded
+                        and item.name.strip().lower() not in seen_names
+                    ),
+                    None,
+                )
+
+            seen_names.add(dedup_key)
+
+            if resolved is not None:
+                seen_names.add(resolved.name.strip().lower())
+                discover.append(resolved)
+                continue
+
+            # No provider match: still surface the suggestion so the user can
+            # see it, with an empty providerUrl marking it as not fetchable.
+            discover.append(
+                BaseSearchResultsItem(
+                    type="song",
+                    name=track["track_name"],
+                    providerUrl="",
+                    imageUrl="",
+                    artists=[
+                        ArtistSearchResultsItem(name=track["artist_name"], url="")
+                    ],
+                    provider=LASTFM_PROVIDER_NAME,
+                    downloaded=False,
+                    url=None,
+                )
+            )
 
         return discover
 

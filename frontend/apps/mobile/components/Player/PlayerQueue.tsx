@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
+import { useStore } from "@nanostores/react";
 import { EQueueType, type TQueueMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import QueueItem from "@/components/Player/QueueItem";
 
 /** Fixed height of a QueueItem row (46px image + 2×10 vertical padding). */
@@ -23,6 +25,9 @@ export default function PlayerQueue() {
         queueType,
         originalQueue,
     } = usePlayer();
+
+    const $autoplay = useStore(rockIt.queueManager.autoplayAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const listRef = useRef<FlatList<TQueueMedia>>(null);
     const currentIndex =
@@ -93,6 +98,30 @@ export default function PlayerQueue() {
                 )}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
+                ListFooterComponent={
+                    $autoplay.length > 0 ? (
+                        <View>
+                            <Text style={styles.autoplayHeader}>
+                                {$vocabulary.AUTOPLAY_ON}
+                            </Text>
+                            {$autoplay.map((media) => (
+                                <QueueItem
+                                    key={media.publicId}
+                                    media={media}
+                                    // Not part of the queue yet: it has no
+                                    // index to remove, and tapping queues it
+                                    // next rather than jumping to it.
+                                    index={-1}
+                                    isActive={false}
+                                    onDelete={(): void => undefined}
+                                    onPlay={(m: TQueueMedia): void =>
+                                        rockIt.queueManager.addMediaNext(m)
+                                    }
+                                />
+                            ))}
+                        </View>
+                    ) : null
+                }
             />
         </View>
     );
@@ -122,6 +151,17 @@ const styles = StyleSheet.create({
     },
     list: {
         paddingBottom: 40,
+    },
+    autoplayHeader: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: COLORS.gray400,
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 8,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: "rgba(255,255,255,0.1)",
+        marginTop: 8,
     },
     empty: {
         flex: 1,

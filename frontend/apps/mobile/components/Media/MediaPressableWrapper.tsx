@@ -27,6 +27,7 @@ import {
     Pencil,
     Play,
     PlusCircle,
+    Radio,
     Shuffle,
 } from "lucide-react-native";
 import { Pressable } from "react-native";
@@ -68,6 +69,48 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     const handlePlay = useHandlePlay();
     const [editMetadataMedia, setEditMetadataMedia] = useState<TMedia | null>(
         null
+    );
+
+    /** Build a "song radio" playlist from Rockit's own /related endpoint and
+     * open it, mirroring the web context-menu action. Only songs already on
+     * the server are added — the rest have no audio to play. */
+    const buildSimilarSongsPlaylist = useCallback(
+        async (song: TMedia): Promise<void> => {
+            const relatedRes = await Http.getRelatedSongs(song.publicId, 20);
+            const playable = relatedRes.isOk()
+                ? relatedRes.result.songs.filter((s): boolean => s.downloaded)
+                : [];
+
+            if (playable.length === 0) {
+                toasterManager.notifyWarn(vocabulary.NO_SIMILAR_SONGS_FOUND);
+                return;
+            }
+
+            const playlistRes = await Http.createPlaylistAsync({
+                name: `${vocabulary.SIMILAR_TO_SONG_PLAYLIST_PREFIX} ${song.name}`,
+                description: null,
+                isPublic: true,
+            });
+            if (!playlistRes.isOk()) {
+                toasterManager.notifyError(vocabulary.ERROR_CREATING_PLAYLIST);
+                return;
+            }
+
+            const playlistPublicId = playlistRes.result.publicId;
+            await Promise.all(
+                playable.map((s) =>
+                    Http.addMediaToPlaylistAsync(playlistPublicId, {
+                        mediaPublicId: s.publicId,
+                    })
+                )
+            );
+
+            toasterManager.notifySuccess(
+                vocabulary.SIMILAR_SONGS_PLAYLIST_CREATED
+            );
+            router.push(`/playlist/${playlistPublicId}`);
+        },
+        [vocabulary, router]
     );
 
     const buildMainMenu = useCallback(
@@ -118,6 +161,17 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                         console.log("Playing media from context menu", media);
                         handlePlay(media, getAllPlayableMedia(allMedia));
                         hide();
+                    },
+                });
+            }
+
+            if (!isSearchResult(media) && isSong(media)) {
+                options.push({
+                    label: vocabulary.SIMILAR_TO_SONG,
+                    icon: Radio,
+                    onPress: () => {
+                        hide();
+                        void buildSimilarSongsPlaylist(media);
                     },
                 });
             }

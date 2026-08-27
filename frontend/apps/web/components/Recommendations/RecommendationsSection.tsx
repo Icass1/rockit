@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { BaseSearchResultsItem, BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
+import { Music } from "lucide-react";
 import { isDownloadable, isQueueable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -66,15 +67,24 @@ function KnownSongCard({
 function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
+    const card = (
+        <RecommendationCard
+            name={item.name}
+            imageUrl={item.imageUrl}
+            artistNames={item.artists.map((a): string => a.name)}
+            dimmed
+            hint={item.providerUrl ? $vocabulary.CLICK_TO_DOWNLOAD : undefined}
+        />
+    );
+
+    // No providerUrl means no provider could resolve this suggestion, so
+    // there is nothing to download — show it, but without a menu that would
+    // offer actions that cannot work.
+    if (!item.providerUrl) return card;
+
     return (
         <MediaContextMenu media={item} location={EMediaContextLocation.SEARCH}>
-            <RecommendationCard
-                name={item.name}
-                imageUrl={item.imageUrl}
-                artistNames={item.artists.map((a): string => a.name)}
-                dimmed
-                hint={$vocabulary.CLICK_TO_DOWNLOAD}
-            />
+            {card}
         </MediaContextMenu>
     );
 }
@@ -99,13 +109,23 @@ function RecommendationCard({
             className={`group relative w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${dimmed ? "opacity-50" : ""}`}
             onClick={onClick}
         >
-            <Image
-                width={350}
-                height={350}
-                className="aspect-square w-full rounded-lg object-cover select-none"
-                src={imageUrl}
-                alt={`Cover of ${name}`}
-            />
+            {imageUrl ? (
+                <Image
+                    width={350}
+                    height={350}
+                    className="aspect-square w-full rounded-lg object-cover select-none"
+                    src={imageUrl}
+                    alt={`Cover of ${name}`}
+                />
+            ) : (
+                // Suggestions no provider could resolve have no artwork.
+                <div
+                    className="flex aspect-square w-full items-center justify-center rounded-lg bg-neutral-800 select-none"
+                    aria-hidden="true"
+                >
+                    <Music className="h-8 w-8 text-neutral-600" />
+                </div>
+            )}
             {hint && (
                 <p className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-md border border-white bg-black px-2 py-1 text-center text-sm font-semibold text-white group-hover:block">
                     {hint}
@@ -164,7 +184,10 @@ export default function RecommendationsSection({
                         {discover.map(
                             (item): JSX.Element => (
                                 <DiscoverCard
-                                    key={item.providerUrl}
+                                    key={
+                                        item.providerUrl ||
+                                        `${item.artists[0]?.name ?? ""}-${item.name}`
+                                    }
                                     item={item}
                                 />
                             )

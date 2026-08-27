@@ -9,6 +9,7 @@ import {
 } from "@rockit/shared";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function PlaylistPage() {
@@ -67,6 +68,8 @@ export default function PlaylistPage() {
         expandedByMediaId[m.item.publicId] = m.expanded;
     }
 
+    const seedSongPublicId = playlist.medias[0]?.item.publicId;
+
     return (
         <RenderList
             title={playlist.name}
@@ -76,6 +79,11 @@ export default function PlaylistPage() {
             showMediaImage={true}
             listPublicId={publicId}
             expandedByMediaId={expandedByMediaId}
+            footer={
+                seedSongPublicId ? (
+                    <RecommendationsList seedSongPublicId={seedSongPublicId} />
+                ) : undefined
+            }
         />
     );
 }

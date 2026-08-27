@@ -4,6 +4,7 @@ import { getAlbumAsync } from "@/services/mediaService";
 import { BaseAlbumWithSongsResponse } from "@/shared/dto";
 import { useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function AlbumPage() {
@@ -33,6 +34,8 @@ export default function AlbumPage() {
         );
     }
 
+    const seedSongPublicId = album.songs[0]?.publicId;
+
     return (
         <RenderList
             title={album.name}
@@ -43,6 +46,11 @@ export default function AlbumPage() {
             substractArtists={album.artists.map((a) => a.name)}
             showMediaIndex={true}
             showMediaImage={false}
+            footer={
+                seedSongPublicId ? (
+                    <RecommendationsList seedSongPublicId={seedSongPublicId} />
+                ) : undefined
+            }
         />
     );
 }

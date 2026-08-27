@@ -10,6 +10,7 @@ import { type QueueMediaItem } from "@/models/interfaces/queue";
 import {
     isAlbum,
     isAlbumWithSongs,
+    isDownloadable,
     isPlaylist,
     isQueueable,
     isStation,
@@ -785,9 +786,9 @@ export class BaseQueueManager {
      * Fetch songs recommended from whatever is playing now, so the UI can
      * show what comes after the queue before it actually ends.
      *
-     * Only already-downloaded songs are kept: the rest have no audio file
-     * on the server and would play nothing. Safe to call repeatedly — it
-     * no-ops while the seed song hasn't changed.
+     * Songs with no audio file yet are kept so their metadata still shows in
+     * the queue (greyed out); only playback filters them out. Safe to call
+     * repeatedly — it no-ops while the seed song hasn't changed.
      */
     async loadAutoplaySuggestionsAsync(): Promise<void> {
         const seed = this.currentMedia;
@@ -811,8 +812,7 @@ export class BaseQueueManager {
         );
         this._autoplayAtom.set(
             response.result.songs.filter(
-                (song): boolean =>
-                    song.downloaded && !queuedPublicIds.has(song.publicId)
+                (song): boolean => !queuedPublicIds.has(song.publicId)
             )
         );
     }
@@ -827,7 +827,11 @@ export class BaseQueueManager {
             await this.loadAutoplaySuggestionsAsync();
         }
 
-        const suggestions = this.autoplay;
+        // Only songs with an audio file on the server can actually play; the
+        // rest are display-only in the queue.
+        const suggestions = this.autoplay.filter(
+            (media): boolean => !isDownloadable(media) || media.downloaded
+        );
         if (suggestions.length === 0) return false;
 
         const listPublicId = this.currentList ?? "";

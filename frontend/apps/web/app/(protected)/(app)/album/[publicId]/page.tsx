@@ -6,6 +6,7 @@ import {
     EMediaType,
 } from "@rockit/shared";
 import { getAlbumAsync } from "@/lib/services/mediaService";
+import SongSeededRecommendations from "@/components/Recommendations/SongSeededRecommendations";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getAlbum = cache(
@@ -55,17 +56,26 @@ export default async function AlbumPage({
         (m): BaseSongWithoutAlbumResponse => m
     );
 
+    const seedSongPublicId = albumResponse.songs[0]?.publicId;
+
     return (
-        <RenderListClient
-            publicId={publicId}
-            type={EMediaType.Album}
-            title={albumResponse.name}
-            artists={albumResponse.artists}
-            media={albumMedia}
-            listMedia={albumResponse}
-            image={albumResponse.imageUrl}
-            showMediaImage={false}
-            showMediaIndex
-        />
+        <>
+            <RenderListClient
+                publicId={publicId}
+                type={EMediaType.Album}
+                title={albumResponse.name}
+                artists={albumResponse.artists}
+                media={albumMedia}
+                listMedia={albumResponse}
+                image={albumResponse.imageUrl}
+                showMediaImage={false}
+                showMediaIndex
+            />
+            {seedSongPublicId && (
+                <SongSeededRecommendations
+                    seedSongPublicId={seedSongPublicId}
+                />
+            )}
+        </>
     );
 }

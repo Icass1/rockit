@@ -14,6 +14,7 @@ import { useHomeData } from "@/hooks/useHomeData";
 import { usePlayer } from "@/lib/PlayerContext";
 import { useVocabulary } from "@/lib/vocabulary";
 import FeaturedCarousel from "@/components/Home/FeaturedCarousel";
+import ForYouRow from "@/components/Home/ForYouRow";
 import HomeHeader from "@/components/Home/HomeHeader";
 import HorizontalSongRow from "@/components/Home/HorizontalSongRow";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
@@ -183,6 +184,8 @@ export default function HomeScreen() {
                         />
                     </Animated.View>
                 )}
+
+                <ForYouRow onSongPress={handleSongPress} />
 
                 <View style={{ height: 120 }} />
             </ScrollView>

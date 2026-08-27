@@ -1,29 +1,24 @@
 import asyncio
-from typing import List, NamedTuple, Set
+from typing import NamedTuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.utils.logger import getLogger
-
-from backend.core.aResult import AResult, AResultCode
-
-from backend.core.access.statsAccess import StatsAccess
-from backend.core.access.recommendationAccess import RecommendationAccess
-from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
 from backend.core.access.lastfmCacheAccess import LastfmCacheAccess, build_cache_key
-
+from backend.core.access.recommendationAccess import RecommendationAccess
+from backend.core.access.statsAccess import StatsAccess
+from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
+from backend.core.aResult import AResult, AResultCode
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
-
+from backend.core.framework.lastfmClient import LastfmClient, SimilarTrack
 from backend.core.framework.media.media import Media
 from backend.core.framework.models.media import MediaModel
-from backend.core.framework.lastfmClient import LastfmClient, SimilarTrack
-
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import (
     ArtistSearchResultsItem,
     BaseSearchResultsItem,
 )
+from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 
@@ -50,23 +45,23 @@ LASTFM_PROVIDER_NAME = "Last.fm"
 
 # Strong references to in-flight auto-download tasks. asyncio only keeps weak
 # references, so without this a task can be garbage collected mid-download.
-_BACKGROUND_TASKS: Set["asyncio.Task[None]"] = set()
+_BACKGROUND_TASKS: set["asyncio.Task[None]"] = set()
 
 
 class RecommendationResult(NamedTuple):
-    songs: List[BaseSongWithAlbumResponse]
+    songs: list[BaseSongWithAlbumResponse]
     # Similar songs this Rockit instance doesn't have downloaded yet. Tap
     # providerUrl through /downloader/start-from-url to fetch one. Always
     # empty unless LASTFM_API_KEY is configured.
-    discover: List[BaseSearchResultsItem]
+    discover: list[BaseSearchResultsItem]
 
 
 class Recommendation:
     @staticmethod
     async def _auto_download_async(
         user_id: int,
-        media_public_ids: List[str],
-        urls: List[str],
+        media_public_ids: list[str],
+        urls: list[str],
     ) -> None:
         """Queue server-side downloads for recommended songs that have no
         audio file yet.
@@ -116,8 +111,8 @@ class Recommendation:
     @staticmethod
     def _schedule_auto_downloads(
         user_id: int,
-        songs: List[BaseSongWithAlbumResponse],
-        discover: List[BaseSearchResultsItem],
+        songs: list[BaseSongWithAlbumResponse],
+        discover: list[BaseSearchResultsItem],
     ) -> None:
         """Fire-and-forget the download of recommendations lacking audio,
         newest-first, capped at AUTO_DOWNLOAD_LIMIT items in total."""
@@ -125,12 +120,12 @@ class Recommendation:
         if AUTO_DOWNLOAD_LIMIT <= 0:
             return
 
-        missing_public_ids: List[str] = [s.publicId for s in songs if not s.downloaded]
+        missing_public_ids: list[str] = [s.publicId for s in songs if not s.downloaded]
         remaining: int = max(0, AUTO_DOWNLOAD_LIMIT - len(missing_public_ids))
         # Suggestions with no providerUrl could not be resolved to anything
         # fetchable — they are display-only.
-        fetchable: List[str] = [d.providerUrl for d in discover if d.providerUrl]
-        urls: List[str] = fetchable[:remaining]
+        fetchable: list[str] = [d.providerUrl for d in discover if d.providerUrl]
+        urls: list[str] = fetchable[:remaining]
         missing_public_ids = missing_public_ids[:AUTO_DOWNLOAD_LIMIT]
 
         if not missing_public_ids and not urls:
@@ -174,7 +169,7 @@ class Recommendation:
         seed_name: str,
         seed_artist_name: str,
         limit: int = DISCOVER_LIMIT,
-    ) -> List[BaseSearchResultsItem]:
+    ) -> list[BaseSearchResultsItem]:
         """Songs similar to the seed track, per Last.fm, that this Rockit
         instance doesn't have downloaded yet — resolved to a real, addable
         URL via the existing multi-provider search.
@@ -183,15 +178,12 @@ class Recommendation:
         video can seed suggestions too. Returns [] if LASTFM_API_KEY isn't
         set, the seed has no artist, or Last.fm has nothing."""
 
-        if not LastfmClient.is_configured() or not seed_artist_name:
-            return []
-
         cache_key = build_cache_key(seed_artist_name, seed_name)
 
         a_cached = await LastfmCacheAccess.get_cached_similar_tracks_async(
             session=session, cache_key=cache_key
         )
-        similar_tracks: List[SimilarTrack] | None = (
+        similar_tracks: list[SimilarTrack] | None = (
             a_cached.result() if a_cached.is_ok() else None
         )
 
@@ -219,7 +211,7 @@ class Recommendation:
         ]
         search_results = await asyncio.gather(*search_tasks, return_exceptions=True)
 
-        discover: List[BaseSearchResultsItem] = []
+        discover: list[BaseSearchResultsItem] = []
         seen_names: set[str] = {seed_name.strip().lower()}
 
         for track, result in zip(similar_tracks, search_results):
@@ -297,7 +289,7 @@ class Recommendation:
 
         seed_id: int = a_media.result().id
 
-        a_similar: AResult[List[str]] = (
+        a_similar: AResult[list[str]] = (
             await RecommendationAccess.get_similar_song_ids_async(
                 session=session,
                 seed_media_ids=[seed_id],
@@ -311,7 +303,7 @@ class Recommendation:
             )
             return AResult(code=a_similar.code(), message=a_similar.message())
 
-        songs: List[BaseSongWithAlbumResponse] = (
+        songs: list[BaseSongWithAlbumResponse] = (
             await Media.resolve_songs_from_public_ids_async(
                 session=session, public_ids=a_similar.result()
             )
@@ -320,7 +312,7 @@ class Recommendation:
         seed_name, seed_artist = await Recommendation._resolve_seed_track_async(
             session=session, public_id=public_id
         )
-        discover: List[BaseSearchResultsItem] = (
+        discover: list[BaseSearchResultsItem] = (
             await Recommendation._get_discover_songs_async(
                 session=session,
                 seed_name=seed_name,
@@ -354,21 +346,21 @@ class Recommendation:
         recent song (kept to one seed to bound the extra latency).
         """
 
-        a_recent: AResult[List[str]] = (
+        a_recent: AResult[list[str]] = (
             await StatsAccess.get_recently_played_songs_async(
                 session=session, user_id=user_id, limit=PROFILE_SEED_LIMIT
             )
         )
-        recent_ids: List[str] = a_recent.result() if a_recent.is_ok() else []
+        recent_ids: list[str] = a_recent.result() if a_recent.is_ok() else []
 
-        a_liked: AResult[List[str]] = (
+        a_liked: AResult[list[str]] = (
             await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
                 session=session, user_id=user_id
             )
         )
-        liked_ids: List[str] = a_liked.result() if a_liked.is_ok() else []
+        liked_ids: list[str] = a_liked.result() if a_liked.is_ok() else []
 
-        seed_public_ids: List[str] = list(dict.fromkeys(recent_ids + liked_ids))
+        seed_public_ids: list[str] = list(dict.fromkeys(recent_ids + liked_ids))
         if not seed_public_ids:
             return AResult(
                 code=AResultCode.OK,
@@ -376,7 +368,7 @@ class Recommendation:
                 result=RecommendationResult(songs=[], discover=[]),
             )
 
-        a_seed_medias: AResult[List[MediaModel]] = (
+        a_seed_medias: AResult[list[MediaModel]] = (
             await Media.get_medias_from_public_ids_async(
                 session=session,
                 public_ids=seed_public_ids,
@@ -389,34 +381,34 @@ class Recommendation:
             )
             return AResult(code=a_seed_medias.code(), message=a_seed_medias.message())
 
-        seed_ids: List[int] = [m.id for m in a_seed_medias.result()]
+        seed_ids: list[int] = [m.id for m in a_seed_medias.result()]
 
         # Exclude everything the user has ever listened to (not just the
         # seed set) so this stays about new-to-them discovery.
-        a_all_played: AResult[List[str]] = (
+        a_all_played: AResult[list[str]] = (
             await StatsAccess.get_recently_played_songs_async(
                 session=session, user_id=user_id, limit=PROFILE_EXCLUDE_LIMIT
             )
         )
-        played_ids: List[str] = a_all_played.result() if a_all_played.is_ok() else []
-        exclude_public_ids: List[str] = list(
+        played_ids: list[str] = a_all_played.result() if a_all_played.is_ok() else []
+        exclude_public_ids: list[str] = list(
             dict.fromkeys(played_ids + seed_public_ids)
         )
 
-        a_exclude_medias: AResult[List[MediaModel]] = (
+        a_exclude_medias: AResult[list[MediaModel]] = (
             await Media.get_medias_from_public_ids_async(
                 session=session,
                 public_ids=exclude_public_ids,
                 media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
             )
         )
-        exclude_ids: List[int] = (
+        exclude_ids: list[int] = (
             [m.id for m in a_exclude_medias.result()]
             if a_exclude_medias.is_ok()
             else seed_ids
         )
 
-        a_similar: AResult[List[str]] = (
+        a_similar: AResult[list[str]] = (
             await RecommendationAccess.get_similar_song_ids_async(
                 session=session,
                 seed_media_ids=seed_ids,
@@ -430,7 +422,7 @@ class Recommendation:
             )
             return AResult(code=a_similar.code(), message=a_similar.message())
 
-        songs: List[BaseSongWithAlbumResponse] = (
+        songs: list[BaseSongWithAlbumResponse] = (
             await Media.resolve_songs_from_public_ids_async(
                 session=session, public_ids=a_similar.result()
             )
@@ -444,7 +436,7 @@ class Recommendation:
             if top_seed_public_id
             else ("", "")
         )
-        discover: List[BaseSearchResultsItem] = (
+        discover: list[BaseSearchResultsItem] = (
             await Recommendation._get_discover_songs_async(
                 session=session,
                 seed_name=seed_name,
@@ -485,7 +477,7 @@ class Recommendation:
             return AResult(code=a_playlist.code(), message=a_playlist.message())
 
         # Playlists can hold videos alongside songs; both are valid seeds.
-        seed_public_ids: List[str] = [
+        seed_public_ids: list[str] = [
             item.item.publicId
             for item in a_playlist.result().medias
             if isinstance(item.item, (BaseSongWithAlbumResponse, BaseVideoResponse))
@@ -497,7 +489,7 @@ class Recommendation:
                 result=RecommendationResult(songs=[], discover=[]),
             )
 
-        a_seed_medias: AResult[List[MediaModel]] = (
+        a_seed_medias: AResult[list[MediaModel]] = (
             await Media.get_medias_from_public_ids_async(
                 session=session,
                 public_ids=seed_public_ids,
@@ -511,9 +503,9 @@ class Recommendation:
             )
             return AResult(code=a_seed_medias.code(), message=a_seed_medias.message())
 
-        seed_ids: List[int] = [m.id for m in a_seed_medias.result()]
+        seed_ids: list[int] = [m.id for m in a_seed_medias.result()]
 
-        a_similar: AResult[List[str]] = (
+        a_similar: AResult[list[str]] = (
             await RecommendationAccess.get_similar_song_ids_async(
                 session=session,
                 seed_media_ids=seed_ids,
@@ -528,7 +520,7 @@ class Recommendation:
             )
             return AResult(code=a_similar.code(), message=a_similar.message())
 
-        songs: List[BaseSongWithAlbumResponse] = (
+        songs: list[BaseSongWithAlbumResponse] = (
             await Media.resolve_songs_from_public_ids_async(
                 session=session, public_ids=a_similar.result()
             )
@@ -537,7 +529,7 @@ class Recommendation:
         seed_name, seed_artist = await Recommendation._resolve_seed_track_async(
             session=session, public_id=seed_public_ids[0]
         )
-        discover: List[BaseSearchResultsItem] = (
+        discover: list[BaseSearchResultsItem] = (
             await Recommendation._get_discover_songs_async(
                 session=session,
                 seed_name=seed_name,

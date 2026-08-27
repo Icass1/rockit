@@ -416,4 +416,6 @@ export interface Vocabulary {
     SIMILAR_TO_SONG_PLAYLIST_PREFIX: string;
     SIMILAR_SONGS_PLAYLIST_CREATED: string;
     SIMILAR_TO_SONG: string;
+    FOR_YOU: string;
+    RECOMMENDED_FOR_THIS_PLAYLIST: string;
 }

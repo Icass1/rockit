@@ -23,6 +23,22 @@ cd "$PROJECT_ROOT"
 # Track errors
 ERRORS=0
 
+# Locate the Python environment. pyrightconfig.json points at "./venv", which
+# only resolves when pyright runs from backend/; update.sh creates ".venv" at
+# the root instead. Passing --pythonpath explicitly avoids depending on either,
+# otherwise pyright silently analyses without the installed packages and floods
+# the output with false "type is unknown" errors.
+if [ -x "$PROJECT_ROOT/backend/venv/bin/python" ]; then
+    PYTHON_BIN="$PROJECT_ROOT/backend/venv/bin/python"
+    PY_TOOLS="$PROJECT_ROOT/backend/venv/bin"
+elif [ -x "$PROJECT_ROOT/.venv/bin/python" ]; then
+    PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"
+    PY_TOOLS="$PROJECT_ROOT/.venv/bin"
+else
+    echo -e "${RED}❌ No Python venv found (expected backend/venv or .venv). Run scripts/update.sh first.${NC}"
+    exit 1
+fi
+
 # ─────────────────────────────────────────────
 # Frontend (pnpm lint)
 # ─────────────────────────────────────────────
@@ -52,7 +68,7 @@ fi
 # ─────────────────────────────────────────────
 echo -e "\n${YELLOW}🐍 Backend typecheck (pyright)...${NC}"
 cd "$PROJECT_ROOT"
-if backend/venv/bin/pyright 2>&1 | tee /tmp/backend-lint.log; then
+if "$PY_TOOLS/pyright" --pythonpath "$PYTHON_BIN" 2>&1 | tee /tmp/backend-lint.log; then
     echo -e "${GREEN}✅ Backend typecheck passed${NC}"
 else
     ERRORS=$((ERRORS + 1))
@@ -64,7 +80,7 @@ fi
 # ─────────────────────────────────────────────
 echo -e "\n${YELLOW}🐍 Backend format (black)...${NC}"
 cd "$PROJECT_ROOT"
-if backend/venv/bin/black --check backend 2>&1 | tee /tmp/backend-black.log; then
+if "$PY_TOOLS/black" --check backend 2>&1 | tee /tmp/backend-black.log; then
     echo -e "${GREEN}✅ Backend format passed${NC}"
 else
     ERRORS=$((ERRORS + 1))

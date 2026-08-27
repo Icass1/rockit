@@ -3,6 +3,7 @@ import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
     getMediaArtistsString,
+    isDownloadable,
     type BaseSearchResultsItem,
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
@@ -27,7 +28,8 @@ const RELATED_LIMIT = 20;
  * PlayerRelated — songs related to whatever is currently playing, based on
  * playlist and listening co-occurrence, plus a "Discover" section sourced
  * from Last.fm for songs this Rockit instance doesn't have yet. Tapping a
- * known song queues it next; tapping a discover row downloads it.
+ * downloaded song queues it next; tapping one that has no audio file yet —
+ * or a discover row — downloads it to the server first.
  */
 export default function PlayerRelated() {
     const { currentMedia, addToQueueNext } = usePlayer();
@@ -35,7 +37,8 @@ export default function PlayerRelated() {
 
     const [songs, setSongs] = useState<BaseSongWithAlbumResponse[]>([]);
     const [discover, setDiscover] = useState<BaseSearchResultsItem[]>([]);
-    const [downloadingUrls, setDownloadingUrls] = useState<Set<string>>(
+    // Keyed by publicId for known songs, providerUrl for discover rows.
+    const [downloadingKeys, setDownloadingKeys] = useState<Set<string>>(
         new Set()
     );
     const [loading, setLoading] = useState(true);
@@ -65,10 +68,18 @@ export default function PlayerRelated() {
         };
     }, [seedPublicId]);
 
-    const handleDiscoverPress = async (item: BaseSearchResultsItem) => {
-        if (downloadingUrls.has(item.providerUrl)) return;
+    const releaseKey = (key: string): void => {
+        setDownloadingKeys((prev) => {
+            const next = new Set(prev);
+            next.delete(key);
+            return next;
+        });
+    };
 
-        setDownloadingUrls((prev) => new Set(prev).add(item.providerUrl));
+    const handleDiscoverPress = async (item: BaseSearchResultsItem) => {
+        if (downloadingKeys.has(item.providerUrl)) return;
+
+        setDownloadingKeys((prev) => new Set(prev).add(item.providerUrl));
         toasterManager.notifyInfo($vocabulary.DOWNLOAD_STARTED);
 
         const response = await Http.startDownloadFromUrl({
@@ -78,11 +89,34 @@ export default function PlayerRelated() {
             playlistPublicId: null,
         });
 
-        setDownloadingUrls((prev) => {
-            const next = new Set(prev);
-            next.delete(item.providerUrl);
-            return next;
+        releaseKey(item.providerUrl);
+
+        if (response.isOk()) {
+            toasterManager.notifySuccess($vocabulary.MEDIA_ADDED_TO_LIBRARY);
+        } else {
+            toasterManager.notifyError($vocabulary.ERROR_STARTING_DOWNLOAD);
+        }
+    };
+
+    /** A song can be in the database without its audio file having been
+     * fetched yet — queueing that plays nothing, so download it instead. */
+    const handleSongPress = async (song: BaseSongWithAlbumResponse) => {
+        if (!isDownloadable(song) || song.downloaded) {
+            addToQueueNext(song);
+            return;
+        }
+
+        if (downloadingKeys.has(song.publicId)) return;
+
+        setDownloadingKeys((prev) => new Set(prev).add(song.publicId));
+        toasterManager.notifyInfo($vocabulary.DOWNLOAD_STARTED);
+
+        const response = await Http.startDownload({
+            ids: [song.publicId],
+            title: song.name,
         });
+
+        releaseKey(song.publicId);
 
         if (response.isOk()) {
             toasterManager.notifySuccess($vocabulary.MEDIA_ADDED_TO_LIBRARY);
@@ -126,28 +160,62 @@ export default function PlayerRelated() {
                             {$vocabulary.PLAYER_RELATED_TITLE}
                         </Text>
                     </View>
-                    {songs.map((item) => (
-                        <Pressable
-                            key={item.publicId}
-                            style={styles.row}
-                            onPress={() => addToQueueNext(item)}
-                        >
-                            <Image
-                                source={{ uri: item.imageUrl }}
-                                style={styles.image}
-                                contentFit="cover"
-                                transition={200}
-                            />
-                            <View style={styles.info}>
-                                <Text style={styles.title} numberOfLines={1}>
-                                    {item.name}
-                                </Text>
-                                <Text style={styles.artist} numberOfLines={1}>
-                                    {getMediaArtistsString(item)}
-                                </Text>
-                            </View>
-                        </Pressable>
-                    ))}
+                    {songs.map((item) => {
+                        const needsDownload =
+                            isDownloadable(item) && !item.downloaded;
+                        const isDownloading = downloadingKeys.has(
+                            item.publicId
+                        );
+                        return (
+                            <Pressable
+                                key={item.publicId}
+                                style={styles.row}
+                                disabled={isDownloading}
+                                onPress={() => handleSongPress(item)}
+                            >
+                                <Image
+                                    source={{ uri: item.imageUrl }}
+                                    style={[
+                                        styles.image,
+                                        needsDownload && styles.imageDiscover,
+                                    ]}
+                                    contentFit="cover"
+                                    transition={200}
+                                />
+                                <View style={styles.info}>
+                                    <Text
+                                        style={[
+                                            styles.title,
+                                            needsDownload &&
+                                                styles.titleDiscover,
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {item.name}
+                                    </Text>
+                                    <Text
+                                        style={styles.artist}
+                                        numberOfLines={1}
+                                    >
+                                        {getMediaArtistsString(item)}
+                                    </Text>
+                                </View>
+                                {isDownloading ? (
+                                    <ActivityIndicator
+                                        size="small"
+                                        color={COLORS.gray400}
+                                    />
+                                ) : (
+                                    needsDownload && (
+                                        <Download
+                                            size={18}
+                                            color={COLORS.gray400}
+                                        />
+                                    )
+                                )}
+                            </Pressable>
+                        );
+                    })}
                 </>
             )}
 
@@ -159,7 +227,7 @@ export default function PlayerRelated() {
                         </Text>
                     </View>
                     {discover.map((item) => {
-                        const isDownloading = downloadingUrls.has(
+                        const isDownloading = downloadingKeys.has(
                             item.providerUrl
                         );
                         return (

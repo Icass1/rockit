@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, TypeVar
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,8 +35,25 @@ from backend.core.responses.searchResponse import (
 
 logger: Logger = getLogger(__name__)
 
+TMedia = TypeVar("TMedia")
+
 
 class Media:
+    @staticmethod
+    def _extract_first_async_result(
+        a_result: AResult[List[TMedia]],
+        media_name: str,
+    ) -> AResult[TMedia]:
+        """Extract the first element of a list result, or return NOT_FOUND if empty."""
+
+        items = a_result.result()
+        if not items:
+            logger.error(f"No {media_name} returned by provider.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message=f"{media_name} not found"
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=items[0])
+
     @staticmethod
     async def get_medias_from_public_ids_async(
         session: AsyncSession,
@@ -132,7 +149,7 @@ class Media:
             logger.error(f"Provider error getting song. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(a_result=a_result, media_name="song")
 
     @staticmethod
     async def get_album_async(
@@ -170,7 +187,7 @@ class Media:
             logger.error(f"Provider error getting album. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(a_result=a_result, media_name="album")
 
     @staticmethod
     async def get_artist_async(
@@ -210,7 +227,7 @@ class Media:
             logger.error(f"Provider error getting artist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(a_result=a_result, media_name="artist")
 
     @staticmethod
     async def get_playlist_with_medias_async(
@@ -252,7 +269,9 @@ class Media:
             logger.error(f"Provider error getting playlist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(
+            a_result=a_result, media_name="playlist"
+        )
 
     @staticmethod
     async def get_playlist_without_async(
@@ -294,7 +313,9 @@ class Media:
             logger.error(f"Provider error getting playlist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(
+            a_result=a_result, media_name="playlist"
+        )
 
     @staticmethod
     async def search_async(

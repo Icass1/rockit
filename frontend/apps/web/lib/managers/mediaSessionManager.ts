@@ -6,8 +6,11 @@ import {
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
+// Strictly standards-compliant silent PCM WAV (16-byte fmt chunk, mono,
+// 8 kHz, 8-bit, one silent sample). The previously used data URI declared an
+// 18-byte fmt chunk, which recent WebKit versions reject with a DECODE error.
 const SILENT_WAV =
-    "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+    "data:audio/wav;base64,UklGRiUAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQEAAACA";
 
 const ACTION_HANDLERS: MediaSessionAction[] = [
     "play",
@@ -65,8 +68,12 @@ export class MediaSessionManager {
 
         if (MediaSessionManager._isiOS()) {
             this._startKeepalive();
+            // The dedicated silent keepalive element below performs the page
+            // audio unlock within the gesture. It must stay independent of
+            // the real playback elements: reusing them for the unlock used
+            // to overwrite the current song's src and wire unlock failures
+            // into the player's error handler (wrong song skips on iOS).
             this._startAudioKeepalive();
-            this._unlockAudioElements();
             this._unlockVideoElement();
         }
     }
@@ -149,8 +156,14 @@ export class MediaSessionManager {
         this._keepaliveCtx = undefined;
     }
 
-    // ── Silent audio keepalive (iOS background track transitions) ────────
+    // ── Silent audio keepalive (iOS unlock + background track transitions) ──
 
+    /**
+     * Dedicated always-silent <audio> started inside the user gesture. It
+     * both unlocks page audio playback on iOS and keeps background track
+     * transitions alive. Being independent of the real playback elements,
+     * a failure here can never surface as a media error of the current song.
+     */
     private _startAudioKeepalive(): void {
         if (this._keepaliveAudio) return;
 
@@ -186,57 +199,12 @@ export class MediaSessionManager {
         }
     }
 
-    // ── Silent WAV unlock trick ────────────────────────────────────────
+    // ── Video unlock via canvas.captureStream ──────────────────────────
 
     private static _unlockedElements = new WeakMap<
         HTMLAudioElement | HTMLVideoElement,
         boolean
     >();
-    private _needsUnlock = false;
-    private _unlockPromise: Promise<void> | null = null;
-
-    private _unlockAudioElements(): void {
-        const audioEl = rockIt.mediaPlayerManager.audioElement;
-        if (!audioEl) {
-            this._needsUnlock = true;
-            return;
-        }
-        if (MediaSessionManager._unlockedElements.get(audioEl)) return;
-        this._unlockElement(audioEl);
-    }
-
-    private _unlockElement(el: HTMLAudioElement): void {
-        if (MediaSessionManager._unlockedElements.get(el)) return;
-
-        if (!this._unlockPromise) {
-            this._unlockPromise = this._doUnlock(el);
-        }
-    }
-
-    private _doUnlock(el: HTMLAudioElement): Promise<void> {
-        return new Promise((resolve): void => {
-            el.src = SILENT_WAV;
-            el.muted = true;
-            el.play()
-                .then((): void => {
-                    MediaSessionManager._unlockedElements.set(el, true);
-                    this._needsUnlock = false;
-                    if (el.src === SILENT_WAV) {
-                        el.pause();
-                        el.currentTime = 0;
-                    }
-                    el.muted = false;
-                    resolve();
-                })
-                .catch((): void => {
-                    el.muted = false;
-                    this._unlockPromise = null;
-                    resolve();
-                });
-        });
-    }
-
-    // ── Video unlock via canvas.captureStream ──────────────────────────
 
     private _unlockVideoElement(): void {
         const videoEl = rockIt.mediaPlayerManager.videoElement;
@@ -377,9 +345,6 @@ export class MediaSessionManager {
         const unsubMedia = rockIt.queueManager.currentMediaAtom.subscribe(
             (media: TPlayableMedia | undefined): void => {
                 this._updateMetadata(media);
-                if (this._needsUnlock) {
-                    this._unlockAudioElements();
-                }
             }
         );
         this._unsubscribers.push(unsubMedia);

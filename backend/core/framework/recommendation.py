@@ -19,6 +19,7 @@ from backend.core.framework.models.media import MediaModel
 from backend.core.framework.lastfmClient import LastfmClient, SimilarTrack
 
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.searchResponse import (
     ArtistSearchResultsItem,
     BaseSearchResultsItem,
@@ -145,22 +146,47 @@ class Recommendation:
         task.add_done_callback(_BACKGROUND_TASKS.discard)
 
     @staticmethod
+    async def _resolve_seed_track_async(
+        session: AsyncSession,
+        public_id: str,
+    ) -> tuple[str, str]:
+        """Return (track name, first artist name) for a song or a video, so
+        either can seed Last.fm suggestions. Returns ("", "") when the media
+        can't be resolved or carries no artist."""
+
+        a_media = await Media.get_media_async(session=session, public_id=public_id)
+        if a_media.is_not_ok():
+            logger.warning(
+                f"Could not resolve seed track {public_id}. {a_media.info()}"
+            )
+            return "", ""
+
+        media = a_media.result().media
+        artists = getattr(media, "artists", None)
+        if not artists:
+            return getattr(media, "name", ""), ""
+
+        return getattr(media, "name", ""), artists[0].name
+
+    @staticmethod
     async def _get_discover_songs_async(
         session: AsyncSession,
-        seed_song: BaseSongWithAlbumResponse,
+        seed_name: str,
+        seed_artist_name: str,
         limit: int = DISCOVER_LIMIT,
     ) -> List[BaseSearchResultsItem]:
-        """Songs similar to seed_song, per Last.fm, that this Rockit
-        instance doesn't have downloaded yet — resolved to a real,
-        addable URL via the existing multi-provider search. Returns []
-        if LASTFM_API_KEY isn't set, Last.fm has nothing, or nothing
-        resolves to an undownloaded song."""
+        """Songs similar to the seed track, per Last.fm, that this Rockit
+        instance doesn't have downloaded yet — resolved to a real, addable
+        URL via the existing multi-provider search.
 
-        if not LastfmClient.is_configured() or not seed_song.artists:
+        Takes plain name/artist strings rather than a song response so a
+        video can seed suggestions too. Returns [] if LASTFM_API_KEY isn't
+        set, the seed has no artist, or Last.fm has nothing."""
+
+        if not LastfmClient.is_configured() or not seed_artist_name:
             return []
 
-        seed_artist_name = seed_song.artists[0].name
-        cache_key = build_cache_key(seed_artist_name, seed_song.name)
+        cache_key = build_cache_key(seed_artist_name, seed_name)
 
         a_cached = await LastfmCacheAccess.get_cached_similar_tracks_async(
             session=session, cache_key=cache_key
@@ -172,7 +198,7 @@ class Recommendation:
         if similar_tracks is None:
             a_fresh = await LastfmClient.get_similar_tracks_async(
                 artist_name=seed_artist_name,
-                track_name=seed_song.name,
+                track_name=seed_name,
                 limit=DISCOVER_CANDIDATE_POOL,
             )
             similar_tracks = a_fresh.result() if a_fresh.is_ok() else []
@@ -194,7 +220,7 @@ class Recommendation:
         search_results = await asyncio.gather(*search_tasks, return_exceptions=True)
 
         discover: List[BaseSearchResultsItem] = []
-        seen_names: set[str] = {seed_song.name.strip().lower()}
+        seen_names: set[str] = {seed_name.strip().lower()}
 
         for track, result in zip(similar_tracks, search_results):
             if len(discover) >= limit:
@@ -258,13 +284,15 @@ class Recommendation:
         (shared playlists, shared listening sessions), plus songs Last.fm
         considers similar that aren't downloaded here yet."""
 
+        # Videos are queueable too, so they must be able to seed suggestions —
+        # otherwise the queue silently shows nothing while one is playing.
         a_media: AResult[MediaModel] = await Media.get_media_from_public_id_async(
             session=session,
             public_id=public_id,
-            media_type_keys=[MediaTypeEnum.SONG],
+            media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
         )
         if a_media.is_not_ok():
-            logger.error(f"Error resolving seed song {public_id}. {a_media.info()}")
+            logger.error(f"Error resolving seed media {public_id}. {a_media.info()}")
             return AResult(code=a_media.code(), message=a_media.message())
 
         seed_id: int = a_media.result().id
@@ -289,20 +317,16 @@ class Recommendation:
             )
         )
 
-        seed_song: BaseSongWithAlbumResponse | None = next(
-            (
-                s
-                for s in await Media.resolve_songs_from_public_ids_async(
-                    session=session, public_ids=[public_id]
-                )
-            ),
-            None,
+        seed_name, seed_artist = await Recommendation._resolve_seed_track_async(
+            session=session, public_id=public_id
         )
         discover: List[BaseSearchResultsItem] = (
             await Recommendation._get_discover_songs_async(
-                session=session, seed_song=seed_song
+                session=session,
+                seed_name=seed_name,
+                seed_artist_name=seed_artist,
             )
-            if seed_song is not None
+            if seed_name
             else []
         )
 
@@ -356,7 +380,7 @@ class Recommendation:
             await Media.get_medias_from_public_ids_async(
                 session=session,
                 public_ids=seed_public_ids,
-                media_type_keys=[MediaTypeEnum.SONG],
+                media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
             )
         )
         if a_seed_medias.is_not_ok():
@@ -383,7 +407,7 @@ class Recommendation:
             await Media.get_medias_from_public_ids_async(
                 session=session,
                 public_ids=exclude_public_ids,
-                media_type_keys=[MediaTypeEnum.SONG],
+                media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
             )
         )
         exclude_ids: List[int] = (
@@ -412,16 +436,21 @@ class Recommendation:
             )
         )
 
-        top_seed_songs: List[BaseSongWithAlbumResponse] = (
-            await Media.resolve_songs_from_public_ids_async(
-                session=session, public_ids=recent_ids[:1] or liked_ids[:1]
+        top_seed_public_id = next(iter(recent_ids[:1] or liked_ids[:1]), None)
+        seed_name, seed_artist = (
+            await Recommendation._resolve_seed_track_async(
+                session=session, public_id=top_seed_public_id
             )
+            if top_seed_public_id
+            else ("", "")
         )
         discover: List[BaseSearchResultsItem] = (
             await Recommendation._get_discover_songs_async(
-                session=session, seed_song=top_seed_songs[0]
+                session=session,
+                seed_name=seed_name,
+                seed_artist_name=seed_artist,
             )
-            if top_seed_songs
+            if seed_name
             else []
         )
 
@@ -455,10 +484,11 @@ class Recommendation:
             )
             return AResult(code=a_playlist.code(), message=a_playlist.message())
 
+        # Playlists can hold videos alongside songs; both are valid seeds.
         seed_public_ids: List[str] = [
             item.item.publicId
             for item in a_playlist.result().medias
-            if isinstance(item.item, BaseSongWithAlbumResponse)
+            if isinstance(item.item, (BaseSongWithAlbumResponse, BaseVideoResponse))
         ]
         if not seed_public_ids:
             return AResult(
@@ -471,7 +501,7 @@ class Recommendation:
             await Media.get_medias_from_public_ids_async(
                 session=session,
                 public_ids=seed_public_ids,
-                media_type_keys=[MediaTypeEnum.SONG],
+                media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
             )
         )
         if a_seed_medias.is_not_ok():
@@ -504,16 +534,16 @@ class Recommendation:
             )
         )
 
-        top_seed_songs: List[BaseSongWithAlbumResponse] = (
-            await Media.resolve_songs_from_public_ids_async(
-                session=session, public_ids=seed_public_ids[:1]
-            )
+        seed_name, seed_artist = await Recommendation._resolve_seed_track_async(
+            session=session, public_id=seed_public_ids[0]
         )
         discover: List[BaseSearchResultsItem] = (
             await Recommendation._get_discover_songs_async(
-                session=session, seed_song=top_seed_songs[0]
+                session=session,
+                seed_name=seed_name,
+                seed_artist_name=seed_artist,
             )
-            if top_seed_songs
+            if seed_name
             else []
         )
 

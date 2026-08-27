@@ -518,6 +518,51 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
         sqlite_conn.close()
 
 
+async def backfill_dominant_colors() -> None:
+    """Extract and store dominant_color for all images that are missing it."""
+    import os
+
+    from backend.constants import IMAGES_PATH
+    from backend.core.access.db import rockit_db
+    from backend.core.access.imageAccess import ImageAccess
+
+    async with rockit_db.session_scope_async() as session:
+        a_result = await ImageAccess.get_images_needing_color_backfill_async(
+            session=session
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Error fetching images for backfill. {a_result.info()}")
+            return
+
+        images = a_result.result()
+
+        if not images:
+            logger.info("No images need dominant_color backfill")
+            return
+
+        logger.info(f"Backfilling dominant_color for {len(images)} images...")
+
+        from backend.utils.colorExtractor import extract_dominant_color
+
+        for index, image in enumerate(images):
+            image_path = os.path.join(IMAGES_PATH, image.path)
+            color = await extract_dominant_color(image_path)
+            if color is not None:
+                await ImageAccess.update_image_dominant_color_async(
+                    session=session, image=image, dominant_color=color
+                )
+                logger.info(f"Backfilled {image.path} -> {color}")
+            else:
+                logger.warning(f"Error backfilling {image.path}")
+
+            if index % 100 == 0:
+                await session.commit()
+
+        await session.commit()
+
+        logger.info("Dominant color backfill complete")
+
+
 async def main() -> None:
     from backend.core.access.db import rockit_db
     from backend.core import add_initial_content_async
@@ -575,6 +620,9 @@ async def main() -> None:
                 await add_initial_content_async()
 
                 logger.info("Database initialized")
+
+            elif command == "backfill-dominant-colors":
+                await backfill_dominant_colors()
 
             elif command == "cleanup-images":
                 from backend.core.access.imageAccess import ImageAccess

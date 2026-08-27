@@ -878,6 +878,9 @@ class YoutubeMusic:
 
             results.append(a_result.result())
 
+        if not results:
+            return AResult(code=AResultCode.NOT_FOUND, message="Artists not found")
+
         return AResult(code=AResultCode.OK, message="OK", result=results)
 
     @staticmethod

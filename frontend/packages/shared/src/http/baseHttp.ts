@@ -147,6 +147,55 @@ export class BaseHttp {
         });
     }
 
+    static async downloadBinary(
+        url: string,
+        payload: unknown
+    ): Promise<HttpResult<Blob>> {
+        // This bypasses apiFetchAsync because the response is binary, so the
+        // network error handling it normally provides has to be repeated here.
+        let response: Response;
+        try {
+            response = await this.baseApiFetchAsync(
+                url.replace(BACKEND_URL, ""),
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                }
+            );
+        } catch (err) {
+            return new HttpResult({
+                ok: false,
+                code: 0,
+                message: "Network Error",
+                detail: (err as Error).message,
+            });
+        }
+
+        if (!response.ok) {
+            let detail: string | unknown[] | Record<string, unknown> =
+                response.statusText;
+            try {
+                detail = (await response.json()).detail ?? detail;
+            } catch {
+                // Keep the HTTP status when the backend did not return JSON.
+            }
+            return new HttpResult({
+                ok: false,
+                code: response.status,
+                message: response.statusText,
+                detail,
+            });
+        }
+
+        return new HttpResult({
+            ok: true,
+            code: response.status,
+            message: "OK",
+            result: await response.blob(),
+        });
+    }
+
     static async addBuild(payload: dto.AddVersionRequest) {
         return this.apiPostAsync(
             `/admin/builds`,
@@ -409,6 +458,10 @@ export class BaseHttp {
             `/default/playlist/${playlistPublicId}/media/${playlistMediaPublicId}/enable`,
             dto.OkResponseSchema
         );
+    }
+
+    static downloadZipURL() {
+        return `${BACKEND_URL}/downloader/download-zip`;
     }
 
     static async getDownloads() {

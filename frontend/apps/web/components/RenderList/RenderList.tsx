@@ -8,12 +8,14 @@ import { EMediaContextLocation } from "@rockit/shared";
 import { MoreHorizontal, Play } from "lucide-react";
 import {
     getAllPlayableMedia,
+    getTotalDuration,
     isQueueable,
     TListMedia,
     TMedia,
 } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
+import DurationToggle from "@/components/DurationToggle";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { Media } from "@/components/RenderList/Media";
 
@@ -116,9 +118,12 @@ export default function RenderList({
                         artists={artists}
                         className="text-lg font-semibold text-balance text-neutral-400"
                     />
-                    <p className="text-center font-semibold text-balance text-neutral-400">
-                        {playableMedia.length}{" "}
-                        {playableMedia.length === 1 ? "song" : "songs"}
+                    <p className="flex items-center justify-center gap-2 text-center font-semibold text-balance text-neutral-400">
+                        <span>
+                            {playableMedia.length}{" "}
+                            {playableMedia.length === 1 ? "song" : "songs"}
+                        </span>
+                        <DurationToggle durationMs={getTotalDuration(media)} />
                     </p>
                 </div>
             </div>

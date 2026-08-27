@@ -167,8 +167,7 @@ export abstract class BaseMediaPlayerManager {
             document.addEventListener("visibilitychange", (): void => {
                 if (document.hidden) return;
 
-                const currentMedia =
-                    getRockIt().queueManager.currentMedia;
+                const currentMedia = getRockIt().queueManager.currentMedia;
                 if (
                     this._playingAtom.get() &&
                     currentMedia &&

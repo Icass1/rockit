@@ -278,8 +278,14 @@ class YoutubeMusicAccess:
         session: AsyncSession,
         artist_id: int,
     ) -> AResult[List[TrackRow]]:
-        stmt: Select[Tuple[TrackRow]] = select(TrackRow).where(
-            TrackRow.artists.any(ArtistRow.id == artist_id)
+        stmt: Select[Tuple[TrackRow]] = (
+            select(TrackRow)
+            .where(TrackRow.artists.any(ArtistRow.id == artist_id))
+            .options(
+                selectinload(TrackRow.album).selectinload(AlbumRow.core_album),
+                selectinload(TrackRow.image),
+                selectinload(TrackRow.core_song),
+            )
         )
         result: Result[Tuple[TrackRow]] = await session.execute(stmt)
         tracks_list: List[TrackRow] = cast(List[TrackRow], result.scalars().all())

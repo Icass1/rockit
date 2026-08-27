@@ -1,13 +1,23 @@
 import asyncio
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from importlib import import_module
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar
 
-from sqlalchemy import Connection, Inspector, Table, UniqueConstraint, text, inspect
+from sqlalchemy import (
+    Connection,
+    Inspector,
+    Table,
+    UniqueConstraint,
+    event,
+    text,
+    inspect,
+)
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.util.concurrency import greenlet_spawn
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -25,6 +35,62 @@ from backend.core.access.db.ormModels.declarativeMixin import triggers
 T = TypeVar("T")
 
 logger = getLogger(__name__)
+
+
+async def _init_connection(conn: Any) -> None:
+    """Set asyncpg codecs so timestamps are decoded timezone-aware (UTC).
+
+    By default asyncpg returns naive datetimes for ``timestamp with time zone``
+    columns, which forces ``TZAwareTimestamp`` to attach tzinfo on every read
+    and log a warning. Registering the codec at the driver level fixes this
+    once per connection, so timestamps come back with ``tzinfo=UTC`` directly.
+    """
+
+    def _encode_timestamp(dt: datetime) -> str:
+        # Match asyncpg's default: naive datetimes are treated as UTC. Attach
+        # tzinfo explicitly so Postgres doesn't reinterpret them in the session
+        # timezone when sent through the text codec.
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
+
+    def _decode_timestamp(value: str) -> datetime:
+        dt = datetime.fromisoformat(value)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+
+    # ``timestamp without time zone`` and ``timestamp with time zone`` are
+    # distinct asyncpg types; register the codec for both so every timestamp
+    # column (naive and tz-aware) comes back timezone-aware on the Python side.
+    for type_name in ("timestamp", "timestamptz"):
+        try:
+            await conn.set_type_codec(
+                type_name,
+                encoder=_encode_timestamp,
+                decoder=_decode_timestamp,
+                format="text",
+            )
+        except Exception:
+            logger.warning(
+                f"Could not register asyncpg '{type_name}' codec.", exc_info=True
+            )
+
+
+def _on_sync_engine_connect(dbapi_connection: Any, connection_record: Any) -> None:
+    """Run the async asyncpg codec setup on each new raw connection.
+
+    SQLAlchemy's asyncpg dialect exposes the underlying asyncpg ``Connection``
+    via ``AsyncAdapt_asyncpg_connection._connection``. The ``set_type_codec``
+    call is async, so it is executed synchronously here through
+    ``greenlet_spawn`` in the context of the current greenlet.
+    """
+
+    raw_connection: Any = getattr(dbapi_connection, "_connection", None)
+    if raw_connection is None:
+        return
+
+    _ = greenlet_spawn(_init_connection, raw_connection)
 
 
 @dataclass
@@ -136,6 +202,17 @@ class RockItDB:
         self.engine: AsyncEngine = create_async_engine(
             url=connection_string,
             echo=verbose,
+        )
+
+        # asyncpg only supports the ``connection_init`` per-connection hook on
+        # the async ``Connection`` class, not through ``connect()`` arguments.
+        # Register a sync "connect" event on the underlying sync engine and run
+        # the async codec setup against the raw asyncpg connection via
+        # greenlet_spawn, so timestamps come back timezone-aware (UTC).
+        event.listen(
+            self.engine.sync_engine,
+            "connect",
+            _on_sync_engine_connect,
         )
 
     @time_it

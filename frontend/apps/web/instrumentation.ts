@@ -41,7 +41,8 @@ export async function register() {
         "return import(specifier)"
     ) as (specifier: string) => Promise<{ default: typeof import("node:tls") }>;
     const imported = await dynamicImport("node:tls");
-    const tls = imported.default ?? (imported as unknown as typeof import("node:tls"));
+    const tls =
+        imported.default ?? (imported as unknown as typeof import("node:tls"));
     const originalConnect = tls.connect.bind(tls);
 
     tls.connect = ((...args: unknown[]) => {
@@ -51,8 +52,7 @@ export async function register() {
         );
         if (index !== -1) {
             const options = args[index] as Record<string, unknown>;
-            const host =
-                options.servername ?? options.host ?? options.hostname;
+            const host = options.servername ?? options.host ?? options.hostname;
             if (
                 typeof host === "string" &&
                 insecureHosts.has(host.toLowerCase())

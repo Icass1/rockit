@@ -164,7 +164,7 @@ function DynamicLyrics(): JSX.Element {
     return (
         <div
             ref={containerRef}
-            className="scrollbar-none h-full w-full overflow-y-auto pr-20 pb-24 pl-10"
+            className="scrollbar-none h-full w-full overflow-y-auto pb-24 pl-10"
         >
             {lyrics?.lines.map((line, index) => (
                 <p

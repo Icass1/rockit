@@ -1,6 +1,7 @@
 export { BaseHttp } from "@/http/baseHttp";
 
 export * from "@/lib/store";
+export * from "@/lib/discover";
 
 export { AUTH_ENDPOINTS } from "@/auth/authEndpoints";
 export * from "@/environment";

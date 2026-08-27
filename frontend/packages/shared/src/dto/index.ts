@@ -428,6 +428,10 @@ export {
     type StartDownloadResponse,
 } from "./startDownloadResponse";
 export {
+    StartFromSearchRequestSchema,
+    type StartFromSearchRequest,
+} from "./startFromSearchRequest";
+export {
     StartUploadResponseSchema,
     type StartUploadResponse,
 } from "./startUploadResponse";

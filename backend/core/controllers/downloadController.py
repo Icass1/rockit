@@ -25,6 +25,7 @@ from backend.core.responses.okResponse import OkResponse
 
 from backend.core.requests.startDownloadRequest import StartDownloadRequest
 from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
+from backend.core.requests.startFromSearchRequest import StartFromSearchRequest
 from backend.core.requests.downloadZipRequest import DownloadZipRequest
 
 logger: Logger = getLogger(name=__name__)
@@ -125,6 +126,47 @@ async def start_download_from_url(
     )
     if a_result.is_not_ok():
         logger.error(f"Error starting download from URL. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.post("/start-from-search")
+async def start_download_from_search(
+    request: Request, payload: StartFromSearchRequest
+) -> StartDownloadFromUrlResponse:
+    """Find the best song match for a Last.fm discovery suggestion (artist +
+    track) via one provider search, and queue its download atomically.
+
+    This is the only provider search the discovery flow performs — on demand,
+    one per suggestion the user actually taps.
+    """
+
+    session = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user: UserRow = a_result_user.result()
+
+    a_result: AResult[StartDownloadFromUrlResponse] = (
+        await Downloader.start_download_from_search_async(
+            session=session,
+            user_id=user.id,
+            artist_name=payload.artistName,
+            track_name=payload.trackName,
+            add_to_library=payload.addToLibrary,
+            add_to_playlist=payload.addToPlaylist,
+            playlist_public_id=payload.playlistPublicId,
+        )
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error starting download from search. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )

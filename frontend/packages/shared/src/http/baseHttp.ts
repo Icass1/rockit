@@ -495,6 +495,15 @@ export class BaseHttp {
         );
     }
 
+    static async startDownloadFromSearch(payload: dto.StartFromSearchRequest) {
+        return this.apiPostAsync(
+            `/downloader/start-from-search`,
+            dto.StartFromSearchRequestSchema,
+            dto.StartDownloadFromUrlResponseSchema,
+            payload
+        );
+    }
+
     static async startDownloadFromUrl(payload: dto.AddFromUrlRequest) {
         return this.apiPostAsync(
             `/downloader/start-from-url`,

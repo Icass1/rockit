@@ -31,6 +31,10 @@ import {
  * the media player through the registry and reads collaborators (websocket,
  * user, bookmark). Ported from the canonical web implementation.
  */
+const AUTOPLAY_LOAD_DELAY_MS = 700;
+/** Refresh suggestions when the current song is within this many positions of
+ * the queue's end — earlier positions never consume them. */
+const AUTOPLAY_NEAR_END_OFFSET = 2;
 export class BaseQueueManager {
     // #region: Atoms
 
@@ -45,6 +49,9 @@ export class BaseQueueManager {
     /** Song the current suggestions were built from, so they are only
      * refetched when the queue actually moves on to something else. */
     protected _autoplaySeedPublicId: string | undefined;
+    /** Pending autoplay refresh (debounced), so a burst of track changes near
+     * the end of the queue becomes a single request. */
+    protected _autoplayLoadTimer: ReturnType<typeof setTimeout> | undefined;
 
     protected _lastNavigationDirection: 1 | -1 = 1;
     protected _init = false;
@@ -71,11 +78,12 @@ export class BaseQueueManager {
             this._handleCurrentMedia
         );
 
-        // Keep the suggestions in step with whatever is playing, from every
-        // path that changes it (skip, click, websocket sync). The loader
-        // no-ops while the seed song is unchanged, so this stays cheap.
+        // Refresh the suggestions as the queue plays, but only near its end —
+        // that is the only moment they are consumed, and it turns a burst of
+        // track changes into at most one request. The loader also no-ops while
+        // the seed song is unchanged.
         this._currentMediaAtom.listen((): void => {
-            void this.loadAutoplaySuggestionsAsync();
+            this._scheduleAutoplayLoad();
         });
         void this.loadAutoplaySuggestionsAsync();
     }
@@ -815,6 +823,34 @@ export class BaseQueueManager {
                 (song): boolean => !queuedPublicIds.has(song.publicId)
             )
         );
+    }
+
+    /** Load the suggestions only when playback is close enough to the end of
+     * the queue to actually use them, debounced so quickly-arriving track
+     * changes collapse into one request. */
+    protected _scheduleAutoplayLoad(): void {
+        if (!this._isNearQueueEnd()) return;
+        if (this._autoplayLoadTimer) return;
+
+        this._autoplayLoadTimer = setTimeout((): void => {
+            this._autoplayLoadTimer = undefined;
+            void this.loadAutoplaySuggestionsAsync();
+        }, AUTOPLAY_LOAD_DELAY_MS);
+    }
+
+    /** True while the current song is within the last AUTOPLAY_NEAR_END_OFFSET
+     * positions of the active queue (a shorter queue always qualifies). */
+    protected _isNearQueueEnd(): boolean {
+        const currentMedia = this.currentMedia;
+        if (!currentMedia) return false;
+
+        const queue = this.queue;
+        const index = queue.findIndex(
+            (item): boolean => item.media.publicId === currentMedia.publicId
+        );
+        if (index < 0) return false;
+
+        return index >= queue.length - AUTOPLAY_NEAR_END_OFFSET;
     }
 
     /**

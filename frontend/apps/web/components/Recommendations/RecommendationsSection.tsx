@@ -4,7 +4,7 @@ import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import type { BaseSearchResultsItem, BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EMediaContextLocation } from "@rockit/shared";
+import { EMediaContextLocation, isDiscoverItemInLibrary } from "@rockit/shared";
 import { Music } from "lucide-react";
 import { isDownloadable, isQueueable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
@@ -61,25 +61,57 @@ function KnownSongCard({
     );
 }
 
-/** A song this instance does not have yet, surfaced from Last.fm and resolved
- * through Rockit's own provider search. Left-click opens the same menu search
- * results use (download to server, add to playlist and download…). */
+/** A Last.fm discovery suggestion shown as-is. Tapping one starts the single
+ * on-demand search+download; suggestions the instance already has downloaded
+ * (flagged in the backend with downloaded=true + publicId) play right away. */
 function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const inLibrary = isDiscoverItemInLibrary(item);
+
+    const handleClick = useCallback((): void => {
+        if (inLibrary && item.publicId) {
+            rockIt.mediaManager
+                .getMedia(item.publicId)
+                .then((mediaResult): void => {
+                    if (!mediaResult.isOk()) {
+                        rockIt.notificationManager.notifyError(
+                            mediaResult.message
+                        );
+                        return;
+                    }
+                    const song = mediaResult.result.media;
+                    if (!isQueueable(song)) return;
+
+                    rockIt.queueManager.setMedia(
+                        [song],
+                        RECOMMENDATIONS_QUEUE_ID
+                    );
+                    rockIt.queueManager.moveToMedia(song.publicId);
+                    rockIt.mediaPlayerManager.play();
+                });
+            return;
+        }
+
+        rockIt.downloaderManager.downloadDiscoverSuggestionAsync(
+            item.artists[0]?.name ?? "",
+            item.name
+        );
+    }, [inLibrary, item]);
 
     const card = (
         <RecommendationCard
             name={item.name}
             imageUrl={item.imageUrl}
             artistNames={item.artists.map((a): string => a.name)}
-            dimmed
-            hint={item.providerUrl ? $vocabulary.CLICK_TO_DOWNLOAD : undefined}
+            dimmed={!inLibrary}
+            hint={!inLibrary ? $vocabulary.CLICK_TO_DOWNLOAD : undefined}
+            onClick={handleClick}
         />
     );
 
-    // No providerUrl means no provider could resolve this suggestion, so
-    // there is nothing to download — show it, but without a menu that would
-    // offer actions that cannot work.
+    // No providerUrl means no provider resolved this suggestion (Last.fm
+    // carries none), so there is nothing a search-result menu could act on —
+    // show a bare card whose single action is download or play.
     if (!item.providerUrl) return card;
 
     return (
@@ -164,15 +196,13 @@ export default function RecommendationsSection({
             </h2>
             {songs.length > 0 && (
                 <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                    {songs.map(
-                        (song): JSX.Element => (
-                            <KnownSongCard
-                                key={song.publicId}
-                                song={song}
-                                queue={songs}
-                            />
-                        )
-                    )}
+                    {songs.map((song): JSX.Element => (
+                        <KnownSongCard
+                            key={song.publicId}
+                            song={song}
+                            queue={songs}
+                        />
+                    ))}
                 </div>
             )}
             {discover.length > 0 && (
@@ -181,17 +211,15 @@ export default function RecommendationsSection({
                         {$vocabulary.PLAYER_DISCOVER_TITLE}
                     </h3>
                     <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                        {discover.map(
-                            (item): JSX.Element => (
-                                <DiscoverCard
-                                    key={
-                                        item.providerUrl ||
-                                        `${item.artists[0]?.name ?? ""}-${item.name}`
-                                    }
-                                    item={item}
-                                />
-                            )
-                        )}
+                        {discover.map((item): JSX.Element => (
+                            <DiscoverCard
+                                key={
+                                    item.providerUrl ||
+                                    `${item.artists[0]?.name ?? ""}-${item.name}`
+                                }
+                                item={item}
+                            />
+                        ))}
                     </div>
                 </>
             )}

@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
+    getDiscoverKey,
     getMediaArtistsString,
+    isDiscoverItemInLibrary,
     isDownloadable,
+    isQueueable,
     type BaseSearchResultsItem,
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
@@ -25,8 +28,9 @@ const RECOMMENDATIONS_LIMIT = 10;
 /**
  * Songs recommended from a seed song, rendered under a list screen. Songs the
  * server has no audio file for still show their metadata, greyed out; tapping
- * one fetches it. Suggestions with no providerUrl could not be resolved to a
- * provider at all, so they are display-only.
+ * one fetches it. Suggestions the instance already has downloaded (flagged
+ * with downloaded + publicId) play right away; the rest are resolved through
+ * a single on-demand search (or provider URL, when one exists).
  */
 export default function RecommendationsList({
     seedSongPublicId,
@@ -86,18 +90,40 @@ export default function RecommendationsList({
     };
 
     const handleDiscoverPress = async (item: BaseSearchResultsItem) => {
-        if (!item.providerUrl) return;
-        if (downloadingKeys.has(item.providerUrl)) return;
+        const key = getDiscoverKey(item);
+        if (downloadingKeys.has(key)) return;
 
-        setDownloadingKeys((prev) => new Set(prev).add(item.providerUrl));
+        if (isDiscoverItemInLibrary(item) && item.publicId) {
+            const mediaResult = await rockIt.mediaManager.getMedia(
+                item.publicId
+            );
+            if (!mediaResult.isOk()) {
+                toasterManager.notifyError(mediaResult.message);
+                return;
+            }
+            const media = mediaResult.result.media;
+            if (isQueueable(media)) rockIt.queueManager.addMediaNext(media);
+            return;
+        }
+
+        setDownloadingKeys((prev) => new Set(prev).add(key));
         toasterManager.notifyInfo($vocabulary.DOWNLOAD_STARTED);
-        const response = await Http.startDownloadFromUrl({
-            url: item.providerUrl,
-            addToLibrary: true,
-            addToPlaylist: false,
-            playlistPublicId: null,
-        });
-        releaseKey(item.providerUrl);
+
+        const response = item.providerUrl
+            ? await Http.startDownloadFromUrl({
+                  url: item.providerUrl,
+                  addToLibrary: true,
+                  addToPlaylist: false,
+                  playlistPublicId: null,
+              })
+            : await Http.startDownloadFromSearch({
+                  artistName: item.artists[0]?.name ?? "",
+                  trackName: item.name,
+                  addToLibrary: true,
+                  addToPlaylist: false,
+                  playlistPublicId: null,
+              });
+        releaseKey(key);
 
         if (response.isOk()) {
             toasterManager.notifySuccess($vocabulary.MEDIA_ADDED_TO_LIBRARY);
@@ -130,18 +156,17 @@ export default function RecommendationsList({
             })}
 
             {discover.map((item) => {
-                const isDownloading = downloadingKeys.has(item.providerUrl);
+                const key = getDiscoverKey(item);
+                const isDownloading = downloadingKeys.has(key);
+                const inLibrary = isDiscoverItemInLibrary(item);
                 return (
                     <Row
-                        key={
-                            item.providerUrl ||
-                            `${item.artists[0]?.name ?? ""}-${item.name}`
-                        }
+                        key={key}
                         name={item.name}
                         artists={item.artists.map((a) => a.name).join(", ")}
                         imageUrl={item.imageUrl}
-                        dimmed
-                        showDownload={Boolean(item.providerUrl)}
+                        dimmed={!inLibrary}
+                        showDownload={!inLibrary}
                         isDownloading={isDownloading}
                         onPress={() => handleDiscoverPress(item)}
                     />

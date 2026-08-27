@@ -12,6 +12,10 @@ from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
+# Measurement-only counter of provider search calls since process start,
+# used to prove the discovery redesign does not add provider requests.
+_module_search_call_count: int = 0
+
 from backend.core.framework import providers
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
@@ -373,10 +377,23 @@ class Media:
         )
 
     @staticmethod
+    def get_provider_search_call_count() -> int:
+        """Number of provider searches performed since process start.
+
+        Measurement only — used to show the discovery redesign renders without
+        provider requests and downloads resolve in a single search.
+        """
+
+        return _module_search_call_count
+
+    @staticmethod
     async def search_async(
         session: AsyncSession, query: str
     ) -> AResult[SearchResultsResponse]:
         """Search all providers concurrently and aggregate results."""
+
+        global _module_search_call_count
+        _module_search_call_count += 1
 
         results: List[BaseSearchResultsItem] = []
 

@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import {
+    getDiscoverKey,
     getMediaArtistsString,
+    isDiscoverItemInLibrary,
     isDownloadable,
+    isQueueable,
     type BaseSearchResultsItem,
     type BaseSongWithAlbumResponse,
 } from "@rockit/shared";
@@ -27,9 +30,10 @@ const RELATED_LIMIT = 20;
 /**
  * PlayerRelated — songs related to whatever is currently playing, based on
  * playlist and listening co-occurrence, plus a "Discover" section sourced
- * from Last.fm for songs this Rockit instance doesn't have yet. Tapping a
- * downloaded song queues it next; tapping one that has no audio file yet —
- * or a discover row — downloads it to the server first.
+ * from Last.fm. Tapping a downloaded song queues it next; tapping one that
+ * has no audio file yet downloads it to the server first. Discover rows that
+ * the instance already has play right away; the rest are resolved through a
+ * single on-demand search (or provider URL, when one exists).
  */
 export default function PlayerRelated() {
     const { currentMedia, addToQueueNext } = usePlayer();
@@ -37,7 +41,7 @@ export default function PlayerRelated() {
 
     const [songs, setSongs] = useState<BaseSongWithAlbumResponse[]>([]);
     const [discover, setDiscover] = useState<BaseSearchResultsItem[]>([]);
-    // Keyed by publicId for known songs, providerUrl for discover rows.
+    // publicId for known songs, getDiscoverKey() for discover rows.
     const [downloadingKeys, setDownloadingKeys] = useState<Set<string>>(
         new Set()
     );
@@ -77,19 +81,41 @@ export default function PlayerRelated() {
     };
 
     const handleDiscoverPress = async (item: BaseSearchResultsItem) => {
-        if (downloadingKeys.has(item.providerUrl)) return;
+        const key = getDiscoverKey(item);
+        if (downloadingKeys.has(key)) return;
 
-        setDownloadingKeys((prev) => new Set(prev).add(item.providerUrl));
+        if (isDiscoverItemInLibrary(item) && item.publicId) {
+            const mediaResult = await rockIt.mediaManager.getMedia(
+                item.publicId
+            );
+            if (!mediaResult.isOk()) {
+                toasterManager.notifyError(mediaResult.message);
+                return;
+            }
+            const media = mediaResult.result.media;
+            if (isQueueable(media)) addToQueueNext(media);
+            return;
+        }
+
+        setDownloadingKeys((prev) => new Set(prev).add(key));
         toasterManager.notifyInfo($vocabulary.DOWNLOAD_STARTED);
 
-        const response = await Http.startDownloadFromUrl({
-            url: item.providerUrl,
-            addToLibrary: true,
-            addToPlaylist: false,
-            playlistPublicId: null,
-        });
+        const response = item.providerUrl
+            ? await Http.startDownloadFromUrl({
+                  url: item.providerUrl,
+                  addToLibrary: true,
+                  addToPlaylist: false,
+                  playlistPublicId: null,
+              })
+            : await Http.startDownloadFromSearch({
+                  artistName: item.artists[0]?.name ?? "",
+                  trackName: item.name,
+                  addToLibrary: true,
+                  addToPlaylist: false,
+                  playlistPublicId: null,
+              });
 
-        releaseKey(item.providerUrl);
+        releaseKey(key);
 
         if (response.isOk()) {
             toasterManager.notifySuccess($vocabulary.MEDIA_ADDED_TO_LIBRARY);
@@ -227,19 +253,22 @@ export default function PlayerRelated() {
                         </Text>
                     </View>
                     {discover.map((item) => {
-                        const isDownloading = downloadingKeys.has(
-                            item.providerUrl
-                        );
+                        const key = getDiscoverKey(item);
+                        const isDownloading = downloadingKeys.has(key);
+                        const inLibrary = isDiscoverItemInLibrary(item);
                         return (
                             <Pressable
-                                key={item.providerUrl}
+                                key={key}
                                 style={styles.row}
                                 disabled={isDownloading}
                                 onPress={() => handleDiscoverPress(item)}
                             >
                                 <Image
                                     source={{ uri: item.imageUrl }}
-                                    style={[styles.image, styles.imageDiscover]}
+                                    style={[
+                                        styles.image,
+                                        !inLibrary && styles.imageDiscover,
+                                    ]}
                                     contentFit="cover"
                                     transition={200}
                                 />
@@ -247,7 +276,7 @@ export default function PlayerRelated() {
                                     <Text
                                         style={[
                                             styles.title,
-                                            styles.titleDiscover,
+                                            !inLibrary && styles.titleDiscover,
                                         ]}
                                         numberOfLines={1}
                                     >
@@ -268,10 +297,12 @@ export default function PlayerRelated() {
                                         color={COLORS.gray400}
                                     />
                                 ) : (
-                                    <Download
-                                        size={18}
-                                        color={COLORS.gray400}
-                                    />
+                                    !inLibrary && (
+                                        <Download
+                                            size={18}
+                                            color={COLORS.gray400}
+                                        />
+                                    )
                                 )}
                             </Pressable>
                         );

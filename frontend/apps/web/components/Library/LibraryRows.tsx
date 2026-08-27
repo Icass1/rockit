@@ -50,14 +50,20 @@ function SelectableRow({
             {selectable && (
                 <div
                     className={`pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-black/60 ${
-                        "publicId" in media && isSelected(media.publicId)
+                        "publicId" in media &&
+                        media.publicId != null &&
+                        isSelected(media.publicId)
                             ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
                             : "border-white/80"
                     }`}
                 >
-                    {"publicId" in media && isSelected(media.publicId) && (
-                        <span className="text-xs font-bold text-white">✓</span>
-                    )}
+                    {"publicId" in media &&
+                        media.publicId != null &&
+                        isSelected(media.publicId) && (
+                            <span className="text-xs font-bold text-white">
+                                ✓
+                            </span>
+                        )}
                 </div>
             )}
         </div>
@@ -358,18 +364,14 @@ export function AlbumListView({
 
     return (
         <div className="px-4">
-            {groups.map(
-                ([artist, artistAlbums]): JSX.Element => (
-                    <div key={artist}>
-                        <ArtistGroupHeader name={artist} />
-                        {artistAlbums.map(
-                            (album): JSX.Element => (
-                                <AlbumRow key={album.publicId} album={album} />
-                            )
-                        )}
-                    </div>
-                )
-            )}
+            {groups.map(([artist, artistAlbums]): JSX.Element => (
+                <div key={artist}>
+                    <ArtistGroupHeader name={artist} />
+                    {artistAlbums.map((album): JSX.Element => (
+                        <AlbumRow key={album.publicId} album={album} />
+                    ))}
+                </div>
+            ))}
         </div>
     );
 }

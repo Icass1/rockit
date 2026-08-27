@@ -29,14 +29,16 @@ PROFILE_SEED_LIMIT = 25
 # already-known songs from their personalized feed.
 PROFILE_EXCLUDE_LIMIT = 10000
 # How many not-yet-downloaded songs to surface per request, sourced from
-# Last.fm and resolved through Rockit's own multi-provider search.
+# Last.fm and shown as-is (no provider resolution on render).
 DISCOVER_LIMIT = 8
-# How many Last.fm suggestions to try resolving to fill DISCOVER_LIMIT slots
-# (some won't match anything searchable, or will already be downloaded).
+# How many Last.fm suggestions to pull to fill DISCOVER_LIMIT slots after
+# deduplication.
 DISCOVER_CANDIDATE_POOL = 15
-# How many recommended songs to fetch to the server automatically per request.
-# Each one costs a yt-dlp download, so this stays well below DISCOVER_LIMIT:
-# the rest remain visible and downloadable on demand. Set to 0 to disable
+# How many recommended songs that are already known to this instance (same
+# library, just missing their audio file) to fetch to the server automatically
+# per request. Each one costs a yt-dlp download, so this stays small. Last.fm
+# discovery suggestions are never auto-downloaded — resolving one costs a
+# provider search, so it only happens on the user's tap. Set to 0 to disable
 # auto-downloading entirely.
 AUTO_DOWNLOAD_LIMIT = 3
 # Marks a suggestion that no provider could resolve to a fetchable URL. The
@@ -61,15 +63,14 @@ class Recommendation:
     async def _auto_download_async(
         user_id: int,
         media_public_ids: list[str],
-        urls: list[str],
     ) -> None:
         """Queue server-side downloads for recommended songs that have no
         audio file yet.
 
         Runs detached from the request, on its own session, because the
-        request's session is closed as soon as the response is sent and
-        resolving a URL costs a provider round-trip. Re-queueing is safe:
-        the downloader skips media already downloaded or in progress.
+        request's session is closed as soon as the response is sent.
+        Re-queueing is safe: the downloader skips media already downloaded or
+        in progress.
         """
 
         from backend.core.access.db import rockit_db
@@ -77,32 +78,16 @@ class Recommendation:
 
         try:
             async with rockit_db.session_scope_async() as session:
-                if media_public_ids:
-                    a_result = await Downloader.download_multiple_medias_async(
-                        session=session,
-                        user_id=user_id,
-                        title="Recommendations",
-                        public_ids=media_public_ids,
+                a_result = await Downloader.download_multiple_medias_async(
+                    session=session,
+                    user_id=user_id,
+                    title="Recommendations",
+                    public_ids=media_public_ids,
+                )
+                if a_result.is_not_ok():
+                    logger.error(
+                        f"Error auto-downloading recommended media. {a_result.info()}"
                     )
-                    if a_result.is_not_ok():
-                        logger.error(
-                            f"Error auto-downloading recommended media. {a_result.info()}"
-                        )
-
-                for url in urls:
-                    a_result_url = await Downloader.start_download_from_url_async(
-                        session=session,
-                        user_id=user_id,
-                        url=url,
-                        add_to_library=False,
-                        add_to_playlist=False,
-                        playlist_public_id=None,
-                    )
-                    if a_result_url.is_not_ok():
-                        logger.error(
-                            f"Error auto-downloading recommendation '{url}'. "
-                            f"{a_result_url.info()}"
-                        )
         except Exception as e:
             # Never let a background failure surface as an unhandled task error;
             # the recommendation response has already been sent by now.
@@ -112,28 +97,29 @@ class Recommendation:
     def _schedule_auto_downloads(
         user_id: int,
         songs: list[BaseSongWithAlbumResponse],
-        discover: list[BaseSearchResultsItem],
     ) -> None:
-        """Fire-and-forget the download of recommendations lacking audio,
-        newest-first, capped at AUTO_DOWNLOAD_LIMIT items in total."""
+        """Fire-and-forget the download of recommended songs that are known to
+        this instance but still lack audio, newest-first, capped at
+        AUTO_DOWNLOAD_LIMIT items in total per request.
+
+        Last.fm discovery suggestions are intentionally excluded: they are
+        displayed as-is and only cost a provider search when the user taps
+        download on one.
+        """
 
         if AUTO_DOWNLOAD_LIMIT <= 0:
             return
 
-        missing_public_ids: list[str] = [s.publicId for s in songs if not s.downloaded]
-        remaining: int = max(0, AUTO_DOWNLOAD_LIMIT - len(missing_public_ids))
-        # Suggestions with no providerUrl could not be resolved to anything
-        # fetchable — they are display-only.
-        fetchable: list[str] = [d.providerUrl for d in discover if d.providerUrl]
-        urls: list[str] = fetchable[:remaining]
-        missing_public_ids = missing_public_ids[:AUTO_DOWNLOAD_LIMIT]
+        missing_public_ids: list[str] = [s.publicId for s in songs if not s.downloaded][
+            :AUTO_DOWNLOAD_LIMIT
+        ]
 
-        if not missing_public_ids and not urls:
+        if not missing_public_ids:
             return
 
         task = asyncio.create_task(
             Recommendation._auto_download_async(
-                user_id=user_id, media_public_ids=missing_public_ids, urls=urls
+                user_id=user_id, media_public_ids=missing_public_ids
             )
         )
         # Keep a reference so the task isn't garbage collected mid-flight.
@@ -170,9 +156,15 @@ class Recommendation:
         seed_artist_name: str,
         limit: int = DISCOVER_LIMIT,
     ) -> list[BaseSearchResultsItem]:
-        """Songs similar to the seed track, per Last.fm, that this Rockit
-        instance doesn't have downloaded yet — resolved to a real, addable
-        URL via the existing multi-provider search.
+        """Songs similar to the seed track, per Last.fm, shown as-is (their
+        name and artist, the "Last.fm" provider, no artwork — the generic
+        placeholder is prettier than Last.fm's star).
+
+        Suggestions this Rockit instance already has downloaded are flagged
+        with downloaded=True plus their playable publicId (matched locally, in
+        one batched query). No provider search runs here; resolving a
+        suggestion is a single on-demand search that only happens when the
+        user taps download.
 
         Takes plain name/artist strings rather than a song response so a
         video can seed suggestions too. Returns [] if LASTFM_API_KEY isn't
@@ -202,19 +194,28 @@ class Recommendation:
         if not similar_tracks:
             return []
 
-        search_tasks = [
-            Media.search_async(
-                session=session,
-                query=f"{t['artist_name']} {t['track_name']}",
+        candidates = [(t["artist_name"], t["track_name"]) for t in similar_tracks]
+
+        # Flag, in one batched local query, the few suggestions the instance
+        # already has downloaded so the UI can play them directly instead of
+        # offering a pointless re-download.
+        a_in_library: AResult[dict[int, str]] = (
+            await RecommendationAccess.get_downloaded_discover_song_public_ids_async(
+                session=session, artists_and_tracks=candidates
             )
-            for t in similar_tracks
-        ]
-        search_results = await asyncio.gather(*search_tasks, return_exceptions=True)
+        )
+        if a_in_library.is_not_ok():
+            logger.warning(
+                f"Could not flag in-library suggestions. {a_in_library.info()}"
+            )
+            in_library_public_ids: dict[int, str] = {}
+        else:
+            in_library_public_ids = a_in_library.result()
 
         discover: list[BaseSearchResultsItem] = []
         seen_names: set[str] = {seed_name.strip().lower()}
 
-        for track, result in zip(similar_tracks, search_results):
+        for idx, track in enumerate(similar_tracks):
             if len(discover) >= limit:
                 break
 
@@ -222,32 +223,9 @@ class Recommendation:
             if dedup_key in seen_names:
                 continue
 
-            if isinstance(result, BaseException):
-                logger.warning(f"Discover search failed: {result}")
-                resolved = None
-            elif result.is_not_ok():
-                resolved = None
-            else:
-                resolved = next(
-                    (
-                        item
-                        for item in result.result().results
-                        if item.type == "song"
-                        and not item.downloaded
-                        and item.name.strip().lower() not in seen_names
-                    ),
-                    None,
-                )
-
             seen_names.add(dedup_key)
+            public_id: str | None = in_library_public_ids.get(idx)
 
-            if resolved is not None:
-                seen_names.add(resolved.name.strip().lower())
-                discover.append(resolved)
-                continue
-
-            # No provider match: still surface the suggestion so the user can
-            # see it, with an empty providerUrl marking it as not fetchable.
             discover.append(
                 BaseSearchResultsItem(
                     type="song",
@@ -258,8 +236,9 @@ class Recommendation:
                         ArtistSearchResultsItem(name=track["artist_name"], url="")
                     ],
                     provider=LASTFM_PROVIDER_NAME,
-                    downloaded=False,
+                    downloaded=public_id is not None,
                     url=None,
+                    publicId=public_id,
                 )
             )
 
@@ -322,9 +301,7 @@ class Recommendation:
             else []
         )
 
-        Recommendation._schedule_auto_downloads(
-            user_id=user_id, songs=songs, discover=discover
-        )
+        Recommendation._schedule_auto_downloads(user_id=user_id, songs=songs)
 
         return AResult(
             code=AResultCode.OK,
@@ -446,9 +423,7 @@ class Recommendation:
             else []
         )
 
-        Recommendation._schedule_auto_downloads(
-            user_id=user_id, songs=songs, discover=discover
-        )
+        Recommendation._schedule_auto_downloads(user_id=user_id, songs=songs)
 
         return AResult(
             code=AResultCode.OK,
@@ -539,9 +514,7 @@ class Recommendation:
             else []
         )
 
-        Recommendation._schedule_auto_downloads(
-            user_id=user_id, songs=songs, discover=discover
-        )
+        Recommendation._schedule_auto_downloads(user_id=user_id, songs=songs)
 
         return AResult(
             code=AResultCode.OK,

@@ -11,6 +11,7 @@ import HomeSkeleton from "@/components/Home/HomeSkeleton";
 import { useGreeting } from "@/components/Home/hooks/useGreeting";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import BentoSection from "@/components/Home/sections/BentoSection";
+import ForYouSection from "@/components/Home/sections/ForYouSection";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 
 export default function HomeClient(): JSX.Element {
@@ -176,6 +177,8 @@ export default function HomeClient(): JSX.Element {
                     songs={data.communityTop}
                 />
             )}
+
+            <ForYouSection />
 
             {data.monthlyTop.length > 0 && (
                 <BentoSection

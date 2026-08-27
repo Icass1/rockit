@@ -1,4 +1,4 @@
-import { setRockIt } from "@rockit/shared";
+import { HttpResult, MediaResponse, setRockIt } from "@rockit/shared";
 import { atom } from "nanostores";
 import { Http } from "@/lib/http";
 import { BookmarkManager } from "@/lib/managers/bookmarkManager";
@@ -13,6 +13,10 @@ import { webSocketManager } from "@/lib/webSocketManager";
 
 class MediaManager {
     likedMediaAtom = atom<string[]>([]);
+
+    getMedia(publicId: string): Promise<HttpResult<MediaResponse>> {
+        return Http.getMediaAsync(publicId);
+    }
 
     toggleLikeMedia(publicId: string) {
         const current = this.likedMediaAtom.get();

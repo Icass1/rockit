@@ -137,6 +137,33 @@ export class DownloaderManager {
         );
     }
 
+    async downloadDiscoverSuggestionAsync(
+        artistName: string,
+        trackName: string
+    ): Promise<void> {
+        const result = await Http.startDownloadFromSearch({
+            artistName,
+            trackName,
+            addToLibrary: true,
+            addToPlaylist: false,
+            playlistPublicId: null,
+        });
+
+        if (!result.isOk()) {
+            rockIt.notificationManager.notifyError(result.message);
+            console.error(
+                "Error starting download from search",
+                result.message,
+                result.detail
+            );
+            return;
+        }
+
+        rockIt.notificationManager.notifySuccess(
+            rockIt.vocabularyManager.vocabulary.MEDIA_ADDED_TO_LIBRARY
+        );
+    }
+
     async downloadMediaAsync(publicIds: string[], name: string): Promise<void> {
         const response = await Http.startDownload({
             ids: publicIds,

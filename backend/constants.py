@@ -1,7 +1,8 @@
-from typing import Dict
-from dotenv import load_dotenv
-from typing import List
 import os
+import sys
+from typing import Dict
+from typing import List
+from dotenv import load_dotenv
 
 env_file = os.environ.get("ROCKIT_ENV_FILE")
 if env_file:
@@ -74,7 +75,7 @@ CHUNK_SIZE = 1024 * 1024  # 1MB per chunk
 CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
-
+LASTFM_API_KEY = get_env_str("LASTFM_API_KEY")
 
 DB_HOST = get_env_str("DB_HOST")
 DB_USER = get_env_str("DB_USER")
@@ -89,4 +90,4 @@ for key, value in env_vars.items():
     print(f"{key}: {value}")
 
 if error:
-    exit()
+    sys.exit()

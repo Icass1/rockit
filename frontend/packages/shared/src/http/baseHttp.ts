@@ -495,6 +495,15 @@ export class BaseHttp {
         );
     }
 
+    static async startDownloadFromSearch(payload: dto.StartFromSearchRequest) {
+        return this.apiPostAsync(
+            `/downloader/start-from-search`,
+            dto.StartFromSearchRequestSchema,
+            dto.StartDownloadFromUrlResponseSchema,
+            payload
+        );
+    }
+
     static async startDownloadFromUrl(payload: dto.AddFromUrlRequest) {
         return this.apiPostAsync(
             `/downloader/start-from-url`,
@@ -638,6 +647,16 @@ export class BaseHttp {
         );
     }
 
+    static async getRelatedSongs(publicId: string, limit?: number) {
+        const query = new URLSearchParams();
+        if (limit !== undefined) query.append("limit", `${limit}`);
+        const queryString = query.toString();
+        return this.apiGetAsync(
+            `/media/song/${publicId}/related${queryString ? `?${queryString}` : ""}`,
+            dto.SongListResponseSchema
+        );
+    }
+
     static async getStationAsync(publicId: string) {
         return this.apiGetAsync(
             `/media/station/${publicId}`,
@@ -701,6 +720,29 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/radio/stations/geo${queryString ? `?${queryString}` : ""}`,
             dto.ListSchema
+        );
+    }
+
+    static async getRecommendationsForYou(limit?: number) {
+        const query = new URLSearchParams();
+        if (limit !== undefined) query.append("limit", `${limit}`);
+        const queryString = query.toString();
+        return this.apiGetAsync(
+            `/recommendation/for-you${queryString ? `?${queryString}` : ""}`,
+            dto.SongListResponseSchema
+        );
+    }
+
+    static async getRecommendationsForPlaylist(
+        publicId: string,
+        limit?: number
+    ) {
+        const query = new URLSearchParams();
+        if (limit !== undefined) query.append("limit", `${limit}`);
+        const queryString = query.toString();
+        return this.apiGetAsync(
+            `/recommendation/playlist/${publicId}${queryString ? `?${queryString}` : ""}`,
+            dto.SongListResponseSchema
         );
     }
 

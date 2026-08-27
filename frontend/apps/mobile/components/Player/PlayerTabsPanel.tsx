@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { Radio } from "lucide-react-native";
 import {
     Animated,
     Dimensions,
@@ -12,6 +11,7 @@ import {
 import type { PlayerTab } from "@/components/Player/FullPlayer";
 import PlayerLyrics from "@/components/Player/PlayerLyrics";
 import PlayerQueue from "@/components/Player/PlayerQueue";
+import PlayerRelated from "@/components/Player/PlayerRelated";
 import CrossfadeSettings from "@/components/Settings/CrossfadeSettings";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -69,7 +69,7 @@ export default function PlayerTabsPanel({
             <View style={styles.content}>
                 {renderedTab === "queue" && <PlayerQueue />}
                 {renderedTab === "lyrics" && <PlayerLyrics />}
-                {renderedTab === "related" && <RelatedMock />}
+                {renderedTab === "related" && <PlayerRelated />}
                 {renderedTab === "crossfade" && (
                     <View style={styles.crossfadeWrapper}>
                         <Text style={styles.crossfadeTitle}>Crossfade</Text>
@@ -78,16 +78,6 @@ export default function PlayerTabsPanel({
                 )}
             </View>
         </Animated.View>
-    );
-}
-
-function RelatedMock() {
-    return (
-        <View style={styles.mockContainer}>
-            <Radio size={40} color={COLORS.gray400} />
-            <Text style={styles.mockTitle}>Related songs</Text>
-            <Text style={styles.mockSubtitle}>Coming soon</Text>
-        </View>
     );
 }
 
@@ -133,20 +123,5 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: COLORS.white,
         marginBottom: 12,
-    },
-    mockContainer: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-    },
-    mockTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: COLORS.white,
-    },
-    mockSubtitle: {
-        fontSize: 14,
-        color: COLORS.gray400,
     },
 });

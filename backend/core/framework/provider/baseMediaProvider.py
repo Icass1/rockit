@@ -212,6 +212,14 @@ class BaseMediaProvider(BaseProvider):
         """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url)."""
         return None
 
+    def get_stats_genre_info_cte_fragment(self) -> str | None:
+        """SELECT fragment for genre_info (media_id, genre_name).
+
+        A media item may produce multiple rows (multiple artists, each with
+        multiple genres). Return None if the provider has no genre data.
+        """
+        return None
+
     def get_search_index_cte_fragment(self) -> str | None:
         """SELECT fragment for search_index (internal_id, public_id, name, subtitle, media_type_key, provider_name, image_url).
 

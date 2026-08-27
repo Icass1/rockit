@@ -12,6 +12,10 @@ from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
+# Measurement-only counter of provider search calls since process start,
+# used to prove the discovery redesign does not add provider requests.
+_module_search_call_count: int = 0
+
 from backend.core.framework import providers
 from backend.core.framework.models.media import MediaModel
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
@@ -84,6 +88,61 @@ class Media:
         ]
 
         return AResult(code=AResultCode.OK, message="OK", result=result)
+
+    @staticmethod
+    async def resolve_songs_from_public_ids_async(
+        session: AsyncSession,
+        public_ids: List[str],
+    ) -> List[BaseSongWithAlbumResponse]:
+        """Resolve song public_ids to full song responses, dispatching each
+        one to its owning provider (batched per provider). Order follows
+        public_ids; unresolvable ids are silently dropped."""
+
+        if not public_ids:
+            return []
+
+        a_medias: AResult[List[MediaModel]] = (
+            await Media.get_medias_from_public_ids_async(
+                session=session,
+                public_ids=list(dict.fromkeys(public_ids)),
+                media_type_keys=[MediaTypeEnum.SONG],
+            )
+        )
+        if a_medias.is_not_ok():
+            logger.error(f"Error resolving songs from public ids. {a_medias.info()}")
+            return []
+        if not a_medias.result():
+            return []
+
+        medias: List[MediaModel] = a_medias.result()
+        pid_to_provider: dict[str, int] = {m.public_id: m.provider_id for m in medias}
+
+        by_provider: dict[int, List[str]] = {}
+        for pid in public_ids:
+            pid_int = pid_to_provider.get(pid)
+            if pid_int is not None:
+                by_provider.setdefault(pid_int, []).append(pid)
+
+        result_map: dict[str, BaseSongWithAlbumResponse] = {}
+        for provider_id, pids in by_provider.items():
+            provider: BaseMediaProvider | None = providers.find_media_provider(
+                provider_id
+            )
+            if provider is None:
+                logger.warning(f"No media provider found for provider_id {provider_id}")
+                continue
+            a_songs: AResult[List[BaseSongWithAlbumResponse]] = (
+                await provider.get_songs_async(session=session, public_ids=pids)
+            )
+            if a_songs.is_not_ok():
+                logger.error(
+                    f"Provider {provider_id} error resolving {len(pids)} songs: {a_songs.info()}"
+                )
+                continue
+            for song in a_songs.result():
+                result_map[song.publicId] = song
+
+        return [result_map[pid] for pid in public_ids if pid in result_map]
 
     @staticmethod
     async def get_media_from_public_id_async(
@@ -318,10 +377,23 @@ class Media:
         )
 
     @staticmethod
+    def get_provider_search_call_count() -> int:
+        """Number of provider searches performed since process start.
+
+        Measurement only — used to show the discovery redesign renders without
+        provider requests and downloads resolve in a single search.
+        """
+
+        return _module_search_call_count
+
+    @staticmethod
     async def search_async(
         session: AsyncSession, query: str
     ) -> AResult[SearchResultsResponse]:
         """Search all providers concurrently and aggregate results."""
+
+        global _module_search_call_count
+        _module_search_call_count += 1
 
         results: List[BaseSearchResultsItem] = []
 

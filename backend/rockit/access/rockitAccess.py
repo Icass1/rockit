@@ -200,6 +200,7 @@ class RockitAccess:
                 select(RockitSongRow)
                 .join(CoreMediaRow, RockitSongRow.id == CoreMediaRow.id)
                 .where(CoreMediaRow.public_id.in_(public_ids))
+                .options(selectinload(RockitSongRow.artists))
             )
             result: Result[Tuple[RockitSongRow]] = await session.execute(stmt)
             rows: List[RockitSongRow] = cast(
@@ -300,6 +301,7 @@ class RockitAccess:
                 select(RockitSongRow)
                 .where(RockitSongRow.album_id == album_id)
                 .order_by(RockitSongRow.disc_number, RockitSongRow.track_number)
+                .options(selectinload(RockitSongRow.artists))
             )
             result: Result[Tuple[RockitSongRow]] = await session.execute(stmt)
             rows: List[RockitSongRow] = cast(

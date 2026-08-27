@@ -13,10 +13,12 @@ export default function PlayerUIQueue({
     visible: boolean;
 }): JSX.Element {
     const $queue = useStore(rockIt.queueManager.queueAtom);
+    const $autoplay = useStore(rockIt.queueManager.autoplayAtom);
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
     );
     const $playerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const queueContainerRef = useRef<HTMLDivElement>(null);
@@ -145,6 +147,37 @@ export default function PlayerUIQueue({
                         </MediaContextMenu>
                     </div>
                 )
+            )}
+
+            {$autoplay.length > 0 && (
+                <>
+                    <p className="mt-4 border-t border-neutral-700 px-2 pt-4 text-sm font-semibold text-neutral-400">
+                        {$vocabulary.AUTOPLAY_ON}
+                    </p>
+                    {$autoplay.map(
+                        (media): JSX.Element => (
+                            <MediaContextMenu
+                                key={media.publicId}
+                                media={media}
+                                location={EMediaContextLocation.QUEUE}
+                            >
+                                <QueueMedia
+                                    // Negative ids never collide with the real
+                                    // queue, so these rows never render as the
+                                    // currently playing one.
+                                    media={{
+                                        media,
+                                        listPublicId: null,
+                                        queueMediaId: -1,
+                                    }}
+                                    onClick={(): void => {
+                                        rockIt.queueManager.addMediaNext(media);
+                                    }}
+                                />
+                            </MediaContextMenu>
+                        )
+                    )}
+                </>
             )}
         </div>
     );

@@ -6,6 +6,7 @@ import {
     TMedia,
 } from "@rockit/packages/shared";
 import { getPlaylistAsync } from "@/lib/services/mediaService";
+import PlaylistRecommendations from "@/components/Playlist/PlaylistRecommendations";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
 const getPlaylist = cache(
@@ -58,17 +59,20 @@ export default async function PlaylistPage({
     }
 
     return (
-        <RenderListClient
-            publicId={publicId}
-            type={EMediaType.Playlist}
-            title={playlistResponse.name}
-            artists={[playlistResponse.owner]}
-            media={playlistMedia}
-            listMedia={playlistResponse}
-            image={playlistResponse.imageUrl}
-            showMediaImage
-            showMediaIndex={false}
-            expandedByMediaId={expandedByMediaId}
-        />
+        <>
+            <RenderListClient
+                publicId={publicId}
+                type={EMediaType.Playlist}
+                title={playlistResponse.name}
+                artists={[playlistResponse.owner]}
+                media={playlistMedia}
+                listMedia={playlistResponse}
+                image={playlistResponse.imageUrl}
+                showMediaImage
+                showMediaIndex={false}
+                expandedByMediaId={expandedByMediaId}
+            />
+            <PlaylistRecommendations publicId={publicId} />
+        </>
     );
 }

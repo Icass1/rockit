@@ -409,4 +409,15 @@ export interface Vocabulary {
     LIBRARY_SELECT_ITEMS: string;
     LIBRARY_ZIP: string;
     LIBRARY_DOWNLOAD_ALL: string;
+    PLAYER_RELATED_TITLE: string;
+    PLAYER_RELATED_EMPTY: string;
+    PLAYER_DISCOVER_TITLE: string;
+    FOR_YOU: string;
+    RECOMMENDED_FOR_THIS_PLAYLIST: string;
+    NO_SIMILAR_SONGS_FOUND: string;
+    SIMILAR_TO_SONG_PLAYLIST_PREFIX: string;
+    SIMILAR_SONGS_PLAYLIST_CREATED: string;
+    SIMILAR_TO_SONG: string;
+    AUTOPLAY_ON: string;
+    RECOMMENDED_SONGS: string;
 }

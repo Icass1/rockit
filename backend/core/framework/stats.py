@@ -9,13 +9,11 @@ from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.statsAccess import StatsAccess
 from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
+from backend.core.access.recommendationAccess import RecommendationAccess
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
-from backend.core.framework import providers
 from backend.core.framework.media.media import Media
-from backend.core.framework.models.media import MediaModel
-from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 
 from backend.core.responses.homeStatsResponse import HomeStatsResponse
 from backend.core.responses.userStatsResponse import UserStatsResponse
@@ -86,54 +84,6 @@ def _get_group_by(
     return "week"
 
 
-async def _resolve_songs_from_ids_async(
-    session: AsyncSession,
-    public_ids: List[str],
-) -> dict[str, BaseSongWithAlbumResponse]:
-    """Resolve a list of public_ids to a dict of public_id → BaseSongWithAlbumResponse."""
-    if not public_ids:
-        return {}
-
-    a_medias: AResult[List[MediaModel]] = await Media.get_medias_from_public_ids_async(
-        session=session,
-        public_ids=list(dict.fromkeys(public_ids)),
-        media_type_keys=[MediaTypeEnum.SONG],
-    )
-    if a_medias.is_not_ok():
-        logger.error(f"Error resolving medias for home stats: {a_medias.info()}")
-        return {}
-    if not a_medias.result():
-        return {}
-
-    medias: List[MediaModel] = a_medias.result()
-    pid_to_provider: dict[str, int] = {m.public_id: m.provider_id for m in medias}
-
-    by_provider: dict[int, List[str]] = {}
-    for pid in public_ids:
-        pid_int = pid_to_provider.get(pid)
-        if pid_int is not None:
-            by_provider.setdefault(pid_int, []).append(pid)
-
-    result_map: dict[str, BaseSongWithAlbumResponse] = {}
-    for provider_id, pids in by_provider.items():
-        provider: BaseMediaProvider | None = providers.find_media_provider(provider_id)
-        if provider is None:
-            logger.warning(f"No media provider found for provider_id {provider_id}")
-            continue
-        a_songs: AResult[List[BaseSongWithAlbumResponse]] = (
-            await provider.get_songs_async(session=session, public_ids=pids)
-        )
-        if a_songs.is_not_ok():
-            logger.error(
-                f"Provider {provider_id} error resolving {len(pids)} songs: {a_songs.info()}"
-            )
-            continue
-        for song in a_songs.result():
-            result_map[song.publicId] = song
-
-    return result_map
-
-
 class Stats:
     @staticmethod
     async def get_home_stats_async(
@@ -143,7 +93,8 @@ class Stats:
         """Assemble home page sections from real listening data.
 
         Each section uses its own query — no arbitrary slicing or fake data.
-        Sections without available data (communityTop, moodSongs) return empty.
+        moodSongs draws on genre data where a provider has it (Spotify
+        artist genres today) and is empty for users with none.
         """
 
         now: datetime = datetime.now(timezone.utc)
@@ -234,15 +185,65 @@ class Stats:
         )
         current_streak: int = a_streak.result() if a_streak.is_ok() else 0
 
+        # --- communityTop: top songs by play count across all users ---
+        a_community: AResult[List[str]] = (
+            await RecommendationAccess.get_community_top_song_ids_async(
+                session=session, exclude_media_ids=[], limit=15
+            )
+        )
+        community_ids: List[str] = a_community.result() if a_community.is_ok() else []
+
+        # --- moodSongs: random songs from the user's top genres, excluding
+        # what they've played very recently (Spotify-genre data only) ---
+        a_recently_played_for_mood: AResult[List[str]] = (
+            await StatsAccess.get_recently_played_songs_async(
+                session=session, user_id=user_id, limit=30
+            )
+        )
+        recently_played_ids: List[str] = (
+            a_recently_played_for_mood.result()
+            if a_recently_played_for_mood.is_ok()
+            else []
+        )
+        a_recently_played_medias = await Media.get_medias_from_public_ids_async(
+            session=session,
+            public_ids=recently_played_ids,
+            media_type_keys=[MediaTypeEnum.SONG],
+        )
+        mood_exclude_ids: List[int] = (
+            [m.id for m in a_recently_played_medias.result()]
+            if a_recently_played_medias.is_ok()
+            else []
+        )
+
+        a_mood: AResult[List[str]] = await RecommendationAccess.get_mood_song_ids_async(
+            session=session,
+            user_id=user_id,
+            exclude_media_ids=mood_exclude_ids,
+            limit=12,
+        )
+        mood_ids: List[str] = a_mood.result() if a_mood.is_ok() else []
+
         # Resolve all unique song IDs in a single pass
         all_ids: List[str] = list(
             dict.fromkeys(
-                recent_ids + random_ids + monthly_ids + nostalgic_ids + hidden_ids
+                recent_ids
+                + random_ids
+                + monthly_ids
+                + nostalgic_ids
+                + hidden_ids
+                + community_ids
+                + mood_ids
             )
         )
-        resolved: dict[str, BaseSongWithAlbumResponse] = (
-            await _resolve_songs_from_ids_async(session=session, public_ids=all_ids)
+        resolved_songs: List[BaseSongWithAlbumResponse] = (
+            await Media.resolve_songs_from_public_ids_async(
+                session=session, public_ids=all_ids
+            )
         )
+        resolved: dict[str, BaseSongWithAlbumResponse] = {
+            s.publicId: s for s in resolved_songs
+        }
 
         def lookup(ids: List[str]) -> List[BaseSongWithAlbumResponse]:
             return [resolved[pid] for pid in ids if pid in resolved]
@@ -255,9 +256,9 @@ class Stats:
                 randomSongsLastMonth=lookup(random_ids),
                 nostalgicMix=lookup(nostalgic_ids),
                 hiddenGems=lookup(hidden_ids),
-                communityTop=[],  # no multi-user aggregation yet
+                communityTop=lookup(community_ids),
                 monthlyTop=lookup(monthly_ids),
-                moodSongs=[],  # no mood/genre data yet
+                moodSongs=lookup(mood_ids),
                 currentStreak=current_streak,
                 minutesListenedThisWeek=minutes_this_week,
             ),

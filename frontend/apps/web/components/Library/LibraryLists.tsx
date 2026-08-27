@@ -724,7 +724,7 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {songs.map(
+                                {filtered.songs.map(
                                     (s): JSX.Element => (
                                         <SongRow key={s.publicId} song={s} />
                                     )
@@ -732,7 +732,7 @@ export function LibraryLists({
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {songs.map(
+                                {filtered.songs.map(
                                     (s): JSX.Element => (
                                         <SongCard key={s.publicId} song={s} />
                                     )
@@ -740,7 +740,7 @@ export function LibraryLists({
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {songs.map(
+                                {filtered.songs.map(
                                     (s): JSX.Element => (
                                         <SongCard key={s.publicId} song={s} />
                                     )
@@ -768,7 +768,7 @@ export function LibraryLists({
                         />
                         {viewMode === EViewMode.List ? (
                             <div className={CHIP_GRID_CLASS}>
-                                {videos.map(
+                                {filtered.videos.map(
                                     (v): JSX.Element => (
                                         <VideoRow key={v.publicId} video={v} />
                                     )
@@ -776,7 +776,7 @@ export function LibraryLists({
                             </div>
                         ) : viewMode === EViewMode.Masonry ? (
                             <div className="masonry-grid px-4 pt-4 pb-4">
-                                {videos.map(
+                                {filtered.videos.map(
                                     (v): JSX.Element => (
                                         <VideoCard key={v.publicId} video={v} />
                                     )
@@ -784,7 +784,7 @@ export function LibraryLists({
                             </div>
                         ) : (
                             <div className={GRID_CLASS}>
-                                {videos.map(
+                                {filtered.videos.map(
                                     (v): JSX.Element => (
                                         <VideoCard key={v.publicId} video={v} />
                                     )

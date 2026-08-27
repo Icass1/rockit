@@ -5,6 +5,11 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.access.mediaInfoCte import (
+    get_media_info_cte as _get_media_info_cte,
+    get_artist_info_cte as _get_artist_info_cte,
+    get_album_info_cte as _get_album_info_cte,
+)
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from backend.core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
@@ -17,79 +22,6 @@ logger = getLogger(__name__)
 
 HEATMAP_HOURS_START = 0
 HEATMAP_HOURS_END = 24
-
-
-def _build_cte(name: str, fragments: list[str]) -> str:
-    """Wrap UNION ALL'd SELECT fragments in a named CTE."""
-    return f"{name} AS (\n" + "\n\nUNION ALL\n\n".join(fragments) + "\n)"
-
-
-def _empty_cte(name: str, columns: list[tuple[str, str]]) -> str:
-    """Return a zero-row CTE with the correct column names and types."""
-    cols = ", ".join(f"NULL::{t} AS {c}" for c, t in columns)
-    return f"{name} AS (SELECT {cols} WHERE false)"
-
-
-def _get_media_info_cte() -> str:
-    from backend.core.framework import providers
-
-    frags = [
-        p.get_stats_media_info_cte_fragment() for p in providers.get_media_providers()
-    ]
-    frags = [f for f in frags if f]
-    if not frags:
-        return _empty_cte(
-            "media_info",
-            [
-                ("media_id", "int"),
-                ("duration_ms", "bigint"),
-                ("public_id", "text"),
-                ("media_name", "text"),
-                ("image_url", "text"),
-                ("media_type_key", "int"),
-            ],
-        )
-    return _build_cte("media_info", frags)
-
-
-def _get_artist_info_cte() -> str:
-    from backend.core.framework import providers
-
-    frags = [
-        p.get_stats_artist_info_cte_fragment() for p in providers.get_media_providers()
-    ]
-    frags = [f for f in frags if f]
-    if not frags:
-        return _empty_cte(
-            "artist_info",
-            [
-                ("media_id", "int"),
-                ("artist_public_id", "text"),
-                ("artist_name", "text"),
-                ("artist_image_url", "text"),
-            ],
-        )
-    return _build_cte("artist_info", frags)
-
-
-def _get_album_info_cte() -> str:
-    from backend.core.framework import providers
-
-    frags = [
-        p.get_stats_album_info_cte_fragment() for p in providers.get_media_providers()
-    ]
-    frags = [f for f in frags if f]
-    if not frags:
-        return _empty_cte(
-            "album_info",
-            [
-                ("media_id", "int"),
-                ("album_public_id", "text"),
-                ("album_name", "text"),
-                ("album_image_url", "text"),
-            ],
-        )
-    return _build_cte("album_info", frags)
 
 
 def _naive_utc(dt: datetime) -> datetime:

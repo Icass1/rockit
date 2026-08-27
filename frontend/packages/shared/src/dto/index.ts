@@ -372,6 +372,10 @@ export {
     type SkipClickedMessageRequest,
 } from "./skipClickedMessageRequest";
 export {
+    SongListResponseSchema,
+    type SongListResponse,
+} from "./songListResponse";
+export {
     SpotifyAlbumResponseSchema,
     type SpotifyAlbumResponse,
 } from "./spotifyAlbumResponse";
@@ -423,6 +427,10 @@ export {
     StartDownloadResponseSchema,
     type StartDownloadResponse,
 } from "./startDownloadResponse";
+export {
+    StartFromSearchRequestSchema,
+    type StartFromSearchRequest,
+} from "./startFromSearchRequest";
 export {
     StartUploadResponseSchema,
     type StartUploadResponse,

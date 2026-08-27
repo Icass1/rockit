@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
 import type { BaseArtistResponse, TMedia } from "@rockit/shared";
@@ -19,6 +19,8 @@ interface RenderListProps {
     substractArtists?: string[];
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
+    /** Rendered after the media list, inside the same scroll view. */
+    footer?: ReactNode;
 }
 
 export default memo(function RenderList({
@@ -32,6 +34,7 @@ export default memo(function RenderList({
     substractArtists = [],
     listPublicId,
     expandedByMediaId,
+    footer,
 }: RenderListProps) {
     const artistNames = artists.map((a) => a.name).join(", ");
 
@@ -91,6 +94,7 @@ export default memo(function RenderList({
                         />
                     ))}
                 </View>
+                {footer}
             </ScrollView>
         </SafeAreaView>
     );

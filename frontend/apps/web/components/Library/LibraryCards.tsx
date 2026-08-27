@@ -193,20 +193,28 @@ function LibraryCard({
     const selectionOverlay = selectable ? (
         <div
             role="checkbox"
-            aria-checked={"publicId" in media && isSelected(media.publicId)}
+            aria-checked={
+                "publicId" in media &&
+                media.publicId != null &&
+                isSelected(media.publicId)
+            }
             aria-label={name}
             tabIndex={0}
             onClick={handleSelectionClick}
             onKeyDown={handleSelectionKeyDown}
             className={`absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-black/60 ${
-                "publicId" in media && isSelected(media.publicId)
+                "publicId" in media &&
+                media.publicId != null &&
+                isSelected(media.publicId)
                     ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
                     : "border-white/80"
             }`}
         >
-            {"publicId" in media && isSelected(media.publicId) && (
-                <span className="text-xs font-bold text-white">✓</span>
-            )}
+            {"publicId" in media &&
+                media.publicId != null &&
+                isSelected(media.publicId) && (
+                    <span className="text-xs font-bold text-white">✓</span>
+                )}
         </div>
     ) : null;
 

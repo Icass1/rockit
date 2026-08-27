@@ -31,6 +31,10 @@ from backend.core.responses.startDownloadResponse import StartDownloadResponse
 from backend.core.responses.startDownloadFromUrlResponse import (
     StartDownloadFromUrlResponse,
 )
+from backend.core.responses.searchResponse import (
+    BaseSearchResultsItem,
+    SearchResultsResponse,
+)
 from backend.core.responses.downloadsResponse import (
     DownloadsResponse,
     DownloadGroupResponse,
@@ -290,6 +294,67 @@ class Downloader:
                 data=media,
                 downloadGroupId=a_result_download.result().downloadGroupId,
             ),
+        )
+
+    @staticmethod
+    async def start_download_from_search_async(
+        session: AsyncSession,
+        user_id: int,
+        artist_name: str,
+        track_name: str,
+        add_to_library: bool,
+        add_to_playlist: bool,
+        playlist_public_id: str | None,
+    ) -> AResult[StartDownloadFromUrlResponse]:
+        """Resolve the best song match for a Last.fm discovery suggestion
+        (artist + track) via a single provider search, then queue its download
+        in one atomic operation by reusing the same add-and-queue path as
+        start_download_from_url_async.
+
+        This is the one place a provider search happens for the discovery
+        flow — only here, and only on the user's tap.
+        """
+
+        a_search: AResult[SearchResultsResponse] = await Media.search_async(
+            session=session, query=f"{artist_name} {track_name}"
+        )
+        if a_search.is_not_ok():
+            logger.error(
+                f"Error searching for '{artist_name} {track_name}'. {a_search.info()}"
+            )
+            return AResult(code=a_search.code(), message=a_search.message())
+
+        # Prefer a song that isn't downloaded here yet (that's the point of the
+        # tap), then any song with a fetchable URL.
+        items: List[BaseSearchResultsItem] = a_search.result().results
+        match: BaseSearchResultsItem | None = next(
+            (
+                item
+                for item in items
+                if item.type == "song" and item.providerUrl and not item.downloaded
+            ),
+            next(
+                (item for item in items if item.type == "song" and item.providerUrl),
+                None,
+            ),
+        )
+
+        if match is None:
+            logger.warning(
+                f"No downloadable song match for '{artist_name} {track_name}'."
+            )
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message=f"No song found for {artist_name} - {track_name}",
+            )
+
+        return await Downloader.start_download_from_url_async(
+            session=session,
+            user_id=user_id,
+            url=match.providerUrl,
+            add_to_library=add_to_library,
+            add_to_playlist=add_to_playlist,
+            playlist_public_id=playlist_public_id,
         )
 
     @staticmethod

@@ -17,6 +17,10 @@ class BaseSearchResultsItem(BaseModel):
     provider: str
     downloaded: bool | None
     url: str | None
+    # Set (plus downloaded=True) when this item is actually already available
+    # in this Rockit instance (matched by name/artist in the DB), so the
+    # frontend can play it directly instead of offering a re-download.
+    publicId: str | None = None
 
 
 class SearchResultsResponse(BaseModel):

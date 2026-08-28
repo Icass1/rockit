@@ -33,6 +33,7 @@ import {
 } from "@/lib/services/mediaService";
 import DownloadLibraryButton from "@/components/Library/DownloadLibraryButton";
 import { useLibraryData } from "@/components/Library/hooks/useLibraryData";
+import { useOfflineLibrary } from "@/components/Library/hooks/useOfflineLibrary";
 import {
     AlbumCard,
     PlaylistCard,
@@ -313,6 +314,122 @@ function SectionedAllList({
 }
 
 /* ------------------------------------------------------- */
+/* OFFLINE TAB — grid of everything saved offline          */
+/* ------------------------------------------------------- */
+
+function OfflineMix({
+    albums,
+    playlists,
+    songs,
+    videos,
+    viewMode,
+}: {
+    albums: BaseAlbumWithoutSongsResponse[];
+    playlists: BasePlaylistWithoutMediasResponse[];
+    songs: BaseSongWithAlbumResponse[];
+    videos: BaseVideoResponse[];
+    viewMode: EViewMode;
+}): JSX.Element {
+    const mixed = useMemo(
+        () =>
+            interleaveGridItems(playlists, albums, videos, songs, []),
+        [playlists, albums, videos, songs]
+    );
+
+    if (viewMode === EViewMode.List) {
+        return (
+            <div className={CHIP_GRID_CLASS}>
+                {mixed.map((m): JSX.Element => {
+                    switch (m.kind) {
+                        case "playlist":
+                            return (
+                                <PlaylistRow
+                                    key={m.item.publicId}
+                                    playlist={m.item}
+                                />
+                            );
+                        case "album":
+                            return (
+                                <AlbumRow key={m.item.publicId} album={m.item} />
+                            );
+                        case "video":
+                            return (
+                                <VideoRow key={m.item.publicId} video={m.item} />
+                            );
+                        case "song":
+                            return (
+                                <SongRow key={m.item.publicId} song={m.item} />
+                            );
+                        case "station":
+                            return <></>;
+                    }
+                })}
+            </div>
+        );
+    }
+
+    if (viewMode === EViewMode.Masonry) {
+        return (
+            <div className="masonry-grid px-4 pt-4 pb-4">
+                {mixed.map((m): JSX.Element => {
+                    switch (m.kind) {
+                        case "playlist":
+                            return (
+                                <PlaylistCard
+                                    key={m.item.publicId}
+                                    playlist={m.item}
+                                />
+                            );
+                        case "album":
+                            return (
+                                <AlbumCard key={m.item.publicId} album={m.item} />
+                            );
+                        case "video":
+                            return (
+                                <VideoCard key={m.item.publicId} video={m.item} />
+                            );
+                        case "song":
+                            return (
+                                <SongCard key={m.item.publicId} song={m.item} />
+                            );
+                        case "station":
+                            return <></>;
+                    }
+                })}
+            </div>
+        );
+    }
+
+    return (
+        <div className={GRID_CLASS}>
+            {mixed.map((m): JSX.Element => {
+                switch (m.kind) {
+                    case "playlist":
+                        return (
+                            <PlaylistCard
+                                key={m.item.publicId}
+                                playlist={m.item}
+                            />
+                        );
+                    case "album":
+                        return (
+                            <AlbumCard key={m.item.publicId} album={m.item} />
+                        );
+                    case "video":
+                        return (
+                            <VideoCard key={m.item.publicId} video={m.item} />
+                        );
+                    case "song":
+                        return <SongCard key={m.item.publicId} song={m.item} />;
+                    case "station":
+                        return <></>;
+                }
+            })}
+        </div>
+    );
+}
+
+/* ------------------------------------------------------- */
 /* MAIN EXPORT                                             */
 /* ------------------------------------------------------- */
 
@@ -324,6 +441,15 @@ export function LibraryLists({
 }: ILibraryListsProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
+
+    const isOffline = activeType === EContentType.Offline;
+    const offline = useOfflineLibrary({
+        enabled: isOffline,
+        songs: filtered.songs,
+        albums: filtered.albums,
+        playlists: filtered.playlists,
+        videos: filtered.videos,
+    });
 
     // Incremental rendering for the lists that can grow very large (songs,
     // videos). Small libraries render everything immediately — zero overhead.
@@ -599,6 +725,23 @@ export function LibraryLists({
                     )}
                 </>
             )}
+
+            {/* ── OFFLINE tab ───────────────────────────────────────────── */}
+            {isOffline &&
+                (offline.totalCount === 0 ? (
+                    <EmptyState message={$vocabulary.NO_OFFLINE_MEDIA} />
+                ) : (
+                    <>
+                        <SectionHeader title={$vocabulary.OFFLINE} />
+                        <OfflineMix
+                            albums={offline.albums}
+                            playlists={offline.playlists}
+                            songs={offline.songs}
+                            videos={offline.videos}
+                            viewMode={viewMode}
+                        />
+                    </>
+                ))}
 
             {/* ── ALBUMS tab ────────────────────────────────────────────── */}
             {activeType === EContentType.Albums &&

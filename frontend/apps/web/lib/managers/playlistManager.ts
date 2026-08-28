@@ -6,6 +6,7 @@ import {
     EWebSocketMessage,
     HttpResult,
     TMedia,
+    isSong,
     type MediaAddedToPlaylistMessage,
     type MediaRemovedFromPlaylistMessage,
     type PlaylistCreatedMessage,
@@ -13,6 +14,11 @@ import {
     type PlaylistRenamedMessage,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
+import {
+    addSongPlaylistRef,
+    offlineStatusMap,
+    removeSongPlaylistRef,
+} from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
 
@@ -129,6 +135,15 @@ export class PlaylistManager {
         media: TMedia,
         playlist: BasePlaylistWithoutMediasResponse
     ): Promise<HttpResult<{ status: string }>> {
+        // Keep parent-playlist references accurate for songs saved offline:
+        // no network call, just an IndexedDB write in the background.
+        if (
+            isSong(media) &&
+            (offlineStatusMap.get()[media.publicId] ?? "idle") === "downloaded"
+        ) {
+            addSongPlaylistRef(media.publicId, playlist.publicId).catch(() => {});
+        }
+
         return await Http.addMediaToPlaylistAsync(playlist.publicId, {
             mediaPublicId: media.publicId,
         });
@@ -148,6 +163,14 @@ export class PlaylistManager {
         mediaPublicId: string,
         playlistPublicId: string
     ): Promise<HttpResult<{ status: string }>> {
+        // Keep parent-playlist references accurate for songs saved offline
+        // without a network call; fire-and-forget IndexedDB write.
+        if ((offlineStatusMap.get()[mediaPublicId] ?? "idle") === "downloaded") {
+            removeSongPlaylistRef(mediaPublicId, playlistPublicId).catch(
+                () => {}
+            );
+        }
+
         const res = await Http.removeMediaFromPlaylistAsync(
             playlistPublicId,
             mediaPublicId

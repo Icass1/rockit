@@ -305,6 +305,14 @@ const ACTION_REGISTRY: ActionDef[] = [
         labelKey: "SAVE_OFFLINE",
         mediaTypes: [EMediaType.Song],
     },
+    {
+        id: EMediaContextAction.DownloadOfflineList,
+        type: "action",
+        icon: CloudDownload,
+        labelKey: "DOWNLOAD_LIST_TO_DEVICE",
+        mediaTypes: [EMediaType.Album, EMediaType.Playlist],
+        condition: (m) => !isSearchResult(m),
+    },
 ];
 
 const ACTION_MAP = new Map<EMediaContextAction, ActionDef>(
@@ -395,6 +403,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddToQueueBottom,
         "---",
         EMediaContextAction.DownloadList,
+        EMediaContextAction.DownloadOfflineList,
         EMediaContextAction.DownloadZip,
         EMediaContextAction.RemoveFromPlaylist,
     ],
@@ -410,6 +419,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.AddQueueRandom,
         EMediaContextAction.AddToQueueBottom,
         EMediaContextAction.DownloadList,
+        EMediaContextAction.DownloadOfflineList,
         EMediaContextAction.DownloadZip,
         EMediaContextAction.RemoveFromPlaylist,
     ],

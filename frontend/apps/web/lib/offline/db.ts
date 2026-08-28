@@ -5,12 +5,24 @@ import type {
 } from "@/dto";
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 
-interface OfflineSongRecord {
+export interface OfflineSongRecord {
     publicId: string;
     audioBlob: Blob;
     coverBlob: Blob | null;
     downloadedAt: number;
     sizeBytes: number;
+    /**
+     * publicIds of library albums that contain this song. Settled when the
+     * song is saved offline. Optional so records written before this field
+     * existed migrate gracefully (treated as "no known album").
+     */
+    parentAlbumIds?: string[];
+    /**
+     * publicIds of playlists that contain this song. Populated from the
+     * immediate context (`listPublicId`) at save time and kept in sync when
+     * the song is added to / removed from playlists. Not exhaustive.
+     */
+    parentPlaylistIds?: string[];
 }
 
 interface RockItOfflineDB extends DBSchema {
@@ -61,7 +73,9 @@ function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
 export async function saveSongOffline(
     publicId: string,
     audioUrl: string,
-    coverUrl: string | null
+    coverUrl: string | null,
+    parentAlbumIds: string[] = [],
+    parentPlaylistIds: string[] = []
 ): Promise<void> {
     const audioRes = await fetch(audioUrl);
     if (!audioRes.ok)
@@ -82,12 +96,30 @@ export async function saveSongOffline(
 
     const db = await getDB();
     try {
+        // Merge with the existing record (if any) so that parent references
+        // accumulated via addSongPlaylistRef() / updateOfflineSongPlaylist()
+        // survive a re-download of an already-offline song. Without this, a
+        // re-save would silently drop every playlist relationship collected
+        // over time.
+        const existing = await db.get("songs", publicId);
+        const mergedAlbumIds = Array.from(
+            new Set([...(existing?.parentAlbumIds ?? []), ...parentAlbumIds])
+        );
+        const mergedPlaylistIds = Array.from(
+            new Set([
+                ...(existing?.parentPlaylistIds ?? []),
+                ...parentPlaylistIds,
+            ])
+        );
+
         await db.put("songs", {
             publicId,
             audioBlob,
             coverBlob,
             downloadedAt: Date.now(),
             sizeBytes: audioBlob.size + (coverBlob?.size ?? 0),
+            parentAlbumIds: mergedAlbumIds,
+            parentPlaylistIds: mergedPlaylistIds,
         });
     } catch (err) {
         if (err instanceof DOMException && err.name === "QuotaExceededError") {
@@ -102,6 +134,68 @@ export async function getOfflineSong(
 ): Promise<OfflineSongRecord | undefined> {
     const db = await getDB();
     return db.get("songs", publicId);
+}
+
+export async function listOfflineSongRecords(): Promise<OfflineSongRecord[]> {
+    const db = await getDB();
+    return db.getAll("songs");
+}
+
+/**
+ * In-sync helper used when a song is added to / removed from a playlist while
+ * already saved offline. Reads the existing record (blobs included) and
+ * updates only the parent-playlist references, so the relationship stays
+ * accurate without a full re-download. No-op if the song isn't offline.
+ */
+export async function updateOfflineSongPlaylist(
+    publicId: string,
+    playlistPublicId: string,
+    add: boolean
+): Promise<void> {
+    const db = await getDB();
+    const record = await db.get("songs", publicId);
+    if (!record) return;
+
+    const current = record.parentPlaylistIds ?? [];
+    const next = add
+        ? current.includes(playlistPublicId)
+            ? current
+            : [...current, playlistPublicId]
+        : current.filter((id) => id !== playlistPublicId);
+
+    await db.put("songs", { ...record, parentPlaylistIds: next });
+}
+
+/**
+ * Remove parent references (album and/or playlist ids) from an offline song's
+ * record without touching the blobs, so media can be dropped from an album /
+ * playlist grouping while staying available if still referenced elsewhere.
+ * Returns true when the song is left with NO parent references at all, which
+ * signals it can be fully removed from the device. No-op if not offline.
+ */
+export async function pruneOfflineSongParents(
+    publicId: string,
+    removeAlbumIds: string[],
+    removePlaylistIds: string[]
+): Promise<boolean> {
+    const db = await getDB();
+    const record = await db.get("songs", publicId);
+    if (!record) return false;
+
+    const albumIds = (record.parentAlbumIds ?? []).filter(
+        (id) => !removeAlbumIds.includes(id)
+    );
+    const playlistIds = (record.parentPlaylistIds ?? []).filter(
+        (id) => !removePlaylistIds.includes(id)
+    );
+
+    await db.put("songs", {
+        ...record,
+        parentAlbumIds: albumIds,
+        parentPlaylistIds: playlistIds,
+    });
+
+    return albumIds.length === 0 && playlistIds.length === 0;
 }
 
 export async function deleteOfflineSong(publicId: string): Promise<void> {

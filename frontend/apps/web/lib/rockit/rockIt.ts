@@ -9,6 +9,7 @@ import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
+import { OfflineManager } from "@/lib/managers/offlineManager";
 import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { PlaylistManager } from "@/lib/managers/playlistManager";
 import { QueueManager } from "@/lib/managers/queueManager";
@@ -52,6 +53,7 @@ export class RockIt {
     playerUIManager = new PlayerUIManager();
     eventManager = new EventManager();
     libraryManager = new LibraryManager();
+    offlineManager = new OfflineManager();
     mediaSessionManager = new MediaSessionManager();
     http = Http;
 

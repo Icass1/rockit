@@ -120,27 +120,46 @@ export class OfflineManager {
             return { downloaded: 0, failed: 0 };
         }
 
+        const pending = tasks.filter(
+            (task): boolean =>
+                offlineStatusMap.get()[task.publicId] !== "downloaded"
+        );
+
         let downloaded = 0;
         let failed = 0;
-        for (const task of tasks) {
-            if (offlineStatusMap.get()[task.publicId] === "downloaded")
-                continue;
-            try {
-                await downloadSongOffline(
-                    task.publicId,
-                    task.audioUrl,
-                    task.imageUrl,
-                    task.parentAlbumIds,
-                    task.parentPlaylistIds
-                );
-                downloaded += 1;
-            } catch (err) {
-                failed += 1;
-                console.error(
-                    `Failed to save ${task.publicId} offline`,
-                    err
-                );
+        const batch = async (pool: OfflineSongTask[]): Promise<void> => {
+            const results = await Promise.allSettled(
+                pool.map((task): Promise<void> =>
+                    downloadSongOffline(
+                        task.publicId,
+                        task.audioUrl,
+                        task.imageUrl,
+                        task.parentAlbumIds,
+                        task.parentPlaylistIds
+                    )
+                )
+            );
+            for (const result of results) {
+                if (result.status === "fulfilled") {
+                    downloaded += 1;
+                } else {
+                    failed += 1;
+                    console.error(
+                        `Failed to save a song offline. ${
+                            result.reason instanceof Error
+                                ? result.reason.message
+                                : String(result.reason)
+                        }`
+                    );
+                }
             }
+        };
+
+        // Bounded concurrency so big albums don't flood the browser/server
+        // with one fetch per song all at once.
+        const CONCURRENCY = 4;
+        for (let i = 0; i < pending.length; i += CONCURRENCY) {
+            await batch(pending.slice(i, i + CONCURRENCY));
         }
 
         const $v = rockIt.vocabularyManager.vocabulary;

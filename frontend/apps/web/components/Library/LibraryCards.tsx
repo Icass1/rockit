@@ -27,6 +27,7 @@ import {
 } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { SquareCheck, SquareDashed } from "lucide-react";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -198,14 +199,12 @@ function LibraryCard({
             tabIndex={0}
             onClick={handleSelectionClick}
             onKeyDown={handleSelectionKeyDown}
-            className={`absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-black/60 ${
-                "publicId" in media && isSelected(media.publicId)
-                    ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
-                    : "border-white/80"
-            }`}
+            className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded bg-black/60"
         >
-            {"publicId" in media && isSelected(media.publicId) && (
-                <span className="text-xs font-bold text-white">✓</span>
+            {"publicId" in media && isSelected(media.publicId) ? (
+                <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
+            ) : (
+                <SquareDashed className="h-5 w-5 text-white/80" />
             )}
         </div>
     ) : null;

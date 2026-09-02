@@ -112,10 +112,16 @@ YouTube request passes through:
 - **Pacing** — a minimum interval between requests plus up to 50% jitter, so the
   whole process behaves like one polite client instead of N racing ones.
 - **Back-pressure** — each consecutive block doubles the interval, up to 8x.
-- **Circuit breaker** — after `YOUTUBE_BLOCK_THRESHOLD` consecutive blocks, all
-  YouTube work stops for `YOUTUBE_COOLDOWN_SECONDS`. Downloads scheduled during
-  the cooldown fail fast with `RATE_LIMITED` and are re-queued rather than
-  occupying a worker slot on a request that is going to be refused.
+- **Circuit breaker** — after `YOUTUBE_BLOCK_THRESHOLD` consecutive *fully
+  blocked downloads*, all YouTube work stops for `YOUTUBE_COOLDOWN_SECONDS`.
+  Downloads scheduled during the cooldown fail fast with `RATE_LIMITED` and are
+  re-queued rather than occupying a worker slot on a request that is going to be
+  refused.
+
+A block is counted **once per download**, only when every candidate and every
+strategy has been refused. Counting each rung instead would let one gated video
+open the circuit on its own, which is normal operation rather than evidence that
+YouTube is throttling us.
 
 ### 2.4 Retry policy
 
@@ -165,6 +171,23 @@ docker run --name bgutil-provider -d --init -p 4416:4416 brainicism/bgutil-ytdlp
 Then set `YTDLP_POT_PROVIDER_URL=http://<host>:4416`. The matching yt-dlp plugin
 (`bgutil-ytdlp-pot-provider`) is already in `requirements.txt`.
 
+> **Keep the two versions pinned together.** The plugin refuses to talk to a
+> server on a different major version, and yt-dlp then reports nothing more than
+> `Requested format is not available` — indistinguishable from YouTube refusing
+> us. `docker-compose.yml` pins the image to the same version as
+> `requirements.txt`; bump both in the same commit, never one alone.
+
+**The backend checks this at startup** and says exactly what is wrong:
+
+```
+PO token provider ready at http://... (plugin 1.3.2, server 1.3.2)
+PO token provider at http://... is unreachable (URLError: Connection refused)
+YTDLP_POT_PROVIDER_URL is set but the 'bgutil-ytdlp-pot-provider' plugin is not installed
+PO token provider major version mismatch: plugin is 1.3.2, server is 2.0.1
+```
+
+If none of those lines appear at boot, the backend is running older code.
+
 ### 3.2 Proxies
 
 Residential proxies work; datacenter ranges are mostly pre-flagged by YouTube, so
@@ -199,6 +222,8 @@ grep -E "YouTube block recorded|cooldown active|Strategy '" logs/log_*.log | tai
 | `YouTube block recorded (n/5)` | Streak building toward the cooldown |
 | `Pausing all downloads for 900s` | Breaker open; downloads re-queue automatically |
 | `... is unavailable, giving up` | Removed/private/geo-blocked; not a block |
+| `[pot:bgutil:http] Error reaching GET .../ping` | The provider is down or unreachable |
+| `client https formats require a GVS PO Token` | No token was obtained; this is the cause of `Requested format is not available` |
 
 If `BLOCKED` dominates and the PO token provider is running, the server's IP is
 the problem: add proxies or rotate `YTDLP_SOURCE_ADDRESS`.

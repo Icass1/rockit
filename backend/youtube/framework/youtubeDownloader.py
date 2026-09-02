@@ -63,6 +63,11 @@ class _YtDlpLogger:
             logger.info(f"[yt-dlp] {msg}")
 
     def info(self, msg: str) -> None:
+        # Pacing chatter fires on every attempt and would bury the lines that
+        # actually explain a failure.
+        if "Sleeping" in msg:
+            logger.debug(f"[yt-dlp] {msg}")
+            return
         logger.info(f"[yt-dlp] {msg}")
 
     def warning(self, msg: str) -> None:
@@ -236,6 +241,7 @@ async def _download_with_candidates_async(
         )
 
         if succeeded:
+            youtube_gate.record_success()
             return True, youtube_url, YtdlpFailureEnum.UNKNOWN, ""
 
         last_kind = kind
@@ -245,6 +251,12 @@ async def _download_with_candidates_async(
             # A transient or unclassified error is not a reason to switch to a
             # different recording of the song; let the retry scheduler handle it.
             break
+
+    if last_kind == YtdlpFailureEnum.BLOCKED:
+        # One block per download that ran out of both candidates and
+        # strategies. That is what "YouTube is refusing us" actually looks
+        # like, as opposed to a single video being gated.
+        youtube_gate.record_block()
 
     return False, None, last_kind, last_error
 
@@ -367,16 +379,16 @@ async def _download_with_strategies_async(
                 )
                 return False, last_kind, last_error
 
-            if last_kind == YtdlpFailureEnum.BLOCKED:
-                youtube_gate.record_block()
-
+            # Deliberately not recorded as a block against the gate: walking
+            # the ladder is normal operation on a gated video, and counting
+            # every rung let one unlucky song trip the circuit breaker on its
+            # own. The gate is told once per download, by the caller.
             logger.warning(
                 f"Strategy '{strategy.name}' failed ({last_kind.name}) for "
                 f"{youtube_url}: {last_error}"
             )
             continue
 
-        youtube_gate.record_success()
         logger.info(f"Strategy '{strategy.name}' succeeded for {youtube_url}")
         return True, YtdlpFailureEnum.UNKNOWN, ""
 
@@ -487,7 +499,11 @@ class YouTubeDownloader:
                     }
                 ],
                 "quiet": True,
-                "no_warnings": True,
+                # yt-dlp routes report_warning() through this logger, and that
+                # is the only channel that carries PO token provider failures
+                # ("Error reaching GET /ping", version mismatches). Suppressing
+                # it made a broken provider look identical to a working one.
+                "logger": _YtDlpLogger(),
                 **_build_pacing_opts(),
             }
             expected_ext = "mp3"

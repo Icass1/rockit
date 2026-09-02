@@ -84,12 +84,17 @@ class YoutubeGate:
         self._open_until = 0.0
 
     def record_block(self) -> None:
-        """Record a block-class failure and trip the breaker once the streak is long enough."""
+        """Record one fully blocked download and trip the breaker on a long streak.
+
+        Called once per download, not once per strategy attempt: exhausting the
+        ladder on a single gated video is normal, and counting each rung would
+        let one song open the circuit on its own.
+        """
 
         self._consecutive_blocks += 1
         logger.warning(
-            f"YouTube block recorded ({self._consecutive_blocks}/"
-            f"{YOUTUBE_BLOCK_THRESHOLD} before cooldown)"
+            f"Download fully blocked: every candidate and strategy was refused "
+            f"({self._consecutive_blocks}/{YOUTUBE_BLOCK_THRESHOLD} before cooldown)"
         )
 
         if self._consecutive_blocks >= YOUTUBE_BLOCK_THRESHOLD:

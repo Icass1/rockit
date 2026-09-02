@@ -25,6 +25,15 @@ services:
             LOG_DUMP_LEVEL: ${LOG_DUMP_LEVEL:-info}
             CONSOLE_DUMP_LEVEL: ${CONSOLE_DUMP_LEVEL:-info}
             DOWNLOAD_THREADS: ${DOWNLOAD_THREADS:-4}
+            # YouTube download reliability. All optional, see docs/YOUTUBE_DOWNLOADS.md.
+            YTDLP_POT_PROVIDER_URL: ${YTDLP_POT_PROVIDER_URL:-http://rockit-beta-pot-provider:4416}
+            YTDLP_COOKIES_FILE: ${YTDLP_COOKIES_FILE:-}
+            YTDLP_PROXIES: ${YTDLP_PROXIES:-}
+            YTDLP_SOURCE_ADDRESS: ${YTDLP_SOURCE_ADDRESS:-}
+            YTDLP_RATE_LIMIT_BYTES: ${YTDLP_RATE_LIMIT_BYTES:-0}
+            YOUTUBE_MIN_REQUEST_INTERVAL_SECONDS: ${YOUTUBE_MIN_REQUEST_INTERVAL_SECONDS:-3}
+            YOUTUBE_BLOCK_THRESHOLD: ${YOUTUBE_BLOCK_THRESHOLD:-5}
+            YOUTUBE_COOLDOWN_SECONDS: ${YOUTUBE_COOLDOWN_SECONDS:-900}
             DB_HOST: ${DB_HOST:-postgres-container}
             DB_USER: ${DB_USER:-rockit}
             DB_PASSWORD: ${DB_PASSWORD:-rockitpassword}
@@ -42,6 +51,19 @@ services:
             - postgres_postgres-network
         ports:
             - "9101:8000"
+        depends_on:
+            - pot-provider
+
+    # Mints YouTube proof-of-origin tokens for yt-dlp. Without it the backend
+    # falls back to the PO-token-free clients, which work but cover fewer
+    # videos. Not exposed outside the compose network.
+    pot-provider:
+        container_name: rockit-beta-pot-provider
+        image: brainicism/bgutil-ytdlp-pot-provider:latest
+        init: true
+        restart: unless-stopped
+        networks:
+            - rockit-beta
 
     frontend:
         container_name: rockit-beta-frontend

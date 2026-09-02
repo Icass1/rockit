@@ -11,7 +11,7 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { EMediaContextLocation } from "@rockit/shared";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, SquareCheck, SquareDashed } from "lucide-react";
 import type { TMediaWithSearch } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -48,15 +48,11 @@ function SelectableRow({
         >
             {children}
             {selectable && (
-                <div
-                    className={`pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-black/60 ${
-                        "publicId" in media && isSelected(media.publicId)
-                            ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
-                            : "border-white/80"
-                    }`}
-                >
-                    {"publicId" in media && isSelected(media.publicId) && (
-                        <span className="text-xs font-bold text-white">✓</span>
+                <div className="pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded bg-black/60">
+                    {"publicId" in media && isSelected(media.publicId) ? (
+                        <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
+                    ) : (
+                        <SquareDashed className="h-5 w-5 text-white/80" />
                     )}
                 </div>
             )}

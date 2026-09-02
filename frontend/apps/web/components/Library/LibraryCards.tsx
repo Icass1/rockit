@@ -27,6 +27,7 @@ import {
 } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
+import { SquareCheck, SquareDashed } from "lucide-react";
 
 /**
  * Maximum rendered cover size in pixels.
@@ -54,6 +55,8 @@ interface LibraryCardProps {
     aspectRatio?: "square" | "video";
     badge: keyof Vocabulary;
     name: string;
+    /** Optional node rendered inline to the right of the title. */
+    titleSuffix?: ReactNode;
     subtitle?: ReactNode;
     href?: string;
     onClick?: (e: React.MouseEvent) => void;
@@ -73,6 +76,7 @@ function LibraryCard({
     aspectRatio = "square",
     badge,
     name,
+    titleSuffix,
     subtitle,
     href,
     onClick,
@@ -164,7 +168,10 @@ function LibraryCard({
 
     const textBlock = (
         <>
-            <p className="mt-1 truncate text-center font-semibold">{name}</p>
+            <div className="mt-1 flex min-w-0 items-center justify-center gap-1">
+                <p className="truncate font-semibold">{name}</p>
+                {titleSuffix}
+            </div>
             {subtitle !== undefined &&
                 (typeof subtitle === "string" ? (
                     <p className="truncate text-center text-sm text-gray-400">
@@ -198,14 +205,12 @@ function LibraryCard({
             tabIndex={0}
             onClick={handleSelectionClick}
             onKeyDown={handleSelectionKeyDown}
-            className={`absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-black/60 ${
-                "publicId" in media && isSelected(media.publicId)
-                    ? "border-(--color-rockit-pink) bg-(--color-rockit-pink)"
-                    : "border-white/80"
-            }`}
+            className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded bg-black/60"
         >
-            {"publicId" in media && isSelected(media.publicId) && (
-                <span className="text-xs font-bold text-white">✓</span>
+            {"publicId" in media && isSelected(media.publicId) ? (
+                <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
+            ) : (
+                <SquareDashed className="h-5 w-5 text-white/80" />
             )}
         </div>
     ) : null;
@@ -356,6 +361,12 @@ export function SongCard({
             imageUrl={$song.imageUrl}
             badge="SONG"
             name={$song.name}
+            titleSuffix={
+                <OfflineIndicator
+                    publicId={$song.publicId}
+                    className="h-4 w-4 shrink-0"
+                />
+            }
             subtitle={
                 <Artists
                     artists={$song.artists}
@@ -369,10 +380,6 @@ export function SongCard({
                 stroke={0.8}
                 publicId={$song.publicId}
                 className="absolute h-full w-full"
-            />
-            <OfflineIndicator
-                publicId={$song.publicId}
-                className="absolute top-1 right-1 h-5 w-5 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]"
             />
         </LibraryCard>
     );

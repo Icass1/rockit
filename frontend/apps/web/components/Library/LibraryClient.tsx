@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
     ArrowDownAZ,
     ArrowUpAZ,
     ArrowUpDown,
     ClockArrowDown,
+    Download,
     Kanban,
     LayoutGrid,
     List,
     LoaderCircle,
+    SquareMousePointer,
     Upload,
 } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
@@ -27,7 +30,7 @@ import {
 } from "@/components/Library/LibrarySelectionContext";
 import UploadModal from "@/components/Library/UploadModal";
 
-function LibrarySelectionBar(): JSX.Element | null {
+function LibrarySelectionBar(): JSX.Element {
     const { selectionMode, selectedMedia, clearSelection } =
         useLibrarySelection();
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -46,38 +49,71 @@ function LibrarySelectionBar(): JSX.Element | null {
         }
     };
 
-    if (!selectionMode) return null;
+    const downloadButton = (
+        <button
+            type="button"
+            disabled={downloading || selectedMedia.length === 0}
+            onClick={(): void => {
+                void downloadSelection();
+            }}
+            className="flex items-center gap-1.5 rounded-md bg-(--color-rockit-pink) px-3 py-1.5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-50"
+        >
+            {downloading ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+                <Download className="h-4 w-4" />
+            )}
+            {$vocabulary.LIBRARY_ZIP}
+        </button>
+    );
+
+    const cancelButton = (
+        <button
+            type="button"
+            onClick={clearSelection}
+            className="rounded-md px-2 py-1.5 text-sm text-neutral-300 hover:bg-neutral-700"
+        >
+            {$vocabulary.CANCEL}
+        </button>
+    );
 
     return (
-        <div className="mb-3 flex items-center justify-between rounded-lg bg-neutral-800 px-3 py-2">
-            <span className="text-sm font-medium text-white">
-                {selectedMedia.length} {$vocabulary.LIBRARY_SELECTED}
-            </span>
-            <div className="flex items-center gap-2">
-                <button
-                    type="button"
-                    disabled={downloading || selectedMedia.length === 0}
-                    onClick={(): void => {
-                        void downloadSelection();
-                    }}
-                    className="flex items-center gap-1.5 rounded-md bg-(--color-rockit-pink) px-3 py-1.5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-50"
-                >
-                    {downloading ? (
-                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <Upload className="h-4 w-4 rotate-180" />
-                    )}
-                    {$vocabulary.LIBRARY_ZIP}
-                </button>
-                <button
-                    type="button"
-                    onClick={clearSelection}
-                    className="rounded-md px-2 py-1.5 text-sm text-neutral-300 hover:bg-neutral-700"
-                >
-                    {$vocabulary.CANCEL}
-                </button>
-            </div>
-        </div>
+        <>
+            {/* Mobile: in-flow full-width bar (keeps working selection on mobile) */}
+            {selectionMode && (
+                <div className="mb-3 flex items-center justify-between rounded-lg bg-neutral-800 px-3 py-2 md:hidden">
+                    <span className="text-sm font-medium text-white">
+                        {selectedMedia.length} {$vocabulary.LIBRARY_SELECTED}
+                    </span>
+                    <div className="flex items-center gap-2">
+                        {downloadButton}
+                        {cancelButton}
+                    </div>
+                </div>
+            )}
+
+            {/* Desktop: floating pill docked above the footer */}
+            <AnimatePresence>
+                {selectionMode && (
+                    <motion.div
+                        initial={{ y: 24, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 24, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="fixed inset-x-0 bottom-28 z-40 hidden justify-center px-4 md:left-12 md:flex"
+                    >
+                        <div className="flex items-center gap-3 rounded-xl bg-neutral-800/95 px-3 py-2 shadow-xl backdrop-blur-md">
+                            <span className="pl-1 text-sm font-medium whitespace-nowrap text-white">
+                                {selectedMedia.length}{" "}
+                                {$vocabulary.LIBRARY_SELECTED}
+                            </span>
+                            {downloadButton}
+                            {cancelButton}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 }
 
@@ -94,11 +130,35 @@ function LibrarySelectionButton(): JSX.Element {
             title={$vocabulary.LIBRARY_SELECT_ITEMS}
             className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-800 hover:text-white"
         >
-            <span className="flex h-4 w-4 items-center justify-center rounded border border-current text-[10px]">
-                +
-            </span>
+            <SquareMousePointer className="h-5 w-5" />
         </button>
     );
+}
+
+/**
+ * While multi-selecting on desktop, the floating action bar docks above the
+ * footer and overhangs the bottom of the scroll area. Bump the scroll
+ * container's bottom padding so the last rows/cards aren't hidden behind it.
+ */
+function SelectionScrollSpacer(): null {
+    const { selectionMode } = useLibrarySelection();
+
+    useEffect(() => {
+        // Match the app's `md` variant (desktop): width >= 768 AND height >= 500.
+        const mobileQuery = window.matchMedia(
+            "(max-width: 767px) or (max-height: 499px)"
+        );
+        const container = document.getElementById("main-scroll-container");
+        if (!container) return;
+
+        const desktopSelecting = selectionMode && !mobileQuery.matches;
+        // Desktop base clearance is md:pb-24 (96px). The floating bar adds ~64px.
+        container.style.paddingBottom = desktopSelecting
+            ? "160px"
+            : "";
+    }, [selectionMode]);
+
+    return null;
 }
 
 export default function LibraryClient(): JSX.Element {
@@ -118,6 +178,7 @@ export default function LibraryClient(): JSX.Element {
 
     return (
         <LibrarySelectionProvider>
+            <SelectionScrollSpacer />
             <div className="mx-4 flex flex-col">
                 {/* DESKTOP HEADER */}
                 <header className="mb-6 hidden items-center gap-3 py-4 md:flex">

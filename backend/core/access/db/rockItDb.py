@@ -1,10 +1,10 @@
 import asyncio
 import os
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from importlib import import_module
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Awaitable, Callable, List, Set, TypeVar
+from dataclasses import dataclass
+from importlib import import_module
+from typing import Any, TypeVar
 
 from sqlalchemy import (
     Connection,
@@ -12,12 +12,11 @@ from sqlalchemy import (
     Table,
     UniqueConstraint,
     event,
-    text,
     inspect,
+    text,
 )
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.util.concurrency import greenlet_spawn
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -25,12 +24,12 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.sql.base import Executable
+from sqlalchemy.util.concurrency import greenlet_spawn
 
-from backend.utils.logger import getLogger
-from backend.utils.backendUtils import time_it
 from backend.core.access.db.base import CoreBase
-
 from backend.core.access.db.ormModels.declarativeMixin import triggers
+from backend.utils.backendUtils import time_it
+from backend.utils.logger import getLogger
 
 T = TypeVar("T")
 
@@ -38,52 +37,28 @@ logger = getLogger(__name__)
 
 
 async def _init_connection(conn: Any) -> None:
-    """Set asyncpg codecs so timestamps are decoded timezone-aware (UTC).
+    """Configure asyncpg connection so timestamps are returned timezone-aware (UTC).
 
-    By default asyncpg returns naive datetimes for ``timestamp with time zone``
-    columns, which forces ``TZAwareTimestamp`` to attach tzinfo on every read
-    and log a warning. Registering the codec at the driver level fixes this
-    once per connection, so timestamps come back with ``tzinfo=UTC`` directly.
+    asyncpg uses the binary protocol by default for ``timestamptz``, which
+    returns naive datetimes in Python. Setting the session timezone to UTC
+    causes the PostgreSQL server to send timestamps with an explicit UTC offset,
+    which asyncpg decodes as timezone-aware datetimes directly — no custom
+    codec needed.
     """
 
-    def _encode_timestamp(dt: datetime) -> str:
-        # Match asyncpg's default: naive datetimes are treated as UTC. Attach
-        # tzinfo explicitly so Postgres doesn't reinterpret them in the session
-        # timezone when sent through the text codec.
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt.isoformat()
-
-    def _decode_timestamp(value: str) -> datetime:
-        dt = datetime.fromisoformat(value)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt
-
-    # ``timestamp without time zone`` and ``timestamp with time zone`` are
-    # distinct asyncpg types; register the codec for both so every timestamp
-    # column (naive and tz-aware) comes back timezone-aware on the Python side.
-    for type_name in ("timestamp", "timestamptz"):
-        try:
-            await conn.set_type_codec(
-                type_name,
-                encoder=_encode_timestamp,
-                decoder=_decode_timestamp,
-                format="text",
-            )
-        except Exception:
-            logger.warning(
-                f"Could not register asyncpg '{type_name}' codec.", exc_info=True
-            )
+    try:
+        await conn.execute("SET timezone = 'UTC'")
+    except Exception:
+        logger.warning("Could not set asyncpg session timezone to UTC.", exc_info=True)
 
 
 def _on_sync_engine_connect(dbapi_connection: Any, connection_record: Any) -> None:
-    """Run the async asyncpg codec setup on each new raw connection.
+    """Run the async per-connection setup on each new raw connection.
 
     SQLAlchemy's asyncpg dialect exposes the underlying asyncpg ``Connection``
-    via ``AsyncAdapt_asyncpg_connection._connection``. The ``set_type_codec``
-    call is async, so it is executed synchronously here through
-    ``greenlet_spawn`` in the context of the current greenlet.
+    via ``AsyncAdapt_asyncpg_connection._connection``. The async setup is
+    executed synchronously here through ``greenlet_spawn`` in the context of
+    the current greenlet.
     """
 
     raw_connection: Any = getattr(dbapi_connection, "_connection", None)
@@ -99,9 +74,9 @@ class SchemaInfo:
     base: Any
 
 
-schemas: List[SchemaInfo] = []
+schemas: list[SchemaInfo] = []
 
-modules: List[str] = []
+modules: list[str] = []
 
 for dirpath, dirnames, filenames in os.walk("backend"):
     if not dirpath.endswith("/db"):
@@ -115,7 +90,7 @@ for dirpath, dirnames, filenames in os.walk("backend"):
     module = f"{base}.db"
     modules.append(module)
 
-modules_sorted: List[str] = sorted(
+modules_sorted: list[str] = sorted(
     modules, key=lambda x: (0 if "core" in x else 1, x)  # "core" gets 0, others 1
 )
 
@@ -126,7 +101,7 @@ for module in modules_sorted:
     try:
         for schema in module.schemas:
             schemas.append(SchemaInfo(name=schema, base=module.base))
-    except Exception as e:
+    except Exception:
         logger.exception(msg=f"{module} doesn't have an schemas variable declared")
 
 
@@ -165,7 +140,7 @@ class ResilientAsyncSession(AsyncSession):
         if not self.is_active:
             await self.rollback()
         try:
-            return await super().execute(statement, params, **kw)  # type: ignore  # noqa: PGH003
+            return await super().execute(statement, params, **kw)  # type: ignore
         except DBAPIError as e:
             # Check if the underlying asyncpg transaction was aborted by a
             # prior failed statement. If so, roll back and retry so the
@@ -173,7 +148,7 @@ class ResilientAsyncSession(AsyncSession):
             # "current transaction is aborted" message.
             if hasattr(e, "orig") and "current transaction is aborted" in str(e.orig):
                 await self.rollback()
-                return await super().execute(statement, params, **kw)  # type: ignore  # noqa: PGH003
+                return await super().execute(statement, params, **kw)  # type: ignore
             raise
 
 
@@ -204,11 +179,9 @@ class RockItDB:
             echo=verbose,
         )
 
-        # asyncpg only supports the ``connection_init`` per-connection hook on
-        # the async ``Connection`` class, not through ``connect()`` arguments.
         # Register a sync "connect" event on the underlying sync engine and run
-        # the async codec setup against the raw asyncpg connection via
-        # greenlet_spawn, so timestamps come back timezone-aware (UTC).
+        # the async per-connection setup (e.g. session timezone) against the raw
+        # asyncpg connection via greenlet_spawn.
         event.listen(
             self.engine.sync_engine,
             "connect",
@@ -330,12 +303,12 @@ class RockItDB:
                         )
 
                 # Foreign keys
-                orm_fks: Set[str] = set()
+                orm_fks: set[str] = set()
                 for col in table.columns:
                     for fk in col.foreign_keys:
                         orm_fks.add(f"{table_name}.{col.name} -> {fk.target_fullname}")
 
-                db_fks: Set[str] = set()
+                db_fks: set[str] = set()
                 try:
                     for fk in inspector.get_foreign_keys(table_name, schema=schema):
                         for local, remote in zip(
@@ -359,7 +332,7 @@ class RockItDB:
                     )
 
                 # Unique constraints
-                orm_uqs: Set[frozenset[str]] = set()
+                orm_uqs: set[frozenset[str]] = set()
                 for col in table.columns:
                     if col.unique:
                         orm_uqs.add(frozenset([col.name]))
@@ -368,7 +341,7 @@ class RockItDB:
                         col_names = [c.name for c in constraint.columns]
                         orm_uqs.add(frozenset(col_names))
 
-                db_uqs: Set[frozenset[str]] = set()
+                db_uqs: set[frozenset[str]] = set()
                 try:
                     db_uqs = {
                         frozenset(uq["column_names"])

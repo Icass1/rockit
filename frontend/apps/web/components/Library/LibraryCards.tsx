@@ -55,6 +55,8 @@ interface LibraryCardProps {
     aspectRatio?: "square" | "video";
     badge: keyof Vocabulary;
     name: string;
+    /** Optional node rendered inline to the right of the title. */
+    titleSuffix?: ReactNode;
     subtitle?: ReactNode;
     href?: string;
     onClick?: (e: React.MouseEvent) => void;
@@ -74,6 +76,7 @@ function LibraryCard({
     aspectRatio = "square",
     badge,
     name,
+    titleSuffix,
     subtitle,
     href,
     onClick,
@@ -165,7 +168,10 @@ function LibraryCard({
 
     const textBlock = (
         <>
-            <p className="mt-1 truncate text-center font-semibold">{name}</p>
+            <div className="mt-1 flex min-w-0 items-center justify-center gap-1">
+                <p className="truncate font-semibold">{name}</p>
+                {titleSuffix}
+            </div>
             {subtitle !== undefined &&
                 (typeof subtitle === "string" ? (
                     <p className="truncate text-center text-sm text-gray-400">
@@ -355,6 +361,12 @@ export function SongCard({
             imageUrl={$song.imageUrl}
             badge="SONG"
             name={$song.name}
+            titleSuffix={
+                <OfflineIndicator
+                    publicId={$song.publicId}
+                    className="h-4 w-4 shrink-0"
+                />
+            }
             subtitle={
                 <Artists
                     artists={$song.artists}
@@ -368,10 +380,6 @@ export function SongCard({
                 stroke={0.8}
                 publicId={$song.publicId}
                 className="absolute h-full w-full"
-            />
-            <OfflineIndicator
-                publicId={$song.publicId}
-                className="absolute top-1 right-1 h-5 w-5 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]"
             />
         </LibraryCard>
     );

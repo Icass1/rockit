@@ -18,6 +18,8 @@ from backend.core.access.db import rockit_db
 
 from backend.core.framework.downloader import downloads_manager
 
+from backend.youtube.framework.potProvider import PotProvider
+
 os.environ["PYTHONIOENCODING"] = "utf-8"
 os.environ["TERM"] = "xterm"
 os.environ["COLUMNS"] = "120"
@@ -107,6 +109,10 @@ async def app_startup():
     await add_initial_content_async()
 
     await rockit_db.wait_for_session_local_async()
+
+    # Reports its own failures. A broken PO token provider does not stop the
+    # backend, it just means downloads fall back to the PO-token-free clients.
+    await PotProvider.check_health_async()
 
     asyncio.create_task(downloads_manager.download_manager(), name="Download Manager")
     # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")

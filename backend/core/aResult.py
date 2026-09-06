@@ -28,7 +28,16 @@ class AResultCode:
         return not self.is_ok()
 
     def is_retryable(self) -> bool:
-        return self._code in (self.GENERAL_ERROR, self.RATE_LIMITED)
+        return self._code in (
+            self.GENERAL_ERROR,
+            self.RATE_LIMITED,
+            self.QUOTA_EXHAUSTED,
+        )
+
+    def is_rate_limited(self) -> bool:
+        """Whether this failure was caused by throttling rather than by the request itself."""
+
+        return self._code in (self.RATE_LIMITED, self.QUOTA_EXHAUSTED)
 
     def get_http_code(self):
         if self._code == AResultCode.OK:
@@ -107,6 +116,9 @@ class AResult(Generic[T]):
 
     def is_retryable(self) -> bool:
         return self._code.is_retryable()
+
+    def is_rate_limited(self) -> bool:
+        return self._code.is_rate_limited()
 
     def get_http_code(self):
         return self._code.get_http_code()

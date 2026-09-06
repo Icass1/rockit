@@ -19,10 +19,19 @@ from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.core.framework.models.ongoingDownload import OngoingDownload
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
+from backend.youtube.framework.youtubeGate import youtube_gate
+
 logger: Logger = getLogger(__name__)
 
-MAX_RETRIES: int = 3
-RETRY_DELAYS_SECONDS: List[float] = [30.0, 120.0, 600.0]
+MAX_RETRIES: int = 4
+
+# Ordinary failures: something broke, try again shortly.
+RETRY_DELAYS_SECONDS: List[float] = [30.0, 120.0, 600.0, 1800.0]
+
+# Throttling: the provider told us to slow down, so retrying in 30 seconds only
+# deepens the block. YouTube Data API quota in particular resets once a day, so
+# the last rung is long enough to be worth waiting for.
+RATE_LIMIT_RETRY_DELAYS_SECONDS: List[float] = [300.0, 1800.0, 3600.0, 7200.0]
 
 PROVIDER_CONCURRENCY_LIMITS: Dict[str, int] = {
     "SpotifyScrapper": 2,
@@ -174,12 +183,19 @@ class DownloadsManager:
                                     if a_result_retry.is_ok():
                                         retry_count: int = a_result_retry.result()
                                         if retry_count <= MAX_RETRIES:
-                                            delay: float = RETRY_DELAYS_SECONDS[
-                                                min(
-                                                    retry_count - 1,
-                                                    len(RETRY_DELAYS_SECONDS) - 1,
-                                                )
+                                            delays: List[float] = (
+                                                RATE_LIMIT_RETRY_DELAYS_SECONDS
+                                                if a_result.is_rate_limited()
+                                                else RETRY_DELAYS_SECONDS
+                                            )
+                                            delay: float = delays[
+                                                min(retry_count - 1, len(delays) - 1)
                                             ]
+                                            # Never come back before the shared
+                                            # YouTube cooldown has expired.
+                                            delay = max(
+                                                delay, youtube_gate.cooldown_remaining()
+                                            )
                                             await DownloadAccess.update_download_status(
                                                 session=session,
                                                 download_id=d.download_id,

@@ -1,5 +1,8 @@
 # Docker Compose Guide
 
+> Downloads also run a `pot-provider` sidecar that mints YouTube
+> proof-of-origin tokens. See [YOUTUBE_DOWNLOADS.md](YOUTUBE_DOWNLOADS.md).
+
 ## Prerequisites
 
 - Docker

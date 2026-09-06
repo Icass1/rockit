@@ -16,6 +16,10 @@ from backend.youtubeMusic.access.db.ormModels.artist import ArtistRow
 from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 
 from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
+from backend.youtube.framework.youtubeSearch import (
+    YoutubeSearch,
+    YoutubeSongQuery,
+)
 
 logger = getLogger(__name__)
 
@@ -44,6 +48,39 @@ class YoutubeMusicDownload(BaseDownload):
         self.track_id = track_id
         self.youtube_id = youtube_id
         self.download_url = download_url
+
+    async def _find_alternative_urls_async(
+        self, track: TrackRow, artist_names: List[str], youtube_url: str
+    ) -> List[str]:
+        """Find other uploads of this song to fall back to, empty list on failure.
+
+        Best effort: a search failure here must not fail the download, because
+        the primary URL is usually fine on its own.
+        """
+
+        a_result: AResult[List[str]] = await YoutubeSearch.find_video_urls_async(
+            song=YoutubeSongQuery(
+                title=track.title,
+                artists=artist_names,
+                album_title=track.album.title,
+                duration_ms=track.duration_ms,
+                isrc=track.isrc or "",
+            )
+        )
+        if a_result.is_not_ok():
+            logger.warning(
+                f"Could not find alternative videos for {track.title}. "
+                f"{a_result.info()}"
+            )
+            return []
+
+        alternatives: List[str] = [
+            url
+            for url in a_result.result()
+            if self.youtube_id not in url and url != youtube_url
+        ]
+        logger.info(f"Found {len(alternatives)} alternative video(s) for {track.title}")
+        return alternatives
 
     async def download_method_async(self, session: AsyncSession) -> AResultCode:
         """Download the YouTube Music track as mp3 asynchronously."""
@@ -84,6 +121,14 @@ class YoutubeMusicDownload(BaseDownload):
 
             filename: str = f"{self.youtube_id}_{self.download_id}"
 
+            # YouTube gates individual videos, and the auto-generated "Art
+            # Track" that YouTube Music points at is among the most gated
+            # content there is. Line up other uploads of the same song so the
+            # downloader has somewhere to go when every client is refused.
+            alternative_urls: List[str] = await self._find_alternative_urls_async(
+                track=track, artist_names=artist_names, youtube_url=youtube_url
+            )
+
             a_result_download: AResult[Dict[str, Any]] = (
                 await YouTubeDownloader.download_as_mp3_async(
                     youtube_url=youtube_url,
@@ -93,13 +138,16 @@ class YoutubeMusicDownload(BaseDownload):
                     artist=", ".join(artist_names),
                     filename=filename,
                     user_id=self.user_id,
+                    alternative_urls=alternative_urls,
                 )
             )
 
             if a_result_download.is_not_ok():
-                logger.error(f"Download failed: {a_result_download.message()}")
+                logger.error(f"Download failed: {a_result_download.info()}")
+                # Keep the downloader's code: RATE_LIMITED earns the long
+                # backoff, NOT_FOUND stops the retries altogether.
                 return AResultCode(
-                    code=AResultCode.GENERAL_ERROR,
+                    code=a_result_download.code(),
                     message=f"Download failed: {a_result_download.message()}",
                 )
 

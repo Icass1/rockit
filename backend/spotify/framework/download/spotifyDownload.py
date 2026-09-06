@@ -1,8 +1,6 @@
 import os
 import shutil
-from difflib import SequenceMatcher
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass
+from typing import Any, Dict, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.constants import MEDIA_PATH
@@ -13,7 +11,10 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.downloader.baseDownload import BaseDownload
 
 from backend.youtube.framework.youtubeDownloader import YouTubeDownloader
-from backend.youtube.framework.youtubeApi import youtube_api, RawYoutubeSearchResult
+from backend.youtube.framework.youtubeSearch import (
+    YoutubeSearch,
+    YoutubeSongQuery,
+)
 
 from backend.spotify.access.db.ormModels.track import TrackRow
 from backend.spotify.access.db.ormModels.artist import ArtistRow
@@ -26,14 +27,6 @@ logger = getLogger(__name__)
 class SpotifyDownload(BaseDownload):
     track_spotify_id: int
     download_url: str | None
-
-    @dataclass
-    class SongInfo:
-        title: str
-        artists: list[str]
-        album_title: str
-        duration_ms: int
-        isrc: str
 
     def __init__(
         self,
@@ -93,42 +86,39 @@ class SpotifyDownload(BaseDownload):
 
             youtube_url: str | None = track.download_url
 
-            if not youtube_url:
-                song_info = self.SongInfo(
-                    title=track.name,
-                    artists=artist_names,
-                    album_title=track.album.name,
-                    duration_ms=track.duration_ms,
-                    isrc=track.isrc,
-                )
+            alternative_urls: List[str] = []
 
-                a_result_youtube: AResult[str] = await self.search_best_youtube_video(
-                    song=song_info
+            if not youtube_url:
+                a_result_youtube: AResult[List[str]] = (
+                    await YoutubeSearch.find_video_urls_async(
+                        song=YoutubeSongQuery(
+                            title=track.name,
+                            artists=artist_names,
+                            album_title=track.album.name,
+                            duration_ms=track.duration_ms,
+                            isrc=track.isrc,
+                        )
+                    )
                 )
                 if a_result_youtube.is_not_ok():
-                    logger.error(f"YouTube search failed: {a_result_youtube.message()}")
+                    logger.error(f"YouTube search failed: {a_result_youtube.info()}")
+                    # Propagate the search result code so a song that simply
+                    # has no match is not retried like a transient failure.
                     return AResultCode(
-                        code=AResultCode.GENERAL_ERROR,
+                        code=a_result_youtube.code(),
                         message=f"YouTube search failed: {a_result_youtube.message()}",
                     )
 
-                youtube_url = a_result_youtube.result()
-                logger.info(f"Found YouTube URL: {youtube_url}")
-
-                a_result_update: AResultCode = (
-                    await TrackAccess.update_track_path_async(
-                        session=session,
-                        track_id=track.id,
-                        path=None,
-                        download_url=youtube_url,
-                    )
+                candidate_urls: List[str] = a_result_youtube.result()
+                youtube_url = candidate_urls[0]
+                alternative_urls = candidate_urls[1:]
+                logger.info(
+                    f"Found {len(candidate_urls)} YouTube candidates, "
+                    f"best is {youtube_url}"
                 )
-                if a_result_update.is_not_ok():
-                    logger.error(f"Error updating track: {a_result_update.message()}")
-                    return AResultCode(
-                        code=AResultCode.GENERAL_ERROR,
-                        message=f"Error updating track: {a_result_update.message()}",
-                    )
+                # The URL is deliberately not persisted yet: caching a
+                # video that turns out to be undownloadable would make
+                # every future retry of this track reuse it.
             else:
                 logger.info(f"Using download URL from database: {youtube_url}")
 
@@ -143,6 +133,7 @@ class SpotifyDownload(BaseDownload):
                     artist=", ".join(artist_names),
                     filename=filename,
                     user_id=self.user_id,
+                    alternative_urls=alternative_urls,
                 )
             )
 
@@ -168,11 +159,15 @@ class SpotifyDownload(BaseDownload):
 
             shutil.move(downloaded_filename, final_path)
 
+            # Persist the candidate that actually produced a file, which is
+            # not necessarily the one the search ranked first.
+            downloaded_url: str = downloaded_result.get("source_url") or youtube_url
+
             a_result_update = await TrackAccess.update_track_path_async(
                 session=session,
                 track_id=track.id,
                 path=final_relative_path,
-                download_url=youtube_url,
+                download_url=downloaded_url,
             )
 
             if a_result_update.is_not_ok():
@@ -189,150 +184,3 @@ class SpotifyDownload(BaseDownload):
             return AResultCode(
                 code=AResultCode.GENERAL_ERROR, message=f"Download error: {e}"
             )
-
-    def build_search_query(self, song: SongInfo) -> str:
-        query_parts: list[str] = [song.title]
-        query_parts.extend(song.artists)
-        if song.album_title:
-            query_parts.append(song.album_title)
-        if song.isrc:
-            query_parts.append(song.isrc)
-        return " ".join(query_parts)
-
-    def normalize_string(self, s: str) -> str:
-        import re
-
-        s = s.lower()
-        s = re.sub(r"[^\w\s]", " ", s)
-        s = re.sub(r"\s+", " ", s)
-        return s.strip()
-
-    def calculate_title_score(self, video_title: str, song_title: str) -> float:
-        normalized_video = self.normalize_string(video_title)
-        normalized_song: str = self.normalize_string(song_title)
-
-        if normalized_song in normalized_video:
-            return 1.0
-
-        return SequenceMatcher(None, normalized_song, normalized_video).ratio()
-
-    def calculate_channel_score(self, channel_title: str, artists: list[str]) -> float:
-        normalized_channel = self.normalize_string(channel_title)
-
-        is_official = any(
-            kw in normalized_channel
-            for kw in ["official", "vevo", "official video", "official audio"]
-        )
-
-        base_score: float = 0.0
-        for artist in artists:
-            normalized_artist = self.normalize_string(artist)
-            if normalized_artist in normalized_channel:
-                base_score = 1.0
-                break
-            if (
-                SequenceMatcher(None, normalized_artist, normalized_channel).ratio()
-                > 0.8
-            ):
-                base_score = 0.9
-                break
-
-        if base_score > 0 and is_official:
-            return 1.0
-        return base_score
-
-    def score_video(
-        self, video: RawYoutubeSearchResult, song: SongInfo
-    ) -> tuple[float, str]:
-        title_score: float = 0.0
-        channel_score: float = 0.0
-
-        if video.title:
-            title_score = self.calculate_title_score(video.title, song.title)
-
-        if video.channel_title:
-            channel_score = self.calculate_channel_score(
-                video.channel_title, song.artists
-            )
-
-        total_score: float = (title_score * 0.6) + (channel_score * 0.4)
-
-        if title_score >= 0.8 and channel_score >= 0.8:
-            total_score += 0.1
-
-        reasons: list[str] = []
-        if title_score >= 0.8:
-            reasons.append("title_match")
-        elif title_score >= 0.5:
-            reasons.append("title_similar")
-        if channel_score >= 0.8:
-            reasons.append("channel_match")
-        if channel_score >= 0.8 and any(
-            kw in self.normalize_string(video.channel_title or "")
-            for kw in ["official", "vevo"]
-        ):
-            reasons.append("official_channel")
-
-        return total_score, ", ".join(reasons) if reasons else "no_match"
-
-    async def search_best_youtube_video(self, song: SongInfo) -> AResult[str]:
-        query: str = self.build_search_query(song=song)
-        logger.info(f"Searching YouTube for: {query}")
-
-        best_video: Optional[RawYoutubeSearchResult] = None
-        best_score: float = 0.0
-        best_reason: str = ""
-
-        for order in ["relevance", "viewCount"]:
-            if best_score >= 0.8:
-                break
-
-            logger.info(f"Trying search with order_by={order}")
-
-            result: AResult[List[RawYoutubeSearchResult]] = (
-                await youtube_api.search_videos_async(
-                    query=query, max_results=15, order_by=order
-                )
-            )
-
-            if result.is_not_ok():
-                logger.warning(f"Search error with {order}: {result.message()}")
-                continue
-
-            videos: list[RawYoutubeSearchResult] = result.result()
-            if not videos:
-                logger.warning(f"No videos found with {order}")
-                continue
-
-            for video in videos:
-                if not video.video_id:
-                    continue
-                if video.live_broadcast_content == "live":
-                    continue
-                if best_video and best_video.video_id == video.video_id:
-                    continue
-
-                score, reason = self.score_video(video, song)
-                logger.info(
-                    f"Video: {video.title} | Channel: {video.channel_title} | URL https://www.youtube.com/watch?v={video.video_id} | Score: {score:.2f} ({reason})"
-                )
-
-                if score > best_score:
-                    best_score = score
-                    best_video = video
-                    best_reason = reason
-
-        if best_video and best_video.video_id:
-            youtube_url: str = f"https://www.youtube.com/watch?v={best_video.video_id}"
-            logger.info(
-                f"Best match: {best_video.title} - {best_video.channel_title} "
-                f"(score: {best_score:.2f}, reason: {best_reason})"
-            )
-            return AResult(
-                code=AResultCode.OK, message="Found best video", result=youtube_url
-            )
-
-        logger.error("No suitable YouTube video found for the track")
-        return AResult(
-            code=AResultCode.GENERAL_ERROR, message="No suitable video found"
-        )

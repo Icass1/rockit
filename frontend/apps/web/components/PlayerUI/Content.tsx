@@ -3,8 +3,8 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isSong, isVideo } from "@rockit/shared";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -139,7 +139,11 @@ export default function PlayerUIContent(): JSX.Element {
     // In landscape mode, CSS `order` is used to visually place queue before
     // main and lyrics after, without changing DOM order.
     return (
-        <div ref={divRef} style={gridStyle} className={defaultStyles + " " + gridClass}>
+        <div
+            ref={divRef}
+            style={gridStyle}
+            className={defaultStyles + " " + gridClass}
+        >
             <div className="absolute inset-0 overflow-hidden">
                 <Image
                     alt={$currentMedia.name}
@@ -237,9 +241,7 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
                             lyricsOpen ? "left-3" : "right-1/2 translate-x-1/2"
                         }`}
                         title={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
-                        aria-label={
-                            lyricsOpen ? "Hide lyrics" : "Show lyrics"
-                        }
+                        aria-label={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
                     >
                         {lyricsOpen ? (
                             <ChevronLeft className="pointer-events-none h-5 w-5" />
@@ -248,10 +250,10 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
                         )}
                     </button>
                     <div
-                        className={`h-full min-h-0 overflow-hidden transition-all ease-in-out duration-500 ${
+                        className={`h-full min-h-0 overflow-hidden transition-all duration-500 ease-in-out ${
                             lyricsOpen
-                                ? "max-w-full translate-x-0 opacity-100 pointer-events-auto"
-                                : "max-w-0 -translate-x-full opacity-0 pointer-events-none"
+                                ? "pointer-events-auto max-w-full translate-x-0 opacity-100"
+                                : "pointer-events-none max-w-0 -translate-x-full opacity-0"
                         }`}
                     >
                         <PlayerUILyrics />
@@ -261,4 +263,3 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
         </div>
     );
 }
-

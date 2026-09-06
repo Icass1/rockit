@@ -16,6 +16,7 @@ import {
     TMediaWithSearch,
     Vocabulary,
 } from "@rockit/shared";
+import { SquareCheck, SquareDashed } from "lucide-react";
 import { isDownloadable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -27,7 +28,6 @@ import {
 } from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
-import { SquareCheck, SquareDashed } from "lucide-react";
 
 /**
  * Maximum rendered cover size in pixels.

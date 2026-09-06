@@ -5,8 +5,8 @@ import {
     EEvent,
     EWebSocketMessage,
     HttpResult,
-    TMedia,
     isSong,
+    TMedia,
     type MediaAddedToPlaylistMessage,
     type MediaRemovedFromPlaylistMessage,
     type PlaylistCreatedMessage,
@@ -141,7 +141,9 @@ export class PlaylistManager {
             isSong(media) &&
             (offlineStatusMap.get()[media.publicId] ?? "idle") === "downloaded"
         ) {
-            addSongPlaylistRef(media.publicId, playlist.publicId).catch(() => {});
+            addSongPlaylistRef(media.publicId, playlist.publicId).catch(
+                () => {}
+            );
         }
 
         return await Http.addMediaToPlaylistAsync(playlist.publicId, {
@@ -165,7 +167,9 @@ export class PlaylistManager {
     ): Promise<HttpResult<{ status: string }>> {
         // Keep parent-playlist references accurate for songs saved offline
         // without a network call; fire-and-forget IndexedDB write.
-        if ((offlineStatusMap.get()[mediaPublicId] ?? "idle") === "downloaded") {
+        if (
+            (offlineStatusMap.get()[mediaPublicId] ?? "idle") === "downloaded"
+        ) {
             removeSongPlaylistRef(mediaPublicId, playlistPublicId).catch(
                 () => {}
             );

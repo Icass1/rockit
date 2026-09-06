@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useStore } from "@nanostores/react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
     BaseVideoResponse,
 } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { listOfflineSongRecords } from "@/lib/offline/db";
 import { offlineStatusMap } from "@/lib/offline/store";
 
@@ -83,22 +83,16 @@ export function useOfflineLibrary({
     }, [enabled, $status]);
 
     const offlineSongs = enabled
-        ? songs.filter(
-              (s): boolean => $status[s.publicId] === "downloaded"
-          )
+        ? songs.filter((s): boolean => $status[s.publicId] === "downloaded")
         : [];
     const offlineAlbums = enabled
         ? albums.filter((a): boolean => offlineAlbumIds.has(a.publicId))
         : [];
     const offlinePlaylists = enabled
-        ? playlists.filter(
-              (p): boolean => offlinePlaylistIds.has(p.publicId)
-          )
+        ? playlists.filter((p): boolean => offlinePlaylistIds.has(p.publicId))
         : [];
     const offlineVideos = enabled
-        ? videos.filter(
-              (v): boolean => $status[v.publicId] === "downloaded"
-          )
+        ? videos.filter((v): boolean => $status[v.publicId] === "downloaded")
         : [];
 
     return {

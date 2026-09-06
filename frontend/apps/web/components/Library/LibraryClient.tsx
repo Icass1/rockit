@@ -153,9 +153,7 @@ function SelectionScrollSpacer(): null {
 
         const desktopSelecting = selectionMode && !mobileQuery.matches;
         // Desktop base clearance is md:pb-24 (96px). The floating bar adds ~64px.
-        container.style.paddingBottom = desktopSelecting
-            ? "160px"
-            : "";
+        container.style.paddingBottom = desktopSelecting ? "160px" : "";
     }, [selectionMode]);
 
     return null;

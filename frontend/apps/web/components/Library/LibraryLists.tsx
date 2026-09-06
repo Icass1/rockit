@@ -331,8 +331,7 @@ function OfflineMix({
     viewMode: EViewMode;
 }): JSX.Element {
     const mixed = useMemo(
-        () =>
-            interleaveGridItems(playlists, albums, videos, songs, []),
+        () => interleaveGridItems(playlists, albums, videos, songs, []),
         [playlists, albums, videos, songs]
     );
 
@@ -350,11 +349,17 @@ function OfflineMix({
                             );
                         case "album":
                             return (
-                                <AlbumRow key={m.item.publicId} album={m.item} />
+                                <AlbumRow
+                                    key={m.item.publicId}
+                                    album={m.item}
+                                />
                             );
                         case "video":
                             return (
-                                <VideoRow key={m.item.publicId} video={m.item} />
+                                <VideoRow
+                                    key={m.item.publicId}
+                                    video={m.item}
+                                />
                             );
                         case "song":
                             return (
@@ -382,11 +387,17 @@ function OfflineMix({
                             );
                         case "album":
                             return (
-                                <AlbumCard key={m.item.publicId} album={m.item} />
+                                <AlbumCard
+                                    key={m.item.publicId}
+                                    album={m.item}
+                                />
                             );
                         case "video":
                             return (
-                                <VideoCard key={m.item.publicId} video={m.item} />
+                                <VideoCard
+                                    key={m.item.publicId}
+                                    video={m.item}
+                                />
                             );
                         case "song":
                             return (

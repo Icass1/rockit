@@ -13,7 +13,6 @@ import { Http } from "@/lib/http";
 // the same publicId over and over during one app session (the service worker
 // only mitigates repeated requests; this removes them entirely).
 const albumCache = new Map<string, BaseAlbumWithSongsResponse>();
-const playlistCache = new Map<string, BasePlaylistWithMediasResponse>();
 
 export async function getAlbumAsync(
     publicId: string
@@ -47,13 +46,9 @@ export async function getSongAsync(
 export async function getPlaylistAsync(
     publicId: string
 ): Promise<BasePlaylistWithMediasResponse | undefined> {
-    const cached = playlistCache.get(publicId);
-    if (cached) return cached;
-
     const response = await Http.getPlaylist(publicId);
 
     if (response.isOk()) {
-        playlistCache.set(publicId, response.result);
         return response.result;
     } else {
         console.error("Error getting album", response.message, response.detail);

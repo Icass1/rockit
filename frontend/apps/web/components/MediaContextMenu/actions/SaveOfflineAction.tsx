@@ -44,9 +44,7 @@ export default function SaveOfflineAction({
         // albums/playlists without any network call later.
         const songAlbum = (media as TMedia & { album?: { publicId?: string } })
             .album;
-        const parentAlbumIds = songAlbum?.publicId
-            ? [songAlbum.publicId]
-            : [];
+        const parentAlbumIds = songAlbum?.publicId ? [songAlbum.publicId] : [];
         const parentPlaylistIds = listPublicId ? [listPublicId] : [];
 
         setDownloading(true);

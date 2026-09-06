@@ -31,9 +31,10 @@ export default function SaveOfflineListAction({
 
     const listMedia = media as unknown as TMedia;
     const isList =
-        !isSearchResult(media) &&
-        (isAlbum(listMedia) || isPlaylist(listMedia));
-    const kind = isAlbum(listMedia) ? ("album" as const) : ("playlist" as const);
+        !isSearchResult(media) && (isAlbum(listMedia) || isPlaylist(listMedia));
+    const kind = isAlbum(listMedia)
+        ? ("album" as const)
+        : ("playlist" as const);
 
     useEffect((): (() => void) | undefined => {
         if (!isList) return;
@@ -70,14 +71,13 @@ export default function SaveOfflineListAction({
         }
     };
 
-    const icon =
-        downloading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-        ) : hasOffline ? (
-            <Trash2 className="h-5 w-5" />
-        ) : (
-            <CircleArrowDown className="h-5 w-5" />
-        );
+    const icon = downloading ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+    ) : hasOffline ? (
+        <Trash2 className="h-5 w-5" />
+    ) : (
+        <CircleArrowDown className="h-5 w-5" />
+    );
 
     const label = downloading
         ? vocabulary.DOWNLOADING

@@ -127,6 +127,7 @@ class StatsV2Access:
         user_id: int,
         start_date: datetime,
         end_date: datetime,
+        timezone_offset_minutes: int,
     ) -> AResult[StatsInsightsResponse]:
         """Aggregate listening habits and library activity for a date range."""
 
@@ -134,6 +135,7 @@ class StatsV2Access:
         WITH {_get_media_info_cte()},
         listens AS (
             SELECT umli.media_id, umli.date_added,
+                   umli.date_added - (:timezone_offset_minutes * INTERVAL '1 minute') AS local_date_added,
                    GREATEST(umli.time_ms_end - umli.time_ms_start, 0)::bigint AS duration_ms,
                    mi.duration_ms AS media_duration_ms
             FROM core.user_media_listen_interval umli
@@ -143,7 +145,7 @@ class StatsV2Access:
               AND umli.date_added < :end_date
         ),
         daily AS (
-            SELECT DATE(date_added) AS listen_date, SUM(duration_ms) AS duration_ms
+            SELECT DATE(local_date_added) AS listen_date, SUM(duration_ms) AS duration_ms
             FROM listens GROUP BY listen_date
         ),
         streak_groups AS (
@@ -166,11 +168,11 @@ class StatsV2Access:
             GROUP BY media_id
         ),
         hourly AS (
-            SELECT EXTRACT(HOUR FROM date_added)::int AS hour, SUM(duration_ms) AS duration_ms
+            SELECT EXTRACT(HOUR FROM local_date_added)::int AS hour, SUM(duration_ms) AS duration_ms
             FROM listens GROUP BY hour
         ),
         weekday AS (
-            SELECT EXTRACT(DOW FROM date_added)::int AS day, SUM(duration_ms) AS duration_ms
+            SELECT EXTRACT(ISODOW FROM local_date_added)::int - 1 AS day, SUM(duration_ms) AS duration_ms
             FROM listens GROUP BY day
         )
         SELECT
@@ -206,17 +208,18 @@ class StatsV2Access:
                     "user_id": user_id,
                     "start_date": start_date.astimezone(timezone.utc),
                     "end_date": end_date.astimezone(timezone.utc),
+                    "timezone_offset_minutes": timezone_offset_minutes,
                 },
             )
         ).one()
         day_names = [
-            "Sunday",
             "Monday",
             "Tuesday",
             "Wednesday",
             "Thursday",
             "Friday",
             "Saturday",
+            "Sunday",
         ]
         peak_day = day_names[int(row.peak_day)] if row.peak_day is not None else None
         return AResult(
@@ -681,10 +684,11 @@ class StatsV2Access:
         user_id: int,
         start_date: datetime,
         end_date: datetime,
+        timezone_offset_minutes: int = 0,
     ) -> AResult[list[StatsHeatmapCellResponse]]:
         sql = text("""
-        SELECT EXTRACT(HOUR FROM umli.date_added)::int            AS hour,
-               EXTRACT(DOW  FROM umli.date_added)::int            AS day_of_week,
+        SELECT EXTRACT(HOUR FROM umli.date_added - (:timezone_offset_minutes * INTERVAL '1 minute'))::int AS hour,
+               EXTRACT(ISODOW FROM umli.date_added - (:timezone_offset_minutes * INTERVAL '1 minute'))::int - 1 AS day_of_week,
                SUM(umli.time_ms_end - umli.time_ms_start)::float / 60000.0 AS minutes
         FROM   core.user_media_listen_interval umli
         WHERE  umli.user_id    = :user_id
@@ -699,6 +703,7 @@ class StatsV2Access:
                     "user_id": user_id,
                     "start_date": start_date.astimezone(timezone.utc),
                     "end_date": end_date.astimezone(timezone.utc),
+                    "timezone_offset_minutes": timezone_offset_minutes,
                 },
             )
         ).fetchall()
@@ -712,7 +717,7 @@ class StatsV2Access:
                 value=db_data.get((hour, day), 0),
             )
             for day in range(7)
-            for hour in range(HEATMAP_HOURS_START, HEATMAP_HOURS_END + 1)
+            for hour in range(HEATMAP_HOURS_START, HEATMAP_HOURS_END)
         ]
         return AResult(code=AResultCode.OK, message="OK", result=cells)
 
@@ -735,20 +740,31 @@ class StatsV2Access:
     async def get_current_streak_async(
         session: AsyncSession,
         user_id: int,
+        timezone_offset_minutes: int = 0,
     ) -> AResult[int]:
         sql = text("""
-        SELECT DISTINCT DATE(date_added) AS listen_date
+        SELECT DISTINCT DATE(date_added - (:timezone_offset_minutes * INTERVAL '1 minute')) AS listen_date
         FROM   core.user_media_listen_interval
         WHERE  user_id = :user_id
         ORDER BY listen_date DESC
         """)
-        rows = (await session.execute(sql, {"user_id": user_id})).fetchall()
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "timezone_offset_minutes": timezone_offset_minutes,
+                },
+            )
+        ).fetchall()
         dates = [r.listen_date for r in rows]
 
         if not dates:
             return AResult(code=AResultCode.OK, message="OK", result=0)
 
-        today = datetime.now(timezone.utc).date()
+        today = (
+            datetime.now(timezone.utc) - timedelta(minutes=timezone_offset_minutes)
+        ).date()
         yesterday = today - timedelta(days=1)
 
         if dates[0] < yesterday:

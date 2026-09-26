@@ -78,6 +78,7 @@ export default function StatsClient() {
             range: range,
             start: customStart?.toISOString() ?? null,
             end: customEnd?.toISOString() ?? null,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
         })
     );
 

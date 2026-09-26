@@ -504,7 +504,13 @@ export function LibraryLists({
     >([]);
 
     const fetchStats = useCallback(
-        () => Http.getUserStats({ range: "30d", start: null, end: null }),
+        () =>
+            Http.getUserStats({
+                range: "30d",
+                start: null,
+                end: null,
+                timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+            }),
         []
     );
 

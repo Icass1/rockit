@@ -37,6 +37,7 @@ async def get_user_stats_v2(
         range_value=body.range,
         custom_start=body.start,
         custom_end=body.end,
+        timezone_offset_minutes=body.timezoneOffsetMinutes,
     )
 
     if a_result.is_not_ok():

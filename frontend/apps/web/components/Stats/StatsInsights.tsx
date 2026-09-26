@@ -19,7 +19,6 @@ import {
     Target,
     Zap,
 } from "lucide-react";
-import StatsSection from "@/components/Stats/StatsSection";
 
 interface StatsInsightsProps {
     insights: StatsInsightsResponse;
@@ -103,7 +102,15 @@ export default function StatsInsights({
     ];
 
     return (
-        <StatsSection title="Your listening DNA" stagger={2}>
+        <section>
+            <div className="mb-5">
+                <p className="text-[10px] font-semibold tracking-[0.22em] text-(--color-rockit-pink) uppercase">
+                    Listening DNA
+                </p>
+                <h2 className="mt-1 text-2xl font-bold text-white">
+                    The habits behind the music
+                </h2>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="relative overflow-hidden rounded-3xl border border-fuchsia-500/20 bg-gradient-to-br from-fuchsia-500/20 via-neutral-900 to-neutral-950 p-6 sm:col-span-2">
                     <Sparkles
@@ -153,6 +160,6 @@ export default function StatsInsights({
                     </div>
                 ))}
             </div>
-        </StatsSection>
+        </section>
     );
 }

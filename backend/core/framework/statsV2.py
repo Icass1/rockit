@@ -28,6 +28,7 @@ class StatsV2:
         range_value: str,
         custom_start: datetime | None = None,
         custom_end: datetime | None = None,
+        timezone_offset_minutes: int = 0,
     ) -> AResult[UserStatsV2Response]:
         start_date, end_date = parse_range(range_value, custom_start, custom_end)
         group_by: str = get_group_by(range_value, start_date, end_date)
@@ -109,10 +110,13 @@ class StatsV2:
                     user_id=user_id,
                     start_date=start_date,
                     end_date=end_date,
+                    timezone_offset_minutes=timezone_offset_minutes,
                 )
             )
             streak_result: AResult[int] = await StatsV2Access.get_current_streak_async(
-                session=session, user_id=user_id
+                session=session,
+                user_id=user_id,
+                timezone_offset_minutes=timezone_offset_minutes,
             )
             dependent_results = (
                 ("minutes", minutes_result),
@@ -138,6 +142,7 @@ class StatsV2:
                     user_id=user_id,
                     start_date=start_date,
                     end_date=end_date,
+                    timezone_offset_minutes=timezone_offset_minutes,
                 )
             )
             if insights_result.is_not_ok():

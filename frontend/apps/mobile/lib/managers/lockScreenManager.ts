@@ -9,6 +9,7 @@ import {
     AudioIntegrationService,
     type LockScreenMetadata,
 } from "@/lib/audio/AudioIntegration";
+import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import {
     NativeMediaBridge,
     type AutoQueueItem,
@@ -44,7 +45,7 @@ export class LockScreenManager {
         if (this._initialized) return;
         this._initialized = true;
 
-        const player = getRockIt().mediaPlayerManager;
+        const player = getRockIt().mediaPlayerManager as MediaPlayerManager;
         const queue = getRockIt().queueManager;
 
         // Lock-screen transport commands → player actions
@@ -89,15 +90,10 @@ export class LockScreenManager {
                     player.play();
                 }
             },
-            // Best-effort recovery for a Bluetooth car stereo that silently
-            // drops the A2DP audio stream mid-track (song keeps advancing,
-            // no sound) without a full profile disconnect. A quick
-            // pause/resume forces expo-audio to re-engage the audio route;
-            // it's a no-op audible blip if the route was actually fine.
+            // Let Android finish switching output devices before opening a
+            // fresh player on the new route. Recovery preserves the position.
             onAudioRouteChanged: () => {
-                if (!player.playingAtom.get()) return;
-                player.pause();
-                setTimeout(() => player.play(), 300);
+                setTimeout(() => void player.recoverAudioRoute(), 300);
             },
         });
 

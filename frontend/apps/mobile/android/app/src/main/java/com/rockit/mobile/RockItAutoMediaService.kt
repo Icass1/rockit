@@ -5,6 +5,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.AudioDeviceCallback
@@ -48,42 +51,36 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     @Volatile
     private var isStopped = false
 
-    @Volatile
-    private var lastRouteNudgeAt = 0L
-
     private val stateChangeListener: () -> Unit = { updateSession() }
+    private val knownOutputIds = mutableSetOf<Int>()
 
-    // Some Bluetooth car stereos silently drop the audio stream mid-track
-    // without ever tearing down the A2DP *profile* connection (so
-    // BluetoothConnectionReceiver's connect/disconnect broadcast never
-    // fires), then self-heal on their own. When that happens, AudioManager
-    // often still observes the Bluetooth output device being removed and
-    // re-added at the routing layer even though the profile stayed
-    // connected throughout. Watching for that and nudging playback is a
-    // best-effort recovery for a case we otherwise have no signal for.
-    private val audioDeviceCallback = object : AudioDeviceCallback() {
-        override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
-            handlePossibleRouteRecovery(addedDevices)
+    private fun pauseForOutputChange() {
+        if (MediaStateManager.isPlaying) {
+            RockItMediaModule.emitEvent("audioOutputChanged", null)
         }
     }
 
-    private fun handlePossibleRouteRecovery(devices: Array<AudioDeviceInfo>) {
-        try {
-            if (!MediaStateManager.isPlaying) return
-            val isBluetoothOutput = devices.any {
-                it.isSink &&
-                    (it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                        it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO)
+    // AudioDeviceCallback first reports devices that were already connected.
+    // Seed their IDs before registering so startup does not pause playback.
+    private val audioDeviceCallback = object : AudioDeviceCallback() {
+        override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
+            val newOutput = addedDevices.any { it.isSink && knownOutputIds.add(it.id) }
+            if (newOutput) pauseForOutputChange()
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
+            val removedOutput = removedDevices.any {
+                it.isSink && knownOutputIds.remove(it.id)
             }
-            if (!isBluetoothOutput) return
+            if (removedOutput) pauseForOutputChange()
+        }
+    }
 
-            val now = System.currentTimeMillis()
-            if (now - lastRouteNudgeAt < ROUTE_NUDGE_DEBOUNCE_MS) return
-            lastRouteNudgeAt = now
-
-            RockItMediaModule.emitEvent("audioRouteChanged", null)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to handle audio route change", e)
+    private val noisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                pauseForOutputChange()
+            }
         }
     }
 
@@ -91,7 +88,6 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         private const val TAG = "RockItAutoMediaService"
         private const val ROOT_ID = "root"
         private const val QUEUE_ID = "queue"
-        private const val ROUTE_NUDGE_DEBOUNCE_MS = 5_000L
         const val CHANNEL_ID = "rockit_playback"
         const val NOTIFICATION_ID = 42
     }
@@ -112,7 +108,11 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         sessionToken = mediaSession.sessionToken
 
         MediaStateManager.addChangeListener(stateChangeListener)
+        registerReceiver(noisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            knownOutputIds.addAll(
+                audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).map { it.id }
+            )
             audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
         }
         updateSession()
@@ -385,6 +385,7 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         super.onDestroy()
         executor.shutdownNow()
         MediaStateManager.removeChangeListener(stateChangeListener)
+        unregisterReceiver(noisyReceiver)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
         }

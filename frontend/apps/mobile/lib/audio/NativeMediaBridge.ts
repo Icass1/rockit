@@ -25,10 +25,8 @@ interface NativeMediaBridgeCallbacks {
     onAutoPrevious: () => void;
     onAutoSeekTo: (seconds: number) => void;
     onAutoSkipToIndex: (index: number) => void;
-    // Fired when the native side sees the Bluetooth output device get
-    // re-added while media is playing — a possible silent A2DP route drop
-    // recovering on its own (see RockItAutoMediaService.kt).
-    onAudioRouteChanged: () => void;
+    // Fired when Android reports an output route change or an unplug event.
+    onAudioOutputChanged: () => void;
 }
 
 export interface AutoQueueItem {
@@ -82,8 +80,8 @@ class NativeMediaBridgeClass {
                 "autoCommandData_skipToIndex",
                 (index: number) => this.callbacks?.onAutoSkipToIndex(index)
             ),
-            DeviceEventEmitter.addListener("audioRouteChanged", () =>
-                this.callbacks?.onAudioRouteChanged()
+            DeviceEventEmitter.addListener("audioOutputChanged", () =>
+                this.callbacks?.onAudioOutputChanged()
             )
         );
     }

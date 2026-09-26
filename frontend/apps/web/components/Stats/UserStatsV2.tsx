@@ -10,6 +10,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
 import MinutesBarChart from "@/components/Stats/Charts/MinutesBarChart";
 import RankingList from "@/components/Stats/RankingList";
+import StatsInsights from "@/components/Stats/StatsInsights";
 import StatsSection from "@/components/Stats/StatsSection";
 import SummaryCardsV2 from "@/components/Stats/SummaryCardsV2";
 
@@ -85,9 +86,11 @@ export default function UserStatsV2({
         <div className="flex flex-col gap-21 md:gap-30">
             <SummaryCardsV2 summary={data.summary} />
 
+            <StatsInsights insights={data.insights} />
+
             <StatsSection
                 title={`${$vocabulary.MINUTES_LISTEND} — ${rangeLabel}`}
-                stagger={1}
+                stagger={3}
             >
                 <MinutesBarChart data={data.minutes} range={range} />
             </StatsSection>

@@ -64,15 +64,19 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     // Seed their IDs before registering so startup does not pause playback.
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
-            val newOutput = addedDevices.any { it.isSink && knownOutputIds.add(it.id) }
-            if (newOutput) pauseForOutputChange()
+            var changed = false
+            addedDevices.filter { it.isSink }.forEach {
+                if (knownOutputIds.add(it.id)) changed = true
+            }
+            if (changed) pauseForOutputChange()
         }
 
         override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
-            val removedOutput = removedDevices.any {
-                it.isSink && knownOutputIds.remove(it.id)
+            var changed = false
+            removedDevices.filter { it.isSink }.forEach {
+                if (knownOutputIds.remove(it.id)) changed = true
             }
-            if (removedOutput) pauseForOutputChange()
+            if (changed) pauseForOutputChange()
         }
     }
 

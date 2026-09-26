@@ -12,7 +12,7 @@ import {
     isVideo,
     TMedia,
     TPlayableMedia,
-} from "@rockit/packages/shared/models/types/media";
+} from "@rockit/shared/models/types/media";
 import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";

@@ -4,7 +4,7 @@ import {
     isSearchResult,
     TMedia,
     TMediaWithSearch,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 

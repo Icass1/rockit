@@ -1,4 +1,4 @@
-import { EventManager, setRockIt } from "@rockit/packages/shared";
+import { EventManager, setRockIt } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";

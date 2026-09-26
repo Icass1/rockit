@@ -3,7 +3,7 @@
 import type { JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { EQueueType } from "@rockit/packages/shared";
+import { EQueueType } from "@rockit/shared";
 import { Pause, Play, Shuffle, SkipBack, SkipForward } from "lucide-react";
 import { getMediaArtists, getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";

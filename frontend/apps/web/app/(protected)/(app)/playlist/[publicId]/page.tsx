@@ -4,7 +4,7 @@ import {
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { getPlaylistAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 

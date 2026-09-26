@@ -30,7 +30,7 @@ type ItemType = "album" | "playlist" | "song" | "video";
 
 interface Section {
     title: string;
-    data: TMedia[];
+    data: TMedia[][];
     renderType: "grid" | "list";
 }
 
@@ -47,34 +47,46 @@ export default function LibraryContent({
     const sections: Section[] = useMemo(() => {
         const result: Section[] = [];
 
+        const createRows = (items: TMedia[]): TMedia[][] => {
+            if (viewMode === "list") {
+                return items.map((item) => [item]);
+            }
+
+            const rows: TMedia[][] = [];
+            for (let index = 0; index < items.length; index += 2) {
+                rows.push(items.slice(index, index + 2));
+            }
+            return rows;
+        };
+
         const createItems = (items: TMedia[], type: ItemType): TMedia[] =>
             items.filter((item) => item.type === type);
 
         if (albums.length > 0) {
             result.push({
                 title: vocabulary.ALBUMS,
-                data: createItems(albums, "album"),
+                data: createRows(createItems(albums, "album")),
                 renderType: viewMode,
             });
         }
         if (playlists.length > 0) {
             result.push({
                 title: vocabulary.PLAYLISTS,
-                data: createItems(playlists, "playlist"),
+                data: createRows(createItems(playlists, "playlist")),
                 renderType: viewMode,
             });
         }
         if (songs.length > 0) {
             result.push({
                 title: vocabulary.SONGS,
-                data: createItems(songs, "song"),
+                data: createRows(createItems(songs, "song")),
                 renderType: viewMode,
             });
         }
         if (videos.length > 0) {
             result.push({
                 title: vocabulary.VIDEOS,
-                data: createItems(videos, "video"),
+                data: createRows(createItems(videos, "video")),
                 renderType: viewMode,
             });
         }
@@ -91,22 +103,29 @@ export default function LibraryContent({
     );
 
     const renderItem = useCallback(
-        ({ item, section }: { item: TMedia; section: Section }) => {
+        ({ item, section }: { item: TMedia[]; section: Section }) => {
             if (section.renderType === "grid") {
                 return (
-                    <View style={styles.gridItemWrapper}>
-                        <MediaCard media={item} />
+                    <View style={styles.gridRow}>
+                        {item.map((media) => (
+                            <View
+                                key={`${media.type}-${isSearchResult(media) ? media.providerUrl : media.publicId}`}
+                                style={styles.gridItemWrapper}
+                            >
+                                <MediaCard media={media} />
+                            </View>
+                        ))}
                     </View>
                 );
             }
-            return <MediaRow media={item} />;
+            return <MediaRow media={item[0]} />;
         },
         []
     );
 
     const keyExtractor = useCallback(
-        (item: TMedia, index: number) =>
-            `${item.type}-${isSearchResult(item) ? item.providerUrl : item.publicId}-${index}`,
+        (item: TMedia[], index: number) =>
+            `${item[0].type}-${isSearchResult(item[0]) ? item[0].providerUrl : item[0].publicId}-${index}`,
         []
     );
 
@@ -178,8 +197,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     gridItemWrapper: {
-        width: "50%",
+        flex: 1,
         padding: 4,
+    },
+    gridRow: {
+        flexDirection: "row",
     },
     emptyContainer: {
         flex: 1,

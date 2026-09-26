@@ -56,6 +56,7 @@
                 }
             ],
             "expo-asset",
+            "expo-font",
             "@react-native-community/datetimepicker",
             "expo-secure-store",
             [
@@ -72,7 +73,9 @@
                     "skipForwardInterval": 10,
                     "skipBackwardInterval": 10
                 }
-            ]
+            ],
+            "expo-video",
+            "expo-web-browser"
         ],
         "experiments": {
             "typedRoutes": true,

@@ -9,7 +9,6 @@ import {
     AudioIntegrationService,
     type LockScreenMetadata,
 } from "@/lib/audio/AudioIntegration";
-import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import {
     NativeMediaBridge,
     type AutoQueueItem,
@@ -45,7 +44,7 @@ export class LockScreenManager {
         if (this._initialized) return;
         this._initialized = true;
 
-        const player = getRockIt().mediaPlayerManager as MediaPlayerManager;
+        const player = getRockIt().mediaPlayerManager;
         const queue = getRockIt().queueManager;
 
         // Lock-screen transport commands → player actions
@@ -61,22 +60,16 @@ export class LockScreenManager {
                 ),
             onNextTrack: () => queue.skipForward(),
             onPreviousTrack: () => queue.skipBack(),
-            onBluetoothConnect: () => {
-                if (queue.currentMedia) player.play();
-            },
-            onBluetoothDisconnect: () => {},
-            onHeadsetConnect: () => {
-                if (queue.currentMedia) player.play();
-            },
-            onHeadsetDisconnect: () => {},
+            onBluetoothConnect: () => {},
+            onBluetoothDisconnect: () => player.pause(),
+            onHeadsetConnect: () => {},
+            onHeadsetDisconnect: () => player.pause(),
         });
 
         // Android Auto transport commands → player actions
         NativeMediaBridge.setup({
-            onBluetoothConnected: () => {
-                if (queue.currentMedia) player.play();
-            },
-            onBluetoothDisconnected: () => {},
+            onBluetoothConnected: () => player.pause(),
+            onBluetoothDisconnected: () => player.pause(),
             onAutoPlay: () => player.play(),
             onAutoPause: () => player.pause(),
             onAutoStop: () => player.pause(),
@@ -90,11 +83,7 @@ export class LockScreenManager {
                     player.play();
                 }
             },
-            // Let Android finish switching output devices before opening a
-            // fresh player on the new route. Recovery preserves the position.
-            onAudioRouteChanged: () => {
-                setTimeout(() => void player.recoverAudioRoute(), 300);
-            },
+            onAudioOutputChanged: () => player.pause(),
         });
 
         // Current media → lock-screen metadata + Android Auto now-playing

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
-import { EEvent, IMediaDownloadStatus } from "@rockit/packages/shared";
+import { EEvent, IMediaDownloadStatus } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export function DownloadStatusIcon({

@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import { StatsHeatmapCellResponseSchema } from "./statsHeatmapCellResponse";
+import { StatsInsightsResponseSchema } from "./statsInsightsResponse";
 import { StatsMinutesEntryResponseSchema } from "./statsMinutesEntryResponse";
 import { StatsRankedItemResponseSchema } from "./statsRankedItemResponse";
 import { StatsV2SummaryResponseSchema } from "./statsV2SummaryResponse";
@@ -15,6 +16,7 @@ export const UserStatsV2ResponseSchema = z.object({
     topAlbums: z.array(z.lazy(() => StatsRankedItemResponseSchema)),
     topArtists: z.array(z.lazy(() => StatsRankedItemResponseSchema)),
     heatmap: z.array(z.lazy(() => StatsHeatmapCellResponseSchema)),
+    insights: z.lazy(() => StatsInsightsResponseSchema),
 });
 
 export type UserStatsV2Response = z.infer<typeof UserStatsV2ResponseSchema>;

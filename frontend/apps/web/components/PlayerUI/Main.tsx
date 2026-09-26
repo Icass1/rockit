@@ -6,7 +6,7 @@ import {
     isStation,
     isVideo,
     TPlayableMedia,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { Disc3, DiscAlbum, Pause, Play, Video, VideoOff } from "lucide-react";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";

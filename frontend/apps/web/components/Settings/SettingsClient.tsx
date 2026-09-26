@@ -4,7 +4,7 @@ import { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { Vocabulary } from "@rockit/packages/shared";
+import { Vocabulary } from "@rockit/shared";
 import { ChartLine, ImageUp, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";

@@ -527,6 +527,10 @@ export {
     type UserSettingsResponse,
 } from "./userSettingsResponse";
 export {
+    StatsInsightsResponseSchema,
+    type StatsInsightsResponse,
+} from "./statsInsightsResponse";
+export {
     UserStatsRequestSchema,
     type UserStatsRequest,
 } from "./userStatsRequest";

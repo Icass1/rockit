@@ -4,7 +4,7 @@ import {
     EWebSocketMessage,
     isPlayable,
     isQueueable,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import { Http } from "@/lib/http";

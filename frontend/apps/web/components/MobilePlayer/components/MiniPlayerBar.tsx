@@ -1,7 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
-import { getMediaArtistsString } from "@rockit/packages/shared";
+import { getMediaArtistsString } from "@rockit/shared";
 import { Pause, Play, SkipForward } from "lucide-react";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 

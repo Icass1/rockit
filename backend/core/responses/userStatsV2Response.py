@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from backend.core.responses.statsV2SummaryResponse import StatsV2SummaryResponse
 from backend.core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
+from backend.core.responses.statsInsightsResponse import StatsInsightsResponse
 from backend.core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
 from backend.core.responses.statsRankedItemResponse import StatsRankedItemResponse
 
@@ -16,3 +17,4 @@ class UserStatsV2Response(BaseModel):
     topAlbums: List[StatsRankedItemResponse]
     topArtists: List[StatsRankedItemResponse]
     heatmap: List[StatsHeatmapCellResponse]
+    insights: StatsInsightsResponse

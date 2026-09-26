@@ -7,7 +7,7 @@ const isDev = process.env.NODE_ENV === "development";
 const nextConfig: NextConfig = {
     output: "standalone",
     outputFileTracingRoot: path.join(__dirname, "../.."),
-    transpilePackages: ["@rockit/packages", "@rockit/shared"],
+    transpilePackages: ["@rockit/shared"],
     webpack: (config) => {
         config.resolve.alias = {
             ...config.resolve.alias,

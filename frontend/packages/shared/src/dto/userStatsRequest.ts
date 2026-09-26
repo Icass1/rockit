@@ -15,6 +15,7 @@ export const UserStatsRequestSchema = z.object({
         .default("7d"),
     start: z.iso.datetime().nullable(),
     end: z.iso.datetime().nullable(),
+    timezoneOffsetMinutes: z.number().default(0),
 });
 
 export type UserStatsRequest = z.infer<typeof UserStatsRequestSchema>;

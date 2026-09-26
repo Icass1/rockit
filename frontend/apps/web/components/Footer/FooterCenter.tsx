@@ -2,7 +2,7 @@
 
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { EQueueType, ERepeatMode, isStation } from "@rockit/packages/shared";
+import { EQueueType, ERepeatMode, isStation } from "@rockit/shared";
 import {
     Bookmark,
     CirclePause,

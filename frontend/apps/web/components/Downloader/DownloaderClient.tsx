@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { DownloadItemResponse, DownloadProgressMessage } from "@/dto";
-import { EWebSocketMessage } from "@rockit/packages/shared";
+import { EWebSocketMessage } from "@rockit/shared";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";

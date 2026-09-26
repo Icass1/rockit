@@ -9,6 +9,8 @@ from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from backend.core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
 from backend.core.responses.statsRankedItemResponse import StatsRankedItemResponse
+from backend.core.responses.statsInsightsResponse import StatsInsightsResponse
+from backend.core.utils.safeAsyncCall import safe_async
 from backend.core.utils.statsLabels import DAY_NAMES, MONTH_NAMES
 from backend.utils.logger import getLogger
 
@@ -118,6 +120,131 @@ class StatsV2SummaryData:
 
 
 class StatsV2Access:
+    @staticmethod
+    @safe_async
+    async def get_insights_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        timezone_offset_minutes: int,
+    ) -> AResult[StatsInsightsResponse]:
+        """Aggregate listening habits and library activity for a date range."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()},
+        listens AS (
+            SELECT umli.media_id, umli.date_added,
+                   umli.date_added - (:timezone_offset_minutes * INTERVAL '1 minute') AS local_date_added,
+                   GREATEST(umli.time_ms_end - umli.time_ms_start, 0)::bigint AS duration_ms,
+                   mi.duration_ms AS media_duration_ms
+            FROM core.user_media_listen_interval umli
+            JOIN media_info mi ON mi.media_id = umli.media_id
+            WHERE umli.user_id = :user_id
+              AND umli.date_added >= :start_date
+              AND umli.date_added < :end_date
+        ),
+        daily AS (
+            SELECT DATE(local_date_added) AS listen_date, SUM(duration_ms) AS duration_ms
+            FROM listens GROUP BY listen_date
+        ),
+        streak_groups AS (
+            SELECT listen_date,
+                   listen_date - (ROW_NUMBER() OVER (ORDER BY listen_date))::int AS grp
+            FROM daily
+        ),
+        streaks AS (
+            SELECT COUNT(*)::int AS length FROM streak_groups GROUP BY grp
+        ),
+        media_totals AS (
+            SELECT media_id, SUM(duration_ms) AS listened_ms,
+                   MAX(media_duration_ms) AS media_duration_ms
+            FROM listens GROUP BY media_id
+        ),
+        first_listens AS (
+            SELECT media_id, MIN(date_added) AS first_date
+            FROM core.user_media_listen_interval
+            WHERE user_id = :user_id
+            GROUP BY media_id
+        ),
+        hourly AS (
+            SELECT EXTRACT(HOUR FROM local_date_added)::int AS hour, SUM(duration_ms) AS duration_ms
+            FROM listens GROUP BY hour
+        ),
+        weekday AS (
+            SELECT EXTRACT(ISODOW FROM local_date_added)::int - 1 AS day, SUM(duration_ms) AS duration_ms
+            FROM listens GROUP BY day
+        )
+        SELECT
+            (SELECT COUNT(*) FROM daily) AS active_days,
+            COALESCE((SELECT MAX(length) FROM streaks), 0) AS longest_streak,
+            COALESCE((SELECT MAX(duration_ms) FROM listens), 0) AS longest_session_ms,
+            COALESCE((SELECT AVG(duration_ms) FROM listens), 0) AS average_session_ms,
+            COALESCE((SELECT 100.0 * AVG(LEAST(listened_ms::float / NULLIF(media_duration_ms, 0), 1))
+                      FROM media_totals WHERE media_duration_ms > 0), 0) AS completion_rate,
+            COALESCE((SELECT 100.0 * (COUNT(*) - COUNT(DISTINCT media_id)) / NULLIF(COUNT(*), 0)
+                      FROM listens), 0) AS replay_rate,
+            (SELECT COUNT(*) FROM first_listens
+             WHERE first_date >= :start_date AND first_date < :end_date) AS discovery_count,
+            (SELECT COUNT(*) FROM core.user_liked_media
+             WHERE user_id = :user_id AND date_added >= :start_date AND date_added < :end_date) AS likes_added,
+            (SELECT COUNT(*) FROM core.user_library_media
+             WHERE user_id = :user_id AND date_added >= :start_date AND date_added < :end_date) AS library_adds,
+            (SELECT COUNT(*) FROM core.user_skipped_media
+             WHERE user_id = :user_id AND date_added >= :start_date AND date_added < :end_date) AS skips,
+            (SELECT COUNT(*) FROM core.user_seeks
+             WHERE user_id = :user_id AND date_added >= :start_date AND date_added < :end_date) AS seek_count,
+            COALESCE((SELECT SUM(ABS(time_to - time_from)) / 60.0 FROM core.user_seeks
+             WHERE user_id = :user_id AND date_added >= :start_date AND date_added < :end_date), 0) AS minutes_skipped,
+            (SELECT hour FROM hourly ORDER BY duration_ms DESC LIMIT 1) AS peak_hour,
+            (SELECT day FROM weekday ORDER BY duration_ms DESC LIMIT 1) AS peak_day,
+            COALESCE((SELECT SUM(duration_ms) / 60000.0 FROM hourly WHERE hour >= 22 OR hour < 5), 0) AS night_owl_minutes,
+            COALESCE((SELECT SUM(duration_ms) / 60000.0 FROM hourly WHERE hour >= 5 AND hour < 10), 0) AS early_bird_minutes
+        """)
+        row = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(timezone.utc),
+                    "end_date": end_date.astimezone(timezone.utc),
+                    "timezone_offset_minutes": timezone_offset_minutes,
+                },
+            )
+        ).one()
+        day_names = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ]
+        peak_day = day_names[int(row.peak_day)] if row.peak_day is not None else None
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=StatsInsightsResponse(
+                activeDays=int(row.active_days or 0),
+                longestStreak=int(row.longest_streak or 0),
+                longestSessionMs=int(row.longest_session_ms or 0),
+                averageSessionMs=float(row.average_session_ms or 0),
+                completionRate=round(float(row.completion_rate or 0), 1),
+                replayRate=round(float(row.replay_rate or 0), 1),
+                discoveryCount=int(row.discovery_count or 0),
+                likesAdded=int(row.likes_added or 0),
+                libraryAdds=int(row.library_adds or 0),
+                skips=int(row.skips or 0),
+                seekCount=int(row.seek_count or 0),
+                minutesSkipped=round(float(row.minutes_skipped or 0), 1),
+                peakHour=int(row.peak_hour) if row.peak_hour is not None else None,
+                peakDay=peak_day,
+                nightOwlMinutes=round(float(row.night_owl_minutes or 0), 1),
+                earlyBirdMinutes=round(float(row.early_bird_minutes or 0), 1),
+            ),
+        )
+
     @staticmethod
     async def get_summary_async(
         session: AsyncSession,
@@ -557,10 +684,11 @@ class StatsV2Access:
         user_id: int,
         start_date: datetime,
         end_date: datetime,
+        timezone_offset_minutes: int = 0,
     ) -> AResult[list[StatsHeatmapCellResponse]]:
         sql = text("""
-        SELECT EXTRACT(HOUR FROM umli.date_added)::int            AS hour,
-               EXTRACT(DOW  FROM umli.date_added)::int            AS day_of_week,
+        SELECT EXTRACT(HOUR FROM umli.date_added - (:timezone_offset_minutes * INTERVAL '1 minute'))::int AS hour,
+               EXTRACT(ISODOW FROM umli.date_added - (:timezone_offset_minutes * INTERVAL '1 minute'))::int - 1 AS day_of_week,
                SUM(umli.time_ms_end - umli.time_ms_start)::float / 60000.0 AS minutes
         FROM   core.user_media_listen_interval umli
         WHERE  umli.user_id    = :user_id
@@ -575,6 +703,7 @@ class StatsV2Access:
                     "user_id": user_id,
                     "start_date": start_date.astimezone(timezone.utc),
                     "end_date": end_date.astimezone(timezone.utc),
+                    "timezone_offset_minutes": timezone_offset_minutes,
                 },
             )
         ).fetchall()
@@ -588,7 +717,7 @@ class StatsV2Access:
                 value=db_data.get((hour, day), 0),
             )
             for day in range(7)
-            for hour in range(HEATMAP_HOURS_START, HEATMAP_HOURS_END + 1)
+            for hour in range(HEATMAP_HOURS_START, HEATMAP_HOURS_END)
         ]
         return AResult(code=AResultCode.OK, message="OK", result=cells)
 
@@ -611,20 +740,31 @@ class StatsV2Access:
     async def get_current_streak_async(
         session: AsyncSession,
         user_id: int,
+        timezone_offset_minutes: int = 0,
     ) -> AResult[int]:
         sql = text("""
-        SELECT DISTINCT DATE(date_added) AS listen_date
+        SELECT DISTINCT DATE(date_added - (:timezone_offset_minutes * INTERVAL '1 minute')) AS listen_date
         FROM   core.user_media_listen_interval
         WHERE  user_id = :user_id
         ORDER BY listen_date DESC
         """)
-        rows = (await session.execute(sql, {"user_id": user_id})).fetchall()
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "timezone_offset_minutes": timezone_offset_minutes,
+                },
+            )
+        ).fetchall()
         dates = [r.listen_date for r in rows]
 
         if not dates:
             return AResult(code=AResultCode.OK, message="OK", result=0)
 
-        today = datetime.now(timezone.utc).date()
+        today = (
+            datetime.now(timezone.utc) - timedelta(minutes=timezone_offset_minutes)
+        ).date()
         yesterday = today - timedelta(days=1)
 
         if dates[0] < yesterday:

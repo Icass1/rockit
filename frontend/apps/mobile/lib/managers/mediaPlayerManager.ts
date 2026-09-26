@@ -33,6 +33,7 @@ import { mediaStorage } from "@/lib/storage/mediaStorage";
 export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _audioPlayer: AudioPlayer | null = null;
     private _audioSub: { remove: () => void } | null = null;
+    private _routeRecoveryRequested = false;
 
     private _videoPlayer: VideoPlayer;
     private _videoPlayerAtom = createAtom<VideoPlayer | null>(null);
@@ -158,6 +159,36 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audioSub = null;
     }
 
+    /**
+     * Recreate the audio output after Android reports a Bluetooth route
+     * becoming available. A pause/play on the old player can keep its stale
+     * output path, while a new player opens the current route.
+     */
+    async recoverAudioRoute(): Promise<void> {
+        const oldPlayer = this._audioPlayer;
+        const uri = this._loadedAudioUri;
+        if (!oldPlayer || !uri || !oldPlayer.playing) return;
+
+        const position = oldPlayer.currentTime;
+        this._routeRecoveryRequested = true;
+        this._createAudioPlayer(uri);
+        const player = this._audioPlayer;
+        if (!player) return;
+        player.volume = this._volumeAtom.get();
+
+        try {
+            await player.seekTo(position);
+            // A skip, pause, or another route change may have superseded us.
+            if (this._audioPlayer !== player || this._loadedAudioUri !== uri) return;
+            if (!this._routeRecoveryRequested) return;
+            player.play();
+        } catch (error) {
+            console.error("MediaPlayerManager: audio route recovery failed", error);
+        } finally {
+            if (this._audioPlayer === player) this._routeRecoveryRequested = false;
+        }
+    }
+
     // ===== Platform primitives =====
 
     protected override loadNativeSource(
@@ -195,7 +226,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     protected override pauseNative(kind: TMediaKind): void {
-        if (kind === "audio") this._audioPlayer?.pause();
+        if (kind === "audio") {
+            this._routeRecoveryRequested = false;
+            this._audioPlayer?.pause();
+        }
         else this._videoPlayer.pause();
     }
 

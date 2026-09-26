@@ -119,9 +119,15 @@
             "runtimeArgs": [
                 "expo",
                 "start",
-                "--offline"
+                "--offline",
+                "--dev-client",
+                "--scheme",
+                "mobile-dev"
             ],
             "cwd": "${workspaceFolder}/frontend/apps/mobile",
+            "env": {
+                "APP_VARIANT": "development"
+            },
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         }

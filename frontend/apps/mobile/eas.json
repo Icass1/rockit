@@ -7,6 +7,9 @@
             "node": "22.14.0",
             "developmentClient": true,
             "distribution": "internal",
+            "env": {
+                "APP_VARIANT": "development"
+            },
             "android": {
                 "gradleCommand": ":app:assembleDebug",
                 "buildType": "apk"

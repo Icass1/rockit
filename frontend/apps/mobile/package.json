@@ -4,6 +4,7 @@
     "version": "0.6.0",
     "scripts": {
         "start": "expo start",
+        "start:dev": "APP_VARIANT=development expo start --dev-client --scheme mobile-dev",
         "start:lan": "REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME} expo start",
         "reset-project": "node ./scripts/reset-project.js",
         "android": "expo run:android",
@@ -40,6 +41,7 @@
         "expo-audio": "~1.1.1",
         "expo-blur": "^15.0.8",
         "expo-constants": "~18.0.13",
+        "expo-dev-client": "~6.0.21",
         "expo-file-system": "19.0.21",
         "expo-font": "~14.0.11",
         "expo-haptics": "~15.0.8",

@@ -19,6 +19,7 @@ logger = getLogger(__name__)
 
 HEATMAP_HOURS_START = 0
 HEATMAP_HOURS_END = 24
+LISTENING_SESSION_GAP_MINUTES = 30
 
 
 def _build_cte(name: str, fragments: list[str]) -> str:
@@ -134,15 +135,49 @@ class StatsV2Access:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         listens AS (
-            SELECT umli.media_id, umli.date_added,
+            SELECT umli.id AS interval_id, umli.media_id, umli.date_added,
                    umli.date_added - (:timezone_offset_minutes * INTERVAL '1 minute') AS local_date_added,
                    GREATEST(umli.time_ms_end - umli.time_ms_start, 0)::bigint AS duration_ms,
+                   umli.date_updated AS interval_ended_at,
+                   umli.date_updated
+                       - (GREATEST(umli.time_ms_end - umli.time_ms_start, 0)
+                          * INTERVAL '1 millisecond') AS interval_started_at,
                    mi.duration_ms AS media_duration_ms
             FROM core.user_media_listen_interval umli
             JOIN media_info mi ON mi.media_id = umli.media_id
             WHERE umli.user_id = :user_id
               AND umli.date_added >= :start_date
               AND umli.date_added < :end_date
+        ),
+        session_boundaries AS (
+            SELECT listens.*,
+                   MAX(interval_ended_at) OVER (
+                       ORDER BY interval_started_at, interval_id
+                       ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                   ) AS previous_session_end
+            FROM listens
+        ),
+        marked_sessions AS (
+            SELECT session_boundaries.*,
+                   CASE
+                       WHEN previous_session_end IS NULL
+                         OR interval_started_at - previous_session_end
+                            > (:listening_session_gap_minutes * INTERVAL '1 minute')
+                       THEN 1 ELSE 0
+                   END AS starts_new_session
+            FROM session_boundaries
+        ),
+        sessionized_listens AS (
+            SELECT marked_sessions.*,
+                   SUM(starts_new_session) OVER (
+                       ORDER BY interval_started_at, interval_id
+                   ) AS session_id
+            FROM marked_sessions
+        ),
+        listening_sessions AS (
+            SELECT session_id, SUM(duration_ms) AS duration_ms
+            FROM sessionized_listens
+            GROUP BY session_id
         ),
         daily AS (
             SELECT DATE(local_date_added) AS listen_date, SUM(duration_ms) AS duration_ms
@@ -178,8 +213,8 @@ class StatsV2Access:
         SELECT
             (SELECT COUNT(*) FROM daily) AS active_days,
             COALESCE((SELECT MAX(length) FROM streaks), 0) AS longest_streak,
-            COALESCE((SELECT MAX(duration_ms) FROM listens), 0) AS longest_session_ms,
-            COALESCE((SELECT AVG(duration_ms) FROM listens), 0) AS average_session_ms,
+            COALESCE((SELECT MAX(duration_ms) FROM listening_sessions), 0) AS longest_session_ms,
+            COALESCE((SELECT AVG(duration_ms) FROM listening_sessions), 0) AS average_session_ms,
             COALESCE((SELECT 100.0 * AVG(LEAST(listened_ms::float / NULLIF(media_duration_ms, 0), 1))
                       FROM media_totals WHERE media_duration_ms > 0), 0) AS completion_rate,
             COALESCE((SELECT 100.0 * (COUNT(*) - COUNT(DISTINCT media_id)) / NULLIF(COUNT(*), 0)
@@ -209,6 +244,7 @@ class StatsV2Access:
                     "start_date": start_date.astimezone(timezone.utc),
                     "end_date": end_date.astimezone(timezone.utc),
                     "timezone_offset_minutes": timezone_offset_minutes,
+                    "listening_session_gap_minutes": LISTENING_SESSION_GAP_MINUTES,
                 },
             )
         ).one()
@@ -255,20 +291,46 @@ class StatsV2Access:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         interval_listens AS (
-            SELECT umli.media_id, cm.media_type_key,
-                   (umli.time_ms_end - umli.time_ms_start) AS interval_ms
+            SELECT umli.id AS interval_id, umli.media_id, cm.media_type_key,
+                   (umli.time_ms_end - umli.time_ms_start) AS interval_ms,
+                   umli.date_updated AS interval_ended_at,
+                   umli.date_updated
+                       - (GREATEST(umli.time_ms_end - umli.time_ms_start, 0)
+                          * INTERVAL '1 millisecond') AS interval_started_at
             FROM   core.user_media_listen_interval umli
             JOIN   core.media                       cm  ON cm.id = umli.media_id
             WHERE  umli.user_id    = :user_id
               AND  umli.date_added >= :start_date
               AND  umli.date_added <  :end_date
               AND  cm.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
+        ),
+        session_boundaries AS (
+            SELECT interval_listens.*,
+                   MAX(interval_ended_at) OVER (
+                       ORDER BY interval_started_at, interval_id
+                       ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                   ) AS previous_session_end
+            FROM interval_listens
+        ),
+        marked_sessions AS (
+            SELECT session_boundaries.*,
+                   CASE
+                       WHEN previous_session_end IS NULL
+                         OR interval_started_at - previous_session_end
+                            > (:listening_session_gap_minutes * INTERVAL '1 minute')
+                       THEN 1 ELSE 0
+                   END AS starts_new_session
+            FROM session_boundaries
+        ),
+        listening_sessions AS (
+            SELECT SUM(starts_new_session) AS total_sessions
+            FROM marked_sessions
         )
         SELECT
             COUNT(DISTINCT l.media_id)                                                        AS medias_listened,
             COUNT(DISTINCT l.media_id) FILTER (WHERE l.media_type_key = {MediaTypeEnum.SONG.value})  AS songs_listened,
             COUNT(DISTINCT l.media_id) FILTER (WHERE l.media_type_key = {MediaTypeEnum.VIDEO.value}) AS videos_listened,
-            COUNT(*)                                                                           AS total_sessions,
+            COALESCE((SELECT total_sessions FROM listening_sessions), 0)                        AS total_sessions,
             COALESCE(SUM(COALESCE(l.interval_ms, 0)), 0)::bigint                              AS total_play_time_ms,
             COALESCE(SUM(COALESCE(l.interval_ms, 0))::float / 60000.0, 0)                     AS total_play_time_minutes,
             CASE WHEN COUNT(DISTINCT l.media_id) > 0
@@ -284,6 +346,7 @@ class StatsV2Access:
                     "user_id": user_id,
                     "start_date": start_date.astimezone(timezone.utc),
                     "end_date": end_date.astimezone(timezone.utc),
+                    "listening_session_gap_minutes": LISTENING_SESSION_GAP_MINUTES,
                 },
             )
         ).fetchone()

@@ -1,44 +1,13 @@
 services:
     backend:
         container_name: rockit-beta-backend
-        env_file: ".env.production"
+        env_file:
+            - .env.production
 
         build:
             context: .
             dockerfile: Dockerfile.backend
         restart: unless-stopped
-        environment:
-            BACKEND_URL: ${BACKEND_URL}
-            CORS_URLS: ${CORS_URLS}
-            CLIENT_ID: ${CLIENT_ID}
-            CLIENT_SECRET: ${CLIENT_SECRET}
-            YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-            SESSION_DURATION: ${SESSION_DURATION:-86400}
-            PROD_WEB_SESSION_DOMAIN: ${PROD_WEB_SESSION_DOMAIN}
-            PROD_MOBILE_SESSION_DOMAIN: ${PROD_MOBILE_SESSION_DOMAIN}
-            ENVIRONMENT: ${ENVIRONMENT:-DEV}
-            MEDIA_PATH: ${MEDIA_PATH:-/app/media}
-            IMAGES_PATH: ${IMAGES_PATH:-/app/images}
-            TEMP_PATH: ${TEMP_PATH:-/app/temp}
-            LOGS_PATH: ${LOGS_PATH:-/app/logs}
-            BUILDS_PATH: ${BUILDS_PATH:-/app/builds}
-            LOG_DUMP_LEVEL: ${LOG_DUMP_LEVEL:-info}
-            CONSOLE_DUMP_LEVEL: ${CONSOLE_DUMP_LEVEL:-info}
-            DOWNLOAD_THREADS: ${DOWNLOAD_THREADS:-4}
-            # YouTube download reliability. All optional, see docs/YOUTUBE_DOWNLOADS.md.
-            YTDLP_POT_PROVIDER_URL: ${YTDLP_POT_PROVIDER_URL:-http://rockit-beta-pot-provider:4416}
-            YTDLP_COOKIES_FILE: ${YTDLP_COOKIES_FILE:-}
-            YTDLP_PROXIES: ${YTDLP_PROXIES:-}
-            YTDLP_SOURCE_ADDRESS: ${YTDLP_SOURCE_ADDRESS:-}
-            YTDLP_RATE_LIMIT_BYTES: ${YTDLP_RATE_LIMIT_BYTES:-0}
-            YOUTUBE_MIN_REQUEST_INTERVAL_SECONDS: ${YOUTUBE_MIN_REQUEST_INTERVAL_SECONDS:-3}
-            YOUTUBE_BLOCK_THRESHOLD: ${YOUTUBE_BLOCK_THRESHOLD:-5}
-            YOUTUBE_COOLDOWN_SECONDS: ${YOUTUBE_COOLDOWN_SECONDS:-900}
-            DB_HOST: ${DB_HOST:-postgres-container}
-            DB_USER: ${DB_USER:-rockit}
-            DB_PASSWORD: ${DB_PASSWORD:-rockitpassword}
-            DB_PORT: ${DB_PORT:-5432}
-            DB_NAME: ${DB_NAME:-rockit}
         volumes:
             - ./media:/app/media
             - ./images:/app/images
@@ -71,15 +40,14 @@ services:
 
     frontend:
         container_name: rockit-beta-frontend
+        env_file:
+            - .env.production
         build:
             context: .
             dockerfile: Dockerfile.frontend
             args:
-                NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
+                NEXT_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
         restart: unless-stopped
-        environment:
-            NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
-            INSECURE_TLS_HOSTS: ${INSECURE_TLS_HOSTS:-api-rockit.rockhosting.org}
         ports:
             - "9100:3000"
         networks:

@@ -60,12 +60,16 @@ def main():
 
     gradle_properties_path = mobile_root / "android/gradle.properties"
     gradle_properties = gradle_properties_path.read_text()
-    hermes_disabled_properties = gradle_properties.replace(
-        "hermesEnabled=true", "hermesEnabled=false", 1
-    )
-
-    if gradle_properties == hermes_disabled_properties:
-        print("Could not find hermesEnabled=true in android/gradle.properties")
+    if "hermesEnabled=true" in gradle_properties:
+        hermes_disabled_properties = gradle_properties.replace(
+            "hermesEnabled=true", "hermesEnabled=false", 1
+        )
+    elif "hermesEnabled=false" in gradle_properties:
+        # The project may already be configured for JSC. In that case there is
+        # nothing to change, but the build should still continue.
+        hermes_disabled_properties = gradle_properties
+    else:
+        print("Could not find hermesEnabled in android/gradle.properties")
         return
 
     # The EAS Linux worker currently fails while starting RN's hermesc binary.

@@ -12,9 +12,9 @@ def main():
     project_root = Path(__file__).resolve().parent.parent
     mobile_root = project_root / "frontend/apps/mobile"
 
-    current_version = json.loads((mobile_root / "app.json").read_text())[
-        "expo"
-    ]["version"]
+    current_version = json.loads((mobile_root / "app.json").read_text())["expo"][
+        "version"
+    ]
     print(f"Current version: {current_version}")
 
     version = input("Enter version: ")
@@ -58,44 +58,23 @@ def main():
 
     build_gradle_path.write_text("\n".join(output_content))
 
-    gradle_properties_path = mobile_root / "android/gradle.properties"
-    gradle_properties = gradle_properties_path.read_text()
-    if "hermesEnabled=true" in gradle_properties:
-        hermes_disabled_properties = gradle_properties.replace(
-            "hermesEnabled=true", "hermesEnabled=false", 1
-        )
-    elif "hermesEnabled=false" in gradle_properties:
-        # The project may already be configured for JSC. In that case there is
-        # nothing to change, but the build should still continue.
-        hermes_disabled_properties = gradle_properties
-    else:
-        print("Could not find hermesEnabled in android/gradle.properties")
-        return
-
-    # The EAS Linux worker currently fails while starting RN's hermesc binary.
-    # Use JSC for this APK build, then leave the checked-out project unchanged.
-    gradle_properties_path.write_text(hermes_disabled_properties)
-
     build_environment = os.environ.copy()
     build_environment["NODE_ENV"] = "production"
 
-    try:
-        result = subprocess.run(
-            [
-                "eas",
-                "build",
-                "--platform",
-                "android",
-                "--clear-cache",
-                "--profile",
-                "preview",
-            ],
-            cwd=mobile_root,
-            env=build_environment,
-            check=False,
-        )
-    finally:
-        gradle_properties_path.write_text(gradle_properties)
+    result = subprocess.run(
+        [
+            "eas",
+            "build",
+            "--platform",
+            "android",
+            "--clear-cache",
+            "--profile",
+            "preview",
+        ],
+        cwd=mobile_root,
+        env=build_environment,
+        check=False,
+    )
 
     raise SystemExit(result.returncode)
 

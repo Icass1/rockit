@@ -6,8 +6,10 @@ if (process.env.EAS_BUILD_PLATFORM !== 'android') {
   process.exit(0);
 }
 
-const reactNativeRoot = path.dirname(require.resolve('react-native/package.json'));
-const compiler = path.join(reactNativeRoot, 'sdks', 'hermesc', 'linux64-bin', 'hermesc');
+const compilerRoot = path.dirname(require.resolve('hermes-compiler/package.json', {
+  paths: [require.resolve('react-native/package.json')],
+}));
+const compiler = path.join(compilerRoot, 'hermesc', 'linux64-bin', 'hermesc');
 
 try {
   const stat = fs.statSync(compiler);

@@ -44,6 +44,13 @@ jobs:
             - name: Install dependencies
               run: pnpm --dir frontend install --frozen-lockfile
 
+            - name: Ensure Hermes compiler is executable
+              working-directory: frontend
+              run: |
+                  HERMESC_PATH="$(node --print "require('path').join(require('path').dirname(require.resolve('react-native/package.json')), 'sdks/hermesc/linux64-bin/hermesc')")"
+                  chmod +x "$HERMESC_PATH"
+                  test -x "$HERMESC_PATH"
+
             - name: Build preview APK locally
               working-directory: frontend/apps/mobile/android
               env:

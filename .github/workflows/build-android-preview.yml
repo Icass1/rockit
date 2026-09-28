@@ -55,12 +55,21 @@ jobs:
               env:
                   EXPO_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
                   EXPO_PUBLIC_PLATFORM: android
-              run: ./gradlew :app:assembleRelease --no-daemon
+              run: ./gradlew :app:assembleRelease -Prockit.preview=true --no-daemon
+
+            - name: Verify preview APK
+              working-directory: frontend/apps/mobile/android
+              run: |
+                  "${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools" | sort -V | tail -1)/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
+                  "${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools" | sort -V | tail -1)/aapt" dump badging app/build/outputs/apk/release/app-release.apk | tee app/build/outputs/apk/release/app-release.badging.txt
+                  grep -q "package: name='com.rockit.mobile.preview'" app/build/outputs/apk/release/app-release.badging.txt
 
             - name: Upload preview APK
               uses: actions/upload-artifact@v4
               with:
                   name: RockIt-Android-preview-${{ github.run_number }}
-                  path: frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+                  path: |
+                      frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+                      frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.badging.txt
                   if-no-files-found: error
                   retention-days: 14

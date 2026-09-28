@@ -80,6 +80,18 @@ pnpm build:all:production
 - Expo dashboard: expo.dev
 - URL in build output
 
+## GitHub Actions preview APK
+
+The `Build Android preview APK` workflow builds the checked-in Android project
+directly with Gradle on a GitHub-hosted runner and attaches the resulting APK to
+the GitHub Actions run for 14 days. It does not use EAS Build or require an Expo
+account or token.
+
+1. Open **Actions → Build Android preview APK → Run workflow** and select the
+   branch to build.
+2. When the workflow finishes, open its run and download the
+   `RockIt-Android-preview-<run number>` artifact from the **Artifacts** section.
+
 ## Troubleshooting
 
 - "EAS not configured": `eas init --non-interactive --force`

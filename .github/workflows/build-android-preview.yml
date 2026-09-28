@@ -1,0 +1,60 @@
+name: Build Android preview APK
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: android-preview-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    build:
+        name: Build and publish preview APK
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 11.0.8
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22.14.0
+                  cache: pnpm
+                  cache-dependency-path: frontend/pnpm-lock.yaml
+
+            - name: Set up Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 17
+
+            - name: Set up Gradle
+              uses: gradle/actions/setup-gradle@v4
+
+            - name: Install dependencies
+              run: pnpm --dir frontend install --frozen-lockfile
+
+            - name: Build preview APK locally
+              working-directory: frontend/apps/mobile/android
+              env:
+                  EXPO_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
+                  EXPO_PUBLIC_PLATFORM: android
+              run: ./gradlew :app:assembleRelease --no-daemon
+
+            - name: Upload preview APK
+              uses: actions/upload-artifact@v4
+              with:
+                  name: RockIt-Android-preview-${{ github.run_number }}
+                  path: frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+                  if-no-files-found: error
+                  retention-days: 14

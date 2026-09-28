@@ -113,6 +113,13 @@ android {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
+            // GitHub preview builds use the checked-in debug key. Give them a
+            // separate package ID so they cannot conflict with an EAS/Play
+            // build of RockIt signed by a different certificate.
+            if ((findProperty('rockit.preview') ?: 'false').toBoolean()) {
+                applicationIdSuffix '.preview'
+                versionNameSuffix '-preview'
+            }
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds

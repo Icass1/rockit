@@ -23,7 +23,8 @@
         "build:all": "eas build --platform all",
         "build:all:production": "eas build --platform all --profile production",
         "submit:android": "eas submit --platform android",
-        "submit:ios": "eas submit --platform ios"
+        "submit:ios": "eas submit --platform ios",
+        "eas-build-post-install": "node scripts/check-hermes.cjs"
     },
     "dependencies": {
         "@gorhom/bottom-sheet": "^5.2.8",

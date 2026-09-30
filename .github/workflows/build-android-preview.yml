@@ -53,6 +53,7 @@ jobs:
             - name: Build preview APK locally
               working-directory: frontend/apps/mobile/android
               env:
+                  NODE_ENV: production
                   EXPO_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
                   EXPO_PUBLIC_PLATFORM: android
               run: ./gradlew :app:assembleRelease -Prockit.preview=true --no-daemon
@@ -65,6 +66,7 @@ jobs:
                   BUILD_TOOLS="${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools" | sort -V | tail -1)"
 
                   "${BUILD_TOOLS}/apksigner" verify --verbose "${APK_PATH}"
+                  "${BUILD_TOOLS}/zipalign" -c -P 16 4 "${APK_PATH}"
                   "${BUILD_TOOLS}/aapt" dump badging "${APK_PATH}" | tee "${OUTPUT_DIR}/app-release.badging.txt"
                   grep -q "package: name='com.rockit.mobile.preview'" "${OUTPUT_DIR}/app-release.badging.txt"
 
@@ -73,6 +75,30 @@ jobs:
                   # be inspected without mistaking the packaged manifest for damage.
                   "${ANDROID_HOME}/cmdline-tools/latest/bin/apkanalyzer" manifest print "${APK_PATH}" > "${OUTPUT_DIR}/AndroidManifest.xml"
                   grep -q 'package="com.rockit.mobile.preview"' "${OUTPUT_DIR}/AndroidManifest.xml"
+
+            - name: Enable Android emulator acceleration
+              run: |
+                  echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+                  sudo udevadm control --reload-rules
+                  sudo udevadm trigger --name-match=kvm
+
+            - name: Install and launch preview on Android 13
+              uses: reactivecircus/android-emulator-runner@v2
+              with:
+                  api-level: 33
+                  arch: x86_64
+                  target: default
+                  disable-animations: true
+                  script: python3 frontend/apps/mobile/scripts/smoke-test-android.py frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.apk --serial emulator-5554 --output android-smoke-test
+
+            - name: Upload installation and startup diagnostics
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: RockIt-Android-preview-diagnostics-${{ github.run_number }}
+                  path: android-smoke-test/
+                  if-no-files-found: ignore
+                  retention-days: 14
 
             - name: Upload preview APK
               uses: actions/upload-artifact@v4

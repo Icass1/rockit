@@ -60,9 +60,19 @@ jobs:
             - name: Verify preview APK
               working-directory: frontend/apps/mobile/android
               run: |
-                  "${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools" | sort -V | tail -1)/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
-                  "${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools" | sort -V | tail -1)/aapt" dump badging app/build/outputs/apk/release/app-release.apk | tee app/build/outputs/apk/release/app-release.badging.txt
-                  grep -q "package: name='com.rockit.mobile.preview'" app/build/outputs/apk/release/app-release.badging.txt
+                  APK_PATH=app/build/outputs/apk/release/app-release.apk
+                  OUTPUT_DIR=app/build/outputs/apk/release
+                  BUILD_TOOLS="${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools" | sort -V | tail -1)"
+
+                  "${BUILD_TOOLS}/apksigner" verify --verbose "${APK_PATH}"
+                  "${BUILD_TOOLS}/aapt" dump badging "${APK_PATH}" | tee "${OUTPUT_DIR}/app-release.badging.txt"
+                  grep -q "package: name='com.rockit.mobile.preview'" "${OUTPUT_DIR}/app-release.badging.txt"
+
+                  # Android packages AndroidManifest.xml as binary AXML by design.
+                  # Export a human-readable copy so downloaded build artifacts can
+                  # be inspected without mistaking the packaged manifest for damage.
+                  "${ANDROID_HOME}/cmdline-tools/latest/bin/apkanalyzer" manifest print "${APK_PATH}" > "${OUTPUT_DIR}/AndroidManifest.xml"
+                  grep -q 'package="com.rockit.mobile.preview"' "${OUTPUT_DIR}/AndroidManifest.xml"
 
             - name: Upload preview APK
               uses: actions/upload-artifact@v4
@@ -71,5 +81,6 @@ jobs:
                   path: |
                       frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
                       frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.badging.txt
+                      frontend/apps/mobile/android/app/build/outputs/apk/release/AndroidManifest.xml
                   if-no-files-found: error
                   retention-days: 14

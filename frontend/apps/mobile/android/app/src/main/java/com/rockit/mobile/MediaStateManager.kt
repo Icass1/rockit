@@ -28,4 +28,17 @@ object MediaStateManager {
     fun removeChangeListener(listener: () -> Unit) = changeListeners.remove(listener)
 
     fun notifyChange() = changeListeners.forEach { it() }
+
+    fun clear() {
+        title = ""
+        artist = ""
+        album = ""
+        artworkUrl = null
+        duration = 0L
+        isPlaying = false
+        position = 0L
+        queue = emptyList()
+        currentQueueIndex = 0
+        notifyChange()
+    }
 }

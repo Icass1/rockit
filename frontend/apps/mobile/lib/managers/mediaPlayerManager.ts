@@ -158,6 +158,19 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audioSub = null;
     }
 
+    /** Stop playback and release every native source owned by the app. */
+    stopAndClear(): void {
+        this._destroyAudioPlayer();
+        this._videoPlayer.pause();
+        this._videoReplacing = true;
+        void this._videoPlayer.replaceAsync(null).finally((): void => {
+            this._videoReplacing = false;
+        });
+        this._durationAtom.set(0);
+        this._currentTimeAtom.set(0);
+        this._playingAtom.set(false);
+    }
+
     // ===== Platform primitives =====
 
     protected override loadNativeSource(

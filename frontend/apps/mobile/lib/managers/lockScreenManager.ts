@@ -72,7 +72,10 @@ export class LockScreenManager {
             onBluetoothDisconnected: () => player.pause(),
             onAutoPlay: () => player.play(),
             onAutoPause: () => player.pause(),
-            onAutoStop: () => player.pause(),
+            onAutoStop: () => {
+                player.stopAndClear();
+                queue.clearCurrentMedia();
+            },
             onAutoNext: () => queue.skipForward(),
             onAutoPrevious: () => queue.skipBack(),
             onAutoSeekTo: (seconds) => player.setCurrentTime(seconds, true),

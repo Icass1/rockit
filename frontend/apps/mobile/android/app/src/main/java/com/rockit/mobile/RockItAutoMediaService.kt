@@ -44,8 +44,8 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     @Volatile
     private var isForeground = false
 
-    // Set once the user hits the notification's Stop action (or the last
-    // task is removed while paused). Guards against a late, in-flight
+    // Set once the user hits the notification's Stop action or removes the
+    // app task. Guards against a late, in-flight
     // MediaStateManager change (e.g. the JS round-trip from safeEmit("stop"))
     // resurrecting the notification while the service is tearing down.
     @Volatile
@@ -137,18 +137,24 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     private fun stopPlaybackAndService() {
         if (isStopped) return
         isStopped = true
-        MediaStateManager.isPlaying = false
+        MediaStateManager.clear()
+        mediaSession.setMetadata(null)
+        mediaSession.setQueue(null)
         mediaSession.isActive = false
         stopForeground(true)
+        notificationManager.cancel(NOTIFICATION_ID)
         isForeground = false
         stopSelf()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        if (!MediaStateManager.isPlaying) {
-            stopPlaybackAndService()
-        }
+        // Backgrounding the app does not remove its task, so playback keeps
+        // running when the user merely switches apps or locks the device.
+        // Swiping the task away is an explicit close: tell the JS player to
+        // release its audio/video sources, then clear the native media session.
+        SessionCallback().emitStop()
+        stopPlaybackAndService()
     }
 
     private fun createNotificationChannel() {
@@ -367,9 +373,11 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         }
 
         override fun onStop() {
-            safeEmit("stop", null)
+            emitStop()
             stopPlaybackAndService()
         }
+
+        fun emitStop() = safeEmit("stop", null)
 
         // Invoked directly by the OS (lock screen, notification, Bluetooth AVRCP,
         // and the Quick Settings expanded media panel) via Binder, on the app's

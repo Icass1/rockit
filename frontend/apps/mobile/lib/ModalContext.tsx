@@ -1,14 +1,8 @@
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import {
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-    type ViewStyle,
-} from "react-native";
+import { StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { useSheet } from "@/lib/SheetContext";
 
 export interface ModalContent {
     title?: string;
@@ -49,76 +43,48 @@ export function getModalRef(): ModalContextType {
 }
 
 export function ModalProvider({ children }: { children: ReactNode }) {
+    const { open, close } = useSheet();
     const [visible, setVisible] = useState(false);
     const [content, setContent] = useState<ModalContent | null>(null);
 
     const show = useCallback((newContent: ModalContent) => {
         setContent(newContent);
         setVisible(true);
-    }, []);
+        open({
+            snapPoints: ["48%"],
+            content: (
+                <View style={[styles.card, newContent.style]}>
+                    {newContent.title && <Text style={styles.title}>{newContent.title}</Text>}
+                    {newContent.content}
+                </View>
+            ),
+            onClose: () => {
+                newContent.onClose?.();
+                setVisible(false);
+                setContent(null);
+            },
+        });
+    }, [open]);
 
     const hide = useCallback(() => {
+        close();
         setVisible(false);
         setContent(null);
-    }, []);
+    }, [close]);
 
     return (
         <ModalContext.Provider value={{ visible, content, show, hide }}>
             {children}
-            <GlobalModal visible={visible} content={content} onDismiss={hide} />
         </ModalContext.Provider>
     );
 }
 
-interface GlobalModalProps {
-    visible: boolean;
-    content: ModalContent | null;
-    onDismiss: () => void;
-}
-
-function GlobalModal({ visible, content, onDismiss }: GlobalModalProps) {
-    if (!visible || !content) return null;
-
-    return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="fade"
-            statusBarTranslucent
-            onRequestClose={onDismiss}
-        >
-            <Pressable style={styles.overlay} onPress={onDismiss}>
-                <Pressable
-                    style={styles.card}
-                    onPress={(e) => e.stopPropagation()}
-                >
-                    {content.title && (
-                        <Text style={styles.title}>{content.title}</Text>
-                    )}
-                    {content.content && (
-                        <View style={content.style}>{content.content}</View>
-                    )}
-                </Pressable>
-            </Pressable>
-        </Modal>
-    );
-}
-
 const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.75)",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-    },
     card: {
         backgroundColor: COLORS.bgCard,
-        borderRadius: 16,
-        padding: 24,
-        width: "100%",
-        maxWidth: 360,
-        minWidth: 280,
+        paddingHorizontal: 24,
+        paddingTop: 8,
+        paddingBottom: 32,
         gap: 12,
     },
     title: {

@@ -134,6 +134,8 @@ export default function FullPlayer() {
     const handleTabPress = (tab: PlayerTab) =>
         setActiveTab((prev) => (prev === tab ? null : tab));
 
+    const handleTabPanelClose = useCallback(() => setActiveTab(null), []);
+
     if (!isPlayerVisible && !keepMounted) return null;
 
     return (
@@ -198,7 +200,7 @@ export default function FullPlayer() {
 
             <PlayerTabsPanel
                 activeTab={activeTab}
-                onClose={() => setActiveTab(null)}
+                onClose={handleTabPanelClose}
             />
 
             <BookmarkPopup

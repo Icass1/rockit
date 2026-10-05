@@ -1,6 +1,5 @@
 import { useEffect, type ReactNode } from "react";
 import { COLORS } from "@/constants/theme";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Tabs, useRouter, useSegments } from "expo-router";
 import {
     BookOpen,
@@ -16,12 +15,12 @@ import {
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
-import { ContextMenuProvider, useContextMenu } from "@/lib/ContextMenuContext";
+import { ContextMenuProvider } from "@/lib/ContextMenuContext";
 import { ModalProvider } from "@/lib/ModalContext";
+import { SheetProvider } from "@/lib/SheetContext";
 import { PlayerProvider, usePlayer } from "@/lib/PlayerContext";
 import { getSession } from "@/lib/session";
 import { useVocabulary } from "@/lib/vocabulary";
-import ContextMenuSheet from "@/components/ContextMenu/ContextMenuSheet";
 import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
 
@@ -106,7 +105,6 @@ function AppLayoutContent() {
     const router = useRouter();
     const { bottom: safeBottom } = useSafeAreaInsets();
     const { vocabulary } = useVocabulary();
-    const { config, sheetRef, handleSheetChange } = useContextMenu();
 
     useEffect(() => {
         getSession().then((session) => {
@@ -122,9 +120,6 @@ function AppLayoutContent() {
             <AppLayoutInner
                 safeBottom={safeBottom}
                 vocabulary={vocabulary}
-                config={config}
-                sheetRef={sheetRef}
-                handleSheetChange={handleSheetChange}
             />
         </PlayerProvider>
     );
@@ -134,15 +129,9 @@ function AppLayoutContent() {
 function AppLayoutInner({
     safeBottom,
     vocabulary,
-    config,
-    sheetRef,
-    handleSheetChange,
 }: {
     safeBottom: number;
     vocabulary: any;
-    config: any;
-    sheetRef: any;
-    handleSheetChange: (index: number) => void;
 }) {
     const { hidePlayer } = usePlayer();
     return (
@@ -222,11 +211,6 @@ function AppLayoutInner({
             >
                 <Header />
             </View>
-            <ContextMenuSheet
-                config={config}
-                sheetRef={sheetRef}
-                onChange={handleSheetChange}
-            />
         </View>
     );
 }
@@ -239,7 +223,7 @@ function VersionCheckWrapper({ children }: { children: ReactNode }) {
 export default function AppLayout() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <BottomSheetModalProvider>
+            <SheetProvider>
                 <ContextMenuProvider>
                     <ModalProvider>
                         <VersionCheckWrapper>
@@ -247,7 +231,7 @@ export default function AppLayout() {
                         </VersionCheckWrapper>
                     </ModalProvider>
                 </ContextMenuProvider>
-            </BottomSheetModalProvider>
+            </SheetProvider>
         </GestureHandlerRootView>
     );
 }

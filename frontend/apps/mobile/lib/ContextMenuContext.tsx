@@ -2,12 +2,12 @@ import {
     createContext,
     useCallback,
     useContext,
-    useRef,
     useState,
     type ReactNode,
 } from "react";
-import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import type { LucideIcon } from "lucide-react-native";
+import { useSheet } from "@/lib/SheetContext";
+import { ContextMenuSheetContent } from "@/components/ContextMenu/ContextMenuSheet";
 
 export interface ContextMenuOption {
     label: string;
@@ -29,18 +29,14 @@ interface ContextMenuContextType {
     show: (config: ContextMenuConfig) => void;
     hide: () => void;
     config: ContextMenuConfig | null;
-    sheetRef: React.RefObject<BottomSheetModal | null>;
     isOpen: boolean;
-    handleSheetChange: (index: number) => void;
 }
 
 const ContextMenuContext = createContext<ContextMenuContextType>({
     show: () => {},
     hide: () => {},
     config: null,
-    sheetRef: { current: null },
     isOpen: false,
-    handleSheetChange: () => {},
 });
 
 export function useContextMenu() {
@@ -48,30 +44,33 @@ export function useContextMenu() {
 }
 
 export function ContextMenuProvider({ children }: { children: ReactNode }) {
-    const sheetRef = useRef<BottomSheetModal>(null);
+    const { open: openSheet, close: closeSheet } = useSheet();
     const [config, setConfig] = useState<ContextMenuConfig | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
     const show = useCallback((newConfig: ContextMenuConfig) => {
         setConfig(newConfig);
         setIsOpen(true);
-        setTimeout(() => sheetRef.current?.present(), 0);
-    }, []);
+        openSheet({
+            content: <ContextMenuSheetContent config={newConfig} />,
+            snapPoints: ["85%"],
+            scrollable: true,
+            onClose: () => {
+                setConfig(null);
+                setIsOpen(false);
+            },
+        });
+    }, [openSheet]);
 
     const hide = useCallback(() => {
-        sheetRef.current?.dismiss();
+        closeSheet();
         setIsOpen(false);
-    }, []);
-
-    const handleSheetChange = useCallback((index: number) => {
-        if (index === -1) {
-            setIsOpen(false);
-        }
-    }, []);
+        setConfig(null);
+    }, [closeSheet]);
 
     return (
         <ContextMenuContext.Provider
-            value={{ show, hide, config, sheetRef, isOpen, handleSheetChange }}
+            value={{ show, hide, config, isOpen }}
         >
             {children}
         </ContextMenuContext.Provider>

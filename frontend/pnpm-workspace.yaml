@@ -11,3 +11,5 @@ onlyBuiltDependencies:
   - esbuild
   - sharp
   - unrs-resolver
+patchedDependencies:
+  '@gorhom/bottom-sheet@5.2.8': patches/@gorhom__bottom-sheet@5.2.8.patch

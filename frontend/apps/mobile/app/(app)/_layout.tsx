@@ -8,7 +8,12 @@ import {
     Search,
     Settings,
 } from "lucide-react-native";
-import { Pressable, StyleSheet, View } from "react-native";
+import {
+    Pressable,
+    StyleSheet,
+    View,
+    type LayoutChangeEvent,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
     SafeAreaView,
@@ -17,9 +22,10 @@ import {
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { ContextMenuProvider } from "@/lib/ContextMenuContext";
 import { ModalProvider } from "@/lib/ModalContext";
-import { SheetProvider } from "@/lib/SheetContext";
 import { PlayerProvider, usePlayer } from "@/lib/PlayerContext";
 import { getSession } from "@/lib/session";
+import { SheetProvider } from "@/lib/SheetContext";
+import { logSheetDebug } from "@/lib/sheetDebug";
 import { useVocabulary } from "@/lib/vocabulary";
 import Header from "@/components/layout/Header";
 import { FullPlayer, MiniPlayer } from "@/components/Player";
@@ -117,10 +123,7 @@ function AppLayoutContent() {
 
     return (
         <PlayerProvider>
-            <AppLayoutInner
-                safeBottom={safeBottom}
-                vocabulary={vocabulary}
-            />
+            <AppLayoutInner safeBottom={safeBottom} vocabulary={vocabulary} />
         </PlayerProvider>
     );
 }
@@ -222,7 +225,12 @@ function VersionCheckWrapper({ children }: { children: ReactNode }) {
 
 export default function AppLayout() {
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <GestureHandlerRootView
+            style={{ flex: 1 }}
+            onLayout={({ nativeEvent }: LayoutChangeEvent) =>
+                logSheetDebug("appHost.layout", { ...nativeEvent.layout })
+            }
+        >
             <SheetProvider>
                 <ContextMenuProvider>
                     <ModalProvider>

@@ -10,9 +10,8 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
+import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
-import BookmarkPopup from "@/components/Player/BookmarkPopup";
 import PlayerMediaInfo from "@/components/Player/PlayerMediaInfo";
 import PlayerTabsBar from "@/components/Player/PlayerTabsBar";
 import PlayerTabsPanel from "@/components/Player/PlayerTabsPanel";
@@ -23,7 +22,13 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SPRING_CONFIG = { damping: 50, stiffness: 300, mass: 0.8 };
 const OFFSET_Y = SCREEN_HEIGHT + 50;
 
-export type PlayerTab = "queue" | "lyrics" | "related" | "crossfade" | null;
+export type PlayerTab =
+    | "queue"
+    | "lyrics"
+    | "related"
+    | "crossfade"
+    | "bookmarks"
+    | null;
 
 export default function FullPlayer() {
     const {
@@ -38,10 +43,8 @@ export default function FullPlayer() {
         toggleAudioOnly,
     } = usePlayer();
 
-    const { currentTime } = usePlayerTime();
     const insets = useSafeAreaInsets();
     const FOOTER_HEIGHT = 50; // Height of the custom tab bar
-    const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
 
     let containerHeight: number;
 
@@ -90,7 +93,7 @@ export default function FullPlayer() {
             rockIt.bookmarkManager
                 .fetchBookmarksForMediaAsync(currentMedia.publicId)
                 .then(() => {
-                    setShowBookmarkPopup(true);
+                    setActiveTab("bookmarks");
                 });
         }
     }, [currentMedia?.publicId]);
@@ -161,53 +164,49 @@ export default function FullPlayer() {
 
             {/* Main content wrapped in pan gesture detector */}
             <GestureDetector gesture={panGesture}>
-                <Animated.View
-                    style={[
-                        styles.inner,
-                        {
-                            paddingTop: insets.top + 80,
-                            paddingBottom: 20,
-                        },
-                    ]}
-                >
-                    <PlayerTopBar
-                        title={currentMedia?.name ?? ""}
-                        onClose={handleHide}
-                        onSettings={() =>
-                            setActiveTab((prev) =>
-                                prev === "crossfade" ? null : "crossfade"
-                            )
-                        }
-                        onBookmarkPress={handleBookmarkPress}
-                        media={currentMedia}
-                    />
-                    <PlayerMediaInfo
-                        currentMedia={currentMedia}
-                        onSeek={seekTo}
-                        videoPlayer={videoPlayer ?? null}
-                        hasVideo={!!hasVideo}
-                        canToggleAudioOnly={canToggleAudioOnly}
-                        audioOnly={audioOnly}
-                        onToggleAudioOnly={toggleAudioOnly}
-                    />
-                    <PlayerTabsBar
-                        activeTab={activeTab}
-                        onTabPress={handleTabPress}
-                        insetBottom={Math.max(insets.bottom, 8)}
-                    />
+                <Animated.View style={styles.gestureContent}>
+                    <Animated.View
+                        style={[
+                            styles.inner,
+                            {
+                                paddingTop: insets.top + 80,
+                                paddingBottom: 20,
+                            },
+                        ]}
+                    >
+                        <PlayerTopBar
+                            title={currentMedia?.name ?? ""}
+                            onClose={handleHide}
+                            onSettings={() =>
+                                setActiveTab((prev) =>
+                                    prev === "crossfade" ? null : "crossfade"
+                                )
+                            }
+                            onBookmarkPress={handleBookmarkPress}
+                            media={currentMedia}
+                        />
+                        <PlayerMediaInfo
+                            currentMedia={currentMedia}
+                            onSeek={seekTo}
+                            videoPlayer={videoPlayer ?? null}
+                            hasVideo={!!hasVideo}
+                            canToggleAudioOnly={canToggleAudioOnly}
+                            audioOnly={audioOnly}
+                            onToggleAudioOnly={toggleAudioOnly}
+                        />
+                    </Animated.View>
                 </Animated.View>
             </GestureDetector>
+
+            <PlayerTabsBar
+                activeTab={activeTab}
+                onTabPress={handleTabPress}
+                insetBottom={Math.max(insets.bottom, 8)}
+            />
 
             <PlayerTabsPanel
                 activeTab={activeTab}
                 onClose={handleTabPanelClose}
-            />
-
-            <BookmarkPopup
-                visible={showBookmarkPopup}
-                currentTime={currentTime}
-                mediaPublicId={currentMedia?.publicId}
-                onClose={() => setShowBookmarkPopup(false)}
             />
         </Animated.View>
     );
@@ -219,16 +218,21 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         right: 0,
+        bottom: 0,
+        paddingBottom: 60,
         // Height will be set dynamically to avoid covering the footer
         zIndex: 0, // default stacking; MiniPlayer is hidden when FullPlayer visible
         backgroundColor: "#0b0b0b",
         overflow: "hidden",
     },
     overlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         backgroundColor: "rgba(0,0,0,0.55)",
     },
     inner: {
+        flex: 1,
+    },
+    gestureContent: {
         flex: 1,
     },
 });

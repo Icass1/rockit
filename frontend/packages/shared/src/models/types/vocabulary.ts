@@ -224,6 +224,7 @@ export interface Vocabulary {
     LOG_OUT: string;
     LOGGING_IN: string;
     LOGS: string;
+    SETTINGS_SHARE_SHEET_LOGS: string;
     LYRICS: string;
     LYRICS_BY: string;
     MARCH: string;

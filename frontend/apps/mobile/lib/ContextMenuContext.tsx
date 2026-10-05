@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { LucideIcon } from "lucide-react-native";
 import { useSheet } from "@/lib/SheetContext";
+import { logSheetDebug } from "@/lib/sheetDebug";
 import { ContextMenuSheetContent } from "@/components/ContextMenu/ContextMenuSheet";
 
 export interface ContextMenuOption {
@@ -48,30 +49,38 @@ export function ContextMenuProvider({ children }: { children: ReactNode }) {
     const [config, setConfig] = useState<ContextMenuConfig | null>(null);
     const [isOpen, setIsOpen] = useState(false);
 
-    const show = useCallback((newConfig: ContextMenuConfig) => {
-        setConfig(newConfig);
-        setIsOpen(true);
-        openSheet({
-            content: <ContextMenuSheetContent config={newConfig} />,
-            snapPoints: ["85%"],
-            scrollable: true,
-            onClose: () => {
-                setConfig(null);
-                setIsOpen(false);
-            },
-        });
-    }, [openSheet]);
+    const show = useCallback(
+        (newConfig: ContextMenuConfig) => {
+            logSheetDebug("contextMenu.show", {
+                optionCount: newConfig.options.length,
+                hasImage: !!newConfig.imageUrl,
+            });
+            setConfig(newConfig);
+            setIsOpen(true);
+            openSheet({
+                debugLabel: "context-menu",
+                content: <ContextMenuSheetContent config={newConfig} />,
+                snapPoints: ["85%"],
+                scrollable: true,
+                onClose: () => {
+                    logSheetDebug("contextMenu.onClose");
+                    setConfig(null);
+                    setIsOpen(false);
+                },
+            });
+        },
+        [openSheet]
+    );
 
     const hide = useCallback(() => {
+        logSheetDebug("contextMenu.hide");
         closeSheet();
         setIsOpen(false);
         setConfig(null);
     }, [closeSheet]);
 
     return (
-        <ContextMenuContext.Provider
-            value={{ show, hide, config, isOpen }}
-        >
+        <ContextMenuContext.Provider value={{ show, hide, config, isOpen }}>
             {children}
         </ContextMenuContext.Provider>
     );

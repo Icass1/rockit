@@ -47,24 +47,30 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const [visible, setVisible] = useState(false);
     const [content, setContent] = useState<ModalContent | null>(null);
 
-    const show = useCallback((newContent: ModalContent) => {
-        setContent(newContent);
-        setVisible(true);
-        open({
-            snapPoints: ["48%"],
-            content: (
-                <View style={[styles.card, newContent.style]}>
-                    {newContent.title && <Text style={styles.title}>{newContent.title}</Text>}
-                    {newContent.content}
-                </View>
-            ),
-            onClose: () => {
-                newContent.onClose?.();
-                setVisible(false);
-                setContent(null);
-            },
-        });
-    }, [open]);
+    const show = useCallback(
+        (newContent: ModalContent) => {
+            setContent(newContent);
+            setVisible(true);
+            open({
+                debugLabel: "modal",
+                snapPoints: ["48%"],
+                content: (
+                    <View style={[styles.card, newContent.style]}>
+                        {newContent.title && (
+                            <Text style={styles.title}>{newContent.title}</Text>
+                        )}
+                        {newContent.content}
+                    </View>
+                ),
+                onClose: () => {
+                    newContent.onClose?.();
+                    setVisible(false);
+                    setContent(null);
+                },
+            });
+        },
+        [open]
+    );
 
     const hide = useCallback(() => {
         close();

@@ -1,8 +1,10 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import { Radio } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useSheet } from "@/lib/SheetContext";
+import { logSheetDebug } from "@/lib/sheetDebug";
+import BookmarkPopup from "@/components/Player/BookmarkPopup";
 import type { PlayerTab } from "@/components/Player/FullPlayer";
 import PlayerLyrics from "@/components/Player/PlayerLyrics";
 import PlayerQueue from "@/components/Player/PlayerQueue";
@@ -13,9 +15,14 @@ interface PlayerTabsPanelProps {
     onClose: () => void;
 }
 
-export default function PlayerTabsPanel({ activeTab, onClose }: PlayerTabsPanelProps) {
+export default function PlayerTabsPanel({
+    activeTab,
+    onClose,
+}: PlayerTabsPanelProps) {
     const { open, close } = useSheet();
+    const hasOpenSheet = useRef(false);
     const content = useMemo(() => {
+        if (activeTab === "bookmarks") return <BookmarkPopup onClose={close} />;
         if (activeTab === "queue") return <PlayerQueue />;
         if (activeTab === "lyrics") return <PlayerLyrics />;
         if (activeTab === "crossfade") {
@@ -28,14 +35,31 @@ export default function PlayerTabsPanel({ activeTab, onClose }: PlayerTabsPanelP
         }
         if (activeTab === "related") return <RelatedMock />;
         return null;
-    }, [activeTab]);
+    }, [activeTab, close]);
 
     useEffect(() => {
+        logSheetDebug("playerTabs.effect", {
+            activeTab,
+            hasContent: !!content,
+        });
         if (!activeTab || !content) {
-            close();
+            if (hasOpenSheet.current) {
+                hasOpenSheet.current = false;
+                close();
+            }
             return;
         }
-        open({ content, snapPoints: ["65%"], onClose });
+        hasOpenSheet.current = true;
+        open({
+            content,
+            snapPoints: ["65%"],
+            onClose: () => {
+                // Dismissal already closed the sheet before clearing the tab.
+                hasOpenSheet.current = false;
+                onClose();
+            },
+            debugLabel: `player-${activeTab}`,
+        });
     }, [activeTab, close, content, onClose, open]);
 
     return null;
@@ -53,8 +77,18 @@ function RelatedMock() {
 
 const styles = StyleSheet.create({
     crossfadeWrapper: { paddingHorizontal: 20, paddingTop: 8 },
-    crossfadeTitle: { fontSize: 18, fontWeight: "700", color: COLORS.white, marginBottom: 12 },
-    mockContainer: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
+    crossfadeTitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: COLORS.white,
+        marginBottom: 12,
+    },
+    mockContainer: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 12,
+    },
     mockTitle: { fontSize: 18, fontWeight: "700", color: COLORS.white },
     mockSubtitle: { fontSize: 14, color: COLORS.gray400 },
 });

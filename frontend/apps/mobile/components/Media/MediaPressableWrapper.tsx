@@ -37,6 +37,7 @@ import {
 } from "@/lib/ContextMenuContext";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { logSheetDebug } from "@/lib/sheetDebug";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
@@ -354,10 +355,14 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     );
 
     const handleLongPress = useCallback(() => {
+        logSheetDebug("media.longPress", {
+            isSearchResult: isSearchResult(media),
+            menuOnly: !!menuOnly,
+        });
         if (!isSearchResult(media)) {
             show(buildMainMenu(media));
         }
-    }, [media, show, buildMainMenu]);
+    }, [media, menuOnly, show, buildMainMenu]);
 
     const handlePress = useCallback(() => {
         if (onPress) {

@@ -1,5 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { COLORS } from "@/constants/theme";
+import {
+    BottomSheetFlatList,
+    BottomSheetTextInput,
+} from "@gorhom/bottom-sheet";
 import { useStore } from "@nanostores/react";
 import type { BookmarkResponse } from "@rockit/shared";
 import {
@@ -14,23 +18,11 @@ import {
     Trash2,
     X,
 } from "lucide-react-native";
-import {
-    Animated,
-    Dimensions,
-    FlatList,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/lib/vocabulary";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const MODE_OPTIONS: {
     key: "NOTHING" | "AUTOSKIP" | "REPEAT_FROM_BEGINNING" | "PREVIOUS_BOOKMARK";
@@ -72,18 +64,10 @@ function parseTimestamp(text: string): number {
 }
 
 interface BookmarkPopupProps {
-    visible: boolean;
-    currentTime: number;
-    mediaPublicId: string | undefined;
     onClose: () => void;
 }
 
-export default function BookmarkPopup({
-    visible,
-    currentTime,
-    mediaPublicId,
-    onClose,
-}: BookmarkPopupProps) {
+export default function BookmarkPopup({ onClose }: BookmarkPopupProps) {
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );
@@ -91,7 +75,9 @@ export default function BookmarkPopup({
     const { vocabulary } = useVocabulary();
 
     const insets = useSafeAreaInsets();
-    const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+    const { currentMedia } = usePlayer();
+    const { currentTime } = usePlayerTime();
+    const mediaPublicId = currentMedia?.publicId;
 
     const [mode, setMode] = useState<"list" | "edit">("list");
     const [editBookmark, setEditBookmark] = useState<BookmarkResponse | null>(
@@ -102,40 +88,13 @@ export default function BookmarkPopup({
     const [editMode, setEditMode] = useState("NOTHING");
     const [showModeDropdown, setShowModeDropdown] = useState(false);
 
-    useEffect(() => {
-        if (visible) {
-            setMode("list");
-            setEditBookmark(null);
-            Animated.spring(translateY, {
-                toValue: 0,
-                useNativeDriver: true,
-                damping: 50,
-                stiffness: 300,
-                mass: 0.8,
-            }).start();
-        } else {
-            Animated.timing(translateY, {
-                toValue: SCREEN_HEIGHT,
-                duration: 250,
-                useNativeDriver: true,
-            }).start();
-        }
-    }, [visible, translateY]);
-
-    const handleClose = useCallback(() => {
-        Animated.timing(translateY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 200,
-            useNativeDriver: true,
-        }).start(() => onClose());
-    }, [translateY, onClose]);
-
     const startEdit = useCallback(
         (bookmark: BookmarkResponse | null) => {
             setEditBookmark(bookmark);
             setEditTimestamp(formatTime(bookmark?.timestamp ?? currentTime));
             setEditDescription(bookmark?.description ?? "");
             setEditMode(bookmark?.mode ?? "NOTHING");
+            setShowModeDropdown(false);
             setMode("edit");
         },
         [currentTime]
@@ -180,330 +139,235 @@ export default function BookmarkPopup({
         MODE_OPTIONS.find((o) => o.key === editMode)?.color ?? "#ffffff";
 
     return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="none"
-            statusBarTranslucent
-            onRequestClose={handleClose}
-        >
-            <Pressable style={styles.overlay} onPress={handleClose}>
-                <Animated.View
-                    style={[
-                        styles.sheet,
-                        {
-                            paddingBottom: insets.bottom + 16,
-                            transform: [{ translateY }],
-                        },
-                    ]}
-                >
-                    <Pressable
-                        onPress={(e) => e.stopPropagation()}
-                        style={{ flex: 1 }}
-                    >
-                        <View style={styles.handleBar} />
-
-                        {mode === "edit" ? (
-                            <View style={styles.editContainer}>
-                                <View style={styles.editHeader}>
-                                    <TouchableOpacity
-                                        onPress={() => setMode("list")}
-                                        style={styles.backButton}
-                                    >
-                                        <ChevronDown
-                                            size={18}
-                                            color={COLORS.gray400}
-                                            style={{
-                                                transform: [
-                                                    { rotate: "90deg" },
-                                                ],
-                                            }}
-                                        />
-                                    </TouchableOpacity>
-                                    <Text style={styles.editTitle}>
-                                        {editBookmark
-                                            ? "Edit Bookmark"
-                                            : "New Bookmark"}
-                                    </Text>
-                                    <View
-                                        style={{ flexDirection: "row", gap: 4 }}
-                                    >
-                                        {editBookmark && (
-                                            <TouchableOpacity
-                                                onPress={handleDelete}
-                                                style={styles.deleteButton}
-                                            >
-                                                <Trash2
-                                                    size={16}
-                                                    color="#ef4444"
-                                                />
-                                            </TouchableOpacity>
-                                        )}
-                                        <TouchableOpacity
-                                            onPress={handleSave}
-                                            style={styles.saveButton}
-                                        >
-                                            <Text style={styles.saveText}>
-                                                Save
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                <View style={styles.editRow}>
-                                    <TextInput
-                                        value={editTimestamp}
-                                        onChangeText={setEditTimestamp}
-                                        style={styles.timestampInput}
-                                        placeholderTextColor={COLORS.gray600}
-                                        placeholder="0:00"
-                                    />
-                                    <View style={styles.modeWrapper}>
-                                        <TouchableOpacity
-                                            onPress={() =>
-                                                setShowModeDropdown(
-                                                    !showModeDropdown
-                                                )
-                                            }
-                                            style={styles.modeButton}
-                                        >
-                                            <View
-                                                style={[
-                                                    styles.modeDot,
-                                                    {
-                                                        backgroundColor:
-                                                            modeColor,
-                                                    },
-                                                ]}
-                                            />
-                                            <ModeIcon
-                                                size={16}
-                                                color={COLORS.gray400}
-                                            />
-                                            <ChevronDown
-                                                size={12}
-                                                color={COLORS.gray400}
-                                            />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                <TextInput
-                                    value={editDescription}
-                                    onChangeText={setEditDescription}
-                                    style={styles.descriptionInput}
-                                    placeholderTextColor={COLORS.gray600}
-                                    placeholder="Description (optional)"
-                                />
-
-                                {showModeDropdown && (
-                                    <View style={styles.dropdown}>
-                                        {MODE_OPTIONS.map((opt) => {
-                                            const Icon = opt.Icon;
-                                            return (
-                                                <TouchableOpacity
-                                                    key={opt.key}
-                                                    onPress={() => {
-                                                        setEditMode(opt.key);
-                                                        setShowModeDropdown(
-                                                            false
-                                                        );
-                                                    }}
-                                                    style={[
-                                                        styles.dropdownItem,
-                                                        opt.key === editMode &&
-                                                            styles.dropdownItemActive,
-                                                    ]}
-                                                >
-                                                    <View
-                                                        style={[
-                                                            styles.modeDot,
-                                                            {
-                                                                backgroundColor:
-                                                                    opt.color,
-                                                            },
-                                                        ]}
-                                                    />
-                                                    <Icon
-                                                        size={16}
-                                                        color={COLORS.gray400}
-                                                    />
-                                                    <Text
-                                                        style={
-                                                            styles.dropdownLabel
-                                                        }
-                                                    >
-                                                        {vocabulary[opt.key]}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            );
-                                        })}
-                                    </View>
-                                )}
-                            </View>
-                        ) : (
-                            <View style={styles.listContainer}>
-                                <View style={styles.listHeader}>
-                                    <Text style={styles.listTitle}>
-                                        Bookmarks
-                                    </Text>
-                                    <TouchableOpacity onPress={handleClose}>
-                                        <X size={18} color={COLORS.gray400} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {sortedBookmarks.length === 0 ? (
-                                    <View style={styles.emptyState}>
-                                        <Text style={styles.emptyText}>
-                                            No bookmarks
-                                        </Text>
-                                    </View>
-                                ) : (
-                                    <FlatList
-                                        data={sortedBookmarks}
-                                        keyExtractor={(item) => item.publicId}
-                                        style={styles.list}
-                                        contentContainerStyle={
-                                            styles.listContent
-                                        }
-                                        renderItem={({ item }) => {
-                                            const bmColor =
-                                                MODE_OPTIONS.find(
-                                                    (o) => o.key === item.mode
-                                                )?.color ?? "#ffffff";
-                                            return (
-                                                <View
-                                                    style={styles.bookmarkItem}
-                                                >
-                                                    <View
-                                                        style={[
-                                                            styles.modeDot,
-                                                            {
-                                                                backgroundColor:
-                                                                    bmColor,
-                                                            },
-                                                        ]}
-                                                    />
-                                                    <TouchableOpacity
-                                                        style={
-                                                            styles.bookmarkInfo
-                                                        }
-                                                        onPress={() => {
-                                                            // Seek the current media to the bookmark timestamp
-                                                            rockIt.mediaPlayerManager.setCurrentTime(
-                                                                item.timestamp,
-                                                                true
-                                                            );
-                                                            handleClose();
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.bookmarkTime
-                                                            }
-                                                        >
-                                                            {formatTime(
-                                                                item.timestamp
-                                                            )}
-                                                        </Text>
-                                                        {item.description && (
-                                                            <Text
-                                                                style={
-                                                                    styles.bookmarkDesc
-                                                                }
-                                                                numberOfLines={
-                                                                    1
-                                                                }
-                                                            >
-                                                                {
-                                                                    item.description
-                                                                }
-                                                            </Text>
-                                                        )}
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity
-                                                        onPress={() =>
-                                                            startEdit(item)
-                                                        }
-                                                        style={
-                                                            styles.editIconButton
-                                                        }
-                                                    >
-                                                        <Pencil
-                                                            size={14}
-                                                            color={
-                                                                COLORS.gray400
-                                                            }
-                                                        />
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity
-                                                        onPress={async () => {
-                                                            await rockIt.bookmarkManager.deleteBookmarkAsync(
-                                                                item.publicId
-                                                            );
-                                                        }}
-                                                        style={
-                                                            styles.editIconButton
-                                                        }
-                                                    >
-                                                        <Trash2
-                                                            size={14}
-                                                            color={
-                                                                COLORS.gray400
-                                                            }
-                                                        />
-                                                    </TouchableOpacity>
-                                                </View>
-                                            );
-                                        }}
-                                    />
-                                )}
-
+        <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
+            {mode === "edit" ? (
+                <View style={styles.editContainer}>
+                    <View style={styles.editHeader}>
+                        <TouchableOpacity
+                            onPress={() => setMode("list")}
+                            style={styles.backButton}
+                        >
+                            <ChevronDown
+                                size={18}
+                                color={COLORS.gray400}
+                                style={{
+                                    transform: [{ rotate: "90deg" }],
+                                }}
+                            />
+                        </TouchableOpacity>
+                        <Text style={styles.editTitle}>
+                            {editBookmark ? "Edit Bookmark" : "New Bookmark"}
+                        </Text>
+                        <View style={{ flexDirection: "row", gap: 4 }}>
+                            {editBookmark && (
                                 <TouchableOpacity
-                                    onPress={() => startEdit(null)}
-                                    style={styles.addButton}
+                                    onPress={handleDelete}
+                                    style={styles.deleteButton}
                                 >
-                                    <Plus size={16} color={COLORS.gray400} />
-                                    <Text style={styles.addButtonText}>
-                                        Add bookmark at{" "}
-                                        {formatTime(currentTime)}
-                                    </Text>
+                                    <Trash2 size={16} color="#ef4444" />
                                 </TouchableOpacity>
-                            </View>
-                        )}
-                    </Pressable>
-                </Animated.View>
-            </Pressable>
-        </Modal>
+                            )}
+                            <TouchableOpacity
+                                onPress={handleSave}
+                                style={styles.saveButton}
+                            >
+                                <Text style={styles.saveText}>Save</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View style={styles.editRow}>
+                        <BottomSheetTextInput
+                            value={editTimestamp}
+                            onChangeText={setEditTimestamp}
+                            style={styles.timestampInput}
+                            placeholderTextColor={COLORS.gray600}
+                            placeholder="0:00"
+                        />
+                        <View style={styles.modeWrapper}>
+                            <TouchableOpacity
+                                onPress={() =>
+                                    setShowModeDropdown(!showModeDropdown)
+                                }
+                                style={styles.modeButton}
+                            >
+                                <View
+                                    style={[
+                                        styles.modeDot,
+                                        {
+                                            backgroundColor: modeColor,
+                                        },
+                                    ]}
+                                />
+                                <ModeIcon size={16} color={COLORS.gray400} />
+                                <ChevronDown size={12} color={COLORS.gray400} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <BottomSheetTextInput
+                        value={editDescription}
+                        onChangeText={setEditDescription}
+                        style={styles.descriptionInput}
+                        placeholderTextColor={COLORS.gray600}
+                        placeholder="Description (optional)"
+                    />
+
+                    {showModeDropdown && (
+                        <View style={styles.dropdown}>
+                            {MODE_OPTIONS.map((opt) => {
+                                const Icon = opt.Icon;
+                                return (
+                                    <TouchableOpacity
+                                        key={opt.key}
+                                        onPress={() => {
+                                            setEditMode(opt.key);
+                                            setShowModeDropdown(false);
+                                        }}
+                                        style={[
+                                            styles.dropdownItem,
+                                            opt.key === editMode &&
+                                                styles.dropdownItemActive,
+                                        ]}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.modeDot,
+                                                {
+                                                    backgroundColor: opt.color,
+                                                },
+                                            ]}
+                                        />
+                                        <Icon
+                                            size={16}
+                                            color={COLORS.gray400}
+                                        />
+                                        <Text style={styles.dropdownLabel}>
+                                            {vocabulary[opt.key]}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    )}
+                </View>
+            ) : (
+                <View style={styles.listContainer}>
+                    <View style={styles.listHeader}>
+                        <Text style={styles.listTitle}>Bookmarks</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <X size={18} color={COLORS.gray400} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {sortedBookmarks.length === 0 ? (
+                        <View style={styles.emptyState}>
+                            <Text style={styles.emptyText}>No bookmarks</Text>
+                        </View>
+                    ) : (
+                        <BottomSheetFlatList
+                            data={sortedBookmarks}
+                            keyboardShouldPersistTaps="handled"
+                            showsVerticalScrollIndicator={false}
+                            keyExtractor={(item: BookmarkResponse) =>
+                                item.publicId
+                            }
+                            style={styles.list}
+                            contentContainerStyle={styles.listContent}
+                            renderItem={({
+                                item,
+                            }: {
+                                item: BookmarkResponse;
+                            }) => {
+                                const bmColor =
+                                    MODE_OPTIONS.find(
+                                        (o) => o.key === item.mode
+                                    )?.color ?? "#ffffff";
+                                return (
+                                    <View style={styles.bookmarkItem}>
+                                        <View
+                                            style={[
+                                                styles.modeDot,
+                                                {
+                                                    backgroundColor: bmColor,
+                                                },
+                                            ]}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.bookmarkInfo}
+                                            onPress={() => {
+                                                // Seek the current media to the bookmark timestamp
+                                                rockIt.mediaPlayerManager.setCurrentTime(
+                                                    item.timestamp,
+                                                    true
+                                                );
+                                                onClose();
+                                            }}
+                                        >
+                                            <Text style={styles.bookmarkTime}>
+                                                {formatTime(item.timestamp)}
+                                            </Text>
+                                            {item.description && (
+                                                <Text
+                                                    style={styles.bookmarkDesc}
+                                                    numberOfLines={1}
+                                                >
+                                                    {item.description}
+                                                </Text>
+                                            )}
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => startEdit(item)}
+                                            style={styles.editIconButton}
+                                        >
+                                            <Pencil
+                                                size={14}
+                                                color={COLORS.gray400}
+                                            />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={async () => {
+                                                await rockIt.bookmarkManager.deleteBookmarkAsync(
+                                                    item.publicId
+                                                );
+                                            }}
+                                            style={styles.editIconButton}
+                                        >
+                                            <Trash2
+                                                size={14}
+                                                color={COLORS.gray400}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                );
+                            }}
+                        />
+                    )}
+
+                    <TouchableOpacity
+                        onPress={() => startEdit(null)}
+                        style={styles.addButton}
+                    >
+                        <Plus size={16} color={COLORS.gray400} />
+                        <Text style={styles.addButtonText}>
+                            Add bookmark at {formatTime(currentTime)}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    overlay: {
+    container: {
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.6)",
-        justifyContent: "flex-end",
-    },
-    sheet: {
-        backgroundColor: "#1a1a1a",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        maxHeight: SCREEN_HEIGHT * 0.7,
-        minHeight: 300,
-    },
-    handleBar: {
-        width: 40,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: "rgba(255,255,255,0.25)",
-        alignSelf: "center",
-        marginTop: 10,
-        marginBottom: 8,
+        paddingTop: 8,
     },
     // List mode
     listContainer: {
         flex: 1,
-        paddingHorizontal: 16,
+        paddingHorizontal: 20,
     },
     listHeader: {
         flexDirection: "row",
@@ -512,7 +376,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     listTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: "700",
         color: COLORS.white,
     },
@@ -574,7 +438,7 @@ const styles = StyleSheet.create({
     },
     // Edit mode
     editContainer: {
-        paddingHorizontal: 16,
+        paddingHorizontal: 20,
         paddingTop: 4,
     },
     editHeader: {
@@ -651,7 +515,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     dropdown: {
-        backgroundColor: "#1a1a1a",
+        backgroundColor: COLORS.bgCard,
         borderWidth: 1,
         borderColor: COLORS.gray600,
         borderRadius: 8,

@@ -7,6 +7,7 @@ import { Loader2, Pause, Play, SkipForward } from "lucide-react-native";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
+import { logSheetDebug } from "@/lib/sheetDebug";
 
 export const MINI_PLAYER_HEIGHT = 56;
 
@@ -27,6 +28,14 @@ export default function MiniPlayer() {
     const shouldHide = isPlayerVisible || isContextMenuOpen;
     const opacity = useRef(new Animated.Value(shouldHide ? 0 : 1)).current;
     const [isHidden, setIsHidden] = useState(false);
+
+    useEffect(() => {
+        logSheetDebug("miniPlayer.visibility", {
+            isPlayerVisible,
+            isContextMenuOpen,
+            shouldHide,
+        });
+    }, [isPlayerVisible, isContextMenuOpen, shouldHide]);
 
     useEffect(() => {
         Animated.timing(opacity, {

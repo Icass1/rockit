@@ -1,8 +1,4 @@
-import {
-    BACKEND_URL,
-    BaseHttp,
-    IApiFetchOptions,
-} from "@rockit/shared";
+import { BACKEND_URL, BaseHttp, IApiFetchOptions } from "@rockit/shared";
 
 export class Http extends BaseHttp {
     protected static override async baseApiFetchAsync(

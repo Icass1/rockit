@@ -2,6 +2,7 @@ import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
 import {
     getAllPlayableMedia,
     getMediaDuration,
@@ -13,7 +14,6 @@ import {
     TMedia,
     TPlayableMedia,
 } from "@rockit/shared/models/types/media";
-import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";

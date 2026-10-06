@@ -1,12 +1,7 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import {
-    isSong,
-    isStation,
-    isVideo,
-    TPlayableMedia,
-} from "@rockit/shared";
+import { isSong, isStation, isVideo, TPlayableMedia } from "@rockit/shared";
 import { Disc3, DiscAlbum, Pause, Play, Video, VideoOff } from "lucide-react";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";

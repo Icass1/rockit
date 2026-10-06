@@ -12,6 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import FullscreenVideoPlayer from "@/components/Player/FullscreenVideoPlayer";
 import PlayerMediaInfo from "@/components/Player/PlayerMediaInfo";
 import PlayerTabsBar from "@/components/Player/PlayerTabsBar";
 import PlayerTabsPanel from "@/components/Player/PlayerTabsPanel";
@@ -57,6 +58,17 @@ export default function FullPlayer() {
     const isHiding = useSharedValue(false);
     const [keepMounted, setKeepMounted] = useState(false);
     const [activeTab, setActiveTab] = useState<PlayerTab>(null);
+    const [videoFullscreen, setVideoFullscreen] = useState(false);
+    const isVideoFullscreen =
+        videoFullscreen && isPlayerVisible && hasVideo && !!videoPlayer;
+    const closeVideoFullscreen = useCallback(
+        () => setVideoFullscreen(false),
+        []
+    );
+
+    useEffect(() => {
+        if (!isPlayerVisible || !hasVideo) setVideoFullscreen(false);
+    }, [isPlayerVisible, hasVideo]);
     const prevVisible = useRef(isPlayerVisible);
 
     const hidePlayerRef = useRef(hidePlayer);
@@ -193,6 +205,8 @@ export default function FullPlayer() {
                             canToggleAudioOnly={canToggleAudioOnly}
                             audioOnly={audioOnly}
                             onToggleAudioOnly={toggleAudioOnly}
+                            isVideoFullscreen={!!isVideoFullscreen}
+                            onVideoFullscreen={() => setVideoFullscreen(true)}
                         />
                     </Animated.View>
                 </Animated.View>
@@ -208,6 +222,12 @@ export default function FullPlayer() {
                 activeTab={activeTab}
                 onClose={handleTabPanelClose}
             />
+            {isVideoFullscreen && videoPlayer && (
+                <FullscreenVideoPlayer
+                    videoPlayer={videoPlayer}
+                    onClose={closeVideoFullscreen}
+                />
+            )}
         </Animated.View>
     );
 }

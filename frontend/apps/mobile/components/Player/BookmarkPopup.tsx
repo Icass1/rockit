@@ -18,7 +18,15 @@ import {
     Trash2,
     X,
 } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    FlatList,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -65,9 +73,15 @@ function parseTimestamp(text: string): number {
 
 interface BookmarkPopupProps {
     onClose: () => void;
+    standalone?: boolean;
 }
 
-export default function BookmarkPopup({ onClose }: BookmarkPopupProps) {
+export default function BookmarkPopup({
+    onClose,
+    standalone = false,
+}: BookmarkPopupProps) {
+    const BookmarkList = standalone ? FlatList : BottomSheetFlatList;
+    const BookmarkInput = standalone ? TextInput : BottomSheetTextInput;
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );
@@ -141,7 +155,10 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps) {
     return (
         <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
             {mode === "edit" ? (
-                <View style={styles.editContainer}>
+                <ScrollView
+                    style={styles.editContainer}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={styles.editHeader}>
                         <TouchableOpacity
                             onPress={() => setMode("list")}
@@ -177,7 +194,7 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps) {
                     </View>
 
                     <View style={styles.editRow}>
-                        <BottomSheetTextInput
+                        <BookmarkInput
                             value={editTimestamp}
                             onChangeText={setEditTimestamp}
                             style={styles.timestampInput}
@@ -205,7 +222,7 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps) {
                         </View>
                     </View>
 
-                    <BottomSheetTextInput
+                    <BookmarkInput
                         value={editDescription}
                         onChangeText={setEditDescription}
                         style={styles.descriptionInput}
@@ -250,7 +267,7 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps) {
                             })}
                         </View>
                     )}
-                </View>
+                </ScrollView>
             ) : (
                 <View style={styles.listContainer}>
                     <View style={styles.listHeader}>
@@ -265,7 +282,7 @@ export default function BookmarkPopup({ onClose }: BookmarkPopupProps) {
                             <Text style={styles.emptyText}>No bookmarks</Text>
                         </View>
                     ) : (
-                        <BottomSheetFlatList
+                        <BookmarkList
                             data={sortedBookmarks}
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}

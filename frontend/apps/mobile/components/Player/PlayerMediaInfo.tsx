@@ -1,10 +1,12 @@
 import React from "react";
 import { COLORS } from "@/constants/theme";
+import { useStore } from "@nanostores/react";
 import { TMedia } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { VideoView } from "expo-video";
-import { Video, VideoOff } from "lucide-react-native";
+import { Maximize, Video, VideoOff } from "lucide-react-native";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { rockIt } from "@/lib/rockit/rockIt";
 import MediaSubSubTitle from "@/components/MediaSubSubTitle";
 import MediaSubTitle from "@/components/MediaSubTitle";
 import MobileLikeButton from "@/components/Player/MobileLikeButton";
@@ -24,6 +26,8 @@ interface PlayerMediaInfoProps {
     canToggleAudioOnly: boolean;
     audioOnly: boolean;
     onToggleAudioOnly: () => void;
+    isVideoFullscreen: boolean;
+    onVideoFullscreen: () => void;
 }
 
 export default function PlayerMediaInfo({
@@ -34,12 +38,15 @@ export default function PlayerMediaInfo({
     canToggleAudioOnly,
     audioOnly,
     onToggleAudioOnly,
+    isVideoFullscreen,
+    onVideoFullscreen,
 }: PlayerMediaInfoProps) {
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
         <View style={styles.container}>
             {/* Album artwork / video */}
             <View style={[styles.coverContainer, { height: COVER_SIZE }]}>
-                {hasVideo && videoPlayer ? (
+                {hasVideo && videoPlayer && !isVideoFullscreen ? (
                     <View
                         style={[styles.videoContainer, { width: COVER_SIZE }]}
                     >
@@ -49,6 +56,17 @@ export default function PlayerMediaInfo({
                             contentFit="contain"
                             nativeControls={false}
                         />
+                        <Pressable
+                            onPress={onVideoFullscreen}
+                            style={styles.fullscreenButton}
+                            accessibilityRole="button"
+                            accessibilityLabel={
+                                vocabulary.PLAYER_ENTER_FULLSCREEN
+                            }
+                            hitSlop={8}
+                        >
+                            <Maximize size={22} color={COLORS.white} />
+                        </Pressable>
                     </View>
                 ) : (
                     <PlayerCover
@@ -134,6 +152,17 @@ const styles = StyleSheet.create({
     },
     videoView: {
         flex: 1,
+    },
+    fullscreenButton: {
+        position: "absolute",
+        bottom: 8,
+        right: 8,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.6)",
     },
     audioOnlyButton: {
         position: "absolute",

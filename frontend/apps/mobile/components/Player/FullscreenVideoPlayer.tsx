@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import { VideoView, type VideoPlayer } from "expo-video";
@@ -9,6 +9,8 @@ import {
     Play,
     RotateCcw,
     RotateCw,
+    SkipBack,
+    SkipForward,
 } from "lucide-react-native";
 import {
     ActivityIndicator,
@@ -79,16 +81,34 @@ function FullscreenVideoContent({
     onBookmarksChange,
 }: FullscreenVideoContentProps) {
     useVideoFullscreen(onClose);
-    const { currentMedia, isPlaying, isLoading, togglePlayPause, seekTo } =
-        usePlayer();
+    const {
+        currentMedia,
+        isPlaying,
+        isLoading,
+        togglePlayPause,
+        seekTo,
+        skipBack,
+        skipForward,
+    } = usePlayer();
     const { duration } = usePlayerTime();
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const insets = useSafeAreaInsets();
     const [controlsVisible, setControlsVisible] = useState(true);
     const [isSeeking, setIsSeeking] = useState(false);
     const [interaction, setInteraction] = useState(0);
+    const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastTapOffset = useRef<number | null>(null);
+
+    const cancelPendingTap = () => {
+        if (tapTimeout.current !== null) clearTimeout(tapTimeout.current);
+        tapTimeout.current = null;
+        lastTapOffset.current = null;
+    };
+
+    useEffect(() => cancelPendingTap, [currentMedia?.publicId]);
 
     const revealControls = () => {
+        cancelPendingTap();
         setControlsVisible(true);
         setInteraction((value) => value + 1);
     };
@@ -120,8 +140,25 @@ function FullscreenVideoContent({
 
     const skipSeconds = (offset: number) => {
         revealControls();
+        if (duration <= 0) return;
         const time = rockIt.mediaPlayerManager.currentTimeAtom.get();
         void seekTo(Math.max(0, Math.min(duration, time + offset)));
+    };
+
+    const handleSurfaceTap = (offset: number) => {
+        if (tapTimeout.current !== null && lastTapOffset.current === offset) {
+            skipSeconds(offset);
+            return;
+        }
+        cancelPendingTap();
+        lastTapOffset.current = offset;
+        // Wait for a possible second tap before changing the overlay's hit targets.
+        tapTimeout.current = setTimeout(() => {
+            tapTimeout.current = null;
+            lastTapOffset.current = null;
+            setControlsVisible((visible) => !visible);
+            setInteraction((value) => value + 1);
+        }, 300);
     };
 
     const closeBookmarks = () => {
@@ -138,27 +175,21 @@ function FullscreenVideoContent({
                 nativeControls={false}
                 surfaceType="textureView"
             />
-            <Pressable
-                style={StyleSheet.absoluteFill}
-                onPress={controlsVisible ? handlePlayPause : revealControls}
-                accessibilityRole="button"
-                accessibilityLabel={
-                    controlsVisible
-                        ? isPlaying
-                            ? vocabulary.PAUSE
-                            : vocabulary.PLAY
-                        : vocabulary.PLAYER_SHOW_CONTROLS
-                }
-            />
-            {isLoading && (
-                <ActivityIndicator
-                    style={StyleSheet.absoluteFill}
-                    size="large"
-                    color={COLORS.white}
-                    pointerEvents="none"
+            <View style={styles.tapSurface} pointerEvents="box-none">
+                <Pressable
+                    style={styles.tapRegion}
+                    onPress={() => handleSurfaceTap(-2)}
+                    accessibilityRole="button"
+                    accessibilityLabel={vocabulary.PLAYER_SHOW_CONTROLS}
                 />
-            )}
-            {controlsVisible && !bookmarksVisible && (
+                <Pressable
+                    style={styles.tapRegion}
+                    onPress={() => handleSurfaceTap(10)}
+                    accessibilityRole="button"
+                    accessibilityLabel={vocabulary.PLAYER_SHOW_CONTROLS}
+                />
+            </View>
+            {(controlsVisible || isLoading) && !bookmarksVisible && (
                 <View
                     pointerEvents="box-none"
                     style={[
@@ -179,7 +210,10 @@ function FullscreenVideoContent({
                             style={styles.button}
                             accessibilityRole="button"
                             accessibilityLabel={vocabulary.BOOKMARKS}
-                            onPress={() => onBookmarksChange(true)}
+                            onPress={() => {
+                                cancelPendingTap();
+                                onBookmarksChange(true);
+                            }}
                         >
                             <Bookmark size={24} color={COLORS.white} />
                         </Pressable>
@@ -198,6 +232,17 @@ function FullscreenVideoContent({
                         pointerEvents="box-none"
                         style={styles.centerControls}
                     >
+                        <Pressable
+                            style={styles.button}
+                            onPress={() => {
+                                revealControls();
+                                void skipBack();
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel={vocabulary.PREVIOUS_MEDIA}
+                        >
+                            <SkipBack size={28} color={COLORS.white} />
+                        </Pressable>
                         <Pressable
                             style={styles.seekButton}
                             onPress={() => skipSeconds(-10)}
@@ -218,7 +263,13 @@ function FullscreenVideoContent({
                                 isPlaying ? vocabulary.PAUSE : vocabulary.PLAY
                             }
                         >
-                            {isPlaying ? (
+                            {isLoading ? (
+                                <ActivityIndicator
+                                    size="large"
+                                    color={COLORS.white}
+                                    pointerEvents="none"
+                                />
+                            ) : isPlaying ? (
                                 <Pause
                                     size={42}
                                     color={COLORS.white}
@@ -243,6 +294,17 @@ function FullscreenVideoContent({
                         >
                             <RotateCw size={28} color={COLORS.white} />
                             <Text style={styles.seekLabel}>10</Text>
+                        </Pressable>
+                        <Pressable
+                            style={styles.button}
+                            onPress={() => {
+                                revealControls();
+                                void skipForward();
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel={vocabulary.NEXT_MEDIA}
+                        >
+                            <SkipForward size={28} color={COLORS.white} />
                         </Pressable>
                     </View>
                     <View style={styles.progress}>
@@ -289,6 +351,8 @@ function FullscreenVideoContent({
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#000" },
+    tapSurface: { ...StyleSheet.absoluteFill, flexDirection: "row" },
+    tapRegion: { flex: 1 },
     controls: {
         ...StyleSheet.absoluteFill,
         justifyContent: "space-between",
@@ -303,10 +367,11 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     centerControls: {
+        ...StyleSheet.absoluteFill,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: 48,
+        gap: 8,
     },
     playButton: {
         width: 72,

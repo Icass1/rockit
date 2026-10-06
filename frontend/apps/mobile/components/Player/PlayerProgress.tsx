@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import Slider from "@react-native-community/slider";
@@ -31,12 +31,9 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     const [seekValue, setSeekValue] = useState(currentTime);
     const [trackWidth, setTrackWidth] = useState(0);
 
-    const progress = duration > 0 ? seekValue / duration : 0;
+    const displayedTime = isSeeking ? seekValue : currentTime;
+    const progress = duration > 0 ? displayedTime / duration : 0;
     const fillWidth = trackWidth > 0 ? progress * trackWidth : 0;
-
-    useEffect(() => {
-        if (!isSeeking) setSeekValue(currentTime);
-    }, [currentTime, isSeeking]);
 
     return (
         <View style={styles.container}>
@@ -60,7 +57,7 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                     style={styles.slider}
                     minimumValue={0}
                     maximumValue={duration > 0 ? duration : 1}
-                    value={seekValue}
+                    value={displayedTime}
                     onValueChange={(v) => {
                         setIsSeeking(true);
                         setSeekValue(v);
@@ -95,7 +92,7 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                     })}
             </View>
             <View style={styles.labels}>
-                <Text style={styles.time}>{formatTime(seekValue)}</Text>
+                <Text style={styles.time}>{formatTime(displayedTime)}</Text>
                 <Text style={styles.time}>{formatTime(duration)}</Text>
             </View>
         </View>

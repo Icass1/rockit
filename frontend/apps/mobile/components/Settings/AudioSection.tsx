@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { StyleSheet, Switch, View } from "react-native";
 import { AudioIntegrationService } from "@/lib/audio/AudioIntegration";
@@ -6,14 +6,12 @@ import CrossfadeSettings from "@/components/Settings/CrossfadeSettings";
 import SettingRow from "@/components/Settings/SettingRow";
 
 export default function AudioSection() {
-    const [autoPlayBluetooth, setAutoPlayBluetooth] = useState(true);
-    const [autoPlayHeadset, setAutoPlayHeadset] = useState(true);
-
-    useEffect(() => {
-        const config = AudioIntegrationService.getConfig();
-        setAutoPlayBluetooth(config.autoPlayOnBluetoothConnect);
-        setAutoPlayHeadset(config.autoPlayOnWiredHeadsetConnect);
-    }, []);
+    const [autoPlayBluetooth, setAutoPlayBluetooth] = useState(
+        () => AudioIntegrationService.getConfig().autoPlayOnBluetoothConnect
+    );
+    const [autoPlayHeadset, setAutoPlayHeadset] = useState(
+        () => AudioIntegrationService.getConfig().autoPlayOnWiredHeadsetConnect
+    );
 
     const handleBluetoothToggle = useCallback(async (value: boolean) => {
         setAutoPlayBluetooth(value);

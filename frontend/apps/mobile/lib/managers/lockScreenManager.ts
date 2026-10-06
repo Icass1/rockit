@@ -13,6 +13,7 @@ import {
     NativeMediaBridge,
     type AutoQueueItem,
 } from "@/lib/audio/NativeMediaBridge";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 // NativeMediaBridge expects durations in milliseconds; getMediaDuration()
 // returns seconds, so every value crossing that bridge must be converted.
@@ -44,7 +45,7 @@ export class LockScreenManager {
         if (this._initialized) return;
         this._initialized = true;
 
-        const player = getRockIt().mediaPlayerManager;
+        const player = rockIt.mediaPlayerManager;
         const queue = getRockIt().queueManager;
 
         // Lock-screen transport commands → player actions

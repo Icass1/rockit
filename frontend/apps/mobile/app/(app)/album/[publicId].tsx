@@ -8,14 +8,23 @@ import RenderList from "@/components/RenderList/RenderList";
 
 export default function AlbumPage() {
     const { publicId } = useLocalSearchParams<{ publicId: string }>();
+    return <AlbumContent key={publicId} publicId={publicId} />;
+}
+
+function AlbumContent({ publicId }: { publicId: string }) {
     const [album, setAlbum] = useState<BaseAlbumWithSongsResponse | undefined>(
         undefined
     );
 
     useEffect(() => {
-        setAlbum(undefined);
         if (!publicId) return;
-        getAlbumAsync(publicId).then(setAlbum);
+        let cancelled = false;
+        getAlbumAsync(publicId).then((data) => {
+            if (!cancelled) setAlbum(data);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [publicId]);
 
     if (!album) {

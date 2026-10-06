@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { getMediaArtistsString } from "@rockit/shared";
 import { Image } from "expo-image";
@@ -22,11 +22,11 @@ export default function MiniPlayer() {
     } = usePlayer();
     const { currentTime, duration } = usePlayerTime();
 
-    const scale = useRef(new Animated.Value(1)).current;
+    const [scale] = useState(() => new Animated.Value(1));
     const { isPlayerVisible } = usePlayer();
     const { isOpen: isContextMenuOpen } = useContextMenu();
     const shouldHide = isPlayerVisible || isContextMenuOpen;
-    const opacity = useRef(new Animated.Value(shouldHide ? 0 : 1)).current;
+    const [opacity] = useState(() => new Animated.Value(shouldHide ? 0 : 1));
     const [isHidden, setIsHidden] = useState(false);
 
     useEffect(() => {
@@ -42,17 +42,15 @@ export default function MiniPlayer() {
             toValue: shouldHide ? 0 : 1,
             duration: 120,
             useNativeDriver: true,
-        }).start();
+        }).start(({ finished }) => {
+            if (finished && shouldHide) setIsHidden(true);
+        });
+        return () => opacity.stopAnimation();
     }, [shouldHide, opacity]);
 
-    useEffect(() => {
-        if (shouldHide) {
-            const timer = setTimeout(() => setIsHidden(true), 120);
-            return () => clearTimeout(timer);
-        } else {
-            setIsHidden(false);
-        }
-    }, [shouldHide]);
+    if (!shouldHide && isHidden) {
+        setIsHidden(false);
+    }
 
     const handlePressIn = () =>
         Animated.spring(scale, {
@@ -69,7 +67,7 @@ export default function MiniPlayer() {
         }).start();
 
     if (!currentMedia) return null;
-    if (isHidden) return null;
+    if (shouldHide && isHidden) return null;
 
     const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 

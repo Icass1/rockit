@@ -249,14 +249,12 @@ export default function UploadModal({
         const accepted = Array.from(fileList).filter((f): boolean =>
             /\.(mp3|flac|ogg|m4a|wav|aac)$/i.test(f.name)
         );
-        const parsed: SongFile[] = accepted.map(
-            (file): SongFile => ({
-                id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                file,
-                imageFile: null,
-                ...parseSongFilename(file.name),
-            })
-        );
+        const parsed: SongFile[] = accepted.map((file): SongFile => ({
+            id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            file,
+            imageFile: null,
+            ...parseSongFilename(file.name),
+        }));
         setFiles((prev): SongFile[] => [...prev, ...parsed]);
     }, []);
 
@@ -285,8 +283,8 @@ export default function UploadModal({
     const updateFile = useCallback(
         (id: string, updates: Partial<SongFile>): void =>
             setFiles((prev): SongFile[] =>
-                prev.map(
-                    (f): SongFile => (f.id === id ? { ...f, ...updates } : f)
+                prev.map((f): SongFile =>
+                    f.id === id ? { ...f, ...updates } : f
                 )
             ),
         []
@@ -421,19 +419,17 @@ export default function UploadModal({
         setTotalBytes(totalBytesValue);
         setTotal(songCount + (coverFile ? 1 : 0));
 
-        const songsPayload = files.map(
-            (f): UploadSongRequest => ({
-                title: f.title,
-                artistNames: f.artist
-                    ? [f.artist]
-                    : albumArtist
-                      ? [albumArtist]
-                      : [],
-                fileSize: f.file.size,
-                discNumber: 0,
-                trackNumber: parseInt(f.track, 10) || 0,
-            })
-        );
+        const songsPayload = files.map((f): UploadSongRequest => ({
+            title: f.title,
+            artistNames: f.artist
+                ? [f.artist]
+                : albumArtist
+                  ? [albumArtist]
+                  : [],
+            fileSize: f.file.size,
+            discNumber: 0,
+            trackNumber: parseInt(f.track, 10) || 0,
+        }));
 
         const startResult = await Http.startAlbumUpload({
             title: albumTitle,
@@ -556,97 +552,95 @@ export default function UploadModal({
             </label>
             <div className="flex-1 overflow-y-auto">
                 <ul className="space-y-2">
-                    {files.map(
-                        (file): JSX.Element => (
-                            <li
-                                key={file.id}
-                                className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
-                            >
-                                <div className="mt-1 shrink-0">
-                                    {/\.zip$/i.test(file.file.name) ? (
-                                        <FileArchive className="h-7 w-7 text-blue-400" />
-                                    ) : (
-                                        <FileAudio className="h-7 w-7 text-pink-400" />
-                                    )}
-                                </div>
-                                <div className="min-w-0 flex-1 space-y-2">
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={file.title}
-                                            onChange={(e): void =>
-                                                updateFile(file.id, {
-                                                    title: e.target.value,
-                                                })
-                                            }
-                                            placeholder={
-                                                $vocabulary.UPLOAD_TITLE_FIELD
-                                            }
-                                            className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={file.track}
-                                            onChange={(e): void =>
-                                                updateFile(file.id, {
-                                                    track: e.target.value,
-                                                })
-                                            }
-                                            placeholder={
-                                                $vocabulary.UPLOAD_TRACK_FIELD
-                                            }
-                                            inputMode="numeric"
-                                            className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                        />
-                                    </div>
+                    {files.map((file): JSX.Element => (
+                        <li
+                            key={file.id}
+                            className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
+                        >
+                            <div className="mt-1 shrink-0">
+                                {/\.zip$/i.test(file.file.name) ? (
+                                    <FileArchive className="h-7 w-7 text-blue-400" />
+                                ) : (
+                                    <FileAudio className="h-7 w-7 text-pink-400" />
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1 space-y-2">
+                                <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        value={file.artist}
+                                        value={file.title}
                                         onChange={(e): void =>
                                             updateFile(file.id, {
-                                                artist: e.target.value,
+                                                title: e.target.value,
                                             })
                                         }
                                         placeholder={
-                                            $vocabulary.UPLOAD_ARTIST_FIELD
+                                            $vocabulary.UPLOAD_TITLE_FIELD
                                         }
-                                        className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                        className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                     />
-                                    <label
-                                        htmlFor={`song-image-${file.id}`}
-                                        className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition ${
-                                            file.imageFile
-                                                ? "bg-green-500/10 text-green-400"
-                                                : "bg-neutral-700 text-neutral-400 hover:text-white"
-                                        }`}
-                                    >
-                                        {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
-                                        <Image className="h-3.5 w-3.5 shrink-0" />
-                                        <span className="truncate">
-                                            {file.imageFile
-                                                ? file.imageFile.name
-                                                : $vocabulary.UPLOAD_COVER_HINT}
-                                        </span>
-                                    </label>
                                     <input
-                                        type="file"
-                                        accept={ACCEPTED_IMAGE}
-                                        id={`song-image-${file.id}`}
-                                        className="sr-only"
-                                        data-upload-type={`song-image-${file.id}`}
-                                        onChange={handleInputChange}
+                                        type="text"
+                                        value={file.track}
+                                        onChange={(e): void =>
+                                            updateFile(file.id, {
+                                                track: e.target.value,
+                                            })
+                                        }
+                                        placeholder={
+                                            $vocabulary.UPLOAD_TRACK_FIELD
+                                        }
+                                        inputMode="numeric"
+                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                     />
                                 </div>
-                                <button
-                                    onClick={(): void => removeFile(file.id)}
-                                    className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
-                                    aria-label={`Remove ${file.file.name}`}
+                                <input
+                                    type="text"
+                                    value={file.artist}
+                                    onChange={(e): void =>
+                                        updateFile(file.id, {
+                                            artist: e.target.value,
+                                        })
+                                    }
+                                    placeholder={
+                                        $vocabulary.UPLOAD_ARTIST_FIELD
+                                    }
+                                    className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                />
+                                <label
+                                    htmlFor={`song-image-${file.id}`}
+                                    className={`flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition ${
+                                        file.imageFile
+                                            ? "bg-green-500/10 text-green-400"
+                                            : "bg-neutral-700 text-neutral-400 hover:text-white"
+                                    }`}
                                 >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </li>
-                        )
-                    )}
+                                    {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
+                                    <Image className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">
+                                        {file.imageFile
+                                            ? file.imageFile.name
+                                            : $vocabulary.UPLOAD_COVER_HINT}
+                                    </span>
+                                </label>
+                                <input
+                                    type="file"
+                                    accept={ACCEPTED_IMAGE}
+                                    id={`song-image-${file.id}`}
+                                    className="sr-only"
+                                    data-upload-type={`song-image-${file.id}`}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+                            <button
+                                onClick={(): void => removeFile(file.id)}
+                                className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
+                                aria-label={`Remove ${file.file.name}`}
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </li>
+                    ))}
                 </ul>
             </div>
         </div>
@@ -740,53 +734,49 @@ export default function UploadModal({
 
             {files.length > 0 && (
                 <ul className="space-y-2">
-                    {files.map(
-                        (file, idx): JSX.Element => (
-                            <li
-                                key={file.id}
-                                className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
+                    {files.map((file, idx): JSX.Element => (
+                        <li
+                            key={file.id}
+                            className="flex items-start gap-3 rounded-lg bg-neutral-800 p-3"
+                        >
+                            <span className="mt-1 w-5 shrink-0 text-right text-xs font-bold text-neutral-500">
+                                {idx + 1}
+                            </span>
+                            <div className="min-w-0 flex-1 space-y-2">
+                                <input
+                                    type="text"
+                                    value={file.title}
+                                    onChange={(e): void =>
+                                        updateFile(file.id, {
+                                            title: e.target.value,
+                                        })
+                                    }
+                                    placeholder={$vocabulary.UPLOAD_TITLE_FIELD}
+                                    className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                />
+                                <input
+                                    type="text"
+                                    value={file.artist}
+                                    onChange={(e): void =>
+                                        updateFile(file.id, {
+                                            artist: e.target.value,
+                                        })
+                                    }
+                                    placeholder={
+                                        $vocabulary.UPLOAD_ARTIST_FIELD
+                                    }
+                                    className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                                />
+                            </div>
+                            <button
+                                onClick={(): void => removeFile(file.id)}
+                                className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
+                                aria-label={`Remove ${file.file.name}`}
                             >
-                                <span className="mt-1 w-5 shrink-0 text-right text-xs font-bold text-neutral-500">
-                                    {idx + 1}
-                                </span>
-                                <div className="min-w-0 flex-1 space-y-2">
-                                    <input
-                                        type="text"
-                                        value={file.title}
-                                        onChange={(e): void =>
-                                            updateFile(file.id, {
-                                                title: e.target.value,
-                                            })
-                                        }
-                                        placeholder={
-                                            $vocabulary.UPLOAD_TITLE_FIELD
-                                        }
-                                        className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={file.artist}
-                                        onChange={(e): void =>
-                                            updateFile(file.id, {
-                                                artist: e.target.value,
-                                            })
-                                        }
-                                        placeholder={
-                                            $vocabulary.UPLOAD_ARTIST_FIELD
-                                        }
-                                        className="w-full rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                    />
-                                </div>
-                                <button
-                                    onClick={(): void => removeFile(file.id)}
-                                    className="mt-1 shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-neutral-700 hover:text-white"
-                                    aria-label={`Remove ${file.file.name}`}
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </li>
-                        )
-                    )}
+                                <X className="h-4 w-4" />
+                            </button>
+                        </li>
+                    ))}
                 </ul>
             )}
         </div>
@@ -937,27 +927,25 @@ export default function UploadModal({
 
                 {/* Type tabs */}
                 <div className="mb-4 flex flex-wrap gap-1.5">
-                    {tabs.map(
-                        ({ key, label, icon: Icon }): JSX.Element => (
-                            <button
-                                key={key}
-                                onClick={(): void => {
-                                    if (!uploading) {
-                                        setUploadType(key);
-                                        reset();
-                                    }
-                                }}
-                                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                                    uploadType === key
-                                        ? "bg-pink-600 text-white"
-                                        : "bg-neutral-800 text-neutral-400 hover:text-white"
-                                }`}
-                            >
-                                <Icon className="h-4 w-4" />
-                                {label}
-                            </button>
-                        )
-                    )}
+                    {tabs.map(({ key, label, icon: Icon }): JSX.Element => (
+                        <button
+                            key={key}
+                            onClick={(): void => {
+                                if (!uploading) {
+                                    setUploadType(key);
+                                    reset();
+                                }
+                            }}
+                            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                                uploadType === key
+                                    ? "bg-pink-600 text-white"
+                                    : "bg-neutral-800 text-neutral-400 hover:text-white"
+                            }`}
+                        >
+                            <Icon className="h-4 w-4" />
+                            {label}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Drop zone / form */}

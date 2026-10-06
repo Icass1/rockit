@@ -1,8 +1,7 @@
 import { useRouter } from "expo-router";
 
 type RouteInput =
-    | string
-    | { pathname: string; params?: Record<string, string> };
+    string | { pathname: string; params?: Record<string, string> };
 
 export function useTypedRouter() {
     const router = useRouter();

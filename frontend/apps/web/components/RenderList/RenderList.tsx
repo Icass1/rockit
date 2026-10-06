@@ -129,23 +129,21 @@ export default function RenderList({
             </div>
             <div className="scroll-on-hover z-1 md:overflow-y-auto md:pr-4">
                 <div className="flex flex-col gap-2 py-4 md:py-16">
-                    {media.map(
-                        (m, index): JSX.Element => (
-                            <Media
-                                key={m.publicId}
-                                index={index}
-                                media={m}
-                                allMedia={media}
-                                substractArtists={artists.map(
-                                    (artist): string => artist.name
-                                )}
-                                showMediaImage={showMediaImage}
-                                showMediaIndex={showMediaIndex}
-                                listPublicId={listPublicId}
-                                expandedByMediaId={expandedByMediaId}
-                            />
-                        )
-                    )}
+                    {media.map((m, index): JSX.Element => (
+                        <Media
+                            key={m.publicId}
+                            index={index}
+                            media={m}
+                            allMedia={media}
+                            substractArtists={artists.map(
+                                (artist): string => artist.name
+                            )}
+                            showMediaImage={showMediaImage}
+                            showMediaIndex={showMediaIndex}
+                            listPublicId={listPublicId}
+                            expandedByMediaId={expandedByMediaId}
+                        />
+                    ))}
                     {media.length === 0 && (
                         <p className="text-center text-lg font-semibold text-balance text-neutral-400">
                             {$vocabulary.NO_MEDIA_FOUND}

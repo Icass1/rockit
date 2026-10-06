@@ -3,13 +3,14 @@
         "name": "RockIt!",
         "slug": "rockit",
         "version": "1.0.0",
-        "orientation": "portrait",
+        "orientation": "default",
         "icon": "./assets/images/icon.png",
         "scheme": "mobile",
         "jsEngine": "hermes",
         "userInterfaceStyle": "automatic",
         "ios": {
             "supportsTablet": true,
+            "requireFullScreen": true,
             "bundleIdentifier": "com.rockit.mobile",
             "icon": "./assets/images/icon.png",
             "infoPlist": {
@@ -73,6 +74,12 @@
                 }
             ],
             "expo-video",
+            [
+                "expo-screen-orientation",
+                {
+                    "initialOrientation": "PORTRAIT_UP"
+                }
+            ],
             "expo-web-browser"
         ],
         "experiments": {

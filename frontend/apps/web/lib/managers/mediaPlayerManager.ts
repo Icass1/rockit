@@ -58,9 +58,20 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audio.onplay = this.onNativePlaying;
         this._audio.onloadstart = this.onNativeLoadStart;
         this._audio.onloadeddata = this.onNativeLoaded;
-        this._audio.ontimeupdate = (): void =>
+        this._audio.ontimeupdate = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "audio"
+            )
+                return;
             this.onNativeTimeUpdate(this._audio?.currentTime ?? 0);
+        };
         this._audio.onended = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "audio"
+            )
+                return;
             const now = Date.now();
             if (now - this._lastEndedTime < 500) return;
             this._lastEndedTime = now;
@@ -79,9 +90,22 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.onplay = this.onNativePlaying;
         this._video.onloadstart = this.onNativeLoadStart;
         this._video.onloadeddata = this.onNativeLoaded;
-        this._video.ontimeupdate = (): void =>
+        this._video.ontimeupdate = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "video"
+            )
+                return;
             this.onNativeTimeUpdate(this._video?.currentTime ?? 0);
-        this._video.onended = this.onNativeEnded;
+        };
+        this._video.onended = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "video"
+            )
+                return;
+            this.onNativeEnded();
+        };
         this._video.onerror = (e): void => this.onNativeError(e);
 
         this._preloadAudio = new Audio();

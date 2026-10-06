@@ -28,6 +28,8 @@ import {
 // ─────────────────────────────────────────────
 
 export interface IWebSocketManager {
+    readonly isConnected: boolean;
+    requestPlaybackState(): void;
     onMessage<K extends EWebSocketMessage>(
         type: K,
         handler: WebSocketMessageHandler<K>

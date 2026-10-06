@@ -35,6 +35,12 @@ async def handle_current_time(
     sender_websocket: WebSocket | None = None,
 ) -> None:
     current_time_msg = CurrentTimeMessageRequest(**data)
+    if not manager.matches_playback(user_id=user_id, message=current_time_msg):
+        return
+    if user_id not in manager.playback_owners and sender_websocket is not None:
+        manager.playback_owners[user_id] = sender_websocket
+    if manager.playback_owners.get(user_id) is not sender_websocket:
+        return
     current_time = current_time_msg.currentTimeMs
     media_public_id = current_time_msg.mediaPublicId
 
@@ -123,10 +129,14 @@ async def handle_current_time(
     )
     if a_result.is_not_ok():
         logger.error(f"Error updating current time. {a_result.info()}")
+        return
 
     if sender_websocket is not None:
         relay_message = CurrentTimeMessage(
             currentTimeMs=current_time_msg.currentTimeMs,
+            mediaPublicId=media_public_id,
+            queueMediaId=current_time_msg.queueMediaId,
+            playbackId=current_time_msg.playbackId,
         )
         await manager.send_to_user_async(
             user_id=user_id,

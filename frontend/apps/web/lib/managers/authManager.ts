@@ -29,7 +29,7 @@ export class AuthManager {
             // Defensive: if a previous account never signed out, stale
             // user-scoped SW caches must not leak into the new session.
             await clearSessionOffline().catch(() => {});
-            rockIt.init();
+            await rockIt.refreshSessionAsync();
             return { success: true };
         } else if (res.isNotOk()) {
             return { success: false, error: res.detail.toString() };
@@ -56,7 +56,7 @@ export class AuthManager {
             // Defensive: if a previous account never signed out, stale
             // user-scoped SW caches must not leak into the new session.
             await clearSessionOffline().catch(() => {});
-            rockIt.init();
+            await rockIt.refreshSessionAsync();
             return { success: true };
         } else if (res.isNotOk()) {
             return { success: false, error: res.detail.toString() };

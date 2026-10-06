@@ -9,10 +9,7 @@ import {
 } from "@/lib/store";
 
 export type EBookmarkMode =
-    | "NOTHING"
-    | "AUTOSKIP"
-    | "REPEAT_FROM_BEGINNING"
-    | "PREVIOUS_BOOKMARK";
+    "NOTHING" | "AUTOSKIP" | "REPEAT_FROM_BEGINNING" | "PREVIOUS_BOOKMARK";
 
 export const BOOKMARK_MODE_COLORS: Record<EBookmarkMode, string> = {
     NOTHING: "#ffffff",

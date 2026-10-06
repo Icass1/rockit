@@ -4,8 +4,10 @@
 import { z } from "zod";
 
 export const CurrentMediaMessageRequestSchema = z.object({
-    mediaPublicId: z.string(),
+    currentTimeMs: z.number().default(0),
+    playbackId: z.string(),
     queueMediaId: z.number(),
+    mediaPublicId: z.string(),
     queueType: z.enum(["RANDOM", "SORTED"]),
 });
 

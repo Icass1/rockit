@@ -4,6 +4,7 @@ import { EQueueAction } from "@/models/enums/queueAction";
 import { ERepeatMode } from "@/models/enums/repeatMode";
 import {
     getMediaAudioUrl,
+    getMediaDuration,
     getMediaVideoUrl,
     isSong,
     isStation,
@@ -49,6 +50,17 @@ export abstract class BaseMediaPlayerManager {
     protected _isSeeking = false;
     protected _seekFrom = 0;
     protected _lastTime = 0;
+    protected _playbackId = "";
+    protected _playbackMediaId = "";
+    protected _playbackQueueId: number | null = null;
+    protected _syncOwner = false;
+    private _playbackConfirmed = false;
+    private _pendingPlaybackId?: string;
+    private _playRequested = false;
+    private _hasRemotePlayback = false;
+    protected _loadingPlayback = false;
+    private _mediaLoadPromise?: Promise<void>;
+    private _init = false;
 
     // Tracks what is currently loaded per kind so we can dedup reloads without
     // reading a platform-specific `.src`.
@@ -113,6 +125,15 @@ export abstract class BaseMediaPlayerManager {
     // ===== Native → base status handlers (subclass calls these) =====
 
     protected onNativePlaying = (): void => {
+        if (this._loadingPlayback) return;
+        if (
+            !this._syncOwner ||
+            (!this._playbackConfirmed &&
+                getRockIt().webSocketManager.isConnected)
+        ) {
+            this.pause();
+            return;
+        }
         this._playingAtom.set(true);
         this._onPlayingStarted();
     };
@@ -156,10 +177,76 @@ export abstract class BaseMediaPlayerManager {
     // ===== Public API =====
 
     init(): void {
+        if (this._init) return;
+        this._init = true;
+        getRockIt().webSocketManager.onMessage(
+            EWebSocketMessage.CurrentMedia,
+            async (data): Promise<void> => {
+                if (!data.isPlaybackOwner) {
+                    this._syncOwner = false;
+                    this._playbackConfirmed = false;
+                    this._playRequested = false;
+                    const pending = this._pendingPlaybackId;
+                    this.pause();
+                    this._pendingPlaybackId = pending;
+                    this._playingAtom.set(false);
+                    return;
+                }
+                const requested = this._pendingPlaybackId === data.playbackId;
+                if (requested) this._pendingPlaybackId = undefined;
+                // The queue handler applies the acknowledged media in the same dispatch.
+                await Promise.resolve();
+                if (this._playbackId !== data.playbackId) return;
+                this._syncOwner = true;
+                this._playbackConfirmed = true;
+                if (requested) this._playRequested = true;
+                await this._mediaLoadPromise;
+                if (
+                    this._playbackId === data.playbackId &&
+                    this._syncOwner &&
+                    this._playbackConfirmed &&
+                    this._playRequested &&
+                    !this._pendingPlaybackId
+                ) {
+                    const media = getRockIt().queueManager.currentMedia;
+                    this.playNative(this._effectiveKind(media));
+                }
+            }
+        );
         getRockIt().webSocketManager.onMessage(
             EWebSocketMessage.CurrentTime,
             (data): void => {
-                this._currentTimeAtom.set(data.currentTimeMs / 1000);
+                const media = getRockIt().queueManager.currentMedia;
+                if (
+                    !media ||
+                    data.mediaPublicId !== media.publicId ||
+                    data.queueMediaId !==
+                        getRockIt().queueManager.currentQueueMediaId ||
+                    this._isSeeking
+                )
+                    return;
+                if (
+                    !this._syncOwner &&
+                    !this._hasRemotePlayback &&
+                    !this._loadingPlayback
+                ) {
+                    this._playbackId = data.playbackId;
+                    this._hasRemotePlayback = true;
+                }
+                if (data.playbackId !== this._playbackId) return;
+                const time = data.currentTimeMs / 1000;
+                const duration = getMediaDuration(media);
+                if (
+                    !Number.isFinite(time) ||
+                    time < 0 ||
+                    (duration && time > duration)
+                )
+                    return;
+                if (data.isSeek && !this._loadingPlayback) {
+                    this.setCurrentTime(time, false);
+                } else if (!this._syncOwner) {
+                    this._currentTimeAtom.set(time);
+                }
             }
         );
 
@@ -182,9 +269,46 @@ export abstract class BaseMediaPlayerManager {
     play(): void {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
+        this._playRequested = true;
 
+        if (!this._syncOwner && this._loadingPlayback) {
+            const mediaId = currentMedia.publicId;
+            const queueId = getRockIt().queueManager.currentQueueMediaId;
+            void this._mediaLoadPromise?.then((): void => {
+                if (
+                    getRockIt().queueManager.currentMedia?.publicId ===
+                        mediaId &&
+                    getRockIt().queueManager.currentQueueMediaId === queueId
+                )
+                    this.play();
+            });
+            return;
+        }
+        if (
+            !this._syncOwner &&
+            this._playbackMediaId === currentMedia.publicId &&
+            this._playbackQueueId ===
+                getRockIt().queueManager.currentQueueMediaId
+        ) {
+            this._playbackId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            this._syncOwner = true;
+            this._playbackConfirmed = false;
+            this._sendCurrentMedia(currentMedia);
+            this.setCurrentTime(this._currentTimeAtom.get(), false);
+        }
+        if (
+            this._syncOwner &&
+            !this._playingAtom.get() &&
+            this._playbackMediaId === currentMedia.publicId &&
+            this._playbackQueueId ===
+                getRockIt().queueManager.currentQueueMediaId &&
+            this._pendingPlaybackId !== this._playbackId
+        ) {
+            this._playbackConfirmed = false;
+            this._sendCurrentMedia(currentMedia);
+        }
         if (isStation(currentMedia)) {
-            void this._playStream(getMediaAudioUrl(currentMedia) ?? "");
+            void this._playAudio();
         } else if (this._effectiveKind(currentMedia) === "video") {
             void this._playVideo();
         } else if (isSong(currentMedia) || isVideo(currentMedia)) {
@@ -193,16 +317,42 @@ export abstract class BaseMediaPlayerManager {
     }
 
     protected async _playAudio(): Promise<void> {
-        await this._setAudio();
-        this.playNative("audio");
+        const media = getRockIt().queueManager.currentMedia;
+        const queueId = getRockIt().queueManager.currentQueueMediaId;
+        await this.setMedia();
+        if (
+            !this._loadingPlayback &&
+            this._syncOwner &&
+            (this._playbackConfirmed ||
+                !getRockIt().webSocketManager.isConnected) &&
+            this._playRequested &&
+            getRockIt().queueManager.currentMedia === media &&
+            getRockIt().queueManager.currentQueueMediaId === queueId &&
+            this._effectiveKind(media) === "audio"
+        )
+            this.playNative("audio");
     }
 
     protected async _playVideo(): Promise<void> {
-        await this._setVideo();
-        this.playNative("video");
+        const media = getRockIt().queueManager.currentMedia;
+        const queueId = getRockIt().queueManager.currentQueueMediaId;
+        await this.setMedia();
+        if (
+            !this._loadingPlayback &&
+            this._syncOwner &&
+            (this._playbackConfirmed ||
+                !getRockIt().webSocketManager.isConnected) &&
+            this._playRequested &&
+            getRockIt().queueManager.currentMedia === media &&
+            getRockIt().queueManager.currentQueueMediaId === queueId &&
+            this._effectiveKind(media) === "video"
+        )
+            this.playNative("video");
     }
 
     pause(): void {
+        this._playRequested = false;
+        this._pendingPlaybackId = undefined;
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
@@ -238,11 +388,12 @@ export abstract class BaseMediaPlayerManager {
     }
 
     protected async _playStream(url: string): Promise<void> {
+        await this.setMedia();
         this._loadedAudioUri = url;
         await this.loadNativeSource("audio", url);
         this.setNativeVolume("audio", this._volumeAtom.get());
         this.seekNative("audio", 0);
-        this.playNative("audio");
+        this.play();
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (currentMedia) {
             this._sendCurrentMedia(currentMedia);
@@ -289,6 +440,8 @@ export abstract class BaseMediaPlayerManager {
     ): void {
         getRockIt().webSocketManager.sendSeek({
             mediaPublicId: publicId,
+            playbackId: this._playbackId,
+            queueMediaId: this._playbackQueueId ?? 0,
             timeFrom,
             timeTo,
         });
@@ -352,76 +505,104 @@ export abstract class BaseMediaPlayerManager {
 
         // Reload onto the deck the new mode requires (setMedia clears the other
         // deck), restore the playhead, then resume if we were playing.
+        this._playbackId = "";
         await this.setMedia();
         this.setCurrentTime(position, false);
         if (wasPlaying) this.play();
     }
 
-    async setMedia(useSavedCurrentTime: boolean = false): Promise<void> {
+    async setMedia(
+        useSavedCurrentTime: boolean = false,
+        remotePlaybackId?: string,
+        remoteTimeMs: number = 0,
+        isPlaybackOwner: boolean = false
+    ): Promise<void> {
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
-
-        this._lastTime = 0;
-
-        if (this._effectiveKind(currentMedia) === "video") {
-            await this._setVideo(useSavedCurrentTime);
-        } else {
-            await this._setAudio(useSavedCurrentTime);
+        const queueId = getRockIt().queueManager.currentQueueMediaId;
+        const changed =
+            this._playbackMediaId !== currentMedia.publicId ||
+            this._playbackQueueId !== queueId ||
+            !this._playbackId ||
+            (remotePlaybackId !== undefined &&
+                remotePlaybackId !== this._playbackId);
+        if (!changed) {
+            await this._mediaLoadPromise;
+            return;
         }
+
+        this._loadingPlayback = true;
+        const requested = this._playRequested;
+        const pending = this._pendingPlaybackId;
+        this.pause();
+        this._playRequested = remotePlaybackId === undefined && requested;
+        this._pendingPlaybackId = pending;
+        this._playbackMediaId = currentMedia.publicId;
+        this._playbackQueueId = queueId;
+        this._playbackId =
+            remotePlaybackId ??
+            `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        this._syncOwner =
+            isPlaybackOwner ||
+            (remotePlaybackId === undefined && !useSavedCurrentTime);
+        this._playbackConfirmed = isPlaybackOwner;
+        this._hasRemotePlayback = remotePlaybackId !== undefined;
+        this._lastTime = 0;
+        this._lastWsSyncTime = 0;
+        this._triggeredBookmarkPublicIdsAtom.set([]);
+        const startAt =
+            remotePlaybackId !== undefined
+                ? remoteTimeMs / 1000
+                : useSavedCurrentTime
+                  ? (getRockIt().userManager.currentTimeMsAtom.get() ?? 0) /
+                    1000
+                  : 0;
+        this._currentTimeAtom.set(startAt);
+        if (
+            this._syncOwner &&
+            remotePlaybackId === undefined &&
+            this._playRequested
+        )
+            this._sendCurrentMedia(currentMedia);
+        const playbackId = this._playbackId;
+        const previousLoad = this._mediaLoadPromise;
+        this._mediaLoadPromise = (async (): Promise<void> => {
+            await previousLoad?.catch((error): void => {
+                console.error(
+                    "MediaPlayerManager: previous load failed",
+                    error
+                );
+            });
+            if (this._playbackId !== playbackId) return;
+            await this._loadMedia(currentMedia, playbackId, startAt);
+        })();
+        await this._mediaLoadPromise;
     }
 
-    protected async _setAudio(
-        useSavedCurrentTime: boolean = false
+    private async _loadMedia(
+        media: TPlayableMedia,
+        playbackId: string,
+        startAt: number
     ): Promise<void> {
-        this._triggeredBookmarkPublicIdsAtom.set([]);
-        this._clearVideo();
-
-        const currentMedia = getRockIt().queueManager.currentMedia;
-        if (!currentMedia || this._effectiveKind(currentMedia) !== "audio")
-            return;
-
-        const audioSrc = await this.resolveMediaUriAsync(currentMedia, "audio");
-        if (!audioSrc) return;
-        if (this._loadedAudioUri === audioSrc) return;
-
-        this._loadedAudioUri = audioSrc;
-        await this.loadNativeSource("audio", audioSrc);
-        this.setNativeVolume("audio", this._volumeAtom.get());
-
-        const startAt = useSavedCurrentTime
-            ? (getRockIt().userManager.currentTimeMsAtom.get() ?? 0) / 1000
-            : 0;
-        this.seekNative("audio", startAt);
-
-        await this.afterMediaLoadedAsync(currentMedia, "audio", audioSrc);
-        this._sendCurrentMedia(currentMedia);
-    }
-
-    protected async _setVideo(
-        useSavedCurrentTime: boolean = false
-    ): Promise<void> {
-        this._triggeredBookmarkPublicIdsAtom.set([]);
-        this._clearAudio();
-
-        const currentMedia = getRockIt().queueManager.currentMedia;
-        if (!currentMedia || this._effectiveKind(currentMedia) !== "video")
-            return;
-
-        const videoSrc = await this.resolveMediaUriAsync(currentMedia, "video");
-        if (!videoSrc) return;
-        if (this._loadedVideoUri === videoSrc) return;
-
-        this._loadedVideoUri = videoSrc;
-        await this.loadNativeSource("video", videoSrc);
-        this.setNativeVolume("video", this._volumeAtom.get());
-
-        const startAt = useSavedCurrentTime
-            ? (getRockIt().userManager.currentTimeMsAtom.get() ?? 0) / 1000
-            : 0;
-        this.seekNative("video", startAt);
-
-        await this.afterMediaLoadedAsync(currentMedia, "video", videoSrc);
-        this._sendCurrentMedia(currentMedia);
+        const kind = this._effectiveKind(media);
+        try {
+            const uri = await this.resolveMediaUriAsync(media, kind);
+            if (!uri || this._playbackId !== playbackId) return;
+            if (kind === "audio") this._clearVideo();
+            else this._clearAudio();
+            if (kind === "audio") this._loadedAudioUri = uri;
+            else this._loadedVideoUri = uri;
+            await this.loadNativeSource(kind, uri);
+            if (this._playbackId !== playbackId) return;
+            this.setNativeVolume(kind, this._volumeAtom.get());
+            this.seekNative(
+                kind,
+                this._syncOwner ? startAt : this._currentTimeAtom.get()
+            );
+            await this.afterMediaLoadedAsync(media, kind, uri);
+        } finally {
+            if (this._playbackId === playbackId) this._loadingPlayback = false;
+        }
     }
 
     protected _clearVideo(): void {
@@ -441,19 +622,32 @@ export abstract class BaseMediaPlayerManager {
         if (queueMediaId === null) return;
         if (queueType === undefined) return;
 
+        if (this._playRequested) this._pendingPlaybackId = this._playbackId;
         getRockIt().webSocketManager.sendCurrentMedia({
             mediaPublicId: currentMedia.publicId,
+            playbackId: this._playbackId,
+            currentTimeMs: Math.round(this._currentTimeAtom.get() * 1000),
             queueMediaId,
             queueType: queueType,
         });
     }
 
     protected _handleTimeUpdate(time: number): void {
-        if (this._isSeeking) return;
+        if (this._isSeeking || this._loadingPlayback || !this._syncOwner)
+            return;
 
         const currentMedia = getRockIt().queueManager.currentMedia;
         if (!currentMedia) return;
 
+        if (
+            currentMedia.publicId !== this._playbackMediaId ||
+            getRockIt().queueManager.currentQueueMediaId !==
+                this._playbackQueueId
+        )
+            return;
+        const duration = getMediaDuration(currentMedia);
+        if (!Number.isFinite(time) || time < 0 || (duration && time > duration))
+            return;
         this._currentTimeAtom.set(time);
 
         // Check bookmarks we've crossed since last update.
@@ -462,11 +656,19 @@ export abstract class BaseMediaPlayerManager {
         this._lastTime = time;
 
         const now = Date.now();
-        if (now - this._lastWsSyncTime >= WS_TIME_SYNC_INTERVAL_MS) {
+        if (
+            this._playingAtom.get() &&
+            currentMedia.publicId === this._playbackMediaId &&
+            getRockIt().queueManager.currentQueueMediaId ===
+                this._playbackQueueId &&
+            now - this._lastWsSyncTime >= WS_TIME_SYNC_INTERVAL_MS
+        ) {
             this._lastWsSyncTime = now;
             getRockIt().webSocketManager.sendCurrentTime({
                 currentTimeMs: Math.round(time * 1000),
                 mediaPublicId: currentMedia.publicId,
+                playbackId: this._playbackId,
+                queueMediaId: this._playbackQueueId ?? 0,
             });
         }
     }
@@ -486,13 +688,11 @@ export abstract class BaseMediaPlayerManager {
 
         for (let i = 0; i < sortedBookmarks.length; i++) {
             const bookmark = sortedBookmarks[i];
-            if (
-                !(
-                    lastTime < bookmark.timestamp &&
-                    bookmark.timestamp <= currentTime &&
-                    currentTime - bookmark.timestamp < 1
-                )
-            ) {
+            if (!(
+                lastTime < bookmark.timestamp &&
+                bookmark.timestamp <= currentTime &&
+                currentTime - bookmark.timestamp < 1
+            )) {
                 continue;
             }
 
@@ -588,10 +788,19 @@ export abstract class BaseMediaPlayerManager {
     }
 
     protected _handleEnded(): void {
+        if (this._loadingPlayback || !this._syncOwner) return;
         const currentMedia = getRockIt().queueManager.currentMedia;
+        if (
+            currentMedia?.publicId !== this._playbackMediaId ||
+            getRockIt().queueManager.currentQueueMediaId !==
+                this._playbackQueueId
+        )
+            return;
         if (currentMedia) {
             getRockIt().webSocketManager.sendMediaEnded({
                 mediaPublicId: currentMedia.publicId,
+                playbackId: this._playbackId,
+                queueMediaId: this._playbackQueueId ?? 0,
             });
         }
 

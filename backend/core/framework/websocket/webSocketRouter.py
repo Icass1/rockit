@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, TypeVar
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,16 +17,19 @@ HandlerFunc = Callable[
 ]
 
 
+Handler = TypeVar("Handler", bound=HandlerFunc)
+
+
 class WebSocketRouter:
     def __init__(self) -> None:
         self._handlers: Dict[str, HandlerFunc] = {}
 
-    def message(self, message_type: str) -> Callable[[HandlerFunc], HandlerFunc]:
+    def message(self, message_type: str) -> Callable[[Handler], Handler]:
         """Decorator to register a handler for a WebSocket message type."""
 
         logger.info(f"Registering web socket message handler for {message_type}")
 
-        def decorator(func: HandlerFunc) -> HandlerFunc:
+        def decorator(func: Handler) -> Handler:
             self._handlers[message_type] = func
             return func
 

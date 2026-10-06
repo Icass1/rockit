@@ -536,35 +536,33 @@ export default function AdminStats(): JSX.Element {
                                 </tr>
                             </thead>
                             <tbody>
-                                {routeTop.map(
-                                    (r, i): JSX.Element => (
-                                        <tr
-                                            key={i}
-                                            className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
-                                        >
-                                            <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-white">
-                                                {r.normalizedRoute}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-medium text-neutral-300">
-                                                    {r.method}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-white">
-                                                {r.count.toLocaleString()}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-neutral-400">
-                                                {formatMs(r.avgTimeMs)}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-neutral-500">
-                                                {formatMs(r.minTimeMs)}
-                                            </td>
-                                            <td className="px-4 py-3 text-right text-neutral-500">
-                                                {formatMs(r.maxTimeMs)}
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
+                                {routeTop.map((r, i): JSX.Element => (
+                                    <tr
+                                        key={i}
+                                        className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                    >
+                                        <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-white">
+                                            {r.normalizedRoute}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className="rounded bg-neutral-800 px-2 py-0.5 text-xs font-medium text-neutral-300">
+                                                {r.method}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-white">
+                                            {r.count.toLocaleString()}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-neutral-400">
+                                            {formatMs(r.avgTimeMs)}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-neutral-500">
+                                            {formatMs(r.minTimeMs)}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-neutral-500">
+                                            {formatMs(r.maxTimeMs)}
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
@@ -644,21 +642,19 @@ export default function AdminStats(): JSX.Element {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.topIps.map(
-                                        (ip, i): JSX.Element => (
-                                            <tr
-                                                key={i}
-                                                className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
-                                            >
-                                                <td className="px-4 py-3 font-mono text-xs text-white">
-                                                    {ip.ip}
-                                                </td>
-                                                <td className="px-4 py-3 text-right text-white">
-                                                    {ip.count.toLocaleString()}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
+                                    {data.topIps.map((ip, i): JSX.Element => (
+                                        <tr
+                                            key={i}
+                                            className="border-b border-neutral-800/50 transition hover:bg-neutral-800/30"
+                                        >
+                                            <td className="px-4 py-3 font-mono text-xs text-white">
+                                                {ip.ip}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-white">
+                                                {ip.count.toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>

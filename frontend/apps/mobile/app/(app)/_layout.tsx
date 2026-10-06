@@ -34,7 +34,7 @@ function StandaloneTabBar({ onTabPress }: { onTabPress?: () => void }) {
     const router = useRouter();
     const segments = useSegments();
 
-    const activeTab = segments[1] || "index";
+    const activeTab = segments.at(1) || "index";
 
     const tabs = [
         { name: "index", icon: Home, path: "/(app)" as const },

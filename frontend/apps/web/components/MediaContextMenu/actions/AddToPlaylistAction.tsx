@@ -20,18 +20,16 @@ export default function AddToPlaylistAction({
                 {vocabulary.ADD_MEDIA_TO_PLAYLIST}
             </SubContextMenuTrigger>
             <SubContextMenuContent>
-                {playlists.map(
-                    (playlist): JSX.Element => (
-                        <ContextMenuOption
-                            onClick={async () => {
-                                await handleAddToPlaylist(playlist);
-                            }}
-                            key={playlist.publicId}
-                        >
-                            {playlist.name}
-                        </ContextMenuOption>
-                    )
-                )}
+                {playlists.map((playlist): JSX.Element => (
+                    <ContextMenuOption
+                        onClick={async () => {
+                            await handleAddToPlaylist(playlist);
+                        }}
+                        key={playlist.publicId}
+                    >
+                        {playlist.name}
+                    </ContextMenuOption>
+                ))}
             </SubContextMenuContent>
         </SubContextMenu>
     );
@@ -49,21 +47,19 @@ export function AddToPlaylistAndDownloadAction({
                 {vocabulary.ADD_TO_PLAYLIST_AND_DOWNLOAD}
             </SubContextMenuTrigger>
             <SubContextMenuContent>
-                {playlists.map(
-                    (playlist): JSX.Element => (
-                        <ContextMenuOption
-                            onClick={async () => {
-                                await rockIt.playlistManager.addUrlToPlaylistAndDownloadAsync(
-                                    media as BaseSearchResultsItem,
-                                    playlist.publicId
-                                );
-                            }}
-                            key={playlist.publicId}
-                        >
-                            {playlist.name}
-                        </ContextMenuOption>
-                    )
-                )}
+                {playlists.map((playlist): JSX.Element => (
+                    <ContextMenuOption
+                        onClick={async () => {
+                            await rockIt.playlistManager.addUrlToPlaylistAndDownloadAsync(
+                                media as BaseSearchResultsItem,
+                                playlist.publicId
+                            );
+                        }}
+                        key={playlist.publicId}
+                    >
+                        {playlist.name}
+                    </ContextMenuOption>
+                ))}
             </SubContextMenuContent>
         </SubContextMenu>
     );

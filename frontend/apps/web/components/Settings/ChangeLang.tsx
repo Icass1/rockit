@@ -36,13 +36,11 @@ export default function ChangeLang(): JSX.Element {
                 }
                 className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
             >
-                {LANGUAGES.map(
-                    (l): JSX.Element => (
-                        <option key={l.value} value={l.value}>
-                            {l.label}
-                        </option>
-                    )
-                )}
+                {LANGUAGES.map((l): JSX.Element => (
+                    <option key={l.value} value={l.value}>
+                        {l.label}
+                    </option>
+                ))}
             </select>
         </div>
     );

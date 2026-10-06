@@ -40,15 +40,13 @@ export class OfflineManager {
 
         return songs
             .filter((s): boolean => Boolean(s.audioUrl))
-            .map(
-                (s): OfflineSongTask => ({
-                    publicId: s.publicId,
-                    audioUrl: s.audioUrl as string,
-                    imageUrl: s.imageUrl,
-                    parentAlbumIds: [albumId],
-                    parentPlaylistIds: [],
-                })
-            );
+            .map((s): OfflineSongTask => ({
+                publicId: s.publicId,
+                audioUrl: s.audioUrl as string,
+                imageUrl: s.imageUrl,
+                parentAlbumIds: [albumId],
+                parentPlaylistIds: [],
+            }));
     }
 
     private async resolvePlaylistSongs(
@@ -128,15 +126,14 @@ export class OfflineManager {
         let failed = 0;
         const batch = async (pool: OfflineSongTask[]): Promise<void> => {
             const results = await Promise.allSettled(
-                pool.map(
-                    (task): Promise<void> =>
-                        downloadSongOffline(
-                            task.publicId,
-                            task.audioUrl,
-                            task.imageUrl,
-                            task.parentAlbumIds,
-                            task.parentPlaylistIds
-                        )
+                pool.map((task): Promise<void> =>
+                    downloadSongOffline(
+                        task.publicId,
+                        task.audioUrl,
+                        task.imageUrl,
+                        task.parentAlbumIds,
+                        task.parentPlaylistIds
+                    )
                 )
             );
             for (const result of results) {

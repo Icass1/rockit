@@ -12,6 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import FullscreenMediaPlayer from "@/components/Player/FullscreenMediaPlayer";
 import PlayerMediaInfo from "@/components/Player/PlayerMediaInfo";
 import PlayerTabsBar from "@/components/Player/PlayerTabsBar";
 import PlayerTabsPanel from "@/components/Player/PlayerTabsPanel";
@@ -23,12 +24,7 @@ const SPRING_CONFIG = { damping: 50, stiffness: 300, mass: 0.8 };
 const OFFSET_Y = SCREEN_HEIGHT + 50;
 
 export type PlayerTab =
-    | "queue"
-    | "lyrics"
-    | "related"
-    | "crossfade"
-    | "bookmarks"
-    | null;
+    "queue" | "lyrics" | "related" | "crossfade" | "bookmarks" | null;
 
 export default function FullPlayer() {
     const {
@@ -57,6 +53,16 @@ export default function FullPlayer() {
     const isHiding = useSharedValue(false);
     const [keepMounted, setKeepMounted] = useState(false);
     const [activeTab, setActiveTab] = useState<PlayerTab>(null);
+    const [mediaFullscreen, setMediaFullscreen] = useState(false);
+    const isMediaFullscreen = mediaFullscreen && isPlayerVisible;
+    const closeMediaFullscreen = useCallback(
+        () => setMediaFullscreen(false),
+        []
+    );
+
+    useEffect(() => {
+        if (!isPlayerVisible) setMediaFullscreen(false);
+    }, [isPlayerVisible]);
     const prevVisible = useRef(isPlayerVisible);
 
     const hidePlayerRef = useRef(hidePlayer);
@@ -193,6 +199,8 @@ export default function FullPlayer() {
                             canToggleAudioOnly={canToggleAudioOnly}
                             audioOnly={audioOnly}
                             onToggleAudioOnly={toggleAudioOnly}
+                            isMediaFullscreen={!!isMediaFullscreen}
+                            onMediaFullscreen={() => setMediaFullscreen(true)}
                         />
                     </Animated.View>
                 </Animated.View>
@@ -208,6 +216,12 @@ export default function FullPlayer() {
                 activeTab={activeTab}
                 onClose={handleTabPanelClose}
             />
+            {isMediaFullscreen && (
+                <FullscreenMediaPlayer
+                    videoPlayer={videoPlayer}
+                    onClose={closeMediaFullscreen}
+                />
+            )}
         </Animated.View>
     );
 }

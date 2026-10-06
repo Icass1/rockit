@@ -3,13 +3,7 @@ import { DeviceEventEmitter, NativeModules, Platform } from "react-native";
 
 // Commands emitted by Android Auto's MediaSession callback
 export type AutoCommand =
-    | "play"
-    | "pause"
-    | "stop"
-    | "next"
-    | "previous"
-    | "seekTo"
-    | "skipToIndex";
+    "play" | "pause" | "stop" | "next" | "previous" | "seekTo" | "skipToIndex";
 
 interface NativeMediaBridgeCallbacks {
     onBluetoothConnected: () => void;

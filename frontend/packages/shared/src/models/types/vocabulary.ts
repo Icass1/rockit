@@ -2,6 +2,14 @@
 // Do not modify this file manually.
 
 export interface Vocabulary {
+    PLAYER_ENTER_FULLSCREEN: string;
+    PLAYER_EXIT_FULLSCREEN: string;
+    PLAYER_SHOW_CONTROLS: string;
+    PLAYER_SEEK: string;
+    PLAYER_REWIND_TEN_SECONDS: string;
+    PLAYER_FORWARD_TEN_SECONDS: string;
+    PLAYER_CLOSE_BOOKMARKS: string;
+    PLAYER_FULLSCREEN_UNAVAILABLE: string;
     ADD_BOOKMARK_AT: string;
     ADD_LIST_RANDOMLY: string;
     ADD_LIST_TO_BOTTOM: string;

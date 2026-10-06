@@ -354,18 +354,14 @@ export function AlbumListView({
 
     return (
         <div className="px-4">
-            {groups.map(
-                ([artist, artistAlbums]): JSX.Element => (
-                    <div key={artist}>
-                        <ArtistGroupHeader name={artist} />
-                        {artistAlbums.map(
-                            (album): JSX.Element => (
-                                <AlbumRow key={album.publicId} album={album} />
-                            )
-                        )}
-                    </div>
-                )
-            )}
+            {groups.map(([artist, artistAlbums]): JSX.Element => (
+                <div key={artist}>
+                    <ArtistGroupHeader name={artist} />
+                    {artistAlbums.map((album): JSX.Element => (
+                        <AlbumRow key={album.publicId} album={album} />
+                    ))}
+                </div>
+            ))}
         </div>
     );
 }

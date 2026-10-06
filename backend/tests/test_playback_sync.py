@@ -3,6 +3,9 @@ import json
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
+from fastapi import WebSocket
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.websocket.webSocketManager import WebSocketManager
 from backend.core.framework.websocket.playbackState import UserPlaybackState
@@ -15,8 +18,8 @@ from backend.core.framework.websocket.handlers.seek import handle_seek
 class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.manager = WebSocketManager()
-        self.owner = SimpleNamespace(send_text=AsyncMock())
-        self.other = SimpleNamespace(send_text=AsyncMock())
+        self.owner = AsyncMock(spec=WebSocket)
+        self.other = AsyncMock(spec=WebSocket)
         self.manager.playback_owners[1] = self.owner
         self.manager.user_playback_states[1] = UserPlaybackState(
             media_public_id="song",
@@ -24,7 +27,9 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
             playback_id="new",
             last_time_ms=1000,
         )
-        self.manager.send_to_user_async = AsyncMock()
+        self.session = AsyncMock(spec=AsyncSession)
+        self.send_to_user = AsyncMock()
+        self.manager.send_to_user_async = self.send_to_user
 
     async def test_delayed_video_and_previous_occurrence_are_discarded(self) -> None:
         with patch(
@@ -38,7 +43,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
             ]:
                 await handle_current_time(
                     manager=self.manager,
-                    session=None,
+                    session=self.session,
                     user_id=1,
                     sender_websocket=self.owner,
                     data=dict(
@@ -49,13 +54,13 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
                     ),
                 )
             update.assert_not_awaited()
-            self.manager.send_to_user_async.assert_not_awaited()
+            self.send_to_user.assert_not_awaited()
             self.assertEqual(self.manager.user_playback_states[1].last_time_ms, 1000)
 
     async def test_follower_cannot_publish_periodic_progress(self) -> None:
         await handle_current_time(
             manager=self.manager,
-            session=None,
+            session=self.session,
             user_id=1,
             sender_websocket=self.other,
             data=dict(
@@ -65,7 +70,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
                 currentTimeMs=90000,
             ),
         )
-        self.manager.send_to_user_async.assert_not_awaited()
+        self.send_to_user.assert_not_awaited()
         self.assertEqual(self.manager.user_playback_states[1].last_time_ms, 1000)
 
     async def test_song_change_resets_position_and_transfers_ownership(self) -> None:
@@ -86,15 +91,17 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
             )
             await handle_current_media(
                 manager=self.manager,
-                session=None,
+                session=self.session,
                 user_id=1,
                 sender_websocket=self.other,
                 data=data,
             )
             self.assertEqual(self.manager.user_playback_states[1].last_time_ms, 0)
             self.assertIs(self.manager.playback_owners[1], self.other)
+            assert update.await_args is not None
             self.assertEqual(update.await_args.kwargs["current_time_ms"], 0)
-            relay = self.manager.send_to_user_async.await_args.kwargs["message"]
+            assert self.send_to_user.await_args is not None
+            relay = self.send_to_user.await_args.kwargs["message"]
             self.assertEqual(relay.playbackId, "next-session")
             self.assertFalse(relay.isPlaybackOwner)
             grant = json.loads(self.other.send_text.await_args.args[0])
@@ -102,12 +109,12 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(grant["playbackId"], "next-session")
             await handle_current_media(
                 manager=self.manager,
-                session=None,
+                session=self.session,
                 user_id=1,
                 sender_websocket=self.other,
                 data=data,
             )
-            self.manager.send_to_user_async.assert_awaited_once()
+            self.send_to_user.assert_awaited_once()
 
     async def test_stale_seek_and_end_cannot_change_new_interval(self) -> None:
         self.manager.user_playback_states[1].active_interval_start_ms = 0
@@ -121,14 +128,14 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
         ) as media:
             await handle_media_ended(
                 manager=self.manager,
-                session=None,
+                session=self.session,
                 user_id=1,
                 sender_websocket=self.owner,
                 data=old,
             )
             await handle_seek(
                 manager=self.manager,
-                session=None,
+                session=self.session,
                 user_id=1,
                 sender_websocket=self.owner,
                 data=dict(**old, timeFrom=1800, timeTo=0),
@@ -150,7 +157,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
         ):
             await handle_current_time(
                 manager=self.manager,
-                session=None,
+                session=self.session,
                 user_id=1,
                 sender_websocket=self.owner,
                 data=dict(
@@ -160,7 +167,8 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
                     currentTimeMs=2000,
                 ),
             )
-            call = self.manager.send_to_user_async.await_args.kwargs
+            assert self.send_to_user.await_args is not None
+            call = self.send_to_user.await_args.kwargs
             self.assertIs(call["exclude_websocket"], self.owner)
             self.assertEqual(call["message"].mediaPublicId, "song")
             self.assertEqual(call["message"].playbackId, "new")
@@ -183,7 +191,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
         ):
             await handle_seek(
                 manager=self.manager,
-                session=None,
+                session=self.session,
                 user_id=1,
                 sender_websocket=self.other,
                 data=dict(
@@ -194,7 +202,8 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
                     timeTo=30,
                 ),
             )
-            call = self.manager.send_to_user_async.await_args.kwargs
+            assert self.send_to_user.await_args is not None
+            call = self.send_to_user.await_args.kwargs
             self.assertIs(call["exclude_websocket"], self.other)
             self.assertTrue(call["message"].isSeek)
             self.assertEqual(call["message"].currentTimeMs, 30000)
@@ -205,17 +214,17 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
             handle_playback_state,
         )
 
-        socket = SimpleNamespace(send_text=AsyncMock())
+        socket = AsyncMock(spec=WebSocket)
         await handle_playback_state(
             manager=self.manager,
-            session=None,
+            session=self.session,
             user_id=1,
             data={},
             sender_websocket=socket,
         )
         socket.send_text.assert_awaited_once()
         self.assertIn('"playbackId":"new"', socket.send_text.await_args.args[0])
-        self.manager.send_to_user_async.assert_not_awaited()
+        self.send_to_user.assert_not_awaited()
 
     async def test_last_accepted_play_request_wins(self) -> None:
         module = "backend.core.framework.websocket.handlers.current_media"
@@ -233,7 +242,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
             ]:
                 await handle_current_media(
                     manager=self.manager,
-                    session=None,
+                    session=self.session,
                     user_id=1,
                     sender_websocket=socket,
                     data=dict(
@@ -248,7 +257,8 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(
                 self.manager.user_playback_states[1].playback_id, "device-b"
             )
-            last_revoke = self.manager.send_to_user_async.await_args.kwargs
+            assert self.send_to_user.await_args is not None
+            last_revoke = self.send_to_user.await_args.kwargs
             self.assertIs(last_revoke["exclude_websocket"], self.other)
             self.assertFalse(last_revoke["message"].isPlaybackOwner)
             grant = json.loads(self.other.send_text.await_args.args[0])

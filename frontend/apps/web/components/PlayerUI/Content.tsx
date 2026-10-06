@@ -187,21 +187,17 @@ export default function PlayerUIContent(): JSX.Element {
             ) : (
                 <div className="z-10 grid h-full max-h-full min-h-0 min-w-0 grid-rows-[min-content_1fr] gap-2">
                     <div className="relative flex flex-row justify-center gap-4">
-                        {["QUEUE", "LYRICS"].map(
-                            (tab): JSX.Element => (
-                                <button
-                                    key={tab}
-                                    className={`text-lg font-semibold transition hover:text-white ${selectedTab === tab ? "border-b-2 border-white text-white" : "text-gray-400"}`}
-                                    onClick={(): void =>
-                                        setSelectedTab(
-                                            tab as "LYRICS" | "QUEUE"
-                                        )
-                                    }
-                                >
-                                    {$vocabulary[tab as "LYRICS" | "QUEUE"]}
-                                </button>
-                            )
-                        )}
+                        {["QUEUE", "LYRICS"].map((tab): JSX.Element => (
+                            <button
+                                key={tab}
+                                className={`text-lg font-semibold transition hover:text-white ${selectedTab === tab ? "border-b-2 border-white text-white" : "text-gray-400"}`}
+                                onClick={(): void =>
+                                    setSelectedTab(tab as "LYRICS" | "QUEUE")
+                                }
+                            >
+                                {$vocabulary[tab as "LYRICS" | "QUEUE"]}
+                            </button>
+                        ))}
                     </div>
                     <div className="relative h-full max-h-full min-h-0 w-full max-w-full min-w-0 overflow-hidden">
                         <div

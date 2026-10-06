@@ -67,15 +67,13 @@ export default function RadioSection({
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
                 {[...stations]
                     .sort((a, b) => a.name.localeCompare(b.name))
-                    .map(
-                        (station): JSX.Element => (
-                            <RadioStationCard
-                                key={station.providerUrl + station.name}
-                                station={station}
-                                onPlay={handlePlay}
-                            />
-                        )
-                    )}
+                    .map((station): JSX.Element => (
+                        <RadioStationCard
+                            key={station.providerUrl + station.name}
+                            station={station}
+                            onPlay={handlePlay}
+                        />
+                    ))}
             </div>
         </section>
     );

@@ -120,9 +120,8 @@ export class WebSocketManager {
         const generation = this._connectionGeneration;
 
         while (retries < maxRetries) {
-            await new Promise(
-                (resolve): NodeJS.Timeout =>
-                    setTimeout(resolve, Math.max(2000 * retries, 2000))
+            await new Promise((resolve): NodeJS.Timeout =>
+                setTimeout(resolve, Math.max(2000 * retries, 2000))
             );
             if (generation !== this._connectionGeneration) return;
             if (this.webSocket?.readyState === WebSocket.OPEN) break;

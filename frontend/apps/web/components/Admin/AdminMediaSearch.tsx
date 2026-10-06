@@ -210,14 +210,12 @@ export default function AdminMediaSearch(): JSX.Element {
                         {results.length} {$vocabulary.ADMIN_SEARCH_RESULTS}
                     </p>
                     <div className="space-y-2">
-                        {results.map(
-                            (item): JSX.Element => (
-                                <ResultRow
-                                    key={`${item.type}-${item.provider}-${item.internalId}`}
-                                    item={item}
-                                />
-                            )
-                        )}
+                        {results.map((item): JSX.Element => (
+                            <ResultRow
+                                key={`${item.type}-${item.provider}-${item.internalId}`}
+                                item={item}
+                            />
+                        ))}
                     </div>
                 </>
             )}

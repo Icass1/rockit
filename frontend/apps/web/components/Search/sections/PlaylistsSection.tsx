@@ -23,33 +23,31 @@ export default function PlaylistsSection({
                 {$vocabulary.PLAYLISTS}
             </h2>
             <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                {playlists.map(
-                    (playlist): JSX.Element => (
-                        <MediaContextMenu
-                            key={playlist.providerUrl}
-                            media={playlist}
-                            location={EMediaContextLocation.SEARCH}
+                {playlists.map((playlist): JSX.Element => (
+                    <MediaContextMenu
+                        key={playlist.providerUrl}
+                        media={playlist}
+                        location={EMediaContextLocation.SEARCH}
+                    >
+                        <div
+                            className={`w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${playlist.downloaded === false && "opacity-50"}`}
                         >
-                            <div
-                                className={`w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${playlist.downloaded === false && "opacity-50"}`}
-                            >
-                                <Image
-                                    width={350}
-                                    height={350}
-                                    className="aspect-square w-full rounded-lg object-cover select-none"
-                                    src={playlist.imageUrl}
-                                    alt={`Cover of ${playlist.name}`}
-                                />
-                                <span className="mt-2 block truncate text-center font-semibold">
-                                    {playlist.name}
-                                </span>
-                                <span className="block truncate text-center text-sm text-gray-400">
-                                    {playlist.artists[0]?.name || "Unknown"}
-                                </span>
-                            </div>
-                        </MediaContextMenu>
-                    )
-                )}
+                            <Image
+                                width={350}
+                                height={350}
+                                className="aspect-square w-full rounded-lg object-cover select-none"
+                                src={playlist.imageUrl}
+                                alt={`Cover of ${playlist.name}`}
+                            />
+                            <span className="mt-2 block truncate text-center font-semibold">
+                                {playlist.name}
+                            </span>
+                            <span className="block truncate text-center text-sm text-gray-400">
+                                {playlist.artists[0]?.name || "Unknown"}
+                            </span>
+                        </div>
+                    </MediaContextMenu>
+                ))}
             </div>
         </section>
     );

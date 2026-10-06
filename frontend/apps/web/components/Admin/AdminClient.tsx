@@ -231,22 +231,20 @@ export default function AdminClient({
             <div className="border-b border-neutral-800 bg-neutral-900/50">
                 <div className="mx-auto max-w-6xl px-4">
                     <div className="flex items-center gap-1 overflow-x-auto py-2">
-                        {tabs.map(
-                            (tab): JSX.Element => (
-                                <button
-                                    key={tab.id}
-                                    onClick={(): void => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                                        activeTab === tab.id
-                                            ? "bg-(--color-rockit-pink) text-white"
-                                            : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                                    }`}
-                                >
-                                    <tab.icon className="h-4 w-4" />
-                                    {tab.label}
-                                </button>
-                            )
-                        )}
+                        {tabs.map((tab): JSX.Element => (
+                            <button
+                                key={tab.id}
+                                onClick={(): void => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+                                    activeTab === tab.id
+                                        ? "bg-(--color-rockit-pink) text-white"
+                                        : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                                }`}
+                            >
+                                <tab.icon className="h-4 w-4" />
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -423,67 +421,61 @@ export default function AdminClient({
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {builds.map(
-                                    (build, i): JSX.Element => (
-                                        <div
-                                            key={build.publicId}
-                                            className="group relative rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition hover:border-neutral-700"
-                                        >
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="flex flex-1 items-center gap-4">
-                                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-(--color-rockit-pink)/10">
-                                                        <Smartphone className="h-6 w-6 text-(--color-rockit-pink)" />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="rounded-full bg-(--color-rockit-pink)/15 px-3 py-0.5 text-sm font-bold text-(--color-rockit-pink)">
-                                                                v{build.version}
-                                                            </span>
-                                                            {i === 0 && (
-                                                                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-                                                                    {
-                                                                        $vocabulary.ADMIN_LATEST
-                                                                    }
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {build.description && (
-                                                            <p className="mt-2 line-clamp-2 max-w-xl text-sm text-neutral-400">
-                                                                {
-                                                                    build.description
-                                                                }
-                                                            </p>
-                                                        )}
-                                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
-                                                            <span className="font-mono">
-                                                                {
-                                                                    build.apkFilename
-                                                                }
-                                                            </span>
-                                                            <span>
-                                                                {new Date(
-                                                                    build.dateAdded
-                                                                ).toLocaleString()}
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                {builds.map((build, i): JSX.Element => (
+                                    <div
+                                        key={build.publicId}
+                                        className="group relative rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition hover:border-neutral-700"
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex flex-1 items-center gap-4">
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-(--color-rockit-pink)/10">
+                                                    <Smartphone className="h-6 w-6 text-(--color-rockit-pink)" />
                                                 </div>
-
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex items-center gap-1.5 text-sm text-neutral-400">
-                                                        <Download className="h-4 w-4" />
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="rounded-full bg-(--color-rockit-pink)/15 px-3 py-0.5 text-sm font-bold text-(--color-rockit-pink)">
+                                                            v{build.version}
+                                                        </span>
+                                                        {i === 0 && (
+                                                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                                                                {
+                                                                    $vocabulary.ADMIN_LATEST
+                                                                }
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {build.description && (
+                                                        <p className="mt-2 line-clamp-2 max-w-xl text-sm text-neutral-400">
+                                                            {build.description}
+                                                        </p>
+                                                    )}
+                                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
+                                                        <span className="font-mono">
+                                                            {build.apkFilename}
+                                                        </span>
                                                         <span>
-                                                            {build.downloads}
+                                                            {new Date(
+                                                                build.dateAdded
+                                                            ).toLocaleString()}
                                                         </span>
                                                     </div>
-                                                    <button className="rounded-lg p-2 text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-neutral-800 hover:text-red-400">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
                                                 </div>
                                             </div>
+
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-1.5 text-sm text-neutral-400">
+                                                    <Download className="h-4 w-4" />
+                                                    <span>
+                                                        {build.downloads}
+                                                    </span>
+                                                </div>
+                                                <button className="rounded-lg p-2 text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-neutral-800 hover:text-red-400">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </div>
-                                    )
-                                )}
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>

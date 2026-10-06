@@ -60,8 +60,8 @@ jobs:
               run: |
                   failed=0
 
-                  black . || failed=1
-                  pnpm exec prettier -w "**/*.{ts,tsx}" || failed=1
+                  black --check . || failed=1
+                  pnpm exec prettier --check "**/*.{ts,tsx}" || failed=1
 
                   (cd frontend && pnpm lint) > lint.txt 2>&1 || failed=1
                   cat lint.txt
@@ -69,7 +69,7 @@ jobs:
                   pyright > pyright.txt 2>&1 || failed=1
                   cat pyright.txt
 
-                  # Formatting tools can succeed while rewriting tracked files.
+                  # Checks must leave tracked files unchanged.
                   git diff --exit-code HEAD || failed=1
 
                   # Ignore generated artifacts covered by .gitignore, including logs.

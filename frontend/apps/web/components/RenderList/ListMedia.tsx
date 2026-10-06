@@ -110,20 +110,18 @@ export function ListMedia({
             </MediaContextMenu>
             {expanded && medias.length > 0 && (
                 <div className="my-1 flex flex-col gap-1 pr-1 pl-9">
-                    {medias.map(
-                        (media, i): JSX.Element => (
-                            <Media
-                                key={media.publicId}
-                                index={i}
-                                media={media}
-                                allMedia={allMedia}
-                                substractArtists={substractArtists}
-                                showMediaIndex={isAlbum($media)}
-                                showMediaImage={!isAlbum($media)}
-                                listPublicId={listPublicId}
-                            />
-                        )
-                    )}
+                    {medias.map((media, i): JSX.Element => (
+                        <Media
+                            key={media.publicId}
+                            index={i}
+                            media={media}
+                            allMedia={allMedia}
+                            substractArtists={substractArtists}
+                            showMediaIndex={isAlbum($media)}
+                            showMediaImage={!isAlbum($media)}
+                            listPublicId={listPublicId}
+                        />
+                    ))}
                 </div>
             )}
         </div>

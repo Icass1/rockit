@@ -688,13 +688,11 @@ export abstract class BaseMediaPlayerManager {
 
         for (let i = 0; i < sortedBookmarks.length; i++) {
             const bookmark = sortedBookmarks[i];
-            if (
-                !(
-                    lastTime < bookmark.timestamp &&
-                    bookmark.timestamp <= currentTime &&
-                    currentTime - bookmark.timestamp < 1
-                )
-            ) {
+            if (!(
+                lastTime < bookmark.timestamp &&
+                bookmark.timestamp <= currentTime &&
+                currentTime - bookmark.timestamp < 1
+            )) {
                 continue;
             }
 

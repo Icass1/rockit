@@ -24,12 +24,7 @@ const SPRING_CONFIG = { damping: 50, stiffness: 300, mass: 0.8 };
 const OFFSET_Y = SCREEN_HEIGHT + 50;
 
 export type PlayerTab =
-    | "queue"
-    | "lyrics"
-    | "related"
-    | "crossfade"
-    | "bookmarks"
-    | null;
+    "queue" | "lyrics" | "related" | "crossfade" | "bookmarks" | null;
 
 export default function FullPlayer() {
     const {

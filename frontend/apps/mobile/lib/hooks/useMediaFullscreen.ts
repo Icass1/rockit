@@ -7,7 +7,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 let fullscreenTransition = Promise.resolve();
 
 /** Scope native orientation and system bars to the fullscreen player's lifetime. */
-export function useVideoFullscreen(onClose: () => void): void {
+export function useMediaFullscreen(onClose: () => void): void {
     useEffect(() => {
         if (Platform.OS === "web") return;
         let disposed = false;

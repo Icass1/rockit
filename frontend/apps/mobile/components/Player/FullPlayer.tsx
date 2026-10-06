@@ -12,7 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
-import FullscreenVideoPlayer from "@/components/Player/FullscreenVideoPlayer";
+import FullscreenMediaPlayer from "@/components/Player/FullscreenMediaPlayer";
 import PlayerMediaInfo from "@/components/Player/PlayerMediaInfo";
 import PlayerTabsBar from "@/components/Player/PlayerTabsBar";
 import PlayerTabsPanel from "@/components/Player/PlayerTabsPanel";
@@ -58,17 +58,16 @@ export default function FullPlayer() {
     const isHiding = useSharedValue(false);
     const [keepMounted, setKeepMounted] = useState(false);
     const [activeTab, setActiveTab] = useState<PlayerTab>(null);
-    const [videoFullscreen, setVideoFullscreen] = useState(false);
-    const isVideoFullscreen =
-        videoFullscreen && isPlayerVisible && hasVideo && !!videoPlayer;
-    const closeVideoFullscreen = useCallback(
-        () => setVideoFullscreen(false),
+    const [mediaFullscreen, setMediaFullscreen] = useState(false);
+    const isMediaFullscreen = mediaFullscreen && isPlayerVisible;
+    const closeMediaFullscreen = useCallback(
+        () => setMediaFullscreen(false),
         []
     );
 
     useEffect(() => {
-        if (!isPlayerVisible || !hasVideo) setVideoFullscreen(false);
-    }, [isPlayerVisible, hasVideo]);
+        if (!isPlayerVisible) setMediaFullscreen(false);
+    }, [isPlayerVisible]);
     const prevVisible = useRef(isPlayerVisible);
 
     const hidePlayerRef = useRef(hidePlayer);
@@ -205,8 +204,8 @@ export default function FullPlayer() {
                             canToggleAudioOnly={canToggleAudioOnly}
                             audioOnly={audioOnly}
                             onToggleAudioOnly={toggleAudioOnly}
-                            isVideoFullscreen={!!isVideoFullscreen}
-                            onVideoFullscreen={() => setVideoFullscreen(true)}
+                            isMediaFullscreen={!!isMediaFullscreen}
+                            onMediaFullscreen={() => setMediaFullscreen(true)}
                         />
                     </Animated.View>
                 </Animated.View>
@@ -222,10 +221,10 @@ export default function FullPlayer() {
                 activeTab={activeTab}
                 onClose={handleTabPanelClose}
             />
-            {isVideoFullscreen && videoPlayer && (
-                <FullscreenVideoPlayer
+            {isMediaFullscreen && (
+                <FullscreenMediaPlayer
                     videoPlayer={videoPlayer}
-                    onClose={closeVideoFullscreen}
+                    onClose={closeMediaFullscreen}
                 />
             )}
         </Animated.View>

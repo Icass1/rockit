@@ -25,6 +25,10 @@ async def handle_queue_type(
     queue_type_msg = QueueTypeRequest(**data)
     await User.update_queue_type_async(session, user_id, queue_type_msg.queueType)
 
+    state = manager.user_playback_states.get(user_id)
+    if state is not None:
+        state.queue_type = queue_type_msg.queueType.name
+
     if sender_websocket is not None:
         relay_message = QueueTypeMessage(
             queueType=queue_type_msg.queueType,

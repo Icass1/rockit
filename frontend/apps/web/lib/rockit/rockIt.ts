@@ -23,6 +23,8 @@ import { cleanupLegacyServiceWorker } from "@/lib/offline/cleanup-legacy-sw";
 import { hydrateOfflineIds } from "@/lib/offline/store";
 
 export class RockIt {
+    private _initialization?: Promise<void>;
+
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
         "/playlist-placeholder.png";
     public readonly ALBUM_PLACEHOLDER_IMAGE_URL =
@@ -63,8 +65,25 @@ export class RockIt {
         this.webSocketManager.init();
     }
 
-    async init(): Promise<void> {
-        console.log("RockIt! int");
+    init(): Promise<void> {
+        this._initialization ??= this.initializeAsync();
+        return this._initialization;
+    }
+
+    async refreshSessionAsync(): Promise<void> {
+        // Finish startup first so an older anonymous response cannot overwrite
+        // the authenticated state and all message handlers are registered.
+        await this.init();
+        await this.userManager.updateAsync();
+        await this.webSocketManager.reconnectAsync();
+        await this.queueManager.refreshAsync();
+        await Promise.all([
+            this.playlistManager.refreshPlaylistsAsync(),
+            this.mediaManager.fetchLikedMedia(),
+        ]);
+    }
+
+    private async initializeAsync(): Promise<void> {
         rockIt.mediaPlayerManager.init();
         await rockIt.userManager.init();
         await rockIt.queueManager.init();
@@ -81,9 +100,7 @@ export class RockIt {
         await hydrateOfflineIds();
 
         if (typeof navigator !== "undefined" && navigator.storage?.persist) {
-            navigator.storage.persist().then((granted) => {
-                console.log("[offline] almacenamiento persistente:", granted);
-            });
+            navigator.storage.persist().catch(() => {});
         }
     }
 }

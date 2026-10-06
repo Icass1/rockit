@@ -4,6 +4,8 @@
 import { z } from "zod";
 
 export const CurrentTimeMessageRequestSchema = z.object({
+    playbackId: z.string(),
+    queueMediaId: z.number(),
     currentTimeMs: z.number(),
     mediaPublicId: z.string(),
 });

@@ -1,8 +1,10 @@
 import { BACKEND_URL } from "@/environment";
 import {
     CurrentMediaMessageRequest,
+    CurrentMediaMessageSchema,
     CurrentQueueMessageRequest,
     CurrentTimeMessageRequest,
+    CurrentTimeMessageSchema,
     EWebSocketMessage,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
@@ -20,7 +22,10 @@ export class WebSocketManager {
 
     private webSocket?: WebSocket;
     private _init = false;
+    private _latestPlaybackId = "";
+    private _outgoingPlayback?: CurrentMediaMessageRequest;
     private initializing = false;
+    private _connectionGeneration = 0;
     private _messageHandlers: Map<
         EWebSocketMessage,
         Set<WebSocketMessageHandler<EWebSocketMessage>>
@@ -28,9 +33,18 @@ export class WebSocketManager {
 
     private _onMessageHandler = (event: MessageEvent): void => {
         try {
-            const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
-
-            console.log("WebSocketManager recevied message", { data });
+            let data = JSON.parse(event.data) as TWebSocketIncomingMessage;
+            if (data.type === EWebSocketMessage.CurrentMedia) {
+                data = CurrentMediaMessageSchema.parse(data);
+                if (this._outgoingPlayback?.playbackId !== data.playbackId) {
+                    this._outgoingPlayback = undefined;
+                }
+                this._latestPlaybackId = data.playbackId;
+            } else if (data.type === EWebSocketMessage.CurrentTime) {
+                data = CurrentTimeMessageSchema.parse(data);
+                if (!this._latestPlaybackId)
+                    this._latestPlaybackId = data.playbackId;
+            }
 
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);
@@ -40,7 +54,7 @@ export class WebSocketManager {
                 );
             }
         } catch (error) {
-            console.warn("Error parsing WebSocket message:", error);
+            console.error("Error parsing WebSocket message:", error);
         }
     };
 
@@ -85,31 +99,55 @@ export class WebSocketManager {
         await this.attemptReconnect();
     }
 
+    async reconnectAsync(): Promise<void> {
+        this._connectionGeneration++;
+        const previousSocket = this.webSocket;
+        this.webSocket = undefined;
+        this._init = false;
+        this.initializing = false;
+        this._latestPlaybackId = "";
+        this._outgoingPlayback = undefined;
+        previousSocket?.close();
+        await this.init();
+    }
+
     private async attemptReconnect(): Promise<void> {
         const maxRetries = 5;
         let retries = 0;
         // console.debug("WebSocketManager.attemptReconnect", this.initializing);
         if (this.initializing) return;
         this.initializing = true;
+        const generation = this._connectionGeneration;
 
         while (retries < maxRetries) {
             await new Promise(
                 (resolve): NodeJS.Timeout =>
                     setTimeout(resolve, Math.max(2000 * retries, 2000))
             );
+            if (generation !== this._connectionGeneration) return;
             if (this.webSocket?.readyState === WebSocket.OPEN) break;
 
             try {
                 this.webSocket = new WebSocket(`${BACKEND_URL}/ws`);
 
                 this.webSocket.onopen = (): void => {
+                    if (generation !== this._connectionGeneration) return;
                     this.initializing = false;
                     this._init = true;
+                    if (this._outgoingPlayback) {
+                        this.sendCurrentMedia(this._outgoingPlayback);
+                    } else {
+                        this.requestPlaybackState();
+                    }
                 };
 
-                this.webSocket.onmessage = this._onMessageHandler;
+                this.webSocket.onmessage = (event): void => {
+                    if (generation !== this._connectionGeneration) return;
+                    this._onMessageHandler(event);
+                };
 
                 this.webSocket.onclose = (): void => {
+                    if (generation !== this._connectionGeneration) return;
                     this.initializing = false;
                     this._init = false;
                     this.attemptReconnect();
@@ -122,34 +160,34 @@ export class WebSocketManager {
         }
     }
 
+    get isConnected(): boolean {
+        return this.webSocket?.readyState === WebSocket.OPEN;
+    }
+
+    private _isOpen(): boolean {
+        return this.webSocket?.readyState === WebSocket.OPEN;
+    }
+
+    requestPlaybackState(): void {
+        void this.send({ type: "playback_state" });
+    }
+
     async send(message: object): Promise<void> {
-        if (!this.webSocket) {
-            // console.log("WebSocketManager.init() 2", message);
+        if (this.webSocket?.readyState !== WebSocket.OPEN) {
             await this.init();
+            const deadline = Date.now() + 10000;
+            while (!this._isOpen() && Date.now() < deadline) {
+                await new Promise<void>((resolve) => setTimeout(resolve, 100));
+            }
         }
-
-        if (this.webSocket?.readyState === WebSocket.CLOSED) {
-            // console.log("WebSocketManager.init() 3");
-            await this.init();
-        }
-
-        if (this.webSocket?.readyState === WebSocket.CONNECTING) {
-            await new Promise<void>((resolve): void => {
-                const checkConnection = setInterval((): void => {
-                    if (this.webSocket?.readyState === WebSocket.OPEN) {
-                        clearInterval(checkConnection);
-                        resolve();
-                    }
-                }, 100);
-            });
-        }
-
+        if (this.webSocket?.readyState !== WebSocket.OPEN) return;
+        const playbackId = (message as Partial<CurrentTimeMessageRequest>)
+            .playbackId;
+        if (playbackId && playbackId !== this._latestPlaybackId) return;
         try {
             this.webSocket?.send(JSON.stringify(message));
-        } catch (e) {
-            console.error(
-                `Error sending web socket message ${e}. Sending message ${message}`
-            );
+        } catch (error) {
+            console.error("Error sending WebSocket message", error);
         }
     }
 
@@ -161,6 +199,8 @@ export class WebSocketManager {
     }
 
     sendCurrentMedia(data: CurrentMediaMessageRequest): void {
+        this._latestPlaybackId = data.playbackId;
+        this._outgoingPlayback = { ...data };
         this.send({
             type: "current_media",
             ...data,
@@ -182,6 +222,10 @@ export class WebSocketManager {
     }
 
     sendCurrentTime(data: CurrentTimeMessageRequest): void {
+        if (this._outgoingPlayback?.playbackId === data.playbackId) {
+            this._outgoingPlayback.currentTimeMs = data.currentTimeMs;
+        }
+        if (this.webSocket?.readyState !== WebSocket.OPEN) return;
         this.send({
             type: "current_time",
             ...data,

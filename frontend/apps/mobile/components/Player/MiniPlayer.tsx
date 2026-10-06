@@ -3,8 +3,15 @@ import { COLORS } from "@/constants/theme";
 import { getMediaArtistsString } from "@rockit/shared";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Loader2, Pause, Play, SkipForward } from "lucide-react-native";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pause, Play, SkipForward } from "lucide-react-native";
+import {
+    ActivityIndicator,
+    Animated,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import { useContextMenu } from "@/lib/ContextMenuContext";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
@@ -114,7 +121,7 @@ export default function MiniPlayer() {
                     hitSlop={12}
                 >
                     {isLoading ? (
-                        <Loader2 size={22} color={COLORS.white} />
+                        <ActivityIndicator size="small" color={COLORS.white} />
                     ) : isPlaying ? (
                         <Pause size={22} color={COLORS.white} />
                     ) : (

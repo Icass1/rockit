@@ -1,6 +1,8 @@
 import json
+import asyncio
+from pydantic import ValidationError
 from datetime import datetime
-from typing import Any, Dict, Set
+from typing import Any, Dict, Set, cast
 
 from fastapi import WebSocket
 
@@ -23,6 +25,8 @@ logger = getLogger(__name__)
 
 class WebSocketManager:
     def __init__(self) -> None:
+        self.user_message_locks: Dict[int, asyncio.Lock] = {}
+        self.playback_owners: Dict[int, WebSocket] = {}
         self.active_connections: Dict[int, Set[WebSocket]] = {}
         self.user_playback_states: Dict[int, UserPlaybackState] = {}
 
@@ -31,12 +35,15 @@ class WebSocketManager:
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
             self.user_playback_states.pop(user_id, None)
+            self.playback_owners.pop(user_id, None)
         self.active_connections[user_id].add(websocket)
         logger.info(f"WebSocket connected for user: {user_id}")
 
     async def disconnect_async(self, user_id: int, websocket: WebSocket) -> None:
         if user_id in self.active_connections:
             self.active_connections[user_id].discard(websocket)
+            if self.playback_owners.get(user_id) is websocket:
+                self.playback_owners.pop(user_id, None)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
                 await close_listen_interval_on_disconnect_async(
@@ -58,7 +65,7 @@ class WebSocketManager:
 
         disconnected: Set[WebSocket] = set()
 
-        for websocket in self.active_connections[user_id]:
+        for websocket in tuple(self.active_connections[user_id]):
             if exclude_websocket and websocket == exclude_websocket:
                 continue
             try:
@@ -68,7 +75,14 @@ class WebSocketManager:
                 disconnected.add(websocket)
 
         for ws in disconnected:
-            await self.disconnect_async(user_id, ws)
+            await self.disconnect_async(user_id=user_id, websocket=ws)
+
+    async def send_to_socket_async(self, websocket: WebSocket, message: Any) -> None:
+        """Send an ownership acknowledgement without interrupting message dispatch."""
+        try:
+            await websocket.send_text(message.model_dump_json())
+        except Exception as error:
+            logger.error(f"Error sending playback acknowledgement: {error}")
 
     async def broadcast_progress_async(
         self,
@@ -97,26 +111,46 @@ class WebSocketManager:
         await self.send_to_user_async(user_id=user_id, message=download_message)
 
     async def handle_client_message_async(
-        self, user_id: int, websocket: WebSocket, data: Dict[str, Any]
+        self, user_id: int, websocket: WebSocket, data: Any
     ) -> None:
-        message_type: str | None = data.get("type")
+        if not isinstance(data, dict):
+            logger.warning(f"Invalid WebSocket payload from user {user_id}")
+            return
+        message_data = cast(Dict[str, Any], data)
+        message_type: Any = message_data.get("type")
         logger.debug(f"Received WebSocket message from user {user_id}: {message_type}")
 
-        if not message_type:
+        if not isinstance(message_type, str) or not message_type:
             logger.warning(
                 f"Received WebSocket message without type from user {user_id}"
             )
             return
 
-        async with rockit_db.session_scope_async() as session:
-            await websocket_router.dispatch(
-                manager=self,
-                session=session,
-                user_id=user_id,
-                message_type=message_type,
-                data=data,
-                sender_websocket=websocket,
-            )
+        # Serialize state changes across devices, including their database commits.
+        lock = self.user_message_locks.setdefault(user_id, asyncio.Lock())
+        async with lock:
+            try:
+                async with rockit_db.session_scope_async() as session:
+                    await websocket_router.dispatch(
+                        manager=self,
+                        session=session,
+                        user_id=user_id,
+                        message_type=message_type,
+                        data=message_data,
+                        sender_websocket=websocket,
+                    )
+            except (ValidationError, ValueError, TypeError, KeyError) as error:
+                logger.warning(f"Invalid WebSocket message for user {user_id}: {error}")
+
+    def matches_playback(self, user_id: int, message: Any) -> bool:
+        """Reject positions and events from a different playback occurrence."""
+        state = self.user_playback_states.get(user_id)
+        return bool(
+            state
+            and state.playback_id == message.playbackId
+            and state.media_public_id == message.mediaPublicId
+            and state.queue_media_id == message.queueMediaId
+        )
 
 
 ws_manager = WebSocketManager()

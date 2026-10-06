@@ -307,6 +307,8 @@ class UserAccess:
         user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
         if user is None:
             return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        if user.current_queue_id != queue_id:
+            user.current_time_ms = 0
         user.current_queue_id = queue_id
         await session.commit()
         return AResult(code=AResultCode.OK, message="OK", result=True)

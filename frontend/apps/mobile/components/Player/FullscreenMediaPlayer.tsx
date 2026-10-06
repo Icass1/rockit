@@ -20,25 +20,27 @@ import {
     Pressable,
     StyleSheet,
     Text,
+    useWindowDimensions,
     View,
 } from "react-native";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { useVideoFullscreen } from "@/lib/hooks/useVideoFullscreen";
+import { useMediaFullscreen } from "@/lib/hooks/useMediaFullscreen";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import BookmarkPopup from "@/components/Player/BookmarkPopup";
+import PlayerCover from "@/components/Player/PlayerCover";
 import PlayerProgress from "@/components/Player/PlayerProgress";
 
-interface FullscreenVideoPlayerProps {
-    videoPlayer: VideoPlayer;
+interface FullscreenMediaPlayerProps {
+    videoPlayer: VideoPlayer | null;
     onClose: () => void;
 }
 
-export default function FullscreenVideoPlayer(
-    props: FullscreenVideoPlayerProps
+export default function FullscreenMediaPlayer(
+    props: FullscreenMediaPlayerProps
 ) {
     const [bookmarksVisible, setBookmarksVisible] = useState(false);
     return (
@@ -59,7 +61,7 @@ export default function FullscreenVideoPlayer(
             }
         >
             <SafeAreaProvider>
-                <FullscreenVideoContent
+                <FullscreenMediaContent
                     {...props}
                     bookmarksVisible={bookmarksVisible}
                     onBookmarksChange={setBookmarksVisible}
@@ -69,20 +71,21 @@ export default function FullscreenVideoPlayer(
     );
 }
 
-interface FullscreenVideoContentProps extends FullscreenVideoPlayerProps {
+interface FullscreenMediaContentProps extends FullscreenMediaPlayerProps {
     bookmarksVisible: boolean;
     onBookmarksChange: (visible: boolean) => void;
 }
 
-function FullscreenVideoContent({
+function FullscreenMediaContent({
     videoPlayer,
     onClose,
     bookmarksVisible,
     onBookmarksChange,
-}: FullscreenVideoContentProps) {
-    useVideoFullscreen(onClose);
+}: FullscreenMediaContentProps) {
+    useMediaFullscreen(onClose);
     const {
         currentMedia,
+        hasVideo,
         isPlaying,
         isLoading,
         togglePlayPause,
@@ -93,6 +96,15 @@ function FullscreenVideoContent({
     const { duration } = usePlayerTime();
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const insets = useSafeAreaInsets();
+    const { width, height } = useWindowDimensions();
+    const coverSize = Math.max(
+        1,
+        Math.min(
+            340,
+            width - insets.left - insets.right - 40,
+            height - insets.top - insets.bottom - 40
+        )
+    );
     const [controlsVisible, setControlsVisible] = useState(true);
     const [isSeeking, setIsSeeking] = useState(false);
     const [interaction, setInteraction] = useState(0);
@@ -168,13 +180,24 @@ function FullscreenVideoContent({
 
     return (
         <View style={styles.container}>
-            <VideoView
-                player={videoPlayer}
-                style={StyleSheet.absoluteFill}
-                contentFit="contain"
-                nativeControls={false}
-                surfaceType="textureView"
-            />
+            {hasVideo && videoPlayer ? (
+                <VideoView
+                    player={videoPlayer}
+                    style={StyleSheet.absoluteFill}
+                    contentFit="contain"
+                    nativeControls={false}
+                    surfaceType="textureView"
+                />
+            ) : (
+                <View style={styles.cover} pointerEvents="none">
+                    <PlayerCover
+                        key={currentMedia?.publicId}
+                        uri={currentMedia?.imageUrl}
+                        mediaType={currentMedia?.type}
+                        size={coverSize}
+                    />
+                </View>
+            )}
             <View style={styles.tapSurface} pointerEvents="box-none">
                 <Pressable
                     style={styles.tapRegion}
@@ -351,6 +374,11 @@ function FullscreenVideoContent({
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#000" },
+    cover: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+    },
     tapSurface: { ...StyleSheet.absoluteFill, flexDirection: "row" },
     tapRegion: { flex: 1 },
     controls: {

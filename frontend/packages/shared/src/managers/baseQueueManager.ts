@@ -64,17 +64,19 @@ export class BaseQueueManager {
             EWebSocketMessage.CurrentMedia,
             this._handleCurrentMedia
         );
+        getRockIt().webSocketManager.requestPlaybackState();
     }
 
     protected _handleCurrentQueue = async (): Promise<void> => {
         await this._refreshQueueAsync(false);
+        getRockIt().webSocketManager.requestPlaybackState();
     };
 
     protected _handleCurrentMedia = (data: CurrentMediaMessage): void => {
         const queue = this._queueAtom.get();
         const item = queue.find(
             (item): boolean =>
-                item.queueMediaId === data.queueMediaId ||
+                item.queueMediaId === data.queueMediaId &&
                 item.media.publicId === data.mediaPublicId
         );
 
@@ -82,7 +84,12 @@ export class BaseQueueManager {
             this._currentQueueMediaIdAtom.set(data.queueMediaId);
             this._currentMediaAtom.set(item.media);
             this._currentListAtom.set(item.listPublicId ?? undefined);
-            getRockIt().mediaPlayerManager.setMedia(true);
+            void getRockIt().mediaPlayerManager.setMedia(
+                false,
+                data.playbackId,
+                data.currentTimeMs,
+                data.isPlaybackOwner
+            );
         }
     };
 
@@ -127,7 +134,8 @@ export class BaseQueueManager {
             if (updateCurrentMedia)
                 this._currentMediaAtom.set(currentMedia?.media);
             this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
-            getRockIt().mediaPlayerManager.setMedia(true);
+            if (updateCurrentMedia)
+                void getRockIt().mediaPlayerManager.setMedia(true);
         }
     }
 

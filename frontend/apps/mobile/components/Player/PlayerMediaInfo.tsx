@@ -26,8 +26,8 @@ interface PlayerMediaInfoProps {
     canToggleAudioOnly: boolean;
     audioOnly: boolean;
     onToggleAudioOnly: () => void;
-    isVideoFullscreen: boolean;
-    onVideoFullscreen: () => void;
+    isMediaFullscreen: boolean;
+    onMediaFullscreen: () => void;
 }
 
 export default function PlayerMediaInfo({
@@ -38,26 +38,39 @@ export default function PlayerMediaInfo({
     canToggleAudioOnly,
     audioOnly,
     onToggleAudioOnly,
-    isVideoFullscreen,
-    onVideoFullscreen,
+    isMediaFullscreen,
+    onMediaFullscreen,
 }: PlayerMediaInfoProps) {
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
         <View style={styles.container}>
             {/* Album artwork / video */}
             <View style={[styles.coverContainer, { height: COVER_SIZE }]}>
-                {hasVideo && videoPlayer && !isVideoFullscreen ? (
-                    <View
-                        style={[styles.videoContainer, { width: COVER_SIZE }]}
-                    >
-                        <VideoView
-                            player={videoPlayer}
-                            style={styles.videoView}
-                            contentFit="contain"
-                            nativeControls={false}
+                <View style={{ width: COVER_SIZE }}>
+                    {hasVideo && videoPlayer && !isMediaFullscreen ? (
+                        <View
+                            style={[
+                                styles.videoContainer,
+                                { width: COVER_SIZE },
+                            ]}
+                        >
+                            <VideoView
+                                player={videoPlayer}
+                                style={styles.videoView}
+                                contentFit="contain"
+                                nativeControls={false}
+                            />
+                        </View>
+                    ) : (
+                        <PlayerCover
+                            uri={currentMedia?.imageUrl}
+                            mediaType={currentMedia?.type}
+                            size={COVER_SIZE}
                         />
+                    )}
+                    {currentMedia && !isMediaFullscreen && (
                         <Pressable
-                            onPress={onVideoFullscreen}
+                            onPress={onMediaFullscreen}
                             style={styles.fullscreenButton}
                             accessibilityRole="button"
                             accessibilityLabel={
@@ -67,14 +80,8 @@ export default function PlayerMediaInfo({
                         >
                             <Maximize size={22} color={COLORS.white} />
                         </Pressable>
-                    </View>
-                ) : (
-                    <PlayerCover
-                        uri={currentMedia?.imageUrl}
-                        mediaType={currentMedia?.type}
-                        size={COVER_SIZE}
-                    />
-                )}
+                    )}
+                </View>
 
                 {canToggleAudioOnly && (
                     <Pressable

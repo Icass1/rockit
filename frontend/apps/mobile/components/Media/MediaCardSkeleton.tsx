@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { Animated, StyleSheet, View } from "react-native";
 
@@ -9,7 +9,7 @@ interface MediaCardSkeletonProps {
 export default function MediaCardSkeleton({
     width = 140,
 }: MediaCardSkeletonProps) {
-    const opacity = useRef(new Animated.Value(0.3)).current;
+    const [opacity] = useState(() => new Animated.Value(0.3));
 
     useEffect(() => {
         const animation = Animated.loop(

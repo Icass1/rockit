@@ -1,4 +1,4 @@
-import { memo, useRef } from "react";
+import { memo, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { Image } from "expo-image";
@@ -21,7 +21,7 @@ const SongCard = memo(function SongCard({
     songs,
     onPress,
 }: SongCardProps) {
-    const scale = useRef(new Animated.Value(1)).current;
+    const [scale] = useState(() => new Animated.Value(1));
 
     return (
         <Animated.View style={{ transform: [{ scale }], width: CARD_WIDTH }}>

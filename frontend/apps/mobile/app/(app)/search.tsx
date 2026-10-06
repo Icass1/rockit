@@ -16,6 +16,30 @@ import {
     useSearch,
 } from "@/components/Search";
 
+function SearchSkeletons() {
+    const { vocabulary } = useVocabulary();
+    return (
+        <View style={styles.skeletonsContainer}>
+            <View style={styles.skeletonSection}>
+                <Text style={styles.skeletonTitle}>{vocabulary.SONGS}</Text>
+                {[1, 2, 3].map((i) => (
+                    <View key={i} style={styles.rowSkeleton}>
+                        <MediaCardSkeleton width={280} />
+                    </View>
+                ))}
+            </View>
+            <View style={styles.skeletonSection}>
+                <Text style={styles.skeletonTitle}>{vocabulary.ALBUMS}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {[1, 2, 3, 4].map((i) => (
+                        <MediaCardSkeleton key={i} width={140} />
+                    ))}
+                </ScrollView>
+            </View>
+        </View>
+    );
+}
+
 export default function SearchScreen() {
     const { height } = useWindowDimensions();
     const { vocabulary } = useVocabulary();
@@ -33,34 +57,6 @@ export default function SearchScreen() {
         alignItems: "center" as const,
         justifyContent: "center" as const,
     };
-
-    function SearchSkeletons() {
-        return (
-            <View style={styles.skeletonsContainer}>
-                <View style={styles.skeletonSection}>
-                    <Text style={styles.skeletonTitle}>{vocabulary.SONGS}</Text>
-                    {[1, 2, 3].map((i) => (
-                        <View key={i} style={styles.rowSkeleton}>
-                            <MediaCardSkeleton width={280} />
-                        </View>
-                    ))}
-                </View>
-                <View style={styles.skeletonSection}>
-                    <Text style={styles.skeletonTitle}>
-                        {vocabulary.ALBUMS}
-                    </Text>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                    >
-                        {[1, 2, 3, 4].map((i) => (
-                            <MediaCardSkeleton key={i} width={140} />
-                        ))}
-                    </ScrollView>
-                </View>
-            </View>
-        );
-    }
 
     return (
         <>

@@ -13,24 +13,36 @@ import RenderList from "@/components/RenderList/RenderList";
 
 export default function PlaylistPage() {
     const { publicId } = useLocalSearchParams<{ publicId: string }>();
+    return <PlaylistContent key={publicId} publicId={publicId} />;
+}
+
+function PlaylistContent({ publicId }: { publicId: string }) {
     const [playlist, setPlaylist] = useState<
         BasePlaylistWithMediasResponse | undefined
     >(undefined);
 
     useEffect(() => {
-        setPlaylist(undefined);
         if (!publicId) return;
-        getPlaylistAsync(publicId).then(setPlaylist);
+        let cancelled = false;
+        getPlaylistAsync(publicId).then((data) => {
+            if (!cancelled) setPlaylist(data);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [publicId]);
 
     useEffect(() => {
         if (!publicId) return;
 
+        let cancelled = false;
         const handleMediaRemoved = (
             data: IMediaRemovedFromPlaylistEvent
         ): void => {
             if (data.playlistPublicId !== publicId) return;
-            getPlaylistAsync(publicId).then(setPlaylist);
+            getPlaylistAsync(publicId).then((data) => {
+                if (!cancelled) setPlaylist(data);
+            });
         };
 
         const eventManager = EventManager.getInstance();
@@ -40,6 +52,7 @@ export default function PlaylistPage() {
         );
 
         return (): void => {
+            cancelled = true;
             eventManager.removeEventListener(
                 EEvent.MediaRemovedFromPlaylist,
                 handleMediaRemoved

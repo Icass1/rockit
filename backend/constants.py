@@ -113,6 +113,11 @@ BACKEND_URL = get_env_str("BACKEND_URL")
 CORS_URLS = get_env_str("CORS_URLS", possible_values=None)
 SESSION_DURATION = get_env_int("SESSION_DURATION")
 SESSION_DURATION_REMEMBER_ME = get_env_int("SESSION_DURATION_REMEMBER_ME")
+# Read directly so the signing key is never included in the environment dump.
+SESSION_TOKEN_SECRET = os.getenv("SESSION_TOKEN_SECRET", "")
+if len(SESSION_TOKEN_SECRET.encode("utf-8")) < 32:
+    print("SESSION_TOKEN_SECRET must contain at least 32 bytes")
+    error = True
 PROD_WEB_SESSION_DOMAIN = get_env_str("PROD_WEB_SESSION_DOMAIN")
 PROD_MOBILE_SESSION_DOMAIN = get_env_str("PROD_MOBILE_SESSION_DOMAIN")
 ENVIRONMENT = get_env_str("ENVIRONMENT", ["DEV", "PROD"])

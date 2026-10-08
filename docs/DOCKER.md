@@ -43,6 +43,7 @@ Set in .env.production:
 | ------------------ | -------------------- | --------------------- |
 | BACKEND_URL        | Backend URL          | http://localhost:8000 |
 | SESSION_DURATION   | Session expiry (sec) | 86400                 |
+| SESSION_TOKEN_SECRET | JWT signing key (at least 32 bytes) | Required |
 | ENVIRONMENT        | Dev/Prod             | DEV                   |
 | MEDIA_PATH         | Media files          | /app/media            |
 | IMAGES_PATH        | Images               | /app/images           |
@@ -59,6 +60,18 @@ Set in .env.production:
 | DB_PASSWORD        | DB pass              | rockitpassword        |
 | DB_PORT            | Port                 | 5432                  |
 | DB_NAME            | DB name              | rockit                |
+
+Generate `SESSION_TOKEN_SECRET` with `python3 -c 'import secrets; print(secrets.token_urlsafe(48))'`
+and keep the same secret across backend replicas and restarts. Rotating it invalidates
+existing JWT sessions. Never commit it to the repository.
+
+New sessions are HS256 JWTs containing `iat` (creation time), `exp` (expiry),
+`sub` (user public ID), `jti` (unique token ID), `platform` (`WEB` or `MOBILE`),
+and `ip` (login IP, or null when unavailable). The payload is readable, not encrypted.
+The IP is login metadata and does not restrict requests to that address.
+Tokens remain stored in the database, so logout revokes them. Existing UUID
+sessions continue working until their expiry or revocation. Cookie and mobile
+response formats remain unchanged; the session ID string now contains the JWT.
 
 ## Services
 

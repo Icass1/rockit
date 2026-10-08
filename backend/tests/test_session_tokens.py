@@ -44,7 +44,7 @@ class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
     def token(self, **overrides: object) -> str:
         """Sign test claims independently of session creation."""
         now = int(datetime.now(tz=timezone.utc).timestamp())
-        claims = dict(
+        claims: dict[str, object] = dict(
             iat=now,
             exp=now + 3600,
             sub="user-public-id",
@@ -91,9 +91,11 @@ class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn("HttpOnly", cookie)
                     self.assertIn(f"Max-Age={duration}", cookie)
                     self.assertIn("SameSite=lax", cookie)
-                    self.assertEqual(create.await_args.kwargs["session_id"], token)
+                    await_args = create.await_args
+                    assert await_args is not None
+                    self.assertEqual(await_args.kwargs["session_id"], token)
                     self.assertEqual(
-                        int(create.await_args.kwargs["expires_at"].timestamp()),
+                        int(await_args.kwargs["expires_at"].timestamp()),
                         claims["exp"],
                     )
 

@@ -1,13 +1,7 @@
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import { CollectionPager } from "@rockit/shared";
-import {
-    ActivityIndicator,
-    Pressable,
-    Text,
-    TextInput,
-    View,
-} from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
 
 export default function CollectionControls({
@@ -32,45 +26,10 @@ export default function CollectionControls({
                     padding: 12,
                 }}
             />
-            <View
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                }}
-            >
-                <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={vocabulary.PREVIOUS_MEDIA}
-                    disabled={state.loading || state.offset === 0}
-                    onPress={() => void pager.previous()}
-                    style={{
-                        padding: 12,
-                        opacity: state.offset === 0 ? 0.4 : 1,
-                    }}
-                >
-                    <Text style={{ color: COLORS.white }}>←</Text>
-                </Pressable>
-                <Text style={{ color: COLORS.gray400 }}>
-                    {state.total ? state.offset + 1 : 0}–
-                    {Math.min(state.offset + state.media.length, state.total)} /{" "}
-                    {state.total}
-                </Text>
-                <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={vocabulary.NEXT_MEDIA}
-                    disabled={state.loading || !state.hasMore}
-                    onPress={() => void pager.next()}
-                    style={{ padding: 12, opacity: state.hasMore ? 1 : 0.4 }}
-                >
-                    <Text style={{ color: COLORS.white }}>→</Text>
-                </Pressable>
-            </View>
-            {state.loading && <ActivityIndicator color={COLORS.accent} />}
             {state.error && (
                 <Pressable
                     accessibilityRole="button"
-                    onPress={() => void pager.load(state.offset)}
+                    onPress={() => void pager.retry()}
                 >
                     <Text style={{ color: COLORS.white }}>
                         {state.error} · {vocabulary.RETRY}

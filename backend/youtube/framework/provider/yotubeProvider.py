@@ -291,6 +291,19 @@ class YoutubeProvider(BaseMediaProvider):
     JOIN   core.media            cm_ch ON cm_ch.id      = ch.id
     JOIN   core.image            ci    ON ci.id         = ch.image_id"""
 
+    def get_collection_provider_url(
+        self, metadata: dict[str, Any], media_type_key: int
+    ) -> str:
+        """Build a source link without loading collection contents."""
+        external_id = metadata.get("youtube_id")
+        if not external_id:
+            return ""
+        return (
+            f"https://music.youtube.com/browse/{external_id}"
+            if media_type_key == 2
+            else f"https://www.youtube.com/playlist?list={external_id}"
+        )
+
     def get_search_index_cte_fragment(self) -> str | None:
         from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 

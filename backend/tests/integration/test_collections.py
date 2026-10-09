@@ -345,3 +345,50 @@ async def test_video_pages_and_queues_use_the_same_order(
         "video-101",
         "video-100",
     ]
+
+
+async def test_search_matches_related_metadata_without_duplicate_results(
+    large_playlist: AsyncSession,
+) -> None:
+    tables = shared_metadata.tables
+    await large_playlist.execute(
+        insert(tables["rockit.artist"]),
+        [
+            dict(id=30, name="Album Performer", image_id=1),
+            dict(id=31, name="Guest Performer", image_id=1),
+            dict(id=32, name="Guest Performer Two", image_id=1),
+        ],
+    )
+    await large_playlist.execute(
+        insert(tables["core.media"]),
+        [
+            dict(id=i, public_id=f"artist-{i}", provider_id=2, media_type_key=1)
+            for i in (30, 31, 32)
+        ],
+    )
+    await large_playlist.execute(
+        insert(tables["rockit.album_artists"]),
+        dict(album_id=20, artist_id=30),
+    )
+    await large_playlist.execute(
+        insert(tables["rockit.song_artists"]),
+        [dict(song_id=5999, artist_id=i) for i in (31, 32)],
+    )
+    await large_playlist.commit()
+    for query, total in [
+        ("Album", 11),
+        ("Album Performer", 11),
+        ("Guest Performer", 1),
+        ("song-5999", 1),
+    ]:
+        result = await Collection.page_async(
+            session=large_playlist,
+            public_id="list-10",
+            user_id=2,
+            query=query,
+            limit=2,
+        )
+        assert result.is_ok(), result.info()
+        assert result.result().total == total
+        assert len(result.result().items) == min(2, total)
+        assert result.result().hasMore == (total > 2)

@@ -34,16 +34,13 @@ class Collection:
         """Build collection metadata with explicitly unloaded child contents."""
         provider = providers.find_media_provider(provider_id=record.provider_id)
         data = record.data
-        kind = "album" if record.media_type_key == 2 else "playlist"
-        provider_url = data.get("provider_url", "")
-        if data.get("spotify_id"):
-            provider_url = f"https://open.spotify.com/{kind}/{data['spotify_id']}"
-        elif data.get("youtube_id"):
-            provider_url = (
-                f"https://music.youtube.com/browse/{data['youtube_id']}"
-                if kind == "album"
-                else f"https://www.youtube.com/playlist?list={data['youtube_id']}"
+        provider_url = (
+            provider.get_collection_provider_url(
+                metadata=data, media_type_key=record.media_type_key
             )
+            if provider
+            else ""
+        )
         common: dict[str, Any] = dict(
             provider=provider.get_name() if provider else "",
             publicId=record.public_id,

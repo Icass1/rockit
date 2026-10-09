@@ -4,6 +4,9 @@ Album and playlist HTTP responses load **100 direct children by default**, with 
 maximum of 200. Embedded albums and playlists contain metadata and empty
 `songs`/`medias`; opening them uses the separate collection endpoint. Persisted
 expanded state is returned, and clients load those lists only when displayed.
+Web and mobile append subsequent pages when the bottom of the list becomes visible,
+with a loading indicator and loaded/total count. Search and collection updates reset
+the accumulated results; failed page loads retain earlier rows and offer retry.
 
 - `GET /default/playlist/{public_id}?offset=0&limit=100&query=`
 - `GET /media/playlist/{public_id}?offset=0&limit=100&query=`
@@ -18,8 +21,9 @@ pages are empty. Invalid offsets, limits, and queries longer than 200 characters
 return HTTP 422. Identifiers in responses are public IDs.
 
 A nonempty `query` performs a case-insensitive literal substring match against
-media names throughout accessible descendants, including closed albums and
-playlists. SQL wildcards in the query are escaped. Search does not change playback
+media names, public IDs, and related album, artist, or channel names from the
+existing provider-owned admin search index throughout accessible descendants, including
+closed albums and playlists. Matching multiple artists does not duplicate entries. SQL wildcards in the query are escaped. Search does not change playback
 scope. Repeated membership entries remain separate results; descendants of a
 shared nested collection are searched once. Search results use a stable order by
 parent ID, position, and media ID. Direct browsing preserves collection order.

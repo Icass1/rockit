@@ -17,6 +17,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import CollectionControls from "@/components/RenderList/CollectionControls";
+import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import { Media } from "@/components/RenderList/Media";
 
 export function ListMedia({
@@ -124,6 +125,7 @@ export function ListMedia({
                             listPublicId={listPublicId}
                         />
                     ))}
+                    <CollectionFooter pager={pager} />
                 </div>
             )}
         </div>

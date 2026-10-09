@@ -30,6 +30,7 @@ export default function RenderList({
     expandedByMediaId,
     coverOverlay,
     listControls,
+    listFooter,
     total,
     offset = 0,
 }: {
@@ -44,6 +45,7 @@ export default function RenderList({
     expandedByMediaId?: Record<string, boolean>;
     coverOverlay?: ReactNode;
     listControls?: ReactNode;
+    listFooter?: ReactNode;
     total?: number;
     offset?: number;
 }): JSX.Element {
@@ -143,6 +145,7 @@ export default function RenderList({
                             expandedByMediaId={expandedByMediaId}
                         />
                     ))}
+                    {listFooter}
                     {media.length === 0 && (
                         <p className="text-center text-lg font-semibold text-balance text-neutral-400">
                             {$vocabulary.NO_MEDIA_FOUND}

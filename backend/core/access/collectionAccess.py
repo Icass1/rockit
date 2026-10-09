@@ -1,6 +1,19 @@
 from typing import Any
 
-from sqlalchemy import select, union_all, literal, func, exists, insert, update, delete
+from sqlalchemy import (
+    select,
+    union_all,
+    literal,
+    func,
+    exists,
+    insert,
+    update,
+    delete,
+    text,
+    Integer,
+    String,
+    or_,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
@@ -9,19 +22,11 @@ from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRo
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.shared_metadata import shared_metadata
+from backend.core.access.adminSearchAccess import AdminSearchAccess
 from backend.core.framework.models.collection import CollectionRecord, CollectionEntry
 from backend.core.utils.safeAsyncCall import safe_async
 
 logger = getLogger(__name__)
-SCHEMAS = {
-    "default_schema",
-    "spotify",
-    "spotify_scrapper",
-    "youtube_music",
-    "youtube",
-    "rockit",
-    "radio_browser",
-}
 
 
 class CollectionAccess:
@@ -50,7 +55,7 @@ class CollectionAccess:
         statements: list[Select[Any]] = []
         for table in shared_metadata.tables.values():
             if (
-                table.schema in SCHEMAS
+                table.schema != "core"
                 and table.name
                 in {"playlist", "album", "song", "track", "video", "station"}
                 and "id" in table.c
@@ -69,7 +74,7 @@ class CollectionAccess:
         """Normalize all provider membership tables to a stable ordered edge list."""
         statements: list[Select[Any]] = []
         for table in shared_metadata.tables.values():
-            if table.schema not in SCHEMAS:
+            if table.schema == "core":
                 continue
             if table.name in {"playlist_media", "playlist_track", "playlist_video"}:
                 child = next(
@@ -79,7 +84,7 @@ class CollectionAccess:
                 )
                 position = table.c.get("position")
                 if position is None:
-                    # Imported Spotify/YouTube membership has no source ordinal.
+                    # Imported membership may have no source ordinal.
                     position = child
                 added = table.c.get("added_at")
                 if added is None:
@@ -162,7 +167,7 @@ class CollectionAccess:
         image = shared_metadata.tables["core.image"]
         for table in shared_metadata.tables.values():
             if (
-                table.schema not in SCHEMAS
+                table.schema == "core"
                 or table.name not in {"playlist", "album"}
                 or not records
             ):
@@ -234,7 +239,7 @@ class CollectionAccess:
             for record in records.values():
                 record.data["owner_info"] = owner_map.get(record.data.get("owner_id"))
         for association in shared_metadata.tables.values():
-            if association.schema not in SCHEMAS or association.name not in {
+            if association.schema == "core" or association.name not in {
                 "album_artist",
                 "album_artists",
             }:
@@ -341,9 +346,34 @@ class CollectionAccess:
             )
         )
         if query.strip():
-            names = CollectionAccess._names()
-            stmt = stmt.join(names, names.c.id == edges.c.media_id).where(
-                names.c.name.icontains(query.strip(), autoescape=True)
+            fragment = AdminSearchAccess.get_search_index_fragment()
+            if not fragment:
+                return AResult(code=AResultCode.OK, message="OK", result=([], 0))
+            index = (
+                text(fragment)
+                .columns(
+                    internal_id=Integer,
+                    public_id=String,
+                    name=String,
+                    subtitle=String,
+                    media_type_key=Integer,
+                    provider_name=String,
+                    image_url=String,
+                )
+                .subquery("collection_search")
+            )
+            stmt = stmt.where(
+                exists(
+                    select(index.c.internal_id).where(
+                        index.c.internal_id == edges.c.media_id,
+                        index.c.media_type_key == media.c.media_type_key,
+                        or_(
+                            index.c.name.icontains(query.strip(), autoescape=True),
+                            index.c.subtitle.icontains(query.strip(), autoescape=True),
+                            index.c.public_id.icontains(query.strip(), autoescape=True),
+                        ),
+                    )
+                ).correlate(edges, media)
             )
         total = (
             await session.execute(select(func.count()).select_from(stmt.subquery()))

@@ -1,7 +1,7 @@
 import os
 import re
 from logging import Logger
-from typing import Dict, List
+from typing import Dict, List, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -554,6 +554,14 @@ class SpotifyScrapperProvider(BaseMediaProvider):
     JOIN   spotify_scrapper.album   al    ON al.id    = t.album_id
     JOIN   core.media      cm_al ON cm_al.id = al.id
     JOIN   core.image      ai    ON ai.id    = al.image_id"""
+
+    def get_collection_provider_url(
+        self, metadata: dict[str, Any], media_type_key: int
+    ) -> str:
+        """Build a source link without loading collection contents."""
+        external_id = metadata.get("spotify_id")
+        kind = "album" if media_type_key == 2 else "playlist"
+        return f"https://open.spotify.com/{kind}/{external_id}" if external_id else ""
 
     def get_search_index_cte_fragment(self) -> str | None:
         from backend.core.enums.mediaTypeEnum import MediaTypeEnum

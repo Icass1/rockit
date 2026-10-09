@@ -48,6 +48,23 @@ const stripVaryHeaderPlugin: SerwistPlugin = {
 };
 
 const runtimeCaching = [
+    {
+        matcher: ({ url }: { url: URL }) =>
+            url.origin !== self.location.origin &&
+            url.pathname.startsWith("/media/collection/"),
+        handler: new NetworkFirst({
+            cacheName: "rockit-collections",
+            networkTimeoutSeconds: 3,
+            plugins: [
+                new CacheableResponsePlugin({ statuses: [200] }),
+                new ExpirationPlugin({
+                    maxEntries: 100,
+                    maxAgeSeconds: 7 * 24 * 60 * 60,
+                    purgeOnQuotaError: true,
+                }),
+            ],
+        }),
+    },
     // Session — NetworkFirst with short timeout (falls back to SW cache if offline/slow)
     {
         matcher: ({ url }: { url: URL }) =>

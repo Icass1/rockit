@@ -2,15 +2,13 @@ import {
     type BaseAlbumWithSongsResponse,
     type CurrentMediaMessage,
     type CurrentQueueMessageRequestItem,
+    type QueueResponse,
 } from "@/dto";
 import { getRockIt } from "@/rockit/rockitRef";
 import { shuffle } from "@/utils/arrayTools";
 import { EQueueType } from "@/models/enums/queueType";
 import { type QueueMediaItem } from "@/models/interfaces/queue";
 import {
-    isAlbum,
-    isAlbumWithSongs,
-    isPlaylist,
     isQueueable,
     isStation,
     type TListMedia,
@@ -515,34 +513,75 @@ export class BaseQueueManager {
         this.updateQueue();
     }
 
-    async playList(media: TListMedia): Promise<void> {
-        const medias = await this.getListMediasAsync(media);
-
-        if (medias.length === 0) return;
-
-        this.setMedia(medias.filter(isQueueable), media.publicId);
-        this.setQueueMediaId(0);
+    async playCollection(
+        publicId: string,
+        startPublicId?: string
+    ): Promise<void> {
+        const response = await getRockIt().http.createCollectionQueue(
+            publicId,
+            { startPublicId: startPublicId ?? null }
+        );
+        if (response.isNotOk()) {
+            if (response.code === 0) {
+                const cached =
+                    await getRockIt().http.resolveCollectionQueue(publicId);
+                if (cached.isOk()) {
+                    this.setMedia(
+                        cached.result.queue.map((item) => item.media),
+                        publicId
+                    );
+                    if (startPublicId) this.moveToMedia(startPublicId);
+                    else this.setQueueMediaId();
+                    getRockIt().mediaPlayerManager.play();
+                    return;
+                }
+            }
+            getRockIt().notificationManager.notifyError(response.message);
+            return;
+        }
+        if (!response.isOk()) return;
+        const queue = response.result;
+        void this.cacheCollectionQueueAsync(publicId, queue);
+        this.sortedQueue = [...queue.queue].sort(
+            (a, b) => a.sortedIndex - b.sortedIndex
+        );
+        this.randomQueue = [...queue.queue].sort(
+            (a, b) => a.randomIndex - b.randomIndex
+        );
+        this._currentQueueMediaIdAtom.set(queue.currentQueueMediaId);
+        this._sortedQueueAtom.set([...this.sortedQueue]);
+        this._queueAtom.set(
+            queue.queueType === EQueueType.RANDOM
+                ? this.randomQueue
+                : this.sortedQueue
+        );
+        if (queue.currentQueueMediaId !== null)
+            this.setQueueMediaId(queue.currentQueueMediaId);
         getRockIt().mediaPlayerManager.play();
     }
 
+    protected async cacheCollectionQueueAsync(
+        _publicId: string,
+        _queue: QueueResponse
+    ): Promise<void> {
+        // Platforms may preserve the resolved queue for offline playback.
+    }
+
+    async playList(media: TListMedia): Promise<void> {
+        await this.playCollection(media.publicId);
+    }
+
     async getListMediasAsync(media: TListMedia): Promise<TPlayableMedia[]> {
-        const medias: TPlayableMedia[] = [];
-
-        if (isAlbumWithSongs(media)) {
-            return media.songs;
-        } else if (isAlbum(media)) {
-            const album = await this.getAlbumAsync(media.publicId);
-
-            if (album) {
-                return album.songs;
-            }
-        } else if (isPlaylist(media)) {
-            getRockIt().notificationManager.notifyWarn(
-                getRockIt().vocabularyManager.vocabulary.PLAYLIST_WITHOUT_MEDIAS
-            );
+        const response = await getRockIt().http.resolveCollectionQueue(
+            media.publicId
+        );
+        if (response.isNotOk()) {
+            getRockIt().notificationManager.notifyError(response.message);
+            return [];
         }
-
-        return medias;
+        return response.isOk()
+            ? response.result.queue.map((item) => item.media)
+            : [];
     }
 
     reorderQueue(fromIndex: number, toIndex: number): void {

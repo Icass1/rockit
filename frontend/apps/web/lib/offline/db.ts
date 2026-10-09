@@ -244,9 +244,12 @@ export async function clearSessionOffline(): Promise<void> {
     if (typeof caches === "undefined") return;
 
     await Promise.all(
-        ["rockit-session", "rockit-lists", "rockit-details"].map((cacheName) =>
-            caches.delete(cacheName)
-        )
+        [
+            "rockit-session",
+            "rockit-lists",
+            "rockit-details",
+            "rockit-collections",
+        ].map((cacheName) => caches.delete(cacheName))
     );
 }
 

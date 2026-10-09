@@ -30,6 +30,13 @@ class TrackRow(
     __tablename__ = "track"
     __table_args__ = (
         Index(
+            "ix_collection_spotify_scrapper_album_order",
+            "album_id",
+            "disc_number",
+            "track_number",
+            "id",
+        ),
+        Index(
             "ix_spotify_scrapper_track_name_trgm",
             "name",
             postgresql_using="gin",

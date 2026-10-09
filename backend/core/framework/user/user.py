@@ -40,8 +40,6 @@ from backend.core.framework import providers
 from backend.core.framework.models.queue import QueueItem
 from backend.core.framework.models.queueTask import (
     LibraryTask,
-    QueueGroupItem,
-    QueueTask,
 )
 from backend.core.framework.websocket.sendToUser import SendToUser
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
@@ -80,118 +78,55 @@ class User:
 
         queue_items: List[UserQueueRow] = a_result_queue.result()
 
-        # Track original order to restore after grouping
-        original_order: dict[int, int] = {
-            item.queue_id: idx for idx, item in enumerate(queue_items)
+        from backend.core.access.collectionAccess import CollectionAccess
+        from backend.core.framework.media.collection import Collection
+
+        ids = {item.media_id for item in queue_items} | {
+            item.list_media_id for item in queue_items if item.list_media_id is not None
         }
-
-        # Group queue items by (provider_id, media_type_key)
-        groups: dict[tuple[int, int], list[QueueGroupItem]] = defaultdict(list)
-        for item in queue_items:
-            media: CoreMediaRow = item.media
-            groups[(media.provider_id, media.media_type_key)].append(
-                QueueGroupItem(
-                    queue_id=item.queue_id,
-                    public_id=media.public_id,
-                    sorted_index=item.sorted_index,
-                    random_index=item.random_index,
-                )
-            )
-
-        # Collect all coroutines to run in parallel
-        tasks: List[QueueTask] = []
-        for (provider_id, media_type_key), items in groups.items():
-            provider_instance: BaseMediaProvider | None = providers.find_media_provider(
-                provider_id=provider_id
-            )
-            if provider_instance is None:
-                logger.error(f"No provider found for provider_id {provider_id}.")
-                continue
-
-            public_ids = [qi.public_id for qi in items]
-
-            if media_type_key == MediaTypeEnum.VIDEO.value:
-                task = provider_instance.get_videos_async(
-                    session=session, public_ids=public_ids
-                )
-                tasks.append(
-                    QueueTask(
-                        coroutine=task,
-                        media_type="videos",
-                        provider_id=provider_id,
-                        items=items,
-                    )
-                )
-            elif media_type_key == MediaTypeEnum.SONG.value:
-                task = provider_instance.get_songs_async(
-                    session=session, public_ids=public_ids
-                )
-                tasks.append(
-                    QueueTask(
-                        coroutine=task,
-                        media_type="songs",
-                        provider_id=provider_id,
-                        items=items,
-                    )
-                )
-            else:
-                logger.warning(
-                    f"Unsupported media type {MediaTypeEnum(media_type_key)} in user queue. Skipping."
-                )
-
-        # Run all provider calls in parallel
-        queue: List[QueueResponseItem] = []
-        if tasks:
-            results: List[Union[AResult[Any], BaseException]] = await asyncio.gather(
-                *(task.coroutine for task in tasks), return_exceptions=True
-            )
-            for task, result in zip(tasks, results):
-                if isinstance(result, BaseException):
-                    logger.error(
-                        f"Error getting {task.media_type} from provider {task.provider_id}: {result}"
-                    )
-                    continue
-
-                a_result: AResult[Any] = result
-                if a_result.is_not_ok():
-                    logger.error(
-                        f"Error getting {task.media_type} from provider {task.provider_id}. {a_result.info()}"
-                    )
-                    continue
-
-                media_list: List[Any] = a_result.result()
-                # Map results back to queue items
-                media_dict: dict[str, Any] = {
-                    media.publicId: media for media in media_list
-                }
-                for qi in task.items:
-                    media_item: Any = media_dict.get(qi.public_id)
-                    if media_item is None:
-                        logger.warning(
-                            f"Media {qi.public_id} not found in provider response."
-                        )
-                        continue
-
-                    queue.append(
-                        QueueResponseItem(
-                            queueMediaId=qi.queue_id,
-                            listPublicId=None,
-                            media=media_item,
-                            sortedIndex=qi.sorted_index,
-                            randomIndex=qi.random_index,
-                        )
-                    )
-
-        # Restore original database order
-        queue.sort(key=lambda item: original_order.get(item.queueMediaId, 0))
-
+        identifiers = await CollectionAccess.public_ids_async(
+            session=session, ids=list(ids)
+        )
+        if identifiers.is_not_ok():
+            logger.error(f"Error resolving queue identifiers. {identifiers.info()}")
+            return AResult(code=identifiers.code(), message=identifiers.message())
+        public_ids = identifiers.result()
+        records = await CollectionAccess.records_async(
+            session=session,
+            public_ids=list({item.media.public_id for item in queue_items}),
+            user_id=user_id,
+        )
+        if records.is_not_ok():
+            logger.error(f"Error resolving queue metadata. {records.info()}")
+            return AResult(code=records.code(), message=records.message())
+        hydrated = await Collection.hydrate_async(
+            session=session, records=records.result()
+        )
+        if hydrated.is_not_ok():
+            logger.error(f"Error hydrating queue. {hydrated.info()}")
+            return AResult(code=hydrated.code(), message=hydrated.message())
+        medias = hydrated.result()
         return AResult(
             code=AResultCode.OK,
             message="OK",
             result=QueueResponse(
                 currentQueueMediaId=current_queue_id,
-                queue=queue,
                 queueType=QueueTypeEnum(user.queue_type_key),
+                queue=[
+                    QueueResponseItem(
+                        queueMediaId=item.queue_id,
+                        listPublicId=(
+                            public_ids.get(item.list_media_id)
+                            if item.list_media_id is not None
+                            else None
+                        ),
+                        media=medias[item.media.public_id],
+                        sortedIndex=item.sorted_index,
+                        randomIndex=item.random_index,
+                    )
+                    for item in queue_items
+                    if item.media.public_id in medias
+                ],
             ),
         )
 

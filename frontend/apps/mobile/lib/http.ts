@@ -63,6 +63,11 @@ const routes: { [key: string]: string } = {
 };
 
 function resolveRoute(path: string): string | undefined {
+    if (path.startsWith("/media/collection/")) {
+        // Keep each page/search separate, using bounded filename segments.
+        const key = encodeURIComponent(path.replace(/\/queue$/, "/playable"));
+        return `collections/${key.match(/.{1,100}/g)?.join("/")}.json`;
+    }
     for (const [pattern, target] of Object.entries(routes)) {
         const names = [...pattern.matchAll(/<([^>]+)>/g)].map((m) => m[1]);
 
@@ -104,6 +109,10 @@ Http.middlewares.push(async (next, context) => {
     const filePath = resolveRoute(context.path);
 
     if (filePath) {
+        const parent = new Directory(
+            Paths.document,
+            ...filePath.split("/").slice(0, -1)
+        );
         const file = new File(Paths.document, filePath);
         if (response.isOk()) {
             // Cache to disk in the background. normalizeAndSave performs one
@@ -111,13 +120,20 @@ Http.middlewares.push(async (next, context) => {
             // seconds for large responses — do not block the response on it.
             void (async () => {
                 try {
-                    const normalized = await normalizeAndSave(response.result);
+                    parent.create({ idempotent: true, intermediates: true });
+                    const normalized = context.path.startsWith(
+                        "/media/collection/"
+                    )
+                        ? response.result
+                        : await normalizeAndSave(response.result);
                     file.write(JSON.stringify(normalized));
                 } catch {
                     // Caching is best-effort; ignore write failures.
                 }
             })();
         } else {
+            if (context.options.method && context.options.method !== "GET")
+                return response;
             if (!file.exists) {
                 return new HttpResult({
                     code: 404,

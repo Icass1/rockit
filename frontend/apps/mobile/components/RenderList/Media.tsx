@@ -13,6 +13,7 @@ export function Media({
     showMediaImage,
     listPublicId,
     expandedByMediaId,
+    onToggle,
 }: {
     index: number;
     media: TMedia;
@@ -22,6 +23,7 @@ export function Media({
     showMediaImage: boolean;
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
+    onToggle?: () => void;
 }) {
     const $media = useMedia(media);
 
@@ -44,7 +46,8 @@ export function Media({
                 allMedia={allMedia}
                 substractArtists={substractArtists}
                 listPublicId={listPublicId}
-                defaultExpanded={expandedByMediaId?.[media.publicId] ?? false}
+                onToggle={onToggle}
+                expanded={expandedByMediaId?.[media.publicId] ?? false}
             />
         );
     }

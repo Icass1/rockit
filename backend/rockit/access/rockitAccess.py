@@ -200,6 +200,12 @@ class RockitAccess:
                 select(RockitSongRow)
                 .join(CoreMediaRow, RockitSongRow.id == CoreMediaRow.id)
                 .where(CoreMediaRow.public_id.in_(public_ids))
+                .options(
+                    selectinload(RockitSongRow.artists),
+                    selectinload(RockitSongRow.album).selectinload(
+                        RockitAlbumRow.artists
+                    ),
+                )
             )
             result: Result[Tuple[RockitSongRow]] = await session.execute(stmt)
             rows: List[RockitSongRow] = cast(

@@ -1,9 +1,8 @@
 import {
     isAlbum,
-    isAlbumWithSongs,
     isPlaylist,
-    isPlaylistWithMedias,
     isSong,
+    type TListMedia,
     type TMedia,
 } from "@rockit/shared";
 import {
@@ -17,7 +16,6 @@ import {
     removeOfflineSong,
 } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { getAlbumAsync, getPlaylistAsync } from "@/lib/services/mediaService";
 
 type OfflineSongTask = {
     publicId: string;
@@ -34,9 +32,9 @@ export class OfflineManager {
         media: TMedia,
         albumId: string
     ): Promise<OfflineSongTask[]> {
-        const songs = isAlbumWithSongs(media)
-            ? media.songs
-            : ((await getAlbumAsync(media.publicId))?.songs ?? []);
+        const songs = (
+            await rockIt.queueManager.getListMediasAsync(media as TListMedia)
+        ).filter(isSong);
 
         return songs
             .filter((s): boolean => Boolean(s.audioUrl))
@@ -53,16 +51,16 @@ export class OfflineManager {
         media: TMedia,
         playlistId: string
     ): Promise<OfflineSongTask[]> {
-        const medias = isPlaylistWithMedias(media)
-            ? media.medias
-            : ((await getPlaylistAsync(media.publicId))?.medias ?? []);
+        const medias = await rockIt.queueManager.getListMediasAsync(
+            media as TListMedia
+        );
 
         const tasks: OfflineSongTask[] = [];
         for (const entry of medias) {
-            if (!isSong(entry.item)) continue;
-            const song = entry.item;
+            if (!isSong(entry)) continue;
+            const song = entry;
             if (!song.audioUrl) continue;
-            const albumId = song.album?.publicId;
+            const albumId = "album" in song ? song.album.publicId : undefined;
             tasks.push({
                 publicId: song.publicId,
                 audioUrl: song.audioUrl,

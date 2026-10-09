@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from logging import Logger
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -211,6 +211,12 @@ class BaseMediaProvider(BaseProvider):
     def get_stats_album_info_cte_fragment(self) -> str | None:
         """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url)."""
         return None
+
+    def get_collection_provider_url(
+        self, metadata: dict[str, Any], media_type_key: int
+    ) -> str:
+        """Build the provider-owned link for unloaded album or playlist metadata."""
+        return str(metadata.get("provider_url", ""))
 
     def get_search_index_cte_fragment(self) -> str | None:
         """SELECT fragment for search_index (internal_id, public_id, name, subtitle, media_type_key, provider_name, image_url).

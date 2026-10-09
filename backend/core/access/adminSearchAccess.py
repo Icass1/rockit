@@ -20,6 +20,16 @@ FUZZY_SCORE_CUTOFF = 30.0
 
 class AdminSearchAccess:
     @staticmethod
+    def get_search_index_fragment() -> str:
+        """Reuse provider-owned search metadata across admin and collection search."""
+        from backend.core.framework import providers
+
+        fragments = [
+            p.get_search_index_cte_fragment() for p in providers.get_media_providers()
+        ]
+        return "\n\nUNION ALL\n\n".join(fragment for fragment in fragments if fragment)
+
+    @staticmethod
     @safe_async
     async def search_media_index_async(
         session: AsyncSession, query: str, limit: int
@@ -35,17 +45,10 @@ class AdminSearchAccess:
         full catalog in Python.
         """
 
-        from backend.core.framework import providers
-
-        fragments = [
-            p.get_search_index_cte_fragment() for p in providers.get_media_providers()
-        ]
-        fragments = [f for f in fragments if f]
-
-        if not fragments:
+        search_index_cte = AdminSearchAccess.get_search_index_fragment()
+        if not search_index_cte:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
-        search_index_cte = "\n\nUNION ALL\n\n".join(fragments)
         query_id = int(query) if query.isdigit() else None
 
         sql = f"""

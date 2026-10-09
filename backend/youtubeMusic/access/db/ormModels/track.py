@@ -28,6 +28,13 @@ class TrackRow(
     __tablename__ = "track"
     __table_args__ = (
         Index(
+            "ix_collection_youtube_music_album_order",
+            "album_id",
+            "disc_number",
+            "track_number",
+            "id",
+        ),
+        Index(
             "ix_youtube_music_track_title_trgm",
             "title",
             postgresql_using="gin",

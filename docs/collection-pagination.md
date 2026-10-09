@@ -64,3 +64,30 @@ include the full page/search URL; changing the session clears this collection ca
 Web authentication transitions also clear it. Offline playback can reuse a complete
 queue previously resolved online; it never constructs the full queue from a partial
 visible page.
+
+## Virtualized collection views
+
+Web and mobile flatten the expanded collection tree into one virtualized list,
+including each nested search control and pagination footer. Web measures visible
+rows with ResizeObserver and uses binary search over their cached heights; mobile
+uses a single FlatList with variable-height rows. Neither platform mounts a
+recursive scroll view for each expanded collection.
+
+Expansion and fetched pages live in the shared CollectionTree manager rather than
+in recycled row components. Keys include the full occurrence path and membership
+position, so repeated albums/playlists expand independently. Ancestor cycles stay
+closed. Persisted expansions fetch their first page only when their controls enter
+the render window. Search clears old branches, and collapse retains loaded pages.
+Playback continues to resolve the complete root collection on the server.
+
+Web preserves the visible row when measurements or expanded children change the
+layout and keeps a focused control mounted. Mobile uses native content-position
+anchoring and footer viewability to request subsequent pages.
+
+Run the shared tree and geometry regression tests with:
+
+```bash
+pnpm --dir frontend/packages/shared test
+```
+
+The PR quality job runs these tests and the shared TypeScript check.

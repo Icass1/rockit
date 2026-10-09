@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback } from "react";
 import { COLORS } from "@/constants/theme";
-import { useStore } from "@nanostores/react";
 import {
-    CollectionPager,
     isAlbum,
     isPlaylist,
     type TListMedia,
@@ -14,9 +12,6 @@ import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { webSocketManager } from "@/lib/webSocketManager";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
-import CollectionControls from "@/components/RenderList/CollectionControls";
-import CollectionFooter from "@/components/RenderList/CollectionFooter";
-import { Media } from "@/components/RenderList/Media";
 
 function ListArtists({ media }: { media: TListMedia }) {
     if (isAlbum(media)) {
@@ -44,43 +39,40 @@ function ListArtists({ media }: { media: TListMedia }) {
 export function ListMedia({
     media: _media,
     allMedia,
-    substractArtists = [],
     listPublicId,
-    defaultExpanded,
+    expansionPlaylistPublicId,
+    expanded = false,
+    onToggle,
+    cycle = false,
 }: {
     media: TListMedia;
     allMedia?: TMedia[];
     substractArtists?: string[];
     listPublicId?: string;
-    defaultExpanded?: boolean;
+    expansionPlaylistPublicId?: string;
+    expanded?: boolean;
+    onToggle?: () => void;
+    cycle?: boolean;
 }) {
     const $media = useMedia(_media);
-    const [expanded, setExpanded] = useState(defaultExpanded ?? false);
-
     const handleToggle = useCallback((): void => {
-        setExpanded((prev): boolean => {
-            const newValue = !prev;
-            if (listPublicId) {
-                webSocketManager.sendMediaExpanded({
-                    mediaPublicId: $media.publicId,
-                    playlistPublicId: listPublicId,
-                    expanded: newValue,
-                });
-            }
-            return newValue;
-        });
-    }, [listPublicId, $media.publicId]);
-
-    const pager = useMemo(
-        () => new CollectionPager($media.publicId),
-        [$media.publicId]
-    );
-    const state = useStore(pager.state);
-    useEffect(() => {
-        if (expanded && !pager.state.get().collection) void pager.load();
-    }, [expanded, pager]);
-    useEffect(() => () => pager.dispose(), [pager]);
-    const medias = state.media;
+        if (cycle) return;
+        onToggle?.();
+        if (listPublicId) {
+            webSocketManager.sendMediaExpanded({
+                mediaPublicId: $media.publicId,
+                playlistPublicId: expansionPlaylistPublicId ?? listPublicId,
+                expanded: !expanded,
+            });
+        }
+    }, [
+        cycle,
+        onToggle,
+        listPublicId,
+        expansionPlaylistPublicId,
+        $media.publicId,
+        expanded,
+    ]);
 
     return (
         <View style={styles.container}>
@@ -109,24 +101,6 @@ export function ListMedia({
                     )}
                 </View>
             </MediaPressableWrapper>
-            {expanded && (
-                <View style={styles.mediaList}>
-                    <CollectionControls pager={pager} />
-                    {medias.map((media, i) => (
-                        <Media
-                            key={`${state.offset + i}:${media.publicId}`}
-                            index={state.offset + i}
-                            media={media}
-                            allMedia={allMedia ?? []}
-                            substractArtists={substractArtists}
-                            showMediaIndex={isAlbum($media)}
-                            showMediaImage={!isAlbum($media)}
-                            listPublicId={listPublicId}
-                        />
-                    ))}
-                    <CollectionFooter pager={pager} />
-                </View>
-            )}
         </View>
     );
 }

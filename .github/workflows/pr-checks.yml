@@ -68,6 +68,8 @@ jobs:
                   (cd frontend && pnpm lint) > lint.txt 2>&1 || failed=1
                   cat lint.txt
 
+                  pnpm --dir frontend/packages/shared test || failed=1
+
                   pyright > pyright.txt 2>&1 || failed=1
                   cat pyright.txt
 

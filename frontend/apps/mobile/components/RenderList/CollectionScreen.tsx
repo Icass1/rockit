@@ -54,8 +54,7 @@ export default function CollectionScreen({ publicId }: { publicId: string }) {
             showMediaImage={!album}
             listPublicId={publicId}
             expandedByMediaId={state.expandedByMediaId}
-            listControls={<CollectionControls pager={pager} />}
-            listFooter={<CollectionFooter pager={pager} />}
+            pager={pager}
             total={state.total}
             offset={state.offset}
         />

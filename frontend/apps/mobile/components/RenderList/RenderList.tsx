@@ -1,15 +1,18 @@
-import { memo, useMemo, useRef, type ReactNode } from "react";
+import { memo } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
-import type { BaseArtistResponse, TMedia } from "@rockit/shared";
+import type {
+    BaseArtistResponse,
+    CollectionPager,
+    TMedia,
+} from "@rockit/shared";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/lib/vocabulary";
-import { CollectionScrollContext } from "@/components/RenderList/CollectionScrollContext";
-import { Media } from "@/components/RenderList/Media";
+import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 interface RenderListProps {
     title: string;
@@ -22,8 +25,7 @@ interface RenderListProps {
     substractArtists?: string[];
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
-    listControls?: ReactNode;
-    listFooter?: ReactNode;
+    pager: CollectionPager;
     total?: number;
     offset?: number;
 }
@@ -38,48 +40,21 @@ export default memo(function RenderList({
     showMediaImage = true,
     substractArtists = [],
     listPublicId,
-    expandedByMediaId,
-    listControls,
-    listFooter,
+    pager,
     total,
-    offset = 0,
 }: RenderListProps) {
     const { vocabulary } = useVocabulary();
-    const viewport = useRef<View>(null);
-    const listeners = useRef(new Set<() => void>());
-    const scroll = useMemo(
-        () => ({
-            viewport,
-            subscribe: (listener: () => void) => {
-                listeners.current.add(listener);
-                return () => {
-                    listeners.current.delete(listener);
-                };
-            },
-        }),
-        [listeners]
-    );
-    const checkFooters = () => {
-        for (const listener of listeners.current) listener();
-    };
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            <CollectionScrollContext.Provider value={scroll}>
-                <View
-                    ref={viewport}
-                    collapsable={false}
-                    style={{ flex: 1 }}
-                    onLayout={checkFooters}
-                >
-                    <ScrollView
-                        onScroll={checkFooters}
-                        onContentSizeChange={checkFooters}
-                        scrollEventThrottle={100}
-                        contentContainerStyle={styles.listContent}
-                        showsVerticalScrollIndicator={false}
-                    >
+            <VirtualCollectionList
+                pager={pager}
+                showMediaIndex={showMediaIndex}
+                showMediaImage={showMediaImage}
+                substractArtists={substractArtists}
+                header={
+                    <>
                         <View style={styles.header}>
                             <LinearGradient
                                 colors={[COLORS.bgCard, "transparent"]}
@@ -120,44 +95,27 @@ export default memo(function RenderList({
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.mediaContainer}>
-                            {listPublicId && (
-                                <Pressable
-                                    accessibilityRole="button"
-                                    onPress={() =>
-                                        void rockIt.queueManager.playCollection(
-                                            listPublicId
-                                        )
-                                    }
-                                    style={{
-                                        padding: 12,
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <Text style={{ color: COLORS.accent }}>
-                                        {vocabulary.PLAY}
-                                    </Text>
-                                </Pressable>
-                            )}
-                            {listControls}
-                            {media.map((item, index) => (
-                                <Media
-                                    key={`${offset + index}:${item.publicId}`}
-                                    media={item}
-                                    allMedia={media}
-                                    index={offset + index}
-                                    showMediaIndex={showMediaIndex}
-                                    showMediaImage={showMediaImage}
-                                    substractArtists={substractArtists}
-                                    listPublicId={listPublicId}
-                                    expandedByMediaId={expandedByMediaId}
-                                />
-                            ))}
-                            {listFooter}
-                        </View>
-                    </ScrollView>
-                </View>
-            </CollectionScrollContext.Provider>
+                        {listPublicId && (
+                            <Pressable
+                                accessibilityRole="button"
+                                onPress={() =>
+                                    void rockIt.queueManager.playCollection(
+                                        listPublicId
+                                    )
+                                }
+                                style={{
+                                    padding: 12,
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Text style={{ color: COLORS.accent }}>
+                                    {vocabulary.PLAY}
+                                </Text>
+                            </Pressable>
+                        )}
+                    </>
+                }
+            />
         </SafeAreaView>
     );
 });

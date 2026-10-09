@@ -15,7 +15,8 @@
         "dev": "tsup --watch",
         "lint": "eslint .",
         "typecheck": "tsc --noEmit",
-        "clean": "rm -rf dist"
+        "clean": "rm -rf dist",
+        "test": "tsc --noEmit && tsup --config tests/tsup.config.ts && node .test-build/collectionTree.test.js"
     },
     "dependencies": {
         "nanostores": "^0.11.3",

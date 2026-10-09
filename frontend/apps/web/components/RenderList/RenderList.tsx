@@ -5,6 +5,7 @@ import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
+import type { CollectionPager } from "@rockit/shared";
 import { MoreHorizontal, Play } from "lucide-react";
 import {
     getAllPlayableMedia,
@@ -16,7 +17,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import DurationToggle from "@/components/DurationToggle";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
-import { Media } from "@/components/RenderList/Media";
+import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 export default function RenderList({
     title,
@@ -27,12 +28,9 @@ export default function RenderList({
     showMediaIndex,
     showMediaImage,
     listPublicId,
-    expandedByMediaId,
     coverOverlay,
-    listControls,
-    listFooter,
+    pager,
     total,
-    offset = 0,
 }: {
     title: string;
     artists: BaseArtistResponse[];
@@ -44,8 +42,7 @@ export default function RenderList({
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
     coverOverlay?: ReactNode;
-    listControls?: ReactNode;
-    listFooter?: ReactNode;
+    pager: CollectionPager;
     total?: number;
     offset?: number;
 }): JSX.Element {
@@ -129,23 +126,12 @@ export default function RenderList({
             </div>
             <div className="scroll-on-hover z-1 md:overflow-y-auto md:pr-4">
                 <div className="flex flex-col gap-2 py-4 md:py-16">
-                    {listControls}
-                    {media.map((m, index): JSX.Element => (
-                        <Media
-                            key={`${offset + index}:${m.publicId}`}
-                            index={offset + index}
-                            media={m}
-                            allMedia={media}
-                            substractArtists={artists.map(
-                                (artist): string => artist.name
-                            )}
-                            showMediaImage={showMediaImage}
-                            showMediaIndex={showMediaIndex}
-                            listPublicId={listPublicId}
-                            expandedByMediaId={expandedByMediaId}
-                        />
-                    ))}
-                    {listFooter}
+                    <VirtualCollectionList
+                        pager={pager}
+                        showMediaIndex={showMediaIndex}
+                        showMediaImage={showMediaImage}
+                        substractArtists={artists.map((artist) => artist.name)}
+                    />
                     {media.length === 0 && (
                         <p className="text-center text-lg font-semibold text-balance text-neutral-400">
                             {$vocabulary.NO_MEDIA_FOUND}

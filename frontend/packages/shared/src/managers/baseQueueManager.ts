@@ -9,9 +9,6 @@ import { shuffle } from "@/utils/arrayTools";
 import { EQueueType } from "@/models/enums/queueType";
 import { type QueueMediaItem } from "@/models/interfaces/queue";
 import {
-    isAlbum,
-    isAlbumWithSongs,
-    isPlaylist,
     isQueueable,
     isStation,
     type TListMedia,

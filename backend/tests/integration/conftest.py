@@ -2,6 +2,8 @@
 
 import os
 from uuid import uuid4
+from importlib import import_module
+from collections.abc import AsyncIterator
 
 import pytest
 from sqlalchemy import text, insert
@@ -10,13 +12,15 @@ from sqlalchemy.engine import make_url
 
 from backend.core.access.collectionAccess import shared_metadata
 from backend.core.framework import providers
-import backend.core.framework.websocket
+
+# Initialize websocket handlers before providers to resolve their shared imports.
+import_module(name="backend.core.framework.websocket")
 from backend.default.framework.provider.defaultProvider import DefaultProvider
 from backend.rockit.framework.provider.rockitProvider import RockItProvider
 
 
 @pytest.fixture
-async def database(monkeypatch):
+async def database(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[AsyncSession]:
     url = os.environ.get("ROCKIT_TEST_DATABASE_URL")
     if not url:
         pytest.skip(
@@ -82,7 +86,7 @@ async def database(monkeypatch):
 
 
 @pytest.fixture
-async def large_playlist(database):
+async def large_playlist(database: AsyncSession) -> AsyncSession:
     session = database
     tables = shared_metadata.tables
     await session.execute(

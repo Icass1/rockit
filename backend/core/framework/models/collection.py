@@ -10,7 +10,7 @@ class CollectionRecord:
     provider_id: int
     media_type_key: int
     name: str
-    data: dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=lambda: dict[str, Any]())
 
 
 @dataclass

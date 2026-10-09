@@ -248,10 +248,10 @@ export class BaseHttp {
     }
 
     static async searchMedia(q: string, limit?: number) {
-        const query = new URLSearchParams();
-        query.append("q", `${q}`);
-        if (limit !== undefined) query.append("limit", `${limit}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        queryParams.append("q", `${q}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/admin/media/search${queryString ? `?${queryString}` : ""}`,
             dto.AdminSearchResponseSchema
@@ -382,9 +382,19 @@ export class BaseHttp {
         );
     }
 
-    static async getDefaultPlaylistAsync(playlistPublicId: string) {
+    static async getDefaultPlaylistAsync(
+        playlistPublicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/default/playlist/${playlistPublicId}`,
+            `/default/playlist/${playlistPublicId}${queryString ? `?${queryString}` : ""}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
@@ -567,9 +577,10 @@ export class BaseHttp {
     }
 
     static async getDynamicLyricsAsync(publicId: string, provider?: string) {
-        const query = new URLSearchParams();
-        if (provider !== undefined) query.append("provider", `${provider}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        if (provider !== undefined)
+            queryParams.append("provider", `${provider}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/lyrics/dynamic/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseDynamicLyricsResponseSchema
@@ -577,18 +588,29 @@ export class BaseHttp {
     }
 
     static async getLyricsAsync(publicId: string, provider?: string) {
-        const query = new URLSearchParams();
-        if (provider !== undefined) query.append("provider", `${provider}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        if (provider !== undefined)
+            queryParams.append("provider", `${provider}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/lyrics/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseLyricsResponseSchema
         );
     }
 
-    static async getAlbum(publicId: string) {
+    static async getAlbum(
+        publicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/album/${publicId}`,
+            `/media/album/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseAlbumWithSongsResponseSchema
         );
     }
@@ -600,10 +622,46 @@ export class BaseHttp {
         );
     }
 
+    static async getCollectionItems(
+        publicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/media/collection/${publicId}/items${queryString ? `?${queryString}` : ""}`,
+            dto.CollectionPageResponseSchema
+        );
+    }
+
+    static async resolveCollectionQueue(publicId: string) {
+        return this.apiGetAsync(
+            `/media/collection/${publicId}/playable`,
+            dto.QueueResponseSchema
+        );
+    }
+
+    static async createCollectionQueue(
+        publicId: string,
+        payload: dto.CollectionQueueRequest
+    ) {
+        return this.apiPostAsync(
+            `/media/collection/${publicId}/queue`,
+            dto.CollectionQueueRequestSchema,
+            dto.QueueResponseSchema,
+            payload
+        );
+    }
+
     static getFrameURL(publicId: string, timestampMs: number) {
-        const query = new URLSearchParams();
-        query.append("timestamp_ms", `${timestampMs}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        queryParams.append("timestamp_ms", `${timestampMs}`);
+        const queryString = queryParams.toString();
         return `${BACKEND_URL}/media/frame/${publicId}${queryString ? `?${queryString}` : ""}`;
     }
 
@@ -615,9 +673,19 @@ export class BaseHttp {
         return `${BACKEND_URL}/media/image/${publicId}`;
     }
 
-    static async getPlaylist(publicId: string) {
+    static async getPlaylist(
+        publicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/playlist/${publicId}`,
+            `/media/playlist/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
@@ -655,9 +723,9 @@ export class BaseHttp {
     }
 
     static async matchUrlAsync(url: string) {
-        const query = new URLSearchParams();
-        query.append("url", `${url}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        queryParams.append("url", `${url}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/media/url/match${queryString ? `?${queryString}` : ""}`,
             dto.UrlMatchResponseSchema
@@ -694,10 +762,10 @@ export class BaseHttp {
     }
 
     static async getStationsWithGeo(limit?: number, offset?: number) {
-        const query = new URLSearchParams();
-        if (limit !== undefined) query.append("limit", `${limit}`);
-        if (offset !== undefined) query.append("offset", `${offset}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/radio/stations/geo${queryString ? `?${queryString}` : ""}`,
             dto.ListSchema
@@ -714,10 +782,10 @@ export class BaseHttp {
     }
 
     static async getMyRequests(limit?: number, offset?: number) {
-        const query = new URLSearchParams();
-        if (limit !== undefined) query.append("limit", `${limit}`);
-        if (offset !== undefined) query.append("offset", `${offset}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/request${queryString ? `?${queryString}` : ""}`,
             dto.UserRequestListResponseSchema

@@ -117,7 +117,12 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     icon: Play,
                     onPress: () => {
                         console.log("Playing media from context menu", media);
-                        handlePlay(media, getAllPlayableMedia(allMedia));
+                        if (listPublicId)
+                            void rockIt.queueManager.playCollection(
+                                listPublicId,
+                                media.publicId
+                            );
+                        else handlePlay(media, getAllPlayableMedia(allMedia));
                         hide();
                     },
                 });
@@ -370,7 +375,12 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         } else if (menuOnly || isSearchResult(media)) {
             show(buildMainMenu(media));
         } else if (isPlayable(media)) {
-            handlePlay(media, getAllPlayableMedia(allMedia));
+            if (listPublicId)
+                void rockIt.queueManager.playCollection(
+                    listPublicId,
+                    media.publicId
+                );
+            else handlePlay(media, getAllPlayableMedia(allMedia));
         } else if (isList(media)) {
             router.push(media.url);
         }
@@ -383,6 +393,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         handlePlay,
         menuOnly,
         onPress,
+        listPublicId,
     ]);
 
     return (

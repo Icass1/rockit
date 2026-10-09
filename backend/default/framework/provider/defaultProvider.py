@@ -148,6 +148,7 @@ class DefaultProvider(BaseMediaProvider):
                     session=session,
                     playlist_public_id=a_result_media.result().public_id,
                     user_id=user_id,
+                    include_medias=False,
                 )
             )
             if a_result_playlist.is_not_ok():

@@ -196,6 +196,12 @@ class RockItDB:
         # Create tables with run_sync (single call — all bases share the same metadata)
         async with self.engine.begin() as conn:
             await conn.run_sync(CoreBase.metadata.create_all)
+            # create_all skips indexes on existing tables; collection pagination
+            # needs these indexes on upgraded installations as well.
+            for table in CoreBase.metadata.tables.values():
+                for index in table.indexes:
+                    if index.name and index.name.startswith("ix_collection_"):
+                        await conn.run_sync(index.create, checkfirst=True)
 
         # Now set SessionLocal AFTER tables are created
         self.SessionLocal = async_sessionmaker(

@@ -44,26 +44,14 @@ async def handle_current_queue(
         )
     )
 
+    if a_result_medias.is_not_ok():
+        logger.error(f"Failed to resolve queue media. {a_result_medias.info()}")
+        return
+    media_ids = {row.public_id: row.id for row in a_result_medias.result()}
     queue_items: List[QueueItem] = []
-
     for item in current_queue_msg.queue:
-        item_id: int | None = next(
-            (
-                row.id
-                for row in a_result_medias.result()
-                if row.public_id == item.mediaPublicId
-            ),
-            None,
-        )
-
-        list_id: int | None = next(
-            (
-                row.id
-                for row in a_result_medias.result()
-                if row.public_id == item.listPublicId
-            ),
-            None,
-        )
+        item_id = media_ids.get(item.mediaPublicId)
+        list_id = media_ids.get(item.listPublicId) if item.listPublicId else None
 
         if item_id is None:
             logger.error(
@@ -89,6 +77,7 @@ async def handle_current_queue(
 
     if a_result_save.is_not_ok():
         logger.error(f"Failed to save user queue. {a_result_save.info()}")
+        return
 
     if sender_websocket is not None:
         relay_message = CurrentQueueMessage(

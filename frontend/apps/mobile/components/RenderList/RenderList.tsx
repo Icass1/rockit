@@ -1,11 +1,13 @@
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
 import type { BaseArtistResponse, TMedia } from "@rockit/shared";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/lib/vocabulary";
 import { Media } from "@/components/RenderList/Media";
 
 interface RenderListProps {
@@ -19,6 +21,9 @@ interface RenderListProps {
     substractArtists?: string[];
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
+    listControls?: ReactNode;
+    total?: number;
+    offset?: number;
 }
 
 export default memo(function RenderList({
@@ -32,7 +37,11 @@ export default memo(function RenderList({
     substractArtists = [],
     listPublicId,
     expandedByMediaId,
+    listControls,
+    total,
+    offset = 0,
 }: RenderListProps) {
+    const { vocabulary } = useVocabulary();
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
@@ -71,18 +80,34 @@ export default memo(function RenderList({
                             </Text>
                         )}
                         <Text style={styles.mediaCount}>
-                            {media.length}{" "}
+                            {total ?? media.length}{" "}
                             {media.length === 1 ? "song" : "songs"}
                         </Text>
                     </View>
                 </View>
                 <View style={styles.mediaContainer}>
+                    {listPublicId && (
+                        <Pressable
+                            accessibilityRole="button"
+                            onPress={() =>
+                                void rockIt.queueManager.playCollection(
+                                    listPublicId
+                                )
+                            }
+                            style={{ padding: 12, alignItems: "center" }}
+                        >
+                            <Text style={{ color: COLORS.accent }}>
+                                {vocabulary.PLAY}
+                            </Text>
+                        </Pressable>
+                    )}
+                    {listControls}
                     {media.map((item, index) => (
                         <Media
-                            key={item.publicId}
+                            key={`${offset + index}:${item.publicId}`}
                             media={item}
                             allMedia={media}
-                            index={index}
+                            index={offset + index}
                             showMediaIndex={showMediaIndex}
                             showMediaImage={showMediaImage}
                             substractArtists={substractArtists}

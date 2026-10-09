@@ -4,11 +4,8 @@ import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
 import {
-    getAllPlayableMedia,
     getMediaDuration,
     isDownloadable,
-    isPlayable,
-    isQueueable,
     isSong,
     isVideo,
     TMedia,
@@ -39,7 +36,6 @@ function getArtistNames(
 export function PlayableMedia({
     index,
     media: _media,
-    allMedia,
     substractArtists = [],
     showMediaIndex,
     showMediaImage,
@@ -66,26 +62,13 @@ export function PlayableMedia({
                 [$media.publicId],
                 $media.name
             );
-        } else if (allMedia && allMedia.length > 0 && listPublicId) {
-            const tempAllMedia = getAllPlayableMedia(allMedia);
-
-            // Replace this media in allMedia in case it has been downloaded
-            for (let i = 0; i < tempAllMedia.length; i++) {
-                if (tempAllMedia[i].publicId === $media.publicId) {
-                    tempAllMedia[i] = $media;
-                }
-            }
-
-            const playableMedia = tempAllMedia.filter(isPlayable);
-
-            rockIt.queueManager.setMedia(
-                playableMedia.filter(isQueueable),
-                listPublicId
+        } else if (listPublicId) {
+            void rockIt.queueManager.playCollection(
+                listPublicId,
+                $media.publicId
             );
-            rockIt.queueManager.moveToMedia($media.publicId);
-            rockIt.mediaPlayerManager.play();
         }
-    }, [$media, allMedia, listPublicId]);
+    }, [$media, listPublicId]);
 
     const downloaded = !isDownloadable($media) || $media.downloaded === true;
 

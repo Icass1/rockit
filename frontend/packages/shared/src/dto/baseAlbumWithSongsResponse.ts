@@ -18,6 +18,10 @@ export const BaseAlbumWithSongsResponseSchema = z.object({
     dominantColor: z.string(),
     undownloadedCount: z.number().default(0),
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
+    offset: z.number().default(0),
+    limit: z.number().default(100),
+    total: z.number().default(0),
+    hasMore: z.boolean().default(false),
 });
 
 export type BaseAlbumWithSongsResponse = z.infer<

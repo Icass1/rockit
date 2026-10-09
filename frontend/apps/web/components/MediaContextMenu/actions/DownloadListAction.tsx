@@ -18,6 +18,8 @@ import type { ActionComponentProps } from "@/components/MediaContextMenu/actions
  * with no children, so nothing can be counted there).
  */
 function getPendingCount(media: TMedia): number | undefined {
+    if ("total" in media || ("itemCount" in media && media.itemCount > 0))
+        return undefined;
     if (
         "undownloadedCount" in media &&
         typeof media.undownloadedCount === "number"

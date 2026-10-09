@@ -24,6 +24,13 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     __tablename__ = "track"
     __table_args__ = (
         Index(
+            "ix_collection_spotify_album_order",
+            "album_id",
+            "disc_number",
+            "track_number",
+            "id",
+        ),
+        Index(
             "ix_spotify_track_name_trgm",
             "name",
             postgresql_using="gin",

@@ -20,6 +20,13 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "song"
     __table_args__ = (
         Index(
+            "ix_collection_rockit_album_order",
+            "album_id",
+            "disc_number",
+            "track_number",
+            "id",
+        ),
+        Index(
             "ix_rockit_song_name_trgm",
             "name",
             postgresql_using="gin",
@@ -43,7 +50,7 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    album: Mapped["RockitAlbumRow"] = relationship(
+    album: Mapped["RockitAlbumRow | None"] = relationship(
         "RockitAlbumRow", back_populates="songs"
     )
 

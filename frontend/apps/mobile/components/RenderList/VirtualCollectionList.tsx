@@ -16,6 +16,7 @@ import {
     isPlayable,
     type CollectionTreeRow,
     type IMediaAddedToPlaylistEvent,
+    type IMediaDownloadedEvent,
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
 import { FlatList, View, type ViewToken } from "react-native";
@@ -114,10 +115,15 @@ export default function VirtualCollectionList({
         const refresh = (
             event: IMediaAddedToPlaylistEvent | IMediaRemovedFromPlaylistEvent
         ): void => tree.refreshNested(event.playlistPublicId);
+        const downloaded = (event: IMediaDownloadedEvent): void => {
+            void tree.refreshMediaAsync(event.publicId);
+        };
+        events.addEventListener(EEvent.MediaDownloaded, downloaded);
         events.addEventListener(EEvent.MediaAddedToPlaylist, refresh);
         events.addEventListener(EEvent.MediaRemovedFromPlaylist, refresh);
         return () => {
             tree.stop();
+            events.removeEventListener(EEvent.MediaDownloaded, downloaded);
             events.removeEventListener(EEvent.MediaAddedToPlaylist, refresh);
             events.removeEventListener(
                 EEvent.MediaRemovedFromPlaylist,

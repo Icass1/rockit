@@ -1,4 +1,5 @@
 import { CollectionPager } from "@/managers/collectionPager";
+import { getRockIt } from "@/rockit/rockitRef";
 import type {
     CollectionTreeBranch,
     CollectionTreeOptions,
@@ -81,6 +82,40 @@ export class CollectionTree {
         this.rebuild();
         if (expanded) this.ensureLoaded(key);
         return expanded;
+    }
+
+    async refreshMediaAsync(publicId: string): Promise<void> {
+        if (
+            !this.started ||
+            ![...this.branches.values()].some((branch) =>
+                branch.pager.state
+                    .get()
+                    .media.some((media) => media.publicId === publicId)
+            )
+        )
+            return;
+        const response = await getRockIt().http.getMediaAsync(publicId);
+        if (!response.isOk() || !this.started) return;
+        const updated = response.result.media;
+        for (const branch of this.branches.values()) {
+            const state = branch.pager.state.get();
+            if (
+                !state.media.some(
+                    (media) =>
+                        media.publicId === publicId &&
+                        media.type === updated.type
+                )
+            )
+                continue;
+            branch.pager.state.set({
+                ...state,
+                media: state.media.map((media) =>
+                    media.publicId === publicId && media.type === updated.type
+                        ? updated
+                        : media
+                ),
+            });
+        }
     }
 
     refreshNested(publicId: string): void {

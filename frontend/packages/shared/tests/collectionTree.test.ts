@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { CollectionPager } from "@/managers/collectionPager";
 import { CollectionTree } from "@/managers/collectionTree";
 import { VirtualRowLayout } from "@/managers/virtualRowLayout";
+import { setRockIt, type IRockItContainer } from "@/rockit/rockitRef";
 import type { CollectionTreeRow } from "@/models/interfaces/collectionTree";
 import type { TMedia } from "@/models/types/media";
 
@@ -208,5 +209,43 @@ test("nested mutations invalidate cached contents without loading closed collect
     assert.equal(child.state.get().media.length, 0);
     tree.toggle("root/0:child");
     assert.equal(loads, 2);
+    tree.stop();
+});
+
+test("download metadata updates cached occurrences while their nested collection is closed", async (context) => {
+    context.mock.method(CollectionPager.prototype, "load", async () => {});
+    const tree = createTree([media("child", "playlist"), media("track")]);
+    tree.start();
+    tree.toggle("root/0:child");
+    const child = controls(tree, "root/0:child").pager;
+    child.state.set({
+        ...child.state.get(),
+        media: [media("track")],
+        collection: { type: "playlist" } as NonNullable<
+            ReturnType<typeof child.state.get>["collection"]
+        >,
+    });
+    tree.toggle("root/0:child");
+    const updated = { ...media("track"), name: "Downloaded" } as TMedia;
+    let requests = 0;
+    setRockIt({
+        http: {
+            getMediaAsync: async () => {
+                requests++;
+                return { isOk: () => true, result: { media: updated } };
+            },
+        },
+    } as unknown as IRockItContainer);
+    await tree.refreshMediaAsync("unloaded-track");
+    assert.equal(requests, 0);
+    await tree.refreshMediaAsync("track");
+    assert.equal(requests, 1);
+    assert.equal(child.state.get().media[0], updated);
+    assert.equal(tree.root.state.get().media[1], updated);
+    tree.toggle("root/0:child");
+    assert.equal(
+        controls(tree, "root/0:child").pager.state.get().media[0],
+        updated
+    );
     tree.stop();
 });

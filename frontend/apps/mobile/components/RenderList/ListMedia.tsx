@@ -15,6 +15,7 @@ import { useMedia } from "@/hooks/useMedia";
 import { webSocketManager } from "@/lib/webSocketManager";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 import CollectionControls from "@/components/RenderList/CollectionControls";
+import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import { Media } from "@/components/RenderList/Media";
 
 function ListArtists({ media }: { media: TListMedia }) {
@@ -123,6 +124,7 @@ export function ListMedia({
                             listPublicId={listPublicId}
                         />
                     ))}
+                    <CollectionFooter pager={pager} />
                 </View>
             )}
         </View>

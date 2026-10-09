@@ -15,6 +15,7 @@ import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/media
 import { rockIt } from "@/lib/rockit/rockIt";
 import DropOverlay from "@/components/DropOverlay/DropOverlay";
 import CollectionControls from "@/components/RenderList/CollectionControls";
+import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function RenderListClient({
@@ -104,6 +105,7 @@ export default function RenderListClient({
                 expandedByMediaId={state.expandedByMediaId}
                 coverOverlay={coverOverlay}
                 listControls={<CollectionControls pager={pager} />}
+                listFooter={<CollectionFooter pager={pager} />}
                 total={state.total}
                 offset={state.offset}
             />

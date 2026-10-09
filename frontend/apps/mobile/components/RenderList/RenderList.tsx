@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react";
+import { memo, useMemo, useRef, type ReactNode } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
 import type { BaseArtistResponse, TMedia } from "@rockit/shared";
@@ -8,6 +8,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/lib/vocabulary";
+import { CollectionScrollContext } from "@/components/RenderList/CollectionScrollContext";
 import { Media } from "@/components/RenderList/Media";
 
 interface RenderListProps {
@@ -22,6 +23,7 @@ interface RenderListProps {
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
     listControls?: ReactNode;
+    listFooter?: ReactNode;
     total?: number;
     offset?: number;
 }
@@ -38,85 +40,124 @@ export default memo(function RenderList({
     listPublicId,
     expandedByMediaId,
     listControls,
+    listFooter,
     total,
     offset = 0,
 }: RenderListProps) {
     const { vocabulary } = useVocabulary();
+    const viewport = useRef<View>(null);
+    const listeners = useRef(new Set<() => void>());
+    const scroll = useMemo(
+        () => ({
+            viewport,
+            subscribe: (listener: () => void) => {
+                listeners.current.add(listener);
+                return () => {
+                    listeners.current.delete(listener);
+                };
+            },
+        }),
+        [listeners]
+    );
+    const checkFooters = () => {
+        for (const listener of listeners.current) listener();
+    };
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            <ScrollView
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-            >
-                <View style={styles.header}>
-                    <LinearGradient
-                        colors={[COLORS.bgCard, "transparent"]}
-                        style={styles.gradient}
-                    />
-                    <View style={styles.imageContainer}>
-                        <Image
-                            source={{ uri: imageUrl || PLACEHOLDER.playlist }}
-                            style={styles.coverImage}
-                            contentFit="cover"
-                        />
-                    </View>
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.title} numberOfLines={2}>
-                            {title}
-                        </Text>
-                        {artistNames && (
-                            <Text style={styles.artistText} numberOfLines={1}>
-                                {artistNames}
-                            </Text>
-                        )}
-                        {subtitle && (
-                            <Text
-                                style={styles.extraSubtitle}
-                                numberOfLines={1}
-                            >
-                                {subtitle}
-                            </Text>
-                        )}
-                        <Text style={styles.mediaCount}>
-                            {total ?? media.length}{" "}
-                            {media.length === 1 ? "song" : "songs"}
-                        </Text>
-                    </View>
+            <CollectionScrollContext.Provider value={scroll}>
+                <View
+                    ref={viewport}
+                    collapsable={false}
+                    style={{ flex: 1 }}
+                    onLayout={checkFooters}
+                >
+                    <ScrollView
+                        onScroll={checkFooters}
+                        onContentSizeChange={checkFooters}
+                        scrollEventThrottle={100}
+                        contentContainerStyle={styles.listContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.header}>
+                            <LinearGradient
+                                colors={[COLORS.bgCard, "transparent"]}
+                                style={styles.gradient}
+                            />
+                            <View style={styles.imageContainer}>
+                                <Image
+                                    source={{
+                                        uri: imageUrl || PLACEHOLDER.playlist,
+                                    }}
+                                    style={styles.coverImage}
+                                    contentFit="cover"
+                                />
+                            </View>
+                            <View style={styles.titleContainer}>
+                                <Text style={styles.title} numberOfLines={2}>
+                                    {title}
+                                </Text>
+                                {artistNames && (
+                                    <Text
+                                        style={styles.artistText}
+                                        numberOfLines={1}
+                                    >
+                                        {artistNames}
+                                    </Text>
+                                )}
+                                {subtitle && (
+                                    <Text
+                                        style={styles.extraSubtitle}
+                                        numberOfLines={1}
+                                    >
+                                        {subtitle}
+                                    </Text>
+                                )}
+                                <Text style={styles.mediaCount}>
+                                    {total ?? media.length}{" "}
+                                    {media.length === 1 ? "song" : "songs"}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={styles.mediaContainer}>
+                            {listPublicId && (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    onPress={() =>
+                                        void rockIt.queueManager.playCollection(
+                                            listPublicId
+                                        )
+                                    }
+                                    style={{
+                                        padding: 12,
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <Text style={{ color: COLORS.accent }}>
+                                        {vocabulary.PLAY}
+                                    </Text>
+                                </Pressable>
+                            )}
+                            {listControls}
+                            {media.map((item, index) => (
+                                <Media
+                                    key={`${offset + index}:${item.publicId}`}
+                                    media={item}
+                                    allMedia={media}
+                                    index={offset + index}
+                                    showMediaIndex={showMediaIndex}
+                                    showMediaImage={showMediaImage}
+                                    substractArtists={substractArtists}
+                                    listPublicId={listPublicId}
+                                    expandedByMediaId={expandedByMediaId}
+                                />
+                            ))}
+                            {listFooter}
+                        </View>
+                    </ScrollView>
                 </View>
-                <View style={styles.mediaContainer}>
-                    {listPublicId && (
-                        <Pressable
-                            accessibilityRole="button"
-                            onPress={() =>
-                                void rockIt.queueManager.playCollection(
-                                    listPublicId
-                                )
-                            }
-                            style={{ padding: 12, alignItems: "center" }}
-                        >
-                            <Text style={{ color: COLORS.accent }}>
-                                {vocabulary.PLAY}
-                            </Text>
-                        </Pressable>
-                    )}
-                    {listControls}
-                    {media.map((item, index) => (
-                        <Media
-                            key={`${offset + index}:${item.publicId}`}
-                            media={item}
-                            allMedia={media}
-                            index={offset + index}
-                            showMediaIndex={showMediaIndex}
-                            showMediaImage={showMediaImage}
-                            substractArtists={substractArtists}
-                            listPublicId={listPublicId}
-                            expandedByMediaId={expandedByMediaId}
-                        />
-                    ))}
-                </View>
-            </ScrollView>
+            </CollectionScrollContext.Provider>
         </SafeAreaView>
     );
 });

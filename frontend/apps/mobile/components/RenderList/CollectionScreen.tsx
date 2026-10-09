@@ -10,6 +10,7 @@ import {
 } from "@rockit/shared";
 import { View } from "react-native";
 import CollectionControls from "@/components/RenderList/CollectionControls";
+import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function CollectionScreen({ publicId }: { publicId: string }) {
@@ -39,6 +40,7 @@ export default function CollectionScreen({ publicId }: { publicId: string }) {
         return (
             <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
                 <CollectionControls pager={pager} />
+                <CollectionFooter pager={pager} />
             </View>
         );
     const album = collection.type === "album";
@@ -53,6 +55,7 @@ export default function CollectionScreen({ publicId }: { publicId: string }) {
             listPublicId={publicId}
             expandedByMediaId={state.expandedByMediaId}
             listControls={<CollectionControls pager={pager} />}
+            listFooter={<CollectionFooter pager={pager} />}
             total={state.total}
             offset={state.offset}
         />

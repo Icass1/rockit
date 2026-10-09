@@ -66,7 +66,7 @@ class UserQueueAccess:
             user_queue = UserQueueRow(
                 user_id=user_id,
                 media_id=item.media_id,
-                list_media_id=None,
+                list_media_id=item.list_id,
                 queue_id=item.queue_id,
                 sorted_index=item.sorted_index,
                 random_index=item.random_index,

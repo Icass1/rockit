@@ -29,3 +29,8 @@ class BasePlaylistWithMediasResponse(BasePlaylistWithoutMediasResponse):
             PlaylistResponseItem[BaseAlbumWithSongsResponse],
         ]
     ]
+
+    offset: int = 0
+    limit: int = 100
+    total: int = 0
+    hasMore: bool = False

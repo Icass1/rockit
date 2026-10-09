@@ -593,33 +593,24 @@ class Media:
                 result=MediaResponse(media=a_result.result()[0]),
             )
 
-        elif media_type == MediaTypeEnum.ALBUM:
-            a_result = await provider.get_albums_async(
-                session=session, public_ids=[public_id]
+        elif media_type in (MediaTypeEnum.ALBUM, MediaTypeEnum.PLAYLIST):
+            from backend.core.framework.media.collection import Collection
+
+            collection = await Collection.metadata_async(
+                session=session, public_id=public_id, user_id=user_id
             )
-            if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
+            if collection.is_not_ok():
+                logger.error(f"Error getting collection metadata. {collection.info()}")
+                return AResult(code=collection.code(), message=collection.message())
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
+                result=MediaResponse(media=collection.result()),
             )
 
         elif media_type == MediaTypeEnum.ARTIST:
             a_result = await provider.get_artists_async(
                 session=session, public_ids=[public_id]
-            )
-            if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(
-                code=AResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
-            )
-
-        elif media_type == MediaTypeEnum.PLAYLIST:
-            a_result = await provider.get_playlists_with_medias_async(
-                session=session, user_id=user_id, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())

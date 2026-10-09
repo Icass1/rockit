@@ -50,3 +50,5 @@ export * from "@/rockit/rockitRef";
 export * from "@/managers/baseUserManager";
 export * from "@/managers/baseQueueManager";
 export * from "@/managers/baseMediaPlayerManager";
+
+export { CollectionPager } from "@/managers/collectionPager";

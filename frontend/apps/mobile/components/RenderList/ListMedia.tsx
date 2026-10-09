@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { COLORS } from "@/constants/theme";
+import { useStore } from "@nanostores/react";
 import {
+    CollectionPager,
     isAlbum,
-    isAlbumWithSongs,
     isPlaylist,
-    isPlaylistWithMedias,
     type TListMedia,
     type TMedia,
 } from "@rockit/shared";
@@ -14,6 +14,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { webSocketManager } from "@/lib/webSocketManager";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
+import CollectionControls from "@/components/RenderList/CollectionControls";
 import { Media } from "@/components/RenderList/Media";
 
 function ListArtists({ media }: { media: TListMedia }) {
@@ -69,15 +70,16 @@ export function ListMedia({
         });
     }, [listPublicId, $media.publicId]);
 
-    const medias: TMedia[] = useMemo(() => {
-        if (isAlbumWithSongs($media)) {
-            return $media.songs as unknown as TMedia[];
-        }
-        if (isPlaylistWithMedias($media)) {
-            return $media.medias.map((m) => m.item) as TMedia[];
-        }
-        return [];
-    }, [$media]);
+    const pager = useMemo(
+        () => new CollectionPager($media.publicId),
+        [$media.publicId]
+    );
+    const state = useStore(pager.state);
+    useEffect(() => {
+        if (expanded && !pager.state.get().collection) void pager.load();
+    }, [expanded, pager]);
+    useEffect(() => () => pager.dispose(), [pager]);
+    const medias = state.media;
 
     return (
         <View style={styles.container}>
@@ -106,12 +108,13 @@ export function ListMedia({
                     )}
                 </View>
             </MediaPressableWrapper>
-            {expanded && medias.length > 0 && (
+            {expanded && (
                 <View style={styles.mediaList}>
+                    <CollectionControls pager={pager} />
                     {medias.map((media, i) => (
                         <Media
-                            key={media.publicId}
-                            index={i}
+                            key={`${state.offset + i}:${media.publicId}`}
+                            index={state.offset + i}
                             media={media}
                             allMedia={allMedia ?? []}
                             substractArtists={substractArtists}

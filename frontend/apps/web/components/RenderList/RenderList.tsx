@@ -9,7 +9,6 @@ import { MoreHorizontal, Play } from "lucide-react";
 import {
     getAllPlayableMedia,
     getTotalDuration,
-    isQueueable,
     TListMedia,
     TMedia,
 } from "@/models/types/media";
@@ -30,6 +29,9 @@ export default function RenderList({
     listPublicId,
     expandedByMediaId,
     coverOverlay,
+    listControls,
+    total,
+    offset = 0,
 }: {
     title: string;
     artists: BaseArtistResponse[];
@@ -41,21 +43,17 @@ export default function RenderList({
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
     coverOverlay?: ReactNode;
+    listControls?: ReactNode;
+    total?: number;
+    offset?: number;
 }): JSX.Element {
     const playableMedia = getAllPlayableMedia(media);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const handlePlay = useCallback((): void => {
-        if (!listPublicId || !playableMedia.length) return;
-
-        rockIt.queueManager.setMedia(
-            playableMedia.filter(isQueueable),
-            listPublicId
-        );
-        rockIt.queueManager.setQueueMediaId();
-        rockIt.mediaPlayerManager.play();
-    }, [playableMedia, listPublicId]);
+        if (listPublicId) void rockIt.queueManager.playCollection(listPublicId);
+    }, [listPublicId]);
 
     return (
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 md:h-[calc(100vh-12rem)] md:grid-cols-[1fr_2fr] md:gap-20 md:px-8">
@@ -120,7 +118,7 @@ export default function RenderList({
                     />
                     <p className="flex items-center justify-center gap-2 text-center font-semibold text-balance text-neutral-400">
                         <span>
-                            {playableMedia.length}{" "}
+                            {total ?? playableMedia.length}{" "}
                             {playableMedia.length === 1 ? "song" : "songs"}
                         </span>
                         <DurationToggle durationMs={getTotalDuration(media)} />
@@ -129,10 +127,11 @@ export default function RenderList({
             </div>
             <div className="scroll-on-hover z-1 md:overflow-y-auto md:pr-4">
                 <div className="flex flex-col gap-2 py-4 md:py-16">
+                    {listControls}
                     {media.map((m, index): JSX.Element => (
                         <Media
-                            key={m.publicId}
-                            index={index}
+                            key={`${offset + index}:${m.publicId}`}
+                            index={offset + index}
                             media={m}
                             allMedia={media}
                             substractArtists={artists.map(

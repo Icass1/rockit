@@ -8,9 +8,17 @@ import type { ActionComponentProps } from "@/components/MediaContextMenu/actions
 export default function PlayAction({
     media,
     vocabulary,
+    listPublicId,
 }: ActionComponentProps): JSX.Element {
     const play = (): void => {
         if (!isSearchResult(media) && isQueueable(media)) {
+            if (listPublicId) {
+                void rockIt.queueManager.playCollection(
+                    listPublicId,
+                    media.publicId
+                );
+                return;
+            }
             rockIt.queueManager.setMedia([media], media.publicId);
             rockIt.queueManager.moveToMedia(media.publicId);
             rockIt.mediaPlayerManager.play();

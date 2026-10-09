@@ -62,6 +62,10 @@ export const BasePlaylistWithMediasResponseSchema = z.object({
                 }),
         ])
     ),
+    offset: z.number().default(0),
+    limit: z.number().default(100),
+    total: z.number().default(0),
+    hasMore: z.boolean().default(false),
 });
 
 export type BasePlaylistWithMediasResponse = z.infer<

@@ -64,6 +64,50 @@ logger: Logger = getLogger(__name__)
 
 class Playlist:
     @staticmethod
+    async def get_paged_response_async(
+        session: AsyncSession,
+        public_id: str,
+        user_id: int,
+        offset: int = 0,
+        limit: int = 100,
+        query: str = "",
+    ) -> AResult[BasePlaylistWithMediasResponse]:
+        """Return a bounded default playlist response without expanding children."""
+        from backend.core.framework.media.collection import Collection
+
+        result = await Collection.page_async(
+            session=session,
+            public_id=public_id,
+            user_id=user_id,
+            offset=offset,
+            limit=limit,
+            query=query,
+        )
+        if result.is_not_ok():
+            logger.error(f"Error loading playlist page. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        page = result.result()
+        if (
+            not isinstance(page.collection, BasePlaylistWithMediasResponse)
+            or page.collection.provider != Default.provider_name
+        ):
+            logger.warning("Requested default playlist not found")
+            return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=page.collection.model_copy(
+                update=dict(
+                    medias=page.items,
+                    offset=offset,
+                    limit=limit,
+                    total=page.total,
+                    hasMore=page.hasMore,
+                )
+            ),
+        )
+
+    @staticmethod
     async def _get_media_info(
         session: AsyncSession, media_id: int
     ) -> AResult[MediaInfoModel]:
@@ -156,7 +200,10 @@ class Playlist:
 
     @staticmethod
     async def get_playlist_async(
-        session: AsyncSession, playlist_public_id: str, user_id: int | None = None
+        session: AsyncSession,
+        playlist_public_id: str,
+        user_id: int | None = None,
+        include_medias: bool = True,
     ) -> AResult[PlaylistWithDetailsModel]:
         a_result_playlist: AResult[PlaylistRow] = (
             await PlaylistAccess.get_playlist_by_public_id_async(
@@ -187,6 +234,8 @@ class Playlist:
             await PlaylistAccess.get_playlist_medias_async(
                 session=session, playlist_id=playlist.id
             )
+            if include_medias
+            else AResult(code=AResultCode.OK, message="OK", result=[])
         )
         if a_result_medias.is_not_ok():
             logger.error(f"Error getting playlist medias. {a_result_medias.info()}")
@@ -206,23 +255,35 @@ class Playlist:
             if a_result_disabled.is_ok():
                 disabled_media_ids = a_result_disabled.result()
 
-        visible_medias: list[PlaylistMediaModel] = []
-        for m in medias:
-            if m.id not in disabled_media_ids:
-                media_row: AResult[MediaInfoModel] = await Playlist._get_media_info(
-                    session=session, media_id=m.media_id
-                )
-                if media_row.is_ok():
-                    media_info = media_row.result()
-                    visible_medias.append(
-                        PlaylistMediaModel(
-                            id=m.id,
-                            position=m.position,
-                            media_type=media_info.media_type,
-                            media_id=media_info.media_id,
-                            provider_id=media_info.provider_id,
-                        )
-                    )
+        a_result_media_rows = (
+            await MediaAccess.get_medias_from_ids_async(
+                session=session, ids=[m.media_id for m in medias]
+            )
+            if medias
+            else AResult(code=AResultCode.OK, message="OK", result=[])
+        )
+        if a_result_media_rows.is_not_ok():
+            logger.error(
+                f"Error getting playlist media metadata. {a_result_media_rows.info()}"
+            )
+            return AResult(
+                code=a_result_media_rows.code(), message=a_result_media_rows.message()
+            )
+        media_rows = {row.id: row for row in a_result_media_rows.result()}
+        disabled_ids = set(disabled_media_ids)
+        visible_medias: list[PlaylistMediaModel] = [
+            PlaylistMediaModel(
+                id=membership.id,
+                position=membership.position,
+                media_type=MediaTypeEnum(
+                    media_rows[membership.media_id].media_type_key
+                ),
+                media_id=media_rows[membership.media_id].public_id,
+                provider_id=media_rows[membership.media_id].provider_id,
+            )
+            for membership in medias
+            if membership.id not in disabled_ids and membership.media_id in media_rows
+        ]
 
         a_result_contributors: AResult[List[PlaylistContributorRow]] = (
             await PlaylistAccess.get_contributors_async(

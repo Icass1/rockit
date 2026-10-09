@@ -1,11 +1,23 @@
+from typing import Any
+from collections.abc import Awaitable, Callable
+
 import pytest
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select, event, insert
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.access.collectionAccess import CollectionAccess, shared_metadata
+from backend.core.access.collectionAccess import shared_metadata
 from backend.core.framework.media.collection import Collection
+from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.basePlaylistForPlaylistResponse import (
+    BasePlaylistForPlaylistResponse,
+)
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 from backend.core.controllers.collectionController import router
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from types import SimpleNamespace
@@ -13,13 +25,23 @@ from types import SimpleNamespace
 pytestmark = pytest.mark.integration
 
 
-async def test_page_is_bounded_and_nested_lists_are_unloaded(large_playlist):
+async def test_page_is_bounded_and_nested_lists_are_unloaded(
+    large_playlist: AsyncSession,
+) -> None:
     session = large_playlist
-    statements = []
+    statements: list[str] = []
 
-    def record(conn, cursor, statement, parameters, context, executemany):
+    def record(
+        conn: Connection,
+        cursor: Any,
+        statement: str,
+        parameters: Any,
+        context: Any,
+        executemany: bool,
+    ) -> None:
         statements.append(statement)
 
+    assert session.bind is not None
     event.listen(session.bind.sync_engine, "before_cursor_execute", record)
     first = await Collection.page_async(
         session=session, public_id="list-10", user_id=2, limit=25
@@ -40,13 +62,22 @@ async def test_page_is_bounded_and_nested_lists_are_unloaded(large_playlist):
         session=session, public_id="list-10", user_id=2, offset=4990
     )
     assert last.is_ok(), last.info()
-    assert last.result().items[0].item.songs == []
-    assert last.result().items[1].item.medias == []
+    last_page = last.result()
+    album_item = last_page.items[0].item
+    assert isinstance(album_item, BaseAlbumWithSongsResponse)
+    assert album_item.songs == []
+    playlist_item = last_page.items[1].item
+    assert isinstance(playlist_item, BasePlaylistForPlaylistResponse)
+    assert playlist_item.medias == []
     assert not last.result().hasMore
-    assert last.result().collection.owner.name == "user-1"
+    collection = last_page.collection
+    assert isinstance(collection, BasePlaylistWithMediasResponse)
+    assert collection.owner.name == "user-1"
 
 
-async def test_search_finds_unloaded_album_tracks_and_escapes_wildcards(large_playlist):
+async def test_search_finds_unloaded_album_tracks_and_escapes_wildcards(
+    large_playlist: AsyncSession,
+) -> None:
     result = await Collection.page_async(
         session=large_playlist,
         public_id="list-10",
@@ -67,7 +98,9 @@ async def test_search_finds_unloaded_album_tracks_and_escapes_wildcards(large_pl
     assert allowed.is_ok(), allowed.info()
 
 
-async def test_complete_queue_preserves_duplicates_and_skips_cycles(large_playlist):
+async def test_complete_queue_preserves_duplicates_and_skips_cycles(
+    large_playlist: AsyncSession,
+) -> None:
     result = await Collection.queue_async(
         session=large_playlist,
         public_id="list-10",
@@ -111,7 +144,7 @@ async def test_complete_queue_preserves_duplicates_and_skips_cycles(large_playli
     ).scalar_one() == 4999
 
 
-async def test_disabled_entries_and_album_order(large_playlist):
+async def test_disabled_entries_and_album_order(large_playlist: AsyncSession) -> None:
     tables = shared_metadata.tables
     membership = (
         await large_playlist.execute(
@@ -139,7 +172,9 @@ async def test_disabled_entries_and_album_order(large_playlist):
     assert album.result().total == 10 and not album.result().hasMore
 
 
-async def test_http_contract_validates_limits_and_access(large_playlist, monkeypatch):
+async def test_http_contract_validates_limits_and_access(
+    large_playlist: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
     app = FastAPI()
     app.include_router(router)
     from backend.core.controllers.mediaController import router as media_router
@@ -149,18 +184,19 @@ async def test_http_contract_validates_limits_and_access(large_playlist, monkeyp
 
     app.include_router(default_router)
     app.dependency_overrides[AuthMiddleware.auth_dependency] = lambda: None
-    monkeypatch.setattr(
-        AuthMiddleware,
-        "get_current_user",
-        lambda request: AResult(
-            code=AResultCode.OK, message="OK", result=SimpleNamespace(id=2)
-        ),
-    )
 
-    @app.middleware("http")
-    async def db_session(request: Request, call_next):
+    def current_user(request: Request) -> AResult[SimpleNamespace]:
+        return AResult(code=AResultCode.OK, message="OK", result=SimpleNamespace(id=2))
+
+    monkeypatch.setattr(AuthMiddleware, "get_current_user", current_user)
+
+    async def db_session(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         request.state.db = large_playlist
         return await call_next(request)
+
+    app.middleware("http")(db_session)
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -193,7 +229,9 @@ async def test_http_contract_validates_limits_and_access(large_playlist, monkeyp
         assert album.json()["total"] == 10
 
 
-async def test_queue_reload_keeps_complete_scope_and_parent_ids(large_playlist):
+async def test_queue_reload_keeps_complete_scope_and_parent_ids(
+    large_playlist: AsyncSession,
+) -> None:
     from backend.core.framework.user.user import User
 
     created = await Collection.queue_async(
@@ -209,7 +247,9 @@ async def test_queue_reload_keeps_complete_scope_and_parent_ids(large_playlist):
     ]
 
 
-async def test_empty_pages_expansion_state_and_contributor_access(large_playlist):
+async def test_empty_pages_expansion_state_and_contributor_access(
+    large_playlist: AsyncSession,
+) -> None:
     tables = shared_metadata.tables
     empty = await Collection.page_async(
         session=large_playlist, public_id="list-10", user_id=2, offset=10000
@@ -240,15 +280,21 @@ async def test_empty_pages_expansion_state_and_contributor_access(large_playlist
     )
     assert page.is_ok(), page.info()
     assert page.result().items[0].expanded
-    assert page.result().items[0].item.songs == []
+    album_item = page.result().items[0].item
+    assert isinstance(album_item, BaseAlbumWithSongsResponse)
+    assert album_item.songs == []
     accessible = await Collection.page_async(
         session=large_playlist, public_id="list-12", user_id=2
     )
     assert accessible.is_ok(), accessible.info()
-    assert accessible.result().collection.contributors[0].username == "user-2"
+    collection = accessible.result().collection
+    assert isinstance(collection, BasePlaylistWithMediasResponse)
+    assert collection.contributors[0].username == "user-2"
 
 
-async def test_video_pages_and_queues_use_the_same_order(database):
+async def test_video_pages_and_queues_use_the_same_order(
+    database: AsyncSession,
+) -> None:
     tables = shared_metadata.tables
     await database.execute(
         insert(tables["core.media"]),

@@ -4,11 +4,45 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from backend.core.framework.media.collection import Collection
 from backend.core.access.collectionAccess import CollectionAccess
 from backend.core.framework.models.collection import CollectionRecord, CollectionEntry
 
 pytestmark = pytest.mark.unit
+
+
+@pytest.mark.parametrize("role", list(PlaylistContributorRoleEnum))
+async def test_nested_playlist_preserves_contributor_roles(
+    role: PlaylistContributorRoleEnum,
+) -> None:
+    """Nested playlists retain typed roles and serialize them as role names."""
+    record = CollectionRecord(
+        id=2,
+        public_id="nested-list",
+        provider_id=1,
+        media_type_key=3,
+        name="Nested playlist",
+        data=dict(
+            owner="Owner",
+            item_count=5,
+            contributors=[dict(userPublicId="user", username="Contributor", role=role)],
+        ),
+    )
+
+    result = await Collection.hydrate_async(
+        session=AsyncMock(spec=AsyncSession), records=[record]
+    )
+
+    assert result.is_ok()
+    playlist = result.result()[record.public_id]
+    assert playlist.owner == "Owner"
+    assert playlist.itemCount == 5
+    assert playlist.medias == []
+    assert playlist.contributors[0].role is role
+    assert playlist.model_dump(mode="json")["contributors"] == [
+        dict(userPublicId="user", username="Contributor", role=role.name)
+    ]
 
 
 async def test_access_failure_is_propagated_without_loading_items(

@@ -97,8 +97,9 @@ class Collection:
                 item = Collection.summary(record=record)
                 if isinstance(item, BasePlaylistWithMediasResponse):
                     item = BasePlaylistForPlaylistResponse(
-                        **item.model_dump(exclude={"owner"}),
+                        **item.model_dump(exclude={"owner", "contributors"}),
                         owner=item.owner.name,
+                        contributors=item.contributors,
                         itemCount=record.data.get("item_count", 0),
                     )
                 result[record.public_id] = item

@@ -35,9 +35,6 @@ export default function CollectionFooter({
             {state.loading && (
                 <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />
             )}
-            <span>
-                {state.media.length} / {state.total}
-            </span>
             {state.error && (
                 <button type="button" onClick={() => void pager.retry()}>
                     {vocabulary.RETRY}

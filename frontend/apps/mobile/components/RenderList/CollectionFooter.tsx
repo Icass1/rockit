@@ -31,9 +31,6 @@ export default function CollectionFooter({
             }}
         >
             {state.loading && <ActivityIndicator color={COLORS.accent} />}
-            <Text style={{ color: COLORS.gray400 }}>
-                {state.media.length} / {state.total}
-            </Text>
             {state.error && (
                 <Pressable
                     accessibilityRole="button"

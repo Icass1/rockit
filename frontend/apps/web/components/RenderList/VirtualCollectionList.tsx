@@ -55,7 +55,12 @@ const TreeRow = memo(function TreeRow({
             tree.ensureLoaded(row.collectionKey);
     }, [tree, row]);
     if (row.kind === "controls")
-        return <CollectionControls pager={row.pager} />;
+        return (
+            <CollectionControls
+                pager={row.pager}
+                showSearch={row.collectionKey === "root"}
+            />
+        );
     if (row.kind === "footer") return <CollectionFooter pager={row.pager} />;
     if (isList(row.media))
         return (

@@ -19,8 +19,11 @@ from backend.utils.logger import getLogger
 from backend.youtube.enums.ytdlpFailureEnum import YtdlpFailureEnum
 from backend.youtube.framework.youtubeGate import youtube_gate
 from backend.youtube.framework.potProvider import PotProvider
-from backend.youtube.utils.ytdlpLog import sanitize_ytdlp_message
-from backend.youtube.framework.ytdlpOptions import build_download_opts
+from backend.youtube.utils.ytdlpLog import YtdlpLogger, sanitize_ytdlp_message
+from backend.youtube.framework.ytdlpOptions import (
+    build_download_opts,
+    video_format_selector,
+)
 from backend.youtube.framework.ytdlpErrors import classify_ytdlp_error
 from backend.youtube.framework.ytdlpStrategies import YtdlpStrategy, build_strategies
 
@@ -32,8 +35,39 @@ def _create_youtube_dl(opts: dict[str, Any]) -> YoutubeDL:
 def _download_once(opts: dict[str, Any], youtube_url: str) -> int | None:
     """Close yt-dlp resources after each fresh extraction and media transfer."""
 
-    with _create_youtube_dl(opts=opts) as ydl:
-        return ydl.download([youtube_url])
+    # Each extraction needs independent catalogue state, including concurrent jobs.
+    attempt_opts = dict(opts)
+    adapter = YtdlpLogger()
+    attempt_opts["logger"] = adapter
+    rejected_incomplete: bool = False
+
+    if opts.get("merge_output_format") == "mp4":
+
+        def match_quality(info: dict[str, Any], *, incomplete: bool) -> str | None:
+            """Do not mistake filtered HD formats for a genuinely low-resolution source."""
+
+            nonlocal rejected_incomplete
+            height = info.get("height")
+            if (
+                not incomplete
+                and height is not None
+                and int(height) < 720
+                and adapter.incomplete_formats
+            ):
+                rejected_incomplete = True
+                return "HD formats were omitted by this client; refusing a degraded SD download"
+            return None
+
+        attempt_opts["match_filter"] = match_quality
+
+    with _create_youtube_dl(opts=attempt_opts) as ydl:
+        code = ydl.download([youtube_url])
+    if rejected_incomplete:
+        logger.warning(
+            "Client omitted HD formats; trying another client or retrying later"
+        )
+        return 1
+    return code
 
 
 def _get_duration_with_ffprobe(filepath: str) -> int | None:
@@ -71,7 +105,7 @@ def _log_downloaded_codecs(filepath: str) -> None:
             "-v",
             "error",
             "-show_entries",
-            "stream=codec_type,codec_name,profile,level",
+            "stream=codec_type,codec_name,profile,level,width,height,avg_frame_rate,bit_rate",
             "-of",
             "json",
             filepath,
@@ -93,6 +127,17 @@ def _log_downloaded_codecs(filepath: str) -> None:
             detail: str = codec_name
             profile: str = stream.get("profile") or ""
             level: Any = stream.get("level")
+            if codec_type == "video":
+                width = stream.get("width", 0)
+                height = stream.get("height", 0)
+                detail += (
+                    f" {width}x{height} {stream.get('avg_frame_rate', 'unknown')} fps"
+                )
+                if 0 < int(height) < 720:
+                    logger.warning(f"Downloaded video is below HD: {width}x{height}")
+            bitrate = stream.get("bit_rate")
+            if bitrate:
+                detail += f" {bitrate} bps"
             if profile:
                 detail += f" {profile}"
             if level is not None:
@@ -231,6 +276,7 @@ _FAILURE_RESULT_CODES: dict[YtdlpFailureEnum, int] = {
     YtdlpFailureEnum.UNAVAILABLE: AResultCode.NOT_FOUND,
     YtdlpFailureEnum.TRANSIENT: AResultCode.GENERAL_ERROR,
     YtdlpFailureEnum.UNKNOWN: AResultCode.GENERAL_ERROR,
+    YtdlpFailureEnum.FORMAT_UNAVAILABLE: AResultCode.GENERAL_ERROR,
 }
 
 
@@ -297,6 +343,39 @@ async def _download_with_strategies_async(
     output_path: str,
     filename: str,
 ) -> tuple[bool, YtdlpFailureEnum, str]:
+    """Try HD on every client before accepting a source available only in SD."""
+
+    if base_opts.get("merge_output_format") == "mp4":
+        hd_opts = dict(base_opts)
+        hd_opts["format"] = video_format_selector(minimum_height=720)
+        result = await _download_with_strategy_pass_async(
+            youtube_url=youtube_url,
+            base_opts=hd_opts,
+            output_path=output_path,
+            filename=filename,
+        )
+        if result[0] or result[1] != YtdlpFailureEnum.FORMAT_UNAVAILABLE:
+            return result
+        # A transfer failure is never permission to downgrade: only missing
+        # HD formats on every client permits a second pass for native SD.
+        logger.warning(
+            "No client exposed a compatible HD format; trying native source resolution"
+        )
+
+    return await _download_with_strategy_pass_async(
+        youtube_url=youtube_url,
+        base_opts=base_opts,
+        output_path=output_path,
+        filename=filename,
+    )
+
+
+async def _download_with_strategy_pass_async(
+    youtube_url: str,
+    base_opts: dict[str, Any],
+    output_path: str,
+    filename: str,
+) -> tuple[bool, YtdlpFailureEnum, str]:
     """Try each extraction strategy in turn until one of them downloads the media.
 
     Returns (succeeded, failure kind of the last attempt, last error message).
@@ -310,6 +389,7 @@ async def _download_with_strategies_async(
 
     last_kind: YtdlpFailureEnum = YtdlpFailureEnum.UNKNOWN
     last_error: str = "No strategy was attempted"
+    transfer_failure: tuple[YtdlpFailureEnum, str] | None = None
 
     for index, strategy in enumerate(strategies):
         _clean_partial_files(output_path=output_path, filename=filename)
@@ -332,6 +412,7 @@ async def _download_with_strategies_async(
                 logger.warning("yt-dlp returned a failed download status")
                 last_kind = YtdlpFailureEnum.UNKNOWN
                 last_error = "yt-dlp returned a failed download status"
+                transfer_failure = (last_kind, last_error)
                 continue
         except Exception as e:
             last_error = sanitize_ytdlp_message(message=str(e))
@@ -355,6 +436,9 @@ async def _download_with_strategies_async(
                 )
                 return False, last_kind, last_error
 
+            if last_kind != YtdlpFailureEnum.FORMAT_UNAVAILABLE:
+                transfer_failure = (last_kind, last_error)
+
             # Deliberately not recorded as a block against the gate: walking
             # the ladder is normal operation on a gated video, and counting
             # every rung let one unlucky song trip the circuit breaker on its
@@ -368,6 +452,8 @@ async def _download_with_strategies_async(
         logger.info(f"Strategy '{strategy.name}' succeeded for {youtube_url}")
         return True, YtdlpFailureEnum.UNKNOWN, ""
 
+    if transfer_failure is not None:
+        return False, transfer_failure[0], transfer_failure[1]
     return False, last_kind, last_error
 
 

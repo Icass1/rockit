@@ -94,7 +94,12 @@ def classify_ytdlp_error(error: BaseException | str) -> YtdlpFailureEnum:
 
     # An unavailable format is not evidence of an IP block. Another client
     # can still work, but this must not increment the global block streak.
-    if "requested format is not available" in message or "po token" in message:
+    if (
+        "requested format is not available" in message
+        or "no video formats found" in message
+    ):
+        return YtdlpFailureEnum.FORMAT_UNAVAILABLE
+    if "po token" in message:
         return YtdlpFailureEnum.UNKNOWN
 
     if _matches(message, _BLOCKED_PATTERNS):

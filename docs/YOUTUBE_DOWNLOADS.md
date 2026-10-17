@@ -82,6 +82,34 @@ Use `--strategy android_vr` or `--strategy web_safari` to investigate a fallback
 independently. Perform these checks on the actual deployment host: another
 network's success does not validate production egress.
 
+## Video quality
+
+MP4 downloads prefer the highest available compatible resolution up to 1080p,
+then frame rate and video bitrate. H.264/AAC remain preferred for Safari.
+Combined HLS formats and separate video/audio formats participate in the same
+comparison; a 360p video-only format must not beat a 1080p combined stream.
+Merging copies the source streams without resizing or re-encoding them.
+
+The downloader first asks every configured client for at least 720p. It only
+accepts a native SD source after every client reports that no matching HD format
+is available. SD is also rejected when YouTube reports omitted format URLs, a
+SABR-only catalogue, or formats skipped for missing tokens. Those warnings do
+not establish that the upload itself is limited to SD. An HD transfer error is retried or tried with another client;
+it does not silently become permission to download a 360p fallback. This can
+make a blocked HD source take longer or fail pending a retry rather than appear
+as a completed low-quality download.
+
+Final download diagnostics include width, height, frame rate and stream bitrate.
+A final resolution below 720p produces a warning. The diagnostic command also
+prints these fields after ffprobe validation. Resolution is limited by the
+upload: for example, `ktyhXq00RxQ` exposes at most 1280x720, while `obkrMiyDrbs`
+exposes 1920x1080 at 60 fps in the verified format catalogue.
+
+Changing the downloader does not upgrade existing library files. Use the media
+context menu's redownload action to replace a previously saved low-quality file
+after deploying the change. The video streaming endpoint serves the stored file
+bytes directly, so a saved 360p file remains 360p during playback.
+
 ## Fallback and retry policy
 
 With a configured provider the order is `mweb+pot`, `android_vr`, `web_safari`,

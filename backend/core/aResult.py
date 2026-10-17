@@ -13,6 +13,7 @@ class AResultCode:
     VALIDATION_ERROR = 0x7
     RATE_LIMITED = 0x8
     QUOTA_EXHAUSTED = 0x9
+    CONFIGURATION_ERROR = 0xA
 
     _code: int
     _message: str
@@ -58,6 +59,8 @@ class AResultCode:
             return 429
         if self._code == AResultCode.QUOTA_EXHAUSTED:
             return 429
+        if self._code == AResultCode.CONFIGURATION_ERROR:
+            return 503
 
         raise Exception(f"Code {self._code} not implemented")
 

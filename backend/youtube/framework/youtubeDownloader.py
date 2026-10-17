@@ -8,7 +8,6 @@ from typing import Any
 from yt_dlp import YoutubeDL
 
 from backend.constants import TEMP_PATH
-from backend.constants import YTDLP_RATE_LIMIT_BYTES
 from backend.core.access.db import rockit_db
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.access.downloadAccess import DownloadAccess
@@ -19,66 +18,22 @@ from backend.utils.logger import getLogger
 
 from backend.youtube.enums.ytdlpFailureEnum import YtdlpFailureEnum
 from backend.youtube.framework.youtubeGate import youtube_gate
+from backend.youtube.framework.potProvider import PotProvider
+from backend.youtube.utils.ytdlpLog import sanitize_ytdlp_message
+from backend.youtube.framework.ytdlpOptions import build_download_opts
 from backend.youtube.framework.ytdlpErrors import classify_ytdlp_error
 from backend.youtube.framework.ytdlpStrategies import YtdlpStrategy, build_strategies
 
 
-def _retry_sleep(n: int) -> int:
-    return 2 ** min(n, 5)
-
-
-# Options shared by every strategy. They exist to make our traffic look like a
-# person rather than a scraper: requests are spaced out, downloads start after a
-# random pause and throughput is capped. yt-dlp's own retry count is kept low on
-# purpose, because retrying into a 429 only lengthens the block. Backing off and
-# switching strategy is handled a level up, in _download_with_strategies_async.
-def _build_pacing_opts() -> dict[str, Any]:
-    """Build the throttling options applied to every yt-dlp invocation."""
-
-    opts: dict[str, Any] = {
-        "retries": 3,
-        "fragment_retries": 3,
-        "extractor_retries": 2,
-        "retry_sleep": _retry_sleep,
-        "socket_timeout": 30,
-        "sleep_interval_requests": 1,
-        "sleep_interval": 1,
-        "max_sleep_interval": 5,
-        # Deliberately no "user_agent": each InnerTube client ships its own, and
-        # overriding it globally leaves the User-Agent disagreeing with the
-        # client we claim to be, which is exactly what bot detection looks for.
-    }
-
-    if YTDLP_RATE_LIMIT_BYTES > 0:
-        opts["ratelimit"] = YTDLP_RATE_LIMIT_BYTES
-
-    return opts
-
-
-class _YtDlpLogger:
-    def debug(self, msg: str) -> None:
-        if msg.startswith("[debug]"):
-            logger.debug(msg)
-        else:
-            logger.info(f"[yt-dlp] {msg}")
-
-    def info(self, msg: str) -> None:
-        # Pacing chatter fires on every attempt and would bury the lines that
-        # actually explain a failure.
-        if "Sleeping" in msg:
-            logger.debug(f"[yt-dlp] {msg}")
-            return
-        logger.info(f"[yt-dlp] {msg}")
-
-    def warning(self, msg: str) -> None:
-        logger.warning(f"[yt-dlp] {msg}")
-
-    def error(self, msg: str) -> None:
-        logger.error(f"[yt-dlp] {msg}")
-
-
 def _create_youtube_dl(opts: dict[str, Any]) -> YoutubeDL:
     return YoutubeDL(opts)  # type: ignore[arg-type]
+
+
+def _download_once(opts: dict[str, Any], youtube_url: str) -> int | None:
+    """Close yt-dlp resources after each fresh extraction and media transfer."""
+
+    with _create_youtube_dl(opts=opts) as ydl:
+        return ydl.download([youtube_url])
 
 
 def _get_duration_with_ffprobe(filepath: str) -> int | None:
@@ -247,12 +202,16 @@ async def _download_with_candidates_async(
         last_kind = kind
         last_error = error
 
-        if kind not in (YtdlpFailureEnum.BLOCKED, YtdlpFailureEnum.UNAVAILABLE):
+        if kind not in (
+            YtdlpFailureEnum.BLOCKED,
+            YtdlpFailureEnum.UNAVAILABLE,
+            YtdlpFailureEnum.MEDIA_FORBIDDEN,
+        ):
             # A transient or unclassified error is not a reason to switch to a
             # different recording of the song; let the retry scheduler handle it.
             break
 
-    if last_kind == YtdlpFailureEnum.BLOCKED:
+    if last_kind in (YtdlpFailureEnum.BLOCKED, YtdlpFailureEnum.RATE_LIMITED):
         # One block per download that ran out of both candidates and
         # strategies. That is what "YouTube is refusing us" actually looks
         # like, as opposed to a single video being gated.
@@ -265,6 +224,9 @@ _FAILURE_RESULT_CODES: dict[YtdlpFailureEnum, int] = {
     # A block is temporary by nature: back off and let the retry scheduler take
     # another run at it later, ideally once the circuit breaker has closed.
     YtdlpFailureEnum.BLOCKED: AResultCode.RATE_LIMITED,
+    YtdlpFailureEnum.RATE_LIMITED: AResultCode.RATE_LIMITED,
+    YtdlpFailureEnum.MEDIA_FORBIDDEN: AResultCode.RATE_LIMITED,
+    YtdlpFailureEnum.CONFIGURATION: AResultCode.CONFIGURATION_ERROR,
     # Nothing we do will make a removed or geo-blocked video downloadable.
     YtdlpFailureEnum.UNAVAILABLE: AResultCode.NOT_FOUND,
     YtdlpFailureEnum.TRANSIENT: AResultCode.GENERAL_ERROR,
@@ -321,7 +283,7 @@ def _clean_partial_files(output_path: str, filename: str) -> None:
     """
 
     for f in os.listdir(output_path):
-        if not f.startswith(filename):
+        if not f.startswith(f"{filename}."):
             continue
         try:
             os.remove(os.path.join(output_path, f))
@@ -362,12 +324,17 @@ async def _download_with_strategies_async(
         )
 
         try:
-            await loop.run_in_executor(
+            code = await loop.run_in_executor(
                 None,
-                lambda o=opts: _create_youtube_dl(o).download([youtube_url]),
+                lambda o=opts: _download_once(opts=o, youtube_url=youtube_url),
             )
+            if code not in (None, 0):
+                logger.warning("yt-dlp returned a failed download status")
+                last_kind = YtdlpFailureEnum.UNKNOWN
+                last_error = "yt-dlp returned a failed download status"
+                continue
         except Exception as e:
-            last_error = str(e)
+            last_error = sanitize_ytdlp_message(message=str(e))
             last_kind = classify_ytdlp_error(error=e)
 
             if last_kind == YtdlpFailureEnum.UNAVAILABLE:
@@ -376,6 +343,15 @@ async def _download_with_strategies_async(
                 logger.warning(
                     f"{youtube_url} is unavailable, giving up after strategy "
                     f"'{strategy.name}': {last_error}"
+                )
+                return False, last_kind, last_error
+
+            if last_kind in (
+                YtdlpFailureEnum.RATE_LIMITED,
+                YtdlpFailureEnum.CONFIGURATION,
+            ):
+                logger.warning(
+                    f"Stopping strategy ladder ({last_kind.name}): {last_error}"
                 )
                 return False, last_kind, last_error
 
@@ -468,6 +444,15 @@ class YouTubeDownloader:
                 message=f"YouTube rate limited, retrying in {cooldown:.0f}s",
             )
 
+        provider_health = await PotProvider.check_health_async(max_age_seconds=60.0)
+        if provider_health.is_not_ok():
+            logger.error(
+                f"YouTube download prerequisites failed: {provider_health.message()}"
+            )
+            return AResult(
+                code=provider_health.code(), message=provider_health.message()
+            )
+
         async with rockit_db.session_scope_async() as session:
             a_result_row = await DownloadAccess.get_download_by_id(
                 session=session, download_id=download_id
@@ -486,51 +471,10 @@ class YouTubeDownloader:
 
         output_template: str = os.path.join(output_path, f"{filename}.%(ext)s")
 
-        expected_ext: str | None
-        if format_type == "mp3":
-            ydl_opts: dict[str, Any] = {
-                "format": "bestaudio/best",
-                "outtmpl": output_template,
-                "postprocessors": [
-                    {
-                        "key": "FFmpegExtractAudio",
-                        "preferredcodec": "mp3",
-                        "preferredquality": "192",
-                    }
-                ],
-                "quiet": True,
-                # yt-dlp routes report_warning() through this logger, and that
-                # is the only channel that carries PO token provider failures
-                # ("Error reaching GET /ping", version mismatches). Suppressing
-                # it made a broken provider look identical to a working one.
-                "logger": _YtDlpLogger(),
-                **_build_pacing_opts(),
-            }
-            expected_ext = "mp3"
-        else:
-            # Prefer H.264/AAC (avc1) for WebKit compatibility: iOS Safari/PWA
-            # cannot play VP9/Opus inside an MP4 container, which is what plain
-            # bestvideo picks for <=1080p. Falls back progressively when avc1
-            # is unavailable. faststart moves the moov atom to the front of the
-            # merged file, required by Safari for progressive/Range playback.
-            format_string: str = (
-                "bestvideo[height<=1080][vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
-                "bestvideo[height<=1080][vcodec^=avc1]+bestaudio/"
-                "best[height<=1080]/best"
-            )
-            ydl_opts = {
-                "format": format_string,
-                "merge_output_format": "mp4",
-                "postprocessor_args": {"merger": ["-movflags", "+faststart"]},
-                "outtmpl": output_template,
-                "logger": _YtDlpLogger(),
-                "ffmpeg_location": "/usr/bin",
-                **_build_pacing_opts(),
-                # Use node.js to solve YouTube's n-challenge and access DASH (1080p) formats.
-                "js_runtimes": {"node": {}},
-                "remote_components": ["ejs:github"],
-            }
-            expected_ext = "mp4"
+        ydl_opts = build_download_opts(
+            format_type=format_type, output_template=output_template
+        )
+        expected_ext = format_type
 
         loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
@@ -632,11 +576,20 @@ class YouTubeDownloader:
                     final_path = None
 
             if not final_path:
-                files = os.listdir(output_path)
-                matching = [f for f in files if f.startswith(filename)]
-                if matching:
-                    final_path = os.path.join(output_path, matching[0])
-                    final_filename = matching[0]
+                logger.error(
+                    "yt-dlp returned without producing the expected output file"
+                )
+                return await _fail_download_async(
+                    download_id=download_id,
+                    download_public_id=download_public_id,
+                    user_id=user_id,
+                    public_id=public_id,
+                    title=title,
+                    artist=artist,
+                    date_started=date_started,
+                    failure_kind=YtdlpFailureEnum.TRANSIENT,
+                    failure_message="Expected output file is missing after download",
+                )
 
             real_duration_ms: int | None = (
                 _get_duration_with_ffprobe(final_path) if final_path else None
@@ -655,8 +608,9 @@ class YouTubeDownloader:
             )
 
         except Exception as e:
-            logger.error(f"Error downloading YouTube video: {e}", exc_info=False)
-            logger.debug(f"Error downloading YouTube video: {e}", exc_info=True)
+            logger.error(
+                f"Error downloading YouTube video: {sanitize_ytdlp_message(message=str(e))}"
+            )
             return await _fail_download_async(
                 download_id=download_id,
                 download_public_id=download_public_id,
@@ -666,5 +620,5 @@ class YouTubeDownloader:
                 artist=artist,
                 date_started=date_started,
                 failure_kind=classify_ytdlp_error(error=e),
-                failure_message=str(e),
+                failure_message=sanitize_ytdlp_message(message=str(e)),
             )

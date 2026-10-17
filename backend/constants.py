@@ -140,7 +140,7 @@ YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 # --- YouTube download reliability -------------------------------------------
 # All of these are optional: with none of them set the downloader still works,
 # it just runs with the built-in defaults (no PO tokens, no proxies, no
-# cookies). See docs/youtube-downloads.md for the deployment guide.
+# cookies). See docs/YOUTUBE_DOWNLOADS.md for the deployment guide.
 
 # Base URL of a bgutil PO token provider (e.g. "http://bgutil-provider:4416").
 # Without it the PO-token strategies are skipped.
@@ -158,8 +158,7 @@ YTDLP_PROXIES = get_env_str_list_optional("YTDLP_PROXIES")
 # egress address out of a rate-limited one.
 YTDLP_SOURCE_ADDRESS = get_env_str_optional("YTDLP_SOURCE_ADDRESS")
 
-# Cap on download throughput in bytes/s (0 disables). Sustained full-speed
-# downloads are one of the clearest scraper signals.
+# Optional cap on download throughput in bytes/s (0 disables).
 YTDLP_RATE_LIMIT_BYTES = get_env_int_optional("YTDLP_RATE_LIMIT_BYTES", 0)
 
 # Minimum spacing between two YouTube extractions, in seconds. Jitter of up to
@@ -185,7 +184,10 @@ SESSION_COOKIE = "session_id"
 
 print("Environment variables loaded:")
 for key, value in env_vars.items():
-    print(f"{key}: {value}")
+    displayed_value = (
+        "[configured]" if key in ("YTDLP_PROXIES", "YTDLP_POT_PROVIDER_URL") else value
+    )
+    print(f"{key}: {displayed_value}")
 
 if error:
     exit()

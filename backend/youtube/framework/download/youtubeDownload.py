@@ -84,7 +84,7 @@ class YoutubeDownload(BaseDownload):
             if a_result_download.is_not_ok():
                 logger.error(f"Download failed: {a_result_download.message()}")
                 return AResultCode(
-                    code=AResultCode.GENERAL_ERROR,
+                    code=a_result_download.code(),
                     message=f"Download failed: {a_result_download.message()}",
                 )
 

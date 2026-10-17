@@ -155,3 +155,18 @@ class ImageAccess:
                 code=AResultCode.GENERAL_ERROR,
                 message="Error updating image dominant color",
             )
+
+    @staticmethod
+    @safe_async
+    async def get_images_by_ids_async(
+        session: AsyncSession, ids: list[int]
+    ) -> AResult[dict[int, ImageRow]]:
+        """Load images for a response batch without per-media queries."""
+        rows = (
+            (await session.execute(select(ImageRow).where(ImageRow.id.in_(ids))))
+            .scalars()
+            .all()
+        )
+        return AResult(
+            code=AResultCode.OK, message="OK", result={row.id: row for row in rows}
+        )

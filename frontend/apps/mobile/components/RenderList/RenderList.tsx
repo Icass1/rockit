@@ -1,12 +1,18 @@
 import { memo } from "react";
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
-import type { BaseArtistResponse, TMedia } from "@rockit/shared";
+import type {
+    BaseArtistResponse,
+    CollectionPager,
+    TMedia,
+} from "@rockit/shared";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Media } from "@/components/RenderList/Media";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { useVocabulary } from "@/lib/vocabulary";
+import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 interface RenderListProps {
     title: string;
@@ -19,6 +25,9 @@ interface RenderListProps {
     substractArtists?: string[];
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
+    pager: CollectionPager;
+    total?: number;
+    offset?: number;
 }
 
 export default memo(function RenderList({
@@ -31,67 +40,82 @@ export default memo(function RenderList({
     showMediaImage = true,
     substractArtists = [],
     listPublicId,
-    expandedByMediaId,
+    pager,
+    total,
 }: RenderListProps) {
+    const { vocabulary } = useVocabulary();
     const artistNames = artists.map((a) => a.name).join(", ");
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            <ScrollView
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-            >
-                <View style={styles.header}>
-                    <LinearGradient
-                        colors={[COLORS.bgCard, "transparent"]}
-                        style={styles.gradient}
-                    />
-                    <View style={styles.imageContainer}>
-                        <Image
-                            source={{ uri: imageUrl || PLACEHOLDER.playlist }}
-                            style={styles.coverImage}
-                            contentFit="cover"
-                        />
-                    </View>
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.title} numberOfLines={2}>
-                            {title}
-                        </Text>
-                        {artistNames && (
-                            <Text style={styles.artistText} numberOfLines={1}>
-                                {artistNames}
-                            </Text>
-                        )}
-                        {subtitle && (
-                            <Text
-                                style={styles.extraSubtitle}
-                                numberOfLines={1}
+            <VirtualCollectionList
+                pager={pager}
+                showMediaIndex={showMediaIndex}
+                showMediaImage={showMediaImage}
+                substractArtists={substractArtists}
+                header={
+                    <>
+                        <View style={styles.header}>
+                            <LinearGradient
+                                colors={[COLORS.bgCard, "transparent"]}
+                                style={styles.gradient}
+                            />
+                            <View style={styles.imageContainer}>
+                                <Image
+                                    source={{
+                                        uri: imageUrl || PLACEHOLDER.playlist,
+                                    }}
+                                    style={styles.coverImage}
+                                    contentFit="cover"
+                                />
+                            </View>
+                            <View style={styles.titleContainer}>
+                                <Text style={styles.title} numberOfLines={2}>
+                                    {title}
+                                </Text>
+                                {artistNames && (
+                                    <Text
+                                        style={styles.artistText}
+                                        numberOfLines={1}
+                                    >
+                                        {artistNames}
+                                    </Text>
+                                )}
+                                {subtitle && (
+                                    <Text
+                                        style={styles.extraSubtitle}
+                                        numberOfLines={1}
+                                    >
+                                        {subtitle}
+                                    </Text>
+                                )}
+                                <Text style={styles.mediaCount}>
+                                    {total ?? media.length}{" "}
+                                    {media.length === 1 ? "song" : "songs"}
+                                </Text>
+                            </View>
+                        </View>
+                        {listPublicId && (
+                            <Pressable
+                                accessibilityRole="button"
+                                onPress={() =>
+                                    void rockIt.queueManager.playCollection(
+                                        listPublicId
+                                    )
+                                }
+                                style={{
+                                    padding: 12,
+                                    alignItems: "center",
+                                }}
                             >
-                                {subtitle}
-                            </Text>
+                                <Text style={{ color: COLORS.accent }}>
+                                    {vocabulary.PLAY}
+                                </Text>
+                            </Pressable>
                         )}
-                        <Text style={styles.mediaCount}>
-                            {media.length}{" "}
-                            {media.length === 1 ? "song" : "songs"}
-                        </Text>
-                    </View>
-                </View>
-                <View style={styles.mediaContainer}>
-                    {media.map((item, index) => (
-                        <Media
-                            key={item.publicId}
-                            media={item}
-                            allMedia={media}
-                            index={index}
-                            showMediaIndex={showMediaIndex}
-                            showMediaImage={showMediaImage}
-                            substractArtists={substractArtists}
-                            listPublicId={listPublicId}
-                            expandedByMediaId={expandedByMediaId}
-                        />
-                    ))}
-                </View>
-            </ScrollView>
+                    </>
+                }
+            />
         </SafeAreaView>
     );
 });

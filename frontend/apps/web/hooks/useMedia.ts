@@ -5,7 +5,7 @@ import { isSearchResult, TMedia } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function useMedia<T extends TMedia>(media: T): T {
-    const [_media, setMedia] = useState<T>(media);
+    const [_media, setMedia] = useState({ source: media, value: media });
 
     useEffect((): (() => void) | undefined => {
         if (isSearchResult(media)) return;
@@ -18,7 +18,10 @@ export default function useMedia<T extends TMedia>(media: T): T {
             rockIt.mediaManager.getMedia(data.publicId).then((data): void => {
                 if (data.isOk()) {
                     if (data.result.media.type === media.type)
-                        setMedia(data.result.media as T);
+                        setMedia({
+                            source: media,
+                            value: data.result.media as T,
+                        });
                 } else {
                     console.error(
                         "Error gettting media",
@@ -41,5 +44,5 @@ export default function useMedia<T extends TMedia>(media: T): T {
         };
     }, [media]);
 
-    return _media;
+    return _media.source === media ? _media.value : media;
 }

@@ -1,6 +1,6 @@
 import re
 from logging import Logger
-from typing import List
+from typing import List, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -313,6 +313,19 @@ class YoutubeMusicProvider(BaseMediaProvider):
     JOIN   youtube_music.album  al    ON al.id    = t.album_id
     JOIN   core.media           cm_al ON cm_al.id = al.id
     JOIN   core.image           ai    ON ai.id    = al.image_id"""
+
+    def get_collection_provider_url(
+        self, metadata: dict[str, Any], media_type_key: int
+    ) -> str:
+        """Build a source link without loading collection contents."""
+        external_id = metadata.get("youtube_id")
+        if not external_id:
+            return ""
+        return (
+            f"https://music.youtube.com/browse/{external_id}"
+            if media_type_key == 2
+            else f"https://www.youtube.com/playlist?list={external_id}"
+        )
 
     def get_search_index_cte_fragment(self) -> str | None:
         from backend.core.enums.mediaTypeEnum import MediaTypeEnum

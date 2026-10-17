@@ -5,11 +5,11 @@ import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
+import type { CollectionPager } from "@rockit/shared";
 import { MoreHorizontal, Play } from "lucide-react";
 import {
     getAllPlayableMedia,
     getTotalDuration,
-    isQueueable,
     TListMedia,
     TMedia,
 } from "@/models/types/media";
@@ -17,7 +17,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import DurationToggle from "@/components/DurationToggle";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
-import { Media } from "@/components/RenderList/Media";
+import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 export default function RenderList({
     title,
@@ -28,8 +28,9 @@ export default function RenderList({
     showMediaIndex,
     showMediaImage,
     listPublicId,
-    expandedByMediaId,
     coverOverlay,
+    pager,
+    total,
 }: {
     title: string;
     artists: BaseArtistResponse[];
@@ -41,21 +42,17 @@ export default function RenderList({
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
     coverOverlay?: ReactNode;
+    pager: CollectionPager;
+    total?: number;
+    offset?: number;
 }): JSX.Element {
     const playableMedia = getAllPlayableMedia(media);
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const handlePlay = useCallback((): void => {
-        if (!listPublicId || !playableMedia.length) return;
-
-        rockIt.queueManager.setMedia(
-            playableMedia.filter(isQueueable),
-            listPublicId
-        );
-        rockIt.queueManager.setQueueMediaId();
-        rockIt.mediaPlayerManager.play();
-    }, [playableMedia, listPublicId]);
+        if (listPublicId) void rockIt.queueManager.playCollection(listPublicId);
+    }, [listPublicId]);
 
     return (
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 md:h-[calc(100vh-12rem)] md:grid-cols-[1fr_2fr] md:gap-20 md:px-8">
@@ -120,7 +117,7 @@ export default function RenderList({
                     />
                     <p className="flex items-center justify-center gap-2 text-center font-semibold text-balance text-neutral-400">
                         <span>
-                            {playableMedia.length}{" "}
+                            {total ?? playableMedia.length}{" "}
                             {playableMedia.length === 1 ? "song" : "songs"}
                         </span>
                         <DurationToggle durationMs={getTotalDuration(media)} />
@@ -129,21 +126,12 @@ export default function RenderList({
             </div>
             <div className="scroll-on-hover z-1 md:overflow-y-auto md:pr-4">
                 <div className="flex flex-col gap-2 py-4 md:py-16">
-                    {media.map((m, index): JSX.Element => (
-                        <Media
-                            key={m.publicId}
-                            index={index}
-                            media={m}
-                            allMedia={media}
-                            substractArtists={artists.map(
-                                (artist): string => artist.name
-                            )}
-                            showMediaImage={showMediaImage}
-                            showMediaIndex={showMediaIndex}
-                            listPublicId={listPublicId}
-                            expandedByMediaId={expandedByMediaId}
-                        />
-                    ))}
+                    <VirtualCollectionList
+                        pager={pager}
+                        showMediaIndex={showMediaIndex}
+                        showMediaImage={showMediaImage}
+                        substractArtists={artists.map((artist) => artist.name)}
+                    />
                     {media.length === 0 && (
                         <p className="text-center text-lg font-semibold text-balance text-neutral-400">
                             {$vocabulary.NO_MEDIA_FOUND}

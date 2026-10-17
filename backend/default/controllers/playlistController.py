@@ -1,6 +1,6 @@
 from logging import Logger
 from typing import List
-from fastapi import Depends, APIRouter, HTTPException, Request
+from fastapi import Depends, APIRouter, HTTPException, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -11,7 +11,6 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.access.db.ormModels.user import UserRow
-from backend.core.access.userAccess import UserAccess
 
 from backend.core.framework.core import Core
 from backend.core.framework.media.image import Image
@@ -26,7 +25,6 @@ from backend.default.framework.default import Default
 from backend.default.framework.playlist import Playlist
 from backend.default.framework.models.playlist import (
     PlaylistModel,
-    PlaylistWithDetailsModel,
     PlaylistMediaAddModel,
     PlaylistContributorAddModel,
 )
@@ -172,7 +170,11 @@ async def get_user_playlists_async(
 
 @router.get("/{playlist_public_id}", response_model=BasePlaylistWithMediasResponse)
 async def get_default_playlist_async(
-    request: Request, playlist_public_id: str
+    request: Request,
+    playlist_public_id: str,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    query: str = Query(default="", max_length=200),
 ) -> BasePlaylistWithMediasResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     user = AuthMiddleware.get_current_user(request)
@@ -180,52 +182,18 @@ async def get_default_playlist_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[PlaylistWithDetailsModel] = await Playlist.get_playlist_async(
-        session=session, playlist_public_id=playlist_public_id, user_id=user.result().id
+    result = await Playlist.get_paged_response_async(
+        session=session,
+        public_id=playlist_public_id,
+        user_id=user.result().id,
+        offset=offset,
+        limit=limit,
+        query=query,
     )
-    if a_result.is_not_ok():
-        logger.error(f"Error getting playlist. {a_result.info()}")
-        raise HTTPException(
-            status_code=a_result.get_http_code(), detail=a_result.message()
-        )
-
-    playlist: PlaylistWithDetailsModel = a_result.result()
-
-    a_result_owner = await UserAccess.get_user_from_id(
-        session=session, user_id=playlist.owner_id
-    )
-
-    if a_result_owner.is_not_ok():
-        logger.error(f"Error getting user owner of playlist. {a_result_owner.info()}")
-        raise HTTPException(
-            status_code=a_result_owner.get_http_code(), detail=a_result_owner.message()
-        )
-
-    owner_user: UserRow = a_result_owner.result()
-
-    a_result_response: AResult[BasePlaylistWithMediasResponse] = (
-        await Playlist.build_playlist_response_async(
-            session=session,
-            playlist=playlist,
-            owner=BaseArtistResponse(
-                provider=Core.provider_name,
-                publicId=owner_user.public_id,
-                url=f"/user/{owner_user.public_id}",
-                providerUrl="",
-                name=owner_user.username,
-                imageUrl=Image.get_internal_image_url(owner_user.image),
-                dominantColor=owner_user.image.dominant_color,
-            ),
-            user_id=user.result().id,
-        )
-    )
-    if a_result_response.is_not_ok():
-        logger.error(f"Error building playlist response. {a_result_response.info()}")
-        raise HTTPException(
-            status_code=a_result_response.get_http_code(),
-            detail=a_result_response.message(),
-        )
-    return a_result_response.result()
+    if result.is_not_ok():
+        logger.error(f"Error loading default playlist. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.patch("/{playlist_public_id}", response_model=BasePlaylistWithMediasResponse)
@@ -252,76 +220,13 @@ async def update_playlist_async(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    playlist: PlaylistModel = a_result.result()
-    a_result_medias: AResult[PlaylistWithDetailsModel] = (
-        await Playlist.get_playlist_async(
-            session=session,
-            playlist_public_id=playlist_public_id,
-            user_id=user.result().id,
-        )
+    result = await Playlist.get_paged_response_async(
+        session=session, public_id=playlist_public_id, user_id=user.result().id
     )
-    if a_result_medias.is_ok():
-        playlist_details: PlaylistWithDetailsModel = a_result_medias.result()
-        a_result_owner = await UserAccess.get_user_from_id(
-            session=session, user_id=playlist_details.owner_id
-        )
-
-        if a_result_owner.is_not_ok():
-            logger.error(f"Error getting owner for playlist. {a_result_owner.info()}")
-            raise HTTPException(
-                status_code=a_result_owner.get_http_code(),
-                detail=a_result_owner.message(),
-            )
-
-        owner_user: UserRow = a_result_owner.result()
-
-        a_result_response: AResult[BasePlaylistWithMediasResponse] = (
-            await Playlist.build_playlist_response_async(
-                session=session,
-                playlist=playlist_details,
-                owner=BaseArtistResponse(
-                    provider=Core.provider_name,
-                    publicId=owner_user.public_id,
-                    url=f"/user/{owner_user.public_id}",
-                    providerUrl="",
-                    name=owner_user.username,
-                    imageUrl=Image.get_internal_image_url(owner_user.image),
-                    dominantColor=owner_user.image.dominant_color,
-                ),
-                user_id=user.result().id,
-            )
-        )
-        if a_result_response.is_not_ok():
-            logger.error(
-                f"Error building playlist response. {a_result_response.info()}"
-            )
-            raise HTTPException(
-                status_code=a_result_response.get_http_code(),
-                detail=a_result_response.message(),
-            )
-        return a_result_response.result()
-
-    return BasePlaylistWithMediasResponse(
-        type="playlist",
-        description=playlist.description,
-        provider=Default.provider_name,
-        publicId=playlist.public_id,
-        url=f"/playlist/{playlist.public_id}",
-        providerUrl="",
-        name=playlist.name,
-        medias=[],
-        contributors=[],
-        imageUrl=playlist.image_url,
-        owner=BaseArtistResponse(
-            provider=Core.provider_name,
-            publicId=user.result().public_id,
-            url=f"/user/{user.result().public_id}",
-            providerUrl="",
-            name=user.result().username,
-            imageUrl=Image.get_internal_image_url(user.result().image),
-            dominantColor=user.result().image.dominant_color,
-        ),
-    )
+    if result.is_not_ok():
+        logger.error(f"Error loading updated playlist. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.delete("/{playlist_public_id}", response_model=OkResponse)
@@ -368,22 +273,6 @@ async def add_media_to_playlist_async(
         logger.error(f"Error adding media to playlist. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(), detail=a_result.message()
-        )
-
-    a_result_playlist: AResult[PlaylistWithDetailsModel] = (
-        await Playlist.get_playlist_async(
-            session=session,
-            playlist_public_id=playlist_public_id,
-            user_id=user.result().id,
-        )
-    )
-    if a_result_playlist.is_not_ok():
-        logger.error(
-            f"Error getting playlist after adding media. {a_result_playlist.info()}"
-        )
-        raise HTTPException(
-            status_code=a_result_playlist.get_http_code(),
-            detail=a_result_playlist.message(),
         )
 
     return OkResponse()

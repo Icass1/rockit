@@ -85,52 +85,26 @@ def _cookies_available() -> bool:
 def build_strategies() -> list[YtdlpStrategy]:
     """Build the ordered ladder of extraction strategies for this deployment.
 
-    Ordered cheapest and least detectable first. Each rung is only included when
-    its prerequisites are configured, so a bare deployment still gets the two
-    PO-token-free clients.
+    Prefer token-backed mweb when configured, then use supported fallbacks.
     """
 
-    strategies: list[YtdlpStrategy] = [
-        # ANDROID_VR needs neither a PO token nor the JS player, which makes it
-        # both the fastest and the least likely to be challenged. It cannot see
-        # "made for kids" videos, hence the fallbacks below.
-        YtdlpStrategy(
-            name="android_vr",
-            youtube_args={"player_client": ["android_vr"]},
-        ),
-        # The iOS client's formats are gated behind a GVS PO token, but the gate
-        # lifts when a player token is present and the formats are usable often
-        # enough to be worth trying before we reach for heavier machinery.
-        YtdlpStrategy(
-            name="ios",
-            youtube_args={
-                "player_client": ["ios"],
-                "formats": ["missing_pot"],
-            },
-        ),
-    ]
-
+    strategies: list[YtdlpStrategy] = []
     if _pot_provider_available():
-        # With a provider we can mint real PO tokens, which unlocks the web and
-        # TV clients: the ones YouTube itself considers first-class.
         strategies.append(
             YtdlpStrategy(
-                name="web_safari+pot",
-                youtube_args={
-                    "player_client": ["web_safari"],
-                    "fetch_pot": ["always"],
-                },
+                name="mweb+pot",
+                youtube_args={"player_client": ["mweb"], "fetch_pot": ["always"]},
             )
         )
-        strategies.append(
-            YtdlpStrategy(
-                name="tv_simply+pot",
-                youtube_args={
-                    "player_client": ["tv_simply"],
-                    "fetch_pot": ["always"],
-                },
-            )
-        )
+
+    strategies.append(
+        YtdlpStrategy(name="android_vr", youtube_args={"player_client": ["android_vr"]})
+    )
+    # Safari HLS is a useful fallback. Let yt-dlp skip formats requiring a
+    # missing token rather than forcing them into the format selection.
+    strategies.append(
+        YtdlpStrategy(name="web_safari", youtube_args={"player_client": ["web_safari"]})
+    )
 
     if _cookies_available():
         # Authenticated clients survive longer per request but burn the account
@@ -144,8 +118,7 @@ def build_strategies() -> list[YtdlpStrategy]:
         )
 
     if youtube_gate.has_proxies():
-        # Last resort: same clients, different exit IP. Our address is the thing
-        # YouTube rate limits, so changing it is the one lever that always helps.
+        # Optional alternative transport; a proxy does not guarantee success.
         strategies.append(
             YtdlpStrategy(
                 name="android_vr+proxy",
@@ -153,16 +126,14 @@ def build_strategies() -> list[YtdlpStrategy]:
                 use_proxy=True,
             )
         )
-        strategies.append(
-            YtdlpStrategy(
-                name="ios+proxy",
-                youtube_args={
-                    "player_client": ["ios"],
-                    "formats": ["missing_pot"],
-                },
-                use_proxy=True,
+        if _pot_provider_available():
+            strategies.append(
+                YtdlpStrategy(
+                    name="mweb+pot+proxy",
+                    youtube_args={"player_client": ["mweb"], "fetch_pot": ["always"]},
+                    use_proxy=True,
+                )
             )
-        )
 
     logger.debug(f"yt-dlp strategy ladder: {', '.join(s.name for s in strategies)}")
     return strategies

@@ -3,6 +3,7 @@ import re
 from backend.utils.logger import getLogger
 
 from backend.youtube.enums.ytdlpFailureEnum import YtdlpFailureEnum
+from backend.youtube.utils.ytdlpLog import sanitize_ytdlp_message
 
 logger = getLogger(__name__)
 
@@ -10,20 +11,15 @@ logger = getLogger(__name__)
 # Ordered most specific first. yt-dlp wraps everything in DownloadError, so the
 # message text is the only thing we can reliably classify on.
 _BLOCKED_PATTERNS: list[str] = [
-    r"http error 429",
-    r"too many requests",
     r"sign in to confirm you.?re not a bot",
     r"confirm you.?re not a bot",
     r"this helps protect our community",
-    r"http error 403",
     r"unable to download api page",
     r"the following content is not available on this app",
-    r"requested format is not available",
     r"only images are available",
     r"failed to extract any player response",
     r"unable to extract (?:yt initial data|player)",
     r"missing a url",
-    r"po token",
     r"the page needs to be reloaded",
     r"fragment .* not found",
 ]
@@ -77,11 +73,34 @@ def classify_ytdlp_error(error: BaseException | str) -> YtdlpFailureEnum:
     if _matches(message, _UNAVAILABLE_PATTERNS):
         return YtdlpFailureEnum.UNAVAILABLE
 
-    if _matches(message, _BLOCKED_PATTERNS):
-        return YtdlpFailureEnum.BLOCKED
+    if _matches(message, [r"http error 429", r"too many requests"]):
+        return YtdlpFailureEnum.RATE_LIMITED
+
+    if _matches(
+        message,
+        [
+            r"po token provider.*(?:not installed|mismatch)",
+            r"no supported javascript runtime",
+            r"challenge solver.*not installed",
+        ],
+    ):
+        return YtdlpFailureEnum.CONFIGURATION
+
+    if "http error 403" in message:
+        return YtdlpFailureEnum.MEDIA_FORBIDDEN
 
     if _matches(message, _TRANSIENT_PATTERNS):
         return YtdlpFailureEnum.TRANSIENT
 
-    logger.warning(f"Unclassified yt-dlp error, treating as unknown: {message[:300]}")
+    # An unavailable format is not evidence of an IP block. Another client
+    # can still work, but this must not increment the global block streak.
+    if "requested format is not available" in message or "po token" in message:
+        return YtdlpFailureEnum.UNKNOWN
+
+    if _matches(message, _BLOCKED_PATTERNS):
+        return YtdlpFailureEnum.BLOCKED
+
+    logger.warning(
+        f"Unclassified yt-dlp error, treating as unknown: {sanitize_ytdlp_message(message=message[:300])}"
+    )
     return YtdlpFailureEnum.UNKNOWN

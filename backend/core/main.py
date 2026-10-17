@@ -110,9 +110,10 @@ async def app_startup():
 
     await rockit_db.wait_for_session_local_async()
 
-    # Reports its own failures. A broken PO token provider does not stop the
-    # backend, it just means downloads fall back to the PO-token-free clients.
-    await PotProvider.check_health_async()
+    # Keep the API available when download prerequisites need operator action.
+    a_result_provider = await PotProvider.check_health_async()
+    if a_result_provider.is_not_ok():
+        logger.error(f"YouTube downloader is not ready: {a_result_provider.message()}")
 
     asyncio.create_task(downloads_manager.download_manager(), name="Download Manager")
     # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")

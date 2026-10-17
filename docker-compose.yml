@@ -7,6 +7,10 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.backend
+            args:
+                ROCKIT_BUILD_REVISION: ${ROCKIT_BUILD_REVISION:-unknown}
+        environment:
+            YTDLP_POT_PROVIDER_URL: http://pot-provider:4416
         restart: unless-stopped
         volumes:
             - ./media:/app/media
@@ -32,7 +36,7 @@ services:
         # backend/requirements.txt. The plugin refuses to run against a server
         # on a different major version, so :latest would silently disable PO
         # tokens the next time upstream bumps it. Bump both together.
-        image: brainicism/bgutil-ytdlp-pot-provider:1.3.2
+        image: brainicism/bgutil-ytdlp-pot-provider:2.0.2
         init: true
         restart: unless-stopped
         networks:

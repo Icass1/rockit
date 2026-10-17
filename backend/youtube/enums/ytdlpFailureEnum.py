@@ -4,9 +4,7 @@ from enum import Enum
 class YtdlpFailureEnum(Enum):
     """Why a yt-dlp extraction attempt failed, from the caller's point of view."""
 
-    # YouTube throttled or challenged us: 429, "sign in to confirm you're not a
-    # bot", 403 on the media host, or a client whose formats were all gated
-    # behind a PO token. Another strategy or another IP may still work.
+    # YouTube issued an explicit bot challenge or refused the player response.
     BLOCKED = 1
 
     # The video itself cannot be downloaded by anyone: removed, private,
@@ -18,3 +16,12 @@ class YtdlpFailureEnum(Enum):
 
     # Anything we could not classify.
     UNKNOWN = 4
+
+    # Explicit server throttling, distinct from a refused media URL.
+    RATE_LIMITED = 5
+
+    # A media transfer was refused; tokens or client support may be at fault.
+    MEDIA_FORBIDDEN = 6
+
+    # Operator action is required; automatic retries cannot repair the setup.
+    CONFIGURATION = 7

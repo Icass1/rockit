@@ -25,3 +25,6 @@ class YtdlpFailureEnum(Enum):
 
     # Operator action is required; automatic retries cannot repair the setup.
     CONFIGURATION = 7
+
+    # This client does not expose a format matching the requested quality.
+    FORMAT_UNAVAILABLE = 8

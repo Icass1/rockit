@@ -14,6 +14,11 @@ def sanitize_ytdlp_message(message: str) -> str:
 class YtdlpLogger:
     """Keep operational diagnostics without dumping yt-dlp's sensitive debug output."""
 
+    def __init__(self) -> None:
+        """Track warnings that indicate an incomplete format catalogue."""
+
+        self.incomplete_formats: bool = False
+
     def debug(self, msg: str) -> None:
         """Expose provider discovery, while discarding verbose headers and URLs."""
 
@@ -33,6 +38,13 @@ class YtdlpLogger:
     def warning(self, msg: str) -> None:
         """Report sanitized extractor and provider warnings."""
 
+        message = msg.lower()
+        if (
+            "sabr-only" in message
+            or ("formats" in message and "missing a url" in message)
+            or ("formats" in message and "po token" in message and "skipped" in message)
+        ):
+            self.incomplete_formats = True
         logger.warning(f"[yt-dlp] {sanitize_ytdlp_message(message=msg)}")
 
     def error(self, msg: str) -> None:

@@ -3,7 +3,7 @@
 from contextlib import nullcontext
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
@@ -13,7 +13,11 @@ from backend.core.aResult import AResult, AResultCode
 from backend.youtube.enums.ytdlpFailureEnum import YtdlpFailureEnum
 from backend.youtube.framework import potProvider, ytdlpStrategies, youtubeDownloader
 from backend.youtube.framework.ytdlpErrors import classify_ytdlp_error
-from backend.youtube.framework.ytdlpOptions import build_download_opts
+from backend.youtube.framework.ytdlpOptions import (
+    build_download_opts,
+    video_format_selector,
+)
+from yt_dlp import YoutubeDL
 from backend.youtube.utils.ytdlpLog import YtdlpLogger, sanitize_ytdlp_message
 from backend.youtube.framework.download.youtubeDownload import YoutubeDownload
 from backend.spotify.framework.download.spotifyDownload import SpotifyDownload
@@ -61,7 +65,7 @@ def test_audio_and_video_share_installed_js_solver(format_type: str) -> None:
         ("HTTP Error 429: Too Many Requests", YtdlpFailureEnum.RATE_LIMITED),
         ("Sign in to confirm you're not a bot", YtdlpFailureEnum.BLOCKED),
         ("Private video: HTTP Error 403", YtdlpFailureEnum.UNAVAILABLE),
-        ("Requested format is not available", YtdlpFailureEnum.UNKNOWN),
+        ("Requested format is not available", YtdlpFailureEnum.FORMAT_UNAVAILABLE),
         ("PO token provider version mismatch", YtdlpFailureEnum.CONFIGURATION),
         ("Connection reset", YtdlpFailureEnum.TRANSIENT),
     ],
@@ -367,3 +371,154 @@ def test_logger_preserves_provider_diagnostics_without_verbose_secrets(
     )
     assert log.info.call_count == 2
     assert "Generating a gvs PO Token" in log.info.call_args.args[0]
+
+
+@pytest.mark.parametrize("combined,low_quality_rank", [(True, 0), (False, 20)])
+def test_format_selection_prefers_hd_over_low_resolution_video_only(
+    combined: bool,
+    low_quality_rank: int,
+) -> None:
+    opts = build_download_opts(format_type="mp4", output_template="unused.%(ext)s")
+    opts["logger"] = Mock()
+    formats: list[dict[str, Any]] = [
+        {
+            "format_id": "low",
+            "url": "https://example.invalid/low.mp4",
+            "ext": "mp4",
+            "vcodec": "avc1.4d401e",
+            "acodec": "none",
+            "width": 640,
+            "height": 360,
+            "fps": 30,
+            "quality": low_quality_rank,
+        },
+        {
+            "format_id": "hd",
+            "url": "https://example.invalid/hd.mp4",
+            "ext": "mp4",
+            "vcodec": "avc1.64002a",
+            "acodec": "mp4a.40.2" if combined else "none",
+            "width": 1920,
+            "height": 1080,
+            "fps": 60,
+            "quality": 0,
+        },
+        {
+            "format_id": "audio",
+            "url": "https://example.invalid/audio.m4a",
+            "ext": "m4a",
+            "vcodec": "none",
+            "acodec": "mp4a.40.2",
+            "abr": 128,
+        },
+    ]
+    with YoutubeDL(opts) as ydl:  # type: ignore[arg-type]
+        info = cast(
+            dict[str, Any],
+            ydl.process_ie_result(
+                {"id": "sample", "title": "Sample", "formats": formats}, download=False
+            ),
+        )
+    assert info["width"] == 1920 and info["height"] == 1080
+    assert info["format_id"] == ("hd" if combined else "hd+audio")
+
+
+@pytest.mark.parametrize("hd_available", [True, False])
+async def test_sd_requires_exhausting_hd_clients(
+    monkeypatch: pytest.MonkeyPatch,
+    hd_available: bool,
+) -> None:
+    result = (True, YtdlpFailureEnum.UNKNOWN, "")
+    run_pass = AsyncMock(
+        side_effect=(
+            [result]
+            if hd_available
+            else [
+                (False, YtdlpFailureEnum.FORMAT_UNAVAILABLE, "No HD format"),
+                result,
+            ]
+        )
+    )
+    monkeypatch.setattr(
+        youtubeDownloader, "_download_with_strategy_pass_async", run_pass
+    )
+    base = build_download_opts(format_type="mp4", output_template="unused.%(ext)s")
+    downloaded = await youtubeDownloader._download_with_strategies_async(  # pyright: ignore[reportPrivateUsage]
+        youtube_url="video",
+        base_opts=base,
+        output_path="unused",
+        filename="sample",
+    )
+    assert downloaded[0]
+    assert run_pass.call_args_list[0].kwargs["base_opts"][
+        "format"
+    ] == video_format_selector(minimum_height=720)
+    assert run_pass.await_count == (1 if hd_available else 2)
+    if not hd_available:
+        assert (
+            run_pass.call_args_list[1].kwargs["base_opts"]["format"]
+            == video_format_selector()
+        )
+
+
+async def test_hd_transfer_error_is_not_downgraded_after_missing_formats(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        youtubeDownloader,
+        "build_strategies",
+        lambda: [
+            ytdlpStrategies.YtdlpStrategy(name="hd"),
+            ytdlpStrategies.YtdlpStrategy(name="sd-only"),
+        ],
+    )
+    monkeypatch.setattr(youtubeDownloader.youtube_gate, "pace_async", AsyncMock())
+    transfer = Mock(
+        side_effect=[
+            RuntimeError("HTTP Error 403: Forbidden"),
+            RuntimeError("Requested format is not available"),
+        ]
+    )
+    monkeypatch.setattr(youtubeDownloader, "_download_once", transfer)
+    result = await youtubeDownloader._download_with_strategies_async(  # pyright: ignore[reportPrivateUsage]
+        youtube_url="video",
+        base_opts=build_download_opts(
+            format_type="mp4", output_template="unused.%(ext)s"
+        ),
+        output_path=str(tmp_path),
+        filename="sample",
+    )
+    assert not result[0] and result[1] == YtdlpFailureEnum.MEDIA_FORBIDDEN
+    assert transfer.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "height,incomplete_catalogue,expected",
+    [(360, True, 1), (1080, True, 0), (360, False, 0)],
+)
+def test_filtered_hd_formats_cannot_silently_become_sd_success(
+    monkeypatch: pytest.MonkeyPatch,
+    height: int,
+    incomplete_catalogue: bool,
+    expected: int,
+) -> None:
+    def create(opts: dict[str, Any]) -> nullcontext[SimpleNamespace]:
+        def download(urls: list[str]) -> int:
+            if incomplete_catalogue:
+                opts["logger"].warning(
+                    "Some mweb client https formats have been skipped as they are missing a URL. SABR-only streaming experiment"
+                )
+            assert opts["match_filter"]({"height": height}, incomplete=True) is None
+            rejected = opts["match_filter"]({"height": height}, incomplete=False)
+            assert (rejected is not None) == (expected == 1)
+            return 0
+
+        return nullcontext(SimpleNamespace(download=download))
+
+    monkeypatch.setattr(youtubeDownloader, "_create_youtube_dl", create)
+    result = youtubeDownloader._download_once(  # pyright: ignore[reportPrivateUsage]
+        opts=build_download_opts(format_type="mp4", output_template="unused.%(ext)s"),
+        youtube_url="video",
+    )
+    assert result == expected

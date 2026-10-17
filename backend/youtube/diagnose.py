@@ -60,7 +60,7 @@ async def diagnose_async(
                         "-v",
                         "error",
                         "-show_entries",
-                        "format=duration:stream=codec_type,codec_name",
+                        "format=duration:stream=codec_type,codec_name,width,height,avg_frame_rate,bit_rate",
                         "-of",
                         "json",
                         str(output),

@@ -35,6 +35,19 @@ def _build_pacing_opts() -> dict[str, Any]:
     return opts
 
 
+def video_format_selector(minimum_height: int = 0) -> str:
+    """Prefer the highest compatible resolution, including combined HLS streams."""
+
+    height_filter = "[height<=1080]"
+    if minimum_height > 0:
+        height_filter += f"[height>={minimum_height}]"
+    return (
+        f"bestvideo*{height_filter}[vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
+        f"bestvideo*{height_filter}[vcodec^=avc1]+bestaudio/"
+        f"best{height_filter}[ext=mp4]"
+    )
+
+
 def build_download_opts(format_type: str, output_template: str) -> dict[str, Any]:
     """Build identical extraction and runtime options for jobs and smoke checks."""
 
@@ -58,18 +71,12 @@ def build_download_opts(format_type: str, output_template: str) -> dict[str, Any
             **_build_pacing_opts(),
         }
     else:
-        # Prefer H.264/AAC (avc1) for WebKit compatibility: iOS Safari/PWA
-        # cannot play VP9/Opus inside an MP4 container, which is what plain
-        # bestvideo picks for <=1080p. Falls back progressively when avc1
-        # is unavailable. faststart moves the moov atom to the front of the
-        # merged file, required by Safari for progressive/Range playback.
-        format_string: str = (
-            "bestvideo[height<=1080][vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
-            "bestvideo[height<=1080][vcodec^=avc1]+bestaudio/"
-            "best[height<=1080]/best"
-        )
+        # Include muxed HLS video in the comparison: a low-resolution
+        # video-only format must not beat a higher-resolution combined stream.
         ydl_opts = {
-            "format": format_string,
+            "format": video_format_selector(),
+            "format_sort": ["res:1080", "fps", "vbr", "abr"],
+            "format_sort_force": True,
             "merge_output_format": "mp4",
             "postprocessor_args": {"merger": ["-movflags", "+faststart"]},
             "outtmpl": output_template,

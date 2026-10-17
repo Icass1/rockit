@@ -12,14 +12,6 @@ import { resolveOfflineAudioUrl } from "@/lib/offline/store";
 
 let _visibilityBound = false;
 
-/*
- * Audio URLs already sent to the service worker cache this session.
- * The warm-up is a plain full fetch (no Range header): the SW caches the
- * 200 response, so later <audio> Range requests are served from cache —
- * including when offline. See the "rockit-audio" route in app/sw.ts.
- */
-const _warmedAudioUrls = new Set<string>();
-
 /**
  * Web media player: implements the shared BaseMediaPlayerManager primitives
  * against HTML <audio>/<video> elements. All playback/queue orchestration lives
@@ -51,7 +43,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (MediaPlayerManager.#instance) return MediaPlayerManager.#instance;
 
         this._audio = new Audio();
-        this._audio.preload = "auto";
+        this._audio.preload = "metadata";
 
         this._audio.onplaying = this.onNativePlaying;
         this._audio.onpause = this.onNativePaused;
@@ -81,7 +73,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audio.onerror = (e): void => this.onNativeError(e);
 
         this._video = document.createElement("video");
-        this._video.preload = "auto";
+        this._video.preload = "metadata";
         this._video.setAttribute("playsInline", "");
         this._video.setAttribute("webkit-playsinline", "");
 
@@ -109,7 +101,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.onerror = (e): void => this.onNativeError(e);
 
         this._preloadAudio = new Audio();
-        this._preloadAudio.preload = "auto";
+        this._preloadAudio.preload = "metadata";
         this._preloadAudio.muted = true;
         this._preloadAudio.volume = 0;
 
@@ -132,28 +124,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     // ===== Offline URI resolution =====
 
-    /**
-     * Fire-and-forget full fetch so the service worker caches the complete
-     * audio file while the current one streams. Only full 200 responses are
-     * cacheable, which is why the warm-up must omit the Range header.
-     */
-    private _warmNetworkAudioCache(uri: string | undefined): void {
-        if (!uri || _warmedAudioUrls.has(uri)) return;
-
-        _warmedAudioUrls.add(uri);
-        // Media element requests carry cookies even when cross-origin;
-        // the warm-up must match them so both hit the same cache entry.
-        fetch(uri, { credentials: "include" })
-            .then((response): void => {
-                // Non-OK statuses (401/404/500...) must not count as warmed.
-                if (!response.ok) throw new Error(String(response.status));
-            })
-            .catch((): void => {
-                // Allow retrying on the next play if the warm-up failed.
-                _warmedAudioUrls.delete(uri);
-            });
-    }
-
     protected override async resolveMediaUriAsync(
         media: TPlayableMedia,
         kind: TMediaKind
@@ -162,11 +132,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             const offlineUrl = await resolveOfflineAudioUrl(media.publicId);
             if (offlineUrl) return offlineUrl;
 
-            // Do NOT warm the network cache here: the full-file fetch would
-            // compete with the streaming <audio> element for bandwidth and
-            // cause underruns (audible stutter) on weak connections. The
-            // warm-up is deferred until playback has started (see
-            // _onPlayingStarted/_scheduleCurrentWarmUp).
             return getMediaAudioUrl(media);
         }
 
@@ -281,26 +246,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     protected override _onPlayingStarted(): void {
         if (typeof document !== "undefined" && document.hidden) return;
         void this.preloadNextTrack();
-        this._scheduleCurrentWarmUp();
-    }
-
-    /**
-     * Defers the service-worker audio warm-up until after the current song is
-     * actually playing. Warming the full file while the <audio> element is
-     * still streaming competes for the same bandwidth and causes audible
-     * underruns on weak connections, so we let the stream start first and only
-     * cache the rest once playback is stable.
-     */
-    private _scheduleCurrentWarmUp(): void {
-        const current = getRockIt().queueManager.currentMedia;
-        if (!current || !isSong(current)) return;
-
-        const uri = getMediaAudioUrl(current);
-        if (!uri || _warmedAudioUrls.has(uri)) return;
-
-        window.setTimeout((): void => {
-            this._warmNetworkAudioCache(uri);
-        }, 1500);
     }
 
     async preloadNextTrack(): Promise<void> {

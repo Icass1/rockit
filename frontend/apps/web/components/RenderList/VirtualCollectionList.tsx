@@ -201,9 +201,13 @@ export default function VirtualCollectionList({
         if (parent)
             parent.scrollTop += layout.anchorDelta(previous, viewport.offset);
     }, [layout, viewport.offset]);
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!root.current) return;
-        const observer = new ResizeObserver((entries) => {
+        const measure = (elements: Iterable<HTMLElement>): void => {
+            const measurements = Array.from(elements, (element) => ({
+                key: element.dataset.rowKey,
+                height: element.getBoundingClientRect().height,
+            }));
             setHeights((previous) => {
                 let next = previous;
                 if (previous.size > rows.length * 2 + 1000) {
@@ -212,9 +216,7 @@ export default function VirtualCollectionList({
                         [...previous].filter(([key]) => keys.has(key))
                     );
                 }
-                for (const entry of entries) {
-                    const key = (entry.target as HTMLElement).dataset.rowKey;
-                    const height = entry.target.getBoundingClientRect().height;
+                for (const { key, height } of measurements) {
                     if (
                         key &&
                         height > 0 &&
@@ -226,11 +228,16 @@ export default function VirtualCollectionList({
                 }
                 return next;
             });
-        });
-        for (const element of root.current.querySelectorAll<HTMLElement>(
+        };
+        const elements = root.current.querySelectorAll<HTMLElement>(
             "[data-row-key]"
-        ))
-            observer.observe(element);
+        );
+        // Apply actual row heights before paint instead of waiting for the observer.
+        measure(elements);
+        const observer = new ResizeObserver((entries) => {
+            measure(entries.map((entry) => entry.target as HTMLElement));
+        });
+        for (const element of elements) observer.observe(element);
         return () => observer.disconnect();
     }, [rows, range.start, range.end, focused]);
     useEffect(() => {

@@ -229,9 +229,8 @@ export default function VirtualCollectionList({
                 return next;
             });
         };
-        const elements = root.current.querySelectorAll<HTMLElement>(
-            "[data-row-key]"
-        );
+        const elements =
+            root.current.querySelectorAll<HTMLElement>("[data-row-key]");
         // Apply actual row heights before paint instead of waiting for the observer.
         measure(elements);
         const observer = new ResizeObserver((entries) => {

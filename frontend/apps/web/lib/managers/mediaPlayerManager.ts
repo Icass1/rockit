@@ -48,16 +48,27 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audio.preload = "metadata";
 
         this._audio.onplaying = (): void => {
-            this.onNativePlaying();
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+                this.onNativePlaying();
             this._syncVideoPicture();
         };
         this._audio.onpause = (): void => {
-            this.onNativePaused();
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+                this.onNativePaused();
             if (this._usesAudioForVideo()) this._video?.pause();
         };
-        this._audio.onplay = this.onNativePlaying;
-        this._audio.onloadstart = this.onNativeLoadStart;
-        this._audio.onloadeddata = this.onNativeLoaded;
+        this._audio.onplay = (): void => {
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+                this.onNativePlaying();
+        };
+        this._audio.onloadstart = (): void => {
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+                this.onNativeLoadStart();
+        };
+        this._audio.onloadeddata = (): void => {
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+                this.onNativeLoaded();
+        };
         this._audio.ontimeupdate = (): void => {
             if (
                 this._effectiveKind(getRockIt().queueManager.currentMedia) !==
@@ -87,17 +98,20 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.setAttribute("webkit-playsinline", "");
 
         this._video.onplaying = (): void => {
-            if (!this._usesAudioForVideo()) this.onNativePlaying();
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+                this.onNativePlaying();
         };
         this._video.onpause = (): void => {
-            if (!this._usesAudioForVideo()) this.onNativePaused();
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+                this.onNativePaused();
         };
         this._video.onloadstart = (): void => {
-            if (!this._usesAudioForVideo()) this.onNativeLoadStart();
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+                this.onNativeLoadStart();
         };
         this._video.onloadeddata = (): void => {
-            if (this._usesAudioForVideo()) this._syncVideoPicture();
-            else this.onNativeLoaded();
+            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+                this.onNativeLoaded();
         };
         this._video.ontimeupdate = (): void => {
             if (
@@ -129,8 +143,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             _visibilityBound = true;
             document.addEventListener("visibilitychange", (): void => {
                 if (this._usesAudioForVideo()) {
-                    if (document.hidden) this._video?.pause();
-                    else this._syncVideoPicture();
+                    if (document.hidden) this._switchToBackgroundAudio();
+                    else this._restoreForegroundVideo();
                 }
                 if (!document.hidden) {
                     void this.preloadNextTrack();
@@ -162,9 +176,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     protected override _effectiveKind(
         media: TPlayableMedia | undefined
     ): TMediaKind {
-        // Keep the same audio element playing across screen lock. Starting a
-        // different media element after visibilitychange is too late on iOS.
-        return this._usesAudioForVideo(media)
+        // Use the video deck in the foreground for native A/V synchronization.
+        // Switch to the audio deck before iOS backgrounds/suspends the page.
+        return this._usesAudioForVideo(media) && document.hidden
             ? "audio"
             : super._effectiveKind(media);
     }
@@ -173,41 +187,44 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         media: TPlayableMedia,
         kind: TMediaKind
     ): Promise<void> {
-        if (
-            kind !== "audio" ||
-            !this._usesAudioForVideo(media) ||
-            this._audioOnlyAtom.get()
-        )
+        if (!this._usesAudioForVideo(media) || this._audioOnlyAtom.get())
             return;
-        const uri = getMediaVideoUrl(media);
-        if (!uri || !this._video) return;
-        this._video.muted = true;
-        this.loadNativeSource("video", uri);
+        const uri = getMediaAudioUrl(media);
+        if (!uri || !this._audio) return;
+        this.loadNativeSource("audio", uri);
     }
 
     private _syncVideoPicture(): void {
-        if (!this._usesAudioForVideo() || !this._video || !this._audio) return;
-        if (document.hidden || this._audioOnlyAtom.get()) {
-            this._video.pause();
-            return;
+        // The video element is the foreground clock. Avoid starting it from
+        // timeupdate, which is asynchronous and rejected by iOS autoplay rules.
+    }
+
+    private _switchToBackgroundAudio(): void {
+        const video = this._video;
+        const audio = this._audio;
+        if (!video || !audio || video.paused || !this._playRequested) return;
+
+        const position = video.currentTime;
+        video.pause();
+        audio.currentTime = position;
+        this.playNative("audio");
+    }
+
+    private async _restoreForegroundVideo(): Promise<void> {
+        const video = this._video;
+        const audio = this._audio;
+        if (!video || !audio || !this._playRequested) return;
+        const media = getRockIt().queueManager.currentMedia;
+        const videoUri = media ? getMediaVideoUrl(media) : undefined;
+        if (videoUri && video.src !== videoUri) {
+            await this.loadNativeSource("video", videoUri);
+            this._loadedVideoUri = videoUri;
         }
-        if (!this._video.hasAttribute("src") || this._video.readyState < 1)
-            return;
-        if (
-            Math.abs(this._video.currentTime - this._audio.currentTime) > 0.35
-        ) {
-            this._video.currentTime = this._audio.currentTime;
-        }
-        if (this._audio.paused) {
-            this._video.pause();
-            return;
-        }
-        if (this._video.paused) {
-            this._video.play().catch((): void => {
-                // Muted inline video can be suspended by WebKit while offscreen.
-                // Retry from the audio clock when it becomes visible again.
-            });
-        }
+        video.currentTime = audio.currentTime;
+        audio.pause();
+        video.play().catch((): void => {
+            /* WebKit may require an explicit tap to resume inline video. */
+        });
     }
 
     protected override async resolveMediaUriAsync(
@@ -259,7 +276,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
 
         el.src = uri;
-        if (kind === "video") el.muted = this._usesAudioForVideo();
+        if (kind === "video") el.muted = false;
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {

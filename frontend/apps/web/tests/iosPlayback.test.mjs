@@ -148,20 +148,18 @@ async function start(player) {
     for (let i = 0; i < 12; i++) await Promise.resolve();
 }
 
-test("iOS keeps audio playing through screen lock and restores only the picture", async () => {
+test("iOS plays video in foreground and switches to audio while screen is locked", async () => {
     const { player, visibility } = setup();
     await start(player);
     const audio = player.audioElement;
     const video = player.videoElement;
     assert.equal(audio.src, "https://test/audio");
     assert.equal(video.src, "https://test/video");
-    assert.equal(video.muted, true);
-    assert.equal(audio.paused, false);
+    assert.equal(video.muted, false);
+    assert.equal(audio.paused, true);
     assert.equal(video.paused, false);
     audio.currentTime = 25;
-    audio.ontimeupdate();
-    assert.equal(video.currentTime, 25);
-    const audioStarts = audio.playCalls;
+    video.currentTime = 25;
     visibility(true);
     assert.equal(audio.paused, false);
     assert.equal(video.paused, true);
@@ -170,7 +168,7 @@ test("iOS keeps audio playing through screen lock and restores only the picture"
     visibility(false);
     assert.equal(video.currentTime, 52);
     assert.equal(video.paused, false);
-    assert.equal(audio.playCalls, audioStarts);
+    assert.equal(audio.paused, true);
     player.pause();
     player.setCurrentTime(60, false);
     assert.equal(video.currentTime, 60);
@@ -183,7 +181,6 @@ test("iOS keeps audio playing through screen lock and restores only the picture"
 test("picture errors and interruptions cannot skip or pause iOS audio", async () => {
     const { player, root } = setup();
     await start(player);
-    player.videoElement.pause();
     player.videoElement.onerror(new Error("picture unavailable"));
     assert.equal(player.playingAtom.get(), true);
     const container = {
@@ -194,8 +191,9 @@ test("picture errors and interruptions cannot skip or pause iOS audio", async ()
     player.attachVideoToContainer(container);
     player.detachVideoFromContainer(container);
     assert.equal(player.videoElement.parentElement, root);
-    player.audioElement.pause();
+    player.pause();
     assert.equal(player.videoElement.paused, true);
+    assert.equal(player.audioElement.paused, true);
     assert.equal(player.playingAtom.get(), false);
 });
 

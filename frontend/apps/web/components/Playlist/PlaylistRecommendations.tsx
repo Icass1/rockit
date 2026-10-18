@@ -30,6 +30,8 @@ export default function PlaylistRecommendations({
             title={$vocabulary.RECOMMENDED_FOR_THIS_PLAYLIST}
             songs={data.songs}
             discover={data.discover}
+            discoverProvider={data.discoverProvider}
+            discoverStatus={data.discoverStatus}
         />
     );
 }

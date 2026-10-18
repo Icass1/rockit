@@ -21,6 +21,8 @@ export default function ForYouSection(): JSX.Element | null {
             title={$vocabulary.FOR_YOU}
             songs={data.songs}
             discover={data.discover}
+            discoverProvider={data.discoverProvider}
+            discoverStatus={data.discoverStatus}
         />
     );
 }

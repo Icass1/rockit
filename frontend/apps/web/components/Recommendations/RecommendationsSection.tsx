@@ -2,7 +2,11 @@
 
 import { useCallback, type JSX } from "react";
 import Image from "next/image";
-import type { BaseSearchResultsItem, BaseSongWithAlbumResponse } from "@/dto";
+import type {
+    BaseSearchResultsItem,
+    BaseSongWithAlbumResponse,
+    SongListResponse,
+} from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation, isDiscoverItemInLibrary } from "@rockit/shared";
 import { Music } from "lucide-react";
@@ -61,9 +65,10 @@ function KnownSongCard({
     );
 }
 
-/** A Last.fm discovery suggestion shown as-is. Tapping one starts the single
- * on-demand search+download; suggestions the instance already has downloaded
- * (flagged in the backend with downloaded=true + publicId) play right away. */
+/** An external discovery suggestion (ListenBrainz, Last.fm…) shown as-is.
+ * Tapping one starts the single on-demand search+download; suggestions the
+ * instance already has downloaded (flagged in the backend with
+ * downloaded=true + publicId) play right away. */
 function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const inLibrary = isDiscoverItemInLibrary(item);
@@ -109,8 +114,8 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
         />
     );
 
-    // No providerUrl means no provider resolved this suggestion (Last.fm
-    // carries none), so there is nothing a search-result menu could act on —
+    // No providerUrl means no provider resolved this suggestion (external
+    // providers carry none), so there is nothing a search-result menu could act on —
     // show a bare card whose single action is download or play.
     if (!item.providerUrl) return card;
 
@@ -180,14 +185,22 @@ export default function RecommendationsSection({
     title,
     songs,
     discover = [],
+    discoverProvider = null,
+    discoverStatus = "disabled",
 }: {
     title: string;
     songs: BaseSongWithAlbumResponse[];
     discover?: BaseSearchResultsItem[];
+    discoverProvider?: string | null;
+    discoverStatus?: SongListResponse["discoverStatus"];
 }): JSX.Element | null {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     if (songs.length === 0 && discover.length === 0) return null;
+
+    const discoverTitle = discoverProvider
+        ? `${$vocabulary.PLAYER_DISCOVER_TITLE} · ${discoverProvider}`
+        : $vocabulary.PLAYER_DISCOVER_TITLE;
 
     return (
         <section className="py-2 text-white md:py-6 md:pl-12">
@@ -196,32 +209,43 @@ export default function RecommendationsSection({
             </h2>
             {songs.length > 0 && (
                 <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                    {songs.map((song): JSX.Element => (
-                        <KnownSongCard
-                            key={song.publicId}
-                            song={song}
-                            queue={songs}
-                        />
-                    ))}
+                    {songs.map(
+                        (song): JSX.Element => (
+                            <KnownSongCard
+                                key={song.publicId}
+                                song={song}
+                                queue={songs}
+                            />
+                        )
+                    )}
                 </div>
             )}
             {discover.length > 0 && (
                 <>
                     <h3 className="px-5 text-left text-lg font-semibold text-neutral-400 md:px-0">
-                        {$vocabulary.PLAYER_DISCOVER_TITLE}
+                        {discoverTitle}
                     </h3>
                     <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                        {discover.map((item): JSX.Element => (
-                            <DiscoverCard
-                                key={
-                                    item.providerUrl ||
-                                    `${item.artists[0]?.name ?? ""}-${item.name}`
-                                }
-                                item={item}
-                            />
-                        ))}
+                        {discover.map(
+                            (item): JSX.Element => (
+                                <DiscoverCard
+                                    key={
+                                        item.providerUrl ||
+                                        `${item.artists[0]?.name ?? ""}-${item.name}`
+                                    }
+                                    item={item}
+                                />
+                            )
+                        )}
                     </div>
                 </>
+            )}
+            {discoverStatus === "unavailable" && (
+                // Shown inline once per section, never as a toast, so a
+                // flaky external service does not spam the user.
+                <p className="px-5 text-left text-xs text-neutral-500 md:px-0">
+                    {$vocabulary.DISCOVER_UNAVAILABLE}
+                </p>
             )}
         </section>
     );

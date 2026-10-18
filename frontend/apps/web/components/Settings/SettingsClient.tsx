@@ -12,6 +12,7 @@ import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
+import RecommendationSettings from "@/components/Settings/RecommendationSettings";
 
 function SettingsSection({
     title,
@@ -175,6 +176,10 @@ export default function SettingsClient(): JSX.Element {
 
                     <SettingsSection title="Audio">
                         <CrossFadeInput />
+                    </SettingsSection>
+
+                    <SettingsSection title={$vocabulary.RECOMMENDATIONS}>
+                        <RecommendationSettings />
                     </SettingsSection>
 
                     <SettingsSection title={$vocabulary.DOWNLOAD_APP}>

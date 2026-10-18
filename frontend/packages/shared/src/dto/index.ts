@@ -303,6 +303,10 @@ export {
     RadioBrowserStationResponseSchema,
     type RadioBrowserStationResponse,
 } from "./radioBrowserStationResponse";
+export {
+    RecommendationSettingsResponseSchema,
+    type RecommendationSettingsResponse,
+} from "./recommendationSettingsResponse";
 export { RegisterRequestSchema, type RegisterRequest } from "./registerRequest";
 export {
     RegisterResponseSchema,
@@ -477,6 +481,10 @@ export {
     UpdatePlaylistRequestSchema,
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
+export {
+    UpdateRecommendationSettingsRequestSchema,
+    type UpdateRecommendationSettingsRequest,
+} from "./updateRecommendationSettingsRequest";
 export {
     UpdateTimestampItemSchema,
     type UpdateTimestampItem,

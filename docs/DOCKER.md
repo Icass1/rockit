@@ -57,6 +57,17 @@ Set in .env.production:
 | DB_PORT            | Port                 | 5432                  |
 | DB_NAME            | DB name              | rockit                |
 
+Optional — external recommendation suggestions (local recommendations need
+none of these; see [RECOMMENDATIONS.md](RECOMMENDATIONS.md)):
+
+| Var                                     | Desc                                     | Default                       |
+| --------------------------------------- | ---------------------------------------- | ----------------------------- |
+| RECOMMENDATION_EXTERNAL_PROVIDERS       | Ordered providers, or `none`             | listenbrainz,lastfm           |
+| LASTFM_API_KEY                          | Last.fm API key (enables Last.fm)        | - (Last.fm disabled)          |
+| LISTENBRAINZ_API_URL                    | ListenBrainz API base URL                | https://api.listenbrainz.org  |
+| RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS | Per-request timeout                      | 5                             |
+| RECOMMENDATION_EXTERNAL_CACHE_HOURS     | Reuse successful external results for    | 24                            |
+
 ## Services
 
 ### Postgres

@@ -1,4 +1,10 @@
-import { BaseUserManager, EQueueType, ERepeatMode } from "@rockit/shared";
+import {
+    BaseUserManager,
+    EQueueType,
+    ERepeatMode,
+    type RecommendationSettingsResponse,
+    type UpdateRecommendationSettingsRequest,
+} from "@rockit/shared";
 import { Http } from "@/lib/http";
 import {
     clearSessionOffline,
@@ -62,6 +68,29 @@ export class UserManager extends BaseUserManager {
         }
 
         return true;
+    }
+
+    /** Save the recommendation opt-in / ListenBrainz username. Returns the
+     * stored settings, or null when the backend rejected them. */
+    async setRecommendationSettingsAsync(
+        payload: UpdateRecommendationSettingsRequest
+    ): Promise<RecommendationSettingsResponse | null> {
+        const res = await Http.updateRecommendationSettings(payload);
+        const vocabulary = rockIt.vocabularyManager.vocabulary;
+
+        if (!res.isOk()) {
+            const detail =
+                typeof res.detail === "string" ? ` ${res.detail}` : "";
+            rockIt.notificationManager.notifyError(
+                `${vocabulary.ERROR_SAVING_RECOMMENDATION_SETTINGS}.${detail}`
+            );
+            return null;
+        }
+
+        rockIt.notificationManager.notifySuccess(
+            vocabulary.RECOMMENDATIONS_SETTINGS_SAVED
+        );
+        return res.result;
     }
 
     async signOut(): Promise<void> {

@@ -30,6 +30,8 @@ export default function SongSeededRecommendations({
             title={$vocabulary.RECOMMENDED_SONGS}
             songs={data.songs}
             discover={data.discover}
+            discoverProvider={data.discoverProvider}
+            discoverStatus={data.discoverStatus}
         />
     );
 }

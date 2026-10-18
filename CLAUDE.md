@@ -411,6 +411,18 @@ These are the known routes. Use `public_id` for all resource identifiers.
 | GET    | `/downloads`                      | Yes  | Get all user downloads                 |
 | POST   | `/downloads/mark-seen/{publicId}` | Yes  | Mark download as seen                  |
 
+### Recommendation — `/recommendation`
+
+Local engine always; optional external suggestions (`discover`). See `docs/RECOMMENDATIONS.md`.
+
+| Method | Path                                 | Auth | Description                                         |
+| ------ | ------------------------------------ | ---- | --------------------------------------------------- |
+| GET    | `/recommendation/for-you`            | Yes  | Personalized songs + optional external suggestions  |
+| GET    | `/recommendation/playlist/{publicId}` | Yes | Songs to add to a playlist                          |
+| GET    | `/media/song/{publicId}/related`     | Yes  | Songs similar to one song/video                     |
+| GET    | `/recommendation/settings`           | Yes  | User's external opt-in + ListenBrainz username      |
+| POST   | `/recommendation/settings`           | Yes  | Update the above                                    |
+
 ### Stats — `/stats`
 
 | Method | Path                   | Auth | Description                                      |

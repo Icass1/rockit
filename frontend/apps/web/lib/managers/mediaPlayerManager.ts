@@ -48,25 +48,40 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audio.preload = "metadata";
 
         this._audio.onplaying = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "audio"
+            )
                 this.onNativePlaying();
             this._syncVideoPicture();
         };
         this._audio.onpause = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "audio"
+            )
                 this.onNativePaused();
             if (this._usesAudioForVideo()) this._video?.pause();
         };
         this._audio.onplay = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "audio"
+            )
                 this.onNativePlaying();
         };
         this._audio.onloadstart = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "audio"
+            )
                 this.onNativeLoadStart();
         };
         this._audio.onloadeddata = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "audio")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "audio"
+            )
                 this.onNativeLoaded();
         };
         this._audio.ontimeupdate = (): void => {
@@ -98,19 +113,31 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.setAttribute("webkit-playsinline", "");
 
         this._video.onplaying = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
                 this.onNativePlaying();
         };
         this._video.onpause = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
                 this.onNativePaused();
         };
         this._video.onloadstart = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
                 this.onNativeLoadStart();
         };
         this._video.onloadeddata = (): void => {
-            if (this._effectiveKind(getRockIt().queueManager.currentMedia) === "video")
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
                 this.onNativeLoaded();
         };
         this._video.ontimeupdate = (): void => {

@@ -62,6 +62,17 @@ export default function PlayerUIMain({
             videoContainerRef.current = container;
             if (container && isVideo(currentMedia) && !$audioOnly) {
                 rockIt.mediaPlayerManager.attachVideoToContainer(container);
+                const video = rockIt.mediaPlayerManager.videoElement;
+                const updateAspectRatio = (): void => {
+                    if (!video?.videoWidth || !video.videoHeight) return;
+                    container.style.setProperty(
+                        "--player-video-aspect",
+                        `${video.videoWidth} / ${video.videoHeight}`
+                    );
+                };
+                updateAspectRatio();
+                video?.addEventListener("loadedmetadata", updateAspectRatio);
+                video?.addEventListener("resize", updateAspectRatio);
             }
         },
         [currentMedia, $audioOnly]
@@ -113,7 +124,10 @@ export default function PlayerUIMain({
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className="relative aspect-video h-[90%] max-w-full cursor-pointer overflow-hidden rounded-xl bg-black"
+                    className="relative h-[90%] max-h-[90%] w-full max-w-full cursor-pointer overflow-hidden rounded-xl bg-black"
+                    style={{
+                        aspectRatio: "var(--player-video-aspect, 16 / 9)",
+                    }}
                     onClick={handleClick}
                 >
                     {$audioOnly ? (
@@ -127,7 +141,7 @@ export default function PlayerUIMain({
                     ) : (
                         <div
                             ref={attachVideoRef}
-                            className="absolute inset-0 overflow-hidden"
+                            className="absolute inset-0 overflow-hidden [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain"
                             data-testid="player-video-surface"
                         />
                     )}

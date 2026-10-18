@@ -16,10 +16,10 @@ import {
     X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import type { SongFile, UploadType } from "@/models/upload";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { extractMp3Cover } from "@/lib/utils/extractMp3Cover";
-import type { SongFile, UploadType } from "@/models/upload";
 import UploadCoverPreview from "@/components/Library/UploadCoverPreview";
 
 // Types.
@@ -241,15 +241,13 @@ export default function UploadModal({
         const accepted = Array.from(fileList).filter((f): boolean =>
             /\.(mp3|flac|ogg|m4a|wav|aac)$/i.test(f.name)
         );
-        const parsed: SongFile[] = accepted.map(
-            (file): SongFile => ({
-                id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                file,
-                imageFile: null,
-                readingCover: true,
-                ...parseSongFilename(file.name),
-            })
-        );
+        const parsed: SongFile[] = accepted.map((file): SongFile => ({
+            id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            file,
+            imageFile: null,
+            readingCover: true,
+            ...parseSongFilename(file.name),
+        }));
         setFiles((prev): SongFile[] => [...prev, ...parsed]);
         for (const song of parsed) {
             void extractMp3Cover(song.file).then((imageFile) => {
@@ -613,17 +611,15 @@ export default function UploadModal({
                                     }`}
                                 >
                                     {file.imageFile ? (
-                                            <UploadCoverPreview
-                                                file={file.imageFile}
-                                                alt={
-                                                    $vocabulary.UPLOAD_COVER_HINT
-                                                }
-                                            />
-                                        ) : (
-                                            // eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon
-                                            <Image className="h-3.5 w-3.5 shrink-0" />
-                                        )}
-                                        <span className="truncate">
+                                        <UploadCoverPreview
+                                            file={file.imageFile}
+                                            alt={$vocabulary.UPLOAD_COVER_HINT}
+                                        />
+                                    ) : (
+                                        // eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon
+                                        <Image className="h-3.5 w-3.5 shrink-0" />
+                                    )}
+                                    <span className="truncate">
                                         {file.imageFile
                                             ? file.imageFile.name
                                             : $vocabulary.UPLOAD_COVER_HINT}

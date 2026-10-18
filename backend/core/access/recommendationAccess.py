@@ -3,9 +3,15 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.access.mediaInfoCte import get_media_info_cte, get_genre_info_cte
+from backend.core.access.mediaInfoCte import (
+    get_album_info_cte,
+    get_artist_info_cte,
+    get_genre_info_cte,
+    get_media_info_cte,
+)
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+from backend.core.framework.models.recommendation import LocalCandidate
 from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
@@ -24,12 +30,10 @@ DISCOVER_LIBRARY_NAME_MATCH_THRESHOLD = 0.6
 DISCOVER_LIBRARY_ARTIST_MATCH_THRESHOLD = 0.6
 
 
-# Co-occurrence signal weights. Both signals are raw counts on different
-# natural scales (playlist appearances are few; session co-plays can be
-# many for an active user), so these are a starting point to retune once
-# there's real usage data to look at, not a derived/calibrated value.
-PLAYLIST_CO_WEIGHT = 1.0
-SESSION_CO_WEIGHT = 1.0
+# Upper bound on candidate rows handed to the ranking layer per query. Keeps
+# memory and ranking time flat regardless of library size. Weights live in
+# backend.core.framework.recommendationRanking, not in SQL.
+LOCAL_CANDIDATE_LIMIT = 300
 
 # Two listens by the same user within this many minutes of each other count
 # as the same "session" for the co-occurrence signal.
@@ -38,67 +42,150 @@ SESSION_WINDOW_MINUTES = 20
 
 class RecommendationAccess:
     @staticmethod
-    async def get_similar_song_ids_async(
+    async def get_local_candidates_async(
         session: AsyncSession,
         seed_media_ids: list[int],
         exclude_media_ids: list[int],
-        limit: int = 20,
-    ) -> AResult[list[str]]:
-        """Rank songs by co-occurrence with the given seed songs.
+        limit: int = LOCAL_CANDIDATE_LIMIT,
+    ) -> AResult[list[LocalCandidate]]:
+        """Songs related to the seed songs, with the raw signals the ranking
+        layer scores them by. Everything comes from Rockit's own data:
+          - playlist co-occurrence: playlists shared with a seed song
+          - session co-occurrence: plays within SESSION_WINDOW_MINUTES of a
+            seed song, by the same user
+          - metadata overlap: shared artists, same album, shared genres
+            (genres only exist for providers that store them)
+          - popularity: total plays on this instance
 
-        Combines two implicit-feedback signals derived entirely from Rockit's
-        own usage data (no external API, no per-song genre/audio-feature data
-        needed):
-          - playlist co-occurrence: songs sharing a playlist with a seed song
-          - session co-occurrence: songs a user played within
-            SESSION_WINDOW_MINUTES of a seed song
+        A song only becomes a candidate when it has at least one relation to
+        a seed. The pool is capped at `limit` rows (pre-sorted by a cheap sum
+        of the signals) so ranking work stays bounded on large libraries.
         """
 
-        if not seed_media_ids:
+        if not seed_media_ids or limit <= 0:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         try:
             sql = text(f"""
             WITH {get_media_info_cte()},
+            {get_artist_info_cte()},
+            {get_album_info_cte()},
+            {get_genre_info_cte()},
+            seed AS (
+                SELECT DISTINCT unnest(:seed_ids) AS media_id
+            ),
+            seed_artists AS (
+                SELECT DISTINCT ai.artist_public_id
+                FROM   artist_info ai
+                JOIN   seed s ON s.media_id = ai.media_id
+            ),
+            seed_albums AS (
+                SELECT DISTINCT al.album_public_id
+                FROM   album_info al
+                JOIN   seed s ON s.media_id = al.media_id
+            ),
+            seed_genres AS (
+                SELECT DISTINCT gi.genre_name
+                FROM   genre_info gi
+                JOIN   seed s ON s.media_id = gi.media_id
+            ),
             playlist_co AS (
-                SELECT pm2.media_id                          AS media_id,
-                       COUNT(DISTINCT pm1.playlist_id)        AS playlist_score
+                SELECT pm2.media_id                   AS media_id,
+                       COUNT(DISTINCT pm1.playlist_id) AS playlist_co
                 FROM   default_schema.playlist_media pm1
                 JOIN   default_schema.playlist_media pm2
                        ON pm2.playlist_id = pm1.playlist_id
                       AND pm2.media_id   != pm1.media_id
-                WHERE  pm1.media_id IN :seed_ids
+                WHERE  pm1.media_id IN (SELECT media_id FROM seed)
                 GROUP BY pm2.media_id
             ),
             session_co AS (
-                SELECT b.media_id   AS media_id,
-                       COUNT(*)     AS session_score
+                SELECT b.media_id AS media_id,
+                       COUNT(*)   AS session_co
                 FROM   core.user_media_listened a
                 JOIN   core.user_media_listened b
                        ON b.user_id   = a.user_id
                       AND b.media_id != a.media_id
                       AND b.date_added BETWEEN a.date_added - INTERVAL '{SESSION_WINDOW_MINUTES} minutes'
                                             AND a.date_added + INTERVAL '{SESSION_WINDOW_MINUTES} minutes'
-                WHERE  a.media_id IN :seed_ids
+                WHERE  a.media_id IN (SELECT media_id FROM seed)
                 GROUP BY b.media_id
             ),
-            combined AS (
-                SELECT COALESCE(p.media_id, s.media_id)                AS media_id,
-                       COALESCE(p.playlist_score, 0) * :playlist_weight
-                     + COALESCE(s.session_score, 0)  * :session_weight AS score
-                FROM      playlist_co p
-                FULL JOIN session_co  s ON s.media_id = p.media_id
+            artist_match AS (
+                SELECT ai.media_id, COUNT(DISTINCT ai.artist_public_id) AS shared_artists
+                FROM   artist_info ai
+                JOIN   seed_artists sa ON sa.artist_public_id = ai.artist_public_id
+                GROUP BY ai.media_id
+            ),
+            album_match AS (
+                SELECT DISTINCT al.media_id
+                FROM   album_info al
+                JOIN   seed_albums sa ON sa.album_public_id = al.album_public_id
+            ),
+            genre_match AS (
+                SELECT gi.media_id, COUNT(DISTINCT gi.genre_name) AS shared_genres
+                FROM   genre_info gi
+                JOIN   seed_genres sg ON sg.genre_name = gi.genre_name
+                GROUP BY gi.media_id
+            ),
+            candidate_ids AS (
+                SELECT media_id FROM playlist_co
+                UNION SELECT media_id FROM session_co
+                UNION SELECT media_id FROM artist_match
+                UNION SELECT media_id FROM album_match
+                UNION SELECT media_id FROM genre_match
+            ),
+            plays AS (
+                SELECT uml.media_id, COUNT(*) AS play_count
+                FROM   core.user_media_listened uml
+                WHERE  uml.media_id IN (SELECT media_id FROM candidate_ids)
+                GROUP BY uml.media_id
+            ),
+            primary_artist AS (
+                SELECT ai.media_id, MIN(ai.artist_public_id) AS artist_key
+                FROM   artist_info ai
+                WHERE  ai.media_id IN (SELECT media_id FROM candidate_ids)
+                GROUP BY ai.media_id
+            ),
+            primary_album AS (
+                SELECT al.media_id, MIN(al.album_public_id) AS album_key
+                FROM   album_info al
+                WHERE  al.media_id IN (SELECT media_id FROM candidate_ids)
+                GROUP BY al.media_id
             )
-            SELECT mi.public_id
-            FROM   combined  c
-            JOIN   media_info mi ON mi.media_id = c.media_id
-            WHERE  mi.media_type_key = {MediaTypeEnum.SONG.value}
-              AND  c.media_id NOT IN :exclude_ids
-            ORDER BY c.score DESC, mi.public_id
+            SELECT c.media_id                         AS media_id,
+                   mi.public_id                       AS public_id,
+                   pa.artist_key                      AS artist_key,
+                   pal.album_key                      AS album_key,
+                   COALESCE(p.playlist_co, 0)         AS playlist_co,
+                   COALESCE(s.session_co, 0)          AS session_co,
+                   COALESCE(am.shared_artists, 0)     AS shared_artists,
+                   (alm.media_id IS NOT NULL)         AS same_album,
+                   COALESCE(gm.shared_genres, 0)      AS shared_genres,
+                   COALESCE(pl.play_count, 0)         AS play_count
+            FROM      candidate_ids  c
+            JOIN      media_info     mi  ON mi.media_id  = c.media_id
+            LEFT JOIN playlist_co    p   ON p.media_id   = c.media_id
+            LEFT JOIN session_co     s   ON s.media_id   = c.media_id
+            LEFT JOIN artist_match   am  ON am.media_id  = c.media_id
+            LEFT JOIN album_match    alm ON alm.media_id = c.media_id
+            LEFT JOIN genre_match    gm  ON gm.media_id  = c.media_id
+            LEFT JOIN plays          pl  ON pl.media_id  = c.media_id
+            LEFT JOIN primary_artist pa  ON pa.media_id  = c.media_id
+            LEFT JOIN primary_album  pal ON pal.media_id = c.media_id
+            WHERE  mi.media_type_key = :song_type_key
+              AND  c.media_id NOT IN (SELECT media_id FROM seed)
+              AND  c.media_id <> ALL(:exclude_ids)
+            ORDER BY (COALESCE(p.playlist_co, 0) + COALESCE(s.session_co, 0)
+                      + COALESCE(am.shared_artists, 0)
+                      + COALESCE(gm.shared_genres, 0)) DESC,
+                     mi.public_id
             LIMIT :limit
             """).bindparams(
-                bindparam("seed_ids", expanding=True),
-                bindparam("exclude_ids", expanding=True),
+                bindparam("seed_ids", type_=ARRAY(Integer)),
+                bindparam("exclude_ids", type_=ARRAY(Integer)),
+                bindparam("song_type_key", type_=Integer),
+                bindparam("limit", type_=Integer),
             )
 
             rows = (
@@ -107,8 +194,7 @@ class RecommendationAccess:
                     {
                         "seed_ids": seed_media_ids,
                         "exclude_ids": exclude_media_ids,
-                        "playlist_weight": PLAYLIST_CO_WEIGHT,
-                        "session_weight": SESSION_CO_WEIGHT,
+                        "song_type_key": MediaTypeEnum.SONG.value,
                         "limit": limit,
                     },
                 )
@@ -117,13 +203,120 @@ class RecommendationAccess:
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=[str(r.public_id) for r in rows],
+                result=[
+                    LocalCandidate(
+                        media_id=int(r.media_id),
+                        public_id=str(r.public_id),
+                        artist_key=str(r.artist_key) if r.artist_key else None,
+                        album_key=str(r.album_key) if r.album_key else None,
+                        playlist_co=int(r.playlist_co),
+                        session_co=int(r.session_co),
+                        shared_artists=int(r.shared_artists),
+                        same_album=bool(r.same_album),
+                        shared_genres=int(r.shared_genres),
+                        play_count=int(r.play_count),
+                    )
+                    for r in rows
+                ],
             )
         except Exception as e:
-            logger.error(f"Error in get_similar_song_ids_async: {e}", exc_info=True)
+            logger.error(f"Error in get_local_candidates_async: {e}", exc_info=True)
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to compute similar songs: {e}",
+                message=f"Failed to compute local candidates: {e}",
+            )
+
+    @staticmethod
+    async def get_fallback_candidates_async(
+        session: AsyncSession,
+        exclude_media_ids: list[int],
+        limit: int = LOCAL_CANDIDATE_LIMIT,
+    ) -> AResult[list[LocalCandidate]]:
+        """Cold-start candidates for users (or seeds) with little or no
+        history: the instance's most played songs, then the most recently
+        added ones, so an instance with no listens at all still gets
+        suggestions. Returns [] on an empty library."""
+
+        if limit <= 0:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+
+        try:
+            sql = text(f"""
+            WITH {get_media_info_cte()},
+            {get_artist_info_cte()},
+            {get_album_info_cte()},
+            songs AS (
+                SELECT DISTINCT mi.media_id, mi.public_id
+                FROM   media_info mi
+                WHERE  mi.media_type_key = :song_type_key
+                  AND  mi.media_id <> ALL(:exclude_ids)
+            ),
+            plays AS (
+                SELECT uml.media_id, COUNT(*) AS play_count
+                FROM   core.user_media_listened uml
+                WHERE  uml.media_id IN (SELECT media_id FROM songs)
+                GROUP BY uml.media_id
+            ),
+            primary_artist AS (
+                SELECT ai.media_id, MIN(ai.artist_public_id) AS artist_key
+                FROM   artist_info ai
+                WHERE  ai.media_id IN (SELECT media_id FROM songs)
+                GROUP BY ai.media_id
+            ),
+            primary_album AS (
+                SELECT al.media_id, MIN(al.album_public_id) AS album_key
+                FROM   album_info al
+                WHERE  al.media_id IN (SELECT media_id FROM songs)
+                GROUP BY al.media_id
+            )
+            SELECT s.media_id                 AS media_id,
+                   s.public_id                AS public_id,
+                   pa.artist_key              AS artist_key,
+                   pal.album_key              AS album_key,
+                   COALESCE(pl.play_count, 0) AS play_count
+            FROM      songs          s
+            JOIN      core.media     cm  ON cm.id        = s.media_id
+            LEFT JOIN plays          pl  ON pl.media_id  = s.media_id
+            LEFT JOIN primary_artist pa  ON pa.media_id  = s.media_id
+            LEFT JOIN primary_album  pal ON pal.media_id = s.media_id
+            ORDER BY COALESCE(pl.play_count, 0) DESC, cm.date_added DESC, s.public_id
+            LIMIT :limit
+            """).bindparams(
+                bindparam("exclude_ids", type_=ARRAY(Integer)),
+                bindparam("song_type_key", type_=Integer),
+                bindparam("limit", type_=Integer),
+            )
+
+            rows = (
+                await session.execute(
+                    sql,
+                    {
+                        "exclude_ids": exclude_media_ids,
+                        "song_type_key": MediaTypeEnum.SONG.value,
+                        "limit": limit,
+                    },
+                )
+            ).fetchall()
+
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=[
+                    LocalCandidate(
+                        media_id=int(r.media_id),
+                        public_id=str(r.public_id),
+                        artist_key=str(r.artist_key) if r.artist_key else None,
+                        album_key=str(r.album_key) if r.album_key else None,
+                        play_count=int(r.play_count),
+                    )
+                    for r in rows
+                ],
+            )
+        except Exception as e:
+            logger.error(f"Error in get_fallback_candidates_async: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message=f"Failed to compute fallback candidates: {e}",
             )
 
     @staticmethod
@@ -166,8 +359,8 @@ class RecommendationAccess:
                     c.artist_name AS artist_name,
                     c.track_name  AS track_name
                 FROM unnest(
-                    :artist_names::text[],
-                    :track_names::text[]
+                    CAST(:artist_names AS text[]),
+                    CAST(:track_names AS text[])
                 ) WITH ORDINALITY AS c(artist_name, track_name, ordinality)
             ),
             matches AS (

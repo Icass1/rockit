@@ -42,6 +42,30 @@ def get_env_str(name: str, possible_values: List[str] | None = None) -> str:
     return var
 
 
+def get_optional_env_str(name: str, default: str) -> str:
+    """Read an optional environment variable. Unlike get_env_str, a missing
+    value never aborts startup — the default is used instead."""
+
+    var = os.getenv(name)
+    if var is None or var.strip() == "":
+        return default
+    return var.strip()
+
+
+def get_optional_env_float(name: str, default: float) -> float:
+    """Read an optional numeric environment variable, falling back to the
+    default when it is missing or not a number."""
+
+    var = get_optional_env_str(name, default="")
+    if var == "":
+        return default
+    try:
+        return float(var)
+    except ValueError:
+        print(f"Environment variable '{name}' must be a number, using {default}")
+        return default
+
+
 def get_env_int(name: str) -> int:
     global error
     env_str = get_env_str(name)
@@ -75,7 +99,28 @@ CHUNK_SIZE = 1024 * 1024  # 1MB per chunk
 CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
-LASTFM_API_KEY = get_env_str("LASTFM_API_KEY")
+
+# --- Recommendations ---------------------------------------------------------
+# Local recommendations need no configuration. Everything below is optional and
+# only affects the opt-in external "discover" suggestions.
+# Last.fm API key (secret). When unset the Last.fm provider is disabled.
+LASTFM_API_KEY = get_optional_env_str("LASTFM_API_KEY", default="")
+# Ordered, comma separated external providers to try. The first one that
+# returns usable suggestions wins; set to "none" to disable all of them.
+RECOMMENDATION_EXTERNAL_PROVIDERS = get_optional_env_str(
+    "RECOMMENDATION_EXTERNAL_PROVIDERS", default="listenbrainz,lastfm"
+)
+# Per-request timeout for external providers, in seconds.
+RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS = get_optional_env_float(
+    "RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS", default=5.0
+)
+# How long successful external suggestions are reused before re-fetching.
+RECOMMENDATION_EXTERNAL_CACHE_HOURS = get_optional_env_float(
+    "RECOMMENDATION_EXTERNAL_CACHE_HOURS", default=24.0
+)
+LISTENBRAINZ_API_URL = get_optional_env_str(
+    "LISTENBRAINZ_API_URL", default="https://api.listenbrainz.org"
+)
 
 DB_HOST = get_env_str("DB_HOST")
 DB_USER = get_env_str("DB_USER")

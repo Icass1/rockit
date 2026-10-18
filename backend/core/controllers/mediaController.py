@@ -72,8 +72,8 @@ async def get_related_songs(
     limit: int = 20,
     _=Depends(dependency=AuthMiddleware.auth_dependency),
 ) -> SongListResponse:
-    """Songs similar to this one (playlist/listening co-occurrence), plus
-    Last.fm-sourced discovery for songs not downloaded here yet."""
+    """Songs similar to this one (local engine), plus optional external
+    suggestions for songs not downloaded here yet."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
@@ -97,9 +97,7 @@ async def get_related_songs(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    return SongListResponse(
-        songs=a_result.result().songs, discover=a_result.result().discover
-    )
+    return Recommendation.to_song_list_response(result=a_result.result())
 
 
 @router.get("/album/{public_id}")

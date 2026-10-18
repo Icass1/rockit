@@ -9,8 +9,16 @@ from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.framework.recommendation import Recommendation, RecommendationResult
+from backend.core.framework.recommendationSettings import RecommendationSettings
 
 from backend.core.responses.songListResponse import SongListResponse
+from backend.core.responses.recommendationSettingsResponse import (
+    RecommendationSettingsResponse,
+)
+
+from backend.core.requests.updateRecommendationSettingsRequest import (
+    UpdateRecommendationSettingsRequest,
+)
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -30,6 +38,9 @@ async def get_recommendations_for_you(
     session = DBSessionMiddleware.get_session(request=request)
     a_result_user = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
+        logger.warning(
+            f"Unauthenticated recommendation request. {a_result_user.info()}"
+        )
         raise HTTPException(status_code=401, detail="User not authenticated")
 
     a_result: AResult[RecommendationResult] = (
@@ -45,9 +56,7 @@ async def get_recommendations_for_you(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    return SongListResponse(
-        songs=a_result.result().songs, discover=a_result.result().discover
-    )
+    return Recommendation.to_song_list_response(result=a_result.result())
 
 
 @router.get("/playlist/{public_id}")
@@ -61,6 +70,9 @@ async def get_recommendations_for_playlist(
     session = DBSessionMiddleware.get_session(request=request)
     a_result_user = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
+        logger.warning(
+            f"Unauthenticated recommendation request. {a_result_user.info()}"
+        )
         raise HTTPException(status_code=401, detail="User not authenticated")
 
     a_result: AResult[RecommendationResult] = (
@@ -79,6 +91,56 @@ async def get_recommendations_for_playlist(
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    return SongListResponse(
-        songs=a_result.result().songs, discover=a_result.result().discover
+    return Recommendation.to_song_list_response(result=a_result.result())
+
+
+@router.get("/settings")
+async def get_recommendation_settings(
+    request: Request,
+) -> RecommendationSettingsResponse:
+    """The current user's recommendation settings (external opt-in)."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        logger.warning(f"Unauthenticated settings request. {a_result_user.info()}")
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await RecommendationSettings.get_settings_async(
+        session=session, user_id=a_result_user.result().id
     )
+    if a_result.is_not_ok():
+        logger.error(f"Error getting recommendation settings. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
+@router.post("/settings")
+async def update_recommendation_settings(
+    request: Request,
+    payload: UpdateRecommendationSettingsRequest,
+) -> RecommendationSettingsResponse:
+    """Opt in/out of external suggestions and set the ListenBrainz username."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        logger.warning(f"Unauthenticated settings request. {a_result_user.info()}")
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await RecommendationSettings.update_settings_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        external_enabled=payload.externalEnabled,
+        listenbrainz_username=payload.listenbrainzUsername,
+    )
+    if a_result.is_not_ok():
+        logger.warning(f"Error updating recommendation settings. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()

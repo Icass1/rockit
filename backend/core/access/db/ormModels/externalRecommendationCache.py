@@ -11,12 +11,13 @@ from backend.core.access.db.ormModels.declarativeMixin import (
 )
 
 
-class LastfmCacheRow(CoreBase, TableDateUpdated, TableDateAdded):
-    """Cached Last.fm track.getsimilar responses, keyed by
-    "{artist_name}|{track_name}" (lowercased). Mirrors the
-    spotify_cache.cache_track pattern. date_updated drives the TTL check."""
+class ExternalRecommendationCacheRow(CoreBase, TableDateUpdated, TableDateAdded):
+    """Successful responses from external recommendation providers, keyed by
+    "{provider}|{context}" (see each provider's cache_key). Only successful
+    answers are stored; failures are never cached. date_updated drives the
+    TTL check."""
 
-    __tablename__ = "cache_lastfm_similar_tracks"
+    __tablename__ = "cache_external_recommendation"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
     id: Mapped[str] = mapped_column(String, primary_key=True)

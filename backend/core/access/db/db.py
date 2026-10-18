@@ -46,8 +46,11 @@ from backend.core.access.db.ormModels.pendingUpload import (
 )
 from backend.core.access.db.ormModels.user import UserRow as UserRow
 from backend.core.access.db.ormModels.bookmark import BookmarkRow as BookmarkRow
-from backend.core.access.db.ormModels.lastfmCache import (
-    LastfmCacheRow as LastfmCacheRow,
+from backend.core.access.db.ormModels.externalRecommendationCache import (
+    ExternalRecommendationCacheRow as ExternalRecommendationCacheRow,
+)
+from backend.core.access.db.ormModels.userRecommendationSettings import (
+    UserRecommendationSettingsRow as UserRecommendationSettingsRow,
 )
 
 # ENUMS

@@ -189,6 +189,9 @@ test("picture errors and interruptions cannot skip or pause iOS audio", async ()
         },
     };
     player.attachVideoToContainer(container);
+    assert.equal(player.videoElement.parentElement, container);
+    assert.equal(player.videoElement.style.display, "block");
+    assert.equal(player.videoElement.style.position, "absolute");
     player.detachVideoFromContainer(container);
     assert.equal(player.videoElement.parentElement, root);
     player.pause();

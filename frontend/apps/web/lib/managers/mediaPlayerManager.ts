@@ -445,8 +445,13 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     attachVideoToContainer(container: HTMLElement): void {
         if (!this._video) return;
         container.appendChild(this._video);
+        this._video.style.display = "block";
+        this._video.style.position = "absolute";
+        this._video.style.inset = "0";
         this._video.style.width = "100%";
         this._video.style.height = "100%";
+        this._video.style.maxWidth = "100%";
+        this._video.style.maxHeight = "100%";
         this._video.style.objectFit = "cover";
         this._syncVideoPicture();
     }

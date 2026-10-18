@@ -12,6 +12,7 @@ import { useGreeting } from "@/components/Home/hooks/useGreeting";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import BentoSection from "@/components/Home/sections/BentoSection";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
+import RecommendationsSection from "@/components/Home/sections/RecommendationsSection";
 
 export default function HomeClient(): JSX.Element {
     const data = useHomeData();
@@ -98,10 +99,17 @@ export default function HomeClient(): JSX.Element {
         );
     }, [$currentMedia, $playing, coverflowCards]);
 
-    if (!data) return <HomeSkeleton />;
+    if (!data)
+        return (
+            <div className="flex flex-col">
+                <RecommendationsSection />
+                <HomeSkeleton />
+            </div>
+        );
 
     return (
         <div className="flex flex-col">
+            <RecommendationsSection />
             {/* Ambient glow — covers Hero + Quick Selections */}
             <div className="relative -mt-24 pt-24">
                 <div

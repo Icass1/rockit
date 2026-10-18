@@ -137,6 +137,14 @@ CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 
 
+# Recommendations stay local unless both this switch and a user's opt-in are set.
+LISTENBRAINZ_ENABLED = get_env_str_optional("LISTENBRAINZ_ENABLED", "false") == "true"
+LISTENBRAINZ_TIMEOUT_SECONDS = get_env_float_optional(
+    "LISTENBRAINZ_TIMEOUT_SECONDS", 3.0
+)
+LISTENBRAINZ_CACHE_SECONDS = get_env_int_optional("LISTENBRAINZ_CACHE_SECONDS", 21600)
+
+
 # --- YouTube download reliability -------------------------------------------
 # All of these are optional: with none of them set the downloader still works,
 # it just runs with the built-in defaults (no PO tokens, no proxies, no

@@ -18,3 +18,6 @@ v
 Database (PosgreSQL, PgAdmin4)
 
 pre-commit instal
+
+
+Music recommendations: [setup, ranking, privacy and tests](docs/RECOMMENDATIONS.md).

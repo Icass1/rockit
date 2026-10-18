@@ -30,7 +30,7 @@ def _empty_cte(name: str, columns: list[tuple[str, str]]) -> str:
     return f"{name} AS (SELECT {cols} WHERE false)"
 
 
-def _get_media_info_cte() -> str:
+def get_media_info_cte() -> str:
     from backend.core.framework import providers
 
     frags = [
@@ -52,7 +52,7 @@ def _get_media_info_cte() -> str:
     return _build_cte("media_info", frags)
 
 
-def _get_artist_info_cte() -> str:
+def get_artist_info_cte() -> str:
     from backend.core.framework import providers
 
     frags = [
@@ -115,7 +115,7 @@ class StatsAccess:
         end_date: datetime,
     ) -> AResult[dict[str, Any]]:
         sql = text(f"""
-        WITH {_get_media_info_cte()},
+        WITH {get_media_info_cte()},
         listens AS (
             SELECT uml.media_id, cm.media_type_key
             FROM   core.user_media_listened uml
@@ -188,7 +188,7 @@ class StatsAccess:
         }.get(group_by, "day")
 
         sql = text(f"""
-        WITH {_get_media_info_cte()},
+        WITH {get_media_info_cte()},
         listens AS (
             SELECT uml.media_id, uml.date_added
             FROM   core.user_media_listened uml
@@ -301,8 +301,8 @@ class StatsAccess:
         limit: int = 3,
     ) -> AResult[list[StatsRankedItemResponse]]:
         sql = text(f"""
-        WITH {_get_media_info_cte()},
-        {_get_artist_info_cte()},
+        WITH {get_media_info_cte()},
+        {get_artist_info_cte()},
         play_counts AS (
             SELECT uml.media_id, COUNT(*) AS play_count
             FROM   core.user_media_listened uml
@@ -363,8 +363,8 @@ class StatsAccess:
         limit: int = 3,
     ) -> AResult[list[StatsRankedItemResponse]]:
         sql = text(f"""
-        WITH {_get_media_info_cte()},
-        {_get_artist_info_cte()},
+        WITH {get_media_info_cte()},
+        {get_artist_info_cte()},
         play_counts AS (
             SELECT uml.media_id, COUNT(*) AS play_count
             FROM   core.user_media_listened uml
@@ -425,7 +425,7 @@ class StatsAccess:
         limit: int = 3,
     ) -> AResult[list[StatsRankedItemResponse]]:
         sql = text(f"""
-        WITH {_get_artist_info_cte()},
+        WITH {get_artist_info_cte()},
         artist_plays AS (
             SELECT ai.artist_public_id,
                    ai.artist_name,
@@ -540,7 +540,7 @@ class StatsAccess:
         end_date: datetime,
     ) -> AResult[list[StatsHeatmapCellResponse]]:
         sql = text(f"""
-        WITH {_get_media_info_cte()}
+        WITH {get_media_info_cte()}
         SELECT EXTRACT(HOUR FROM uml.date_added)::int            AS hour,
                EXTRACT(DOW  FROM uml.date_added)::int            AS day_of_week,
                SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 AS minutes
@@ -634,7 +634,7 @@ class StatsAccess:
         """Get recently played song public_ids ordered by date_added DESC."""
 
         sql = text(f"""
-        WITH {_get_media_info_cte()}
+        WITH {get_media_info_cte()}
         SELECT mi.public_id
         FROM   core.user_media_listened uml
         JOIN   media_info mi ON mi.media_id = uml.media_id
@@ -670,7 +670,7 @@ class StatsAccess:
         """Get song public_ids played after since_date, ordered by most recent first."""
 
         sql = text(f"""
-        WITH {_get_media_info_cte()}
+        WITH {get_media_info_cte()}
         SELECT mi.public_id
         FROM   core.user_media_listened uml
         JOIN   media_info mi ON mi.media_id = uml.media_id
@@ -711,7 +711,7 @@ class StatsAccess:
         limit_clause = f"LIMIT {limit}" if limit > 0 else ""
 
         sql = text(f"""
-        WITH {_get_media_info_cte()},
+        WITH {get_media_info_cte()},
         play_counts AS (
             SELECT uml.media_id, COUNT(*) AS play_count
             FROM   core.user_media_listened uml
@@ -755,7 +755,7 @@ class StatsAccess:
         """Get recently played songs and videos public_ids ordered by date_added DESC."""
 
         sql = text(f"""
-        WITH {_get_media_info_cte()}
+        WITH {get_media_info_cte()}
         SELECT mi.public_id
         FROM   core.user_media_listened uml
         JOIN   media_info mi ON mi.media_id = uml.media_id
@@ -790,7 +790,7 @@ class StatsAccess:
         """Get song public_ids ordered by oldest last-played date ASC."""
 
         sql = text(f"""
-        WITH {_get_media_info_cte()}
+        WITH {get_media_info_cte()}
         SELECT mi.public_id
         FROM   core.user_media_listened uml
         JOIN   media_info mi ON mi.media_id = uml.media_id
@@ -827,7 +827,7 @@ class StatsAccess:
         """Get a random selection of songs listened to in the given date range."""
 
         sql = text(f"""
-        WITH {_get_media_info_cte()}
+        WITH {get_media_info_cte()}
         SELECT mi.public_id
         FROM   core.user_media_listened uml
         JOIN   media_info mi ON mi.media_id = uml.media_id

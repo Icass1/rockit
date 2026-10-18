@@ -65,7 +65,7 @@ export default function PlayerUIMain({
                 const video = rockIt.mediaPlayerManager.videoElement;
                 const updateAspectRatio = (): void => {
                     if (!video?.videoWidth || !video.videoHeight) return;
-                    container.style.setProperty(
+                    container.parentElement?.style.setProperty(
                         "--player-video-aspect",
                         `${video.videoWidth} / ${video.videoHeight}`
                     );

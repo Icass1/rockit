@@ -125,7 +125,9 @@ export default function PlayerUIMain({
             >
                 <div
                     className="relative h-[90%] max-h-[90%] w-full max-w-full cursor-pointer overflow-hidden rounded-xl bg-black"
-                    style={{ aspectRatio: "var(--player-video-aspect, 16 / 9)" }}
+                    style={{
+                        aspectRatio: "var(--player-video-aspect, 16 / 9)",
+                    }}
                     onClick={handleClick}
                 >
                     {$audioOnly ? (

@@ -16,21 +16,13 @@ import {
     X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import type { SongFile, UploadType } from "@/models/upload";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { extractMp3Cover } from "@/lib/utils/extractMp3Cover";
+import UploadCoverPreview from "@/components/Library/UploadCoverPreview";
 
 // Types.
-
-type UploadType = "song" | "album" | "video";
-
-interface SongFile {
-    id: string;
-    file: File;
-    title: string;
-    artist: string;
-    track: string;
-    imageFile: File | null;
-}
 
 interface UploadModalProps {
     isOpen: boolean;
@@ -253,9 +245,25 @@ export default function UploadModal({
             id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
             file,
             imageFile: null,
+            readingCover: true,
             ...parseSongFilename(file.name),
         }));
         setFiles((prev): SongFile[] => [...prev, ...parsed]);
+        for (const song of parsed) {
+            void extractMp3Cover(song.file).then((imageFile) => {
+                setFiles((prev) =>
+                    prev.map((current) =>
+                        current.id === song.id
+                            ? {
+                                  ...current,
+                                  imageFile: current.imageFile ?? imageFile,
+                                  readingCover: false,
+                              }
+                            : current
+                    )
+                );
+            });
+        }
     }, []);
 
     const pickVideoFile = useCallback((fileList: FileList | File[]): void => {
@@ -350,7 +358,8 @@ export default function UploadModal({
     );
 
     // Validation.
-    const canSubmitSong = files.length > 0;
+    const readingCovers = files.some((file) => file.readingCover);
+    const canSubmitSong = files.length > 0 && !readingCovers;
     const canSubmitAlbum = albumTitle.trim().length > 0 && files.length > 0;
     const canSubmitVideo = videoFile !== null && videoTitle.trim().length > 0;
 
@@ -388,7 +397,7 @@ export default function UploadModal({
                 artistNames: f.artist ? [f.artist] : [],
                 fileSize: f.file.size,
                 discNumber: 0,
-                trackNumber: parseInt(f.track, 10) || 0,
+                trackNumber: 0,
             });
             if (!startResult.isOk())
                 throw new Error(
@@ -579,20 +588,6 @@ export default function UploadModal({
                                         }
                                         className="min-w-0 flex-1 rounded-md bg-neutral-700 px-2 py-1.5 text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
                                     />
-                                    <input
-                                        type="text"
-                                        value={file.track}
-                                        onChange={(e): void =>
-                                            updateFile(file.id, {
-                                                track: e.target.value,
-                                            })
-                                        }
-                                        placeholder={
-                                            $vocabulary.UPLOAD_TRACK_FIELD
-                                        }
-                                        inputMode="numeric"
-                                        className="w-14 rounded-md bg-neutral-700 px-2 py-1.5 text-center text-sm text-white placeholder:text-neutral-500 focus:ring-1 focus:ring-pink-500 focus:outline-none"
-                                    />
                                 </div>
                                 <input
                                     type="text"
@@ -615,8 +610,15 @@ export default function UploadModal({
                                             : "bg-neutral-700 text-neutral-400 hover:text-white"
                                     }`}
                                 >
-                                    {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon */}
-                                    <Image className="h-3.5 w-3.5 shrink-0" />
+                                    {file.imageFile ? (
+                                        <UploadCoverPreview
+                                            file={file.imageFile}
+                                            alt={$vocabulary.UPLOAD_COVER_HINT}
+                                        />
+                                    ) : (
+                                        // eslint-disable-next-line jsx-a11y/alt-text -- lucide-react SVG icon
+                                        <Image className="h-3.5 w-3.5 shrink-0" />
+                                    )}
                                     <span className="truncate">
                                         {file.imageFile
                                             ? file.imageFile.name

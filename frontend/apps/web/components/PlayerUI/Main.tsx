@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { isSong, isStation, isVideo, TPlayableMedia } from "@rockit/shared";
@@ -19,7 +19,7 @@ export default function PlayerUIMain({
     const [titleVisible, setTitleVisible] = useState(true);
     const [songHover, setSongHover] = useState(false);
     const [vinylMode, setVinylMode] = useState(false);
-    const videoContainerRef = useRef<HTMLDivElement>(null);
+    const videoContainerRef = useRef<HTMLDivElement | null>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
     const [offlineCover, setOfflineCover] = useState<{
         publicId: string;
@@ -50,13 +50,22 @@ export default function PlayerUIMain({
         return (): void => clearTimeout(t);
     }, [showIcon]);
 
-    useEffect((): (() => void) | undefined => {
-        const container = videoContainerRef.current;
-        if (!container || !isVideo(currentMedia) || $audioOnly) return;
-        rockIt.mediaPlayerManager.attachVideoToContainer(container);
-        return (): void =>
-            rockIt.mediaPlayerManager.detachVideoFromContainer(container);
-    }, [currentMedia, $audioOnly]);
+    // Attach synchronously during React's commit. A passive effect left a frame
+    // where the player showed an empty placeholder; moving the long-lived DOM
+    // video through a ref makes its presence deterministic when the player opens.
+    const attachVideoRef = useCallback(
+        (container: HTMLDivElement | null): void => {
+            const previous = videoContainerRef.current;
+            if (previous) {
+                rockIt.mediaPlayerManager.detachVideoFromContainer(previous);
+            }
+            videoContainerRef.current = container;
+            if (container && isVideo(currentMedia) && !$audioOnly) {
+                rockIt.mediaPlayerManager.attachVideoToContainer(container);
+            }
+        },
+        [currentMedia, $audioOnly]
+    );
 
     useEffect((): (() => void) | undefined => {
         if (!isVideo(currentMedia)) return;
@@ -117,8 +126,9 @@ export default function PlayerUIMain({
                         />
                     ) : (
                         <div
-                            ref={videoContainerRef}
-                            className="absolute inset-0"
+                            ref={attachVideoRef}
+                            className="absolute inset-0 overflow-hidden"
+                            data-testid="player-video-surface"
                         />
                     )}
                     {iconOverlay}

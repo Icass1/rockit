@@ -480,6 +480,31 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.style.maxWidth = "100%";
         this._video.style.maxHeight = "100%";
         this._video.style.objectFit = "contain";
+
+        // Reparenting a video that has not started resource selection can leave
+        // the newly visible surface black after a page reload. Restart loading
+        // and restore its position and requested playback once metadata arrives.
+        if (
+            this._video.hasAttribute("src") &&
+            this._video.readyState === HTMLMediaElement.HAVE_NOTHING
+        ) {
+            const video = this._video;
+            const source = video.src;
+            const currentTime = video.currentTime;
+            const shouldResume = this._playRequested;
+            video.addEventListener(
+                "loadedmetadata",
+                (): void => {
+                    if (video.parentElement !== container || video.src !== source)
+                        return;
+                    if (currentTime > 0) video.currentTime = currentTime;
+                    if (shouldResume) this.playNative("video");
+                },
+                { once: true }
+            );
+            video.load();
+        }
+
         this._syncVideoPicture();
     }
 

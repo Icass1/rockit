@@ -479,7 +479,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.style.height = "100%";
         this._video.style.maxWidth = "100%";
         this._video.style.maxHeight = "100%";
-        this._video.style.objectFit = "cover";
+        this._video.style.objectFit = "contain";
         this._syncVideoPicture();
     }
 

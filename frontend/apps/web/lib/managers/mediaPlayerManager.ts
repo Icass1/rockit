@@ -495,7 +495,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             video.addEventListener(
                 "loadedmetadata",
                 (): void => {
-                    if (video.parentElement !== container || video.src !== source)
+                    if (
+                        video.parentElement !== container ||
+                        video.src !== source
+                    )
                         return;
                     if (currentTime > 0) video.currentTime = currentTime;
                     if (shouldResume) this.playNative("video");

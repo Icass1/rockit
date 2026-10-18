@@ -56,7 +56,7 @@ export abstract class BaseMediaPlayerManager {
     protected _syncOwner = false;
     private _playbackConfirmed = false;
     private _pendingPlaybackId?: string;
-    private _playRequested = false;
+    protected _playRequested = false;
     private _hasRemotePlayback = false;
     protected _loadingPlayback = false;
     private _mediaLoadPromise?: Promise<void>;

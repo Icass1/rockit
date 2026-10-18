@@ -50,12 +50,12 @@ export default function PlayerUIMain({
         return (): void => clearTimeout(t);
     }, [showIcon]);
 
-    useEffect((): void => {
-        if (videoContainerRef.current && isVideo(currentMedia) && !$audioOnly) {
-            rockIt.mediaPlayerManager.attachVideoToContainer(
-                videoContainerRef.current
-            );
-        }
+    useEffect((): (() => void) | undefined => {
+        const container = videoContainerRef.current;
+        if (!container || !isVideo(currentMedia) || $audioOnly) return;
+        rockIt.mediaPlayerManager.attachVideoToContainer(container);
+        return (): void =>
+            rockIt.mediaPlayerManager.detachVideoFromContainer(container);
     }, [currentMedia, $audioOnly]);
 
     useEffect((): (() => void) | undefined => {

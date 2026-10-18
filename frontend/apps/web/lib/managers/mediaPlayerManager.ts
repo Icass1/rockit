@@ -23,7 +23,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private static _isiOS(): boolean {
         return (
             typeof navigator !== "undefined" &&
-            /iPad|iPhone|iPod/.test(navigator.userAgent ?? "")
+            (/iPad|iPhone|iPod/.test(navigator.userAgent ?? "") ||
+                (navigator.platform === "MacIntel" &&
+                    navigator.maxTouchPoints > 1))
         );
     }
 
@@ -45,8 +47,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._audio = new Audio();
         this._audio.preload = "metadata";
 
-        this._audio.onplaying = this.onNativePlaying;
-        this._audio.onpause = this.onNativePaused;
+        this._audio.onplaying = (): void => {
+            this.onNativePlaying();
+            this._syncVideoPicture();
+        };
+        this._audio.onpause = (): void => {
+            this.onNativePaused();
+            if (this._usesAudioForVideo()) this._video?.pause();
+        };
         this._audio.onplay = this.onNativePlaying;
         this._audio.onloadstart = this.onNativeLoadStart;
         this._audio.onloadeddata = this.onNativeLoaded;
@@ -57,6 +65,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             )
                 return;
             this.onNativeTimeUpdate(this._audio?.currentTime ?? 0);
+            this._syncVideoPicture();
         };
         this._audio.onended = (): void => {
             if (
@@ -77,11 +86,19 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.setAttribute("playsInline", "");
         this._video.setAttribute("webkit-playsinline", "");
 
-        this._video.onplaying = this.onNativePlaying;
-        this._video.onpause = this.onNativePaused;
-        this._video.onplay = this.onNativePlaying;
-        this._video.onloadstart = this.onNativeLoadStart;
-        this._video.onloadeddata = this.onNativeLoaded;
+        this._video.onplaying = (): void => {
+            if (!this._usesAudioForVideo()) this.onNativePlaying();
+        };
+        this._video.onpause = (): void => {
+            if (!this._usesAudioForVideo()) this.onNativePaused();
+        };
+        this._video.onloadstart = (): void => {
+            if (!this._usesAudioForVideo()) this.onNativeLoadStart();
+        };
+        this._video.onloadeddata = (): void => {
+            if (this._usesAudioForVideo()) this._syncVideoPicture();
+            else this.onNativeLoaded();
+        };
         this._video.ontimeupdate = (): void => {
             if (
                 this._effectiveKind(getRockIt().queueManager.currentMedia) !==
@@ -98,7 +115,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 return;
             this.onNativeEnded();
         };
-        this._video.onerror = (e): void => this.onNativeError(e);
+        this._video.onerror = (e): void => {
+            // A failed picture must not skip otherwise playable background audio.
+            if (!this._usesAudioForVideo()) this.onNativeError(e);
+        };
 
         this._preloadAudio = new Audio();
         this._preloadAudio.preload = "metadata";
@@ -108,6 +128,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (typeof document !== "undefined" && !_visibilityBound) {
             _visibilityBound = true;
             document.addEventListener("visibilitychange", (): void => {
+                if (this._usesAudioForVideo()) {
+                    if (document.hidden) this._video?.pause();
+                    else this._syncVideoPicture();
+                }
                 if (!document.hidden) {
                     void this.preloadNextTrack();
                     this._stopEndedPoll();
@@ -123,6 +147,68 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     // ===== Offline URI resolution =====
+
+    private _usesAudioForVideo(
+        media = getRockIt().queueManager.currentMedia
+    ): boolean {
+        return (
+            MediaPlayerManager._isiOS() &&
+            !!media &&
+            isVideo(media) &&
+            !!getMediaAudioUrl(media)
+        );
+    }
+
+    protected override _effectiveKind(
+        media: TPlayableMedia | undefined
+    ): TMediaKind {
+        // Keep the same audio element playing across screen lock. Starting a
+        // different media element after visibilitychange is too late on iOS.
+        return this._usesAudioForVideo(media)
+            ? "audio"
+            : super._effectiveKind(media);
+    }
+
+    protected override async afterMediaLoadedAsync(
+        media: TPlayableMedia,
+        kind: TMediaKind
+    ): Promise<void> {
+        if (
+            kind !== "audio" ||
+            !this._usesAudioForVideo(media) ||
+            this._audioOnlyAtom.get()
+        )
+            return;
+        const uri = getMediaVideoUrl(media);
+        if (!uri || !this._video) return;
+        this._video.muted = true;
+        this.loadNativeSource("video", uri);
+    }
+
+    private _syncVideoPicture(): void {
+        if (!this._usesAudioForVideo() || !this._video || !this._audio) return;
+        if (document.hidden || this._audioOnlyAtom.get()) {
+            this._video.pause();
+            return;
+        }
+        if (!this._video.hasAttribute("src") || this._video.readyState < 1)
+            return;
+        if (
+            Math.abs(this._video.currentTime - this._audio.currentTime) > 0.35
+        ) {
+            this._video.currentTime = this._audio.currentTime;
+        }
+        if (this._audio.paused) {
+            this._video.pause();
+            return;
+        }
+        if (this._video.paused) {
+            this._video.play().catch((): void => {
+                // Muted inline video can be suspended by WebKit while offscreen.
+                // Retry from the audio clock when it becomes visible again.
+            });
+        }
+    }
 
     protected override async resolveMediaUriAsync(
         media: TPlayableMedia,
@@ -173,6 +259,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
 
         el.src = uri;
+        if (kind === "video") el.muted = this._usesAudioForVideo();
     }
 
     protected override clearNativeSource(kind: TMediaKind): void {
@@ -204,7 +291,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 }
             })
             .catch((err): void => {
-                console.warn(
+                console.error(
                     `MediaPlayerManager: ${kind} play failed`,
                     err.name,
                     err.message
@@ -217,12 +304,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     protected override pauseNative(kind: TMediaKind): void {
         this._el(kind)?.pause();
+        if (kind === "audio" && this._usesAudioForVideo()) this._video?.pause();
     }
 
     protected override seekNative(kind: TMediaKind, sec: number): void {
         const el = this._el(kind);
         if (!el) return;
         el.currentTime = sec;
+        if (kind === "audio") this._syncVideoPicture();
     }
 
     protected override getNativePosition(kind: TMediaKind): number {
@@ -270,13 +359,21 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     private _retryPlayOnGesture(kind: TMediaKind): void {
+        const playbackId = this._playbackId;
         const handler = (): void => {
             document.removeEventListener("pointerup", handler);
             document.removeEventListener("keydown", handler);
             const el = this._el(kind);
-            if (el?.paused) {
+            if (
+                el?.paused &&
+                this._playRequested &&
+                this._syncOwner &&
+                this._playbackId === playbackId &&
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                    kind
+            ) {
                 el.play().catch((err): void =>
-                    console.warn("MediaPlayerManager: retry play failed", err)
+                    console.error("MediaPlayerManager: retry play failed", err)
                 );
             }
         };
@@ -334,5 +431,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._video.style.width = "100%";
         this._video.style.height = "100%";
         this._video.style.objectFit = "cover";
+        this._syncVideoPicture();
+    }
+
+    detachVideoFromContainer(container: HTMLElement): void {
+        if (this._video?.parentElement !== container) return;
+        const root = document.getElementById("rockit-video-root");
+        if (root) root.appendChild(this._video);
     }
 }

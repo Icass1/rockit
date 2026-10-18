@@ -28,6 +28,7 @@ const runtimeCaching = [
             request.headers.has("range") ||
             request.destination === "audio" ||
             request.destination === "video" ||
+            /^\/youtube\/video\/[^/]+\/stream(?:\/|$)/.test(url.pathname) ||
             url.pathname.startsWith("/rockit/audio/") ||
             /^\/rockit\/video\/[^/]+\/stream(?:\/|$)/.test(url.pathname),
         handler: new NetworkOnly(),

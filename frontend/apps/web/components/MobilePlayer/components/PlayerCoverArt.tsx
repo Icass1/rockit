@@ -1,6 +1,8 @@
 "use client";
 
-import type { JSX } from "react";
+import { useEffect, useRef, type JSX } from "react";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface PlayerCoverArtProps {
     uri: string | undefined;
@@ -17,11 +19,25 @@ export default function PlayerCoverArt({
     uri,
     mediaType,
 }: PlayerCoverArtProps): JSX.Element {
+    const audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
+    const videoContainerRef = useRef<HTMLDivElement>(null);
+    const showVideo = mediaType === "video" && !audioOnly;
+
+    useEffect(() => {
+        const container = videoContainerRef.current;
+        if (!showVideo || !container) return;
+        rockIt.mediaPlayerManager.attachVideoToContainer(container);
+        return () =>
+            rockIt.mediaPlayerManager.detachVideoFromContainer(container);
+    }, [showVideo]);
+
     return (
         <div
-            className={`mx-auto w-full max-w-85 overflow-hidden bg-(--color-surface) shadow-xl ${aspectClass(mediaType)}`}
+            className={`relative mx-auto w-full max-w-85 overflow-hidden bg-(--color-surface) shadow-xl ${aspectClass(mediaType)}`}
         >
-            {uri ? (
+            {showVideo ? (
+                <div ref={videoContainerRef} className="absolute inset-0" />
+            ) : uri ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={uri}

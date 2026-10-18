@@ -86,6 +86,8 @@ for (const origin of ["https://app.rockit.test", "https://api.rockit.test"]) {
         "/rockit/audio/song-id",
         "/rockit/video/video-id/stream",
         "/rockit/video/video-id/stream/audio",
+        "/youtube/video/video-id/stream",
+        "/youtube/video/video-id/stream/audio",
     ]) {
         for (const range of [undefined, "bytes=65536-131071", "bytes=-1024"]) {
             test(`streams ${origin}${path} (${range ?? "no range"}) without buffering or caching`, async () => {
@@ -172,6 +174,8 @@ test("media destinations and arbitrary Range requests precede default caches; me
         ["/external/song.mp3", "audio", false],
         ["/other/resource", "", true],
         ["/rockit/video/id/stream", "", false],
+        ["/youtube/video/id/stream", "", false],
+        ["/youtube/video/id/stream/audio", "", false],
     ]) {
         const url = new URL(path, "https://app.rockit.test");
         const request = new Request(url, {

@@ -14,9 +14,7 @@
             "bundleIdentifier": "com.rockit.mobile",
             "icon": "./assets/images/icon.png",
             "infoPlist": {
-                "UIBackgroundModes": [
-                    "audio"
-                ]
+                "UIBackgroundModes": ["audio"]
             }
         },
         "android": {
@@ -61,7 +59,8 @@
             [
                 "expo-audio",
                 {
-                    "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+                    "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone.",
+                    "enableBackgroundPlayback": true
                 }
             ],
             [
@@ -73,7 +72,7 @@
                     "skipBackwardInterval": 10
                 }
             ],
-            "expo-video",
+            ["expo-video", { "supportsBackgroundPlayback": true }],
             [
                 "expo-screen-orientation",
                 {

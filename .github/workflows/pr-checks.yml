@@ -69,6 +69,7 @@ jobs:
                   cat lint.txt
 
                   pnpm --dir frontend/packages/shared test || failed=1
+                  pnpm --dir frontend/apps/web test || failed=1
 
                   pyright > pyright.txt 2>&1 || failed=1
                   cat pyright.txt
@@ -130,5 +131,7 @@ jobs:
                       backend/requirements-dev.txt
             - name: Install test dependencies
               run: python -m pip install -r backend/requirements-dev.txt
+            - name: Install media test dependencies
+              run: sudo apt-get update && sudo apt-get install -y ffmpeg
             - name: Run backend tests
               run: python -m pytest -q

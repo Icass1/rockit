@@ -50,17 +50,23 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     // Remote URI we last seeded into the disk cache (so we can evict on switch).
     private _seededRemoteUri?: string;
+    private _audioModeReady: Promise<void>;
 
     constructor() {
         super();
 
-        setAudioModeAsync({
+        this._audioModeReady = setAudioModeAsync({
             allowsRecording: false,
             shouldPlayInBackground: true,
             interruptionMode: "doNotMix",
             playsInSilentMode: true,
             interruptionModeAndroid: "doNotMix",
             shouldRouteThroughEarpiece: false,
+        }).catch((error): void => {
+            console.error(
+                "MediaPlayerManager: audio session setup failed",
+                error
+            );
         });
 
         this._videoPlayer = createVideoPlayer(null);
@@ -98,15 +104,20 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             if (this._audioPlayer || this._videoReplacing) return;
             this.onNativeEnded();
         });
-        this._videoPlayer.addListener("statusChange", ({ status }): void => {
-            // The idle video deck must not overwrite the active audio state.
-            if (this._audioPlayer) return;
-            if (status === "loading") {
-                this.onNativeLoadStart();
-            } else if (status === "readyToPlay") {
-                this.onNativeLoaded();
+        this._videoPlayer.addListener(
+            "statusChange",
+            ({ status, error }): void => {
+                // The idle video deck must not overwrite the active audio state.
+                if (this._audioPlayer) return;
+                if (status === "loading") {
+                    this.onNativeLoadStart();
+                } else if (status === "readyToPlay") {
+                    this.onNativeLoaded();
+                } else if (status === "error" && !this._videoReplacing) {
+                    this.onNativeError(error);
+                }
             }
-        });
+        );
     }
 
     // ===== Duration =====
@@ -180,10 +191,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     // ===== Platform primitives =====
 
-    protected override loadNativeSource(
+    protected override async loadNativeSource(
         kind: TMediaKind,
         uri: string
-    ): void | Promise<void> {
+    ): Promise<void> {
+        await this._audioModeReady;
+        // Both engines share AVAudioSession. Match their policies when loading
+        // media so the idle video engine cannot override background audio.
+        this._videoPlayer.audioMixingMode = "doNotMix";
         if (kind === "audio") {
             this._createAudioPlayer(uri);
             return;

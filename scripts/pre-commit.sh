@@ -3,7 +3,7 @@
 # Rockit Pre-commit Hook
 # Runs format and lint checks before commit
 
-set -e
+set -euo pipefail
 
 echo "🧹 Running pre-commit checks..."
 
@@ -24,7 +24,7 @@ ERRORS=0
 # Frontend (pnpm lint)
 # ─────────────────────────────────────────────
 echo -e "\n${YELLOW}📦 Frontend lint (pnpm)...${NC}"
-cd "$PROJECT_ROOT/frontend"
+cd "$PROJECT_ROOT"
 if pnpm lint 2>&1 | tee /tmp/frontend-lint.log; then
     echo -e "${GREEN}✅ Frontend lint passed${NC}"
 else
@@ -37,7 +37,7 @@ fi
 # ─────────────────────────────────────────────
 echo -e "\n${YELLOW}🐍 Backend typecheck (pyright)...${NC}"
 cd "$PROJECT_ROOT"
-if pyright 2>&1 | tee /tmp/backend-lint.log; then
+if uv run --project apps/backend pyright 2>&1 | tee /tmp/backend-lint.log; then
     echo -e "${GREEN}✅ Backend typecheck passed${NC}"
 else
     ERRORS=$((ERRORS + 1))

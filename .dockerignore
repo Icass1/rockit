@@ -1,5 +1,10 @@
 .git
-node_modules
+**/node_modules
+**/.next
+**/.expo
+**/.venv
+**/__pycache__
+**/.pytest_cache
 *.log
 .env
 .env.*

@@ -1,0 +1,194 @@
+from dataclasses import dataclass
+import inspect
+
+
+@dataclass(frozen=True)
+class ResultTraceEntry:
+    file: str
+    line: int
+    operation: str
+
+
+from typing import Generic, TypeVar, cast, Optional
+
+T = TypeVar("T")
+G = TypeVar("G")
+
+
+class AResultCode:
+    OK = 0x1
+    GENERAL_ERROR = 0x2
+    NOT_FOUND = 0x3
+    BAD_REQUEST = 0x4
+    NOT_IMPLEMENTED = 0x5
+    ALREADY_EXISTS = 0x6
+    VALIDATION_ERROR = 0x7
+    RATE_LIMITED = 0x8
+    QUOTA_EXHAUSTED = 0x9
+    CONFIGURATION_ERROR = 0xA
+
+    _code: int
+    _message: str
+
+    def __init__(self, code: int, message: str):
+        self._code = code
+        self._message = message
+
+    def is_ok(self) -> bool:
+        return self._code == self.OK
+
+    def is_not_ok(self) -> bool:
+        return not self.is_ok()
+
+    def is_retryable(self) -> bool:
+        return self._code in (
+            self.GENERAL_ERROR,
+            self.RATE_LIMITED,
+            self.QUOTA_EXHAUSTED,
+        )
+
+    def is_rate_limited(self) -> bool:
+        """Whether this failure was caused by throttling rather than by the request itself."""
+
+        return self._code in (self.RATE_LIMITED, self.QUOTA_EXHAUSTED)
+
+    def get_http_code(self):
+        if self._code == AResultCode.OK:
+            return 200
+        if self._code == AResultCode.ALREADY_EXISTS:
+            return 409
+        if self._code == AResultCode.GENERAL_ERROR:
+            return 500
+        if self._code == AResultCode.NOT_FOUND:
+            return 404
+        if self._code == AResultCode.BAD_REQUEST:
+            return 400
+        if self._code == AResultCode.NOT_IMPLEMENTED:
+            return 501
+        if self._code == AResultCode.VALIDATION_ERROR:
+            return 403
+        if self._code == AResultCode.RATE_LIMITED:
+            return 429
+        if self._code == AResultCode.QUOTA_EXHAUSTED:
+            return 429
+        if self._code == AResultCode.CONFIGURATION_ERROR:
+            return 503
+
+        raise Exception(f"Code {self._code} not implemented")
+
+    def message(self) -> str:
+        return self._message
+
+    def code(self) -> int:
+        return self._code
+
+    def code_str(self) -> str:
+        if self._code == AResultCode.OK:
+            return "OK"
+        if self._code == AResultCode.ALREADY_EXISTS:
+            return "ALREADY_EXISTS"
+        if self._code == AResultCode.GENERAL_ERROR:
+            return "GENERAL_ERROR"
+        if self._code == AResultCode.NOT_FOUND:
+            return "NOT_FOUND"
+        if self._code == AResultCode.BAD_REQUEST:
+            return "BAD_REQUEST"
+        if self._code == AResultCode.NOT_IMPLEMENTED:
+            return "NOT_IMPLEMENTED"
+        if self._code == AResultCode.VALIDATION_ERROR:
+            return "VALIDATION_ERROR"
+        if self._code == AResultCode.RATE_LIMITED:
+            return "RATE_LIMITED"
+        if self._code == AResultCode.QUOTA_EXHAUSTED:
+            return "QUOTA_EXHAUSTED"
+        if self._code == AResultCode.CONFIGURATION_ERROR:
+            return "CONFIGURATION_ERROR"
+
+        raise Exception(f"Code {self._code} not implemented")
+
+    def info(self) -> str:
+        return f"Message: {self.message()}, Code: {self.code_str()}"
+
+
+class AResult(Generic[T]):
+    _code: AResultCode
+    _message: str
+    _result: Optional[T]
+
+    def __init__(self, code: int, message: str, result: Optional[T] = None):
+        self._code = AResultCode(code=code, message=message)
+        self._message = message
+        self._result = result
+        frame = inspect.currentframe()
+        caller = frame.f_back if frame else None
+        self._trace = (
+            (
+                ResultTraceEntry(
+                    file=caller.f_code.co_filename,
+                    line=caller.f_lineno,
+                    operation=caller.f_code.co_name,
+                ),
+            )
+            if code != AResultCode.OK and caller
+            else ()
+        )
+        del frame, caller
+
+        if code == AResultCode.OK and result is None:
+            raise ValueError("Must provide result when code is OK")
+        if code == AResultCode.ALREADY_EXISTS and result is None:
+            pass  # ALLOWED
+
+    @staticmethod
+    def ok(result: G) -> "AResult[G]":
+        return AResult(code=AResultCode.OK, message="OK", result=result)
+
+    @classmethod
+    def from_result(cls, result: "AResult[G]") -> "AResult[T]":
+        propagated = cls(
+            code=result.code(), message=result.message(), result=cast(T, result._result)
+        )
+        propagated._trace = result.stack_trace() + propagated._trace
+        return propagated
+
+    def stack_trace(self) -> tuple[ResultTraceEntry, ...]:
+        return self._trace
+
+    def stacktrace(self) -> str:
+        return "\n".join(
+            f"{entry.file}:{entry.line} in {entry.operation}" for entry in self._trace
+        )
+
+    def finish(self) -> None:
+        """Explicitly consume a handled platform failure."""
+        return None
+
+    def is_ok(self) -> bool:
+        return self._code.is_ok()
+
+    def is_not_ok(self) -> bool:
+        return self._code.is_not_ok()
+
+    def is_retryable(self) -> bool:
+        return self._code.is_retryable()
+
+    def is_rate_limited(self) -> bool:
+        return self._code.is_rate_limited()
+
+    def get_http_code(self):
+        return self._code.get_http_code()
+
+    def result(self) -> T:
+        return cast(T, self._result)
+
+    def message(self) -> str:
+        return self._message
+
+    def code(self) -> int:
+        return self._code.code()
+
+    def code_str(self) -> str:
+        return self._code.code_str()
+
+    def info(self) -> str:
+        return f"Message: '{self.message()}', Code: '{self.code_str()}'"

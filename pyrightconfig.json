@@ -1,8 +1,15 @@
 {
-    "typeCheckingMode": "strict",
-    "pythonVersion": "3.12",
-    "venvPath": ".",
-    "venv": "venv",
-    "analyzeUnannotatedFunctions": true,
-    "stubPath": "typings"
+  "typeCheckingMode": "strict",
+  "pythonVersion": "3.12",
+  "venvPath": "apps/backend",
+  "venv": ".venv",
+  "analyzeUnannotatedFunctions": true,
+  "stubPath": "typings",
+  "include": [
+    "backend"
+  ],
+  "exclude": [
+    "**/.venv",
+    "**/node_modules"
+  ]
 }

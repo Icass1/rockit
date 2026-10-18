@@ -1,0 +1,197 @@
+// This file is generated using: python3 -m backend models
+// Do not modify this file manually.
+
+import * as dto from "@/dto";
+import { BACKEND_URL } from "@/environment";
+import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
+import { FastApiError, HttpResult } from "@/models/types/httpTypes";
+
+type Middleware = <T>(
+    next: () => Promise<HttpResult<T>>,
+    context: { path: string; schema: TZodSchema<T>; options: IApiFetchOptions }
+) => Promise<HttpResult<T>>;
+
+export class BaseHttp {
+    static middlewares: Middleware[] = [];
+
+    protected static baseApiFetchAsync(
+        _path: string,
+        _options: IApiFetchOptions = {}
+    ): Promise<Response> {
+        console.error(
+            "Not implememented error. Use the this class that extends this on in each application."
+        );
+        throw "Not implemented error";
+    }
+
+    private static async apiFetchAsync<T>(
+        path: string,
+        schema: TZodSchema<T>,
+        options: IApiFetchOptions = {}
+    ): Promise<HttpResult<T>> {
+        const next: (n: number) => Promise<HttpResult<T>> = async (
+            n: number
+        ) => {
+            if (!this.middlewares[n])
+                return await this._apiFetchAsync(path, schema, options);
+
+            return await this.middlewares[n](() => next(n + 1), {
+                path,
+                schema,
+                options,
+            });
+        };
+
+        return next(0);
+    }
+
+    private static async _apiFetchAsync<T>(
+        path: string,
+        schema: TZodSchema<T>,
+        options: IApiFetchOptions = {}
+    ): Promise<HttpResult<T>> {
+        let res: Response;
+
+        try {
+            res = await this.baseApiFetchAsync(path, options);
+        } catch (err) {
+            return new HttpResult<T>({
+                ok: false,
+                code: 0,
+                message: "Network Error",
+                detail: (err as Error).message,
+            });
+        }
+
+        let json: unknown;
+
+        try {
+            json = await res.json();
+        } catch {
+            return new HttpResult<T>({
+                ok: false,
+                code: res.status,
+                message: res.statusText,
+                detail: "Invalid JSON response from server",
+            });
+        }
+
+        if (!res.ok) {
+            const obj = json as { detail?: FastApiError["detail"] };
+            // console.error(obj.detail ?? "Unknown error");
+
+            return new HttpResult<T>({
+                ok: false,
+                code: res.status,
+                message: res.statusText,
+                detail: obj.detail ?? "Unknown error",
+            });
+        }
+
+        try {
+            const parsed = schema.parse(json);
+            return new HttpResult<T>({
+                ok: true,
+                code: res.status,
+                message: res.statusText,
+                result: parsed,
+            });
+        } catch (err) {
+            console.error("Validation error", err);
+            return new HttpResult<T>({
+                ok: false,
+                code: res.status,
+                message: "Validation Error",
+                detail: (err as Error).message,
+            });
+        }
+    }
+
+    private static async apiPostAsync<T, G>(
+        path: string,
+        _requestSchema: TZodSchema<T>,
+        responseSchema: TZodSchema<G>,
+        body: T
+    ): Promise<HttpResult<G>> {
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+    }
+
+    private static async apiGetAsync<T>(
+        path: string,
+        responseSchema: TZodSchema<T>
+    ): Promise<HttpResult<T>> {
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "GET",
+        });
+    }
+
+    private static async apiDeleteAsync<T>(
+        path: string,
+        responseSchema: TZodSchema<T>
+    ): Promise<HttpResult<T>> {
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "DELETE",
+        });
+    }
+
+    private static async apiPatchAsync<T>(
+        path: string,
+        responseSchema: TZodSchema<T>
+    ): Promise<HttpResult<T>> {
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "PATCH",
+        });
+    }
+
+    static async downloadBinary(
+        url: string,
+        payload: unknown
+    ): Promise<HttpResult<Blob>> {
+        // This bypasses apiFetchAsync because the response is binary, so the
+        // network error handling it normally provides has to be repeated here.
+        let response: Response;
+        try {
+            response = await this.baseApiFetchAsync(url.replace(BACKEND_URL, ""), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+        } catch (err) {
+            return new HttpResult({
+                ok: false,
+                code: 0,
+                message: "Network Error",
+                detail: (err as Error).message,
+            });
+        }
+
+        if (!response.ok) {
+            let detail: string | unknown[] | Record<string, unknown> =
+                response.statusText;
+            try {
+                detail = (await response.json()).detail ?? detail;
+            } catch {
+                // Keep the HTTP status when the backend did not return JSON.
+            }
+            return new HttpResult({
+                ok: false,
+                code: response.status,
+                message: response.statusText,
+                detail,
+            });
+        }
+
+        return new HttpResult({
+            ok: true,
+            code: response.status,
+            message: "OK",
+            result: await response.blob(),
+        });
+    }
+
+    <HTTP_METHODS_HERE/>
+}

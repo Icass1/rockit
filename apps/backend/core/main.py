@@ -1,0 +1,167 @@
+from contextlib import asynccontextmanager, suppress
+import os
+from pathlib import Path
+import asyncio
+from typing import List
+from importlib import import_module
+
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
+
+from backend.utils.logger import getLogger
+
+from backend.constants import CORS_URLS
+
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from backend.core.middlewares.requestLogMiddleware import RequestLogMiddleware
+
+from backend.core.access.db import rockit_db
+
+from backend.core.framework.downloader import downloads_manager
+
+from backend.youtube.framework.potProvider import PotProvider
+
+os.environ["PYTHONIOENCODING"] = "utf-8"
+os.environ["TERM"] = "xterm"
+os.environ["COLUMNS"] = "120"
+
+
+logger = getLogger(__name__)
+
+download_task: asyncio.Task[None] | None = None
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    await app_startup()
+    try:
+        yield
+    finally:
+        await app_shutdown()
+
+
+app = FastAPI(
+    lifespan=lifespan,
+    title="RockIt!",
+    summary="The best music player in the world.",
+    version="0.0.1",
+    docs_url="/docs",
+)
+
+cors_origins: List[str] = []
+if CORS_URLS and CORS_URLS != "NONE":
+    cors_origins.extend([url.strip() for url in CORS_URLS.split(",") if url.strip()])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_middleware(DBSessionMiddleware)
+app.add_middleware(RequestLogMiddleware)
+
+routers_included: int = 0
+
+# Search and initialize all routers.
+for dirpath, dirnames, filenames in os.walk(Path(__file__).resolve().parents[1]):
+    if not dirpath.endswith("/controllers"):
+        continue
+
+    for file_name in filenames:
+        if not file_name.endswith(".py"):
+            continue
+
+        if file_name == "__init__.py":
+            continue
+
+        module_name = file_name.replace(".py", "")
+
+        module_path = "backend." + ".".join(
+            Path(dirpath).relative_to(Path(__file__).resolve().parents[1]).parts
+        )
+        module = import_module(f"{module_path}.{module_name}")
+        try:
+            router_included = False
+            public_router_included = False
+
+            if hasattr(module, "router"):
+                app.include_router(module.router)
+                router_included = True
+
+            if hasattr(module, "public_router"):
+                app.include_router(module.public_router)
+                public_router_included = True
+
+            if router_included and public_router_included:
+                logger.debug(f"Included router and public router of {module_name}.")
+                routers_included += 1
+            elif router_included:
+                logger.debug(f"Included router of {module_name}.")
+                routers_included += 1
+            elif router_included:
+                logger.debug(f"Included public router of {module_name}.")
+                routers_included += 1
+
+        except Exception as e:
+            logger.error(f"Error including router {module_name}. ({e})")
+
+logger.info(f"Included {routers_included} router(s).")
+
+
+async def app_startup():
+    """Initialize core enums and start background tasks."""
+
+    from backend.core import add_initial_content_async
+
+    try:
+        await rockit_db.async_init()
+    except Exception as e:
+        logger.critical(f"Error initializing database: {e}")
+        raise
+
+    from backend.core.framework.storage import Storage
+
+    storage_ready = await Storage.ensure_bucket_async()
+    if storage_ready.is_not_ok():
+        logger.error(storage_ready.info())
+        raise RuntimeError(storage_ready.message())
+    await add_initial_content_async()
+
+    await rockit_db.wait_for_session_local_async()
+
+    # Keep the API available when download prerequisites need operator action.
+    a_result_provider = await PotProvider.check_health_async()
+    if a_result_provider.is_not_ok():
+        logger.error(f"YouTube downloader is not ready: {a_result_provider.message()}")
+
+    global download_task
+    download_task = asyncio.create_task(
+        downloads_manager.download_manager(), name="Download Manager"
+    )
+    # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")
+
+
+async def app_shutdown():
+    """Close all active WebSocket connections before shutdown."""
+
+    from backend.core.framework.websocket.webSocketManager import ws_manager
+
+    all_sockets = [
+        ws
+        for connections in ws_manager.active_connections.values()
+        for ws in connections
+    ]
+    for ws in all_sockets:
+        try:
+            await ws.close(code=1001)
+        except Exception:
+            pass
+    if download_task is not None:
+        download_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await download_task
+    await rockit_db.close()
+    logger.info(f"Closed {len(all_sockets)} WebSocket connection(s) on shutdown.")

@@ -122,7 +122,7 @@
                 "--offline",
                 "--go"
             ],
-            "cwd": "${workspaceFolder}/frontend/apps/mobile",
+            "cwd": "${workspaceFolder}/apps/mobile",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         }

@@ -46,7 +46,7 @@
     "files.autoSave": "onFocusChange",
     "python-envs.pythonProjects": [
         {
-            "path": "frontend/apps/web/components/RenderList",
+            "path": "apps/web/components/RenderList",
             "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
         },

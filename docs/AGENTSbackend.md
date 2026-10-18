@@ -14,7 +14,7 @@
 ## Directory
 
 ```
-backend/
+apps/backend/
 __main__.py (CLI: zod, init-db)
 constants.py
 core/
@@ -155,7 +155,7 @@ class BaseProvider:
     def match_url(self, url) -> str | None
 ```
 
-Discovery: scans backend/\*/framework/provider/provider.py, imports provider + name exports.
+Discovery: scans apps/backend/\*/framework/provider/provider.py, imports provider + name exports.
 
 Implementation:
 
@@ -256,31 +256,31 @@ async def get_user_async(session, user_id) -> AResult[UserRow]:
     """Get user by ID."""
 ```
 
-Run black after editing: `venv/bin/python -m black <file>`
+Run black after editing: `uv run --project apps/backend black <file>`
 
 ## Key Files
 
 | File                                                  | Purpose                         |
 | ----------------------------------------------------- | ------------------------------- |
-| backend/core/main.py                                  | FastAPI entry, router discovery |
-| backend/core/aResult.py                               | Result wrapper                  |
-| backend/core/access/db/rockItDb.py                    | DB connection                   |
-| backend/core/access/db/ormModels/user.py              | User ORM                        |
-| backend/core/controllers/authController.py            | Auth endpoints                  |
-| backend/core/framework/auth/session.py                | Session mgmt                    |
-| backend/core/framework/providers/providers.py         | Provider discovery              |
-| backend/core/framework/provider/baseProvider.py       | Provider interface              |
-| backend/core/middlewares/dbSessionMiddleware.py       | Session per request             |
-| backend/core/middlewares/authMiddleware.py            | Auth                            |
-| backend/spotify/framework/provider/spotifyProvider.py | Spotify impl                    |
-| backend/youtube/framework/provider/youtubeProvider.py | YouTube impl                    |
+| apps/backend/core/main.py                                  | FastAPI entry, router discovery |
+| apps/backend/core/aResult.py                               | Result wrapper                  |
+| apps/backend/core/access/db/rockItDb.py                    | DB connection                   |
+| apps/backend/core/access/db/ormModels/user.py              | User ORM                        |
+| apps/backend/core/controllers/authController.py            | Auth endpoints                  |
+| apps/backend/core/framework/auth/session.py                | Session mgmt                    |
+| apps/backend/core/framework/providers/providers.py         | Provider discovery              |
+| apps/backend/core/framework/provider/baseProvider.py       | Provider interface              |
+| apps/backend/core/middlewares/dbSessionMiddleware.py       | Session per request             |
+| apps/backend/core/middlewares/authMiddleware.py            | Auth                            |
+| apps/backend/spotify/framework/provider/spotifyProvider.py | Spotify impl                    |
+| apps/backend/youtube/framework/provider/youtubeProvider.py | YouTube impl                    |
 
 ## Running
 
 ```bash
 cd backend
 uvicorn backend.core.main:app --reload
-venv/bin/python -m pyright  # typecheck
+uv run --project apps/backend pyright  # typecheck
 python3 -m backend init-db
 python3 -m backend models  # generate frontend DTOs
 ```

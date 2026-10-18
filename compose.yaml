@@ -1,0 +1,104 @@
+services:
+  postgres:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_DB: ${DB_NAME:-rockit}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+    - 5432:5432
+    volumes:
+    - database:/var/lib/postgresql/data
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  storage:
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-rockit}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-rockit-development-only}
+    ports:
+    - 9000:9000
+    - 9001:9001
+    volumes:
+    - objects:/data
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:9000/minio/health/live
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      BACKEND_URL: http://localhost:8000
+      CORS_URLS: http://localhost:3000
+      PROD_WEB_SESSION_DOMAIN: localhost
+      PROD_MOBILE_SESSION_DOMAIN: localhost
+      LOGS_PATH: /app/logs
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-rockit}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      SESSION_DURATION: 3600
+      SESSION_DURATION_REMEMBER_ME: 86400
+      SESSION_COOKIE: ${SESSION_COOKIE:-session_id}
+      ENVIRONMENT: DEV
+      LOG_DUMP_LEVEL: info
+      CONSOLE_DUMP_LEVEL: info
+      S3_PRIVATE_ENDPOINT_URL: http://storage:9000
+      S3_PUBLIC_ENDPOINT_URL: http://localhost:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-rockit}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-rockit-development-only}
+      S3_BUCKET: ${S3_BUCKET:-rockit}
+      S3_REGION: us-east-1
+      SESSION_TOKEN_SECRET: ${SESSION_TOKEN_SECRET:?Set SESSION_TOKEN_SECRET to at
+        least 32 bytes}
+      TEMP_PATH: /tmp/rockit
+      DOWNLOAD_THREADS: ${DOWNLOAD_THREADS:-2}
+      CLIENT_ID: ${CLIENT_ID:-}
+      CLIENT_SECRET: ${CLIENT_SECRET:-}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      YTDLP_POT_PROVIDER_URL: http://pot-provider:4416
+    ports:
+    - 8000:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      pot-provider:
+        condition: service_started
+    volumes:
+    - logs:/app/logs
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      BACKEND_URL: http://backend:8000
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8000
+      SESSION_COOKIE: ${SESSION_COOKIE:-session_id}
+    ports:
+    - 3000:3000
+    depends_on:
+    - backend
+  pot-provider:
+    image: brainicism/bgutil-ytdlp-pot-provider:2.0.2
+    init: true
+    restart: unless-stopped
+volumes:
+  database: null
+  objects: null
+  logs: {}

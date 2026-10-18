@@ -1,5 +1,16 @@
 packages:
-    - "apps/*"
-    - "packages/*"
+  - "apps/web"
+  - "apps/mobile"
+  - "packages/*"
 allowBuilds:
-    unrs-resolver: true
+  '@swc/core': true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+onlyBuiltDependencies:
+  - "@swc/core"
+  - esbuild
+  - sharp
+  - unrs-resolver
+patchedDependencies:
+  '@gorhom/bottom-sheet@5.2.8': patches/@gorhom__bottom-sheet@5.2.8.patch

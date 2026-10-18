@@ -2,7 +2,7 @@ create claude.md file:
 
 - music player called rockit
 - nextjs frontend, fastapi backend, postgressql database with sqlalchemy orm async
-- frontend in frontend/, backend in backend/
+- frontend in frontend/, backend in apps/backend/
 - 5 businesses: core, default, spotify, youtube, rockit
 
 RULE: NOTHING from other business in core. Not even provider list.
@@ -12,7 +12,7 @@ Each business has 3 layers: controller, framework, access. Controller → framew
 File structure (core example):
 
 ```
-backend/
+apps/backend/
 core/
 access/
 db/

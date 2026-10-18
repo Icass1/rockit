@@ -10,7 +10,7 @@ dotenv.load_dotenv()
 
 def main():
     project_root = Path(__file__).resolve().parent.parent
-    mobile_root = project_root / "frontend/apps/mobile"
+    mobile_root = project_root / "apps/mobile"
 
     current_version = json.loads((mobile_root / "app.json").read_text())["expo"][
         "version"

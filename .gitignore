@@ -65,7 +65,7 @@ next-env.d.ts
 dist/
 web-build/
 expo-env.d.ts
-frontend/apps/mobile/.gitignore
+apps/mobile/.gitignore
 
 # React Native
 .metro-health-check*
@@ -131,3 +131,11 @@ pyright.txt
 
 # Shared frontend test bundles
 .test-build/
+
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.next/
+**/.expo/
+**/.test-build/
+**/tsconfig.tsbuildinfo

@@ -4,7 +4,7 @@
 backend/
 
 # Web app (not needed for mobile builds)
-frontend/apps/web/
+apps/web/
 
 # ============================
 # IDEs

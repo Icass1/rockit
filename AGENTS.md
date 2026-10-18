@@ -35,8 +35,11 @@ Rockit is a self-hosted music player.
 
 ```
 rockit/
-├── frontend/    # Next.js app
-└── backend/     # FastAPI app
+├── apps/backend/ # FastAPI app (uv)
+├── apps/web/     # Next.js app
+├── apps/mobile/  # Expo app
+├── packages/     # Shared client and configuration
+└── backend      # Compatibility symlink to apps/backend
 ```
 
 ---
@@ -46,28 +49,28 @@ rockit/
 ### Backend
 
 ```bash
-cd backend
 
+# From the repository root
 # Development server
-uvicorn backend.core.main:app --reload
+uv run --project apps/backend uvicorn backend.core.main:app --reload
 
 # Type checking
-venv/bin/python -m pyright
+uv run --project apps/backend pyright
 
 # Linting / formatting
-venv/bin/python -m black <file>
+uv run --project apps/backend black <file>
 
 # Initialize database
-python3 -m backend init-db
+uv run --project apps/backend python -m backend init-db
 
 # Generate frontend DTOs from backend responses
-python3 -m backend models
+uv run --project apps/backend python -m backend models
 ```
 
 ### Frontend
 
 ```bash
-cd frontend
+cd apps/web
 
 # Development (Turbopack)
 pnpm dev
@@ -88,7 +91,7 @@ npx tsc --noEmit
 ### Mobile (Expo)
 
 ```bash
-cd frontend/apps/mobile
+cd apps/mobile
 
 # Prebuild (generates native directories)
 pnpm prebuild
@@ -116,7 +119,7 @@ pnpm mobile:build:ios:production
 ### 3.1 Directory Structure
 
 ```
-backend/
+apps/backend/
 ├── __main__.py                    # CLI entry (commands: zod, init-db)
 ├── constants.py                   # Environment variables
 │
@@ -263,7 +266,7 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
 ### 3.4 Database
 
 ```python
-# Connection manager — backend/core/access/db/rockItDb.py
+# Connection manager — apps/backend/core/access/db/rockItDb.py
 rockit_db = RockItDB(username, password, host, port, database)
 
 # Transaction scope (auto commit/rollback)
@@ -315,7 +318,7 @@ async def protected_endpoint(
 Providers abstract multiple music sources (Spotify, YouTube, RockIt).
 
 ```python
-# backend/core/framework/provider/baseProvider.py
+# apps/backend/core/framework/provider/baseProvider.py
 class BaseProvider:
     async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]
     async def get_song_async(self, session, public_id: str) -> AResult[BaseSongWithAlbumResponse]
@@ -327,7 +330,7 @@ class BaseProvider:
     def match_url(self, url: str) -> str | None  # External URL → internal path
 ```
 
-To add a provider: create `backend/{name}/framework/provider/provider.py` implementing `BaseProvider`, export `provider = MyProvider()` and `name = "ProviderName"`.
+To add a provider: create `apps/backend/{name}/framework/provider/provider.py` implementing `BaseProvider`, export `provider = MyProvider()` and `name = "ProviderName"`.
 
 ---
 
@@ -671,11 +674,11 @@ bg-gradient-to-r from-[#ee1086] to-[#fb6467]
 
 ### DTO Generation
 
-Backend Pydantic response models are compiled to Zod schemas in `frontend/packages/shared/src/dto/`:
+Backend Pydantic response models are compiled to Zod schemas in `packages/shared/src/dto/`:
 
 ```bash
 cd backend
-python3 -m backend models
+uv run --project apps/backend python -m backend models
 ```
 
 **Never edit files in `packages/shared/src/dto/` manually.**
@@ -689,7 +692,7 @@ import { SomeResponseSchema, type SomeResponse } from "@/dto";
 ### API Base URL
 
 ```tsx
-// frontend/apps/web/environment.ts
+// apps/web/environment.ts
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 ```
 
@@ -726,7 +729,7 @@ Events from backend:
 #### Backend
 
 ```python
-# 1. backend/core/requests/statsRequest.py
+# 1. apps/backend/core/requests/statsRequest.py
 from pydantic import BaseModel
 
 class StatsRequest(BaseModel):
@@ -736,7 +739,7 @@ class StatsRequest(BaseModel):
 ```
 
 ```python
-# 2. backend/core/responses/statsResponse.py
+# 2. apps/backend/core/responses/statsResponse.py
 from pydantic import BaseModel
 from typing import List
 
@@ -756,7 +759,7 @@ class UserStatsResponse(BaseModel):
 ```
 
 ```python
-# 3. backend/core/access/statsAccess.py
+# 3. apps/backend/core/access/statsAccess.py
 class StatsAccess:
     @staticmethod
     async def get_user_stats_async(
@@ -770,7 +773,7 @@ class StatsAccess:
 ```
 
 ```python
-# 4. backend/core/framework/stats.py
+# 4. apps/backend/core/framework/stats.py
 class Stats:
     @staticmethod
     async def get_user_stats_async(
@@ -784,7 +787,7 @@ class Stats:
 ```
 
 ```python
-# 5. backend/core/controllers/statsController.py
+# 5. apps/backend/core/controllers/statsController.py
 @router.get("/stats/user")
 async def get_user_stats(
     request: Request,
@@ -810,7 +813,7 @@ async def get_user_stats(
 #### Generate DTO
 
 ```bash
-cd backend && python3 -m backend models
+cd backend && uv run --project apps/backend python -m backend models
 ```
 
 #### Frontend
@@ -873,7 +876,7 @@ class SomeFramework:
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
 # Run black after every edit
-# venv/bin/python -m black <file>
+# uv run --project apps/backend black <file>
 ```
 
 ### Frontend
@@ -938,29 +941,29 @@ if (typeof window !== "undefined") { ... }
 
 | File                                                    | Purpose                             |
 | ------------------------------------------------------- | ----------------------------------- |
-| `backend/core/main.py`                                  | FastAPI app entry, router discovery |
-| `backend/core/aResult.py`                               | Result wrapper                      |
-| `backend/core/access/db/rockItDb.py`                    | DB connection manager               |
-| `backend/core/access/db/ormModels/user.py`              | User ORM model                      |
-| `backend/core/controllers/authController.py`            | Auth endpoints                      |
-| `backend/core/controllers/mediaController.py`           | Media endpoints                     |
-| `backend/core/controllers/statsController.py`           | Stats endpoints                     |
-| `backend/core/framework/auth/session.py`                | Session management                  |
-| `backend/core/framework/providers/providers.py`         | Provider registry                   |
-| `backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
-| `backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
-| `backend/core/middlewares/authMiddleware.py`            | Authentication                      |
-| `backend/constants.py`                                  | Environment config                  |
-| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
-| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
+| `apps/backend/core/main.py`                                  | FastAPI app entry, router discovery |
+| `apps/backend/core/aResult.py`                               | Result wrapper                      |
+| `apps/backend/core/access/db/rockItDb.py`                    | DB connection manager               |
+| `apps/backend/core/access/db/ormModels/user.py`              | User ORM model                      |
+| `apps/backend/core/controllers/authController.py`            | Auth endpoints                      |
+| `apps/backend/core/controllers/mediaController.py`           | Media endpoints                     |
+| `apps/backend/core/controllers/statsController.py`           | Stats endpoints                     |
+| `apps/backend/core/framework/auth/session.py`                | Session management                  |
+| `apps/backend/core/framework/providers/providers.py`         | Provider registry                   |
+| `apps/backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
+| `apps/backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
+| `apps/backend/core/middlewares/authMiddleware.py`            | Authentication                      |
+| `apps/backend/constants.py`                                  | Environment config                  |
+| `apps/backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
+| `apps/backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
 
 ### Frontend
 
 | File                                                      | Purpose                                 |
 | --------------------------------------------------------- | --------------------------------------- |
-| `frontend/apps/web/app/layout.tsx`                        | Root layout                             |
-| `frontend/apps/web/app/(protected)/layout.tsx`            | Auth check                              |
-| `frontend/apps/web/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
+| `apps/web/app/layout.tsx`                        | Root layout                             |
+| `apps/web/app/(protected)/layout.tsx`            | Auth check                              |
+| `apps/web/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
 | `frontend/lib/store.ts`                                   | createAtom / createArrayAtom            |
 | `frontend/lib/rockit/rockIt.ts`                           | Global singleton                        |
 | `frontend/lib/managers/mediaPlayerManager.ts`             | Audio playback                          |
@@ -968,12 +971,12 @@ if (typeof window !== "undefined") { ... }
 | `frontend/lib/managers/webSocketManger.ts`                | WebSocket                               |
 | `frontend/lib/utils/apiFetch.ts`                          | Zod-validated fetch                     |
 | `frontend/lib/errors/AppError.ts`                         | Error class                             |
-| `frontend/packages/shared/src/lib/getUserInServer.ts`     | Server-side session check               |
-| `frontend/hooks/useFetch.ts`                              | Client-side fetch hook                  |
-| `frontend/packages/shared/src/dto/index.ts`               | DTO barrel (auto-generated)             |
-| `frontend/apps/web/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
-| `frontend/apps/web/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
-| `frontend/apps/web/environment.ts`                        | BACKEND_URL                             |
+| `packages/shared/src/lib/getUserInServer.ts`     | Server-side session check               |
+| `packages/shared/src/hooks/useFetch.ts`                              | Client-side fetch hook                  |
+| `packages/shared/src/dto/index.ts`               | DTO barrel (auto-generated)             |
+| `apps/web/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
+| `apps/web/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
+| `apps/web/environment.ts`                        | BACKEND_URL                             |
 
 ---
 
@@ -985,9 +988,9 @@ Enums, interfaces, and types must be placed in one of three `models/` directorie
 
 | Location | Purpose |
 |---|---|
-| `frontend/packages/shared/src/models/` | Types that represent backend entities (DTO-like interfaces, shared enums) — shared between web and mobile |
-| `frontend/apps/web/models/` | Web-only types and enums (app-specific) |
-| `frontend/apps/mobile/models/` | Mobile-only types and enums (app-specific) |
+| `packages/shared/src/models/` | Types that represent backend entities (DTO-like interfaces, shared enums) — shared between web and mobile |
+| `apps/web/models/` | Web-only types and enums (app-specific) |
+| `apps/mobile/models/` | Mobile-only types and enums (app-specific) |
 
 **Never create interfaces, types, or enums outside these `models/` directories** — the only exception is component prop types, which may be defined co-located with the component file.
 
@@ -996,7 +999,7 @@ Enums, interfaces, and types must be placed in one of three `models/` directorie
 Add the enum to the appropriate `models/` directory:
 
 ```typescript
-// frontend/packages/shared/src/models/enums/contentType.ts
+// packages/shared/src/models/enums/contentType.ts
 export enum EContentType {
     SONG = "song",
     ALBUM = "album",
@@ -1006,7 +1009,7 @@ export enum EContentType {
 ```
 
 ```typescript
-// frontend/apps/web/models/enums/adminTabs.ts
+// apps/web/models/enums/adminTabs.ts
 export enum EAdminClientTab {
     BUILDS = "builds",
     USERS = "users",

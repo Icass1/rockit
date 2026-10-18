@@ -71,7 +71,11 @@ export default function AppClientLayout({
             <KeyboardHandler />
 
             {/* Hidden video container — keeps <video> in the DOM for mobile playback */}
-            <div id="rockit-video-root" className="hidden" aria-hidden="true" />
+            <div
+                id="rockit-video-root"
+                className="pointer-events-none fixed top-0 left-0 -z-10 h-px w-px overflow-hidden opacity-0"
+                aria-hidden="true"
+            />
 
             {/* Mobile Header - only visible on small screens */}
             <div className="fixed top-0 right-0 left-0 z-40 mx-auto block h-fit items-center justify-center bg-linear-to-b from-black to-black/0 md:hidden">

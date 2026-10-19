@@ -4,7 +4,7 @@ import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { isSong, isVideo } from "@rockit/shared";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -255,17 +255,14 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
                     <button
                         type="button"
                         onClick={(): void => setLyricsOpen((p) => !p)}
-                        className={`ignore-click-player-ui absolute top-3 z-30 flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white ${
-                            lyricsOpen ? "left-3" : "right-1/2 translate-x-1/2"
-                        }`}
+                        className="ignore-click-player-ui absolute top-1/2 left-2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-white/80 transition-colors hover:text-white"
                         title={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
                         aria-label={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
+                        aria-expanded={lyricsOpen}
                     >
-                        {lyricsOpen ? (
-                            <ChevronLeft className="pointer-events-none h-5 w-5" />
-                        ) : (
-                            <ChevronRight className="pointer-events-none h-5 w-5" />
-                        )}
+                        <ChevronLeft
+                            className={`pointer-events-none h-5 w-5 transition-transform duration-300 ${lyricsOpen ? "" : "rotate-180"}`}
+                        />
                     </button>
                     <div
                         className={`h-full min-h-0 overflow-hidden transition-all duration-500 ease-in-out ${

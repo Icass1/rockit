@@ -4,7 +4,7 @@ import { JSX, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { isSong, isVideo } from "@rockit/shared";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import useWindowSize from "@/hooks/useWindowSize";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -108,23 +108,43 @@ export default function PlayerUIContent(): JSX.Element {
     if (!width || !height) return <div>Loading window size.</div>;
 
     const aspectRatio = width / height;
+    // pt-30 / pb-6 = the header/footer padding (24) plus half of it (12),
+    // so the player content never visually collides with either bar.
     const defaultStyles =
-        "relative grid h-full w-full gap-4 bg-black px-2 text-white pt-24";
+        "relative grid h-full w-full gap-4 bg-black px-2 text-white pt-30 pb-6";
 
     const isLandscape = aspectRatio > 1.5;
     const isPortrait = aspectRatio < 1 / 1.5;
+    const isUltrawide = aspectRatio > 2;
 
     const isVideoMedia = $currentMedia ? isVideo($currentMedia) : false;
 
-    const sideCol = "minmax(0,clamp(280px,22vw,26rem))";
+    // Lyrics and queue side columns share the exact same clamped width so the
+    // center column (cover/video) always lands in the middle of the screen.
+    // Tuning rules across screen sizes:
+    // - 26vw: panels scale up with the viewport on normal/16:9 screens.
+    // - 34rem cap: on ultrawide the leftover space breathes around the cover
+    //   instead of inflating the panels past a readable width.
+    // - minmax(0, ...): on short/narrow landscape windows the tracks shrink
+    //   proportionally instead of overflowing the grid.
+    const sideCol = "minmax(0,clamp(280px,26vw,34rem))";
 
-    // The lyrics column keeps a constant track width so the center (cover)
-    // never shifts; only the inner content slides. The queue column is 1fr.
+    // Normal landscape: symmetric clamped side columns around a 1fr center.
+    // Ultrawide (>2): three thirds with a slightly wider center (1.15fr); each
+    // side panel is capped and centered inside its own third so the leftover
+    // space distributes as symmetric gutters instead of piling up around the
+    // cover. The center third stays exactly centered on screen because the
+    // outer thirds are equal, and the extra width lets the cover keep a
+    // perfect 1:1 square at 96% of the row height without being clamped by
+    // its column. The queue panel is wider (150% of the lyrics panel) but
+    // stays centered in its third.
     const gridStyle = isLandscape
         ? {
               gridTemplateColumns: isVideoMedia
                   ? `0fr minmax(0,1fr) ${sideCol}`
-                  : `${sideCol} minmax(0,1fr) minmax(0,1fr)`,
+                  : isUltrawide
+                    ? "minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)"
+                    : `${sideCol} minmax(0,1fr) ${sideCol}`,
           }
         : undefined;
 
@@ -172,7 +192,9 @@ export default function PlayerUIContent(): JSX.Element {
                         isVideo={isVideoMedia}
                     />
                     <div className="z-10 order-3 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
-                        <PlayerUIQueue visible={true} />
+                        <div className="mx-auto h-full w-[min(51rem,100%)]">
+                            <PlayerUIQueue visible={true} />
+                        </div>
                     </div>
                 </>
             ) : isPortrait ? (
@@ -229,21 +251,18 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
     return (
         <div className="relative z-10 order-1 h-full max-h-full min-h-0 min-w-0 overflow-hidden">
             {!isVideo && (
-                <>
+                <div className="relative mx-auto h-full w-[min(34rem,100%)]">
                     <button
                         type="button"
                         onClick={(): void => setLyricsOpen((p) => !p)}
-                        className={`ignore-click-player-ui absolute top-3 z-30 flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white ${
-                            lyricsOpen ? "left-3" : "right-1/2 translate-x-1/2"
-                        }`}
+                        className="ignore-click-player-ui absolute top-1/2 left-2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-white/80 transition-colors hover:text-white"
                         title={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
                         aria-label={lyricsOpen ? "Hide lyrics" : "Show lyrics"}
+                        aria-expanded={lyricsOpen}
                     >
-                        {lyricsOpen ? (
-                            <ChevronLeft className="pointer-events-none h-5 w-5" />
-                        ) : (
-                            <ChevronRight className="pointer-events-none h-5 w-5" />
-                        )}
+                        <ChevronLeft
+                            className={`pointer-events-none h-5 w-5 transition-transform duration-300 ${lyricsOpen ? "" : "rotate-180"}`}
+                        />
                     </button>
                     <div
                         className={`h-full min-h-0 overflow-hidden transition-all duration-500 ease-in-out ${
@@ -254,7 +273,7 @@ function LyricsPanel({ isVideo }: { isVideo: boolean }): JSX.Element {
                     >
                         <PlayerUILyrics />
                     </div>
-                </>
+                </div>
             )}
         </div>
     );

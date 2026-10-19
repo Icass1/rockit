@@ -197,12 +197,12 @@ export default function PlayerUIMain({
     } else if (isSong(currentMedia)) {
         return (
             <div
-                className="group ignore-click-player-ui relative flex h-full w-full items-center justify-center"
+                className="group ignore-click-player-ui @container relative flex h-full w-full items-center justify-center"
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
                 <div
-                    className="relative aspect-square h-[93%] cursor-pointer overflow-hidden rounded-xl"
+                    className="relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl"
                     onClick={handleClick}
                 >
                     {!vinylMode && (
@@ -282,12 +282,12 @@ export default function PlayerUIMain({
     } else if (isStation(currentMedia)) {
         return (
             <div
-                className="relative flex h-full w-full items-center justify-center"
+                className="@container relative flex h-full w-full items-center justify-center"
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
                 <div
-                    className="relative aspect-square h-[93%] cursor-pointer overflow-hidden rounded-xl"
+                    className="relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl"
                     onClick={handleClick}
                 >
                     <Image

@@ -19,7 +19,7 @@ from backend.core.requests.collectionQueueRequest import CollectionQueueRequest
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.framework.media.media import Media
-from backend.core.framework.models.queue import QueueItem
+from backend.core.framework.models.queue import QueueItem as FrameworkQueueItem
 from backend.core.framework.user.user import User
 
 from backend.featured.framework import featured
@@ -224,7 +224,7 @@ async def create_featured_queue(
         session=session,
         user_id=a_result_user.result().id,
         queue_items=[
-            QueueItem(
+            FrameworkQueueItem(
                 media_id=media_ids[item.media.publicId],
                 queue_id=item.queueMediaId,
                 list_id=None,

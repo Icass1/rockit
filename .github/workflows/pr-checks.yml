@@ -74,6 +74,8 @@ jobs:
                   pyright > pyright.txt 2>&1 || failed=1
                   cat pyright.txt
 
+                  python3 -m backend models || failed=1
+
                   # Checks must leave tracked files unchanged.
                   git diff --exit-code HEAD || failed=1
 

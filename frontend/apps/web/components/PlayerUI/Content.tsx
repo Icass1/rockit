@@ -180,7 +180,7 @@ export default function PlayerUIContent(): JSX.Element {
                 }
             >
                 <PlayerUIMain
-                    key={$currentMedia?.publicId}
+                    key={isVideoMedia ? $currentMedia.publicId : "audio"}
                     currentMedia={$currentMedia}
                 />
             </div>

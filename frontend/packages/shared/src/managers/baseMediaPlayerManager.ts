@@ -150,6 +150,11 @@ export abstract class BaseMediaPlayerManager {
 
     protected _onPlayingStarted(): void {}
 
+    /** Platforms may retain an outgoing deck during an automatic handoff. */
+    protected pauseForMediaChange(): void {
+        this.pause();
+    }
+
     // ===== Kind resolution =====
 
     /**
@@ -534,7 +539,7 @@ export abstract class BaseMediaPlayerManager {
         this._loadingPlayback = true;
         const requested = this._playRequested;
         const pending = this._pendingPlaybackId;
-        this.pause();
+        this.pauseForMediaChange();
         this._playRequested = remotePlaybackId === undefined && requested;
         this._pendingPlaybackId = pending;
         this._playbackMediaId = currentMedia.publicId;

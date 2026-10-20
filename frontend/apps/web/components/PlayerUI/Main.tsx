@@ -124,7 +124,7 @@ export default function PlayerUIMain({
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className="relative h-[90%] max-h-[90%] w-full max-w-full cursor-pointer overflow-hidden rounded-xl bg-black"
+                    className="relative h-[90%] max-h-[90%] w-full max-w-full cursor-pointer overflow-hidden rounded-xl"
                     style={{
                         aspectRatio: "var(--player-video-aspect, 16 / 9)",
                     }}

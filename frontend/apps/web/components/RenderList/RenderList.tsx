@@ -51,26 +51,8 @@ export default function RenderList({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const handlePlay = useCallback((): void => {
-        if (!listPublicId) return;
-
-        // Featured playlists are generated per user, not persisted collections.
-        if (
-            [
-                "liked",
-                "most-listened",
-                "recent-mix",
-                "last-month",
-                "year-recap",
-            ].includes(listPublicId)
-        ) {
-            rockIt.queueManager.setMedia(playableMedia, listPublicId);
-            rockIt.queueManager.setQueueMediaId(0);
-            rockIt.mediaPlayerManager.play();
-            return;
-        }
-
-        void rockIt.queueManager.playCollection(listPublicId);
-    }, [listPublicId, playableMedia]);
+        if (listPublicId) void rockIt.queueManager.playCollection(listPublicId);
+    }, [listPublicId]);
 
     return (
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 md:h-[calc(100vh-12rem)] md:grid-cols-[1fr_2fr] md:gap-20 md:px-8">

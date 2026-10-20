@@ -1,15 +1,15 @@
-name: Publish stable Docker images
+name: Publish Docker images
 
 on:
     push:
-        branches: [master]
+        branches: [develop, main]
 
 permissions:
     contents: read
     packages: write
 
 concurrency:
-    group: publish-stable-images-${{ github.ref }}
+    group: publish-images-${{ github.ref }}
     cancel-in-progress: false
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
                   context: .
                   file: ./Dockerfile.backend
                   push: true
-                  tags: ghcr.io/${{ steps.image.outputs.repository }}/backend:latest-stable
+                  tags: ghcr.io/${{ steps.image.outputs.repository }}/backend:${{ github.ref_name == 'main' && 'latest-stable' || 'latest' }}
                   build-args: |
                       ROCKIT_BUILD_REVISION=${{ github.sha }}
 
@@ -53,6 +53,6 @@ jobs:
                   context: .
                   file: ./Dockerfile.frontend
                   push: true
-                  tags: ghcr.io/${{ steps.image.outputs.repository }}/frontend:latest-stable
+                  tags: ghcr.io/${{ steps.image.outputs.repository }}/frontend:${{ github.ref_name == 'main' && 'latest-stable' || 'latest' }}
                   build-args: |
                       NEXT_PUBLIC_BACKEND_URL=https://api-rockit.rockhosting.org

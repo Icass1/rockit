@@ -650,8 +650,18 @@ export class BaseHttp {
         publicId: string,
         payload: dto.CollectionQueueRequest
     ) {
+        const featuredIds = new Set([
+            "liked",
+            "most-listened",
+            "recent-mix",
+            "last-month",
+            "year-recap",
+        ]);
+        const path = featuredIds.has(publicId)
+            ? `/featured/${publicId}/queue`
+            : `/media/collection/${publicId}/queue`;
         return this.apiPostAsync(
-            `/media/collection/${publicId}/queue`,
+            path,
             dto.CollectionQueueRequestSchema,
             dto.QueueResponseSchema,
             payload

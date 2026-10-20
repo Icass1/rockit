@@ -1,8 +1,8 @@
-name: Publish stable Docker images
+name: Publish Docker images
 
 on:
     push:
-        branches: [master]
+        branches: [main]
 
 permissions:
     contents: read

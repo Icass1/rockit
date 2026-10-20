@@ -28,6 +28,7 @@ export default function AppClientLayout({
     children: React.ReactNode;
 }): JSX.Element {
     useEffect((): void => {
+        rockIt.mediaPlayerManager.initializeTransitionSettings();
         rockIt.mediaManager.fetchLikedMedia();
 
         /*
@@ -61,6 +62,7 @@ export default function AppClientLayout({
 
         const onFirstGesture = (): void => {
             rockIt.mediaSessionManager.activateOnGesture();
+            rockIt.mediaPlayerManager.activateTransitionsOnGesture();
         };
         document.addEventListener("pointerup", onFirstGesture, { once: true });
         document.addEventListener("keydown", onFirstGesture, { once: true });

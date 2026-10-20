@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 interface PlayerCoverArtProps {
@@ -20,8 +21,14 @@ export default function PlayerCoverArt({
     mediaType,
 }: PlayerCoverArtProps): JSX.Element {
     const audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
+    const { width, height } = useWindowSize();
     const videoContainerRef = useRef<HTMLDivElement>(null);
-    const showVideo = mediaType === "video" && !audioOnly;
+    const isDesktop =
+        width !== undefined &&
+        height !== undefined &&
+        width >= 768 &&
+        height >= 500;
+    const showVideo = mediaType === "video" && !audioOnly && !isDesktop;
 
     const attachVideoRef = useCallback(
         (container: HTMLDivElement | null): void => {

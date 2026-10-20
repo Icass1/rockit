@@ -7,6 +7,7 @@ import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
+import VinylTransition from "@/components/PlayerUI/VinylTransition";
 
 export default function PlayerUIMain({
     currentMedia,
@@ -18,7 +19,10 @@ export default function PlayerUIMain({
     const [showIcon, setShowIcon] = useState(false);
     const [titleVisible, setTitleVisible] = useState(true);
     const [songHover, setSongHover] = useState(false);
-    const [vinylMode, setVinylMode] = useState(false);
+    const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
+    useEffect(() => {
+        rockIt.playerUIManager.initializeArtworkMode();
+    }, []);
     const videoContainerRef = useRef<HTMLDivElement | null>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
     const [offlineCover, setOfflineCover] = useState<{
@@ -217,7 +221,7 @@ export default function PlayerUIMain({
                                 type="button"
                                 onClick={(e): void => {
                                     e.stopPropagation();
-                                    setVinylMode((p) => !p);
+                                    rockIt.playerUIManager.toggleVinylMode();
                                 }}
                                 className="ignore-click-player-ui flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white"
                                 title="Vinyl record"
@@ -228,18 +232,20 @@ export default function PlayerUIMain({
                     )}
                     {vinylMode ? (
                         <div className="relative h-full w-full">
-                            <VinylRecord
-                                imageUrl={coverSrc}
-                                name={currentMedia.name}
-                                artists={currentMedia.artists}
-                                isPlaying={$playing}
-                                publicId={currentMedia.publicId}
-                            />
+                            <VinylTransition publicId={currentMedia.publicId}>
+                                <VinylRecord
+                                    imageUrl={coverSrc}
+                                    name={currentMedia.name}
+                                    artists={currentMedia.artists}
+                                    isPlaying={$playing}
+                                    publicId={currentMedia.publicId}
+                                />
+                            </VinylTransition>
                             <button
                                 type="button"
                                 onClick={(e): void => {
                                     e.stopPropagation();
-                                    setVinylMode(false);
+                                    rockIt.playerUIManager.toggleVinylMode();
                                 }}
                                 className="ignore-click-player-ui absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 text-white/80 opacity-0 transition-opacity group-hover:opacity-100 hover:text-white"
                                 title="Square cover"

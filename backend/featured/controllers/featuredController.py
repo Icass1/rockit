@@ -16,6 +16,8 @@ from backend.core.responses.basePlaylistWithMediasResponse import (
 from backend.core.responses.queueResponse import QueueResponse, QueueResponseItem
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.requests.collectionQueueRequest import CollectionQueueRequest
+from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.baseVideoResponse import BaseVideoResponse
 
 from backend.featured.framework import featured
 
@@ -169,7 +171,11 @@ async def create_featured_queue(
         raise HTTPException(status_code=result.get_http_code(), detail=result.message())
 
     playlist = result.result()
-    medias = [item.item for item in playlist.medias]
+    medias = [
+        item.item
+        for item in playlist.medias
+        if isinstance(item.item, (BaseSongWithAlbumResponse, BaseVideoResponse))
+    ]
     if not medias:
         logger.warning(f"Featured list {public_id} has no queueable media")
         raise HTTPException(status_code=400, detail="Featured list contains no media")

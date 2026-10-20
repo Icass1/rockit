@@ -549,6 +549,18 @@ export class BaseHttp {
         );
     }
 
+    static async createFeaturedQueue(
+        publicId: string,
+        payload: dto.CollectionQueueRequest
+    ) {
+        return this.apiPostAsync(
+            `/featured/${publicId}/queue`,
+            dto.CollectionQueueRequestSchema,
+            dto.QueueResponseSchema,
+            payload
+        );
+    }
+
     static getImageURL(path: string) {
         return `${BACKEND_URL}/image/${path}`;
     }
@@ -650,18 +662,8 @@ export class BaseHttp {
         publicId: string,
         payload: dto.CollectionQueueRequest
     ) {
-        const featuredIds = new Set([
-            "liked",
-            "most-listened",
-            "recent-mix",
-            "last-month",
-            "year-recap",
-        ]);
-        const path = featuredIds.has(publicId)
-            ? `/featured/${publicId}/queue`
-            : `/media/collection/${publicId}/queue`;
         return this.apiPostAsync(
-            path,
+            `/media/collection/${publicId}/queue`,
             dto.CollectionQueueRequestSchema,
             dto.QueueResponseSchema,
             payload

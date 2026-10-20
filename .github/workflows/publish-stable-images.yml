@@ -1,8 +1,8 @@
-name: Publish stable Docker images
+name: Publish Docker images
 
 on:
     push:
-        branches: [develop, main]
+        branches: [main]
 
 permissions:
     contents: read
@@ -38,9 +38,9 @@ jobs:
               run: |
                   echo "repository=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
                   if [ "${{ github.ref_name }}" = "develop" ]; then
-                      echo "tag=latest-develop" >> "$GITHUB_OUTPUT"
-                  else
                       echo "tag=latest" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "tag=latest-stable" >> "$GITHUB_OUTPUT"
                   fi
 
             - name: Build and publish backend image

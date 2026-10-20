@@ -549,6 +549,18 @@ export class BaseHttp {
         );
     }
 
+    static async createFeaturedQueue(
+        publicId: string,
+        payload: dto.CollectionQueueRequest
+    ) {
+        return this.apiPostAsync(
+            `/featured/${publicId}/queue`,
+            dto.CollectionQueueRequestSchema,
+            dto.QueueResponseSchema,
+            payload
+        );
+    }
+
     static getImageURL(path: string) {
         return `${BACKEND_URL}/image/${path}`;
     }

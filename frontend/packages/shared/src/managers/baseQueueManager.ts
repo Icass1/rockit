@@ -517,10 +517,17 @@ export class BaseQueueManager {
         publicId: string,
         startPublicId?: string
     ): Promise<void> {
-        const response = await getRockIt().http.createCollectionQueue(
-            publicId,
-            { startPublicId: startPublicId ?? null }
-        );
+        const payload = { startPublicId: startPublicId ?? null };
+        const featuredIds = [
+            "liked",
+            "most-listened",
+            "recent-mix",
+            "last-month",
+            "year-recap",
+        ];
+        const response = featuredIds.includes(publicId)
+            ? await getRockIt().http.createFeaturedQueue(publicId, payload)
+            : await getRockIt().http.createCollectionQueue(publicId, payload);
         if (response.isNotOk()) {
             if (response.code === 0) {
                 const cached =

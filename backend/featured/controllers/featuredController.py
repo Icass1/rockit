@@ -18,6 +18,9 @@ from backend.core.enums.queueTypeEnum import QueueTypeEnum
 from backend.core.requests.collectionQueueRequest import CollectionQueueRequest
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
+from backend.core.framework.media.media import Media
+from backend.core.framework.models.queue import QueueItem as FrameworkQueueItem
+from backend.core.framework.user.user import User
 
 from backend.featured.framework import featured
 
@@ -201,6 +204,52 @@ async def create_featured_queue(
         )
         for index, media in enumerate(medias)
     ]
+
+    media_result = await Media.get_medias_from_public_ids_async(
+        session=session,
+        public_ids=[media.publicId for media in medias],
+        media_type_keys=None,
+    )
+    if media_result.is_not_ok():
+        logger.error(f"Featured queue media lookup failed: {media_result.info()}")
+        raise HTTPException(
+            status_code=media_result.get_http_code(), detail=media_result.message()
+        )
+    media_ids = {item.public_id: item.id for item in media_result.result()}
+    if any(media.publicId not in media_ids for media in medias):
+        logger.error(f"Featured queue {public_id} contains unavailable media")
+        raise HTTPException(status_code=404, detail="Featured queue media unavailable")
+
+    saved = await User.save_user_queue_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        queue_items=[
+            FrameworkQueueItem(
+                media_id=media_ids[item.media.publicId],
+                queue_id=item.queueMediaId,
+                list_id=None,
+                sorted_index=item.sortedIndex,
+                random_index=item.randomIndex,
+            )
+            for item in queue
+        ],
+    )
+    if saved.is_not_ok():
+        logger.error(f"Featured queue save failed: {saved.info()}")
+        raise HTTPException(status_code=saved.get_http_code(), detail=saved.message())
+
+    current_media = await User.update_user_current_media(
+        session=session,
+        user_id=a_result_user.result().id,
+        queue_id=start,
+        media_public_id=medias[start].publicId,
+    )
+    if current_media.is_not_ok():
+        logger.error(f"Featured current media update failed: {current_media.info()}")
+        raise HTTPException(
+            status_code=current_media.get_http_code(), detail=current_media.message()
+        )
+
     response = QueueResponse(
         currentQueueMediaId=start, queue=queue, queueType=QueueTypeEnum.SORTED
     )

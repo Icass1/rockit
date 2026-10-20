@@ -180,11 +180,17 @@ async def create_featured_queue(
         logger.warning(f"Featured list {public_id} has no queueable media")
         raise HTTPException(status_code=400, detail="Featured list contains no media")
     start = next(
-        (i for i, media in enumerate(medias) if media.publicId == payload.startPublicId),
+        (
+            i
+            for i, media in enumerate(medias)
+            if media.publicId == payload.startPublicId
+        ),
         0,
     )
     if payload.startPublicId and medias[start].publicId != payload.startPublicId:
-        raise HTTPException(status_code=400, detail="Start media is not in the featured list")
+        raise HTTPException(
+            status_code=400, detail="Start media is not in the featured list"
+        )
     queue = [
         QueueResponseItem(
             queueMediaId=index,

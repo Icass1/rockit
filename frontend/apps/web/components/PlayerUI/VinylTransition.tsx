@@ -1,23 +1,33 @@
 "use client";
 
 import { JSX, ReactNode, useState } from "react";
+import type { TPlayableMedia } from "@rockit/shared";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { shouldKeepVinyl } from "@/lib/managers/playerUIManager";
 
 export default function VinylTransition({
-    publicId,
+    media,
     children,
 }: {
-    publicId: string;
+    media: TPlayableMedia;
     children: ReactNode;
 }): JSX.Element {
     const reducedMotion = useReducedMotion();
     const [transitioning, setTransitioning] = useState(false);
+    const [previous, setPrevious] = useState({ media, key: 0 });
+    let key = previous.key;
+    if (previous.media !== media) {
+        // Compare the displayed track with the actual destination, so forward,
+        // backward and shuffled navigation all preserve the same physical disc.
+        if (!shouldKeepVinyl(previous.media, media)) key++;
+        setPrevious({ media, key });
+    }
 
     return (
         <div className="relative h-full w-full overflow-hidden">
             <AnimatePresence initial={false} mode="wait">
                 <motion.div
-                    key={publicId}
+                    key={key}
                     className="h-full w-full"
                     initial={{ y: reducedMotion ? 0 : "-100%" }}
                     animate={{ y: 0 }}

@@ -57,6 +57,9 @@ jobs:
                   pnpm install --frozen-lockfile
                   pnpm --dir frontend install --frozen-lockfile
 
+            - name: Test automatic versioning
+              run: node --test frontend/scripts/version.test.cjs
+
             - name: Run formatting, lint, and type checks
               shell: bash
               run: |

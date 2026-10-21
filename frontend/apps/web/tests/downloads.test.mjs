@@ -65,6 +65,7 @@ function setup() {
     };
     const rockIt = {
         notificationManager: {
+            notify: (_type, message) => messages.push(message),
             notifySuccess: (m) => messages.push(m),
             notifyError: (m) => messages.push(m),
         },

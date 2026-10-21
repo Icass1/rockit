@@ -8,6 +8,7 @@ services:
             context: .
             dockerfile: Dockerfile.backend
             args:
+                ROCKIT_VERSION: ${ROCKIT_VERSION:-2.0.0}
                 ROCKIT_BUILD_REVISION: ${ROCKIT_BUILD_REVISION:-unknown}
         environment:
             YTDLP_POT_PROVIDER_URL: http://pot-provider:4416
@@ -50,6 +51,7 @@ services:
             context: .
             dockerfile: Dockerfile.frontend
             args:
+                ROCKIT_VERSION: ${ROCKIT_VERSION:-2.0.0}
                 NEXT_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
         restart: unless-stopped
         ports:

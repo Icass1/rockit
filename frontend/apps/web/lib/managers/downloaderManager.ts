@@ -16,6 +16,7 @@ import type {
     DownloadDetail,
 } from "@/models/types/downloadBrowser";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
+import { ENotificationType } from "@/models/enums/notificationType";
 import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -561,7 +562,24 @@ export class DownloaderManager {
                     completed: data.progress,
                     message: data.status,
                 });
-                if (data.progress === 100)
+                if (data.status === "COMPLETED" || data.status === "FAILED") {
+                    const v = rockIt.vocabularyManager
+                        .vocabulary as unknown as Record<string, string>;
+                    rockIt.notificationManager.notify(
+                        data.status === "FAILED"
+                            ? ENotificationType.ERROR
+                            : ENotificationType.SUCCESS,
+                        data.status === "FAILED"
+                            ? v.NOTIFICATIONS_DOWNLOAD_FAILED
+                            : v.NOTIFICATIONS_DOWNLOAD_DONE,
+                        {
+                            category: "download",
+                            key: `download:${data.publicId}:${data.status}:${data.retryCount}`,
+                            detail: data.name,
+                        }
+                    );
+                }
+                if (data.status === "COMPLETED")
                     rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {
                         publicId: data.mediaPublicId,
                     });

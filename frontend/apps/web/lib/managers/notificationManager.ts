@@ -1,7 +1,13 @@
 import { createElement, ReactNode } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { ENotificationType } from "@/models/enums/notificationType";
-import { INotification } from "@/models/interfaces/notification";
+import {
+    INotification,
+    NotificationOptions,
+    NotificationSchema,
+} from "@/models/interfaces/notification";
+import { RELEASES } from "@/lib/notifications/releases";
 import { ArrayAtom, createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
 
 const TAP_MAX_MOVEMENT_PX = 10;
@@ -11,6 +17,111 @@ export class NotificationManager {
     private _nextId = 0;
     private _dismissListenerRegistered = false;
     private _pointerDownPosition: { x: number; y: number } | null = null;
+
+    private _storageKey?: string;
+    private _seenKeys = new Set<string>();
+
+    setUser(username?: string): void {
+        const key = username
+            ? `rockit.notifications.v1:${encodeURIComponent(username)}`
+            : undefined;
+        if (key === this._storageKey) return;
+        toast.dismiss();
+        this._storageKey = key;
+        this._seenKeys.clear();
+        this._notificationsAtom.set([]);
+        if (!key || typeof window === "undefined") return;
+        try {
+            const stored = z
+                .object({
+                    items: z.array(NotificationSchema).max(100),
+                    seen: z.array(z.string()).max(1000),
+                })
+                .parse(
+                    JSON.parse(
+                        localStorage.getItem(key) || '{"items":[],"seen":[]}'
+                    )
+                );
+            this._notificationsAtom.set(stored.items);
+            this._seenKeys = new Set(stored.seen);
+            this._nextId = Math.max(
+                this._nextId,
+                ...stored.items.map((n) => n.id + 1)
+            );
+        } catch {
+            /* Unavailable or outdated storage must not block the app. */
+        }
+    }
+
+    announceReleases(vocabulary: Record<string, string>): void {
+        if (!this._storageKey) return;
+        for (const release of [...RELEASES].reverse()) {
+            const message = `RockIt! v${release.version} · ${vocabulary[release.titleKey]}`;
+            const detail = vocabulary[release.detailKey];
+            const key = `release:${release.version}`;
+            const existing = this._notificationsAtom
+                .get()
+                .find((n) => n.key === key);
+            // Refresh announcement copy without changing read state or restoring dismissed news.
+            if (
+                existing &&
+                (existing.message !== message || existing.detail !== detail)
+            ) {
+                this._notificationsAtom.set(
+                    this._notificationsAtom
+                        .get()
+                        .map((n) =>
+                            n.id === existing.id ? { ...n, message, detail } : n
+                        )
+                );
+                this._persist();
+            }
+            this.notify(ENotificationType.INFO, message, {
+                category: "release",
+                key,
+                detail,
+                toast: false,
+            });
+        }
+    }
+
+    markRead(id: number): void {
+        this._notificationsAtom.set(
+            this._notificationsAtom
+                .get()
+                .map((n) => (n.id === id ? { ...n, read: true } : n))
+        );
+        this._persist();
+    }
+
+    markAllRead(): void {
+        this._notificationsAtom.set(
+            this._notificationsAtom.get().map((n) => ({ ...n, read: true }))
+        );
+        this._persist();
+    }
+
+    clearRead(): void {
+        this._notificationsAtom.set(
+            this._notificationsAtom.get().filter((n) => !n.read)
+        );
+        this._persist();
+    }
+
+    private _persist(): void {
+        if (!this._storageKey || typeof window === "undefined") return;
+        try {
+            localStorage.setItem(
+                this._storageKey,
+                JSON.stringify({
+                    items: this._notificationsAtom.get(),
+                    seen: [...this._seenKeys].slice(-1000),
+                })
+            );
+        } catch {
+            /* Storage can be full or disabled. Keep the in-memory history. */
+        }
+    }
 
     notifyError(message: string): void {
         console.error("NotificationManager.notifyError", message);
@@ -23,7 +134,6 @@ export class NotificationManager {
     }
 
     notifyWarn(message: string): void {
-        console.warn("NotificationManager.notifyWarn", message);
         this._notify(ENotificationType.WARN, message);
     }
 
@@ -33,10 +143,8 @@ export class NotificationManager {
     }
 
     dismiss(id: number): void {
-        const current = this._notificationsAtom.get();
-        this._notificationsAtom.set(
-            current.filter((n): boolean => n.id !== id)
-        );
+        this.markRead(id);
+        toast.dismiss(`rockit-notification-${id}`);
     }
 
     get notificationsAtom(): ReadonlyArrayAtom<INotification> {
@@ -48,14 +156,38 @@ export class NotificationManager {
     }
 
     private _notify(type: ENotificationType, message: string): void {
+        this.notify(type, message);
+    }
+
+    notify(
+        type: ENotificationType,
+        message: string,
+        options: NotificationOptions = {}
+    ): void {
+        if (options.key && this._seenKeys.has(options.key)) return;
+        if (options.key) this._seenKeys.add(options.key);
+        // Bound both history and deduplication metadata.
+        this._seenKeys = new Set([...this._seenKeys].slice(-1000));
         const numericId = this._nextId++;
         const sonnerId = `rockit-notification-${numericId}`;
 
-        this._notificationsAtom.push({
-            id: numericId,
-            message,
-            type,
-        });
+        this._notificationsAtom.set(
+            [
+                {
+                    id: numericId,
+                    message,
+                    type,
+                    category: options.category ?? "activity",
+                    createdAt: Date.now(),
+                    read: false,
+                    key: options.key,
+                    detail: options.detail,
+                },
+                ...this._notificationsAtom.get(),
+            ].slice(0, 100)
+        );
+        this._persist();
+        if (options.toast === false) return;
 
         this._ensureDismissListener();
 

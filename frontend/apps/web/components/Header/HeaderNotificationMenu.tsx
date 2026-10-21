@@ -9,7 +9,6 @@ import {
     CircleAlert,
     Download,
     Megaphone,
-    Trash2,
     Upload,
     X,
 } from "lucide-react";
@@ -31,7 +30,9 @@ export default function NotificationMenu({
     const lang = useStore(rockIt.vocabularyManager.langAtom);
     const [filter, setFilter] = useState("all");
     const unread = notifications.filter((n) => !n.read).length;
-    const visible = notifications.filter((n) => filter !== "unread" || !n.read);
+    const visible = notifications.filter((n) =>
+        filter === "unread" ? !n.read : filter === "read" ? n.read : true
+    );
     return (
         <HeaderPopover
             id="notification-center"
@@ -63,6 +64,7 @@ export default function NotificationMenu({
                 {[
                     ["all", vocabulary.NOTIFICATIONS_ALL],
                     ["unread", vocabulary.NOTIFICATIONS_UNREAD],
+                    ["read", vocabulary.NOTIFICATIONS_READ_TAB],
                 ].map(([value, label]) => (
                     <button
                         key={value}
@@ -81,7 +83,9 @@ export default function NotificationMenu({
                         <p className="text-sm font-medium">
                             {filter === "unread"
                                 ? vocabulary.NOTIFICATIONS_NO_UNREAD
-                                : vocabulary.NOTIFICATIONS_EMPTY}
+                                : filter === "read"
+                                  ? vocabulary.NOTIFICATIONS_NO_READ
+                                  : vocabulary.NOTIFICATIONS_EMPTY}
                         </p>
                         <p className="text-xs leading-relaxed text-neutral-400">
                             {vocabulary.NOTIFICATIONS_EMPTY_DETAIL}
@@ -137,37 +141,35 @@ export default function NotificationMenu({
                                     </time>
                                 </div>
                                 <div className="flex shrink-0 flex-col items-center gap-1">
-                                    {!n.read && (
+                                    {n.read ? (
+                                        <Check
+                                            size={15}
+                                            className="mt-1.5 text-neutral-500"
+                                            aria-label={
+                                                vocabulary.NOTIFICATIONS_READ_TAB
+                                            }
+                                        />
+                                    ) : (
                                         <>
                                             <span className="mb-1 h-1.5 w-1.5 rounded-full bg-(--rockit-pink)" />
                                             <button
                                                 onClick={() =>
-                                                    rockIt.notificationManager.markRead(
+                                                    rockIt.notificationManager.dismiss(
                                                         n.id
                                                     )
                                                 }
                                                 aria-label={
                                                     vocabulary.NOTIFICATIONS_READ
                                                 }
-                                                className="rounded p-1.5 text-neutral-400 hover:bg-white/10 hover:text-white"
+                                                title={
+                                                    vocabulary.NOTIFICATIONS_READ
+                                                }
+                                                className="rounded p-1.5 text-neutral-400 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-(--rockit-pink)"
                                             >
-                                                <Check size={15} />
+                                                <X size={15} />
                                             </button>
                                         </>
                                     )}
-                                    <button
-                                        onClick={() =>
-                                            rockIt.notificationManager.dismiss(
-                                                n.id
-                                            )
-                                        }
-                                        aria-label={
-                                            vocabulary.NOTIFICATIONS_REMOVE
-                                        }
-                                        className="rounded p-1.5 text-neutral-500 hover:bg-white/10 hover:text-white"
-                                    >
-                                        <X size={15} />
-                                    </button>
                                 </div>
                             </li>
                         );
@@ -183,14 +185,6 @@ export default function NotificationMenu({
                     >
                         <CheckCheck size={14} />
                         {vocabulary.NOTIFICATIONS_MARK_ALL}
-                    </button>
-                    <button
-                        disabled={!notifications.some((n) => n.read)}
-                        onClick={() => rockIt.notificationManager.clearRead()}
-                        className="flex items-center gap-1.5 rounded-lg p-1.5 text-xs text-neutral-400 hover:bg-white/5 disabled:opacity-30"
-                    >
-                        <Trash2 size={14} />
-                        {vocabulary.NOTIFICATIONS_CLEAR}
                     </button>
                 </div>
             )}

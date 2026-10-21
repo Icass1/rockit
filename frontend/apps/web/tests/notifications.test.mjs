@@ -83,7 +83,7 @@ test("invalid storage recovers and history is bounded", () => {
         1
     );
 });
-test("release announcements stay dismissed after reload", () => {
+test("closed release announcements stay read without duplicates after reload", () => {
     const { NotificationManager } = setup();
     const manager = new NotificationManager();
     manager.setUser("alice");
@@ -98,5 +98,33 @@ test("release announcements stay dismissed after reload", () => {
     const restored = new NotificationManager();
     restored.setUser("alice");
     restored.announceReleases(vocabulary);
-    assert.equal(restored.notificationsAtom.get().length, 0);
+    assert.equal(restored.notificationsAtom.get().length, 1);
+    assert.equal(restored.notificationsAtom.get()[0].read, true);
+});
+
+test("closing notifications retains history and persists only the selected read state", () => {
+    const { NotificationManager } = setup();
+    const manager = new NotificationManager();
+    manager.setUser("alice");
+    send(manager, "first");
+    send(manager, "second");
+    const id = manager.notificationsAtom.get()[0].id;
+    manager.dismiss(id);
+    manager.dismiss(id);
+    const restored = new NotificationManager();
+    restored.setUser("alice");
+    send(restored, "second");
+    assert.equal(restored.notificationsAtom.get().length, 2);
+    assert.equal(
+        restored.notificationsAtom.get().filter((n) => n.read).length,
+        1
+    );
+    assert.equal(
+        restored.notificationsAtom.get().filter((n) => !n.read).length,
+        1
+    );
+    assert.equal(
+        restored.notificationsAtom.get().find((n) => n.id === id).read,
+        true
+    );
 });

@@ -17,8 +17,9 @@ A key prevents repeated websocket deliveries from creating repeated entries or
 toasts, including after dismissal and reload. Use operation IDs, not file names.
 Retry attempts can have separate keys. Progress ticks should not create entries.
 Toasts disappear independently from history; opening the bell does not mark
-anything read. Users can mark individual/all entries read, remove individual
-entries, or clear only read entries. History retains the latest 100 entries and
+anything read. Users can mark individual/all entries read. The row X marks its notification
+read and dismisses its toast; it does not delete history. Read entries show a
+check instead of another close action. The panel has no delete-history control. History retains the latest 100 entries and
 the latest 1,000 deduplication keys.
 
 ## Releases
@@ -47,12 +48,12 @@ has been handed to the browser: browsers do not expose completion of saving to
 disk. Existing backend and mobile contracts are unchanged.
 
 Run web `npm test`, `tsc --noEmit` and ESLint for verification. Notification tests
-cover deduplication, persisted read/dismiss state, account isolation, corrupt
+cover deduplication, persisted read state and retained history, account isolation, corrupt
 storage, bounded history and release announcements.
 
 ## Header panels
 
-The center has All and Unread filters. Release announcements remain ordinary
+The center has All, Unread and Read filters. Release announcements remain ordinary
 notifications in these views. Both the bell and account dropdown show a pink
 active state and a small pointer joining the panel to its trigger. Escape closes
 the panel and returns focus. The account panel shows the actual web build version.
@@ -91,3 +92,7 @@ passes the calculated value. Mobile APK/store versioning remains separate.
 No pre-commit file mutation or bot version commits are needed. Version tags do
 not automatically create notification copy: published announcements remain curated
 in the release catalog, so every development commit does not generate a new alert.
+
+Notifications deleted using the previous UI cannot be recovered: their stored
+contents are no longer available. The new close behavior applies to retained
+and newly received entries. History still retains at most 100 notifications.

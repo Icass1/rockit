@@ -143,11 +143,8 @@ export class NotificationManager {
     }
 
     dismiss(id: number): void {
-        const current = this._notificationsAtom.get();
-        this._notificationsAtom.set(
-            current.filter((n): boolean => n.id !== id)
-        );
-        this._persist();
+        this.markRead(id);
+        toast.dismiss(`rockit-notification-${id}`);
     }
 
     get notificationsAtom(): ReadonlyArrayAtom<INotification> {

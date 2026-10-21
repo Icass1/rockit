@@ -29,6 +29,10 @@ class UserRow(
     __tablename__ = "user"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
+    auto_add_downloads_to_library: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+
     username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     provider: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -86,6 +90,7 @@ class UserRow(
         public_id: str,
         username: str,
         image_id: int,
+        auto_add_downloads_to_library: bool = False,
         password_hash: str | None = None,
         provider: str | None = None,
         provider_account_id: str | None = None,
@@ -104,6 +109,7 @@ class UserRow(
         kwargs["public_id"] = public_id
         kwargs["username"] = username
         kwargs["image_id"] = image_id
+        kwargs["auto_add_downloads_to_library"] = auto_add_downloads_to_library
         kwargs["password_hash"] = password_hash
         kwargs["provider"] = provider
         kwargs["provider_account_id"] = provider_account_id

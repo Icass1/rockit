@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
-from sqlalchemy import ForeignKey, Integer
+from sqlalchemy import Boolean, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -35,6 +35,10 @@ class DownloadRow(
         Integer, ForeignKey("core.download_status_enum.key"), nullable=False, default=1
     )
 
+    seen: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     date_started: Mapped[datetime] = mapped_column(TZAwareTimestamp, nullable=False)
@@ -54,15 +58,17 @@ class DownloadRow(
         media_id: int,
         date_started: datetime,
         status_key: int = 1,
+        seen: bool = False,
         retry_count: int = 0,
         date_ended: datetime | None = None,
     ):
-        kwargs: Dict[str, None | datetime | int | str] = {}
+        kwargs: Dict[str, None | bool | datetime | int | str] = {}
         kwargs["public_id"] = public_id
         kwargs["download_group_id"] = download_group_id
         kwargs["media_id"] = media_id
         kwargs["date_started"] = date_started
         kwargs["status_key"] = status_key
+        kwargs["seen"] = seen
         kwargs["retry_count"] = retry_count
         kwargs["date_ended"] = date_ended
         for k, v in kwargs.items():

@@ -175,6 +175,10 @@ export {
     type DownloadProgressMessage,
 } from "./downloadProgressMessage";
 export {
+    DownloadSettingsResponseSchema,
+    type DownloadSettingsResponse,
+} from "./downloadSettingsResponse";
+export {
     DownloadZipRequestSchema,
     type DownloadZipRequest,
 } from "./downloadZipRequest";

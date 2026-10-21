@@ -22,6 +22,7 @@ from backend.core.responses.startDownloadFromUrlResponse import (
 )
 from backend.core.responses.downloadsResponse import DownloadsResponse
 from backend.core.responses.okResponse import OkResponse
+from backend.core.responses.downloadSettingsResponse import DownloadSettingsResponse
 
 from backend.core.requests.startDownloadRequest import StartDownloadRequest
 from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
@@ -86,6 +87,7 @@ async def start_download(
             user_id=user.id,
             title=payload.title,
             public_ids=payload.ids,
+            add_to_library=user.auto_add_downloads_to_library,
         )
     )
     if a_result.is_not_ok():
@@ -118,7 +120,7 @@ async def start_download_from_url(
             session=session,
             user_id=user.id,
             url=payload.url,
-            add_to_library=payload.addToLibrary,
+            add_to_library=payload.addToLibrary or user.auto_add_downloads_to_library,
             add_to_playlist=payload.addToPlaylist,
             playlist_public_id=payload.playlistPublicId,
         )
@@ -204,4 +206,54 @@ async def mark_download_seen(request: Request, public_id: str) -> OkResponse:
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
+    return OkResponse()
+
+
+@router.get("/settings")
+async def get_download_settings(request: Request) -> DownloadSettingsResponse:
+    """Return the signed-in user's download preference."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Error getting download settings. {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    return DownloadSettingsResponse(
+        autoAddToLibrary=user.result().auto_add_downloads_to_library
+    )
+
+
+@router.post("/settings")
+async def update_download_settings(
+    request: Request, payload: DownloadSettingsResponse
+) -> OkResponse:
+    """Persist the download preference across devices."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Error updating download settings. {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Downloader.update_settings_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user=user.result(),
+        auto_add=payload.autoAddToLibrary,
+    )
+    if result.is_not_ok():
+        logger.error(f"Error saving download settings. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
+
+
+@router.delete("/downloads/{public_id}")
+async def delete_download(request: Request, public_id: str) -> OkResponse:
+    """Delete a terminal download file and hide its history entry."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Error authenticating download deletion. {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Downloader.delete_download_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        public_id=public_id,
+    )
+    if result.is_not_ok():
+        logger.error(f"Error deleting download. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()

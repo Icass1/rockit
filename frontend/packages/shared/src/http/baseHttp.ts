@@ -474,6 +474,29 @@ export class BaseHttp {
         return `${BACKEND_URL}/downloader/download-zip`;
     }
 
+    static async getDownloadSettings() {
+        return this.apiGetAsync(
+            `/downloader/settings`,
+            dto.DownloadSettingsResponseSchema
+        );
+    }
+
+    static async updateDownloadSettings(payload: dto.DownloadSettingsResponse) {
+        return this.apiPostAsync(
+            `/downloader/settings`,
+            dto.DownloadSettingsResponseSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async deleteDownload(publicId: string) {
+        return this.apiDeleteAsync(
+            `/downloader/downloads/${publicId}`,
+            dto.OkResponseSchema
+        );
+    }
+
     static async getDownloads() {
         return this.apiGetAsync(
             `/downloader/downloads`,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, type JSX } from "react";
-import { DownloadItemResponse, DownloadProgressMessage } from "@/dto";
-import { EWebSocketMessage } from "@rockit/shared";
-import useFetch from "@/hooks/useFetch";
+import { useStore } from "@nanostores/react";
+import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
+import { DownloadItemResponse } from "@/dto";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadEmptyState from "@/components/Downloader/DownloadEmptyState";
@@ -26,41 +26,21 @@ function matchesFilter(
 }
 
 export default function DownloaderClient(): JSX.Element {
-    const { data, loading } = useFetch(Http.getDownloads);
-    const [liveProgress, setLiveProgress] = useState<
-        Record<string, Partial<DownloadItemResponse>>
-    >({});
+    const groups = useStore(rockIt.downloaderManager.groupsAtom);
+    const loading = useStore(rockIt.downloaderManager.loadingAtom);
+    const error = useStore(rockIt.downloaderManager.errorAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [filter, setFilter] = useState<DownloadFilter>("all");
 
-    useEffect((): (() => void) => {
-        const handleProgress = (msg: DownloadProgressMessage): void => {
-            setLiveProgress((prev) => ({
-                ...prev,
-                [msg.publicId]: msg,
-            }));
+    useEffect(() => {
+        void rockIt.downloaderManager.init();
+        void rockIt.downloaderManager.refreshAsync();
+        const onFocus = (): void => {
+            void rockIt.downloaderManager.refreshAsync();
         };
-        rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.DownloadProgress,
-            handleProgress
-        );
-        return () => {
-            rockIt.webSocketManager.offMessage(
-                EWebSocketMessage.DownloadProgress,
-                handleProgress
-            );
-        };
+        window.addEventListener("focus", onFocus);
+        return () => window.removeEventListener("focus", onFocus);
     }, []);
-
-    const groups = useMemo(() => {
-        if (!data) return [];
-        return data.downloads.map((group) => ({
-            ...group,
-            items: group.items.map((item) => ({
-                ...item,
-                ...liveProgress[item.publicId],
-            })),
-        }));
-    }, [data, liveProgress]);
 
     const filteredGroups = useMemo(
         () =>
@@ -74,20 +54,18 @@ export default function DownloaderClient(): JSX.Element {
     );
 
     const startDownload = async (url: string): Promise<void> => {
-        const mediaRes = await Http.addFromUrlAsync({
+        const result = await Http.startDownloadFromUrl({
             url,
             addToLibrary: false,
             addToPlaylist: false,
             playlistPublicId: null,
         });
-        if (!mediaRes.isOk()) {
-            rockIt.notificationManager.notifyError(
-                rockIt.vocabularyManager.vocabulary.ERROR_STARTING_DOWNLOAD
+        if (!result.isOk())
+            throw new Error(
+                result.message || $vocabulary.ERROR_STARTING_DOWNLOAD
             );
-            return;
-        }
-        const publicId = mediaRes.result.data.publicId;
-        await rockIt.downloaderManager.startDownloadAsync(publicId, "Download");
+        rockIt.notificationManager.notifySuccess($vocabulary.DOWNLOAD_STARTED);
+        await rockIt.downloaderManager.refreshAsync();
     };
 
     if (loading) return <DownloadSkeleton />;
@@ -102,8 +80,24 @@ export default function DownloaderClient(): JSX.Element {
                     </p>
                 </div>
                 <DownloadInputBar onSubmit={startDownload} />
+                <DownloadLibrarySetting />
             </header>
 
+            {error && (
+                <div
+                    role="alert"
+                    className="flex items-center gap-3 text-red-400"
+                >
+                    <span>{$vocabulary.ERROR_GETTING_DOWNLOADS}</span>
+                    <button
+                        onClick={() =>
+                            void rockIt.downloaderManager.refreshAsync()
+                        }
+                    >
+                        {$vocabulary.RETRY}
+                    </button>
+                </div>
+            )}
             <DownloadStats groups={groups} />
 
             {groups.length === 0 ? (

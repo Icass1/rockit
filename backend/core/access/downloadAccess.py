@@ -1,7 +1,7 @@
 from logging import Logger
 from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,6 +27,7 @@ class DownloadAccess:
         session: AsyncSession,
         user_id: int,
         title: str,
+        source_public_id: str | None = None,
     ) -> AResult[DownloadGroupRow]:
         """Create a new download group row and flush so its id is available."""
 
@@ -36,6 +37,7 @@ class DownloadAccess:
             title=title,
             date_started=datetime.now(timezone.utc),
         )
+        row.source_public_id = source_public_id
         session.add(row)
         await session.flush()
         return AResult(code=AResultCode.OK, message="OK", result=row)
@@ -70,13 +72,6 @@ class DownloadAccess:
         #         message="Download already exists for this media",
         #         result=existing_completed,
         #     )
-
-        result_pending = await session.execute(
-            select(DownloadRow).where(DownloadRow.media_id == media_id)
-        )
-        existing_pending = result_pending.scalar_one_or_none()
-        if existing_pending:
-            return AResult(code=AResultCode.OK, message="OK", result=existing_pending)
 
         row: DownloadRow = DownloadRow(
             public_id=create_id(32),
@@ -262,7 +257,10 @@ class DownloadAccess:
         result = await session.execute(
             select(DownloadRow)
             .options(selectinload(DownloadRow.download_status_list))
-            .where(DownloadRow.download_group_id.in_(download_group_ids))
+            .where(
+                DownloadRow.download_group_id.in_(download_group_ids),
+                DownloadRow.seen == False,
+            )
         )
         downloads: list[DownloadRow] = list(result.scalars().all())
         return AResult(code=AResultCode.OK, message="OK", result=downloads)
@@ -390,7 +388,10 @@ class DownloadAccess:
             )
             .join(CoreMediaRow, DownloadRow.media_id == CoreMediaRow.id)
             .where(
-                CoreMediaRow.public_id == media_public_id,
+                or_(
+                    DownloadRow.public_id == media_public_id,
+                    CoreMediaRow.public_id == media_public_id,
+                ),
                 DownloadGroupRow.user_id == user_id,
             )
             .order_by(DownloadRow.id.desc())
@@ -403,3 +404,13 @@ class DownloadAccess:
                 message=f"No download found for media {media_public_id}",
             )
         return AResult(code=AResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def dismiss_download_async(
+        session: AsyncSession, download: DownloadRow
+    ) -> AResult[bool]:
+        """Hide a terminal download without removing rows used by the worker."""
+        download.seen = True
+        await session.flush()
+        return AResult(code=AResultCode.OK, message="OK", result=True)

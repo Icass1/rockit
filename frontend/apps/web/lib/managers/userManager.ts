@@ -68,6 +68,7 @@ export class UserManager extends BaseUserManager {
         const response = await Http.logoutUser();
         if (response.isOk()) {
             rockIt.searchManager.clearResults();
+            rockIt.downloaderManager.reset();
             await clearSessionOffline().catch(() => {});
             this._loggedIn.set(false);
         } else {

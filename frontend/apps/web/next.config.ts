@@ -1,5 +1,5 @@
-import path from "path";
 import { execFileSync } from "node:child_process";
+import path from "path";
 import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
 

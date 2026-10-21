@@ -13,9 +13,9 @@ import {
     Upload,
     X,
 } from "lucide-react";
-import HeaderPopover from "@/components/Header/HeaderPopover";
 import { ENotificationType } from "@/models/enums/notificationType";
 import { rockIt } from "@/lib/rockit/rockIt";
+import HeaderPopover from "@/components/Header/HeaderPopover";
 
 export default function NotificationMenu({
     onClose,

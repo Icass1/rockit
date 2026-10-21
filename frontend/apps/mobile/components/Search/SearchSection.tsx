@@ -39,7 +39,7 @@ export default function SearchSection({
                     icon: Heart,
                     onPress: async () => {
                         hide();
-                        const result = await Http.addFromUrl({
+                        const result = await Http.addFromUrlAsync({
                             url: item.providerUrl,
                             addToLibrary: true,
                             addToPlaylist: false,
@@ -90,7 +90,7 @@ export default function SearchSection({
                     icon: Music,
                     onPress: async () => {
                         hide();
-                        const result = await Http.addFromUrl({
+                        const result = await Http.addFromUrlAsync({
                             url: item.providerUrl,
                             addToLibrary: false,
                             addToPlaylist: true,

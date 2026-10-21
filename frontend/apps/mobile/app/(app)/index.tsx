@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import {
@@ -20,8 +20,8 @@ import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
 import Header, { HEADER_HEIGHT } from "@/components/layout/Header";
 
 function useFadeIn(delay: number = 0) {
-    const opacity = useRef(new Animated.Value(0)).current;
-    const translateY = useRef(new Animated.Value(20)).current;
+    const [opacity] = useState(() => new Animated.Value(0));
+    const [translateY] = useState(() => new Animated.Value(20));
 
     useEffect(() => {
         Animated.parallel([

@@ -2,14 +2,14 @@ import uuid
 import os
 import requests as req
 from typing import cast, List
-from PIL import Image
+from PIL import Image as PILImage
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.constants import IMAGES_PATH
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.ormModels.image import ImageRow
-from backend.core.access.imageAccess import ImageAccess
+from backend.core.framework.media.image import Image
 
 logger = getLogger(__name__)
 
@@ -35,7 +35,7 @@ class ImageDownload:
             with open(temp_path, "wb") as f:
                 f.write(response.content)
 
-            image = Image.open(temp_path)
+            image = PILImage.open(temp_path)
 
             real_left_margin_width = int((image.size[0] - image.size[1]) / 2)
             lookup_left_margin_width = int((image.size[0] - image.size[1]) / 2) - 10
@@ -91,7 +91,7 @@ class ImageDownload:
             image.close()
 
             path = "youtubeMusic/" + filename
-            a_result_image = await ImageAccess.create_image_async(
+            a_result_image = await Image.create_image_async(
                 session=session,
                 path=path,
                 url=url,

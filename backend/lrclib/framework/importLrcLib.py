@@ -3,14 +3,12 @@ from dataclasses import dataclass
 from logging import Logger
 from typing import List, Optional, Set, Tuple
 
-from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 from backend.core.models.lyrics import DynamicLyrics, Lyrics
 from backend.lrclib.access.lyricsAccess import LyricsAccess
-from backend.lrclib.access.db.ormModels.lyricsRow import LyricsRow
 from backend.lrclib.framework.lrclib import Lrclib
 
 logger: Logger = getLogger(__name__)
@@ -35,34 +33,31 @@ async def import_lrc_lib_from_dump_async(
 
     logger.info("Fetching Spotify tracks from PostgreSQL...")
 
-    rows = await session.execute(text("""
-            SELECT DISTINCT ON (t.id)
-                t.id,
-                t.name,
-                t.duration_ms,
-                al.name AS album_name,
-                a.name AS artist_name
-            FROM spotify.track t
-            JOIN spotify.album al ON al.id = t.album_id
-            JOIN spotify.track_artist ta ON ta.track_id = t.id
-            JOIN spotify.artist a ON a.id = ta.artist_id
-            ORDER BY t.id, ta.artist_id
-        """))
+    a_result_tracks = await LyricsAccess.get_spotify_tracks_for_lyrics_import_async(
+        session=session
+    )
+    if a_result_tracks.is_not_ok():
+        logger.error(f"Error fetching tracks: {a_result_tracks.info()}")
+        return
+
     tracks: List[TrackInfo] = [
         TrackInfo(
             id=r[0], name=r[1], duration_ms=r[2], album_name=r[3], artist_name=r[4]
         )
-        for r in rows
+        for r in a_result_tracks.result()
     ]
     logger.info(f"Found {len(tracks)} Spotify tracks")
 
     all_media_ids: List[int] = [t.id for t in tracks]
 
-    existing_stmt = select(LyricsRow.media_id).where(
-        LyricsRow.media_id.in_(all_media_ids)
+    a_result_existing: AResult[Set[int]] = (
+        await LyricsAccess.get_existing_lyrics_media_ids_async(
+            session=session, media_ids=all_media_ids
+        )
     )
-    existing_result = await session.execute(existing_stmt)
-    existing_media_ids: Set[int] = set(existing_result.scalars().all())
+    existing_media_ids: set[int] = (
+        a_result_existing.result() if a_result_existing.is_ok() else set()
+    )
     logger.info(f"{len(existing_media_ids)} tracks already have lyrics, will skip")
 
     tracks_to_process = [t for t in tracks if t.id not in existing_media_ids]
@@ -87,7 +82,7 @@ async def import_lrc_lib_from_dump_async(
                 else:
                     errors += 1
 
-            await session.commit()
+            await LyricsAccess.commit_async(session=session)
 
             batch_num = i // BATCH_SIZE + 1
             total_batches = (len(tracks_to_process) + BATCH_SIZE - 1) // BATCH_SIZE

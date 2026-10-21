@@ -3,46 +3,56 @@
 import { useCallback, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
-import { Play } from "lucide-react";
-import { getAllPlayableMedia, isQueueable, TMedia } from "@/models/types/media";
+import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
+import type { CollectionPager } from "@rockit/shared";
+import { MoreHorizontal, Play } from "lucide-react";
+import {
+    getAllPlayableMedia,
+    getTotalDuration,
+    TListMedia,
+    TMedia,
+} from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
-import ListOptionsMenu from "@/components/RenderList/ListOptionsMenu";
-import { Media } from "@/components/RenderList/Media";
+import DurationToggle from "@/components/DurationToggle";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import VirtualCollectionList from "@/components/RenderList/VirtualCollectionList";
 
 export default function RenderList({
     title,
     artists,
     image,
     media,
+    listMedia,
     showMediaIndex,
     showMediaImage,
     listPublicId,
-    expandedByMediaId,
     coverOverlay,
+    pager,
+    total,
 }: {
     title: string;
     artists: BaseArtistResponse[];
     image: string;
     media: TMedia[];
+    listMedia: TListMedia;
     showMediaIndex: boolean;
     showMediaImage: boolean;
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
     coverOverlay?: ReactNode;
+    pager: CollectionPager;
+    total?: number;
+    offset?: number;
 }): JSX.Element {
     const playableMedia = getAllPlayableMedia(media);
 
-    const handlePlay = useCallback((): void => {
-        if (!listPublicId || !playableMedia.length) return;
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-        rockIt.queueManager.setMedia(
-            playableMedia.filter(isQueueable),
-            listPublicId
-        );
-        rockIt.queueManager.setQueueMediaId();
-        rockIt.mediaPlayerManager.play();
-    }, [playableMedia, listPublicId]);
+    const handlePlay = useCallback((): void => {
+        if (listPublicId) void rockIt.queueManager.playCollection(listPublicId);
+    }, [listPublicId]);
 
     return (
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 md:h-[calc(100vh-12rem)] md:grid-cols-[1fr_2fr] md:gap-20 md:px-8">
@@ -75,7 +85,7 @@ export default function RenderList({
                         <button
                             type="button"
                             onClick={handlePlay}
-                            className="absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 from-[#ee1086] to-[#fb6467] text-white opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
+                            className="absolute right-2 bottom-2 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-linear-45 from-(--color-rockit-pink) to-(--color-rockit-pink-light) text-white opacity-0 shadow-lg transition-all group-hover:opacity-100 hover:scale-105"
                             aria-label="Play"
                         >
                             <Play className="ml-0.5 h-6 w-6" fill="white" />
@@ -86,41 +96,46 @@ export default function RenderList({
                             {title}
                         </h1>
                         <div className="absolute top-1/2 right-0 -translate-y-1/2">
-                            <ListOptionsMenu
-                                media={media}
-                                listPublicId={listPublicId}
-                                title={title}
-                            />
+                            <MediaContextMenu
+                                media={listMedia}
+                                location={EMediaContextLocation.PLAYLIST}
+                                openOnLeftClick
+                            >
+                                <button
+                                    type="button"
+                                    aria-label="More options"
+                                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+                                >
+                                    <MoreHorizontal className="h-5 w-5" />
+                                </button>
+                            </MediaContextMenu>
                         </div>
                     </div>
                     <Artists
                         artists={artists}
                         className="text-lg font-semibold text-balance text-neutral-400"
                     />
-                    <p className="text-center font-semibold text-balance text-neutral-400">
-                        {playableMedia.length}{" "}
-                        {playableMedia.length === 1 ? "song" : "songs"}
+                    <p className="flex items-center justify-center gap-2 text-center font-semibold text-balance text-neutral-400">
+                        <span>
+                            {total ?? playableMedia.length}{" "}
+                            {playableMedia.length === 1 ? "song" : "songs"}
+                        </span>
+                        <DurationToggle durationMs={getTotalDuration(media)} />
                     </p>
                 </div>
             </div>
             <div className="scroll-on-hover z-1 md:overflow-y-auto md:pr-4">
                 <div className="flex flex-col gap-2 py-4 md:py-16">
-                    {media.map(
-                        (m, index): JSX.Element => (
-                            <Media
-                                key={m.publicId}
-                                index={index}
-                                media={m}
-                                allMedia={media}
-                                substractArtists={artists.map(
-                                    (artist): string => artist.name
-                                )}
-                                showMediaImage={showMediaImage}
-                                showMediaIndex={showMediaIndex}
-                                listPublicId={listPublicId}
-                                expandedByMediaId={expandedByMediaId}
-                            />
-                        )
+                    <VirtualCollectionList
+                        pager={pager}
+                        showMediaIndex={showMediaIndex}
+                        showMediaImage={showMediaImage}
+                        substractArtists={artists.map((artist) => artist.name)}
+                    />
+                    {media.length === 0 && (
+                        <p className="text-center text-lg font-semibold text-balance text-neutral-400">
+                            {$vocabulary.NO_MEDIA_FOUND}
+                        </p>
                     )}
                 </div>
             </div>

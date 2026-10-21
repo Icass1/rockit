@@ -1,6 +1,3 @@
-import os
-import uuid
-import requests as req
 from typing import Any, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
@@ -24,8 +21,6 @@ from backend.youtube.access.db.ormModels.externalImage import ExternalImageRow
 
 from backend.youtube.youtubeApiTypes.rawYoutubeApiVideo import RawYoutubeVideo
 from backend.youtube.youtubeApiTypes.rawYoutubeApiChannel import RawYoutubeChannel
-
-from backend.constants import IMAGES_PATH
 
 logger = getLogger(__name__)
 
@@ -134,7 +129,7 @@ class YouTubeAccess:
         try:
             stmt: Select[Tuple[str]] = select(VideoRow.youtube_id).where(
                 VideoRow.youtube_id.in_(youtube_ids),
-                (VideoRow.video_path.isnot(None)) | (VideoRow.audio_path.isnot(None)),
+                VideoRow.video_path.isnot(None),
             )
             result: Result[Tuple[str]] = await session.execute(stmt)
             return {row[0] for row in result.all()}
@@ -158,8 +153,7 @@ class YouTubeAccess:
                 .join(CoreMediaRow, VideoRow.id == CoreMediaRow.id)
                 .where(
                     VideoRow.youtube_id.in_(youtube_ids),
-                    (VideoRow.video_path.isnot(None))
-                    | (VideoRow.audio_path.isnot(None)),
+                    VideoRow.video_path.isnot(None),
                 )
             )
             result: Result[Tuple[str, str]] = await session.execute(stmt)
@@ -167,36 +161,6 @@ class YouTubeAccess:
         except Exception as e:
             logger.error(f"Failed to get downloaded youtube public ids: {e}")
             return {}
-
-    @staticmethod
-    async def _download_and_create_internal_image(
-        session: AsyncSession,
-        url: str,
-    ) -> AResult[ImageRow]:
-        try:
-            response = req.get(url, timeout=10)
-            if response.status_code != 200:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR, message="Image download failed"
-                )
-
-            filename = "youtube/" + str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(IMAGES_PATH, filename)
-
-            os.makedirs(name=os.path.dirname(p=full_path), exist_ok=True)
-
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-            img = ImageRow(public_id=create_id(32), url=url, path=filename)
-            session.add(img)
-            await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=img)
-        except Exception as e:
-            logger.error(f"Failed to download/create internal image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to download/create internal image: {e}",
-            )
 
     @staticmethod
     async def _get_or_create_external_image(
@@ -229,6 +193,7 @@ class YouTubeAccess:
         session: AsyncSession,
         raw: RawYoutubeChannel,
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[ChannelRow]:
         try:
             stmt = (
@@ -246,25 +211,6 @@ class YouTubeAccess:
             existing: ChannelRow | None = result.scalar_one_or_none()
             if existing:
                 return AResult(code=AResultCode.OK, message="OK", result=existing)
-
-            image_id: int | None = None
-            snippet: dict[str, Any] = raw.snippet or {}
-            thumbnails: dict[str, Any] = snippet.get("thumbnails", {})
-
-            thumbnail_url: str = ""
-            if "high" in thumbnails:
-                thumbnail_url = thumbnails["high"].get("url", "")
-            elif "medium" in thumbnails:
-                thumbnail_url = thumbnails["medium"].get("url", "")
-            elif "default" in thumbnails:
-                thumbnail_url = thumbnails["default"].get("url", "")
-
-            if thumbnail_url:
-                a_img = await YouTubeAccess._download_and_create_internal_image(
-                    session, thumbnail_url
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             if image_id is None:
                 a_result_image: AResult[ImageRow] = (
@@ -292,6 +238,7 @@ class YouTubeAccess:
             await session.flush()
 
             statistics: dict[str, Any] = raw.statistics or {}
+            snippet: dict[str, Any] = raw.snippet or {}
             subscriber_count: int = 0
             try:
                 subscriber_count = int(statistics.get("subscriberCount", 0))
@@ -340,6 +287,7 @@ class YouTubeAccess:
         raw: RawYoutubeVideo,
         channel_id: int,
         provider_id: int,
+        image_id: int | None = None,
     ) -> AResult[VideoRow]:
         try:
             stmt = select(VideoRow).where(VideoRow.youtube_id == raw.id)
@@ -351,23 +299,6 @@ class YouTubeAccess:
             snippet: dict[str, Any] = raw.snippet or {}
             content_details: dict[str, Any] = raw.contentDetails or {}
             statistics: dict[str, Any] = raw.statistics or {}
-
-            thumbnail_url: str = ""
-            thumbnails: dict[str, Any] = snippet.get("thumbnails", {})
-            if "high" in thumbnails:
-                thumbnail_url = thumbnails["high"].get("url", "")
-            elif "medium" in thumbnails:
-                thumbnail_url = thumbnails["medium"].get("url", "")
-            elif "default" in thumbnails:
-                thumbnail_url = thumbnails["default"].get("url", "")
-
-            image_id: int | None = None
-            if thumbnail_url:
-                a_img = await YouTubeAccess._download_and_create_internal_image(
-                    session, thumbnail_url
-                )
-                if a_img.is_ok():
-                    image_id = a_img.result().id
 
             if image_id is None:
                 return AResult(
@@ -420,7 +351,6 @@ class YouTubeAccess:
                 like_count=like_count,
                 comment_count=comment_count,
                 video_path=None,
-                audio_path=None,
                 description=snippet.get("description"),
                 youtube_url=f"https://www.youtube.com/watch?v={raw.id}",
                 tags=tags_str,

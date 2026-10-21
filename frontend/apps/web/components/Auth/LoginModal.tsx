@@ -17,10 +17,10 @@ export default function LoginModal(): JSX.Element {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-
     useEffect((): void => {
-        rockIt.authManager.isLoggedInAsync().then(setIsLoggedIn);
+        rockIt.authManager.isLoggedInAsync().then((loggedIn) => {
+            if (loggedIn) router.push("/");
+        });
     }, [router]);
 
     useEffect(() => {
@@ -78,27 +78,6 @@ export default function LoginModal(): JSX.Element {
             document.removeEventListener("keydown", handleKeyDown);
     }, [handleSubmit]);
 
-    if (isLoggedIn) {
-        return (
-            <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
-                <div className="flex items-center justify-center space-x-2">
-                    <h2 className="text-foreground text-3xl font-extrabold">
-                        {$vocabulary.ALREADY_LOGGED_IN}
-                    </h2>
-                </div>
-                <div className="mt-5 flex justify-center">
-                    <button
-                        type="button"
-                        onClick={(): void => router.push("/")}
-                        className="flex h-8 w-1/3 items-center justify-center rounded-md bg-green-600 font-bold md:hover:bg-green-800"
-                    >
-                        {$vocabulary.GO_HOME}
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
             <div id="login-form">
@@ -130,7 +109,7 @@ export default function LoginModal(): JSX.Element {
                         <input
                             type="text"
                             placeholder={$vocabulary.USERNAME}
-                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
                             autoComplete="username"
                             value={username}
                             onChange={(e): void =>
@@ -141,7 +120,7 @@ export default function LoginModal(): JSX.Element {
                         <input
                             type="password"
                             placeholder={$vocabulary.PASSWORD}
-                            className="text-1xl mt-1 w-4/5 rounded-full bg-[#202020] px-5 py-1 text-white"
+                            className="text-1xl mt-1 w-4/5 rounded-full bg-(--color-input-bg) px-5 py-1 text-white"
                             autoComplete="current-password"
                             value={password}
                             onChange={(e): void =>
@@ -151,7 +130,7 @@ export default function LoginModal(): JSX.Element {
                     </div>
 
                     {error && (
-                        <p className="mx-auto w-fit rounded-md bg-[#ed4337] px-3 py-1 text-white">
+                        <p className="mx-auto w-fit rounded-md bg-(--color-error) px-3 py-1 text-white">
                             {error}
                         </p>
                     )}

@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.image import ImageRow
@@ -26,7 +26,15 @@ if TYPE_CHECKING:
 
 class ArtistRow(SpotifyBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "artist"
-    __table_args__ = ({"schema": "spotify", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_spotify_artist_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "spotify", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

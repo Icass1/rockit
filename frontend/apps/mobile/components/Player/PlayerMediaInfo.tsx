@@ -1,15 +1,18 @@
 import React from "react";
 import { COLORS } from "@/constants/theme";
+import { useStore } from "@nanostores/react";
 import { TMedia } from "@rockit/shared";
 import type { VideoPlayer } from "expo-video";
 import { VideoView } from "expo-video";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Maximize, Video, VideoOff } from "lucide-react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { rockIt } from "@/lib/rockit/rockIt";
 import MediaSubSubTitle from "@/components/MediaSubSubTitle";
 import MediaSubTitle from "@/components/MediaSubTitle";
-import MobileLikeButton from "./MobileLikeButton";
-import PlayerControls from "./PlayerControls";
-import PlayerCover from "./PlayerCover";
-import PlayerProgress from "./PlayerProgress";
+import MobileLikeButton from "@/components/Player/MobileLikeButton";
+import PlayerControls from "@/components/Player/PlayerControls";
+import PlayerCover from "@/components/Player/PlayerCover";
+import PlayerProgress from "@/components/Player/PlayerProgress";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 // Cover size mirrors the old MobilePlayerUI — fills most of the screen width
@@ -20,6 +23,11 @@ interface PlayerMediaInfoProps {
     onSeek: (seconds: number) => void;
     videoPlayer: VideoPlayer | null;
     hasVideo: boolean;
+    canToggleAudioOnly: boolean;
+    audioOnly: boolean;
+    onToggleAudioOnly: () => void;
+    isMediaFullscreen: boolean;
+    onMediaFullscreen: () => void;
 }
 
 export default function PlayerMediaInfo({
@@ -27,28 +35,69 @@ export default function PlayerMediaInfo({
     onSeek,
     videoPlayer,
     hasVideo,
+    canToggleAudioOnly,
+    audioOnly,
+    onToggleAudioOnly,
+    isMediaFullscreen,
+    onMediaFullscreen,
 }: PlayerMediaInfoProps) {
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
         <View style={styles.container}>
             {/* Album artwork / video */}
             <View style={[styles.coverContainer, { height: COVER_SIZE }]}>
-                {hasVideo && videoPlayer ? (
-                    <View
-                        style={[styles.videoContainer, { width: COVER_SIZE }]}
-                    >
-                        <VideoView
-                            player={videoPlayer}
-                            style={styles.videoView}
-                            contentFit="contain"
-                            nativeControls={false}
+                <View style={{ width: COVER_SIZE }}>
+                    {hasVideo && videoPlayer && !isMediaFullscreen ? (
+                        <View
+                            style={[
+                                styles.videoContainer,
+                                { width: COVER_SIZE },
+                            ]}
+                        >
+                            <VideoView
+                                player={videoPlayer}
+                                style={styles.videoView}
+                                contentFit="contain"
+                                nativeControls={false}
+                            />
+                        </View>
+                    ) : (
+                        <PlayerCover
+                            uri={currentMedia?.imageUrl}
+                            mediaType={currentMedia?.type}
+                            size={COVER_SIZE}
                         />
-                    </View>
-                ) : (
-                    <PlayerCover
-                        uri={currentMedia?.imageUrl}
-                        mediaType={currentMedia?.type}
-                        size={COVER_SIZE}
-                    />
+                    )}
+                    {currentMedia && !isMediaFullscreen && (
+                        <Pressable
+                            onPress={onMediaFullscreen}
+                            style={styles.fullscreenButton}
+                            accessibilityRole="button"
+                            accessibilityLabel={
+                                vocabulary.PLAYER_ENTER_FULLSCREEN
+                            }
+                            hitSlop={8}
+                        >
+                            <Maximize size={22} color={COLORS.white} />
+                        </Pressable>
+                    )}
+                </View>
+
+                {canToggleAudioOnly && (
+                    <Pressable
+                        onPress={onToggleAudioOnly}
+                        style={styles.audioOnlyButton}
+                        hitSlop={8}
+                        accessibilityLabel={
+                            audioOnly ? "Show video" : "Audio only"
+                        }
+                    >
+                        {audioOnly ? (
+                            <VideoOff size={20} color={COLORS.white} />
+                        ) : (
+                            <Video size={20} color={COLORS.white} />
+                        )}
+                    </Pressable>
                 )}
             </View>
 
@@ -110,6 +159,28 @@ const styles = StyleSheet.create({
     },
     videoView: {
         flex: 1,
+    },
+    fullscreenButton: {
+        position: "absolute",
+        bottom: 8,
+        right: 8,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.6)",
+    },
+    audioOnlyButton: {
+        position: "absolute",
+        top: 8,
+        right: 8,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.5)",
     },
     infoRow: {
         flexDirection: "row",

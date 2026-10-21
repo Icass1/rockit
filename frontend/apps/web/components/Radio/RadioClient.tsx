@@ -6,9 +6,10 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
+    isSearchResult,
+    isStation,
     type BaseSearchResultsItem,
     type BaseStationResponse,
-    type LibraryMediasResponse,
 } from "@rockit/shared";
 import type { DebouncedFunc } from "lodash";
 import debounce from "lodash/debounce";
@@ -116,7 +117,7 @@ function StationSearchRow({
     );
 }
 
-type RadioViewMode = EViewMode.Grid | EViewMode.List | "map";
+type RadioViewMode = EViewMode.Grid | EViewMode.List | EViewMode.Map;
 
 export default function RadioClient(): JSX.Element {
     const [viewMode, setViewMode] = useState<RadioViewMode>(EViewMode.Grid);
@@ -141,7 +142,7 @@ export default function RadioClient(): JSX.Element {
             setSearching(true);
             setCountryStations(null);
             setSelectedCountry(null);
-            const res = await Http.search({ query: q });
+            const res = await Http.searchAsync({ query: q });
             if (res.isOk()) {
                 const results = res.result.results ?? [];
                 setSearchResults(
@@ -161,8 +162,9 @@ export default function RadioClient(): JSX.Element {
 
     const { data, loading } = useFetch(fetchLibrary);
 
-    const libraryStations: BaseStationResponse[] =
-        (data as LibraryMediasResponse | undefined)?.stations ?? [];
+    const libraryStations: BaseStationResponse[] = (data?.stations ?? []).map(
+        (s) => s.item
+    );
 
     const isSearching = query.trim().length > 0;
 
@@ -226,7 +228,7 @@ export default function RadioClient(): JSX.Element {
     const cycleViewMode = (): void => {
         setViewMode((prev) => {
             if (prev === EViewMode.Grid) return EViewMode.List;
-            if (prev === EViewMode.List) return "map";
+            if (prev === EViewMode.List) return EViewMode.Map;
             return EViewMode.Grid;
         });
     };
@@ -268,7 +270,7 @@ export default function RadioClient(): JSX.Element {
                         }
                     }}
                     placeholder={$vocabulary.RADIO_SEARCH}
-                    className="h-11 w-full rounded-full bg-neutral-900 pr-9 pl-10 text-sm font-semibold text-white placeholder-neutral-500 focus:ring-2 focus:ring-[#ee1086]/40 focus:outline-0"
+                    className="h-11 w-full rounded-full bg-neutral-900 pr-9 pl-10 text-sm font-semibold text-white placeholder-neutral-500 focus:ring-2 focus:ring-(--color-rockit-pink)/40 focus:outline-0"
                 />
                 {query && (
                     <button
@@ -280,7 +282,7 @@ export default function RadioClient(): JSX.Element {
                 )}
                 {searching && (
                     <div className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-(--color-rockit-pink)" />
                     </div>
                 )}
             </div>
@@ -297,7 +299,7 @@ export default function RadioClient(): JSX.Element {
                     <span className="text-sm font-semibold text-neutral-400">
                         {"Country:"}
                     </span>
-                    <span className="rounded-full bg-[#ee1086]/20 px-3 py-1 text-sm font-semibold text-[#ee1086]">
+                    <span className="rounded-full bg-(--color-rockit-pink)/20 px-3 py-1 text-sm font-semibold text-(--color-rockit-pink)">
                         {selectedCountry}
                     </span>
                     <button
@@ -340,7 +342,7 @@ export default function RadioClient(): JSX.Element {
 
             {loadingCountry && (
                 <div className="flex items-center justify-center py-8">
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-600 border-t-[#ec5588]" />
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-600 border-t-(--color-rockit-pink)" />
                     <span className="ml-3 text-sm text-neutral-400">
                         {"Loading stations..."}
                     </span>
@@ -357,36 +359,33 @@ export default function RadioClient(): JSX.Element {
                     }
                 >
                     {displayedStations.map((station) => {
-                        const hasPublicId = "publicId" in station;
-                        const key = hasPublicId
-                            ? (station as BaseStationResponse).publicId
-                            : (station as BaseSearchResultsItem).providerUrl +
-                              (station as BaseSearchResultsItem).name;
-
-                        if (viewMode === "map" && hasPublicId) {
+                        if (viewMode === EViewMode.Map && isStation(station)) {
                             return (
                                 <StationCard
-                                    key={key}
-                                    station={station as BaseStationResponse}
+                                    key={station.publicId}
+                                    station={station}
                                 />
                             );
                         }
+                        if (isSearchResult(station)) {
+                            const key = station.providerUrl + station.name;
+                            if (viewMode === EViewMode.List) {
+                                return (
+                                    <StationSearchRow
+                                        key={key}
+                                        station={station}
+                                    />
+                                );
+                            }
 
-                        if (viewMode === EViewMode.List) {
                             return (
-                                <StationSearchRow
+                                <StationSearchCard
                                     key={key}
-                                    station={station as BaseSearchResultsItem}
+                                    station={station}
                                 />
                             );
                         }
-
-                        return (
-                            <StationSearchCard
-                                key={key}
-                                station={station as BaseSearchResultsItem}
-                            />
-                        );
+                        return;
                     })}
                 </div>
             )}

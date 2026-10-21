@@ -25,6 +25,10 @@ async def handle_media_ended(
     sender_websocket: WebSocket | None = None,
 ) -> None:
     media_ended_msg = MediaEndedMessageRequest(**data)
+    if not manager.matches_playback(user_id=user_id, message=media_ended_msg):
+        return
+    if manager.playback_owners.get(user_id) is not sender_websocket:
+        return
     logger.info(f"User {user_id} media ended. Media: {media_ended_msg.mediaPublicId}")
 
     playback_state = manager.user_playback_states.get(user_id)

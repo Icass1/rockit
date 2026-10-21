@@ -1,7 +1,11 @@
 import { useMemo } from "react";
 import {
+    BaseAlbumWithoutSongsResponse,
+    BasePlaylistWithoutMediasResponse,
+    BaseSongWithAlbumResponse,
+    BaseStationResponse,
+    BaseVideoResponse,
     filterBySearch,
-    LibraryMediasResponse,
     sortItems,
     TMedia,
     type FilterMode,
@@ -11,12 +15,12 @@ import { getLibraryMedias } from "@/lib/http/http";
 import useFetch from "@/lib/useFetch";
 
 interface UseLibraryDataResult {
-    albums: LibraryMediasResponse["albums"];
-    playlists: LibraryMediasResponse["playlists"];
-    songs: LibraryMediasResponse["songs"];
-    videos: LibraryMediasResponse["videos"];
-    stations: LibraryMediasResponse["stations"];
-    shared: LibraryMediasResponse["shared"];
+    albums: BaseAlbumWithoutSongsResponse[];
+    playlists: BasePlaylistWithoutMediasResponse[];
+    songs: BaseSongWithAlbumResponse[];
+    videos: BaseVideoResponse[];
+    stations: BaseStationResponse[];
+    shared: BasePlaylistWithoutMediasResponse[];
     filtered: TMedia[];
     loading: boolean;
     error: string | undefined;
@@ -37,23 +41,23 @@ export function useLibraryData(options: {
     const filtered = useMemo(() => {
         if (!data) return [];
 
+        const albums = data.albums.map((a) => a.item);
+        const playlists = data.playlists.map((p) => p.item);
+        const songs = data.songs.map((s) => s.item);
+        const videos = data.videos.map((v) => v.item);
+
         let items: TMedia[] = [];
 
         if (options.activeType === ELibraryActiveType.All) {
-            items = [
-                ...data.albums,
-                ...data.playlists,
-                ...data.songs,
-                ...data.videos,
-            ];
+            items = [...albums, ...playlists, ...songs, ...videos];
         } else if (options.activeType === ELibraryActiveType.Albums) {
-            items = data.albums;
+            items = albums;
         } else if (options.activeType === ELibraryActiveType.Playlists) {
-            items = data.playlists;
+            items = playlists;
         } else if (options.activeType === ELibraryActiveType.Songs) {
-            items = data.songs;
+            items = songs;
         } else if (options.activeType === ELibraryActiveType.Videos) {
-            items = data.videos;
+            items = videos;
         }
 
         const searched = filterBySearch(items, options.searchQuery);
@@ -61,12 +65,12 @@ export function useLibraryData(options: {
     }, [data, options.activeType, options.searchQuery, options.filterMode]);
 
     return {
-        albums: data?.albums ?? [],
-        playlists: data?.playlists ?? [],
-        songs: data?.songs ?? [],
-        videos: data?.videos ?? [],
-        stations: data?.stations ?? [],
-        shared: data?.shared ?? [],
+        albums: data?.albums.map((a) => a.item) ?? [],
+        playlists: data?.playlists.map((p) => p.item) ?? [],
+        songs: data?.songs.map((s) => s.item) ?? [],
+        videos: data?.videos.map((v) => v.item) ?? [],
+        stations: data?.stations.map((s) => s.item) ?? [],
+        shared: data?.shared.map((s) => s.item) ?? [],
         filtered,
         loading,
         error,

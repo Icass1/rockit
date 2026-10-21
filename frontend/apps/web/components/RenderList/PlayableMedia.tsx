@@ -2,18 +2,15 @@ import { useCallback, type JSX } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
 import {
-    getAllPlayableMedia,
     getMediaDuration,
     isDownloadable,
-    isPlayable,
-    isQueueable,
     isSong,
     isVideo,
     TMedia,
     TPlayableMedia,
-} from "@rockit/packages/shared/models/types/media";
-import { EMediaContextLocation } from "@rockit/shared";
+} from "@rockit/shared/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -21,6 +18,7 @@ import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
 import LikeButton from "@/components/LikeButton/LikeButton";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 function getArtistNames(
@@ -38,7 +36,6 @@ function getArtistNames(
 export function PlayableMedia({
     index,
     media: _media,
-    allMedia,
     substractArtists = [],
     showMediaIndex,
     showMediaImage,
@@ -54,6 +51,8 @@ export function PlayableMedia({
 }): JSX.Element {
     const $media = useMedia(_media);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $likedMedias = useStore(rockIt.mediaManager.likedMediaAtom);
+    const isLiked = $likedMedias.includes($media.publicId);
 
     const artists = getArtistNames($media, substractArtists);
 
@@ -63,26 +62,13 @@ export function PlayableMedia({
                 [$media.publicId],
                 $media.name
             );
-        } else if (allMedia && allMedia.length > 0 && listPublicId) {
-            const tempAllMedia = getAllPlayableMedia(allMedia);
-
-            // Replace this media in allMedia in case it has been downloaded
-            for (let i = 0; i < tempAllMedia.length; i++) {
-                if (tempAllMedia[i].publicId === $media.publicId) {
-                    tempAllMedia[i] = $media;
-                }
-            }
-
-            const playableMedia = tempAllMedia.filter(isPlayable);
-
-            rockIt.queueManager.setMedia(
-                playableMedia.filter(isQueueable),
-                listPublicId
+        } else if (listPublicId) {
+            void rockIt.queueManager.playCollection(
+                listPublicId,
+                $media.publicId
             );
-            rockIt.queueManager.moveToMedia($media.publicId);
-            rockIt.mediaPlayerManager.play();
         }
-    }, [$media, allMedia, listPublicId]);
+    }, [$media, listPublicId]);
 
     const downloaded = !isDownloadable($media) || $media.downloaded === true;
 
@@ -113,6 +99,10 @@ export function PlayableMedia({
                 <div className={`relative flex w-full min-w-0 flex-col`}>
                     <div className="flex min-w-0 items-center gap-1.5">
                         <DownloadStatusIcon publicId={$media.publicId} />
+                        <OfflineIndicator
+                            publicId={$media.publicId}
+                            className="h-5 w-5"
+                        />
                         <p
                             className={`text-md truncate font-semibold ${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
                         >
@@ -128,6 +118,7 @@ export function PlayableMedia({
                             <div className="min-w-0 overflow-hidden">
                                 <Artists
                                     artists={artists}
+                                    linkable={false}
                                     className={`${!downloaded && "text-neutral-400 transition-colors duration-300 group-hover:text-white"}`}
                                 />
                             </div>
@@ -139,7 +130,11 @@ export function PlayableMedia({
                         </p>
                     )}
                 </div>
-                <LikeButton mediaPublicId={$media.publicId}></LikeButton>
+                <div
+                    className={`${isLiked ? "" : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100"} transition-all duration-200`}
+                >
+                    <LikeButton mediaPublicId={$media.publicId} />
+                </div>
                 <div>{getTime(getMediaDuration($media) ?? 0)}</div>
             </div>
         </MediaContextMenu>

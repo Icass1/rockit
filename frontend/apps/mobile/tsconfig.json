@@ -3,13 +3,20 @@
     "compilerOptions": {
         "strict": true,
         "paths": {
+            "@/auth/*": ["../../packages/shared/src/auth/*"],
+            "@/audio/*": ["../../packages/shared/src/audio/*"],
+            "@/http/*": ["../../packages/shared/src/http/*"],
+            "@/managers/*": ["../../packages/shared/src/managers/*"],
+            "@/rockit/*": ["../../packages/shared/src/rockit/*"],
+            "@/utils/*": ["../../packages/shared/src/utils/*"],
+            "@/lib/*": ["../../packages/shared/src/lib/*", "./lib/*"],
             "@/*": ["./*"],
             "@/shared/*": ["../../packages/shared/src/*"],
             "@/dto": ["../../packages/shared/src/dto/index.ts"],
             "@/dto/*": ["../../packages/shared/src/dto/*"],
             "@/models/*": [
                 "../../packages/shared/src/models/*",
-                "../../apps/mobile/models/*"
+                "./models/*"
             ],
             "@/environment": ["../../packages/shared/src/environment.ts"]
         }

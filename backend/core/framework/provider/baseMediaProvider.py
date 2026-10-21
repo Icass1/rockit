@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from logging import Logger
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -158,6 +158,25 @@ class BaseMediaProvider(BaseProvider):
             message=f"Provider '{self._name}' doesn't implement delete_media_async method.",
         )
 
+    async def get_frame_async(
+        self,
+        session: AsyncSession,
+        public_id: str,
+        timestamp_ms: float,
+    ) -> AResult[bytes]:
+        """Extract a single frame from a video at the given timestamp in miliseconds.
+
+        Returns the image data as bytes (WEBP).
+        """
+
+        logger.warning(
+            f"Provider '{self._name}' doesn't implement get_frame_async method."
+        )
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message=f"Provider '{self._name}' doesn't implement get_frame_async method.",
+        )
+
     @staticmethod
     def _rename_file_to_backup(file_path: str) -> None:
         """Rename a file by appending .bak<n> where n is the next available number.
@@ -191,4 +210,23 @@ class BaseMediaProvider(BaseProvider):
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
         """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url)."""
+        return None
+
+    def get_collection_provider_url(
+        self, metadata: dict[str, Any], media_type_key: int
+    ) -> str:
+        """Build the provider-owned link for unloaded album or playlist metadata."""
+        return str(metadata.get("provider_url", ""))
+
+    def get_search_index_cte_fragment(self) -> str | None:
+        """SELECT fragment for search_index (internal_id, public_id, name, subtitle, media_type_key, provider_name, image_url).
+
+        The subtitle column carries the item's related context (e.g. artist /
+        channel / album names for songs, albums and videos; NULL otherwise). It
+        is matched by the admin fuzzy-search and shown alongside the item name.
+
+        Used by the admin fuzzy-search feature to build a full index of every
+        searchable media item across all providers. Return None if the provider
+        has no contribution.
+        """
         return None

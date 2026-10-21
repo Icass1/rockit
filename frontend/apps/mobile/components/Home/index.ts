@@ -1,7 +1,7 @@
-export { default as HomeContent } from "./HomeContent";
-export { default as HomeHeader } from "./HomeHeader";
-export { default as FeaturedCarousel } from "./FeaturedCarousel";
-export { default as QuickSelectionsGrid } from "./QuickSelectionsGrid";
-export { default as QuickSelectionItem } from "./QuickSelectionItem";
-export { default as SongCard } from "./SongCard";
-export { default as HorizontalSongRow } from "./HorizontalSongRow";
+export { default as HomeContent } from "@/components/Home/HomeContent";
+export { default as HomeHeader } from "@/components/Home/HomeHeader";
+export { default as FeaturedCarousel } from "@/components/Home/FeaturedCarousel";
+export { default as QuickSelectionsGrid } from "@/components/Home/QuickSelectionsGrid";
+export { default as QuickSelectionItem } from "@/components/Home/QuickSelectionItem";
+export { default as SongCard } from "@/components/Home/SongCard";
+export { default as HorizontalSongRow } from "@/components/Home/HorizontalSongRow";

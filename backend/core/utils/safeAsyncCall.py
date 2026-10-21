@@ -41,7 +41,7 @@ def safe_async(
             logger.error(f"Exception in {func.__name__}: {e}")
 
             # Roll back session to prevent cascading InFailedSQLTransactionError
-            for arg in args:
+            for arg in list(args) + list(kwargs.values()):
                 if isinstance(arg, AsyncSession):
                     try:
                         await arg.rollback()

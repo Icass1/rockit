@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import BIGINT, String, ForeignKey, Text, Integer
+from sqlalchemy import BIGINT, String, ForeignKey, Text, Integer, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -19,7 +19,15 @@ if TYPE_CHECKING:
 
 class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "video"
-    __table_args__ = ({"schema": "youtube", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_youtube_video_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "youtube", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True
@@ -34,7 +42,6 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     image_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.image.id"), nullable=False
     )
-    audio_path: Mapped[str | None] = mapped_column(String, nullable=True)
     video_path: Mapped[str | None] = mapped_column(String, nullable=True)
     channel_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("youtube.channel.id"), nullable=False
@@ -68,7 +75,6 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         view_count: int = 0,
         like_count: int = 0,
         comment_count: int = 0,
-        audio_path: str | None = None,
         video_path: str | None = None,
         description: str | None = None,
         tags: str | None = None,
@@ -86,7 +92,6 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["view_count"] = view_count
         kwargs["like_count"] = like_count
         kwargs["comment_count"] = comment_count
-        kwargs["audio_path"] = audio_path
         kwargs["video_path"] = video_path
         kwargs["description"] = description
         kwargs["tags"] = tags

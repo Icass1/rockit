@@ -2,7 +2,7 @@
 
 import { JSX, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { EPlaylistAction as EServiceWorkerAction } from "@/models/enums/serviceWorkerAction";
+import { EServiceWorkerAction } from "@/models/enums/serviceWorkerAction";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function ServiceWorkerInfo(): JSX.Element {
@@ -50,20 +50,16 @@ export default function ServiceWorkerInfo(): JSX.Element {
                     .filter(
                         (v): v is EServiceWorkerAction => typeof v === "number"
                     )
-                    .map(
-                        (action): JSX.Element => (
-                            <button
-                                key={action}
-                                type="button"
-                                onClick={(): Promise<void> =>
-                                    handleAction(action)
-                                }
-                                className="rounded-xl bg-neutral-800 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-green-700"
-                            >
-                                {buttonLabels[action]}
-                            </button>
-                        )
-                    )}
+                    .map((action): JSX.Element => (
+                        <button
+                            key={action}
+                            type="button"
+                            onClick={(): Promise<void> => handleAction(action)}
+                            className="rounded-xl bg-neutral-800 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-green-700"
+                        >
+                            {buttonLabels[action]}
+                        </button>
+                    ))}
             </div>
             {status && <p className="text-xs text-neutral-500">{status}</p>}
         </div>

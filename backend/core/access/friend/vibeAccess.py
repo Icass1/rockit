@@ -1,6 +1,7 @@
 from typing import Tuple
 
 from sqlalchemy import text
+from backend.core.access.statsAccess import get_artist_info_cte
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -16,17 +17,17 @@ class VibeAccess:
     async def get_shared_artist_stats_async(
         session: AsyncSession, user_id: int, friend_user_id: int
     ) -> AResult[Tuple[int, int, int]]:
-        sql_shared = text("""
-        WITH my_artists AS (
-            SELECT DISTINCT m.name AS artist_name
+        sql_shared = text(f"""
+        WITH {get_artist_info_cte()}, my_artists AS (
+            SELECT DISTINCT ai.artist_name
             FROM core.user_media_listened uml
-            JOIN core.media m ON m.id = uml.media_id
+            JOIN artist_info ai ON ai.media_id = uml.media_id
             WHERE uml.user_id = :user_id
         ),
         friend_artists AS (
-            SELECT DISTINCT m.name AS artist_name
+            SELECT DISTINCT ai.artist_name
             FROM core.user_media_listened uml
-            JOIN core.media m ON m.id = uml.media_id
+            JOIN artist_info ai ON ai.media_id = uml.media_id
             WHERE uml.user_id = :friend_user_id
         )
         SELECT
@@ -41,9 +42,10 @@ class VibeAccess:
                 {"user_id": user_id, "friend_user_id": friend_user_id},
             )
         ).fetchone()
-        my_count = row.my_count or 0
-        friend_count = row.friend_count or 0
-        shared_count = row.shared_count or 0
+        assert row is not None
+        my_count = int(row.my_count or 0)
+        friend_count = int(row.friend_count or 0)
+        shared_count = int(row.shared_count or 0)
         return AResult(
             code=AResultCode.OK,
             message="OK",

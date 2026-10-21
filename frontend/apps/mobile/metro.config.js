@@ -14,6 +14,7 @@ config.resolver.nodeModulesPaths = [
 ];
 
 config.resolver.alias = {
+    "@": projectRoot,
     "@/dto": path.resolve(__dirname, "../../packages/shared/src/dto"),
     "@/models": [
         path.resolve(__dirname, "../../packages/shared/src/models"),

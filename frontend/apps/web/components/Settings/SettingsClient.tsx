@@ -4,7 +4,7 @@ import { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { Vocabulary } from "@rockit/packages/shared";
+import { Vocabulary } from "@rockit/shared";
 import { ChartLine, ImageUp, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ChangeLang from "@/components/Settings/ChangeLang";
@@ -12,7 +12,6 @@ import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
-import ServiceWorkerInfo from "@/components/Settings/ServiceWorkerInfo";
 
 function SettingsSection({
     title,
@@ -42,7 +41,7 @@ function ProfileSidebar(): JSX.Element {
                     alt="Profile picture"
                     width={200}
                     height={200}
-                    className="h-32 w-32 rounded-full object-cover ring-2 ring-neutral-700 transition-all group-hover:ring-[#ee1086] md:h-44 md:w-44"
+                    className="h-32 w-32 rounded-full object-cover ring-2 ring-neutral-700 transition-all group-hover:ring-(--color-rockit-pink) md:h-44 md:w-44"
                 />
                 <button
                     type="button"
@@ -91,7 +90,7 @@ function PasswordSection({
                     type="password"
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
                 />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -106,7 +105,7 @@ function PasswordSection({
                     type="password"
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none"
+                    className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none"
                 />
             </div>
         </div>
@@ -133,7 +132,7 @@ function DisplayNameInput({
                 type="text"
                 defaultValue={username}
                 disabled={isAuthenticated}
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-[#ee1086] focus:ring-1 focus:ring-[#ee1086] focus:outline-none disabled:opacity-50"
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-sm text-white transition-colors focus:border-(--color-rockit-pink) focus:ring-1 focus:ring-(--color-rockit-pink) focus:outline-none disabled:opacity-50"
             />
         </div>
     );
@@ -180,10 +179,6 @@ export default function SettingsClient(): JSX.Element {
 
                     <SettingsSection title={$vocabulary.DOWNLOAD_APP}>
                         <DownloadAppButton />
-                    </SettingsSection>
-
-                    <SettingsSection title="Service Worker">
-                        <ServiceWorkerInfo />
                     </SettingsSection>
                 </div>
             </div>

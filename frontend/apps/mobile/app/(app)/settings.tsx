@@ -7,6 +7,7 @@ import {
     LanguageSection,
     LogsButton,
     ProfileSection,
+    StorageButton,
 } from "@/components/Settings";
 
 function SettingsSection({
@@ -48,7 +49,7 @@ export default function SettingsScreen() {
                     <LogsButton />
                 </SettingsSection>
                 <SettingsSection title={vocabulary.STORAGE_MANAGEMENT}>
-                    <LogsButton />
+                    <StorageButton />
                 </SettingsSection>
             </PageContainer>
         </>

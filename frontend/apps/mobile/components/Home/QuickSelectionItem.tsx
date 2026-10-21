@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { Image } from "expo-image";
@@ -24,7 +24,7 @@ export default function QuickSelectionItem({
     songs,
     onPress,
 }: QuickSelectionItemProps) {
-    const scale = useRef(new Animated.Value(1)).current;
+    const [scale] = useState(() => new Animated.Value(1));
 
     const handlePressIn = () =>
         Animated.spring(scale, {

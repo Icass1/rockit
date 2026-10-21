@@ -2,6 +2,7 @@
 // Do not modify this file manually.
 
 import * as dto from "@/dto";
+import { BACKEND_URL } from "@/environment";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
 
@@ -146,6 +147,55 @@ export class BaseHttp {
         });
     }
 
+    static async downloadBinary(
+        url: string,
+        payload: unknown
+    ): Promise<HttpResult<Blob>> {
+        // This bypasses apiFetchAsync because the response is binary, so the
+        // network error handling it normally provides has to be repeated here.
+        let response: Response;
+        try {
+            response = await this.baseApiFetchAsync(
+                url.replace(BACKEND_URL, ""),
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                }
+            );
+        } catch (err) {
+            return new HttpResult({
+                ok: false,
+                code: 0,
+                message: "Network Error",
+                detail: (err as Error).message,
+            });
+        }
+
+        if (!response.ok) {
+            let detail: string | unknown[] | Record<string, unknown> =
+                response.statusText;
+            try {
+                detail = (await response.json()).detail ?? detail;
+            } catch {
+                // Keep the HTTP status when the backend did not return JSON.
+            }
+            return new HttpResult({
+                ok: false,
+                code: response.status,
+                message: response.statusText,
+                detail,
+            });
+        }
+
+        return new HttpResult({
+            ok: true,
+            code: response.status,
+            message: "OK",
+            result: await response.blob(),
+        });
+    }
+
     static async addBuild(payload: dto.AddVersionRequest) {
         return this.apiPostAsync(
             `/admin/builds`,
@@ -197,6 +247,17 @@ export class BaseHttp {
         );
     }
 
+    static async searchMedia(q: string, limit?: number) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("q", `${q}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/admin/media/search${queryString ? `?${queryString}` : ""}`,
+            dto.AdminSearchResponseSchema
+        );
+    }
+
     static async getRequestLogStats() {
         return this.apiGetAsync(
             `/admin/request-logs/stats`,
@@ -204,10 +265,12 @@ export class BaseHttp {
         );
     }
 
-    static async getAllRequests() {
-        return this.apiGetAsync(
+    static async getAllRequests(payload: dto.GetAllRequestsRequest) {
+        return this.apiPostAsync(
             `/admin/requests`,
-            dto.UserRequestListResponseSchema
+            dto.GetAllRequestsRequestSchema,
+            dto.UserRequestListResponseSchema,
+            payload
         );
     }
 
@@ -284,10 +347,15 @@ export class BaseHttp {
         );
     }
 
-    static async updateBookmark(publicId: string) {
-        return this.apiPatchAsync(
+    static async updateBookmark(
+        publicId: string,
+        payload: dto.UpdateBookmarkRequest
+    ) {
+        return this.apiPostAsync(
             `/bookmark/${publicId}`,
-            dto.BookmarkResponseSchema
+            dto.UpdateBookmarkRequestSchema,
+            dto.BookmarkResponseSchema,
+            payload
         );
     }
 
@@ -314,9 +382,19 @@ export class BaseHttp {
         );
     }
 
-    static async getDefaultPlaylistAsync(playlistPublicId: string) {
+    static async getDefaultPlaylistAsync(
+        playlistPublicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/default/playlist/${playlistPublicId}`,
+            `/default/playlist/${playlistPublicId}${queryString ? `?${queryString}` : ""}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
@@ -392,10 +470,22 @@ export class BaseHttp {
         );
     }
 
+    static downloadZipURL() {
+        return `${BACKEND_URL}/downloader/download-zip`;
+    }
+
     static async getDownloads() {
         return this.apiGetAsync(
             `/downloader/downloads`,
             dto.DownloadsResponseSchema
+        );
+    }
+
+    static async retryDownload(publicId: string) {
+        return this.apiFetchAsync(
+            `/downloader/downloads/${publicId}/retry`,
+            dto.OkResponseSchema,
+            { method: "POST" }
         );
     }
 
@@ -411,6 +501,15 @@ export class BaseHttp {
             `/downloader/start-downloads`,
             dto.StartDownloadRequestSchema,
             dto.StartDownloadResponseSchema,
+            payload
+        );
+    }
+
+    static async startDownloadFromUrl(payload: dto.AddFromUrlRequest) {
+        return this.apiPostAsync(
+            `/downloader/start-from-url`,
+            dto.AddFromUrlRequestSchema,
+            dto.StartDownloadFromUrlResponseSchema,
             payload
         );
     }
@@ -450,6 +549,18 @@ export class BaseHttp {
         );
     }
 
+    static async createFeaturedQueue(
+        publicId: string,
+        payload: dto.CollectionQueueRequest
+    ) {
+        return this.apiPostAsync(
+            `/featured/${publicId}/queue`,
+            dto.CollectionQueueRequestSchema,
+            dto.QueueResponseSchema,
+            payload
+        );
+    }
+
     static async getFriends() {
         return this.apiGetAsync(`/friends`, dto.FriendListResponseSchema);
     }
@@ -461,10 +572,25 @@ export class BaseHttp {
         );
     }
 
+    static async blockUser(userPublicId: string) {
+        return this.apiFetchAsync(
+            `/friends/block/${userPublicId}`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
     static async unblockUser(userPublicId: string) {
         return this.apiDeleteAsync(
             `/friends/block/${userPublicId}`,
             dto.OkResponseSchema
+        );
+    }
+
+    static async getBlockedUsers() {
+        return this.apiGetAsync(
+            `/friends/blocked`,
+            dto.FriendListResponseSchema
         );
     }
 
@@ -529,6 +655,30 @@ export class BaseHttp {
         );
     }
 
+    static async acceptFriendRequest(requestPublicId: string) {
+        return this.apiFetchAsync(
+            `/friends/request/${requestPublicId}/accept`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
+    static async rejectFriendRequest(requestPublicId: string) {
+        return this.apiFetchAsync(
+            `/friends/request/${requestPublicId}/reject`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
+    static async sendFriendRequest(userPublicId: string) {
+        return this.apiFetchAsync(
+            `/friends/request/${userPublicId}`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
     static async getFriendRequests() {
         return this.apiGetAsync(
             `/friends/requests`,
@@ -536,9 +686,12 @@ export class BaseHttp {
         );
     }
 
-    static async searchUsers() {
+    static async searchUsers(q: string) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("q", `${q}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/friends/search`,
+            `/friends/search${queryString ? `?${queryString}` : ""}`,
             dto.FriendSearchResponseSchema
         );
     }
@@ -563,6 +716,21 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/friends/share/sent`,
             dto.SharedMediaSentResponseSchema
+        );
+    }
+
+    static async deleteShare(sharePublicId: string) {
+        return this.apiDeleteAsync(
+            `/friends/share/${sharePublicId}`,
+            dto.OkResponseSchema
+        );
+    }
+
+    static async markShareSeen(sharePublicId: string) {
+        return this.apiFetchAsync(
+            `/friends/share/${sharePublicId}/seen`,
+            dto.OkResponseSchema,
+            { method: "POST" }
         );
     }
 
@@ -601,6 +769,10 @@ export class BaseHttp {
         );
     }
 
+    static getImageURL(path: string) {
+        return `${BACKEND_URL}/image/${path}`;
+    }
+
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
         return this.apiPostAsync(
             `/lrclib/lyrics`,
@@ -624,23 +796,41 @@ export class BaseHttp {
         );
     }
 
-    static async getDynamicLyricsAsync(publicId: string) {
+    static async getDynamicLyricsAsync(publicId: string, provider?: string) {
+        const queryParams = new URLSearchParams();
+        if (provider !== undefined)
+            queryParams.append("provider", `${provider}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/lyrics/dynamic/${publicId}`,
+            `/lyrics/dynamic/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseDynamicLyricsResponseSchema
         );
     }
 
-    static async getLyricsAsync(publicId: string) {
+    static async getLyricsAsync(publicId: string, provider?: string) {
+        const queryParams = new URLSearchParams();
+        if (provider !== undefined)
+            queryParams.append("provider", `${provider}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/lyrics/${publicId}`,
+            `/lyrics/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseLyricsResponseSchema
         );
     }
 
-    static async getAlbum(publicId: string) {
+    static async getAlbum(
+        publicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/album/${publicId}`,
+            `/media/album/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseAlbumWithSongsResponseSchema
         );
     }
@@ -652,14 +842,75 @@ export class BaseHttp {
         );
     }
 
-    static async getPlaylist(publicId: string) {
+    static async getCollectionItems(
+        publicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/playlist/${publicId}`,
+            `/media/collection/${publicId}/items${queryString ? `?${queryString}` : ""}`,
+            dto.CollectionPageResponseSchema
+        );
+    }
+
+    static async resolveCollectionQueue(publicId: string) {
+        return this.apiGetAsync(
+            `/media/collection/${publicId}/playable`,
+            dto.QueueResponseSchema
+        );
+    }
+
+    static async createCollectionQueue(
+        publicId: string,
+        payload: dto.CollectionQueueRequest
+    ) {
+        return this.apiPostAsync(
+            `/media/collection/${publicId}/queue`,
+            dto.CollectionQueueRequestSchema,
+            dto.QueueResponseSchema,
+            payload
+        );
+    }
+
+    static getFrameURL(publicId: string, timestampMs: number) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("timestamp_ms", `${timestampMs}`);
+        const queryString = queryParams.toString();
+        return `${BACKEND_URL}/media/frame/${publicId}${queryString ? `?${queryString}` : ""}`;
+    }
+
+    static generateImageURL(publicId: string) {
+        return `${BACKEND_URL}/media/image/blur/${publicId}`;
+    }
+
+    static getMediaImageURL(publicId: string) {
+        return `${BACKEND_URL}/media/image/${publicId}`;
+    }
+
+    static async getPlaylist(
+        publicId: string,
+        offset?: number,
+        limit?: number,
+        query?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (query !== undefined) queryParams.append("query", `${query}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/media/playlist/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
 
-    static async search(payload: dto.SearchRequest) {
+    static async searchAsync(payload: dto.SearchRequest) {
         return this.apiPostAsync(
             `/media/search`,
             dto.SearchRequestSchema,
@@ -682,7 +933,7 @@ export class BaseHttp {
         );
     }
 
-    static async addFromUrl(payload: dto.AddFromUrlRequest) {
+    static async addFromUrlAsync(payload: dto.AddFromUrlRequest) {
         return this.apiPostAsync(
             `/media/url/add`,
             dto.AddFromUrlRequestSchema,
@@ -691,8 +942,14 @@ export class BaseHttp {
         );
     }
 
-    static async matchUrl() {
-        return this.apiGetAsync(`/media/url/match`, dto.UrlMatchResponseSchema);
+    static async matchUrlAsync(url: string) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("url", `${url}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/media/url/match${queryString ? `?${queryString}` : ""}`,
+            dto.UrlMatchResponseSchema
+        );
     }
 
     static async getVideoAsync(publicId: string) {
@@ -702,11 +959,11 @@ export class BaseHttp {
         );
     }
 
-    static async deleteMedia(publicId: string) {
+    static async deleteMediaFileAsync(publicId: string) {
         return this.apiDeleteAsync(`/media/${publicId}`, dto.OkResponseSchema);
     }
 
-    static async getMedia(publicId: string) {
+    static async getMediaAsync(publicId: string) {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
     }
 
@@ -724,8 +981,15 @@ export class BaseHttp {
         );
     }
 
-    static async getStationsWithGeo() {
-        return this.apiGetAsync(`/radio/stations/geo`, dto.ListSchema);
+    static async getStationsWithGeo(limit?: number, offset?: number) {
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/radio/stations/geo${queryString ? `?${queryString}` : ""}`,
+            dto.ListSchema
+        );
     }
 
     static async createRequest(payload: dto.CreateUserRequestRequest) {
@@ -737,8 +1001,15 @@ export class BaseHttp {
         );
     }
 
-    static async getMyRequests() {
-        return this.apiGetAsync(`/request`, dto.UserRequestListResponseSchema);
+    static async getMyRequests(limit?: number, offset?: number) {
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/request${queryString ? `?${queryString}` : ""}`,
+            dto.UserRequestListResponseSchema
+        );
     }
 
     static async getRockitAlbum(publicId: string) {
@@ -748,11 +1019,31 @@ export class BaseHttp {
         );
     }
 
+    static serveRockitAudioURL(publicId: string) {
+        return `${BACKEND_URL}/rockit/audio/${publicId}`;
+    }
+
     static async getRockitSong(publicId: string) {
         return this.apiGetAsync(
             `/rockit/song/${publicId}`,
             dto.BaseSongWithAlbumResponseSchema
         );
+    }
+
+    static async uploadRockitAlbum() {
+        return this.apiFetchAsync(
+            `/rockit/upload/album`,
+            dto.UploadResponseSchema,
+            { method: "POST" }
+        );
+    }
+
+    static serveRockitVideoURL(publicId: string) {
+        return `${BACKEND_URL}/rockit/video/${publicId}/stream`;
+    }
+
+    static serveRockitVideoAudioURL(publicId: string) {
+        return `${BACKEND_URL}/rockit/video/${publicId}/stream/audio`;
     }
 
     static async getAlbumAsync(spotifyId: string) {
@@ -769,6 +1060,10 @@ export class BaseHttp {
         );
     }
 
+    static getSpotifyAudioURL(spotifyId: string) {
+        return `${BACKEND_URL}/spotify/audio/${spotifyId}`;
+    }
+
     static async getSpotifyPlaylistAsync(spotifyId: string) {
         return this.apiGetAsync(
             `/spotify/playlist/${spotifyId}`,
@@ -780,6 +1075,38 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/spotify/track/${spotifyId}`,
             dto.SpotifyTrackResponseSchema
+        );
+    }
+
+    static async getSpotifyScrapperAlbumAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/album/${spotifyId}`,
+            dto.SpotifyScrapperAlbumResponseSchema
+        );
+    }
+
+    static async getSpotifyScrapperArtistAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/artist/${spotifyId}`,
+            dto.BaseArtistResponseSchema
+        );
+    }
+
+    static getSpotifyScrapperAudioURL(spotifyId: string) {
+        return `${BACKEND_URL}/spotify_scrapper/audio/${spotifyId}`;
+    }
+
+    static async getSpotifyScrapperPlaylistAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/playlist/${spotifyId}`,
+            dto.BasePlaylistWithMediasResponseSchema
+        );
+    }
+
+    static async getSpotifyScrapperTrackAsync(spotifyId: string) {
+        return this.apiGetAsync(
+            `/spotify_scrapper/track/${spotifyId}`,
+            dto.SpotifyScrapperTrackResponseSchema
         );
     }
 
@@ -796,6 +1123,15 @@ export class BaseHttp {
             `/stats/user`,
             dto.UserStatsRequestSchema,
             dto.UserStatsResponseSchema,
+            payload
+        );
+    }
+
+    static async getUserStatsV2(payload: dto.UserStatsRequest) {
+        return this.apiPostAsync(
+            `/stats/v2/user`,
+            dto.UserStatsRequestSchema,
+            dto.UserStatsV2ResponseSchema,
             payload
         );
     }
@@ -914,11 +1250,19 @@ export class BaseHttp {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
     }
 
+    static downloadApkURL(filename: string) {
+        return `${BACKEND_URL}/version/apk/${filename}`;
+    }
+
     static async getLatestVersion() {
         return this.apiGetAsync(
             `/version/latest`,
             dto.LatestVersionResponseSchema
         );
+    }
+
+    static downloadLatestApkURL() {
+        return `${BACKEND_URL}/version/latest/apk`;
     }
 
     static async getAllLanguages() {
@@ -942,6 +1286,10 @@ export class BaseHttp {
         );
     }
 
+    static getYoutubeMusicAudioURL(publicId: string) {
+        return `${BACKEND_URL}/youtube-music/audio/${publicId}`;
+    }
+
     static async getChanelAsync(youtubeId: string) {
         return this.apiGetAsync(
             `/youtube/chanel/${youtubeId}`,
@@ -954,5 +1302,13 @@ export class BaseHttp {
             `/youtube/video/${youtubeId}`,
             dto.YoutubeVideoResponseSchema
         );
+    }
+
+    static streamVideoURL(youtubeId: string) {
+        return `${BACKEND_URL}/youtube/video/${youtubeId}/stream`;
+    }
+
+    static streamAudioURL(youtubeId: string) {
+        return `${BACKEND_URL}/youtube/video/${youtubeId}/stream/audio`;
     }
 }

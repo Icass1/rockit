@@ -1,10 +1,9 @@
 from typing import List
+from datetime import datetime
+from backend.core.responses.mediaResponse import MediaResponse
 
-from pydantic import BaseModel, field_serializer
-
-from backend.core.enums.friend.listenTogetherStatusEnum import (
-    ListenTogetherStatusEnum,
-)
+from pydantic import BaseModel
+from typing import Literal
 
 
 class ListenTogetherSessionResponse(BaseModel):
@@ -20,11 +19,9 @@ class ListenTogetherSessionResponse(BaseModel):
     currentMediaImageUrl: str | None = None
     currentTimeMs: int = 0
     isPlaying: bool = False
-    status: ListenTogetherStatusEnum
-
-    @field_serializer("status")
-    def serialize_status(self, status: ListenTogetherStatusEnum) -> str:
-        return status.name.lower()
+    updatedAt: datetime
+    currentMedia: MediaResponse | None = None
+    status: Literal["active", "invited", "ended"]
 
 
 class ListenTogetherListResponse(BaseModel):

@@ -58,7 +58,7 @@ def _get_upload_provider() -> BaseUploadProvider:
 
     upload_providers: list[BaseUploadProvider] = providers.get_upload_providers()
     if not upload_providers:
-        logger.error("TODO")
+        logger.error("No upload provider available.")
         raise HTTPException(status_code=501, detail="No upload provider available")
     return upload_providers[0]
 
@@ -68,7 +68,7 @@ def _get_user(request: Request) -> UserRow:
 
     a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
-        logger.error("TODO")
+        logger.error(f"Failed to get current user. {a_result_user.info()}")
         raise HTTPException(
             status_code=a_result_user.get_http_code(),
             detail=a_result_user.message(),
@@ -85,7 +85,7 @@ async def _get_pending_or_404(
         session=session, public_id=upload_id
     )
     if a_result.is_not_ok():
-        logger.error("TODO")
+        logger.error(f"Pending upload not found. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail="Upload session not found or expired.",
@@ -144,7 +144,7 @@ async def start_song_upload(
         metadata_json=payload.model_dump_json(),
     )
     if a_result.is_not_ok():
-        logger.error("TODO")
+        logger.error(f"Failed to create song upload session. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message(),
@@ -172,7 +172,7 @@ async def start_album_upload(
         metadata_json=payload.model_dump_json(),
     )
     if a_result.is_not_ok():
-        logger.error("TODO")
+        logger.error(f"Failed to create album upload session. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message(),
@@ -252,7 +252,7 @@ async def upload_file(
         )
         await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
-            logger.error("TODO")
+            logger.error(f"Failed to upload song. {a_result.info()}")
             raise HTTPException(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),
@@ -274,7 +274,7 @@ async def upload_file(
         )
         await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
-            logger.error("TODO")
+            logger.error(f"Failed to upload video. {a_result.info()}")
             raise HTTPException(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),
@@ -282,7 +282,9 @@ async def upload_file(
         return a_result.result()
 
     await _cleanup_upload_temp_dir(upload_id=upload_id)
-    logger.error("TODO")
+    logger.error(
+        f"Unsupported media type for direct upload: '{pending.media_type_key}'."
+    )
     raise HTTPException(
         status_code=400,
         detail=f"Cannot upload file directly to upload type '{pending.media_type_key}'. "
@@ -304,7 +306,7 @@ async def upload_album_cover(
     )
 
     if pending.media_type_key != MediaTypeEnum.ALBUM.value:
-        logger.error("TODO")
+        logger.error(f"Attempted to upload cover for non-album upload '{upload_id}'.")
         raise HTTPException(status_code=400, detail="Upload is not an album.")
 
     cover_path: str = _upload_temp_cover_path(upload_id=upload_id)
@@ -314,7 +316,7 @@ async def upload_album_cover(
         session=session, public_id=upload_id
     )
     if a_result.is_not_ok():
-        logger.error("TODO")
+        logger.error(f"Failed to mark cover as uploaded. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message(),
@@ -338,14 +340,18 @@ async def upload_album_song_file(
     )
 
     if pending.media_type_key != MediaTypeEnum.ALBUM.value:
-        logger.error("TODO")
+        logger.error(
+            f"Attempted to upload song file for non-album upload '{upload_id}'."
+        )
         raise HTTPException(status_code=400, detail="Upload is not an album.")
 
     album_request: UploadAlbumRequest = UploadAlbumRequest.model_validate_json(
         pending.metadata_json
     )
     if index < 0 or index >= len(album_request.songs):
-        logger.error("TODO")
+        logger.error(
+            f"Song index {index} out of range for album upload '{upload_id}' (max {len(album_request.songs) - 1})."
+        )
         raise HTTPException(
             status_code=400,
             detail=f"Song index {index} out of range. Album has {len(album_request.songs)} songs.",
@@ -358,7 +364,7 @@ async def upload_album_song_file(
         session=session, public_id=upload_id
     )
     if a_result.is_not_ok():
-        logger.error("TODO")
+        logger.error(f"Failed to increment uploaded song count. {a_result.info()}")
         raise HTTPException(
             status_code=a_result.get_http_code(),
             detail=a_result.message(),
@@ -396,7 +402,7 @@ async def upload_album_song_file(
         await _cleanup_upload_temp_dir(upload_id=upload_id)
 
         if a_result.is_not_ok():
-            logger.error("TODO")
+            logger.error(f"Failed to upload album. {a_result.info()}")
             raise HTTPException(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),

@@ -206,6 +206,8 @@ Manager: add method to lib/managers/, use atoms for reactive state
 
 Imports: ALWAYS @/
 
+Models: enums, interfaces, and types must be in `frontend/apps/web/models`, `frontend/packages/shared/src/models` (shared), or `frontend/apps/mobile/models`. Never create them elsewhere — the only exception is component prop types.
+
 Naming:
 
 | Type            | Convention      |

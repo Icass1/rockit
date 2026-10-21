@@ -1,4 +1,5 @@
 import uuid
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,31 +36,26 @@ class StreakBattle:
         )
 
     @staticmethod
-    def _calculate_streak(dates: list) -> int:
+    def _calculate_streak(dates: list[date | str]) -> int:
         if not dates:
             return 0
-        today = dates[0]
-        from datetime import timedelta
-
-        if isinstance(today, str):
-            from datetime import datetime
-
-            today = datetime.fromisoformat(today).date()
-        yesterday = today - timedelta(days=1)
-        if dates[0] < yesterday:
+        days = sorted(
+            {
+                datetime.fromisoformat(d).date() if isinstance(d, str) else d
+                for d in dates
+            },
+            reverse=True,
+        )
+        today = datetime.now(timezone.utc).date()
+        if days[0] < today - timedelta(days=1):
             return 0
         streak = 0
-        expected = dates[0]
-        for d in dates:
-            if isinstance(d, str):
-                from datetime import datetime
-
-                d = datetime.fromisoformat(d).date()
-            if d == expected:
-                streak += 1
-                expected = d - timedelta(days=1)
-            else:
+        expected = days[0]
+        for day in days:
+            if day != expected:
                 break
+            streak += 1
+            expected -= timedelta(days=1)
         return streak
 
     @staticmethod

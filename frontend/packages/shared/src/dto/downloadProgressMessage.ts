@@ -18,11 +18,13 @@ export const DownloadProgressMessageSchema = z.object({
         "FAILED",
         "FETCHING",
         "WAITING_FOR_QUEUE_SETUP",
+        "RETRYING",
     ]),
     progress: z.number(),
     imageUrl: z.string().nullable(),
     dateStarted: z.iso.datetime(),
     dateEnded: z.iso.datetime().nullable(),
+    retryCount: z.number().default(0),
 });
 
 export type DownloadProgressMessage = z.infer<

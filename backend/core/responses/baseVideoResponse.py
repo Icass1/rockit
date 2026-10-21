@@ -12,9 +12,10 @@ class BaseVideoResponse(BaseModel):
     publicId: str
     providerUrl: str
     name: str
-    videoSrc: Optional[str] = None
-    audioSrc: Optional[str] = None
+    videoUrl: Optional[str] = None
+    audioUrl: Optional[str] = None
     imageUrl: str
+    dominantColor: str
     duration_ms: int | None
     artists: List[BaseArtistResponse]
     downloaded: bool

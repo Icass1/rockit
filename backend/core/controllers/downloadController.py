@@ -1,22 +1,31 @@
+import os
 from logging import Logger
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
-from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult
+from backend.core.access.db.ormModels.user import UserRow
 
 from backend.core.framework.downloader.downloader import Downloader
+from backend.core.framework.downloader.downloadZip import DownloadZip
 
+from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 from backend.core.responses.startDownloadResponse import StartDownloadResponse
+from backend.core.responses.startDownloadFromUrlResponse import (
+    StartDownloadFromUrlResponse,
+)
 from backend.core.responses.downloadsResponse import DownloadsResponse
 from backend.core.responses.okResponse import OkResponse
-from backend.core.requests.startDownloadRequest import StartDownloadRequest
 
-from backend.core.access.db.ormModels.user import UserRow
+from backend.core.requests.startDownloadRequest import StartDownloadRequest
+from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
+from backend.core.requests.downloadZipRequest import DownloadZipRequest
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
@@ -24,6 +33,35 @@ router = APIRouter(
     dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Core", "Download"],
 )
+
+
+@router.post("/download-zip")
+async def download_zip(request: Request, payload: DownloadZipRequest) -> FileResponse:
+    """Create and return a ZIP containing downloaded requested media."""
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    result = await DownloadZip.create_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        public_ids=payload.ids,
+        title=payload.title,
+    )
+    if result.is_not_ok():
+        logger.error(f"Error creating ZIP. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+
+    zip_path = result.result()
+    return FileResponse(
+        path=zip_path,
+        media_type="application/zip",
+        filename=f"{payload.title}.zip",
+        background=BackgroundTask(os.unlink, zip_path),
+    )
 
 
 @router.post("/start-downloads")
@@ -58,6 +96,42 @@ async def start_download(
     return a_result.result()
 
 
+@router.post("/start-from-url")
+async def start_download_from_url(
+    request: Request, payload: AddFromUrlRequest
+) -> StartDownloadFromUrlResponse:
+    """Add media from a URL and immediately queue its download, atomically,
+    so the download starts even if the client disconnects right after."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user: UserRow = a_result_user.result()
+
+    a_result: AResult[StartDownloadFromUrlResponse] = (
+        await Downloader.start_download_from_url_async(
+            session=session,
+            user_id=user.id,
+            url=payload.url,
+            add_to_library=payload.addToLibrary,
+            add_to_playlist=payload.addToPlaylist,
+            playlist_public_id=payload.playlistPublicId,
+        )
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error starting download from URL. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return a_result.result()
+
+
 @router.get("/downloads")
 async def get_downloads(request: Request) -> DownloadsResponse:
     """Get all downloads for the current user."""
@@ -81,6 +155,31 @@ async def get_downloads(request: Request) -> DownloadsResponse:
         )
 
     return a_result.result()
+
+
+@router.post("/downloads/{public_id}/retry")
+async def retry_download(request: Request, public_id: str) -> OkResponse:
+    """Reset a failed download and re-queue it for retry."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user: UserRow = a_result_user.result()
+
+    a_result: AResult[bool] = await Downloader.retry_download_async(
+        session=session, user_id=user.id, public_id=public_id
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return OkResponse()
 
 
 @router.get("/downloads/{public_id}/seen")

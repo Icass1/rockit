@@ -4,7 +4,7 @@ import {
     isSearchResult,
     TMedia,
     TMediaWithSearch,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -42,7 +42,10 @@ export class LibraryManager {
     async addMediaToLibrary(media: TMediaWithSearch): Promise<void> {
         if (isSearchResult(media)) {
             const searchItem = media;
-            const res = await Http.addFromUrl({
+            rockIt.notificationManager.notifyInfo(
+                rockIt.vocabularyManager.vocabulary.ADDING_MEDIA_TO_LIBRARY
+            );
+            const res = await Http.addFromUrlAsync({
                 url: searchItem.providerUrl,
                 addToPlaylist: false,
                 addToLibrary: true,
@@ -56,7 +59,7 @@ export class LibraryManager {
                     publicId: res.result.data.publicId,
                 });
                 rockIt.notificationManager.notifySuccess(
-                    `"${searchItem.name}" added to library`
+                    `"${searchItem.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_LIBRARY}`
                 );
             }
         } else {

@@ -24,28 +24,28 @@ export default function LibraryPage() {
 
     if (loading) {
         return (
-            <>
+            <View style={styles.container}>
                 <Header />
                 <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={COLORS.accent} />
                 </View>
-            </>
+            </View>
         );
     }
 
     if (error) {
         return (
-            <>
+            <View style={styles.container}>
                 <Header />
                 <View style={styles.centerContainer}>
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
-            </>
+            </View>
         );
     }
 
     return (
-        <>
+        <View style={styles.container}>
             <Header />
             <View style={{ flex: 1 }}>
                 <LibraryScreen
@@ -60,11 +60,15 @@ export default function LibraryPage() {
                     sortMode={sortMode}
                 />
             </View>
-        </>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: COLORS.bg,
+    },
     centerContainer: {
         flex: 1,
         backgroundColor: COLORS.bg,

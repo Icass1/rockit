@@ -2,11 +2,11 @@ import { COLORS } from "@/constants/theme";
 import type { UserStatsResponse } from "@rockit/shared";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useVocabulary } from "@/lib/vocabulary";
-import ListeningHeatmap from "./charts/ListeningHeatmap";
-import MinutesBarChart from "./charts/MinutesBarChart";
-import RankingList from "./charts/RankingList";
-import StatsSectionCard from "./StatsSectionCard";
-import SummaryCards from "./SummaryCards";
+import ListeningHeatmap from "@/components/Stats/charts/ListeningHeatmap";
+import MinutesBarChart from "@/components/Stats/charts/MinutesBarChart";
+import RankingList from "@/components/Stats/charts/RankingList";
+import StatsSectionCard from "@/components/Stats/StatsSectionCard";
+import SummaryCards from "@/components/Stats/SummaryCards";
 
 interface UserStatsProps {
     data: UserStatsResponse;

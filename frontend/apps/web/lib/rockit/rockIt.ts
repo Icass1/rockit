@@ -1,6 +1,8 @@
-import { EventManager } from "@rockit/packages/shared";
+import { EventManager, setRockIt } from "@rockit/shared";
+import { Http } from "@/lib/http";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
+import { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { FriendManager } from "@/lib/managers/friendManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
@@ -9,6 +11,7 @@ import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
+import { OfflineManager } from "@/lib/managers/offlineManager";
 import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { PlaylistManager } from "@/lib/managers/playlistManager";
 import { QueueManager } from "@/lib/managers/queueManager";
@@ -18,8 +21,13 @@ import { StationManager } from "@/lib/managers/stationManager";
 import { UserManager } from "@/lib/managers/userManager";
 import { VocabularyManager } from "@/lib/managers/vocabularyManager";
 import { WebSocketManager } from "@/lib/managers/webSocketManger";
+import { cleanupLegacyIndexedDB } from "@/lib/offline/cleanup-legacy-db";
+import { cleanupLegacyServiceWorker } from "@/lib/offline/cleanup-legacy-sw";
+import { hydrateOfflineIds } from "@/lib/offline/store";
 
 export class RockIt {
+    private _initialization?: Promise<void>;
+
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
         "/playlist-placeholder.png";
     public readonly ALBUM_PLACEHOLDER_IMAGE_URL =
@@ -33,6 +41,7 @@ export class RockIt {
     public readonly USER_PLACEHOLDER_IMAGE_URL =
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/user-placeholder.png";
 
+    bookmarkManager = new BookmarkManager();
     notificationManager = new NotificationManager();
     webSocketManager = new WebSocketManager();
     userManager = new UserManager();
@@ -52,24 +61,56 @@ export class RockIt {
     friendManager = new FriendManager();
     listenTogetherManager = new ListenTogetherManager();
     sharingManager = new SharingManager();
+    offlineManager = new OfflineManager();
     mediaSessionManager = new MediaSessionManager();
+    http = Http;
 
     constructor() {
+        setRockIt(this);
         if (typeof window === "undefined") return;
         this.webSocketManager.init();
     }
 
-    async init(): Promise<void> {
-        console.log("RockIt! int");
+    init(): Promise<void> {
+        this._initialization ??= this.initializeAsync();
+        return this._initialization;
+    }
+
+    async refreshSessionAsync(): Promise<void> {
+        // Finish startup first so an older anonymous response cannot overwrite
+        // the authenticated state and all message handlers are registered.
+        await this.init();
+        await this.userManager.updateAsync();
+        await this.webSocketManager.reconnectAsync();
+        await this.queueManager.refreshAsync();
+        await Promise.all([
+            this.playlistManager.refreshPlaylistsAsync(),
+            this.mediaManager.fetchLikedMedia(),
+        ]);
+    }
+
+    private async initializeAsync(): Promise<void> {
         rockIt.mediaPlayerManager.init();
-        rockIt.queueManager.init();
-        rockIt.userManager.init();
-        rockIt.downloaderManager.init();
+        await rockIt.userManager.init();
+        await rockIt.queueManager.init();
+        await Promise.all([
+            rockIt.downloaderManager.init(),
+            rockIt.bookmarkManager.init(),
+            rockIt.playlistManager.init(),
+        ]);
         rockIt.libraryManager.init();
-        rockIt.playlistManager.init();
         rockIt.friendManager.init();
+        rockIt.sharingManager.init();
         rockIt.listenTogetherManager.init();
         rockIt.mediaSessionManager.init();
+
+        cleanupLegacyIndexedDB();
+        cleanupLegacyServiceWorker();
+        await hydrateOfflineIds();
+
+        if (typeof navigator !== "undefined" && navigator.storage?.persist) {
+            navigator.storage.persist().catch(() => {});
+        }
     }
 }
 

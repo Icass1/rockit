@@ -1,7 +1,7 @@
 import { memo, useCallback } from "react";
 import type { BaseSongWithAlbumResponse } from "@rockit/shared";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import SongCard from "./SongCard";
+import SongCard from "@/components/Home/SongCard";
 
 interface HorizontalSongRowProps {
     title: string;

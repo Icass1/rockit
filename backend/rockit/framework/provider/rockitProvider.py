@@ -28,6 +28,9 @@ from backend.core.requests.uploadSongRequest import UploadSongRequest
 from backend.core.requests.uploadAlbumRequest import UploadAlbumRequest
 from backend.core.requests.uploadVideoRequest import UploadVideoRequest
 
+from backend.rockit.access.rockitAccess import RockitAccess
+from backend.rockit.access.db.ormModels.video import RockitVideoRow
+
 from backend.rockit.framework.rockit import Rockit
 
 logger: Logger = getLogger(__name__)
@@ -204,6 +207,51 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             release_date=request.releaseDate,
         )
 
+    async def get_frame_async(
+        self,
+        session: AsyncSession,
+        public_id: str,
+        timestamp_ms: float,
+    ) -> AResult[bytes]:
+        """Extract a single frame from a RockIt video at the given timestamp (ms)."""
+
+        a_result_videos: AResult[List[RockitVideoRow]] = (
+            await RockitAccess.get_videos_from_public_ids_async(
+                session=session, public_ids=[public_id]
+            )
+        )
+        if a_result_videos.is_not_ok() or not a_result_videos.result():
+            logger.error(
+                f"Error getting video for public id {public_id}. {a_result_videos.info()}"
+            )
+            return AResult(
+                code=(
+                    a_result_videos.code()
+                    if a_result_videos.is_not_ok()
+                    else AResultCode.NOT_FOUND
+                ),
+                message=(
+                    a_result_videos.message()
+                    if a_result_videos.is_not_ok()
+                    else "Video not found"
+                ),
+            )
+
+        video: RockitVideoRow = a_result_videos.result()[0]
+
+        if not video.file_path:
+            logger.error(f"Video {public_id} has no file path.")
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Video has no file path",
+            )
+
+        return await Rockit.get_frame_async(
+            file_path=video.file_path,
+            public_id=public_id,
+            timestamp_ms=timestamp_ms,
+        )
+
     async def upload_video_async(
         self,
         session: AsyncSession,
@@ -238,7 +286,17 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
            {MediaTypeEnum.SONG.value}                     AS media_type_key
     FROM   rockit.song rs
     JOIN   core.media cm ON cm.id = rs.id
-    JOIN   core.image ci ON ci.id = rs.image_id"""
+    JOIN   core.image ci ON ci.id = rs.image_id
+    UNION ALL
+    SELECT cm.id                                          AS media_id,
+           COALESCE(rv.duration_ms, 0)                    AS duration_ms,
+           cm.public_id                                   AS public_id,
+           rv.name                                        AS media_name,
+           ci.url                                         AS image_url,
+           {MediaTypeEnum.VIDEO.value}                    AS media_type_key
+    FROM   rockit.video rv
+    JOIN   core.media cm ON cm.id = rv.id
+    JOIN   core.image ci ON ci.id = rv.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
         return """    SELECT rs.id           AS media_id,
@@ -249,7 +307,17 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.media             cm  ON cm.id = rs.id
     JOIN   rockit.song_artists    rsa ON rsa.song_id = rs.id
     JOIN   rockit.artist          ra  ON ra.id = rsa.artist_id
-    JOIN   core.image             ci  ON ci.id = ra.image_id"""
+    JOIN   core.image             ci  ON ci.id = ra.image_id
+    UNION ALL
+    SELECT rv.id          AS media_id,
+           cm.public_id   AS artist_public_id,
+           ra.name        AS artist_name,
+           ci.url         AS artist_image_url
+    FROM   rockit.video            rv
+    JOIN   core.media              cm  ON cm.id = rv.id
+    JOIN   rockit.video_artists    rva ON rva.video_id = rv.id
+    JOIN   rockit.artist           ra  ON ra.id = rva.artist_id
+    JOIN   core.image              ci  ON ci.id = ra.image_id"""
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
         return """    SELECT cm.id              AS media_id,
@@ -260,6 +328,71 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   rockit.album    ra    ON ra.id        = rs.album_id
     JOIN   core.media      cm    ON cm.id        = ra.id
     JOIN   core.image      ci    ON ci.id        = ra.image_id"""
+
+    def get_search_index_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+        return f"""    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           rs.name                         AS name,
+           CONCAT_WS(', ',
+               NULLIF(string_agg(DISTINCT rart.name, ', '), ''),
+               NULLIF(string_agg(DISTINCT album_artist.name, ', '), ''),
+               NULLIF(ra.name, '')
+           )                               AS subtitle,
+           {MediaTypeEnum.SONG.value}      AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.song rs
+    JOIN   core.media    cm ON cm.id = rs.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = rs.image_id
+    LEFT JOIN rockit.album       ra   ON ra.id = rs.album_id
+    LEFT JOIN rockit.album_artists album_credit ON album_credit.album_id = rs.album_id
+    LEFT JOIN rockit.artist album_artist ON album_artist.id = album_credit.artist_id
+    LEFT JOIN rockit.song_artists rsa ON rsa.song_id = rs.id
+    LEFT JOIN rockit.artist      rart ON rart.id = rsa.artist_id
+    GROUP BY cm.id, cm.public_id, rs.name, ra.name, p.name, ci.url
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           rv.name                         AS name,
+           NULLIF(string_agg(DISTINCT rart.name, ', '), '') AS subtitle,
+           {MediaTypeEnum.VIDEO.value}     AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.video rv
+    JOIN   core.media    cm ON cm.id = rv.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = rv.image_id
+    LEFT JOIN rockit.video_artists rva   ON rva.video_id = rv.id
+    LEFT JOIN rockit.artist       rart   ON rart.id = rva.artist_id
+    GROUP BY cm.id, cm.public_id, rv.name, p.name, ci.url
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           ra.name                         AS name,
+           NULLIF(string_agg(DISTINCT rart.name, ', '), '') AS subtitle,
+           {MediaTypeEnum.ALBUM.value}     AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.album ra
+    JOIN   core.media    cm ON cm.id = ra.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = ra.image_id
+    LEFT JOIN rockit.album_artists raa   ON raa.album_id = ra.id
+    LEFT JOIN rockit.artist      rart   ON rart.id = raa.artist_id
+    GROUP BY cm.id, cm.public_id, ra.name, p.name, ci.url
+    UNION ALL
+    SELECT rart.id                         AS internal_id,
+           NULL::text                      AS public_id,
+           rart.name                       AS name,
+           NULL                            AS subtitle,
+           {MediaTypeEnum.ARTIST.value}    AS media_type_key,
+           'RockIt'                        AS provider_name,
+           ci.url                          AS image_url
+    FROM   rockit.artist rart
+    JOIN   core.image    ci ON ci.id = rart.image_id"""
 
 
 provider = RockItProvider()

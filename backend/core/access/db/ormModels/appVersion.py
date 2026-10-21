@@ -8,26 +8,31 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableAutoincrementId,
     TableDateAdded,
     TableDateUpdated,
+    TablePublicId,
 )
 
 
-class AppVersionRow(CoreBase, TableAutoincrementId, TableDateAdded, TableDateUpdated):
+class AppVersionRow(
+    CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded, TableDateUpdated
+):
     __tablename__ = "app_version"
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
-    version: Mapped[str] = mapped_column(String, nullable=False)
-    apk_filename: Mapped[str] = mapped_column(String, nullable=False)
+    version: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    apk_filename: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     downloads: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     def __init__(
         self,
+        public_id: str,
         version: str,
         apk_filename: str,
         description: str | None = None,
         downloads: int = 0,
     ):
         kwargs: Dict[str, None | int | str] = {}
+        kwargs["public_id"] = public_id
         kwargs["version"] = version
         kwargs["apk_filename"] = apk_filename
         kwargs["description"] = description

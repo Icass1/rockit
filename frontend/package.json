@@ -6,7 +6,7 @@
         "build": "turbo build",
         "dev:web": "cd apps/web && pnpm run dev",
         "dev:mobile": "cd apps/mobile && pnpm dev",
-        "lint": "turbo lint",
+        "lint": "pnpm -r run lint",
         "typecheck": "turbo typecheck",
         "clean": "turbo clean",
         "clean:all": "turbo clean && rm -rf node_modules",
@@ -26,9 +26,10 @@
     },
     "devDependencies": {
         "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
-        "prettier-plugin-tailwindcss": "^0.7.2",
+        "prettier-plugin-tailwindcss": "0.7.4",
         "turbo": "^2.3.3",
-        "typescript": "^5.7.2"
+        "typescript": "^5.7.2",
+        "prettier": "3.9.6"
     },
     "packageManager": "pnpm@11.0.8"
 }

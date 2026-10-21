@@ -14,6 +14,8 @@ export const HomeStatsResponseSchema = z.object({
     communityTop: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
     monthlyTop: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
     moodSongs: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
+    currentStreak: z.number().default(0),
+    minutesListenedThisWeek: z.number().default(0.0),
 });
 
 export type HomeStatsResponse = z.infer<typeof HomeStatsResponseSchema>;

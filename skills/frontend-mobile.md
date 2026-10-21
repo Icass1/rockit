@@ -36,8 +36,8 @@ frontend/
         │   ├── utils/            # apiFetch, getTime, etc.
         │   ├── rockit/           # RockIt singleton (same instance as web)
         │   └── store.ts          # nanostores helpers
-        ├── models/               # TypeScript types and enums (shared with web)
-        │   └── enums/            # EContentType, EFilterMode, etc. (shared)
+        ├── models/               # TypeScript types and enums (app-specific)
+        │   └── enums/            # Mobile-specific enums
         ├── assets/               # Images, icons, fonts
         │   ├── images/
         │   ├── icons/
@@ -137,3 +137,4 @@ Managers in `@/lib/managers/` may have mobile-specific implementations:
 8. **NEVER** use large lists without virtualization (`FlatList` with `removeClippedSubviews`)
 9. **ALWAYS** follow platform-specific design guidelines (iOS Human Interface, Android Material)
 10. **NEVER** edit shared DTOs manually - they are auto-generated from backend
+11. **NEVER** create interfaces, types, or enums outside `models/` directories — the only exception is component prop types. Put shared types (backend entities) in `packages/shared/src/models/`, app-specific types in `apps/mobile/models/`

@@ -38,7 +38,6 @@ export default function PlayerUIQueue({
         const el = queueContainerRef.current.querySelector(
             `[data-queue-media-id="${$currentQueueMediaId}"]`
         );
-        console.log("PlayerUIQueue", { el, visible });
         if (el && visible) {
             const container = queueContainerRef.current;
             const element = el as HTMLElement;
@@ -50,7 +49,6 @@ export default function PlayerUIQueue({
                 elementRect.top - containerRect.top + container.scrollTop;
             const scrollTo =
                 relativeTop + elementHeight / 2 - containerHeight / 2;
-            console.log({ scrollTo });
             container.scrollTo({ top: scrollTo, behavior: "smooth" });
         }
     }, [$currentQueueMediaId, $playerUIVisible, visible]);
@@ -117,37 +115,35 @@ export default function PlayerUIQueue({
             className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto mask-t-from-90% mask-b-from-90% py-16"
             style={{ scrollBehavior: "smooth" }}
         >
-            {$queue.map(
-                (queueItem, index): JSX.Element => (
-                    <div
-                        key={queueItem.queueMediaId}
-                        data-queue-media-id={queueItem.queueMediaId}
-                        draggable="true"
-                        onDragStart={(e): void => handleDragStart(e, index)}
-                        onDragOver={(e): void => handleDragOver(e, index)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={(e): void => handleDrop(e, index)}
-                        onDragEnd={handleDragLeave}
-                        className={`border-t-2 ${
-                            dragOverIndex === index
-                                ? "border-[#ee1086]"
-                                : "border-transparent"
-                        }`}
+            {$queue.map((queueItem, index): JSX.Element => (
+                <div
+                    key={queueItem.queueMediaId}
+                    data-queue-media-id={queueItem.queueMediaId}
+                    draggable="true"
+                    onDragStart={(e): void => handleDragStart(e, index)}
+                    onDragOver={(e): void => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e): void => handleDrop(e, index)}
+                    onDragEnd={handleDragLeave}
+                    className={`border-t-2 select-none [-webkit-touch-callout:none] ${
+                        dragOverIndex === index
+                            ? "border-(--color-rockit-pink)"
+                            : "border-transparent"
+                    }`}
+                >
+                    <MediaContextMenu
+                        media={queueItem.media}
+                        location={EMediaContextLocation.QUEUE}
                     >
-                        <MediaContextMenu
-                            media={queueItem.media}
-                            location={EMediaContextLocation.QUEUE}
-                        >
-                            <QueueMedia
-                                media={queueItem}
-                                onClick={(): void =>
-                                    handleClick(queueItem.queueMediaId)
-                                }
-                            />
-                        </MediaContextMenu>
-                    </div>
-                )
-            )}
+                        <QueueMedia
+                            media={queueItem}
+                            onClick={(): void =>
+                                handleClick(queueItem.queueMediaId)
+                            }
+                        />
+                    </MediaContextMenu>
+                </div>
+            ))}
         </div>
     );
 }

@@ -9,7 +9,12 @@ export const FriendRequestResponseSchema = z.object({
     fromUsername: z.string(),
     fromUserImageUrl: z.string().nullable(),
     message: z.string().nullable(),
-    status: z.enum(["PENDING", "ACCEPTED", "BLOCKED", "REJECTED"]),
+    status: z.union([
+        z.literal("pending"),
+        z.literal("accepted"),
+        z.literal("blocked"),
+        z.literal("rejected"),
+    ]),
     dateAdded: z.iso.datetime(),
 });
 

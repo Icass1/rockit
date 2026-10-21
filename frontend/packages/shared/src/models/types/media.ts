@@ -10,7 +10,7 @@ import {
     BaseSongWithoutAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
-} from "../../dto";
+} from "@/dto";
 
 export type TPlayableMedia =
     | BaseSongWithAlbumResponse
@@ -37,10 +37,7 @@ export type DownloadableMediaType =
     | BaseVideoResponse;
 
 export type TMediaWithSearch =
-    | TPlayableMedia
-    | TListMedia
-    | BaseSearchResultsItem
-    | BaseArtistResponse;
+    TPlayableMedia | TListMedia | BaseSearchResultsItem | BaseArtistResponse;
 
 export type TMedia = TPlayableMedia | TListMedia | BaseArtistResponse;
 
@@ -122,8 +119,7 @@ export function isPlaylistWithMedias(
         media.type === "playlist" &&
         (
             media as
-                | BasePlaylistWithMediasResponse
-                | BasePlaylistForPlaylistResponse
+                BasePlaylistWithMediasResponse | BasePlaylistForPlaylistResponse
         ).medias !== undefined
     );
 }
@@ -170,7 +166,9 @@ export function isVideo(media: TMedia): media is BaseVideoResponse {
     return media.type === "video";
 }
 
-export function isStation(media: TMedia): media is BaseStationResponse {
+export function isStation(
+    media: TMedia | BaseSearchResultsItem
+): media is BaseStationResponse {
     return media.type === "station";
 }
 
@@ -187,6 +185,42 @@ export function getMediaDuration(
     return undefined;
 }
 
+export function getTotalDuration(media: TMedia[]): number {
+    return getAllPlayableMedia(media).reduce((sum, item) => {
+        if (isSong(item)) return sum + item.duration_ms;
+        if (isVideo(item) && item.duration_ms) return sum + item.duration_ms;
+        return sum;
+    }, 0);
+}
+
+export type DurationStyle = "normal" | "minutes";
+
+export function formatDuration(
+    ms: number,
+    style: DurationStyle = "normal"
+): string {
+    if (style === "minutes") {
+        return `${Math.round(ms / 60000)} min`;
+    }
+
+    const totalMinutes = Math.round(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) {
+        return `${minutes} min`;
+    }
+
+    const paddedMinutes = String(minutes).padStart(2, "0");
+    return `${hours} h ${paddedMinutes} min`;
+}
+
+function buildSongCountWithDuration(count: number, durationMs: number): string {
+    const label = `${count} song${count !== 1 ? "s" : ""}`;
+    if (durationMs === 0) return label;
+    return `${label} • ${formatDuration(durationMs)}`;
+}
+
 export function getMediaSubtitle(media: TMediaWithSearch): string {
     if (isSearchResult(media)) {
         return media.artists.map((artist): string => artist.name).join(", ");
@@ -200,14 +234,19 @@ export function getMediaSubtitle(media: TMediaWithSearch): string {
         return media.artists.map((artist): string => artist.name).join(", ");
     } else if (isAlbumWithSongs(media)) {
         const totalSongs = media.songs.length ?? 0;
-        return `${totalSongs} song${totalSongs !== 1 ? "s" : ""}`;
+        const totalMs = getTotalDuration(media.songs);
+        return buildSongCountWithDuration(totalSongs, totalMs);
     } else if (isPlaylistWithMedias(media)) {
-        return (
-            media.description ??
-            `${media.medias?.length ?? 0} song${
-                (media.medias?.length ?? 0) !== 1 ? "s" : ""
-            }`
-        );
+        if (media.description) {
+            const totalMs = getTotalDuration(media.medias.map((m) => m.item));
+            if (totalMs > 0) {
+                return `${media.description} • ${formatDuration(totalMs)}`;
+            }
+            return media.description;
+        }
+        const totalSongs = media.medias?.length ?? 0;
+        const totalMs = getTotalDuration(media.medias.map((m) => m.item));
+        return buildSongCountWithDuration(totalSongs, totalMs);
     } else if (isPlaylist(media)) {
         return media.description ?? "";
     } else if (isVideo(media)) {
@@ -230,6 +269,17 @@ export function getMediaArtists(
     return [];
 }
 
+export function getMediaArtistsString(
+    media: TMediaWithSearch | undefined
+): string {
+    if (!media) return "";
+    if (isSearchResult(media))
+        return media.artists.map((a) => a.name).join(", ");
+    return getMediaArtists(media)
+        .map((artist) => artist.name)
+        .join(", ");
+}
+
 export function getMediaAlbum(
     media: TPlayableMedia | undefined
 ): BaseAlbumWithoutSongsResponse | undefined {
@@ -240,15 +290,15 @@ export function getMediaAlbum(
     return undefined;
 }
 
-export function getMediaAudioSrc(
+export function getMediaAudioUrl(
     media: TPlayableMedia | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isSong(media)) {
-        return media.audioSrc ?? undefined;
+        return media.audioUrl ?? undefined;
     }
     if (isVideo(media)) {
-        return media.audioSrc ?? undefined;
+        return media.audioUrl ?? undefined;
     }
     if (isStation(media)) {
         return media.streamUrl ?? undefined;
@@ -256,12 +306,12 @@ export function getMediaAudioSrc(
     return undefined;
 }
 
-export function getMediaVideoSrc(
+export function getMediaVideoUrl(
     media: TPlayableMedia | undefined
 ): string | undefined {
     if (!media) return undefined;
     if (isVideo(media)) {
-        return media.videoSrc ?? undefined;
+        return media.videoUrl ?? undefined;
     }
     return undefined;
 }

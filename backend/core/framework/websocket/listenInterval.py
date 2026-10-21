@@ -222,6 +222,16 @@ async def check_and_record_listen_threshold_async(
                 f"Error adding user media listened for user {user_id}. {a_result_listened.info()}"
             )
         else:
+            from backend.core.access.friend.friendAccess import FriendAccess
+            from backend.core.framework.friend.notifications import notify_after_commit
+
+            friends = await FriendAccess.get_friend_ids_async(duration_session, user_id)
+            if friends.is_not_ok():
+                logger.error(
+                    f"Error loading friends for listen update. {friends.info()}"
+                )
+            else:
+                notify_after_commit(duration_session, friends.result())
             await SendToUser.send_to_user(
                 user_id=user_id,
                 message=MediaListenedMessage(publicId=media_public_id),
@@ -259,6 +269,14 @@ async def maybe_flush_listen_interval_async(
         or playback_state.active_interval_media_id is None
         or playback_state.active_interval_start_timestamp is None
     ):
+        return
+
+    if current_time_ms <= playback_state.active_interval_start_ms:
+        logger.debug(
+            f"Skipping flush for user={user_id} — current_time_ms={current_time_ms} "
+            f"is not after interval start={playback_state.active_interval_start_ms} "
+            f"(stale or out-of-order current_time message)"
+        )
         return
 
     now = time_module.time()

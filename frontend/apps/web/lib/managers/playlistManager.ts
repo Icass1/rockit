@@ -1,16 +1,24 @@
 import {
     BasePlaylistWithoutMediasResponse,
+    BaseSearchResultsItem,
     BaseSongWithAlbumResponse,
     EEvent,
     EWebSocketMessage,
     HttpResult,
+    isSong,
     TMedia,
     type MediaAddedToPlaylistMessage,
+    type MediaRemovedFromPlaylistMessage,
     type PlaylistCreatedMessage,
     type PlaylistDeletedMessage,
     type PlaylistRenamedMessage,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
+import {
+    addSongPlaylistRef,
+    offlineStatusMap,
+    removeSongPlaylistRef,
+} from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
 
@@ -46,6 +54,10 @@ export class PlaylistManager {
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.MediaAddedToPlaylist,
             this.handleMediaAddedToPlaylist
+        );
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.MediaRemovedFromPlaylist,
+            this.handleMediaRemovedFromPlaylist
         );
     }
 
@@ -87,7 +99,16 @@ export class PlaylistManager {
         });
     };
 
-    private async refreshPlaylistsAsync(): Promise<void> {
+    private handleMediaRemovedFromPlaylist = async (
+        data: MediaRemovedFromPlaylistMessage
+    ): Promise<void> => {
+        rockIt.eventManager.dispatchEvent(EEvent.MediaRemovedFromPlaylist, {
+            publicId: data.publicId,
+            playlistPublicId: data.playlistPublicId,
+        });
+    };
+
+    async refreshPlaylistsAsync(): Promise<void> {
         const result = await Http.getUserPlaylistsAsync();
         if (result.isOk()) {
             this._playlistsAtom.set(result.result.playlists);
@@ -95,25 +116,31 @@ export class PlaylistManager {
     }
 
     async playPlaylist(
-        songs: BaseSongWithAlbumResponse[],
+        _songs: BaseSongWithAlbumResponse[],
         listPublicId: string,
         startSongPublicId?: string
     ): Promise<void> {
-        rockIt.queueManager.setMedia(songs, listPublicId);
-
-        if (startSongPublicId) {
-            rockIt.queueManager.moveToMedia(startSongPublicId);
-        } else {
-            rockIt.queueManager.setQueueMediaId(0);
-        }
-
-        rockIt.mediaPlayerManager.play();
+        await rockIt.queueManager.playCollection(
+            listPublicId,
+            startSongPublicId
+        );
     }
 
     async addMediaToPlaylist(
         media: TMedia,
         playlist: BasePlaylistWithoutMediasResponse
     ): Promise<HttpResult<{ status: string }>> {
+        // Keep parent-playlist references accurate for songs saved offline:
+        // no network call, just an IndexedDB write in the background.
+        if (
+            isSong(media) &&
+            (offlineStatusMap.get()[media.publicId] ?? "idle") === "downloaded"
+        ) {
+            addSongPlaylistRef(media.publicId, playlist.publicId).catch(
+                () => {}
+            );
+        }
+
         return await Http.addMediaToPlaylistAsync(playlist.publicId, {
             mediaPublicId: media.publicId,
         });
@@ -133,6 +160,16 @@ export class PlaylistManager {
         mediaPublicId: string,
         playlistPublicId: string
     ): Promise<HttpResult<{ status: string }>> {
+        // Keep parent-playlist references accurate for songs saved offline
+        // without a network call; fire-and-forget IndexedDB write.
+        if (
+            (offlineStatusMap.get()[mediaPublicId] ?? "idle") === "downloaded"
+        ) {
+            removeSongPlaylistRef(mediaPublicId, playlistPublicId).catch(
+                () => {}
+            );
+        }
+
         const res = await Http.removeMediaFromPlaylistAsync(
             playlistPublicId,
             mediaPublicId
@@ -147,7 +184,7 @@ export class PlaylistManager {
         url: string,
         playlistPublicId: string
     ): Promise<void> {
-        const mediaRes = await Http.addFromUrl({
+        const mediaRes = await Http.addFromUrlAsync({
             url,
             addToPlaylist: true,
             addToLibrary: false,
@@ -163,5 +200,36 @@ export class PlaylistManager {
             );
             return;
         }
+        if (mediaRes.isOk()) {
+            rockIt.notificationManager.notifySuccess(
+                `"${mediaRes.result.data.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_PLAYLIST}`
+            );
+        }
+    }
+
+    async addUrlToPlaylistAndDownloadAsync(
+        searchItem: BaseSearchResultsItem,
+        playlistPublicId: string
+    ): Promise<void> {
+        const result = await Http.startDownloadFromUrl({
+            url: searchItem.providerUrl,
+            addToPlaylist: true,
+            addToLibrary: false,
+            playlistPublicId: playlistPublicId,
+        });
+
+        if (!result.isOk()) {
+            rockIt.notificationManager.notifyError("Failed to add media.");
+            console.error(
+                "Error adding media to playlist",
+                result.message,
+                result.detail
+            );
+            return;
+        }
+
+        rockIt.notificationManager.notifySuccess(
+            `"${result.result.data.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_PLAYLIST}`
+        );
     }
 }

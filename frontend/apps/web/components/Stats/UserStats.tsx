@@ -3,8 +3,8 @@
 import { useCallback, type JSX } from "react";
 import type { StatsRankedItemResponse, UserStatsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { isQueueable } from "@rockit/packages/shared/models/types/media";
-import type { TPlayableMedia } from "@rockit/packages/shared/models/types/media";
+import { isQueueable } from "@rockit/shared/models/types/media";
+import type { TPlayableMedia } from "@rockit/shared/models/types/media";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
@@ -36,7 +36,7 @@ export default function UserStats({
                 : data.topVideos;
 
             const results = await Promise.all(
-                allItems.map((s) => Http.getMedia(s.publicId))
+                allItems.map((s) => Http.getMediaAsync(s.publicId))
             );
 
             const playable = results

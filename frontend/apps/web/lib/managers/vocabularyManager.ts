@@ -4,11 +4,15 @@ import {
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
+import { saveVocabularyOffline } from "@/lib/offline/db";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
 
 function createVocabularyProxy(data: Record<string, string>): VocabularyType {
     return new Proxy(data, {
-        get(target, prop: string) {
+        get(target, prop) {
+            if (typeof prop === "symbol") {
+                return (target as Record<string | symbol, unknown>)[prop];
+            }
             return target[prop] ?? prop;
         },
     }) as unknown as VocabularyType;
@@ -44,6 +48,7 @@ export class VocabularyManager {
     setVocabulary(data: VocabularyResponse): void {
         this._vocabularyAtom.set(createVocabularyProxy(data.vocabulary));
         this._langAtom.set(data.currentLang);
+        saveVocabularyOffline(data).catch(() => {});
     }
 
     get vocabularyAtom(): ReadonlyAtom<VocabularyType> {

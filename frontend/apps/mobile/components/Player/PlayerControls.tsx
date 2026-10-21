@@ -2,7 +2,7 @@
 
 import React from "react";
 import { COLORS } from "@/constants/theme";
-import { ERepeatMode } from "@rockit/shared";
+import { EQueueType, ERepeatMode } from "@rockit/shared";
 import {
     Pause,
     Play,
@@ -22,10 +22,11 @@ export default function PlayerControls() {
     const {
         isPlaying,
         repeatMode,
+        queueType,
         togglePlayPause,
         skipForward,
         skipBack,
-        toggleShuffle,
+        toggleRandomQueue,
         cycleRepeat,
     } = usePlayer();
 
@@ -37,10 +38,17 @@ export default function PlayerControls() {
             {/* Shuffle */}
             <Pressable
                 style={styles.sideButton}
-                onPress={toggleShuffle}
+                onPress={toggleRandomQueue}
                 hitSlop={12}
             >
-                <Shuffle size={30} color={COLORS.white} />
+                <Shuffle
+                    size={24}
+                    color={
+                        queueType === EQueueType.RANDOM
+                            ? COLORS.accent
+                            : "rgba(255,255,255,1)"
+                    }
+                />
             </Pressable>
 
             {/* Skip back */}
@@ -49,7 +57,7 @@ export default function PlayerControls() {
                 onPress={skipBack}
                 hitSlop={12}
             >
-                <SkipBack size={30} color={COLORS.white} />
+                <SkipBack size={24} color={COLORS.white} />
             </Pressable>
 
             {/* Play / Pause – larger solid button */}
@@ -61,9 +69,9 @@ export default function PlayerControls() {
                 onPress={togglePlayPause}
             >
                 {isPlaying ? (
-                    <Pause size={44} color={COLORS.white} />
+                    <Pause size={34} color={COLORS.white} />
                 ) : (
-                    <Play size={44} color={COLORS.white} />
+                    <Play size={34} color={COLORS.white} />
                 )}
             </Pressable>
 
@@ -73,7 +81,7 @@ export default function PlayerControls() {
                 onPress={skipForward}
                 hitSlop={12}
             >
-                <SkipForward size={30} color={COLORS.white} />
+                <SkipForward size={24} color={COLORS.white} />
             </Pressable>
 
             {/* Repeat */}
@@ -83,7 +91,7 @@ export default function PlayerControls() {
                 hitSlop={12}
             >
                 <View>
-                    <Repeat size={30} color={repeatColor} />
+                    <Repeat size={24} color={repeatColor} />
                     {repeatMode === ERepeatMode.ONE && (
                         <View style={styles.repeatOneBadge}>
                             <Text style={styles.repeatOneLabel}>1</Text>
@@ -99,20 +107,20 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 8,
+        justifyContent: "space-evenly",
+        paddingHorizontal: 4,
         width: "100%",
     },
     sideButton: {
-        width: 60,
-        height: 60,
+        width: 48,
+        height: 48,
         alignItems: "center",
         justifyContent: "center",
     },
     playButton: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
         backgroundColor: "transparent",
         alignItems: "center",
         justifyContent: "center",

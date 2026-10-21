@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from sqlalchemy import String, ForeignKey, Text, Integer
+from sqlalchemy import String, ForeignKey, Text, Integer, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -18,7 +18,15 @@ from backend.youtube.access.db.ormModels.externalImage import ExternalImageRow
 
 class YoutubePlaylistRow(YoutubeBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "playlist"
-    __table_args__ = ({"schema": "youtube", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_youtube_playlist_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "youtube", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

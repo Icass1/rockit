@@ -1,26 +1,15 @@
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+import json
+from backend.core.framework.media.media import Media
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
-from backend.core.aResult import AResult, AResultCode
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.friend.friend import FriendRow
-from backend.core.access.db.ormModels.friend.friendRequest import FriendRequestRow
-from backend.core.access.db.ormModels.friend.sharedMedia import SharedMediaRow
-from backend.core.access.db.ormModels.friend.listenTogether import (
-    ListenTogetherSessionRow,
-)
-from backend.core.access.db.ormModels.friend.userLevel import UserLevelRow
-from backend.core.access.db.ormModels.friend.levelConfig import LevelConfigRow
-from backend.core.enums.friend.friendStatusEnum import FriendStatusEnum
-from backend.core.enums.friend.listenTogetherStatusEnum import (
-    ListenTogetherStatusEnum,
-)
 
 from backend.core.framework.friend.friend import Friend
 from backend.core.framework.friend.sharing import Sharing
@@ -32,13 +21,11 @@ from backend.core.framework.friend.streakBattle import StreakBattle
 from backend.core.framework.stats import Stats as StatsFramework
 
 from backend.core.requests.friend.friendRequests import (
-    SendFriendRequest,
     ShareMediaRequest,
     ListenTogetherInviteRequest,
     ListenTogetherJoinRequest,
     ListenTogetherLeaveRequest,
     ListenTogetherSyncRequest,
-    StreakBattleChallengeRequest,
 )
 
 from backend.core.responses.friend.friendResponse import (
@@ -50,11 +37,9 @@ from backend.core.responses.friend.friendRequestResponse import (
     FriendRequestListResponse,
 )
 from backend.core.responses.friend.friendActivityResponse import (
-    FriendActivityItem,
     FriendActivityResponse,
 )
 from backend.core.responses.friend.sharedMediaResponse import (
-    SharedMediaItem,
     SharedMediaInboxResponse,
     SharedMediaSentResponse,
 )
@@ -75,7 +60,6 @@ from backend.core.responses.friend.friendSearchResponse import (
 from backend.core.responses.friend.userLevelResponse import (
     UserLevelResponse,
     LeaderboardResponse,
-    LevelConfig,
 )
 from backend.core.responses.okResponse import OkResponse
 
@@ -99,6 +83,17 @@ def _get_user(request: Request) -> UserRow:
 # ─── Friends CRUD ────────────────────────────────────────────────────────────
 
 
+async def _require_friend(session: AsyncSession, user_id: int, target_id: int) -> None:
+    if user_id == target_id:
+        return
+    allowed = await Friend.require_friend_async(session, user_id, target_id)
+    if allowed.is_not_ok():
+        logger.error(f"Friend profile access denied. {allowed.info()}")
+        raise HTTPException(
+            status_code=allowed.get_http_code(), detail=allowed.message()
+        )
+
+
 @router.get("", response_model=FriendListResponse)
 async def get_friends(request: Request):
     """Get all friends for the current user."""
@@ -113,7 +108,18 @@ async def get_friends(request: Request):
         )
 
     friend_rows: List[FriendRow] = a_result.result()
-    friends = []
+    profiles = await Levels.get_profiles_async(
+        session, [row.friend_user_id for row in friend_rows]
+    )
+    if profiles.is_not_ok():
+        logger.error(f"Error getting friend levels. {profiles.info()}")
+        raise HTTPException(
+            status_code=profiles.get_http_code(), detail=profiles.message()
+        )
+    levels_by_user = {profile.userId: profile for profile in profiles.result()}
+    from backend.core.framework.websocket.webSocketManager import ws_manager
+
+    friends: list[FriendResponse] = []
     for fr in friend_rows:
         friend_user = fr.friend
         friends.append(
@@ -122,12 +128,38 @@ async def get_friends(request: Request):
                 username=friend_user.username,
                 imageUrl=friend_user.image.url if friend_user.image else None,
                 status="accepted",
-                level=1,
+                level=levels_by_user[friend_user.public_id].level,
+                levelTitle=levels_by_user[friend_user.public_id].title,
+                isOnline=bool(ws_manager.active_connections.get(friend_user.id)),
                 dateAdded=fr.date_added,
             )
         )
 
     return FriendListResponse(friends=friends)
+
+
+@router.get("/blocked", response_model=FriendListResponse)
+async def get_blocked_users(request: Request) -> FriendListResponse:
+    user = _get_user(request)
+    session = DBSessionMiddleware.get_session(request)
+    blocked = await Friend.get_blocked_async(session, user.id)
+    if blocked.is_not_ok():
+        logger.error(f"Error getting blocked users. {blocked.info()}")
+        raise HTTPException(
+            status_code=blocked.get_http_code(), detail=blocked.message()
+        )
+    return FriendListResponse(
+        friends=[
+            FriendResponse(
+                publicId=row.friend.public_id,
+                username=row.friend.username,
+                imageUrl=row.friend.image.url if row.friend.image else None,
+                status="blocked",
+                dateAdded=row.date_added,
+            )
+            for row in blocked.result()
+        ]
+    )
 
 
 @router.get("/requests", response_model=FriendRequestListResponse)
@@ -141,7 +173,7 @@ async def get_friend_requests(request: Request):
     )
     a_sent = await Friend.get_sent_requests_async(session=session, user_id=user.id)
 
-    incoming = []
+    incoming: list[FriendRequestResponse] = []
     if a_incoming.is_ok():
         for req in a_incoming.result():
             from_user = req.from_user
@@ -152,12 +184,12 @@ async def get_friend_requests(request: Request):
                     fromUsername=from_user.username,
                     fromUserImageUrl=from_user.image.url if from_user.image else None,
                     message=req.message,
-                    status=FriendStatusEnum.PENDING,
+                    status="pending",
                     dateAdded=req.date_added,
                 )
             )
 
-    sent = []
+    sent: list[FriendRequestResponse] = []
     if a_sent.is_ok():
         for req in a_sent.result():
             to_user = req.to_user
@@ -168,7 +200,7 @@ async def get_friend_requests(request: Request):
                     fromUsername=to_user.username,
                     fromUserImageUrl=to_user.image.url if to_user.image else None,
                     message=req.message,
-                    status=FriendStatusEnum.PENDING,
+                    status="pending",
                     dateAdded=req.date_added,
                 )
             )
@@ -177,7 +209,7 @@ async def get_friend_requests(request: Request):
 
 
 @router.get("/search", response_model=FriendSearchResponse)
-async def search_users(request: Request, q: str = Query(min_length=2)):
+async def search_users(request: Request, q: str = Query(min_length=2, max_length=100)):
     """Search users by username."""
     user = _get_user(request)
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
@@ -194,9 +226,18 @@ async def search_users(request: Request, q: str = Query(min_length=2)):
     friend_ids_result = await Friend.get_friend_ids_async(
         session=session, user_id=user.id
     )
-    friend_ids = set(friend_ids_result.result()) if friend_ids_result.is_ok() else set()
+    friend_ids: set[int] = (
+        set(friend_ids_result.result()) if friend_ids_result.is_ok() else set()
+    )
 
-    results = []
+    pending = await Friend.get_sent_requests_async(session, user.id)
+    if pending.is_not_ok():
+        logger.error(f"Error checking sent requests. {pending.info()}")
+        raise HTTPException(
+            status_code=pending.get_http_code(), detail=pending.message()
+        )
+    pending_ids = {row.to_user_id for row in pending.result()}
+    results: list[UserSearchResult] = []
     for user_row in a_result.result():
         results.append(
             UserSearchResult(
@@ -204,6 +245,7 @@ async def search_users(request: Request, q: str = Query(min_length=2)):
                 username=user_row.username,
                 imageUrl=user_row.image.url if user_row.image else None,
                 isFriend=user_row.id in friend_ids,
+                requestSent=user_row.id in pending_ids,
             )
         )
 
@@ -375,7 +417,7 @@ async def get_friends_activity(request: Request):
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    activities = [FriendActivityItem(**item) for item in a_result.result()]
+    activities = a_result.result()
     return FriendActivityResponse(activities=activities)
 
 
@@ -426,27 +468,11 @@ async def get_share_inbox(request: Request):
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    items = []
-    for share in a_result.result():
-        sender = share.sender
-        media = share.media
-        items.append(
-            SharedMediaItem(
-                publicId=share.public_id,
-                senderPublicId=sender.public_id,
-                senderUsername=sender.username,
-                senderImageUrl=sender.image.url if sender.image else None,
-                mediaPublicId=media.public_id,
-                mediaName=media.name,
-                mediaImageUrl=media.image.url if media.image else None,
-                mediaType="song",
-                message=share.message,
-                seen=share.seen,
-                dateAdded=share.date_added,
-            )
-        )
-
-    return SharedMediaInboxResponse(items=items)
+    items = await Sharing.present_async(session, user.id, a_result.result())
+    if items.is_not_ok():
+        logger.error(f"Error presenting shares. {items.info()}")
+        raise HTTPException(status_code=items.get_http_code(), detail=items.message())
+    return SharedMediaInboxResponse(items=items.result())
 
 
 @router.get("/share/sent", response_model=SharedMediaSentResponse)
@@ -462,27 +488,11 @@ async def get_share_sent(request: Request):
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    items = []
-    for share in a_result.result():
-        recipient = share.recipient
-        media = share.media
-        items.append(
-            SharedMediaItem(
-                publicId=share.public_id,
-                senderPublicId=recipient.public_id,
-                senderUsername=recipient.username,
-                senderImageUrl=recipient.image.url if recipient.image else None,
-                mediaPublicId=media.public_id,
-                mediaName=media.name,
-                mediaImageUrl=media.image.url if media.image else None,
-                mediaType="song",
-                message=share.message,
-                seen=share.seen,
-                dateAdded=share.date_added,
-            )
-        )
-
-    return SharedMediaSentResponse(items=items)
+    items = await Sharing.present_async(session, user.id, a_result.result())
+    if items.is_not_ok():
+        logger.error(f"Error presenting shares. {items.info()}")
+        raise HTTPException(status_code=items.get_http_code(), detail=items.message())
+    return SharedMediaSentResponse(items=items.result())
 
 
 @router.post("/share/{share_public_id}/seen", response_model=OkResponse)
@@ -500,6 +510,17 @@ async def mark_share_seen(request: Request, share_public_id: str):
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
+    return OkResponse(status="OK")
+
+
+@router.delete("/share/{share_public_id}", response_model=OkResponse)
+async def delete_share(request: Request, share_public_id: str) -> OkResponse:
+    user = _get_user(request)
+    session = DBSessionMiddleware.get_session(request)
+    result = await Sharing.delete_share_async(session, user.id, share_public_id)
+    if result.is_not_ok():
+        logger.error(f"Error deleting share. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse(status="OK")
 
 
@@ -575,24 +596,14 @@ async def sync_session(request: Request, body: ListenTogetherSyncRequest):
     user = _get_user(request)
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    media_id = None
-    if body.mediaPublicId:
-        from backend.core.access.bookmarkAccess import BookmarkAccess
-
-        a_media = await BookmarkAccess.get_media_by_public_id_async(
-            session=session, media_public_id=body.mediaPublicId
-        )
-        if a_media.is_ok():
-            media_id = a_media.result().id
-
     a_result = await ListenTogether.sync_async(
         session=session,
         user_id=user.id,
         session_public_id=body.sessionPublicId,
-        current_media_id=media_id,
+        media_public_id=body.mediaPublicId,
         current_time_ms=body.currentTimeMs,
         is_playing=body.isPlaying,
-        queue_json=body.queueJson,
+        queue_json=json.dumps(body.queue) if body.queue is not None else None,
     )
     if a_result.is_not_ok():
         logger.error(f"Error syncing session: {a_result.info()}")
@@ -618,11 +629,20 @@ async def get_active_sessions(request: Request):
             status_code=a_result.get_http_code(), detail=a_result.message()
         )
 
-    sessions = []
+    sessions: list[ListenTogetherSessionResponse] = []
     for s in a_result.result():
         host = s.host
         guest = s.guest
         current_media = s.current_media
+        resolved = None
+        if current_media:
+            a_resolved = await Media.get_media_async(
+                session, current_media.public_id, user.id
+            )
+            if a_resolved.is_ok():
+                resolved = a_resolved.result()
+            else:
+                logger.error(f"Error resolving session media. {a_resolved.info()}")
         sessions.append(
             ListenTogetherSessionResponse(
                 publicId=s.public_id,
@@ -633,23 +653,20 @@ async def get_active_sessions(request: Request):
                 guestUsername=guest.username,
                 guestImageUrl=guest.image.url if guest.image else None,
                 currentMediaPublicId=current_media.public_id if current_media else None,
-                currentMediaName=current_media.name if current_media else None,
-                currentMediaImageUrl=(
-                    current_media.image.url
-                    if current_media and current_media.image
-                    else None
-                ),
+                currentMediaName=resolved.media.name if resolved else None,
+                currentMediaImageUrl=resolved.media.imageUrl if resolved else None,
+                currentMedia=resolved,
+                updatedAt=s.date_updated,
                 currentTimeMs=s.current_time_ms,
                 isPlaying=s.is_playing,
                 status=(
-                    ListenTogetherStatusEnum.ACTIVE
-                    if s.status_key == ListenTogetherStatusEnum.ACTIVE.value
-                    else ListenTogetherStatusEnum.ENDED
+                    "active"
+                    if s.status.name == "ACTIVE"
+                    else "invited" if s.status.name == "INVITED" else "ended"
                 ),
             )
         )
 
-    sessions.reverse()
     return ListenTogetherListResponse(sessions=sessions)
 
 
@@ -672,6 +689,7 @@ async def get_friend_stats(request: Request, user_public_id: str):
         )
 
     target = a_target.result()
+    await _require_friend(session, user.id, target.id)
 
     from backend.core.requests.userStatsRequest import UserStatsRequest
 
@@ -730,6 +748,7 @@ async def get_friend_streak(request: Request, user_public_id: str):
             status_code=a_target.get_http_code(), detail=a_target.message()
         )
 
+    await _require_friend(session, user.id, a_target.result().id)
     a_streak = await StreakBattle.get_streak_for_user_async(
         session=session, user_id=a_target.result().id
     )
@@ -756,6 +775,7 @@ async def compare_stats(request: Request, user_public_id: str):
         )
 
     target = a_target.result()
+    await _require_friend(session, user.id, target.id)
 
     from backend.core.requests.userStatsRequest import UserStatsRequest
 
@@ -797,7 +817,7 @@ async def compare_stats(request: Request, user_public_id: str):
     my_level_row = a_my_level.result() if a_my_level.is_ok() else None
     friend_level_row = a_friend_level.result() if a_friend_level.is_ok() else None
 
-    vibe = a_vibe.result() if a_vibe.is_ok() else {"score": 0, "descriptor": ""}
+    vibe = a_vibe.result() if a_vibe.is_ok() else None
 
     return CompareStatsResponse(
         myStats=FriendStatsResponse(
@@ -818,8 +838,8 @@ async def compare_stats(request: Request, user_public_id: str):
             level=friend_level_row.level if friend_level_row else 1,
             xp=friend_level_row.xp if friend_level_row else 0,
         ),
-        vibeScore=vibe.get("score", 0),
-        vibeDescriptor=vibe.get("descriptor", ""),
+        vibeScore=vibe.score if vibe else 0,
+        vibeDescriptor=vibe.descriptor if vibe else "",
     )
 
 
@@ -843,10 +863,8 @@ async def get_my_level(request: Request):
     a_configs = await Levels.get_level_configs_async(session=session)
     configs = a_configs.result() if a_configs.is_ok() else []
 
-    next_config = None
     for c in configs:
         if c.level > level_row.level:
-            next_config = c
             break
 
     title = ""
@@ -889,6 +907,7 @@ async def get_user_level(request: Request, user_public_id: str):
         )
 
     target = a_target.result()
+    await _require_friend(session, user.id, target.id)
     a_level = await Levels.get_user_level_async(session=session, user_id=target.id)
     if a_level.is_not_ok():
         logger.error(f"Error getting user level: {a_level.info()}")
@@ -935,63 +954,20 @@ async def get_leaderboard(request: Request):
 
     all_user_ids = [user.id] + friend_ids
 
-    entries = []
-    a_configs = await Levels.get_level_configs_async(session=session)
-    configs = a_configs.result() if a_configs.is_ok() else []
-
-    current_user_entry = None
-
-    for uid in all_user_ids:
-        a_level = await Levels.get_user_level_async(session=session, user_id=uid)
-        if a_level.is_not_ok():
-            continue
-
-        level_row = a_level.result()
-        a_user = await Friend.get_user_by_public_id_async(session=session, public_id="")
-        from backend.core.access.userAccess import UserAccess
-
-        a_user_row = await UserAccess.get_user_from_id(session=session, user_id=uid)
-        if a_user_row.is_not_ok():
-            continue
-
-        user_row = a_user_row.result()
-        title = ""
-        for c in configs:
-            if c.level == level_row.level:
-                title = c.title
-                break
-
-        xp_to_next = 0
-        for c in configs:
-            if c.level == level_row.level + 1:
-                xp_to_next = c.xp_required - level_row.xp
-                break
-
-        a_streak = await StreakBattle.get_streak_for_user_async(
-            session=session, user_id=uid
+    profiles = await Levels.get_profiles_async(session, all_user_ids)
+    if profiles.is_not_ok():
+        logger.error(f"Error getting leaderboard. {profiles.info()}")
+        raise HTTPException(
+            status_code=profiles.get_http_code(), detail=profiles.message()
         )
-
-        entry = UserLevelResponse(
-            userId=user_row.public_id,
-            username=user_row.username,
-            imageUrl=user_row.image.url if user_row.image else None,
-            level=level_row.level,
-            xp=level_row.xp,
-            xpToNext=max(0, xp_to_next),
-            title=title,
-            streak=a_streak.result() if a_streak.is_ok() else 0,
-        )
-
-        if uid == user.id:
-            current_user_entry = entry
-        else:
-            entries.append(entry)
-
-    entries.sort(key=lambda e: e.xp, reverse=True)
-
+    entries = sorted(
+        profiles.result(), key=lambda entry: (-entry.xp, entry.username.casefold())
+    )
     return LeaderboardResponse(
         entries=entries,
-        currentUser=current_user_entry,
+        currentUser=next(
+            (entry for entry in entries if entry.userId == user.public_id), None
+        ),
     )
 
 
@@ -1013,6 +989,7 @@ async def get_vibe_score(request: Request, user_public_id: str):
             status_code=a_target.get_http_code(), detail=a_target.message()
         )
 
+    await _require_friend(session, user.id, a_target.result().id)
     a_result = await Vibe.get_vibe_score_async(
         session=session, user_id=user.id, friend_user_id=a_target.result().id
     )

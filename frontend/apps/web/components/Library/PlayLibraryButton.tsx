@@ -31,13 +31,13 @@ export default function PlayLibraryButton(): JSX.Element {
         } else {
             const res = await Http.getUserLibraryMedias();
             if (res.isOk()) {
-                const songs = res.result.songs ?? [];
-                const videos = res.result.videos ?? [];
+                const songs = (res.result.songs ?? []).map((s) => s.item);
+                const videos = (res.result.videos ?? []).map((v) => v.item);
                 const albumSongs = await expandAlbumsToPlayable(
-                    res.result.albums ?? []
+                    (res.result.albums ?? []).map((a) => a.item)
                 );
                 const playlistSongs = await expandPlaylistsToPlayable(
-                    res.result.playlists ?? []
+                    (res.result.playlists ?? []).map((p) => p.item)
                 );
                 const allMedia = [
                     ...songs,
@@ -57,7 +57,7 @@ export default function PlayLibraryButton(): JSX.Element {
         <div
             onClick={handleClick}
             title="Play library"
-            className="h-8 w-8 cursor-pointer rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
+            className="h-8 w-8 cursor-pointer rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light) shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
         >
             {playingLibrary && $playing ? (
                 <Pause

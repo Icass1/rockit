@@ -62,6 +62,7 @@ export default async function AlbumPage({
             title={albumResponse.name}
             artists={albumResponse.artists}
             media={albumMedia}
+            listMedia={albumResponse}
             image={albumResponse.imageUrl}
             showMediaImage={false}
             showMediaIndex

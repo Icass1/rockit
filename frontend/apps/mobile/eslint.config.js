@@ -20,6 +20,18 @@ module.exports = defineConfig([
                     caseSensitive: false,
                 },
             ],
+            "no-restricted-imports": [
+                "error",
+                {
+                    patterns: [
+                        {
+                            group: ["./", "../"],
+                            message:
+                                "Relative imports are not allowed. Use absolute imports instead (e.g., @/components/..., @/lib/...)",
+                        },
+                    ],
+                },
+            ],
         },
         settings: {
             "import/resolver": [

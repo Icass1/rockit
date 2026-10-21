@@ -2,7 +2,7 @@ import { isList, isPlayable, type TMedia } from "@rockit/shared";
 import { Text } from "react-native";
 import { useMedia } from "@/hooks/useMedia";
 import { ListMedia } from "@/components/RenderList/ListMedia";
-import { PlayableMedia } from "./PlayableMedia";
+import { PlayableMedia } from "@/components/RenderList/PlayableMedia";
 
 export function Media({
     index,
@@ -13,6 +13,7 @@ export function Media({
     showMediaImage,
     listPublicId,
     expandedByMediaId,
+    onToggle,
 }: {
     index: number;
     media: TMedia;
@@ -22,6 +23,7 @@ export function Media({
     showMediaImage: boolean;
     listPublicId?: string;
     expandedByMediaId?: Record<string, boolean>;
+    onToggle?: () => void;
 }) {
     const $media = useMedia(media);
 
@@ -34,6 +36,7 @@ export function Media({
                 substractArtists={substractArtists}
                 showMediaIndex={showMediaIndex}
                 showMediaImage={showMediaImage}
+                listPublicId={listPublicId}
             />
         );
     } else if (isList($media)) {
@@ -43,7 +46,8 @@ export function Media({
                 allMedia={allMedia}
                 substractArtists={substractArtists}
                 listPublicId={listPublicId}
-                defaultExpanded={expandedByMediaId?.[media.publicId] ?? false}
+                onToggle={onToggle}
+                expanded={expandedByMediaId?.[media.publicId] ?? false}
             />
         );
     }

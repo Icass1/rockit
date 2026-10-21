@@ -2,11 +2,13 @@
 
 import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { Inbox, Play, Send } from "lucide-react";
+import { Inbox, Play, Send, Trash2 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SharedMediaInbox(): JSX.Element {
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [view, setView] = useState<"inbox" | "sent">("inbox");
     const $inbox = useStore(rockIt.sharingManager.inboxAtom);
     const $sent = useStore(rockIt.sharingManager.sentAtom);
@@ -32,7 +34,7 @@ export default function SharedMediaInbox(): JSX.Element {
                     }
                 >
                     <Inbox size={14} />
-                    Received
+                    {v.FRIENDS_SHARE_RECEIVED}
                     {unreadCount > 0 && (
                         <span className="rounded-full bg-white/20 px-1.5 text-xs">
                             {unreadCount}
@@ -49,18 +51,14 @@ export default function SharedMediaInbox(): JSX.Element {
                     }
                 >
                     <Send size={14} />
-                    Sent
+                    {v.FRIENDS_SHARE_SENT}
                 </button>
             </div>
 
             {items.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-12 text-neutral-500">
                     <Inbox size={32} />
-                    <p className="text-sm">
-                        {view === "inbox"
-                            ? "No shared media yet"
-                            : "Nothing shared yet"}
-                    </p>
+                    <p className="text-sm">{v.FRIENDS_NO_SHARED}</p>
                 </div>
             ) : (
                 <div className="flex flex-col gap-2">
@@ -98,13 +96,40 @@ export default function SharedMediaInbox(): JSX.Element {
                             </div>
 
                             <div className="min-w-0 flex-1">
+                                {["album", "playlist", "artist"].includes(
+                                    item.mediaType
+                                ) ? (
+                                    <Link
+                                        href={`/${item.mediaType}/${item.mediaPublicId}`}
+                                        className="text-sm text-[#ee1086]"
+                                    >
+                                        {
+                                            rockIt.vocabularyManager.vocabulary
+                                                .FRIENDS_OPEN
+                                        }
+                                    </Link>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            void rockIt.sharingManager.playSharedMedia(
+                                                item.mediaPublicId
+                                            );
+                                        }}
+                                        className="text-sm text-[#ee1086]"
+                                    >
+                                        {
+                                            rockIt.vocabularyManager.vocabulary
+                                                .PLAY
+                                        }
+                                    </button>
+                                )}
                                 <p className="truncate text-sm font-medium text-white">
                                     {item.mediaName}
                                 </p>
                                 <p className="truncate text-xs text-neutral-500">
                                     {view === "inbox"
                                         ? `from ${item.senderUsername}`
-                                        : `to ${item.senderUsername}`}
+                                        : `to ${item.recipientUsername}`}
                                 </p>
                                 {item.message && (
                                     <p className="mt-0.5 truncate text-xs text-neutral-600 italic">
@@ -112,6 +137,18 @@ export default function SharedMediaInbox(): JSX.Element {
                                     </p>
                                 )}
                             </div>
+                            <button
+                                aria-label={v.DELETE}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    void rockIt.sharingManager.deleteShare(
+                                        item.publicId
+                                    );
+                                }}
+                                className="p-2 text-neutral-500 hover:text-red-400"
+                            >
+                                <Trash2 size={16} />
+                            </button>
                         </div>
                     ))}
                 </div>

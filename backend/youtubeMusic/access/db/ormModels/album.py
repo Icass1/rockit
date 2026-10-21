@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import ForeignKey, String, Integer
+from sqlalchemy import ForeignKey, String, Integer, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from backend.youtubeMusic.access.db.base import YoutubeMusicBase
@@ -18,7 +18,15 @@ if TYPE_CHECKING:
 
 class AlbumRow(YoutubeMusicBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "album"
-    __table_args__ = ({"schema": "youtube_music", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_youtube_music_album_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
+        {"schema": "youtube_music", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

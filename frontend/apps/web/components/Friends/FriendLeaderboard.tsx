@@ -2,11 +2,15 @@
 
 import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
+import { useStore } from "@nanostores/react";
 import { Flame, Trophy } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function FriendLeaderboard(): JSX.Element {
+    const v = useStore(
+        rockIt.vocabularyManager.vocabularyAtom
+    ) as unknown as Record<string, string>;
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [currentUser, setCurrentUser] = useState<LeaderboardEntry | null>(
         null
@@ -67,7 +71,8 @@ export default function FriendLeaderboard(): JSX.Element {
                                 {currentUser.username}
                             </p>
                             <p className="text-xs text-neutral-400">
-                                {currentUser.title ||
+                                {v[currentUser.title] ||
+                                    currentUser.title ||
                                     `Level ${currentUser.level}`}
                             </p>
                         </div>
@@ -151,7 +156,7 @@ export default function FriendLeaderboard(): JSX.Element {
                             </p>
                             {entry.title && (
                                 <p className="truncate text-[10px] text-neutral-500">
-                                    {entry.title}
+                                    {v[entry.title] || entry.title}
                                 </p>
                             )}
                         </div>

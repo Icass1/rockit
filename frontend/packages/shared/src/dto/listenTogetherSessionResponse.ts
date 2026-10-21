@@ -2,6 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
+import { MediaResponseSchema } from "./mediaResponse";
 
 export const ListenTogetherSessionResponseSchema = z.object({
     publicId: z.string(),
@@ -16,7 +17,13 @@ export const ListenTogetherSessionResponseSchema = z.object({
     currentMediaImageUrl: z.string().nullable(),
     currentTimeMs: z.number().default(0),
     isPlaying: z.boolean().default(false),
-    status: z.enum(["ACTIVE", "ENDED"]),
+    updatedAt: z.iso.datetime(),
+    currentMedia: z.lazy(() => MediaResponseSchema).nullable(),
+    status: z.union([
+        z.literal("active"),
+        z.literal("invited"),
+        z.literal("ended"),
+    ]),
 });
 
 export type ListenTogetherSessionResponse = z.infer<

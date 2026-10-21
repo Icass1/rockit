@@ -1,35 +1,17 @@
 services:
     backend:
         container_name: rockit-beta-backend
-        env_file: ".env.production"
+        env_file:
+            - .env.production
 
         build:
             context: .
             dockerfile: Dockerfile.backend
-        restart: unless-stopped
+            args:
+                ROCKIT_BUILD_REVISION: ${ROCKIT_BUILD_REVISION:-unknown}
         environment:
-            BACKEND_URL: ${BACKEND_URL}
-            CORS_URLS: ${CORS_URLS}
-            CLIENT_ID: ${CLIENT_ID}
-            CLIENT_SECRET: ${CLIENT_SECRET}
-            YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-            SESSION_DURATION: ${SESSION_DURATION:-86400}
-            PROD_WEB_SESSION_DOMAIN: ${PROD_WEB_SESSION_DOMAIN}
-            PROD_MOBILE_SESSION_DOMAIN: ${PROD_MOBILE_SESSION_DOMAIN}
-            ENVIRONMENT: ${ENVIRONMENT:-DEV}
-            MEDIA_PATH: ${MEDIA_PATH:-/app/media}
-            IMAGES_PATH: ${IMAGES_PATH:-/app/images}
-            TEMP_PATH: ${TEMP_PATH:-/app/temp}
-            LOGS_PATH: ${LOGS_PATH:-/app/logs}
-            BUILDS_PATH: ${BUILDS_PATH:-/app/builds}
-            LOG_DUMP_LEVEL: ${LOG_DUMP_LEVEL:-info}
-            CONSOLE_DUMP_LEVEL: ${CONSOLE_DUMP_LEVEL:-info}
-            DOWNLOAD_THREADS: ${DOWNLOAD_THREADS:-4}
-            DB_HOST: ${DB_HOST:-postgres-container}
-            DB_USER: ${DB_USER:-rockit}
-            DB_PASSWORD: ${DB_PASSWORD:-rockitpassword}
-            DB_PORT: ${DB_PORT:-5432}
-            DB_NAME: ${DB_NAME:-rockit}
+            YTDLP_POT_PROVIDER_URL: http://pot-provider:4416
+        restart: unless-stopped
         volumes:
             - ./media:/app/media
             - ./images:/app/images
@@ -42,32 +24,36 @@ services:
             - postgres_postgres-network
         ports:
             - "9101:8000"
+        depends_on:
+            - pot-provider
+
+    # Mints YouTube proof-of-origin tokens for yt-dlp. Without it the backend
+    # falls back to the PO-token-free clients, which work but cover fewer
+    # videos. Not exposed outside the compose network.
+    pot-provider:
+        container_name: rockit-beta-pot-provider
+        # Pinned to the same version as the bgutil-ytdlp-pot-provider plugin in
+        # backend/requirements.txt. The plugin refuses to run against a server
+        # on a different major version, so :latest would silently disable PO
+        # tokens the next time upstream bumps it. Bump both together.
+        image: brainicism/bgutil-ytdlp-pot-provider:2.0.2
+        init: true
+        restart: unless-stopped
+        networks:
+            - rockit-beta
 
     frontend:
         container_name: rockit-beta-frontend
+        env_file:
+            - .env.production
         build:
             context: .
             dockerfile: Dockerfile.frontend
             args:
-                NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL}
+                NEXT_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
         restart: unless-stopped
         ports:
             - "9100:3000"
-        networks:
-            - rockit-beta
-
-    expo:
-        container_name: rockit-beta-expo
-        build:
-            context: .
-            dockerfile: Dockerfile.expo
-        restart: unless-stopped
-        environment:
-            EXPO_PUBLIC_BACKEND_URL: ${BACKEND_URL}
-            EXPO_TOKEN: ${EXPO_TOKEN}
-            REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-rockit.rockhosting.lan}
-        ports:
-            - "9102:9102"
         networks:
             - rockit-beta
 

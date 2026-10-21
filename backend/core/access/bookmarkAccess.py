@@ -1,12 +1,15 @@
-import uuid
 from typing import List, Sequence, Tuple
 
 from sqlalchemy import Result, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import create_id
+
 from backend.core.aResult import AResult, AResultCode
+
 from backend.core.utils.safeAsyncCall import safe_async
+
 from backend.core.access.db.ormModels.bookmark import BookmarkRow
 from backend.core.access.db.ormModels.media import CoreMediaRow
 
@@ -73,7 +76,7 @@ class BookmarkAccess:
         """Create a new bookmark."""
 
         row = BookmarkRow(
-            public_id=str(uuid.uuid4()),
+            public_id=create_id(32),
             user_id=user_id,
             media_id=media_id,
             timestamp=timestamp,

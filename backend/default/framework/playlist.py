@@ -54,12 +54,59 @@ from backend.core.responses.playlistDeletedMessage import PlaylistDeletedMessage
 from backend.core.responses.mediaAddedToPlaylistMessage import (
     MediaAddedToPlaylistMessage,
 )
+from backend.core.responses.mediaRemovedFromPlaylistMessage import (
+    MediaRemovedFromPlaylistMessage,
+)
 from backend.utils.logger import getLogger
 
 logger: Logger = getLogger(__name__)
 
 
 class Playlist:
+    @staticmethod
+    async def get_paged_response_async(
+        session: AsyncSession,
+        public_id: str,
+        user_id: int,
+        offset: int = 0,
+        limit: int = 100,
+        query: str = "",
+    ) -> AResult[BasePlaylistWithMediasResponse]:
+        """Return a bounded default playlist response without expanding children."""
+        from backend.core.framework.media.collection import Collection
+
+        result = await Collection.page_async(
+            session=session,
+            public_id=public_id,
+            user_id=user_id,
+            offset=offset,
+            limit=limit,
+            query=query,
+        )
+        if result.is_not_ok():
+            logger.error(f"Error loading playlist page. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        page = result.result()
+        if (
+            not isinstance(page.collection, BasePlaylistWithMediasResponse)
+            or page.collection.provider != Default.provider_name
+        ):
+            logger.warning("Requested default playlist not found")
+            return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=page.collection.model_copy(
+                update=dict(
+                    medias=page.items,
+                    offset=offset,
+                    limit=limit,
+                    total=page.total,
+                    hasMore=page.hasMore,
+                )
+            ),
+        )
+
     @staticmethod
     async def _get_media_info(
         session: AsyncSession, media_id: int
@@ -112,9 +159,7 @@ class Playlist:
             is_public=is_public,
         )
         if a_result_playlist.is_not_ok():
-            logger.error(
-                f"Error creating playlist. {a_result_playlist.info()}", exc_info=True
-            )
+            logger.error(f"Error creating playlist. {a_result_playlist.info()}")
             return AResult(
                 code=a_result_playlist.code(),
                 message=a_result_playlist.message(),
@@ -155,7 +200,10 @@ class Playlist:
 
     @staticmethod
     async def get_playlist_async(
-        session: AsyncSession, playlist_public_id: str, user_id: int | None = None
+        session: AsyncSession,
+        playlist_public_id: str,
+        user_id: int | None = None,
+        include_medias: bool = True,
     ) -> AResult[PlaylistWithDetailsModel]:
         a_result_playlist: AResult[PlaylistRow] = (
             await PlaylistAccess.get_playlist_by_public_id_async(
@@ -163,9 +211,7 @@ class Playlist:
             )
         )
         if a_result_playlist.is_not_ok():
-            logger.error(
-                f"Error getting playlist. {a_result_playlist.info()}", exc_info=True
-            )
+            logger.error(f"Error getting playlist. {a_result_playlist.info()}")
             return AResult(
                 code=a_result_playlist.code(),
                 message=a_result_playlist.message(),
@@ -188,12 +234,11 @@ class Playlist:
             await PlaylistAccess.get_playlist_medias_async(
                 session=session, playlist_id=playlist.id
             )
+            if include_medias
+            else AResult(code=AResultCode.OK, message="OK", result=[])
         )
         if a_result_medias.is_not_ok():
-            logger.error(
-                f"Error getting playlist medias. {a_result_medias.info()}",
-                exc_info=True,
-            )
+            logger.error(f"Error getting playlist medias. {a_result_medias.info()}")
             return AResult(
                 code=a_result_medias.code(),
                 message=a_result_medias.message(),
@@ -210,23 +255,35 @@ class Playlist:
             if a_result_disabled.is_ok():
                 disabled_media_ids = a_result_disabled.result()
 
-        visible_medias: list[PlaylistMediaModel] = []
-        for m in medias:
-            if m.id not in disabled_media_ids:
-                media_row: AResult[MediaInfoModel] = await Playlist._get_media_info(
-                    session=session, media_id=m.media_id
-                )
-                if media_row.is_ok():
-                    media_info = media_row.result()
-                    visible_medias.append(
-                        PlaylistMediaModel(
-                            id=m.id,
-                            position=m.position,
-                            media_type=media_info.media_type,
-                            media_id=media_info.media_id,
-                            provider_id=media_info.provider_id,
-                        )
-                    )
+        a_result_media_rows = (
+            await MediaAccess.get_medias_from_ids_async(
+                session=session, ids=[m.media_id for m in medias]
+            )
+            if medias
+            else AResult(code=AResultCode.OK, message="OK", result=[])
+        )
+        if a_result_media_rows.is_not_ok():
+            logger.error(
+                f"Error getting playlist media metadata. {a_result_media_rows.info()}"
+            )
+            return AResult(
+                code=a_result_media_rows.code(), message=a_result_media_rows.message()
+            )
+        media_rows = {row.id: row for row in a_result_media_rows.result()}
+        disabled_ids = set(disabled_media_ids)
+        visible_medias: list[PlaylistMediaModel] = [
+            PlaylistMediaModel(
+                id=membership.id,
+                position=membership.position,
+                media_type=MediaTypeEnum(
+                    media_rows[membership.media_id].media_type_key
+                ),
+                media_id=media_rows[membership.media_id].public_id,
+                provider_id=media_rows[membership.media_id].provider_id,
+            )
+            for membership in medias
+            if membership.id not in disabled_ids and membership.media_id in media_rows
+        ]
 
         a_result_contributors: AResult[List[PlaylistContributorRow]] = (
             await PlaylistAccess.get_contributors_async(
@@ -271,10 +328,7 @@ class Playlist:
             )
         )
         if a_result_playlists.is_not_ok():
-            logger.error(
-                f"Error getting user playlists. {a_result_playlists.info()}",
-                exc_info=True,
-            )
+            logger.error(f"Error getting user playlists. {a_result_playlists.info()}")
             return AResult(
                 code=a_result_playlists.code(),
                 message=a_result_playlists.message(),
@@ -353,9 +407,7 @@ class Playlist:
             )
         )
         if a_result_playlist.is_not_ok():
-            logger.error(
-                f"Error updating playlist. {a_result_playlist.info()}", exc_info=True
-            )
+            logger.error(f"Error updating playlist. {a_result_playlist.info()}")
             return AResult(
                 code=a_result_playlist.code(),
                 message=a_result_playlist.message(),
@@ -429,7 +481,7 @@ class Playlist:
             session=session, playlist_id=playlist_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error deleting playlist. {a_result.info()}", exc_info=True)
+            logger.error(f"Error deleting playlist. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -511,9 +563,7 @@ class Playlist:
             )
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error adding media to playlist. {a_result.info()}", exc_info=True
-            )
+            logger.error(f"Error adding media to playlist. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -618,13 +668,26 @@ class Playlist:
             session=session, playlist_media_id=playlist_media_id
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error removing media from playlist. {a_result.info()}", exc_info=True
-            )
+            logger.error(f"Error removing media from playlist. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
             )
+
+        a_result_contributors: AResult[List[PlaylistContributorRow]] = (
+            await PlaylistAccess.get_contributors_async(
+                session=session, playlist_id=playlist_id
+            )
+        )
+        if a_result_contributors.is_ok():
+            message = MediaRemovedFromPlaylistMessage(
+                publicId=media_row.public_id,
+                playlistPublicId=playlist_public_id,
+            )
+            for contributor in a_result_contributors.result():
+                await SendToUser.send_to_user(
+                    user_id=contributor.user_id, message=message
+                )
 
         return AResult(code=AResultCode.OK, message="OK", result=True)
 
@@ -682,7 +745,7 @@ class Playlist:
             role_key=role.value,
         )
         if a_result.is_not_ok():
-            logger.error(f"Error adding contributor. {a_result.info()}", exc_info=True)
+            logger.error(f"Error adding contributor. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -749,9 +812,7 @@ class Playlist:
             session=session, playlist_id=playlist_id, user_id=target_user_id
         )
         if a_result.is_not_ok():
-            logger.error(
-                f"Error removing contributor. {a_result.info()}", exc_info=True
-            )
+            logger.error(f"Error removing contributor. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -811,7 +872,7 @@ class Playlist:
             session=session, user_id=user_id, playlist_media_id=playlist_media_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error disabling media. {a_result.info()}", exc_info=True)
+            logger.error(f"Error disabling media. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),
@@ -871,7 +932,7 @@ class Playlist:
             session=session, user_id=user_id, playlist_media_id=playlist_media_id
         )
         if a_result.is_not_ok():
-            logger.error(f"Error enabling media. {a_result.info()}", exc_info=True)
+            logger.error(f"Error enabling media. {a_result.info()}")
             return AResult(
                 code=a_result.code(),
                 message=a_result.message(),

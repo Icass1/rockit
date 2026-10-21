@@ -12,6 +12,12 @@ import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
 
 export class FriendManager {
     private _init = false;
+    private _searchGeneration = 0;
+
+    private _blockedAtom = createArrayAtom<Friend>([]);
+    get blockedAtom(): ReadonlyAtom<Friend[]> {
+        return this._blockedAtom.getReadonlyAtom();
+    }
 
     private _friendsAtom = createArrayAtom<Friend>([]);
     private _incomingRequestsAtom = createArrayAtom<FriendRequest>([]);
@@ -25,7 +31,29 @@ export class FriendManager {
         if (typeof window === "undefined") return;
         if (this._init) return;
         this._init = true;
+        rockIt.userManager.loggedInAtom.subscribe((loggedIn) => {
+            if (loggedIn) {
+                void this.fetchFriends();
+                void this.fetchBlocked();
+                void this.fetchRequests();
+            } else {
+                this._friendsAtom.set([]);
+                this._blockedAtom.set([]);
+                this._incomingRequestsAtom.set([]);
+                this._sentRequestsAtom.set([]);
+                this._activityAtom.set([]);
+            }
+        });
 
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.SocialChanged,
+            () => {
+                void this.fetchFriends();
+                void this.fetchBlocked();
+                void this.fetchRequests();
+                void this.fetchActivity();
+            }
+        );
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.FriendActivity,
             () => {
@@ -34,13 +62,56 @@ export class FriendManager {
         );
     }
 
+    async fetchBlocked(): Promise<void> {
+        const requestingUser = rockIt.userManager.usernameAtom.get();
+        if (!rockIt.userManager.loggedInAtom.get()) return;
+        const result = await Http.getBlockedUsers();
+        if (
+            !rockIt.userManager.loggedInAtom.get() ||
+            requestingUser !== rockIt.userManager.usernameAtom.get()
+        )
+            return;
+        if (result.isOk()) this._blockedAtom.set(result.result.friends);
+        else this._errorAtom.set(String(result.detail));
+    }
+
+    async blockUser(publicId: string): Promise<void> {
+        const result = await Http.blockUser(publicId);
+        if (!result.isOk()) {
+            rockIt.notificationManager.notifyError(String(result.detail));
+            return;
+        }
+        await Promise.all([
+            this.fetchFriends(),
+            this.fetchBlocked(),
+            this.fetchRequests(),
+        ]);
+    }
+
+    async unblockUser(publicId: string): Promise<void> {
+        const result = await Http.unblockUser(publicId);
+        if (!result.isOk()) {
+            rockIt.notificationManager.notifyError(String(result.detail));
+            return;
+        }
+        await this.fetchBlocked();
+    }
+
     async fetchFriends(): Promise<void> {
+        const requestingUser = rockIt.userManager.usernameAtom.get();
+        if (!rockIt.userManager.loggedInAtom.get()) return;
         this._loadingAtom.set(true);
         try {
             const res = await Http.getFriends();
+            if (
+                !rockIt.userManager.loggedInAtom.get() ||
+                requestingUser !== rockIt.userManager.usernameAtom.get()
+            )
+                return;
             if (res.isOk()) {
                 this._friendsAtom.set(res.result.friends ?? []);
             }
+            if (!res.isOk()) throw new Error(String(res.detail));
             this._errorAtom.set(null);
         } catch (e) {
             this._errorAtom.set((e as Error).message);
@@ -50,8 +121,15 @@ export class FriendManager {
     }
 
     async fetchRequests(): Promise<void> {
+        const requestingUser = rockIt.userManager.usernameAtom.get();
+        if (!rockIt.userManager.loggedInAtom.get()) return;
         try {
             const res = await Http.getFriendRequests();
+            if (
+                !rockIt.userManager.loggedInAtom.get() ||
+                requestingUser !== rockIt.userManager.usernameAtom.get()
+            )
+                return;
             if (res.isOk()) {
                 this._incomingRequestsAtom.set(res.result.incoming ?? []);
                 this._sentRequestsAtom.set(res.result.sent ?? []);
@@ -62,13 +140,21 @@ export class FriendManager {
     }
 
     async searchUsers(query: string): Promise<void> {
+        const requestingUser = rockIt.userManager.usernameAtom.get();
+        if (!rockIt.userManager.loggedInAtom.get()) return;
+        const generation = ++this._searchGeneration;
         if (query.length < 2) {
             this._searchResultsAtom.set([]);
             return;
         }
         try {
             const res = await Http.searchUsers(query);
-            if (res.isOk()) {
+            if (
+                !rockIt.userManager.loggedInAtom.get() ||
+                requestingUser !== rockIt.userManager.usernameAtom.get()
+            )
+                return;
+            if (res.isOk() && generation === this._searchGeneration) {
                 this._searchResultsAtom.set(res.result.results ?? []);
             }
         } catch (e) {
@@ -81,7 +167,18 @@ export class FriendManager {
             const res = await Http.sendFriendRequest(userPublicId);
             if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchRequests();
-            rockIt.notificationManager.notifySuccess("Friend request sent!");
+            this._searchResultsAtom.set(
+                this._searchResultsAtom
+                    .get()
+                    .map((user) =>
+                        user.publicId === userPublicId
+                            ? { ...user, requestSent: true }
+                            : user
+                    )
+            );
+            rockIt.notificationManager.notifySuccess(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_REQUEST_SENT
+            );
             return true;
         } catch (e) {
             rockIt.notificationManager.notifyError((e as Error).message);
@@ -96,7 +193,7 @@ export class FriendManager {
             await this.fetchRequests();
             await this.fetchFriends();
             rockIt.notificationManager.notifySuccess(
-                "Friend request accepted!"
+                rockIt.vocabularyManager.vocabulary.FRIENDS_REQUEST_ACCEPTED
             );
             return true;
         } catch (e) {
@@ -121,7 +218,9 @@ export class FriendManager {
             const res = await Http.removeFriend(userPublicId);
             if (!res.isOk()) throw new Error(String(res.detail));
             await this.fetchFriends();
-            rockIt.notificationManager.notifySuccess("Friend removed");
+            rockIt.notificationManager.notifySuccess(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_REMOVED
+            );
             return true;
         } catch {
             return false;
@@ -129,8 +228,15 @@ export class FriendManager {
     }
 
     async fetchActivity(): Promise<void> {
+        const requestingUser = rockIt.userManager.usernameAtom.get();
+        if (!rockIt.userManager.loggedInAtom.get()) return;
         try {
             const res = await Http.getFriendsActivity();
+            if (
+                !rockIt.userManager.loggedInAtom.get() ||
+                requestingUser !== rockIt.userManager.usernameAtom.get()
+            )
+                return;
             if (res.isOk()) {
                 this._activityAtom.set(res.result.activities ?? []);
             }

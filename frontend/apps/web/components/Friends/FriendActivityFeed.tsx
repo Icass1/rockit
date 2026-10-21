@@ -36,6 +36,7 @@ function ActivityCard({
     item: Activity;
     justNowText: string;
 }): JSX.Element {
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const progress =
         item.currentProgressMs && item.durationMs
             ? Math.min(100, (item.currentProgressMs / item.durationMs) * 100)
@@ -109,11 +110,12 @@ function ActivityCard({
                                 />
                             )}
                         </div>
-                        {item.currentProgressMs != null && (
-                            <span className="shrink-0 text-[10px] text-neutral-700 tabular-nums">
-                                {formatMs(item.currentProgressMs)}
-                            </span>
-                        )}
+                        {item.currentProgressMs !== null &&
+                            item.currentProgressMs !== undefined && (
+                                <span className="shrink-0 text-[10px] text-neutral-700 tabular-nums">
+                                    {formatMs(item.currentProgressMs)}
+                                </span>
+                            )}
                     </div>
                 </div>
             </div>
@@ -121,13 +123,35 @@ function ActivityCard({
             <div className="mt-3 flex items-center justify-end gap-0.5">
                 {(
                     [
-                        { icon: Heart, label: "Like" },
-                        { icon: ListPlus, label: "Queue" },
-                        { icon: Share2, label: "Share" },
+                        { icon: Heart, label: v.LIKE, action: "like" },
+                        {
+                            icon: ListPlus,
+                            label: v.ADD_TO_QUEUE,
+                            action: "queue",
+                        },
+                        {
+                            icon: Share2,
+                            label: v.FRIENDS_SHARE,
+                            action: "share",
+                        },
                     ] as const
-                ).map(({ icon: Icon, label }) => (
+                ).map(({ icon: Icon, label, action }) => (
                     <button
-                        key={label}
+                        key={action}
+                        onClick={() => {
+                            if (action === "like")
+                                void rockIt.mediaManager.toggleLikeMedia(
+                                    item.mediaPublicId
+                                );
+                            else if (action === "queue")
+                                void rockIt.sharingManager.queueSharedMedia(
+                                    item.mediaPublicId
+                                );
+                            else
+                                rockIt.sharingManager.compose(
+                                    item.mediaPublicId
+                                );
+                        }}
                         className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs text-neutral-600 transition-colors hover:bg-white/[0.06] hover:text-white"
                     >
                         <Icon size={13} />

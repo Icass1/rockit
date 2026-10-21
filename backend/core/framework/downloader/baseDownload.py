@@ -12,6 +12,8 @@ class BaseDownload:
     download_id: int
     download_group_id: int
     user_id: int
+    provider_id: int
+    retry_count: int
     title: str
     artist: str
 
@@ -24,6 +26,8 @@ class BaseDownload:
         self.download_id = download_id
         self.download_group_id = download_group_id
         self.user_id = user_id
+        self.provider_id = 0
+        self.retry_count = 0
         self.title = ""
         self.artist = ""
 

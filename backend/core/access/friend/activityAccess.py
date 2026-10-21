@@ -1,101 +1,45 @@
-from typing import List
-
-from sqlalchemy import text
+from sqlalchemy import text, bindparam
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from backend.utils.logger import getLogger
+from backend.core.access.statsAccess import get_media_info_cte
 from backend.core.aResult import AResult, AResultCode
+from backend.core.responses.friend.friendActivityResponse import FriendActivityItem
 from backend.core.utils.safeAsyncCall import safe_async
-
-logger = getLogger(__name__)
 
 
 class ActivityAccess:
     @staticmethod
     @safe_async
     async def get_friends_activity_async(
-        session: AsyncSession, friend_ids: List[int], limit: int = 30
-    ) -> AResult[List[dict]]:
-        placeholders = ",".join([str(fid) for fid in friend_ids])
+        session: AsyncSession, friend_ids: list[int], limit: int = 30
+    ) -> AResult[list[FriendActivityItem]]:
+        if not friend_ids:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
         sql = text(f"""
-        SELECT
-            u.public_id AS user_public_id,
-            u.username,
-            i.url AS user_image_url,
-            m.public_id AS media_public_id,
-            m.name AS media_name,
-            mi.url AS media_image_url,
-            uml.date_added AS listened_at
-        FROM core.user_media_listened uml
-        JOIN core."user" u ON u.id = uml.user_id
-        LEFT JOIN core.image i ON i.id = u.image_id
-        JOIN core.media m ON m.id = uml.media_id
-        LEFT JOIN core.image mi ON mi.id = m.image_id
-        WHERE uml.user_id IN ({placeholders})
-        ORDER BY uml.date_added DESC
-        LIMIT :limit
-        """)
-        rows = (await session.execute(sql, {"limit": limit})).fetchall()
-        activities = []
-        for row in rows:
-            activities.append(
-                {
-                    "userPublicId": row.user_public_id,
-                    "username": row.username,
-                    "userImageUrl": row.user_image_url,
-                    "mediaPublicId": row.media_public_id,
-                    "mediaName": row.media_name,
-                    "mediaImageUrl": row.media_image_url,
-                    "listenedAt": (
-                        row.listened_at.isoformat()
-                        if hasattr(row.listened_at, "isoformat")
-                        else str(row.listened_at)
-                    ),
-                }
-            )
-        return AResult(code=AResultCode.OK, message="OK", result=activities)
+            WITH {get_media_info_cte()}
+            SELECT u.public_id AS "userPublicId", u.username,
+                   i.url AS "userImageUrl", mi.public_id AS "mediaPublicId",
+                   mi.media_name AS "mediaName", mi.image_url AS "mediaImageUrl",
+                   uml.date_added::text AS "listenedAt"
+            FROM core.user_media_listened uml
+            JOIN core."user" u ON u.id = uml.user_id
+            LEFT JOIN core.image i ON i.id = u.image_id
+            JOIN media_info mi ON mi.media_id = uml.media_id
+            WHERE uml.user_id IN :friend_ids
+            ORDER BY uml.date_added DESC, uml.id DESC LIMIT :limit
+        """).bindparams(bindparam("friend_ids", expanding=True))
+        rows = await session.execute(sql, {"friend_ids": friend_ids, "limit": limit})
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[
+                FriendActivityItem.model_validate(dict(row)) for row in rows.mappings()
+            ],
+        )
 
     @staticmethod
-    @safe_async
     async def get_user_activity_async(
         session: AsyncSession, user_id: int, limit: int = 10
-    ) -> AResult[List[dict]]:
-        sql = text("""
-        SELECT
-            u.public_id AS user_public_id,
-            u.username,
-            i.url AS user_image_url,
-            m.public_id AS media_public_id,
-            m.name AS media_name,
-            mi.url AS media_image_url,
-            uml.date_added AS listened_at
-        FROM core.user_media_listened uml
-        JOIN core."user" u ON u.id = uml.user_id
-        LEFT JOIN core.image i ON i.id = u.image_id
-        JOIN core.media m ON m.id = uml.media_id
-        LEFT JOIN core.image mi ON mi.id = m.image_id
-        WHERE uml.user_id = :user_id
-        ORDER BY uml.date_added DESC
-        LIMIT :limit
-        """)
-        rows = (
-            await session.execute(sql, {"user_id": user_id, "limit": limit})
-        ).fetchall()
-        activities = []
-        for row in rows:
-            activities.append(
-                {
-                    "userPublicId": row.user_public_id,
-                    "username": row.username,
-                    "userImageUrl": row.user_image_url,
-                    "mediaPublicId": row.media_public_id,
-                    "mediaName": row.media_name,
-                    "mediaImageUrl": row.media_image_url,
-                    "listenedAt": (
-                        row.listened_at.isoformat()
-                        if hasattr(row.listened_at, "isoformat")
-                        else str(row.listened_at)
-                    ),
-                }
-            )
-        return AResult(code=AResultCode.OK, message="OK", result=activities)
+    ) -> AResult[list[FriendActivityItem]]:
+        return await ActivityAccess.get_friends_activity_async(
+            session, [user_id], limit
+        )

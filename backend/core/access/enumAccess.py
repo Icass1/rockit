@@ -60,4 +60,3 @@ class EnumAccess:
             for i in range(len(db_keys), len(enum_keys)):
                 new_row = table(value=enum_values[i], key=enum_keys[i])
                 session.add(new_row)
-            await session.commit()

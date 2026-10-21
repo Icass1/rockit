@@ -4,13 +4,13 @@ import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { EFriendTab } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import FriendActivityFeed from "./FriendActivityFeed";
-import FriendLeaderboard from "./FriendLeaderboard";
-import FriendRequests from "./FriendRequests";
-import FriendsList from "./FriendsList";
-import ListenTogetherPanel from "./ListenTogetherPanel";
-import LivePulseBanner from "./LivePulseBanner";
-import SharedMediaInbox from "./SharedMediaInbox";
+import FriendActivityFeed from "@/components/Friends/FriendActivityFeed";
+import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
+import FriendRequests from "@/components/Friends/FriendRequests";
+import FriendsList from "@/components/Friends/FriendsList";
+import ListenTogetherPanel from "@/components/Friends/ListenTogetherPanel";
+import LivePulseBanner from "@/components/Friends/LivePulseBanner";
+import SharedMediaInbox from "@/components/Friends/SharedMediaInbox";
 
 export default function FriendsClient(): JSX.Element {
     const [activeTab, setActiveTab] = useState<EFriendTab>(EFriendTab.ACTIVITY);
@@ -22,6 +22,7 @@ export default function FriendsClient(): JSX.Element {
     const $friends = useStore(rockIt.friendManager.friendsAtom);
     const $activity = useStore(rockIt.friendManager.activityAtom);
     const $loading = useStore(rockIt.friendManager.loadingAtom);
+    const error = useStore(rockIt.friendManager.errorAtom);
     const $requests = useStore(rockIt.friendManager.incomingRequestsAtom);
 
     const tabs = useMemo<{ id: EFriendTab; label: string }[]>(
@@ -54,6 +55,14 @@ export default function FriendsClient(): JSX.Element {
 
     return (
         <div className="mx-auto w-full overflow-x-hidden px-4 pt-6 pb-24 sm:max-w-lg md:max-w-3xl md:px-8 md:pt-10 lg:max-w-5xl xl:max-w-7xl 2xl:max-w-[1600px]">
+            {error && (
+                <p
+                    role="alert"
+                    className="mb-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-400"
+                >
+                    {error}
+                </p>
+            )}
             <div
                 className="animate-fade-in-up mb-8 md:mb-10"
                 style={{ animationDelay: "0ms" }}

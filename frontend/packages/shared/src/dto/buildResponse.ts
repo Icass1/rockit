@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 export const BuildResponseSchema = z.object({
-    id: z.number(),
+    publicId: z.string(),
     version: z.string(),
     apkFilename: z.string(),
     description: z.string().nullable(),

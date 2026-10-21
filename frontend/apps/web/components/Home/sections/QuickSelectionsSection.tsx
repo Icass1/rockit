@@ -34,15 +34,13 @@ export default function QuickSelectionsSection({
                                     columnIndex * SONGS_PER_COLUMN +
                                         SONGS_PER_COLUMN
                                 )
-                                .map(
-                                    (song): JSX.Element => (
-                                        <QuickSelectionsSong
-                                            key={`${columnIndex}_${song.publicId}`}
-                                            song={song}
-                                            songs={songsPool}
-                                        />
-                                    )
-                                )}
+                                .map((song): JSX.Element => (
+                                    <QuickSelectionsSong
+                                        key={`${columnIndex}_${song.publicId}`}
+                                        song={song}
+                                        songs={songsPool}
+                                    />
+                                ))}
                         </div>
                     )
                 )}

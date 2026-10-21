@@ -1,46 +1,20 @@
-import {
-    EQueueType,
-    ERepeatMode,
-    EWebSocketMessage,
-    type QueueTypeMessage,
-} from "@rockit/shared";
+import { BaseUserManager, EQueueType, ERepeatMode } from "@rockit/shared";
 import { Http } from "@/lib/http";
+import {
+    clearSessionOffline,
+    loadSessionOffline,
+    saveSessionOffline,
+} from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom, ReadonlyAtom } from "@/lib/store";
 
-export class UserManager {
-    private _init = false;
-
-    private _queueTypeAtom = createAtom<EQueueType>(EQueueType.SORTED);
-    private _repeatModeAtom = createAtom<ERepeatMode>(ERepeatMode.OFF);
-    private _loggedIn = createAtom<boolean>(false);
-    private _username = createAtom<string>("");
-    private _image = createAtom<string>("");
-    private _admin = createAtom<boolean>(false);
-    private _currentTimeMs = createAtom<number | null>(null);
-
-    async init(): Promise<void> {
-        if (typeof window === "undefined") return;
-        if (this._init) return;
-        this._init = true;
-
-        await this.updateAsync();
-
-        rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.QueueType,
-            this._handleQueueType
-        );
-    }
-
-    private _handleQueueType = (data: QueueTypeMessage): void => {
-        const newType =
-            data.queueType === "RANDOM" ? EQueueType.RANDOM : EQueueType.SORTED;
-        this._queueTypeAtom.set(newType);
-        rockIt.queueManager.updateQueue();
-    };
-
+/**
+ * Web user manager. Queue-type / repeat / profile state lives in the shared
+ * BaseUserManager; language switching and sign-out are web-only concerns that
+ * touch the web vocabulary and search managers.
+ */
+export class UserManager extends BaseUserManager {
     async updateAsync(): Promise<void> {
-        const res = await Http.getSession();
+        const res = await rockIt.http.getSession();
 
         if (res.isOk()) {
             this._queueTypeAtom.set(EQueueType[res.result.queueType]);
@@ -49,39 +23,27 @@ export class UserManager {
             this._admin.set(res.result.admin);
             this._username.set(res.result.username);
             this._currentTimeMs.set(res.result.currentTimeMs);
-
             this._loggedIn.set(true);
-        } else if (res.isNotOk()) {
-            this._loggedIn.set(false);
-            console.error(res.detail);
+
+            saveSessionOffline(res.result).catch(() => {});
+        } else if (res.code !== 401) {
+            const cached = await loadSessionOffline();
+            if (cached) {
+                this._queueTypeAtom.set(EQueueType[cached.queueType]);
+                this._repeatModeAtom.set(ERepeatMode[cached.repeatMode]);
+                this._image.set(cached.image);
+                this._admin.set(cached.admin);
+                this._username.set(cached.username);
+                this._currentTimeMs.set(cached.currentTimeMs);
+                this._loggedIn.set(true);
+            } else {
+                this._loggedIn.set(false);
+            }
         } else {
             this._loggedIn.set(false);
-            console.error("Unkown error", res.message);
+            clearSessionOffline().catch(() => {});
+            console.error(res.detail);
         }
-    }
-
-    toggleRandomQueue(): void {
-        const togglingToRandom =
-            this._queueTypeAtom.get() === EQueueType.SORTED;
-
-        if (this._queueTypeAtom.get() === EQueueType.RANDOM)
-            this._queueTypeAtom.set(EQueueType.SORTED);
-        else if (this._queueTypeAtom.get() === EQueueType.SORTED)
-            this._queueTypeAtom.set(EQueueType.RANDOM);
-
-        rockIt.webSocketManager.sendQueueType({
-            queueType: this.queueTypeAtom.get(),
-        });
-
-        rockIt.queueManager.updateQueue(togglingToRandom);
-    }
-
-    cycleRepeatMode(): void {
-        const modes = [ERepeatMode.OFF, ERepeatMode.ONE, ERepeatMode.ALL];
-        const current = this._repeatModeAtom.get();
-        const currentIndex = modes.indexOf(current);
-        const next = modes[(currentIndex + 1) % modes.length];
-        this._repeatModeAtom.set(next);
     }
 
     async setLangAsync(langCode: string): Promise<boolean> {
@@ -102,42 +64,12 @@ export class UserManager {
         return true;
     }
 
-    get queueTypeAtom(): ReadonlyAtom<EQueueType> {
-        return this._queueTypeAtom.getReadonlyAtom();
-    }
-
-    get queueType(): EQueueType {
-        return this._queueTypeAtom.get();
-    }
-
-    get repeatModeAtom(): ReadonlyAtom<ERepeatMode> {
-        return this._repeatModeAtom.getReadonlyAtom();
-    }
-
-    get loggedInAtom(): ReadonlyAtom<boolean> {
-        return this._loggedIn.getReadonlyAtom();
-    }
-
-    get usernameAtom(): ReadonlyAtom<string> {
-        return this._username.getReadonlyAtom();
-    }
-
-    get imageAtom(): ReadonlyAtom<string> {
-        return this._image.getReadonlyAtom();
-    }
-
-    get admin(): ReadonlyAtom<boolean> {
-        return this._admin.getReadonlyAtom();
-    }
-
-    get currentTimeMsAtom(): ReadonlyAtom<number | null> {
-        return this._currentTimeMs.getReadonlyAtom();
-    }
-
     async signOut(): Promise<void> {
         const response = await Http.logoutUser();
         if (response.isOk()) {
             rockIt.searchManager.clearResults();
+            await clearSessionOffline().catch(() => {});
+            this._loggedIn.set(false);
         } else {
             console.error(
                 "Error logging out",

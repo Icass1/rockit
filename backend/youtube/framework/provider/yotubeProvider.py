@@ -70,13 +70,13 @@ YOUTUBE_URL_PATTERNS: list[UrlPattern] = [
 
 
 class YoutubeProvider(BaseMediaProvider):
-    """TODO"""
+    """Provider implementation for YouTube video and channel media."""
 
     def __init__(self) -> None:
         super().__init__()
 
     def set_info(self, provider_id: int, provider_name: str) -> None:
-        """TODO"""
+        """Set the provider ID and name, and register them on the YouTube module."""
 
         YouTube.provider_name = provider_name
         YouTube.provider = self
@@ -88,7 +88,7 @@ class YoutubeProvider(BaseMediaProvider):
     async def search_media_async(
         self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
-        """TODO"""
+        """Search YouTube for videos matching the query string."""
 
         a_result: AResult[List[RawYoutubeSearchResult]] = (
             await youtube_api.search_videos_async(query=query, max_results=10)
@@ -170,11 +170,12 @@ class YoutubeProvider(BaseMediaProvider):
                 providerUrl=youtube_video.providerUrl,
                 name=youtube_video.name,
                 imageUrl=youtube_video.imageUrl,
+                dominantColor=youtube_video.dominantColor,
                 duration_ms=youtube_video.duration_ms,
                 artists=youtube_video.artists,
                 downloaded=youtube_video.downloaded,
-                videoSrc=youtube_video.videoSrc,
-                audioSrc=youtube_video.audioSrc,
+                videoUrl=youtube_video.videoUrl,
+                audioUrl=youtube_video.audioUrl,
             ),
         )
 
@@ -186,7 +187,7 @@ class YoutubeProvider(BaseMediaProvider):
         download_group_id: int,
         user_id: int,
     ) -> AResult[BaseDownload]:
-        """TODO"""
+        """Start a download for a YouTube video identified by its public ID."""
 
         a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
             session=session, public_id=public_id
@@ -210,7 +211,7 @@ class YoutubeProvider(BaseMediaProvider):
         )
 
     def _get_thumbnail_url(self, thumbnails: Any) -> str:
-        """TODO"""
+        """Extract the best available thumbnail URL from the YouTube API thumbnail dict."""
 
         if not thumbnails:
             return ""
@@ -255,11 +256,12 @@ class YoutubeProvider(BaseMediaProvider):
                     providerUrl=youtube_video.providerUrl,
                     name=youtube_video.name,
                     imageUrl=youtube_video.imageUrl or "",
+                    dominantColor=youtube_video.dominantColor,
                     duration_ms=youtube_video.duration_ms,
                     artists=youtube_video.artists,
                     downloaded=youtube_video.downloaded,
-                    videoSrc=youtube_video.videoSrc,
-                    audioSrc=youtube_video.audioSrc,
+                    videoUrl=youtube_video.videoUrl,
+                    audioUrl=youtube_video.audioUrl,
                 )
             )
 
@@ -288,6 +290,59 @@ class YoutubeProvider(BaseMediaProvider):
     JOIN   youtube.channel       ch    ON ch.id         = vc.channel_id
     JOIN   core.media            cm_ch ON cm_ch.id      = ch.id
     JOIN   core.image            ci    ON ci.id         = ch.image_id"""
+
+    def get_collection_provider_url(
+        self, metadata: dict[str, Any], media_type_key: int
+    ) -> str:
+        """Build a source link without loading collection contents."""
+        external_id = metadata.get("youtube_id")
+        if not external_id:
+            return ""
+        return (
+            f"https://music.youtube.com/browse/{external_id}"
+            if media_type_key == 2
+            else f"https://www.youtube.com/playlist?list={external_id}"
+        )
+
+    def get_search_index_cte_fragment(self) -> str | None:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+
+        return f"""    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           v.name                          AS name,
+           ch.name                         AS subtitle,
+           {MediaTypeEnum.VIDEO.value}     AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   youtube.video v
+    JOIN   core.media    cm ON cm.id = v.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = v.image_id
+    JOIN   youtube.channel ch ON ch.id = v.channel_id
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           ch.name                         AS name,
+           NULL                            AS subtitle,
+           {MediaTypeEnum.ARTIST.value}    AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   youtube.channel ch
+    JOIN   core.media    cm ON cm.id = ch.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = ch.image_id
+    UNION ALL
+    SELECT cm.id                          AS internal_id,
+           cm.public_id                    AS public_id,
+           pl.name                         AS name,
+           NULL                            AS subtitle,
+           {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
+           p.name                          AS provider_name,
+           ci.url                          AS image_url
+    FROM   youtube.playlist pl
+    JOIN   core.media    cm ON cm.id = pl.id
+    JOIN   core.provider p  ON p.id = cm.provider_id
+    JOIN   core.image    ci ON ci.id = pl.image_id"""
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
@@ -324,10 +379,6 @@ class YoutubeProvider(BaseMediaProvider):
 
         video: VideoRow = a_result_video.result()
 
-        if video.audio_path:
-            full_audio_path: str = os.path.join(MEDIA_PATH, video.audio_path)
-            self._rename_file_to_backup(full_audio_path)
-
         if video.video_path:
             full_video_path: str = os.path.join(MEDIA_PATH, video.video_path)
             self._rename_file_to_backup(full_video_path)
@@ -342,6 +393,38 @@ class YoutubeProvider(BaseMediaProvider):
             )
 
         return AResultCode(code=AResultCode.OK, message="OK")
+
+    async def get_frame_async(
+        self,
+        session: AsyncSession,
+        public_id: str,
+        timestamp_ms: float,
+    ) -> AResult[bytes]:
+        """Extract a single frame from a YouTube video at the given timestamp (ms)."""
+
+        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_video.is_not_ok():
+            logger.error(
+                f"Error getting video for public id {public_id}. {a_result_video.info()}"
+            )
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        video: VideoRow = a_result_video.result()
+
+        if not video.video_path:
+            logger.error(f"Video {public_id} has no downloaded file.")
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message="Video has not been downloaded yet",
+            )
+
+        return await YouTube.get_frame_async(
+            video_path=video.video_path,
+            public_id=public_id,
+            timestamp_ms=timestamp_ms,
+        )
 
 
 provider = YoutubeProvider()

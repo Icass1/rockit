@@ -77,7 +77,7 @@ export default function Navigation(): JSX.Element {
         {
             name: "Stats",
             title: $vocabulary.STATS,
-            href: "/stats",
+            href: "/stats/v2",
             icon: ChartLine,
         },
         {
@@ -86,16 +86,13 @@ export default function Navigation(): JSX.Element {
             href: "/downloader",
             icon: Download,
         },
-        ...($admin
-            ? [
-                  {
-                      name: "Admin" as const,
-                      title: "Admin",
-                      href: "/admin",
-                      icon: ShieldEllipsis,
-                  },
-              ]
-            : []),
+        {
+            name: "Admin" as const,
+            title: "Admin",
+            href: "/admin",
+            icon: ShieldEllipsis,
+            adminOnly: true,
+        },
     ];
 
     return (
@@ -118,17 +115,20 @@ export default function Navigation(): JSX.Element {
                     <Menu className="h-5 w-5" />
                 </div>
                 {pages.map((page): JSX.Element => {
+                    const hidden =
+                        "adminOnly" in page && page.adminOnly && !$admin;
                     return (
                         <Link
                             key={page.href}
                             id={"navigation-" + page.name}
                             href={page.href}
                             title={page.title}
+                            aria-hidden={hidden || undefined}
                             className={`relative mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
                                 activePage === page.href
                                     ? "bg-white text-black"
-                                    : "text-white md:hover:bg-[#414141]"
-                            } ${page.disabled === true ? "pointer-events-none opacity-50" : ""}`}
+                                    : "text-white md:hover:bg-(--color-hover-bg)"
+                            } ${page.disabled === true ? "pointer-events-none opacity-50" : ""} ${hidden ? "hidden" : ""}`}
                         >
                             <div className="relative flex h-8 w-8 items-center justify-center">
                                 {page.name === "Downloads" &&
@@ -170,7 +170,7 @@ export default function Navigation(): JSX.Element {
                                 key={list.publicId}
                                 href={`/${list.type}/${list.publicId}`}
                                 title={list.name}
-                                className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-[#414141]`}
+                                className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-(--color-hover-bg)`}
                             >
                                 <Image
                                     alt={list.name}

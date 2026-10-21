@@ -21,17 +21,25 @@ echo "=== Updating Backend ==="
 
 cd backend
 
+# Ensure the repo-root venv exists (script must not rely on an activated env)
+if [ ! -x "../.venv/bin/python" ]; then
+    echo "=== Creating Python venv (.venv) ==="
+    python3 -m venv ../.venv
+fi
+
 # Install backend dependencies
-pip install -r requirements.txt
+# (-m pip avoids relying on console scripts whose shebangs can go stale
+#  if the repository folder is moved)
+../.venv/bin/python -m pip install -r requirements.txt
 
 # Go back to root
 cd ..
 
 # Generate Zod schemas from backend
-python3 -m backend models
+.venv/bin/python -m backend models
 
 # Import vocabulary
-python3 -m backend import-vocabulary
+.venv/bin/python -m backend import-vocabulary
 
 # =====================
 # FRONTEND

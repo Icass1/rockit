@@ -5,6 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
+from backend.utils.backendUtils import create_id
+
 from backend.core.utils.safeAsyncCall import safe_async
 from backend.core.aResult import AResult, AResultCode
 
@@ -50,6 +52,7 @@ class AdminVersionAccess:
             version=version,
             apk_filename=apk_filename,
             description=description,
+            public_id=create_id(32),
         )
         session.add(row)
         await session.commit()

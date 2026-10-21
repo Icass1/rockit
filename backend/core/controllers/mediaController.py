@@ -6,7 +6,7 @@ from PIL import Image
 from logging import Logger
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, Query
 
 from backend.constants import IMAGES_PATH
 from backend.utils.logger import getLogger
@@ -21,6 +21,7 @@ from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.framework import providers
 from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
+from backend.core.framework.media.collection import Collection
 from backend.core.framework.provider.types import AddFromUrlAResult
 
 from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
@@ -64,19 +65,43 @@ async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumRespons
 
 
 @router.get("/album/{public_id}")
-async def get_album(request: Request, public_id: str) -> BaseAlbumWithSongsResponse:
-    """Get an album by its public_id."""
-
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BaseAlbumWithSongsResponse] = await Media.get_album_async(
-        session=session, public_id=public_id
+async def get_album(
+    request: Request,
+    public_id: str,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    query: str = Query(default="", max_length=200),
+    _=Depends(AuthMiddleware.auth_dependency),
+) -> BaseAlbumWithSongsResponse:
+    """Get album metadata and one bounded page of songs."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Album authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Collection.page_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        public_id=public_id,
+        user_id=user.result().id,
+        offset=offset,
+        limit=limit,
+        query=query,
     )
-    if a_result.is_not_ok():
-        raise HTTPException(
-            status_code=a_result.get_http_code(), detail=a_result.message()
+    if result.is_not_ok():
+        logger.error(f"Album page failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    page = result.result()
+    if not isinstance(page.collection, BaseAlbumWithSongsResponse):
+        logger.warning("Requested album is not an album")
+        raise HTTPException(status_code=404, detail="Album not found")
+    return page.collection.model_copy(
+        update=dict(
+            songs=[entry.item for entry in page.items],
+            offset=offset,
+            limit=limit,
+            total=page.total,
+            hasMore=page.hasMore,
         )
-
-    return a_result.result()
+    )
 
 
 @router.get("/artist/{public_id}")
@@ -99,29 +124,40 @@ async def get_artist(request: Request, public_id: str) -> BaseArtistResponse:
 async def get_playlist(
     request: Request,
     public_id: str,
-    _=Depends(dependency=AuthMiddleware.auth_dependency),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    query: str = Query(default="", max_length=200),
+    _=Depends(AuthMiddleware.auth_dependency),
 ) -> BasePlaylistWithMediasResponse:
-    """Get a playlist by its public_id."""
-
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
-    if a_result_user.is_not_ok():
-        logger.error(f"Error getting current user. {a_result_user.info()}")
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BasePlaylistWithMediasResponse] = (
-        await Media.get_playlist_with_medias_async(
-            session=session, user_id=a_result_user.result().id, public_id=public_id
+    """Get playlist metadata and one page; nested collections have no contents."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Playlist authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Collection.page_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        public_id=public_id,
+        user_id=user.result().id,
+        offset=offset,
+        limit=limit,
+        query=query,
+    )
+    if result.is_not_ok():
+        logger.error(f"Playlist page failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    page = result.result()
+    if not isinstance(page.collection, BasePlaylistWithMediasResponse):
+        logger.warning("Requested playlist is not a playlist")
+        raise HTTPException(status_code=404, detail="Playlist not found")
+    return page.collection.model_copy(
+        update=dict(
+            medias=page.items,
+            offset=offset,
+            limit=limit,
+            total=page.total,
+            hasMore=page.hasMore,
         )
     )
-    if a_result.is_not_ok():
-        raise HTTPException(
-            status_code=a_result.get_http_code(), detail=a_result.message()
-        )
-
-    return a_result.result()
 
 
 @router.get("/video/{public_id}")
@@ -138,6 +174,31 @@ async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse
         )
 
     return a_result.result()
+
+
+@router.get("/frame/{public_id}")
+async def get_frame_async(
+    request: Request, public_id: str, timestamp_ms: float
+) -> Response:
+    """Extract a single frame from a video at the given timestamp (ms)."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result: AResult[bytes] = await Media.get_frame_async(
+        session=session, public_id=public_id, timestamp_ms=timestamp_ms
+    )
+    if a_result.is_not_ok():
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return Response(
+        content=a_result.result(),
+        media_type="image/webp",
+        headers={
+            "Content-Disposition": "inline",
+            "Cache-Control": "public, max-age=2592000, immutable",
+        },
+    )
 
 
 @router.get("/station/{public_id}")
@@ -157,7 +218,7 @@ async def get_station_async(request: Request, public_id: str) -> BaseStationResp
 
 
 @router.post("/search")
-async def search(
+async def search_async(
     request: Request, payload: searchRequest.SearchRequest
 ) -> SearchResultsResponse:
     """Search all providers and return aggregated results."""
@@ -175,14 +236,27 @@ async def search(
 
 
 @router.get("/{public_id}")
-async def get_media(request: Request, public_id: str) -> MediaResponse:
+async def get_media_async(
+    request: Request,
+    public_id: str,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> MediaResponse:
     """Get a media item by its public_id without specifying the type."""
 
     logger.debug(f"Media.get_media_async called with public_id: {public_id}")
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user_id: int = a_result_user.result().id
+
     a_result: AResult[MediaResponse] = await Media.get_media_async(
-        session=session, public_id=public_id
+        session=session, public_id=public_id, user_id=user_id
     )
     if a_result.is_not_ok():
         raise HTTPException(
@@ -193,7 +267,7 @@ async def get_media(request: Request, public_id: str) -> MediaResponse:
 
 
 @router.get("/image/{public_id}")
-async def get_image(request: Request, public_id: str) -> FileResponse:
+async def get_media_image_async(request: Request, public_id: str) -> FileResponse:
     """Get an image by its public_id."""
 
     logger.debug(f"Getting image with public_id: {public_id}")
@@ -291,11 +365,11 @@ async def generate_image_async(request: Request, public_id: str):
     path="/{public_id}",
     dependencies=[Depends(dependency=AuthMiddleware.admin_dependency)],
 )
-async def delete_media(request: Request, public_id: str) -> OkResponse:
+async def delete_media_file_async(request: Request, public_id: str) -> OkResponse:
     """Delete the media file for a media item so it can be downloaded again."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResultCode = await Media.delete_media_async(
+    a_result: AResultCode = await Media.delete_media_file_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -312,7 +386,7 @@ async def delete_media(request: Request, public_id: str) -> OkResponse:
 
 
 @router.get("/url/match")
-async def match_url(request: Request, url: str) -> UrlMatchResponse:
+async def match_url_async(request: Request, url: str) -> UrlMatchResponse:
     """Match a URL to an internal path based on provider patterns."""
 
     path: str | None = providers.match_url(url)
@@ -320,7 +394,7 @@ async def match_url(request: Request, url: str) -> UrlMatchResponse:
 
 
 @router.post("/url/add")
-async def add_from_url(
+async def add_from_url_async(
     request: Request,
     payload: AddFromUrlRequest,
     _=Depends(dependency=AuthMiddleware.auth_dependency),

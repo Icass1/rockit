@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.logger import getLogger
 
 from backend.core.access.mediaAccess import MediaAccess
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.framework import providers
 from backend.core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from backend.core.middlewares.authMiddleware import AuthMiddleware
@@ -52,7 +54,14 @@ async def get_lyrics_async(
             detail=a_result_media.message(),
         )
 
-    media_id: int = a_result_media.result().id
+    media: CoreMediaRow = a_result_media.result()
+    if media.media_type_key != MediaTypeEnum.SONG.value:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Lyrics not available for this media type",
+        )
+
+    media_id: int = media.id
     lyrics_providers: List[BaseLyricsProvider] = providers.get_lyrics_providers()
 
     if not lyrics_providers:
@@ -118,7 +127,14 @@ async def get_dynamic_lyrics_async(
             detail=a_result_media.message(),
         )
 
-    media_id: int = a_result_media.result().id
+    media: CoreMediaRow = a_result_media.result()
+    if media.media_type_key != MediaTypeEnum.SONG.value:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Lyrics not available for this media type",
+        )
+
+    media_id: int = media.id
     lyrics_providers: List[BaseLyricsProvider] = providers.get_lyrics_providers()
 
     if not lyrics_providers:

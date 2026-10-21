@@ -47,23 +47,21 @@ export default function NotificationMenu(): JSX.Element {
                         <span>No notifications</span>
                     </li>
                 ) : (
-                    notifications.map(
-                        (notif): JSX.Element => (
-                            <li
-                                key={notif.id}
-                                className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-white transition hover:bg-neutral-700"
+                    notifications.map((notif): JSX.Element => (
+                        <li
+                            key={notif.id}
+                            className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-white transition hover:bg-neutral-700"
+                        >
+                            <span className="flex-1">{notif.message}</span>
+                            <button
+                                aria-label="Remove notification"
+                                onClick={(): void => remove(notif.id)}
+                                className="shrink-0 text-gray-400 transition hover:text-red-500"
                             >
-                                <span className="flex-1">{notif.message}</span>
-                                <button
-                                    aria-label="Remove notification"
-                                    onClick={(): void => remove(notif.id)}
-                                    className="shrink-0 text-gray-400 transition hover:text-red-500"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
-                            </li>
-                        )
-                    )
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </li>
+                    ))
                 )}
             </ul>
         </div>

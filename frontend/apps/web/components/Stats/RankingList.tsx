@@ -11,6 +11,7 @@ interface RankingListProps {
     valueLabel?: string;
     initialVisible?: number;
     onPlay?: (item: StatsRankedItemResponse) => void;
+    formatValue?: (value: number) => string;
 }
 
 const RANK_COLORS = ["text-amber-300", "text-stone-300", "text-orange-400"];
@@ -21,6 +22,7 @@ export default function RankingList({
     valueLabel = "",
     initialVisible = 5,
     onPlay,
+    formatValue,
 }: RankingListProps): JSX.Element {
     const [visibleCount, setVisibleCount] = useState(initialVisible);
 
@@ -61,6 +63,7 @@ export default function RankingList({
                     showImages={showImages}
                     valueLabel={valueLabel}
                     onPlay={onPlay}
+                    formatValue={formatValue}
                 />
             ))}
             <div className="flex justify-center gap-4">
@@ -96,6 +99,7 @@ function RankingRow({
     showImages,
     valueLabel,
     onPlay,
+    formatValue,
 }: {
     item: StatsRankedItemResponse;
     index: number;
@@ -103,6 +107,7 @@ function RankingRow({
     showImages: boolean;
     valueLabel: string;
     onPlay?: (item: StatsRankedItemResponse) => void;
+    formatValue?: (value: number) => string;
 }): JSX.Element {
     const progressPercent = (item.value / maxValue) * 100;
     const isTop3 = index < 3;
@@ -147,13 +152,13 @@ function RankingRow({
             <div className="flex shrink-0 items-center gap-2 md:gap-3">
                 <div className="hidden h-1 w-16 overflow-hidden rounded-full bg-neutral-800 md:block lg:w-24">
                     <div
-                        className="h-full rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467] transition-all duration-700 ease-out"
+                        className="h-full rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light) transition-all duration-700 ease-out"
                         style={{ width: `${progressPercent}%` }}
                     />
                 </div>
 
                 <span className="text-right text-sm font-medium text-neutral-400 tabular-nums md:w-5 md:text-base">
-                    {item.value}
+                    {formatValue ? formatValue(item.value) : item.value}
                     {valueLabel}
                 </span>
             </div>

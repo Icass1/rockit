@@ -57,6 +57,8 @@ export default function FriendsList({
 }: {
     friends: Friend[];
 }): JSX.Element {
+    const blocked = useStore(rockIt.friendManager.blockedAtom);
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [query, setQuery] = useState("");
     const [openMenu, setOpenMenu] = useState<string | null>(null);
 
@@ -79,7 +81,8 @@ export default function FriendsList({
                     type="text"
                     value={query}
                     onChange={(e) => handleSearch(e.target.value)}
-                    placeholder="Search users..."
+                    placeholder={v.FRIENDS_SEARCH_PLACEHOLDER}
+                    maxLength={100}
                     className="w-full rounded-full bg-neutral-900 py-2.5 pr-9 pl-10 text-sm text-white placeholder-neutral-600 ring-1 ring-white/[0.06] transition-shadow outline-none focus:ring-[#ee1086]/40"
                 />
                 {query && (
@@ -119,11 +122,11 @@ export default function FriendsList({
                                 </span>
                                 {user.isFriend ? (
                                     <span className="text-xs text-neutral-600">
-                                        Friends
+                                        {v.FRIENDS_ALREADY_FRIENDS}
                                     </span>
                                 ) : user.requestSent ? (
                                     <span className="text-xs text-neutral-500">
-                                        Request sent
+                                        {v.FRIENDS_PENDING}
                                     </span>
                                 ) : (
                                     <button
@@ -135,7 +138,7 @@ export default function FriendsList({
                                         className="flex items-center gap-1.5 rounded-full bg-[#ee1086] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-80"
                                     >
                                         <UserPlus size={12} />
-                                        Add
+                                        {v.FRIENDS_ADD}
                                     </button>
                                 )}
                             </div>
@@ -195,8 +198,8 @@ export default function FriendsList({
                                                 }`}
                                             >
                                                 {friend.isOnline
-                                                    ? "Online"
-                                                    : "Offline"}
+                                                    ? v.FRIENDS_ONLINE
+                                                    : v.FRIENDS_OFFLINE}
                                             </p>
                                         )}
                                     </div>
@@ -231,7 +234,18 @@ export default function FriendsList({
                                                     className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-400 transition-colors hover:bg-white/[0.04]"
                                                 >
                                                     <UserMinus size={14} />
-                                                    Remove friend
+                                                    {v.FRIENDS_REMOVE}
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        void rockIt.friendManager.blockUser(
+                                                            friend.publicId
+                                                        );
+                                                        setOpenMenu(null);
+                                                    }}
+                                                    className="w-full px-4 py-2.5 text-left text-sm text-red-400"
+                                                >
+                                                    {v.FRIENDS_BLOCK}
                                                 </button>
                                             </div>
                                         )}
@@ -241,6 +255,31 @@ export default function FriendsList({
                         </div>
                     )}
                 </>
+            )}
+            {blocked.length > 0 && (
+                <section className="mt-6 flex flex-col gap-2">
+                    <h3 className="text-sm text-neutral-400">
+                        {v.FRIENDS_BLOCKED}
+                    </h3>
+                    {blocked.map((user) => (
+                        <div
+                            key={user.publicId}
+                            className="flex items-center justify-between rounded-xl bg-neutral-900 p-3 text-sm"
+                        >
+                            <span>{user.username}</span>
+                            <button
+                                onClick={() => {
+                                    void rockIt.friendManager.unblockUser(
+                                        user.publicId
+                                    );
+                                }}
+                                className="text-[#ee1086]"
+                            >
+                                {v.FRIENDS_UNBLOCK}
+                            </button>
+                        </div>
+                    ))}
+                </section>
             )}
         </div>
     );

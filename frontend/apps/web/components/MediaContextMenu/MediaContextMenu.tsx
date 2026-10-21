@@ -21,13 +21,19 @@ import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 import type { ActionComponentProps } from "@/components/MediaContextMenu/actions/ActionProps";
-import AddToPlaylistAction from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
-import DeleteAction from "@/components/MediaContextMenu/actions/DeleteAction";
+import AddToPlaylistAction, {
+    AddToPlaylistAndDownloadAction,
+} from "@/components/MediaContextMenu/actions/AddToPlaylistAction";
+import DeleteMediaFileAction from "@/components/MediaContextMenu/actions/DeleteAction";
 import {
     DownloadAction,
+    DownloadSearchResultAction,
+    DownloadSearchResultAndAddToLibraryAction,
+    DownloadSearchResultAndPlayAction,
     DownloadZipAction,
     RetryDownloadAction,
 } from "@/components/MediaContextMenu/actions/DownloadActions";
+import DownloadListAction from "@/components/MediaContextMenu/actions/DownloadListAction";
 import EditMetadataAction from "@/components/MediaContextMenu/actions/EditMetadataAction";
 import {
     AddToLibraryAction,
@@ -43,6 +49,9 @@ import NavigateAction from "@/components/MediaContextMenu/actions/NavigateAction
 import PlayAction from "@/components/MediaContextMenu/actions/PlayAction";
 import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAction";
 import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/RemoveFromPlaylistAction";
+import SaveOfflineAction from "@/components/MediaContextMenu/actions/SaveOfflineAction";
+import SaveOfflineListAction from "@/components/MediaContextMenu/actions/SaveOfflineListAction";
+import ShareAction from "@/components/MediaContextMenu/actions/ShareAction";
 import {
     AddSongQueueRandomAction,
     AddSongToQueueBottomAction,
@@ -66,13 +75,23 @@ const actionComponents: Partial<
     [EMediaContextAction.AddMediaToQueueBottom]: AddSongToQueueBottomAction,
     [EMediaContextAction.RemoveFromQueue]: RemoveFromQueueAction,
     [EMediaContextAction.Download]: DownloadAction,
+    [EMediaContextAction.DownloadSearchResult]: DownloadSearchResultAction,
+    [EMediaContextAction.DownloadSearchResultAndAddToLibrary]:
+        DownloadSearchResultAndAddToLibraryAction,
+    [EMediaContextAction.DownloadSearchResultAndPlay]:
+        DownloadSearchResultAndPlayAction,
     [EMediaContextAction.RetryDownload]: RetryDownloadAction,
+    [EMediaContextAction.DownloadList]: DownloadListAction,
     [EMediaContextAction.DownloadZip]: DownloadZipAction,
     [EMediaContextAction.RemoveFromPlaylist]: RemoveFromPlaylistAction,
     [EMediaContextAction.AddToPlaylist]: AddToPlaylistAction,
-    [EMediaContextAction.Delete]: DeleteAction,
+    [EMediaContextAction.AddToPlaylistAndDownload]:
+        AddToPlaylistAndDownloadAction,
+    [EMediaContextAction.DeleteMediaFile]: DeleteMediaFileAction,
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,
+    [EMediaContextAction.SaveOffline]: SaveOfflineAction,
+    [EMediaContextAction.DownloadOfflineList]: SaveOfflineListAction,
 };
 
 function getMediaCover(media: TMediaWithSearch): string | undefined {
@@ -149,6 +168,7 @@ export default function MediaContextMenu({
 
                         return <Component key={action.id} {...actionProps} />;
                     })}
+                    {!isSearchResult(media) && <ShareAction {...actionProps} />}
                 </ContextMenuContent>
             </ContextMenu>
             {showEditMetadata && (

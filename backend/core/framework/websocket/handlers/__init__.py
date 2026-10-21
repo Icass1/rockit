@@ -9,3 +9,5 @@ _importlib.import_module("backend.core.framework.websocket.handlers.skip_clicked
 _importlib.import_module("backend.core.framework.websocket.handlers.seek")
 _importlib.import_module("backend.core.framework.websocket.handlers.queue_type")
 _importlib.import_module("backend.core.framework.websocket.handlers.media_expanded")
+
+_importlib.import_module("backend.core.framework.websocket.handlers.playback_state")

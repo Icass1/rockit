@@ -1,171 +1,87 @@
 "use client";
 
-import { JSX, useMemo, useState } from "react";
+import { JSX, useMemo } from "react";
 import type { StatsHeatmapCellResponse } from "@/dto";
 
 interface ListeningHeatmapProps {
     data: StatsHeatmapCellResponse[];
 }
 
-const CELL_SIZE = 18;
-const CELL_GAP = 3;
-const LEFT_PAD = 36;
-const TOP_PAD = 28;
-const HOURS_START = 8;
-const HOURS_END = 23;
-const DAYS = 7;
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const HOUR_LABELS = [8, 10, 12, 14, 16, 18, 20, 22];
+const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 function cellColor(value: number, maxValue: number): string {
-    if (value === 0) return "#262626";
-    const intensity = Math.min(value / maxValue, 1);
-    if (intensity < 0.2) return "#3d0d24";
-    if (intensity < 0.4) return "#5e1538";
-    if (intensity < 0.6) return "#8a1f50";
-    if (intensity < 0.8) return "#c72d70";
-    return "#ee1086";
-}
-
-interface TooltipState {
-    hour: number;
-    day: number;
-    value: number;
-    x: number;
-    y: number;
+    if (value <= 0) return "bg-white/4";
+    const intensity = value / maxValue;
+    if (intensity < 0.2) return "bg-fuchsia-950";
+    if (intensity < 0.4) return "bg-fuchsia-900";
+    if (intensity < 0.6) return "bg-fuchsia-700";
+    if (intensity < 0.8) return "bg-fuchsia-500";
+    return "bg-(--color-rockit-pink)";
 }
 
 export default function ListeningHeatmap({
     data,
 }: ListeningHeatmapProps): JSX.Element {
-    const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-
-    const numHours = HOURS_END - HOURS_START + 1;
-    const maxValue = useMemo(
-        () => Math.max(...data.map((d) => d.value), 1),
-        [data]
-    );
-
-    const svgWidth = LEFT_PAD + numHours * (CELL_SIZE + CELL_GAP) + 8;
-    const svgHeight = TOP_PAD + DAYS * (CELL_SIZE + CELL_GAP) + 8;
-
-    const getVal = (hour: number, day: number): number => {
-        const cell = data.find((d) => d.hour === hour && d.day === day);
-        return cell?.value ?? 0;
-    };
+    const { values, maxValue } = useMemo(() => {
+        const indexed = new Map(
+            data.map((cell) => [`${cell.day}-${cell.hour}`, cell.value])
+        );
+        return {
+            values: indexed,
+            maxValue: Math.max(...data.map((cell) => cell.value), 1),
+        };
+    }, [data]);
 
     return (
-        <div className="relative flex justify-center pt-2">
-            {tooltip && (
-                <div
-                    className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-lg border border-neutral-800/60 bg-neutral-900/95 px-3 py-1.5 whitespace-nowrap shadow-xl backdrop-blur-md"
-                    style={{
-                        left: tooltip.x,
-                        top: tooltip.y - 36,
-                    }}
-                >
-                    <span className="text-xs text-neutral-400">
-                        {DAY_LABELS[tooltip.day]} {tooltip.hour}:00
-                    </span>
-                    <span className="mx-2 text-neutral-600">·</span>
-                    <span className="text-sm font-medium text-white">
-                        {tooltip.value > 0
-                            ? `${tooltip.value} min`
-                            : "No activity"}
-                    </span>
-                </div>
-            )}
-
-            <svg
-                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                className="w-full max-w-140"
-            >
-                {HOUR_LABELS.map((hour) => {
-                    const hourIndex = hour - HOURS_START;
-                    return (
-                        <text
-                            key={`hl-${hour}`}
-                            x={
-                                LEFT_PAD +
-                                hourIndex * (CELL_SIZE + CELL_GAP) +
-                                CELL_SIZE / 2
-                            }
-                            y={16}
-                            fill="#ffffff"
-                            fontSize={11}
-                            textAnchor="middle"
-                            fontFamily="system-ui, sans-serif"
+        <div className="overflow-x-auto pb-2">
+            <div className="min-w-205">
+                <div className="grid grid-cols-[3rem_repeat(24,minmax(1.5rem,1fr))] gap-1.5">
+                    <div />
+                    {HOURS.map((hour) => (
+                        <div
+                            key={hour}
+                            className="text-center text-[10px] font-medium text-neutral-600"
                         >
-                            {hour}
-                        </text>
-                    );
-                })}
-
-                {DAY_LABELS.map((label, dayIndex) => (
-                    <text
-                        key={`dl-${dayIndex}`}
-                        x={LEFT_PAD - 6}
-                        y={
-                            TOP_PAD +
-                            dayIndex * (CELL_SIZE + CELL_GAP) +
-                            CELL_SIZE / 2 +
-                            3
-                        }
-                        fill="#ffffff"
-                        fontSize={11}
-                        textAnchor="end"
-                        fontFamily="system-ui, sans-serif"
-                    >
-                        {label}
-                    </text>
-                ))}
-
-                {Array.from({ length: DAYS }, (_, day) =>
-                    Array.from({ length: numHours }, (_, hourOffset) => {
-                        const hour = HOURS_START + hourOffset;
-                        const x =
-                            LEFT_PAD + hourOffset * (CELL_SIZE + CELL_GAP);
-                        const y = TOP_PAD + day * (CELL_SIZE + CELL_GAP);
-                        const value = getVal(hour, day);
-                        const key = `${hour}-${day}`;
-
-                        return (
-                            <rect
-                                key={key}
-                                x={x}
-                                y={y}
-                                width={CELL_SIZE}
-                                height={CELL_SIZE}
-                                rx={4}
-                                ry={4}
-                                fill={cellColor(value, maxValue)}
-                                className="transition-[fill] duration-200"
-                                style={{ cursor: "pointer" }}
-                                onMouseEnter={(e) => {
-                                    const rect = (
-                                        e.currentTarget as SVGRectElement
-                                    ).getBoundingClientRect();
-                                    const parent =
-                                        e.currentTarget.closest("div")!;
-                                    const parentRect =
-                                        parent.getBoundingClientRect();
-                                    setTooltip({
-                                        hour,
-                                        day,
-                                        value,
-                                        x:
-                                            rect.left +
-                                            rect.width / 2 -
-                                            parentRect.left,
-                                        y: rect.top - parentRect.top,
-                                    });
-                                }}
-                                onMouseLeave={() => setTooltip(null)}
-                            />
-                        );
-                    })
-                )}
-            </svg>
+                            {hour % 3 === 0 ? `${hour}:00` : ""}
+                        </div>
+                    ))}
+                    {DAY_LABELS.map((day, dayIndex) => (
+                        <div key={day} className="contents">
+                            <div className="flex items-center text-xs font-medium text-neutral-500">
+                                {day}
+                            </div>
+                            {HOURS.map((hour) => {
+                                const value =
+                                    values.get(`${dayIndex}-${hour}`) ?? 0;
+                                return (
+                                    <div
+                                        key={`${day}-${hour}`}
+                                        title={`${day} ${hour.toString().padStart(2, "0")}:00 · ${value} min`}
+                                        aria-label={`${day} at ${hour}:00, ${value} minutes listened`}
+                                        className={`aspect-square rounded-[5px] transition-transform hover:scale-125 hover:ring-2 hover:ring-white/40 ${cellColor(value, maxValue)}`}
+                                    />
+                                );
+                            })}
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-5 flex items-center justify-end gap-2 text-[10px] font-medium text-neutral-600">
+                    <span>Less</span>
+                    {[
+                        "bg-white/4",
+                        "bg-fuchsia-950",
+                        "bg-fuchsia-700",
+                        "bg-(--color-rockit-pink)",
+                    ].map((color) => (
+                        <span
+                            key={color}
+                            className={`h-3 w-3 rounded-sm ${color}`}
+                        />
+                    ))}
+                    <span>More</span>
+                </div>
+            </div>
         </div>
     );
 }

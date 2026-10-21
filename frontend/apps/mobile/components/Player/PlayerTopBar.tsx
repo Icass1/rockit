@@ -1,7 +1,11 @@
 import { COLORS } from "@/constants/theme";
 import { TMedia } from "@rockit/shared";
-import { ChevronDown, MoreHorizontal } from "lucide-react-native";
+import { Bookmark, ChevronDown, MoreHorizontal } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
+import {
+    useContextMenu,
+    type ContextMenuOption,
+} from "@/lib/ContextMenuContext";
 import MediaPressableWrapper from "@/components/Media/MediaPressableWrapper";
 
 interface PlayerTopBarProps {
@@ -11,6 +15,7 @@ interface PlayerTopBarProps {
     onQueue?: () => void;
     onLyrics?: () => void;
     onRelated?: () => void;
+    onBookmarkPress?: () => void;
     media?: TMedia; // current media object for context menu
 }
 
@@ -21,8 +26,23 @@ export default function PlayerTopBar({
     onQueue,
     onLyrics,
     onRelated,
+    onBookmarkPress,
     media,
 }: PlayerTopBarProps) {
+    const { hide } = useContextMenu();
+    const extraOptions: ContextMenuOption[] = [];
+
+    if (onBookmarkPress && media) {
+        extraOptions.push({
+            label: "Bookmarks",
+            icon: Bookmark,
+            onPress: () => {
+                hide();
+                onBookmarkPress();
+            },
+        });
+    }
+
     return (
         <View style={styles.container}>
             <Pressable style={styles.button} onPress={onClose} hitSlop={12}>
@@ -30,7 +50,12 @@ export default function PlayerTopBar({
             </Pressable>
 
             {media && (
-                <MediaPressableWrapper media={media} allMedia={[media]}>
+                <MediaPressableWrapper
+                    media={media}
+                    allMedia={[media]}
+                    extraOptions={extraOptions}
+                    menuOnly
+                >
                     <MoreHorizontal size={22} color={COLORS.white} />
                 </MediaPressableWrapper>
             )}
@@ -53,17 +78,5 @@ const styles = StyleSheet.create({
         height: 44,
         alignItems: "center",
         justifyContent: "center",
-    },
-    rightContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    title: {
-        flex: 1,
-        textAlign: "center",
-        fontSize: 15,
-        fontWeight: "600",
-        color: "rgba(255,255,255,0.85)",
-        marginHorizontal: 8,
     },
 });

@@ -1,10 +1,11 @@
 "use client";
 
 import type { JSX } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { EMediaContextLocation, isStation } from "@rockit/shared";
+import { isStation } from "@rockit/shared";
 import type { BaseStationResponse } from "@rockit/shared";
 import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
 import {
@@ -12,10 +13,10 @@ import {
     getMediaArtists,
     TPlayableMedia,
 } from "@/models/types/media";
+import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
-import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 function FooterLeftForMedia({
     currentMedia,
@@ -24,6 +25,29 @@ function FooterLeftForMedia({
 }): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
+    const [offlineCover, setOfflineCover] = useState<{
+        publicId: string;
+        url: string;
+    } | null>(null);
+
+    useEffect((): (() => void) => {
+        let cancelled = false;
+        resolveOfflineCoverUrl(currentMedia.publicId).then((url) => {
+            if (!cancelled && url)
+                setOfflineCover({
+                    publicId: currentMedia.publicId,
+                    url,
+                });
+        });
+        return (): void => {
+            cancelled = true;
+        };
+    }, [currentMedia.publicId]);
+
+    const coverSrc =
+        offlineCover?.publicId === currentMedia.publicId
+            ? offlineCover.url
+            : currentMedia.imageUrl;
 
     if (!$queue) {
         return (
@@ -45,7 +69,7 @@ function FooterLeftForMedia({
                 <Image
                     width={64}
                     height={64}
-                    src={currentMedia.imageUrl}
+                    src={coverSrc}
                     alt={`Cover of ${currentMedia.name}`}
                     className="absolute h-9 w-9 rounded-md object-cover transition duration-300 select-none group-hover:brightness-50 md:h-16 md:w-16"
                 />
@@ -66,13 +90,13 @@ function FooterLeftForMedia({
                             <span className="truncate">
                                 {currentMedia.name}
                             </span>
-                            <MediaContextMenu
+                            {/* <MediaContextMenu
                                 media={currentMedia}
                                 location={EMediaContextLocation.QUEUE}
                                 openOnLeftClick={true}
                             >
                                 <Ellipsis className="h-6 w-5 shrink-0 text-gray-400 opacity-0 transition group-hover/left:opacity-100 md:hover:scale-105 md:hover:text-white" />
-                            </MediaContextMenu>
+                            </MediaContextMenu> */}
                         </span>
                         <div className="flex w-full flex-row gap-x-1 text-sm text-gray-400">
                             <div className="truncate">

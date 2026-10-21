@@ -9,13 +9,23 @@ export default function RemoveFromPlaylistAction({
     media,
     vocabulary,
     listPublicId,
-}: ActionComponentProps): JSX.Element {
+}: ActionComponentProps): JSX.Element | null {
+    if (!listPublicId) return null;
+
     const removeFromPlaylist = async (): Promise<void> => {
         if (!isSearchResult(media) && listPublicId) {
-            await rockIt.playlistManager.removeMediaFromPlaylistByPublicId(
-                media.publicId,
-                listPublicId
-            );
+            const res =
+                await rockIt.playlistManager.removeMediaFromPlaylistByPublicId(
+                    media.publicId,
+                    listPublicId
+                );
+
+            if (res.isNotOk()) {
+                rockIt.notificationManager.notifyError(
+                    rockIt.vocabularyManager.vocabulary
+                        .ERROR_REMOVING_MEDIA_FROM_PLAYLIST
+                );
+            }
         }
     };
 

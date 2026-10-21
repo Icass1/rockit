@@ -7,7 +7,7 @@ export class MediaManager {
     private _likedMediaAtom = createArrayAtom<string>([]);
 
     getMedia(publicId: string): Promise<HttpResult<MediaResponse>> {
-        return Http.getMedia(publicId);
+        return Http.getMediaAsync(publicId);
     }
 
     async fetchLikedMedia(): Promise<void> {

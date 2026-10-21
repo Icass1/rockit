@@ -128,3 +128,6 @@ cache/
 
 lint.txt
 pyright.txt
+
+# Shared frontend test bundles
+.test-build/

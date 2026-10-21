@@ -1,6 +1,6 @@
 from typing import Dict, List, TYPE_CHECKING
 
-from sqlalchemy import Float, ForeignKey, Integer, String
+from sqlalchemy import Float, ForeignKey, Integer, String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -23,7 +23,15 @@ if TYPE_CHECKING:
 
 class StationRow(CoreBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "station"
-    __table_args__ = ({"schema": "radio_browser", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_radio_browser_station_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "radio_browser", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True

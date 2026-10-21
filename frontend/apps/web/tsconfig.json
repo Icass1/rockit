@@ -25,6 +25,12 @@
       }
     ],
     "paths": {
+      "@/auth/*": [
+        "../../packages/shared/src/auth/*"
+      ],
+      "@/audio/*": [
+        "../../packages/shared/src/audio/*"
+      ],
       "@/components/*": [
         "./components/*"
       ],
@@ -40,24 +46,31 @@
       "@/hooks/*": [
         "./hooks/*"
       ],
-      "@/styles/*": [
-        "./styles/*"
+      "@/http/*": [
+        "../../packages/shared/src/http/*"
       ],
       "@/lib/*": [
+        "../../packages/shared/src/lib/*",
         "./lib/*"
+      ],
+      "@/managers/*": [
+        "../../packages/shared/src/managers/*"
       ],
       "@/models/*": [
         "../../packages/shared/src/models/*",
         "./models/*"
       ],
+      "@/rockit/*": [
+        "../../packages/shared/src/rockit/*"
+      ],
+      "@/styles/*": [
+        "./styles/*"
+      ],
       "@/types/*": [
         "../../packages/shared/src/types/*"
       ],
-      "@rockit/packages/shared": [
-        "../../packages/shared/src/index.ts"
-      ],
-      "@rockit/packages/shared/*": [
-        "../../packages/shared/src/*"
+      "@/utils/*": [
+        "../../packages/shared/src/utils/*"
       ],
       "@rockit/shared": [
         "../../packages/shared/src/index.ts"
@@ -69,6 +82,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "instrumentation.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
     "components/**/*.ts",

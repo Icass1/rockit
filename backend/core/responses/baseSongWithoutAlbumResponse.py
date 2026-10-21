@@ -13,9 +13,10 @@ class BaseSongWithoutAlbumResponse(BaseModel):
     providerUrl: str
     name: str
     artists: Sequence[BaseArtistResponse]
-    audioSrc: str | None
+    audioUrl: str | None
     downloaded: bool
     imageUrl: str
+    dominantColor: str
     duration_ms: int
     discNumber: int
     trackNumber: int

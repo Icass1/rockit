@@ -16,17 +16,23 @@ import {
     TMediaWithSearch,
     Vocabulary,
 } from "@rockit/shared";
+import { SquareCheck, SquareDashed } from "lucide-react";
 import { isDownloadable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import {
+    isZippable,
+    useLibrarySelection,
+} from "@/components/Library/LibrarySelectionContext";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 /**
  * Maximum rendered cover size in pixels.
  * The `sizes` attribute tells the browser not to download anything larger.
- * Bug fix: each card also sets `max-w-[250px] w-full mx-auto` so grid cells
+ * Bug fix: each card also sets `max-w-62.5 w-full mx-auto` so grid cells
  * wider than 250 px (on very wide screens) don't stretch the cover past this
  * limit.
  */
@@ -49,6 +55,8 @@ interface LibraryCardProps {
     aspectRatio?: "square" | "video";
     badge: keyof Vocabulary;
     name: string;
+    /** Optional node rendered inline to the right of the title. */
+    titleSuffix?: ReactNode;
     subtitle?: ReactNode;
     href?: string;
     onClick?: (e: React.MouseEvent) => void;
@@ -68,6 +76,7 @@ function LibraryCard({
     aspectRatio = "square",
     badge,
     name,
+    titleSuffix,
     subtitle,
     href,
     onClick,
@@ -77,11 +86,40 @@ function LibraryCard({
     children,
 }: LibraryCardProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const linkClass = `library-item relative flex flex-col transition-transform md:hover:scale-105 ${className}`;
+    const linkClass = `library-item relative flex flex-col select-none transition-transform [-webkit-touch-callout:none] md:hover:scale-105 ${className}`;
     const isVideo = aspectRatio === "video";
     const [cardImgSrc, setCardImgSrc] = useState(
         imageUrl || "/radio-placeholder.png"
     );
+    const { selectionMode, isSelected, toggleSelection } =
+        useLibrarySelection();
+
+    // Stations and artists cannot be packaged into a ZIP, so they keep
+    // navigating normally and show no checkbox while selecting.
+    const selectable = selectionMode && isZippable(media);
+
+    const toggleCurrent = (): void => {
+        if ("publicId" in media) toggleSelection(media);
+    };
+
+    const handleSelectionClick = (
+        event: React.MouseEvent<HTMLElement>
+    ): void => {
+        if (!selectable) return;
+        event.preventDefault();
+        event.stopPropagation();
+        toggleCurrent();
+    };
+
+    const handleSelectionKeyDown = (
+        event: React.KeyboardEvent<HTMLElement>
+    ): void => {
+        if (!selectable) return;
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        toggleCurrent();
+    };
 
     const imageBlock = (
         <div
@@ -130,7 +168,10 @@ function LibraryCard({
 
     const textBlock = (
         <>
-            <p className="mt-1 truncate text-center font-semibold">{name}</p>
+            <div className="mt-1 flex min-w-0 items-center justify-center gap-1">
+                <p className="truncate font-semibold">{name}</p>
+                {titleSuffix}
+            </div>
             {subtitle !== undefined &&
                 (typeof subtitle === "string" ? (
                     <p className="truncate text-center text-sm text-gray-400">
@@ -156,23 +197,53 @@ function LibraryCard({
         </>
     );
 
+    const selectionOverlay = selectable ? (
+        <div
+            role="checkbox"
+            aria-checked={"publicId" in media && isSelected(media.publicId)}
+            aria-label={name}
+            tabIndex={0}
+            onClick={handleSelectionClick}
+            onKeyDown={handleSelectionKeyDown}
+            className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded bg-black/60"
+        >
+            {"publicId" in media && isSelected(media.publicId) ? (
+                <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
+            ) : (
+                <SquareDashed className="h-5 w-5 text-white/80" />
+            )}
+        </div>
+    ) : null;
+
     return (
         <CardShell>
             <MediaContextMenu media={media} location={location}>
                 {href ? (
                     <>
-                        <Link href={href} className={linkClass}>
+                        <Link
+                            href={href}
+                            className={linkClass}
+                            onClick={handleSelectionClick}
+                        >
                             {imageBlock}
                             {textBlock}
+                            {selectionOverlay}
                         </Link>
                         {children}
                     </>
                 ) : (
                     <div
                         className={`${linkClass} cursor-pointer`}
-                        onClick={onClick}
+                        onClick={(event): void => {
+                            if (selectable) {
+                                handleSelectionClick(event);
+                            } else {
+                                onClick?.(event);
+                            }
+                        }}
                     >
                         {inner}
+                        {selectionOverlay}
                         {children}
                     </div>
                 )}
@@ -290,6 +361,12 @@ export function SongCard({
             imageUrl={$song.imageUrl}
             badge="SONG"
             name={$song.name}
+            titleSuffix={
+                <OfflineIndicator
+                    publicId={$song.publicId}
+                    className="h-4 w-4 shrink-0"
+                />
+            }
             subtitle={
                 <Artists
                     artists={$song.artists}

@@ -1,7 +1,9 @@
 "use client";
 
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
+import { toLocalHHMM } from "@rockit/shared";
 import {
     Bar,
     BarChart,
@@ -11,6 +13,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface MinutesBarChartProps {
     data: StatsMinutesEntryResponse[];
@@ -37,10 +40,24 @@ function CustomTooltip({
     const start = new Date(entry.start);
     const end = new Date(entry.end);
 
+    const isHourly = /^\d{2}:\d{2}$/.test(entry.label);
     const isDaily = range === "7d";
-    const label = isDaily
-        ? start.toLocaleDateString("en-US", { weekday: "long" })
-        : `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} — ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    let label: string;
+    if (isHourly) {
+        label = `${toLocalHHMM(entry.start)} — ${toLocalHHMM(entry.end)}`;
+    } else if (isDaily) {
+        label = start.toLocaleDateString("en-US", { weekday: "long" });
+    } else {
+        const startStr = start.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
+        const endStr = end.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
+        label = startStr === endStr ? startStr : `${startStr} — ${endStr}`;
+    }
 
     return (
         <div className="rounded-xl border border-neutral-800/60 bg-neutral-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
@@ -58,13 +75,33 @@ function CustomTooltip({
 }
 
 export default function MinutesBarChart({
-    data,
+    data: _data,
     range = "30d",
 }: MinutesBarChartProps): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
+    const data = useMemo(() => {
+        return _data.map((entry) => {
+            const isHourly = /^\d{2}:\d{2}$/.test(entry.label);
+            if (isHourly) {
+                return {
+                    ...entry,
+                    label: toLocalHHMM(entry.start),
+                };
+            }
+            return {
+                ...entry,
+                label: $vocabulary[entry.label as keyof typeof $vocabulary],
+            };
+        });
+    }, [_data, $vocabulary]);
+
     if (data.length === 0) {
         return (
-            <div className="flex h-[280px] items-center justify-center">
-                <p className="text-sm text-neutral-600">No data available</p>
+            <div className="flex h-70 items-center justify-center">
+                <p className="text-sm text-neutral-600">
+                    {$vocabulary.NO_DATA}
+                </p>
             </div>
         );
     }

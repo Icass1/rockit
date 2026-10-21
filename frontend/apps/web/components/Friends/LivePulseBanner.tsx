@@ -3,6 +3,7 @@
 import { type JSX } from "react";
 import Image from "next/image";
 import type { Friend } from "@/models/interfaces";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 function Waveform(): JSX.Element {
     return (
@@ -58,6 +59,11 @@ export default function LivePulseBanner({
             {live.map((friend) => (
                 <button
                     key={friend.publicId}
+                    onClick={() => {
+                        void rockIt.listenTogetherManager.invite(
+                            friend.publicId
+                        );
+                    }}
                     className="flex shrink-0 flex-col items-center gap-1.5 outline-none"
                     title={
                         friend.nowPlaying

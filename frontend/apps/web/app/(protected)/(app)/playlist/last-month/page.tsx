@@ -4,7 +4,7 @@ import {
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { getFeaturedListAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
@@ -43,6 +43,7 @@ export default async function LastMonthPage(): Promise<JSX.Element> {
             title={playlistResponse.name}
             artists={[playlistResponse.owner]}
             media={playlistMedia}
+            listMedia={playlistResponse}
             image={playlistResponse.imageUrl}
             showMediaImage
             showMediaIndex={false}

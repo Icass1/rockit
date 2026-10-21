@@ -1,15 +1,16 @@
-import { EEvent } from "../enums/events";
-import { IMediaAddedToLibraryEvent } from "./events/mediaAddedToLibrary";
-import { IMediaAddedToPlaylistEvent } from "./events/mediaAddedToPlaylist";
-import { IMediaDownloadedEvent } from "./events/mediaDownloaded";
-import { IMediaDownloadStatus } from "./events/mediaDownloadStatus";
-import { IMediaRemovedFromLibraryEvent } from "./events/mediaRemovedFromLibrary";
-import { IPlaylistCreatedEvent } from "./events/playlistCreated";
-import { IPlaylistDeletedEvent } from "./events/playlistDeleted";
-import { IPlaylistRenamedEvent } from "./events/playlistRenamed";
-import { ISongFinishedEvent } from "./events/songFinished";
-import { IUserLoginEvent } from "./events/userLogin";
-import { IVolumeChangedEvent } from "./events/volumeChanged";
+import { EEvent } from "@/models/enums/events";
+import { IMediaAddedToLibraryEvent } from "@/models/interfaces/events/mediaAddedToLibrary";
+import { IMediaAddedToPlaylistEvent } from "@/models/interfaces/events/mediaAddedToPlaylist";
+import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
+import { IMediaDownloadStatus } from "@/models/interfaces/events/mediaDownloadStatus";
+import { IMediaRemovedFromLibraryEvent } from "@/models/interfaces/events/mediaRemovedFromLibrary";
+import { IMediaRemovedFromPlaylistEvent } from "@/models/interfaces/events/mediaRemovedFromPlaylist";
+import { IPlaylistCreatedEvent } from "@/models/interfaces/events/playlistCreated";
+import { IPlaylistDeletedEvent } from "@/models/interfaces/events/playlistDeleted";
+import { IPlaylistRenamedEvent } from "@/models/interfaces/events/playlistRenamed";
+import { ISongFinishedEvent } from "@/models/interfaces/events/songFinished";
+import { IUserLoginEvent } from "@/models/interfaces/events/userLogin";
+import { IVolumeChangedEvent } from "@/models/interfaces/events/volumeChanged";
 
 export interface IEventPayloadMap {
     [EEvent.UserLogin]: IUserLoginEvent;
@@ -19,6 +20,7 @@ export interface IEventPayloadMap {
     [EEvent.PlaylistRenamed]: IPlaylistRenamedEvent;
     [EEvent.PlaylistDeleted]: IPlaylistDeletedEvent;
     [EEvent.MediaAddedToPlaylist]: IMediaAddedToPlaylistEvent;
+    [EEvent.MediaRemovedFromPlaylist]: IMediaRemovedFromPlaylistEvent;
     [EEvent.MediaDownloaded]: IMediaDownloadedEvent;
     [EEvent.MediaDownloadStatus]: IMediaDownloadStatus;
     [EEvent.MediaAddedToLibrary]: IMediaAddedToLibraryEvent;

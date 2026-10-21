@@ -7,6 +7,7 @@ import type {
     LibraryMediaRemovedMessage,
     MediaAddedToPlaylistMessage,
     MediaListenedMessage,
+    MediaRemovedFromPlaylistMessage,
     PlaylistCreatedMessage,
     PlaylistDeletedMessage,
     PlaylistRenamedMessage,
@@ -26,28 +27,20 @@ export interface FriendActivityMessage {
 
 export interface ListenTogetherSyncMessage {
     type: "listen_together_sync";
-    publicId: string;
-    hostPublicId: string;
-    hostUsername: string;
-    hostImageUrl: string | null;
-    guestPublicId: string;
-    guestUsername: string;
-    guestImageUrl: string | null;
-    currentMediaPublicId: string | null;
-    currentMediaName: string | null;
-    currentMediaImageUrl: string | null;
-    currentTimeMs: number;
-    isPlaying: boolean;
-    status: string;
+}
+export interface SocialChangedMessage {
+    type: "social_changed";
 }
 
 export enum EWebSocketMessage {
     DownloadProgress = "download_progress",
     FriendActivity = "friend_activity",
+    SocialChanged = "social_changed",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
     ListenTogetherSync = "listen_together_sync",
     MediaAddedToPlaylist = "media_added_to_playlist",
+    MediaRemovedFromPlaylist = "media_removed_from_playlist",
     MediaListened = "media_listened",
     PlaylistCreated = "playlist_created",
     PlaylistRenamed = "playlist_renamed",
@@ -59,12 +52,14 @@ export enum EWebSocketMessage {
 }
 
 export interface IWebSocketMessagePayloadMap {
+    [EWebSocketMessage.SocialChanged]: SocialChangedMessage;
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
     [EWebSocketMessage.FriendActivity]: FriendActivityMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
     [EWebSocketMessage.LibraryMediaRemoved]: LibraryMediaRemovedMessage;
     [EWebSocketMessage.ListenTogetherSync]: ListenTogetherSyncMessage;
     [EWebSocketMessage.MediaAddedToPlaylist]: MediaAddedToPlaylistMessage;
+    [EWebSocketMessage.MediaRemovedFromPlaylist]: MediaRemovedFromPlaylistMessage;
     [EWebSocketMessage.MediaListened]: MediaListenedMessage;
     [EWebSocketMessage.PlaylistCreated]: PlaylistCreatedMessage;
     [EWebSocketMessage.PlaylistRenamed]: PlaylistRenamedMessage;
@@ -78,10 +73,12 @@ export interface IWebSocketMessagePayloadMap {
 export type TWebSocketIncomingMessage =
     | DownloadProgressMessage
     | FriendActivityMessage
+    | SocialChangedMessage
     | LibraryMediaAddedMessage
     | LibraryMediaRemovedMessage
     | ListenTogetherSyncMessage
     | MediaAddedToPlaylistMessage
+    | MediaRemovedFromPlaylistMessage
     | MediaListenedMessage
     | PlaylistCreatedMessage
     | PlaylistRenamedMessage

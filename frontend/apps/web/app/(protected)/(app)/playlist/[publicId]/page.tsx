@@ -1,23 +1,21 @@
-import { cache, JSX } from "react";
+import { JSX } from "react";
 import { notFound } from "next/navigation";
 import {
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { getPlaylistAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";
 
-const getPlaylist = cache(
-    async (
-        publicId: string
-    ): Promise<BasePlaylistWithMediasResponse | undefined> => {
-        const playlist = await getPlaylistAsync(publicId).catch(
-            (): undefined => undefined
-        );
-        return playlist;
-    }
-);
+async function getPlaylist(
+    publicId: string
+): Promise<BasePlaylistWithMediasResponse | undefined> {
+    const playlist = await getPlaylistAsync(publicId).catch(
+        (): undefined => undefined
+    );
+    return playlist;
+}
 
 export async function generateMetadata({
     params,
@@ -64,6 +62,7 @@ export default async function PlaylistPage({
             title={playlistResponse.name}
             artists={[playlistResponse.owner]}
             media={playlistMedia}
+            listMedia={playlistResponse}
             image={playlistResponse.imageUrl}
             showMediaImage
             showMediaIndex={false}

@@ -4,6 +4,8 @@
 import { z } from "zod";
 
 export const SeekMessageRequestSchema = z.object({
+    playbackId: z.string(),
+    queueMediaId: z.number(),
     mediaPublicId: z.string(),
     timeFrom: z.number(),
     timeTo: z.number(),

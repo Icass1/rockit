@@ -86,7 +86,7 @@ def get_utc_date():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def create_id(length: int = 16):
+def create_id(length: int = 32):
 
     alphabet = [
         "a",

@@ -17,6 +17,21 @@ interface MediaRef {
 
 const MAX_DEPTH = 2;
 
+// Yield to the event loop after this many synchronous file writes so the
+// caching pass never monopolizes the single JS thread and freezes the UI.
+const YIELD_EVERY_WRITES = 25;
+
+interface NormalizeState {
+    // Media already written this pass, keyed by `${type}/${publicId}` — avoids
+    // rewriting the same song/album that appears multiple times in a response.
+    written: Set<string>;
+    writesSinceYield: number;
+}
+
+function yieldToEventLoop(): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 function isMediaObject(
     obj: unknown
 ): obj is Record<string, unknown> & MediaRef {
@@ -54,13 +69,21 @@ export function ensureMediaDirs(): void {
     }
 }
 
-function normalizeValue(value: unknown, depth: number): unknown {
+async function normalizeValue(
+    value: unknown,
+    depth: number,
+    state: NormalizeState
+): Promise<unknown> {
     if (depth > MAX_DEPTH || value === null || value === undefined) {
         return value;
     }
 
     if (Array.isArray(value)) {
-        return value.map((item) => normalizeValue(item, depth));
+        const result: unknown[] = [];
+        for (const item of value) {
+            result.push(await normalizeValue(item, depth, state));
+        }
+        return result;
     }
 
     if (typeof value === "object") {
@@ -72,13 +95,26 @@ function normalizeValue(value: unknown, depth: number): unknown {
                 if (key === "publicId" || key === "type") {
                     normalized[key] = val;
                 } else {
-                    normalized[key] = normalizeValue(val, depth + 1);
+                    normalized[key] = await normalizeValue(
+                        val,
+                        depth + 1,
+                        state
+                    );
                 }
             }
 
-            ensureDir(obj.type);
-            const file = getFile(obj.type, obj.publicId);
-            file.write(JSON.stringify(normalized));
+            const cacheKey = `${obj.type}/${obj.publicId}`;
+            if (!state.written.has(cacheKey)) {
+                state.written.add(cacheKey);
+                ensureDir(obj.type);
+                const file = getFile(obj.type, obj.publicId);
+                file.write(JSON.stringify(normalized));
+
+                if (++state.writesSinceYield >= YIELD_EVERY_WRITES) {
+                    state.writesSinceYield = 0;
+                    await yieldToEventLoop();
+                }
+            }
 
             if (depth === 0) {
                 return normalized;
@@ -88,7 +124,7 @@ function normalizeValue(value: unknown, depth: number): unknown {
 
         const result: Record<string, unknown> = {};
         for (const [key, val] of Object.entries(obj)) {
-            result[key] = normalizeValue(val, depth);
+            result[key] = await normalizeValue(val, depth, state);
         }
         return result;
     }
@@ -96,8 +132,8 @@ function normalizeValue(value: unknown, depth: number): unknown {
     return value;
 }
 
-export function normalizeAndSave(root: unknown): unknown {
-    return normalizeValue(root, 0);
+export async function normalizeAndSave(root: unknown): Promise<unknown> {
+    return normalizeValue(root, 0, { written: new Set(), writesSinceYield: 0 });
 }
 
 async function denormalizeValue(

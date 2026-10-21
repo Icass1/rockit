@@ -35,6 +35,8 @@ class DownloadRow(
         Integer, ForeignKey("core.download_status_enum.key"), nullable=False, default=1
     )
 
+    retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
     date_started: Mapped[datetime] = mapped_column(TZAwareTimestamp, nullable=False)
     date_ended: Mapped[datetime | None] = mapped_column(TZAwareTimestamp, nullable=True)
 
@@ -52,6 +54,7 @@ class DownloadRow(
         media_id: int,
         date_started: datetime,
         status_key: int = 1,
+        retry_count: int = 0,
         date_ended: datetime | None = None,
     ):
         kwargs: Dict[str, None | datetime | int | str] = {}
@@ -60,6 +63,7 @@ class DownloadRow(
         kwargs["media_id"] = media_id
         kwargs["date_started"] = date_started
         kwargs["status_key"] = status_key
+        kwargs["retry_count"] = retry_count
         kwargs["date_ended"] = date_ended
         for k, v in kwargs.items():
             setattr(self, k, v)

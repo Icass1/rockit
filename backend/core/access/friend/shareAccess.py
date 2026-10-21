@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Sequence
 
-from sqlalchemy import Result, Select, select, desc
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -40,12 +40,13 @@ class ShareAccess:
     async def get_inbox_async(
         session: AsyncSession, user_id: int
     ) -> AResult[List[SharedMediaRow]]:
-        stmt: Select = (
+        stmt = (
             select(SharedMediaRow)
             .where(SharedMediaRow.recipient_user_id == user_id)
             .order_by(desc(SharedMediaRow.date_added))
+            .limit(100)
         )
-        result: Result = await session.execute(stmt)
+        result = await session.execute(stmt)
         rows: Sequence[SharedMediaRow] = result.scalars().all()
         return AResult(code=AResultCode.OK, message="OK", result=list(rows))
 
@@ -54,12 +55,13 @@ class ShareAccess:
     async def get_sent_async(
         session: AsyncSession, user_id: int
     ) -> AResult[List[SharedMediaRow]]:
-        stmt: Select = (
+        stmt = (
             select(SharedMediaRow)
             .where(SharedMediaRow.sender_user_id == user_id)
             .order_by(desc(SharedMediaRow.date_added))
+            .limit(100)
         )
-        result: Result = await session.execute(stmt)
+        result = await session.execute(stmt)
         rows: Sequence[SharedMediaRow] = result.scalars().all()
         return AResult(code=AResultCode.OK, message="OK", result=list(rows))
 
@@ -68,10 +70,8 @@ class ShareAccess:
     async def get_share_by_public_id_async(
         session: AsyncSession, public_id: str
     ) -> AResult[SharedMediaRow]:
-        stmt: Select = select(SharedMediaRow).where(
-            SharedMediaRow.public_id == public_id
-        )
-        result: Result = await session.execute(stmt)
+        stmt = select(SharedMediaRow).where(SharedMediaRow.public_id == public_id)
+        result = await session.execute(stmt)
         row: SharedMediaRow | None = result.scalars().first()
         if row is None:
             logger.error("Shared media not found")
@@ -92,20 +92,18 @@ class ShareAccess:
     @safe_async
     async def delete_share_async(
         session: AsyncSession, share_row: SharedMediaRow
-    ) -> AResult[None]:
+    ) -> AResultCode:
         await session.delete(share_row)
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK")
+        return AResultCode(code=AResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def get_media_by_public_id_async(
         session: AsyncSession, media_public_id: str
     ) -> AResult[CoreMediaRow]:
-        stmt: Select = select(CoreMediaRow).where(
-            CoreMediaRow.public_id == media_public_id
-        )
-        result: Result = await session.execute(stmt)
+        stmt = select(CoreMediaRow).where(CoreMediaRow.public_id == media_public_id)
+        result = await session.execute(stmt)
         row: CoreMediaRow | None = result.scalars().first()
         if row is None:
             logger.error("Media not found")

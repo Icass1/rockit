@@ -74,6 +74,20 @@ export default function KeyboardHandler(): null {
                     rockIt.userManager.cycleRepeatMode();
                     break;
 
+                case ",":
+                    event.preventDefault();
+                    rockIt.mediaPlayerManager.setCurrentTime(
+                        rockIt.mediaPlayerManager.currentTime - 5
+                    );
+                    break;
+
+                case ".":
+                    event.preventDefault();
+                    rockIt.mediaPlayerManager.setCurrentTime(
+                        rockIt.mediaPlayerManager.currentTime + 5
+                    );
+                    break;
+
                 case "Escape":
                     rockIt.playerUIManager.hide();
                     break;

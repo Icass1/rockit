@@ -1,7 +1,7 @@
 from logging import Logger
-from typing import Dict, List, Tuple, cast
+from typing import Dict, List, Set, Tuple, cast
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -204,4 +204,69 @@ class LyricsAccess:
             return AResult(
                 code=AResultCode.GENERAL_ERROR,
                 message="Error updating timestamp",
+            )
+
+    @staticmethod
+    async def commit_async(
+        session: AsyncSession,
+    ) -> AResult[bool]:
+        """Commit the current session transaction."""
+
+        try:
+            await session.commit()
+            return AResult(code=AResultCode.OK, message="OK", result=True)
+        except Exception as e:
+            logger.error(f"Error committing session: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Error committing session"
+            )
+
+    @staticmethod
+    async def get_spotify_tracks_for_lyrics_import_async(
+        session: AsyncSession,
+    ) -> AResult[List[Tuple[int, str, int, str, str]]]:
+        """Get Spotify tracks with album and artist names for lyrics import."""
+
+        try:
+            rows = await session.execute(text("""
+                SELECT DISTINCT ON (t.id)
+                    t.id,
+                    t.name,
+                    t.duration_ms,
+                    al.name AS album_name,
+                    a.name AS artist_name
+                FROM spotify.track t
+                JOIN spotify.album al ON al.id = t.album_id
+                JOIN spotify.track_artist ta ON ta.track_id = t.id
+                JOIN spotify.artist a ON a.id = ta.artist_id
+                ORDER BY t.id, ta.artist_id
+            """))
+            result: List[Tuple[int, str, int, str, str]] = [
+                (r[0], r[1], r[2], r[3], r[4]) for r in rows
+            ]
+            return AResult(code=AResultCode.OK, message="OK", result=result)
+        except Exception as e:
+            logger.error(f"Error getting spotify tracks: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Error getting spotify tracks",
+            )
+
+    @staticmethod
+    async def get_existing_lyrics_media_ids_async(
+        session: AsyncSession,
+        media_ids: List[int],
+    ) -> AResult[Set[int]]:
+        """Get set of media_ids that already have lyrics."""
+
+        try:
+            stmt = select(LyricsRow.media_id).where(LyricsRow.media_id.in_(media_ids))
+            result = await session.execute(stmt)
+            existing: Set[int] = set(result.scalars().all())
+            return AResult(code=AResultCode.OK, message="OK", result=existing)
+        except Exception as e:
+            logger.error(f"Error getting existing lyrics: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Error getting existing lyrics",
             )

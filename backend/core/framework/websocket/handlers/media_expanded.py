@@ -26,7 +26,7 @@ async def handle_media_expanded(
     sender_websocket: WebSocket | None = None,
 ) -> None:
     expanded_msg = MediaExpandedMessageRequest(**data)
-    logger.info(
+    logger.debug(
         f"User {user_id} media expanded: {expanded_msg.mediaPublicId} "
         f"in playlist {expanded_msg.playlistPublicId}: {expanded_msg.expanded}"
     )

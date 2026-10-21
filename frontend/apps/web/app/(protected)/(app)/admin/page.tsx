@@ -7,7 +7,7 @@ import AdminClient from "@/components/Admin/AdminClient";
 export default async function AdminPage(): Promise<JSX.Element> {
     const user = await getUserInServer();
 
-    if (!user) redirect("/login");
+    if (!user || user === "offline") redirect("/login");
     if (!user.admin) redirect("/");
 
     const result = await Http.getAllBuilds();

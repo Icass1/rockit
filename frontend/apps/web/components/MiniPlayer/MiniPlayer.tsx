@@ -3,11 +3,12 @@
 import type { JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { EQueueType } from "@rockit/packages/shared";
+import { EQueueType } from "@rockit/shared";
 import { Pause, Play, Shuffle, SkipBack, SkipForward } from "lucide-react";
 import { getMediaArtists, getMediaDuration } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
+import Bookmarks from "@/components/Bookmark/Bookmarks";
 
 export default function MiniPlayer(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
@@ -22,23 +23,25 @@ export default function MiniPlayer(): JSX.Element {
         <div
             className={`fixed right-0 left-0 z-30 flex flex-col transition-all md:hidden ${
                 hasMedia
-                    ? "bottom-[calc(56px+env(safe-area-inset-bottom,0px))] opacity-100"
+                    ? "bottom-[calc(56px+env(safe-area-inset-bottom,0px)+12px)] opacity-100"
                     : "pointer-events-none bottom-0 opacity-0"
             }`}
         >
             {$currentMedia && (
                 <>
-                    <div className="flex h-7 items-center gap-1 bg-[#1a1a1a]/95 px-2">
+                    <div className="flex h-7 items-center gap-1 bg-(--color-elevated)/95 px-2">
                         <span className="w-8 text-[10px] text-neutral-400 tabular-nums">
                             {getTime($currentTime ?? 0)}
                         </span>
                         <div className="relative h-1 flex-1 rounded-full bg-neutral-700">
                             <div
-                                className="absolute top-0 left-0 h-full rounded-full bg-linear-to-r from-[#ee1086] to-[#fb6467]"
+                                className="absolute top-0 left-0 h-full rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light)"
                                 style={{
                                     width: `${Math.min(100, Math.max(0, (($currentTime ?? 0) / (getMediaDuration($currentMedia) ?? 1)) * 100))}%`,
                                 }}
                             />
+                            {/* Bookmark markers */}
+                            <Bookmarks />
                             <input
                                 type="range"
                                 min={0}
@@ -67,7 +70,7 @@ export default function MiniPlayer(): JSX.Element {
                         </span>
                     </div>
 
-                    <div className="flex h-14 items-center gap-2 border-t border-neutral-800 bg-[#1a1a1a]/95 px-2 backdrop-blur-md">
+                    <div className="flex h-14 items-center gap-2 border-t border-neutral-800 bg-(--color-elevated)/95 px-2 backdrop-blur-md">
                         <Image
                             width={36}
                             height={36}
@@ -93,7 +96,7 @@ export default function MiniPlayer(): JSX.Element {
                                 className="flex h-9 w-9 items-center justify-center"
                             >
                                 <Shuffle
-                                    className={`h-5 w-5 ${$queueType === EQueueType.RANDOM ? "text-[#ee1086]" : "text-neutral-400"}`}
+                                    className={`h-5 w-5 ${$queueType === EQueueType.RANDOM ? "text-(--color-rockit-pink)" : "text-neutral-400"}`}
                                 />
                             </button>
                             <button
@@ -130,9 +133,9 @@ export default function MiniPlayer(): JSX.Element {
             )}
             {$currentStation && !$currentMedia && (
                 <>
-                    <div className="flex h-7 items-center bg-[#1a1a1a]/95 px-2" />
+                    <div className="flex h-7 items-center bg-(--color-elevated)/95 px-2" />
 
-                    <div className="flex h-14 items-center gap-2 border-t border-neutral-800 bg-[#1a1a1a]/95 px-2 backdrop-blur-md">
+                    <div className="flex h-14 items-center gap-2 border-t border-neutral-800 bg-(--color-elevated)/95 px-2 backdrop-blur-md">
                         <Image
                             width={36}
                             height={36}

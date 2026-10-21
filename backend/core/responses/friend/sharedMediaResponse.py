@@ -9,6 +9,8 @@ class SharedMediaItem(BaseModel):
     senderPublicId: str
     senderUsername: str
     senderImageUrl: str | None = None
+    recipientPublicId: str
+    recipientUsername: str
     mediaPublicId: str
     mediaName: str
     mediaImageUrl: str | None = None

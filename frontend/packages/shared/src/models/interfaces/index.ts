@@ -1,6 +1,6 @@
-export type { Friend } from "./friend";
-export type { FriendRequest } from "./friend";
-export type { UserSearchResult } from "./friend";
-export type { LeaderboardEntry } from "./friend";
-export type { FriendActivity } from "./friend";
-export type { ListenSession } from "./listenTogether";
+export type { Friend } from "@/models/interfaces/friend";
+export type { FriendRequest } from "@/models/interfaces/friend";
+export type { UserSearchResult } from "@/models/interfaces/friend";
+export type { LeaderboardEntry } from "@/models/interfaces/friend";
+export type { FriendActivity } from "@/models/interfaces/friend";
+export type { ListenSession } from "@/models/interfaces/listenTogether";

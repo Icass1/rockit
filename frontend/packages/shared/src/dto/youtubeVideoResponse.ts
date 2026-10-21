@@ -11,9 +11,10 @@ export const YoutubeVideoResponseSchema = z.object({
     publicId: z.string(),
     providerUrl: z.string(),
     name: z.string(),
-    videoSrc: z.string().nullable(),
-    audioSrc: z.string().nullable(),
+    videoUrl: z.string().nullable(),
+    audioUrl: z.string().nullable(),
     imageUrl: z.string(),
+    dominantColor: z.string(),
     duration_ms: z.number().nullable(),
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     downloaded: z.boolean(),
@@ -27,7 +28,6 @@ export const YoutubeVideoResponseSchema = z.object({
     tags: z.array(z.string()).default([]),
     publishedAt: z.string().nullable(),
     video_path: z.string().nullable(),
-    audio_path: z.string().nullable(),
 });
 
 export type YoutubeVideoResponse = z.infer<typeof YoutubeVideoResponseSchema>;

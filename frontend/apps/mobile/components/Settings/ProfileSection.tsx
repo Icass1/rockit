@@ -3,8 +3,8 @@ import { COLORS } from "@/constants/theme";
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { useSettingsUser } from "@/hooks/useSettingsUser";
-import LogoutButton from "./LogoutButton";
-import StatsButton from "./StatsButton";
+import LogoutButton from "@/components/Settings/LogoutButton";
+import StatsButton from "@/components/Settings/StatsButton";
 
 export default function ProfileSection() {
     const { username, image, admin, isLoading } = useSettingsUser();

@@ -6,12 +6,16 @@ from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongs
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
+from backend.core.responses.basePlaylistWithMediasResponse import (
+    BasePlaylistWithMediasResponse,
+)
 
 AddFromUrlAResult = (
     BaseSongWithAlbumResponse
     | BaseVideoResponse
     | BaseStationResponse
     | BasePlaylistWithoutMediasResponse
+    | BasePlaylistWithMediasResponse
     | BaseAlbumWithSongsResponse
     | BaseArtistResponse
 )

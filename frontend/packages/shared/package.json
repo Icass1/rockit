@@ -13,8 +13,10 @@
     "scripts": {
         "build": "tsup",
         "dev": "tsup --watch",
+        "lint": "eslint .",
         "typecheck": "tsc --noEmit",
-        "clean": "rm -rf dist"
+        "clean": "rm -rf dist",
+        "test": "tsc --noEmit && tsup --config tests/tsup.config.ts && node .test-build/collectionTree.test.js"
     },
     "dependencies": {
         "nanostores": "^0.11.3",
@@ -24,6 +26,8 @@
     "devDependencies": {
         "@rockit/config": "workspace:*",
         "@types/node": "^22.10.5",
+        "@typescript-eslint/parser": "^8.57.1",
+        "eslint": "^9.39.4",
         "tsup": "^8.3.5",
         "typescript": "^5.7.2"
     }

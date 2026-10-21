@@ -12,7 +12,7 @@ export class SearchManager {
         this._queryAtom.set(query);
         this._searchingAtom.set(true);
 
-        const res = await Http.search({ query });
+        const res = await Http.searchAsync({ query });
 
         this._searchingAtom.set(false);
 

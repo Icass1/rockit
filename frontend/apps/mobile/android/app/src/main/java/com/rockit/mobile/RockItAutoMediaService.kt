@@ -5,8 +5,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
@@ -14,6 +20,7 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.app.NotificationCompat as MediaNotificationCompat
@@ -27,6 +34,9 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     private val notificationManager by lazy {
         getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     }
+    private val audioManager by lazy {
+        getSystemService(AUDIO_SERVICE) as AudioManager
+    }
     private val executor = Executors.newSingleThreadExecutor()
     private var currentArtwork: Bitmap? = null
     private var lastArtworkUrl: String? = null
@@ -34,9 +44,52 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     @Volatile
     private var isForeground = false
 
+    // Set once the user hits the notification's Stop action or removes the
+    // app task. Guards against a late, in-flight
+    // MediaStateManager change (e.g. the JS round-trip from safeEmit("stop"))
+    // resurrecting the notification while the service is tearing down.
+    @Volatile
+    private var isStopped = false
+
     private val stateChangeListener: () -> Unit = { updateSession() }
+    private val knownOutputIds = mutableSetOf<Int>()
+
+    private fun pauseForOutputChange() {
+        if (MediaStateManager.isPlaying) {
+            RockItMediaModule.emitEvent("audioOutputChanged", null)
+        }
+    }
+
+    // AudioDeviceCallback first reports devices that were already connected.
+    // Seed their IDs before registering so startup does not pause playback.
+    private val audioDeviceCallback = object : AudioDeviceCallback() {
+        override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
+            var changed = false
+            addedDevices.filter { it.isSink }.forEach {
+                if (knownOutputIds.add(it.id)) changed = true
+            }
+            if (changed) pauseForOutputChange()
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
+            var changed = false
+            removedDevices.filter { it.isSink }.forEach {
+                if (knownOutputIds.remove(it.id)) changed = true
+            }
+            if (changed) pauseForOutputChange()
+        }
+    }
+
+    private val noisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                pauseForOutputChange()
+            }
+        }
+    }
 
     companion object {
+        private const val TAG = "RockItAutoMediaService"
         private const val ROOT_ID = "root"
         private const val QUEUE_ID = "queue"
         const val CHANNEL_ID = "rockit_playback"
@@ -59,12 +112,49 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         sessionToken = mediaSession.sessionToken
 
         MediaStateManager.addChangeListener(stateChangeListener)
+        registerReceiver(noisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            knownOutputIds.addAll(
+                audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).map { it.id }
+            )
+            audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
+        }
         updateSession()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         return START_NOT_STICKY
+    }
+
+    // The service is only ever started when playback begins (see
+    // RockItMediaModule.startMediaService) and previously had no way to stop
+    // itself: swiping the app from recents doesn't kill a foreground
+    // service's process, so playback (and the notification) would run
+    // forever with no stop control once the app was closed. Tapping the
+    // notification's Stop action, or removing the app while already paused,
+    // now tears the service down.
+    private fun stopPlaybackAndService() {
+        if (isStopped) return
+        isStopped = true
+        MediaStateManager.clear()
+        mediaSession.setMetadata(null)
+        mediaSession.setQueue(null)
+        mediaSession.isActive = false
+        stopForeground(true)
+        notificationManager.cancel(NOTIFICATION_ID)
+        isForeground = false
+        stopSelf()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        // Backgrounding the app does not remove its task, so playback keeps
+        // running when the user merely switches apps or locks the device.
+        // Swiping the task away is an explicit close: tell the JS player to
+        // release its audio/video sources, then clear the native media session.
+        SessionCallback().emitStop()
+        stopPlaybackAndService()
     }
 
     private fun createNotificationChannel() {
@@ -98,7 +188,18 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         mediaSession.setMetadata(builder.build())
     }
 
+    // Wrapped defensively: this runs on every MediaStateManager change (including
+    // ones triggered directly by OS/Bluetooth transport controls), so an
+    // unexpected exception here would otherwise crash the whole app process.
     private fun updateSession() {
+        try {
+            updateSessionInternal()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update media session", e)
+        }
+    }
+
+    private fun updateSessionInternal() {
         applyMetadata()
 
         val stateCode = if (MediaStateManager.isPlaying)
@@ -115,7 +216,8 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
                 PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
                 PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
                 PlaybackStateCompat.ACTION_SEEK_TO or
-                PlaybackStateCompat.ACTION_SKIP_TO_QUEUE_ITEM
+                PlaybackStateCompat.ACTION_SKIP_TO_QUEUE_ITEM or
+                PlaybackStateCompat.ACTION_STOP
             )
             .build()
         mediaSession.setPlaybackState(playbackState)
@@ -143,8 +245,12 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
                     } catch (_: Exception) {
                         currentArtwork = null
                     }
-                    applyMetadata()
-                    postNotification()
+                    try {
+                        applyMetadata()
+                        postNotification()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to apply artwork metadata", e)
+                    }
                 }
             } else {
                 currentArtwork = null
@@ -157,6 +263,7 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     }
 
     private fun postNotification() {
+        if (isStopped) return
         if (MediaStateManager.title.isEmpty()) return
 
         val notification = buildNotification()
@@ -187,6 +294,9 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         val nextIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
             this, PlaybackStateCompat.ACTION_SKIP_TO_NEXT
         )
+        val stopIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
+            this, PlaybackStateCompat.ACTION_STOP
+        )
 
         val playPauseIcon = if (isPlaying)
             android.R.drawable.ic_media_pause
@@ -207,6 +317,7 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
             .addAction(android.R.drawable.ic_media_previous, "Previous", prevIntent)
             .addAction(playPauseIcon, if (isPlaying) "Pause" else "Play", playPauseIntent)
             .addAction(android.R.drawable.ic_media_next, "Next", nextIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", stopIntent)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
             .build()
@@ -251,19 +362,34 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
     }
 
     inner class SessionCallback : MediaSessionCompat.Callback() {
-        override fun onPlay() = emit("play", null)
-        override fun onPause() = emit("pause", null)
-        override fun onSkipToNext() = emit("next", null)
-        override fun onSkipToPrevious() = emit("previous", null)
-        override fun onSeekTo(pos: Long) = emit("seekTo", pos.toDouble() / 1000.0)
+        override fun onPlay() = safeEmit("play", null)
+        override fun onPause() = safeEmit("pause", null)
+        override fun onSkipToNext() = safeEmit("next", null)
+        override fun onSkipToPrevious() = safeEmit("previous", null)
+        override fun onSeekTo(pos: Long) = safeEmit("seekTo", pos.toDouble() / 1000.0)
 
         override fun onSkipToQueueItem(id: Long) {
-            emit("skipToIndex", id.toInt())
+            safeEmit("skipToIndex", id.toInt())
         }
 
-        private fun emit(command: String, data: Any?) {
-            RockItMediaModule.emitEvent("autoCommand", command)
-            if (data != null) RockItMediaModule.emitEvent("autoCommandData_$command", data)
+        override fun onStop() {
+            emitStop()
+            stopPlaybackAndService()
+        }
+
+        fun emitStop() = safeEmit("stop", null)
+
+        // Invoked directly by the OS (lock screen, notification, Bluetooth AVRCP,
+        // and the Quick Settings expanded media panel) via Binder, on the app's
+        // main process — an uncaught exception here crashes the whole app, not
+        // just the calling UI, so every command is defensively caught and logged.
+        private fun safeEmit(command: String, data: Any?) {
+            try {
+                RockItMediaModule.emitEvent("autoCommand", command)
+                if (data != null) RockItMediaModule.emitEvent("autoCommandData_$command", data)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to handle media session command: $command", e)
+            }
         }
     }
 
@@ -271,6 +397,10 @@ class RockItAutoMediaService : MediaBrowserServiceCompat() {
         super.onDestroy()
         executor.shutdownNow()
         MediaStateManager.removeChangeListener(stateChangeListener)
+        unregisterReceiver(noisyReceiver)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
+        }
         mediaSession.release()
     }
 }

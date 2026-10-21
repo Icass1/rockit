@@ -172,7 +172,6 @@ async def get_liked_playlist_async(
         code=AResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
-            type="playlist",
             description=None,
             provider=Core.provider_name,
             publicId="liked",
@@ -188,6 +187,7 @@ async def get_liked_playlist_async(
                 providerUrl="",
                 name="Rock It!",
                 imageUrl="",
+                dominantColor="",
             ),
             medias=a_result_items.result(),
         ),
@@ -247,6 +247,7 @@ async def get_most_listened_playlist_async(
                 providerUrl="",
                 name="Rock It!",
                 imageUrl="",
+                dominantColor="",
             ),
             medias=a_result_items.result(),
         ),
@@ -257,10 +258,17 @@ async def get_recent_mix_playlist_async(
     session: AsyncSession,
     user_id: int,
 ) -> AResult[BasePlaylistWithMediasResponse]:
-    a_result_ids: AResult[List[str]] = (
-        await StatsAccess.get_recently_played_media_public_ids_async(
-            session=session, user_id=user_id, limit=50
-        )
+    from datetime import timedelta
+
+    end_date = datetime.now(timezone.utc)
+    start_date = end_date - timedelta(days=14)
+
+    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+        session=session,
+        user_id=user_id,
+        start_date=start_date,
+        end_date=end_date,
+        limit=50,
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting recent media. {a_result_ids.info()}")
@@ -299,6 +307,7 @@ async def get_recent_mix_playlist_async(
                 providerUrl="",
                 name="Rock It!",
                 imageUrl="",
+                dominantColor="",
             ),
             medias=a_result_items.result(),
         ),
@@ -361,6 +370,7 @@ async def get_last_month_playlist_async(
                 providerUrl="",
                 name="Rock It!",
                 imageUrl="",
+                dominantColor="",
             ),
             medias=a_result_items.result(),
         ),
@@ -382,7 +392,7 @@ async def get_year_recap_playlist_async(
         user_id=user_id,
         start_date=start_date,
         end_date=end_date,
-        limit=100,
+        limit=0,
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
@@ -421,6 +431,7 @@ async def get_year_recap_playlist_async(
                 providerUrl="",
                 name="Rock It!",
                 imageUrl="",
+                dominantColor="",
             ),
             medias=a_result_items.result(),
         ),

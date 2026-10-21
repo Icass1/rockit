@@ -15,8 +15,13 @@ export const YoutubeMusicAlbumResponseSchema = z.object({
     artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
     releaseDate: z.string(),
     imageUrl: z.string(),
+    dominantColor: z.string(),
     undownloadedCount: z.number().default(0),
     songs: z.array(z.lazy(() => BaseSongWithoutAlbumResponseSchema)),
+    offset: z.number().default(0),
+    limit: z.number().default(100),
+    total: z.number().default(0),
+    hasMore: z.boolean().default(false),
     youtubeId: z.string(),
     year: z.number().nullable(),
 });

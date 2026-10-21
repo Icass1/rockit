@@ -1,6 +1,6 @@
 from typing import Dict, List, TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import ForeignKey, Integer, String, Index
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -18,7 +18,22 @@ if TYPE_CHECKING:
 
 class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
     __tablename__ = "song"
-    __table_args__ = ({"schema": "rockit", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_collection_rockit_album_order",
+            "album_id",
+            "disc_number",
+            "track_number",
+            "id",
+        ),
+        Index(
+            "ix_rockit_song_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "rockit", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True
@@ -35,7 +50,7 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    album: Mapped["RockitAlbumRow"] = relationship(
+    album: Mapped["RockitAlbumRow | None"] = relationship(
         "RockitAlbumRow", back_populates="songs"
     )
 

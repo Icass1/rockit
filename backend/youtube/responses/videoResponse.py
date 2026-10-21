@@ -15,4 +15,3 @@ class YoutubeVideoResponse(BaseVideoResponse):
     tags: List[str] = []
     publishedAt: Optional[str] = None
     video_path: Optional[str] = None
-    audio_path: Optional[str] = None

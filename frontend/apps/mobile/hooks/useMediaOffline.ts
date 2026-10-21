@@ -6,14 +6,17 @@ import {
 } from "@rockit/shared";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 
-export function useMediaOffline(publicId: string): boolean {
-    const [isOffline, setIsOffline] = useState(false);
+export function useMediaOffline(publicId: string): boolean | undefined {
+    const [isOffline, setIsOffline] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
         let cancelled = false;
 
-        mediaStorage.getSongUri(publicId).then((uri) => {
-            if (!cancelled) setIsOffline(uri !== null);
+        Promise.all([
+            mediaStorage.getSongUri(publicId),
+            mediaStorage.getVideoUri(publicId),
+        ]).then(([songUri, videoUri]) => {
+            if (!cancelled) setIsOffline(!!songUri || !!videoUri);
         });
 
         return () => {

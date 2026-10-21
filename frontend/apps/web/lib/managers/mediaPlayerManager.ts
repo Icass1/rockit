@@ -1,365 +1,640 @@
 import {
-    EWebSocketMessage,
-    getMediaAudioSrc,
-    getMediaVideoSrc,
+    BaseMediaPlayerManager,
+    createAtom,
+    getMediaAlbum,
+    getMediaAudioUrl,
+    getMediaVideoUrl,
+    getRockIt,
     isSong,
-    isStation,
     isVideo,
-    resolveNextOnEnd,
-    resolveOnMediaError,
-    TPlayableMedia,
+    type ReadonlyAtom,
+    type TMediaKind,
+    type TPlayableMedia,
 } from "@rockit/shared";
-import { EQueueAction } from "@/models/enums/queueAction";
-import { rockIt } from "@/lib/rockit/rockIt";
-import { createAtom, ReadonlyAtom } from "@/lib/store";
+import type {
+    TransitionEnergySample,
+    WebTransitionSettings,
+} from "@/models/types/transitions";
+import {
+    DEFAULT_TRANSITIONS,
+    transitionDuration,
+    TransitionMixer,
+} from "@/lib/audio/transitionMixer";
+import { resolveOfflineAudioUrl } from "@/lib/offline/store";
 
-const WS_TIME_SYNC_INTERVAL_MS = 1000;
+let _visibilityBound = false;
 
-export class MediaPlayerManager {
+/**
+ * Web media player: implements the shared BaseMediaPlayerManager primitives
+ * against HTML <audio>/<video> elements. All playback/queue orchestration lives
+ * in the base class.
+ */
+export class MediaPlayerManager extends BaseMediaPlayerManager {
     static #instance: MediaPlayerManager;
+
+    private static _isiOS(): boolean {
+        return (
+            typeof navigator !== "undefined" &&
+            (/iPad|iPhone|iPod/.test(navigator.userAgent ?? "") ||
+                (navigator.platform === "MacIntel" &&
+                    navigator.maxTouchPoints > 1))
+        );
+    }
 
     private _audio?: HTMLAudioElement;
     private _video?: HTMLVideoElement;
     private _videoContainer?: HTMLDivElement;
+    private _preloadAudio?: HTMLAudioElement;
+    private _preloadedUri?: string;
+    private _preloadedForQueueMediaId?: number;
+    private _endedPollTimer?: ReturnType<typeof setInterval>;
+    private _lastEndedTime = 0;
 
-    private _playingAtom = createAtom<boolean>(false);
-    private _loadingAtom = createAtom<boolean>(false);
-    private _currentTimeAtom = createAtom<number>(0);
-    private _volumeAtom = createAtom<number>(1);
-    private _crossFadeAtom = createAtom<number>(0);
-
-    private _muted = false;
-    private _mutePreviousVolume?: number;
-    private _lastWsSyncTime = 0;
-    private _isSeeking = false;
-    private _seekFrom: number = 0;
+    private _transitionSettings = createAtom<WebTransitionSettings>({
+        ...DEFAULT_TRANSITIONS,
+    });
+    private _mixer = new TransitionMixer();
+    private _energy: TransitionEnergySample[] = [];
+    private _outgoing?: HTMLAudioElement;
+    private _promotionQueueId?: number;
+    private _promotionUri?: string;
+    private _preserveTailPause = false;
+    private _blendStarted = false;
+    private _transitionTimer?: ReturnType<typeof setInterval>;
+    private _blendTimer?: ReturnType<typeof setTimeout>;
+    private _preloadGeneration = 0;
+    private _settingsInitialized = false;
 
     constructor() {
+        super();
+
         if (typeof window === "undefined") return;
         if (MediaPlayerManager.#instance) return MediaPlayerManager.#instance;
 
-        this._audio = new Audio();
-        this._audio.preload = "auto";
-
-        this._audio.onplaying = (): void => this._playingAtom.set(true);
-        this._audio.onpause = (): void => this._playingAtom.set(false);
-        this._audio.onplay = (): void => this._playingAtom.set(true);
-        this._audio.onloadstart = (): void => this._loadingAtom.set(true);
-        this._audio.onloadeddata = (): void => this._loadingAtom.set(false);
-        this._audio.ontimeupdate = (): void => this._handleTimeUpdate();
-        this._audio.onended = (): void => this._handleEnded();
-        this._audio.onerror = (e): void => {
-            console.error("MediaPlayerManager: audio error", e);
-            this._handleMediaError();
-        };
+        this._audio = this._createAudio();
 
         this._video = document.createElement("video");
-        this._video.preload = "auto";
+        this._video.preload = "metadata";
         this._video.setAttribute("playsInline", "");
         this._video.setAttribute("webkit-playsinline", "");
 
-        this._video.onplaying = (): void => this._playingAtom.set(true);
-        this._video.onpause = (): void => this._playingAtom.set(false);
-        this._video.onplay = (): void => this._playingAtom.set(true);
-        this._video.onloadstart = (): void => this._loadingAtom.set(true);
-        this._video.onloadeddata = (): void => this._loadingAtom.set(false);
-        this._video.ontimeupdate = (): void => this._handleTimeUpdate();
-        this._video.onended = (): void => this._handleEnded();
-        this._video.onerror = (e): void => {
-            console.error("MediaPlayerManager: video error", e);
-            this._handleMediaError();
+        this._video.onplaying = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
+                this.onNativePlaying();
         };
+        this._video.onpause = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
+                this.onNativePaused();
+        };
+        this._video.onloadstart = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
+                this.onNativeLoadStart();
+        };
+        this._video.onloadeddata = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                "video"
+            )
+                this.onNativeLoaded();
+        };
+        this._video.ontimeupdate = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "video"
+            )
+                return;
+            this.onNativeTimeUpdate(this._video?.currentTime ?? 0);
+        };
+        this._video.onended = (): void => {
+            if (
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "video"
+            )
+                return;
+            this.onNativeEnded();
+        };
+        this._video.onerror = (e): void => {
+            // A failed picture must not skip otherwise playable background audio.
+            if (!this._usesAudioForVideo()) this.onNativeError(e);
+        };
+
+        this._preloadAudio = this._createAudio();
+        this._preloadAudio.preload = "metadata";
+        this._preloadAudio.muted = true;
+        this._preloadAudio.volume = 0;
+
+        if (typeof document !== "undefined" && !_visibilityBound) {
+            _visibilityBound = true;
+            document.addEventListener("visibilitychange", (): void => {
+                if (this._usesAudioForVideo()) {
+                    if (document.hidden) this._switchToBackgroundAudio();
+                    else this._restoreForegroundVideo();
+                }
+                if (!document.hidden) {
+                    this.activateTransitionsOnGesture();
+                    void this.preloadNextTrack();
+                    this._stopEndedPoll();
+                } else if (MediaPlayerManager._isiOS()) {
+                    this._startEndedPoll();
+                }
+            });
+        }
 
         MediaPlayerManager.#instance = this;
 
         return MediaPlayerManager.#instance;
     }
 
-    init(): void {
-        rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.CurrentTime,
-            (data): void => {
-                this._currentTimeAtom.set(data.currentTimeMs / 1000);
+    private _createAudio(): HTMLAudioElement {
+        const el = new Audio();
+        el.preload = "metadata";
+        el.onplaying = (): void => {
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            this.onNativePlaying();
+            if (!el.paused && this._playingAtom.get()) this._startBlend();
+        };
+        el.onpause = (): void => {
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            this.onNativePaused();
+            if (!this._preserveTailPause) this._cancelTransition();
+            if (this._usesAudioForVideo()) this._video?.pause();
+        };
+        el.onloadstart = (): void => {
+            if (
+                el === this._audio &&
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                    "audio"
+            )
+                this.onNativeLoadStart();
+        };
+        el.onloadeddata = (): void => {
+            if (
+                el === this._audio &&
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                    "audio"
+            )
+                this.onNativeLoaded();
+        };
+        el.ontimeupdate = (): void => {
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            this.onNativeTimeUpdate(el.currentTime);
+            this._transitionTick();
+        };
+        el.onended = (): void => {
+            if (el === this._outgoing) {
+                this._cancelTransition();
+                return;
             }
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            const now = Date.now();
+            if (now - this._lastEndedTime < 500) return;
+            this._lastEndedTime = now;
+            this._stopEndedPoll();
+            this.onNativeEnded();
+        };
+        el.onerror = (error): void => {
+            if (el === this._audio) {
+                this._cancelTransition();
+                if (this._mixer.has(el)) {
+                    // A stream may support native playback but reject CORS or
+                    // Web Audio routing. Retry once on a fresh native element;
+                    // disconnecting a MediaElementSource cannot undo routing.
+                    const uri = el.src,
+                        position = el.currentTime;
+                    el.pause();
+                    this._mixer.reset(el, false);
+                    el.removeAttribute("src");
+                    el.load();
+                    const native = this._createAudio();
+                    const playbackId = this._playbackId;
+                    this._audio = native;
+                    native.volume = this._volumeAtom.get();
+                    native.onloadedmetadata = (): void => {
+                        if (
+                            this._audio !== native ||
+                            this._playbackId !== playbackId
+                        )
+                            return;
+                        native.currentTime = position;
+                        if (this._playRequested) this.play();
+                    };
+                    native.src = uri;
+                    return;
+                }
+                this.onNativeError(error);
+            }
+        };
+        el.onwaiting = (): void => {
+            // An initial seek/play can emit waiting before the prepared deck
+            // starts. Retain the tail until playing; abort only an audible mix.
+            if (el === this._audio && this._blendStarted)
+                this._cancelTransition();
+        };
+        return el;
+    }
+
+    initializeTransitionSettings(): void {
+        if (this._settingsInitialized || typeof window === "undefined") return;
+        this._settingsInitialized = true;
+        try {
+            const raw: unknown = JSON.parse(
+                window.localStorage.getItem("rockit-web-transitions-v1") ??
+                    "null"
+            );
+            if (raw && typeof raw === "object") {
+                const value = raw as Partial<WebTransitionSettings>;
+                this.configureTransitions({
+                    enabled: value.enabled === true,
+                    maxSeconds:
+                        typeof value.maxSeconds === "number"
+                            ? value.maxSeconds
+                            : 3.5,
+                    preserveAlbum: value.preserveAlbum !== false,
+                });
+            }
+        } catch {
+            /* Storage is optional. */
+        }
+    }
+
+    configureTransitions(settings: Partial<WebTransitionSettings>): void {
+        const current = this._transitionSettings.get();
+        const next = { ...current, ...settings };
+        next.maxSeconds = Number.isFinite(next.maxSeconds)
+            ? Math.max(0.8, Math.min(3.5, next.maxSeconds))
+            : 3.5;
+        this._transitionSettings.set(next);
+        this._cancelTransition();
+        if (next.enabled) this.activateTransitionsOnGesture();
+        if (typeof window !== "undefined") {
+            try {
+                window.localStorage.setItem(
+                    "rockit-web-transitions-v1",
+                    JSON.stringify(next)
+                );
+            } catch {
+                /* Storage is optional. */
+            }
+        }
+    }
+
+    activateTransitionsOnGesture(): void {
+        if (this._transitionSettings.get().enabled) this._mixer.activate();
+    }
+
+    get transitionSettingsAtom(): ReadonlyAtom<WebTransitionSettings> {
+        return this._transitionSettings.getReadonlyAtom();
+    }
+
+    protected override pauseForMediaChange(): void {
+        this._preserveTailPause =
+            this._promotionQueueId !== undefined &&
+            this._promotionQueueId ===
+                getRockIt().queueManager.currentQueueMediaId;
+        try {
+            super.pauseForMediaChange();
+        } finally {
+            this._preserveTailPause = false;
+        }
+    }
+
+    override async setMedia(
+        useSavedCurrentTime = false,
+        remotePlaybackId?: string,
+        remoteTimeMs = 0,
+        isPlaybackOwner = false
+    ): Promise<void> {
+        if (
+            this._outgoing &&
+            (this._promotionQueueId !==
+                getRockIt().queueManager.currentQueueMediaId ||
+                (remotePlaybackId !== undefined &&
+                    remotePlaybackId !== this._playbackId))
+        )
+            this._cancelTransition();
+        await super.setMedia(
+            useSavedCurrentTime,
+            remotePlaybackId,
+            remoteTimeMs,
+            isPlaybackOwner
         );
     }
 
-    play(): void {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        if (isVideo(currentMedia)) {
-            this.playVideo();
-        } else if (isSong(currentMedia)) {
-            this.playAudio();
-        } else if (isStation(currentMedia)) {
-            this.playStream(getMediaAudioSrc(currentMedia) ?? "");
+    override pause(): void {
+        if (!this._preserveTailPause) this._cancelTransition();
+        super.pause();
+        if (this._transitionTimer) {
+            clearInterval(this._transitionTimer);
+            this._transitionTimer = undefined;
         }
     }
 
-    private playAudio(): void {
-        // console.log("MediaPlayerManager.playVideo", this._audio);
-        if (!this._audio) return;
-        this.setAudio();
-        this._audio.play().catch((err): void => {
-            if (err.name !== "NotAllowedError") {
-                console.warn("MediaPlayerManager: play failed", err);
-            }
-        });
+    override beginSeek(): void {
+        this._cancelTransition();
+        this._energy = [];
+        super.beginSeek();
     }
 
-    private playVideo(): void {
-        // console.log("MediaPlayerManager.playVideo", this._video);
-        if (!this._video) return;
-        this.setVideo();
-        this._video.play().catch((err): void => {
-            if (err.name !== "NotAllowedError") {
-                console.warn("MediaPlayerManager: play failed", err);
-            }
-        });
+    override setCurrentTime(time: number, sendMessage = true): void {
+        this._cancelTransition();
+        super.setCurrentTime(time, sendMessage);
     }
 
-    pause(): void {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        this._video?.pause();
-        this._audio?.pause();
+    override endSeek(time: number): void {
+        this._cancelTransition();
+        super.endSeek(time);
     }
 
-    togglePlayPause(): void {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        if (isVideo(currentMedia)) {
-            if (!this._video) return;
-            if (this._video.paused) {
-                this.play();
-            } else {
-                this.pause();
-            }
-        } else if (isSong(currentMedia)) {
-            if (!this._audio) return;
-            if (this._audio.paused) {
-                this.play();
-            } else {
-                this.pause();
-            }
+    private _cancelTransition(): void {
+        const old = this._outgoing;
+        this._outgoing = undefined;
+        this._promotionQueueId = undefined;
+        this._promotionUri = undefined;
+        this._blendStarted = false;
+        if (this._blendTimer) clearTimeout(this._blendTimer);
+        this._blendTimer = undefined;
+        if (old) {
+            old.pause();
+            this._mixer.reset(old, false);
+            old.removeAttribute("src");
+            old.load();
         }
+        if (this._audio) this._mixer.reset(this._audio, true);
+        if (old && this._transitionSettings.get().enabled)
+            void this.preloadNextTrack();
     }
 
-    togglePlayPauseOrSetMedia(): void {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        this.setMedia();
-        if (isVideo(currentMedia)) {
-            if (!this._video) return;
-            if (this._video.paused) {
-                this.play();
-            } else {
-                this.pause();
-            }
-        } else {
-            if (!this._audio) return;
-            if (this._audio.paused) {
-                this.play();
-            } else {
-                this.pause();
-            }
+    private _startBlend(): void {
+        const old = this._outgoing,
+            current = this._audio;
+        if (!old || !current || this._blendStarted) return;
+        this._blendStarted = true;
+        const remaining = old.duration - old.currentTime;
+        if (!this._mixer.blend(old, current, remaining)) {
+            this._cancelTransition();
+            return;
         }
+        this._blendTimer = setTimeout(
+            (): void => {
+                this._cancelTransition();
+            },
+            remaining * 1000 + 50
+        );
     }
 
-    playStream(url: string): void {
-        if (!this._audio) return;
-        this._audio.src = url;
-        this._audio.currentTime = 0;
-        this._audio.volume = this._volumeAtom.get();
-        this._audio
-            .play()
-            .catch((err): void =>
-                console.warn("MediaPlayerManager: stream failed", err)
+    private _transitionTick(): void {
+        const audio = this._audio,
+            settings = this._transitionSettings.get();
+        if (
+            !audio ||
+            audio.paused ||
+            !settings.enabled ||
+            !this._syncOwner ||
+            !this._playRequested ||
+            this._isSeeking ||
+            this._loadingPlayback ||
+            !this._mixer.running
+        )
+            return;
+        const media = getRockIt().queueManager.currentMedia;
+        if (!media || !isSong(media) || !this._mixer.has(audio)) return;
+        const time = audio.currentTime,
+            duration = audio.duration;
+        if (!Number.isFinite(duration) || duration < 20) return;
+        const last = this._energy[this._energy.length - 1];
+        if (!last || time - last.time >= 0.2) {
+            this._energy.push({ time, rms: this._mixer.rms(audio) });
+            this._energy = this._energy
+                .filter((sample): boolean => sample.time >= time - 24)
+                .slice(-128);
+        }
+        if (this._outgoing) {
+            if (this._outgoing.ended) this._cancelTransition();
+            return;
+        }
+        const remaining = duration - time;
+        if (remaining > settings.maxSeconds || remaining < 0.15) return;
+        const queue = getRockIt().queueManager;
+        const next = queue.peekNextQueueItem();
+        if (
+            !next ||
+            next.queueMediaId === queue.currentQueueMediaId ||
+            !isSong(next.media) ||
+            !next.media.downloaded ||
+            getRockIt().userManager.repeatModeAtom.get() === "ONE"
+        )
+            return;
+        if (settings.preserveAlbum) {
+            const a = getMediaAlbum(media),
+                b = getMediaAlbum(next.media);
+            if (a && b && a.publicId === b.publicId) return;
+        }
+        const seconds = transitionDuration(
+            this._energy,
+            duration,
+            time,
+            settings.maxSeconds
+        );
+        const incoming = this._preloadAudio;
+        if (
+            remaining > seconds ||
+            !incoming ||
+            this._preloadedForQueueMediaId !== next.queueMediaId ||
+            !this._preloadedUri ||
+            incoming.readyState < 3 ||
+            !this._mixer.has(incoming)
+        )
+            return;
+        // Do not promote an element that would immediately stall on its intro.
+        if (
+            !incoming.buffered.length ||
+            incoming.buffered.start(0) > 0.05 ||
+            incoming.buffered.end(0) < Math.min(4, incoming.duration)
+        )
+            return;
+        this._outgoing = audio;
+        this._promotionQueueId = next.queueMediaId;
+        this._promotionUri = this._preloadedUri;
+        this._audio = incoming;
+        this._preloadAudio = audio;
+        incoming.muted = false;
+        this._preloadedUri = undefined;
+        this._preloadedForQueueMediaId = undefined;
+        this._energy = [];
+        this._lastEndedTime = Date.now();
+        // The normal base handoff owns queue identity, media-ended and the
+        // server grant. Incoming remains silent/paused until that grant arrives.
+        this.onNativeEnded();
+    }
+
+    // ===== Offline URI resolution =====
+
+    private _usesAudioForVideo(
+        media = getRockIt().queueManager.currentMedia
+    ): boolean {
+        return (
+            MediaPlayerManager._isiOS() &&
+            !!media &&
+            isVideo(media) &&
+            !!getMediaAudioUrl(media)
+        );
+    }
+
+    protected override _effectiveKind(
+        media: TPlayableMedia | undefined
+    ): TMediaKind {
+        // Use the video deck in the foreground for native A/V synchronization.
+        // Switch to the audio deck before iOS backgrounds/suspends the page.
+        return this._usesAudioForVideo(media) && document.hidden
+            ? "audio"
+            : super._effectiveKind(media);
+    }
+
+    protected override async afterMediaLoadedAsync(
+        media: TPlayableMedia
+    ): Promise<void> {
+        if (!this._usesAudioForVideo(media) || this._audioOnlyAtom.get())
+            return;
+        const uri = getMediaAudioUrl(media);
+        if (!uri || !this._audio) return;
+        this.loadNativeSource("audio", uri);
+    }
+
+    private _syncVideoPicture(): void {
+        // The video element is the foreground clock. Avoid starting it from
+        // timeupdate, which is asynchronous and rejected by iOS autoplay rules.
+    }
+
+    private _connectForTransitions(
+        element: HTMLAudioElement,
+        audible: boolean
+    ): HTMLAudioElement {
+        try {
+            element.crossOrigin = "use-credentials";
+            this._mixer.connect(element, audible);
+            return element;
+        } catch (error) {
+            console.error(
+                "Transition routing unavailable; using native playback",
+                error
             );
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (currentMedia) {
-            this._sendCurrentMedia(currentMedia);
+            element.pause();
+            element.removeAttribute("src");
+            element.load();
+            const native = this._createAudio();
+            native.muted = !audible;
+            return native;
         }
     }
 
-    beginSeek(): void {
-        this._isSeeking = true;
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-        this._seekFrom = isVideo(currentMedia)
-            ? (this._video?.currentTime ?? 0)
-            : (this._audio?.currentTime ?? 0);
+    private _switchToBackgroundAudio(): void {
+        const video = this._video;
+        const audio = this._audio;
+        if (!video || !audio || video.paused || !this._playRequested) return;
+
+        const position = video.currentTime;
+        video.pause();
+        audio.currentTime = position;
+        this.playNative("audio");
     }
 
-    setCurrentTime(time: number, sendMessage: boolean = true): void {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        if (isVideo(currentMedia)) {
-            if (!this._video) return;
-            const timeFrom = this._video.currentTime;
-            this._video.currentTime = time;
-            if (sendMessage) {
-                this._sendSeek(currentMedia.publicId, timeFrom, time);
-            }
-        } else {
-            if (!this._audio) return;
-            const timeFrom = this._audio.currentTime;
-            this._audio.currentTime = time;
-            if (sendMessage) {
-                this._sendSeek(currentMedia.publicId, timeFrom, time);
-            }
+    private async _restoreForegroundVideo(): Promise<void> {
+        const video = this._video;
+        const audio = this._audio;
+        if (!video || !audio || !this._playRequested) return;
+        const media = getRockIt().queueManager.currentMedia;
+        const videoUri = media ? getMediaVideoUrl(media) : undefined;
+        if (videoUri && video.src !== videoUri) {
+            await this.loadNativeSource("video", videoUri);
+            this._loadedVideoUri = videoUri;
         }
-        this._currentTimeAtom.set(time);
-    }
-
-    endSeek(time: number): void {
-        this._isSeeking = false;
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        if (isVideo(currentMedia)) {
-            if (!this._video) return;
-            this._video.currentTime = time;
-            this._currentTimeAtom.set(time);
-        } else {
-            if (!this._audio) return;
-            this._audio.currentTime = time;
-            this._currentTimeAtom.set(time);
-        }
-        this._sendSeek(currentMedia.publicId, this._seekFrom, time);
-    }
-
-    private _sendSeek(
-        publicId: string,
-        timeFrom: number,
-        timeTo: number
-    ): void {
-        rockIt.webSocketManager.sendSeek({
-            mediaPublicId: publicId,
-            timeFrom,
-            timeTo,
+        video.currentTime = audio.currentTime;
+        audio.pause();
+        video.play().catch((): void => {
+            /* WebKit may require an explicit tap to resume inline video. */
         });
     }
 
-    mute(): void {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
+    protected override async resolveMediaUriAsync(
+        media: TPlayableMedia,
+        kind: TMediaKind
+    ): Promise<string | undefined> {
+        if (kind === "audio" && isSong(media)) {
+            const offlineUrl = await resolveOfflineAudioUrl(media.publicId);
+            if (offlineUrl) return offlineUrl;
 
-        if (isVideo(currentMedia)) {
-            if (!this._video) return;
-            this._mutePreviousVolume = this.volume;
-            this.volume = 0;
-            this._muted = true;
-        } else {
-            if (!this._audio) return;
-            this._mutePreviousVolume = this.volume;
-            this.volume = 0;
-            this._muted = true;
+            return getMediaAudioUrl(media);
         }
+
+        return kind === "video"
+            ? getMediaVideoUrl(media)
+            : getMediaAudioUrl(media);
     }
 
-    unmute(): void {
-        if (this._mutePreviousVolume !== undefined) {
-            this.volume = this._mutePreviousVolume;
-            this._mutePreviousVolume = undefined;
-        }
-        this._muted = false;
+    // ===== Platform primitives =====
+
+    private _el(kind: TMediaKind): HTMLMediaElement | undefined {
+        return kind === "video" ? this._video : this._audio;
     }
 
-    toggleMute(): void {
-        if (this._muted) {
-            this.unmute();
-        } else {
-            this.mute();
-        }
-    }
-
-    setCrossFade(seconds: number): void {
-        this._crossFadeAtom.set(Math.max(0, Math.min(12, seconds)));
-    }
-
-    setMedia(useSavedCurrentTime: boolean = false): void {
-        console.log("MediaPlayerManager.setMedia", useSavedCurrentTime);
-
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        if (isVideo(currentMedia)) {
-            this.setVideo(useSavedCurrentTime);
-        } else {
-            this.setAudio(useSavedCurrentTime);
-        }
-    }
-
-    private setAudio(useSavedCurrentTime: boolean = false): void {
-        console.log("MediaPlayerManager.setAudio", useSavedCurrentTime);
-
-        this.clearVideo();
-        // console.log({
-        //     "!this._audio": !this._audio,
-        // });
-        if (!this._audio) return;
-        const currentMedia = rockIt.queueManager.currentMedia;
-        // console.log({
-        //     "!currentMedia": !currentMedia,
-        //     "currentMedia?.type": currentMedia?.type,
-        // });
-        if (!currentMedia || isVideo(currentMedia)) return;
-
-        // console.log({ currentMedia });
-
-        const audioSrc = getMediaAudioSrc(currentMedia);
-        // console.log({ audioSrc });
-        // console.log(
-        //     "if (!currentMedia || !audioSrc) return;",
-        //     currentMedia,
-        //     audioSrc,
-        //     !currentMedia || !audioSrc
-        // );
-        if (!currentMedia || !audioSrc) return;
-        // console.log(
-        //     "if (this._audio.src === audioSrc) return;",
-        //     this._audio.src,
-        //     audioSrc,
-        //     this._audio.src === audioSrc
-        // );
-        if (this._audio.src === audioSrc) return;
-
-        this._audio.volume = this._volumeAtom.get();
-        // console.log(audioSrc);
-        this._audio.src = audioSrc;
-        this._audio.currentTime = 0;
-
-        if (useSavedCurrentTime) {
-            const savedTimeMs = rockIt.userManager.currentTimeMsAtom.get() ?? 0;
-            if (savedTimeMs > 0) {
-                this._audio.currentTime = savedTimeMs / 1000;
+    protected override loadNativeSource(kind: TMediaKind, uri: string): void {
+        if (kind === "audio") {
+            const media = getRockIt().queueManager.currentMedia;
+            const eligible =
+                this._transitionSettings.get().enabled &&
+                !!media &&
+                isSong(media);
+            const promotion =
+                this._promotionQueueId ===
+                    getRockIt().queueManager.currentQueueMediaId &&
+                uri === this._promotionUri;
+            if (promotion) return;
+            this._cancelTransition();
+            this._energy = [];
+            if (this._audio && this._mixer.has(this._audio) && !eligible) {
+                this._audio.pause();
+                this._mixer.reset(this._audio, false);
+                this._audio.removeAttribute("src");
+                this._audio.load();
+                this._audio = this._createAudio();
             }
-        } else {
-            this._audio.currentTime = 0;
+            if (this._audio && eligible && this._mixer.running) {
+                this._audio = this._connectForTransitions(this._audio, true);
+            }
         }
+        const el = this._el(kind);
+        if (!el) return;
 
-        this._sendCurrentMedia(currentMedia);
-    }
-
-    private setVideo(useSavedCurrentTime: boolean = false): void {
-        console.log("MediaPlayerManager.setVideo", useSavedCurrentTime);
-
-        this.clearAudio();
-        if (!this._video) return;
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia || currentMedia.type !== "video") return;
-
-        const videoSrc = getMediaVideoSrc(currentMedia);
-        if (!currentMedia || !videoSrc) return;
-        if (this._video.src === videoSrc) return;
-
-        if (!this._video.isConnected) {
+        if (kind === "video" && this._video && !this._video.isConnected) {
             const root = document.getElementById("rockit-video-root");
             if (root) {
                 root.appendChild(this._video);
@@ -368,203 +643,232 @@ export class MediaPlayerManager {
             }
         }
 
-        this._video.volume = this._volumeAtom.get();
-        this._video.src = videoSrc;
-        this._video.currentTime = 0;
-
-        if (useSavedCurrentTime) {
-            const savedTimeMs = rockIt.userManager.currentTimeMsAtom.get() ?? 0;
-            if (savedTimeMs > 0) {
-                this._video.currentTime = savedTimeMs / 1000;
-            }
-        } else {
-            this._video.currentTime = 0;
+        if (
+            kind === "audio" &&
+            this._preloadAudio &&
+            this._preloadedUri === uri &&
+            this._preloadAudio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+        ) {
+            el.src = uri;
+            this._preloadedUri = undefined;
+            this._preloadedForQueueMediaId = undefined;
+            this._preloadAudio.removeAttribute("src");
+            return;
         }
 
-        this._sendCurrentMedia(currentMedia);
+        el.src = uri;
+        if (kind === "video") el.muted = false;
     }
 
-    private clearVideo(): void {
-        // console.log("MediaPlayerManager.clearVideo");
-        if (!this._video) return;
+    protected override clearNativeSource(kind: TMediaKind): void {
+        const el = this._el(kind);
+        if (!el) return;
 
-        this._video.pause();
-        this._video.currentTime = 0;
-        this._video.removeAttribute("src");
-        this._video.load();
-    }
-
-    private clearAudio(): void {
-        // console.log("MediaPlayerManager.clearAudio");
-        if (!this._audio) return;
-
-        this._audio.pause();
-        this._audio.currentTime = 0;
-        this._audio.removeAttribute("src");
-        this._audio.load();
-    }
-
-    private _sendCurrentMedia(currentMedia: TPlayableMedia): void {
-        const queueMediaId = rockIt.queueManager.currentQueueMediaId;
-        const queueType = rockIt.userManager.queueTypeAtom.get();
-
-        if (queueMediaId === null) return;
-        if (queueType === undefined) return;
-
-        rockIt.webSocketManager.sendCurrentMedia({
-            mediaPublicId: currentMedia.publicId,
-            queueMediaId,
-            queueType: queueType,
-        });
-    }
-
-    private _handleTimeUpdate(): void {
-        if (this._isSeeking) return;
-
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (!currentMedia) return;
-
-        let time = 0;
-        if (isVideo(currentMedia)) {
-            if (!this._video) return;
-            time = this._video.currentTime;
-        } else {
-            if (!this._audio) return;
-            time = this._audio.currentTime;
+        if (kind === "audio") {
+            this._stopEndedPoll();
+            this._cancelTransition();
+            this._energy = [];
         }
 
-        this._currentTimeAtom.set(time);
-
-        const now = Date.now();
-        if (now - this._lastWsSyncTime >= WS_TIME_SYNC_INTERVAL_MS) {
-            this._lastWsSyncTime = now;
-            rockIt.webSocketManager.sendCurrentTime({
-                currentTimeMs: Math.round(time * 1000),
-                mediaPublicId: currentMedia.publicId,
-            });
-        }
+        el.pause();
+        el.currentTime = 0;
+        const hadContent = el.hasAttribute("src") || el.srcObject !== null;
+        el.removeAttribute("src");
+        el.srcObject = null;
+        if (hadContent) el.load();
     }
 
-    private _handleMediaError(): void {
-        this._loadingAtom.set(false);
+    protected override playNative(kind: TMediaKind): void {
+        const el = this._el(kind);
+        if (!el) return;
 
-        const repeat = rockIt.userManager.repeatModeAtom.get();
-        const queue = rockIt.queueManager.queue;
-        const currentId = rockIt.queueManager.currentQueueMediaId;
-        const direction = rockIt.queueManager.lastNavigationDirection;
+        if (kind === "audio" && this._audio && this._mixer.has(this._audio))
+            this._mixer.activate();
 
-        rockIt.notificationManager.notifyError(
-            rockIt.vocabularyManager.vocabulary.ERROR_LOADING_MEDIA_FILE
-        );
-
-        const queueItems = queue.map(
-            (item): { publicId: string; queueMediaId: number } => ({
-                publicId: item.media.publicId,
-                queueMediaId: item.queueMediaId,
+        el.play()
+            .then((): void => {
+                if (
+                    kind === "audio" &&
+                    document.hidden &&
+                    MediaPlayerManager._isiOS()
+                ) {
+                    this._startEndedPoll();
+                }
             })
-        );
+            .catch((err): void => {
+                console.error(
+                    `MediaPlayerManager: ${kind} play failed`,
+                    err.name,
+                    err.message
+                );
+                if (err.name === "NotAllowedError") {
+                    this._retryPlayOnGesture(kind);
+                }
+            });
+    }
 
-        const { action, nextId } = resolveOnMediaError(
-            queueItems,
-            currentId,
-            repeat,
-            direction
-        );
+    protected override pauseNative(kind: TMediaKind): void {
+        this._el(kind)?.pause();
+        if (!this._preserveTailPause) this._cancelTransition();
+        if (kind === "audio" && this._usesAudioForVideo()) this._video?.pause();
+    }
 
-        setTimeout(() => {
-            if (action === EQueueAction.REPLAY) {
-                this.setMedia();
-                this.play();
-            } else if (action === EQueueAction.PLAY && nextId !== null) {
-                rockIt.queueManager.setQueueMediaId(nextId, direction);
-                this.setMedia();
-                this.play();
-            } else {
-                this._playingAtom.set(false);
+    protected override seekNative(kind: TMediaKind, sec: number): void {
+        const el = this._el(kind);
+        if (!el) return;
+        if (
+            kind === "audio" &&
+            this._promotionQueueId ===
+                getRockIt().queueManager.currentQueueMediaId &&
+            sec === 0 &&
+            el.currentTime < 0.05
+        )
+            return;
+        if (
+            kind === "audio" &&
+            !this._preserveTailPause &&
+            this._promotionQueueId !==
+                getRockIt().queueManager.currentQueueMediaId
+        )
+            this._cancelTransition();
+        this._energy = [];
+        el.currentTime = sec;
+        if (kind === "audio") this._syncVideoPicture();
+    }
+
+    protected override getNativePosition(kind: TMediaKind): number {
+        return this._el(kind)?.currentTime ?? 0;
+    }
+
+    protected override setNativeVolume(kind: TMediaKind, vol: number): void {
+        const el = this._el(kind);
+        if (!el) return;
+        if (kind === "audio" && this._audio && this._mixer.has(this._audio)) {
+            el.volume = 1;
+            this._mixer.volume(vol);
+        } else el.volume = vol;
+    }
+
+    protected override getNativeVolume(kind: TMediaKind): number {
+        return kind === "audio" && this._audio && this._mixer.has(this._audio)
+            ? this._volumeAtom.get()
+            : (this._el(kind)?.volume ?? 1);
+    }
+
+    protected override isNativePaused(kind: TMediaKind): boolean {
+        return this._el(kind)?.paused ?? true;
+    }
+
+    protected override _onPlayingStarted(): void {
+        if (this._transitionSettings.get().enabled && !this._transitionTimer) {
+            this._transitionTimer = setInterval(
+                (): void => this._transitionTick(),
+                250
+            );
+        }
+        if (
+            typeof document !== "undefined" &&
+            document.hidden &&
+            !this._transitionSettings.get().enabled
+        )
+            return;
+        void this.preloadNextTrack();
+    }
+
+    async preloadNextTrack(): Promise<void> {
+        if (this._outgoing) return;
+        const generation = ++this._preloadGeneration;
+        const next = getRockIt().queueManager.peekNextQueueItem();
+        const playbackId = this._playbackId;
+        if (!next || !this._preloadAudio) return;
+        if (!isSong(next.media) && !isVideo(next.media)) return;
+
+        if (this._preloadedForQueueMediaId === next.queueMediaId) return;
+
+        let uri: string | undefined;
+        if (isSong(next.media)) {
+            const offline = await resolveOfflineAudioUrl(next.media.publicId);
+            if (offline) uri = offline;
+        }
+        if (!uri) uri = getMediaAudioUrl(next.media);
+        if (!uri) return;
+
+        if (
+            generation !== this._preloadGeneration ||
+            playbackId !== this._playbackId ||
+            next.queueMediaId !==
+                getRockIt().queueManager.peekNextQueueItem()?.queueMediaId ||
+            this._outgoing
+        )
+            return;
+        if (
+            this._transitionSettings.get().enabled &&
+            this._mixer.running &&
+            isSong(next.media)
+        ) {
+            this._preloadAudio = this._connectForTransitions(
+                this._preloadAudio,
+                false
+            );
+            this._preloadAudio.muted = false;
+            this._preloadAudio.preload = "auto";
+        } else {
+            this._preloadAudio.preload = "metadata";
+        }
+        this._preloadAudio.src = uri;
+        this._preloadAudio.load();
+        this._preloadedUri = uri;
+        this._preloadedForQueueMediaId = next.queueMediaId;
+    }
+
+    private _retryPlayOnGesture(kind: TMediaKind): void {
+        const playbackId = this._playbackId;
+        const handler = (): void => {
+            document.removeEventListener("pointerup", handler);
+            document.removeEventListener("keydown", handler);
+            const el = this._el(kind);
+            if (
+                el?.paused &&
+                this._playRequested &&
+                this._syncOwner &&
+                this._playbackId === playbackId &&
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                    kind
+            ) {
+                el.play().catch((err): void =>
+                    console.error("MediaPlayerManager: retry play failed", err)
+                );
+            }
+        };
+        document.addEventListener("pointerup", handler, { once: true });
+        document.addEventListener("keydown", handler, { once: true });
+    }
+
+    private _startEndedPoll(): void {
+        if (!MediaPlayerManager._isiOS() || this._endedPollTimer) return;
+
+        this._endedPollTimer = setInterval((): void => {
+            const el = this._audio;
+            if (!el || el.paused || !el.duration || isNaN(el.duration)) return;
+
+            if (el.currentTime >= el.duration - 0.3) {
+                const now = Date.now();
+                if (now - this._lastEndedTime < 500) return;
+                this._lastEndedTime = now;
+                this._stopEndedPoll();
+                this.onNativeEnded();
             }
         }, 1000);
     }
 
-    private _handleEnded(): void {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (currentMedia) {
-            rockIt.webSocketManager.sendMediaEnded({
-                mediaPublicId: currentMedia.publicId,
-            });
-        }
-
-        const repeat = rockIt.userManager.repeatModeAtom.get();
-        const queue = rockIt.queueManager.queue;
-        const currentId = rockIt.queueManager.currentQueueMediaId;
-
-        const queueItems = queue.map(
-            (item): { publicId: string; queueMediaId: number } => ({
-                publicId: item.media.publicId,
-                queueMediaId: item.queueMediaId,
-            })
-        );
-
-        const { action, nextId } = resolveNextOnEnd(
-            queueItems,
-            currentId,
-            repeat
-        );
-
-        if (action === EQueueAction.REPLAY) {
-            this.play();
-        } else if (action === EQueueAction.PLAY && nextId !== null) {
-            rockIt.queueManager.setQueueMediaId(nextId);
-            this.play();
-        } else {
-            this._playingAtom.set(false);
+    private _stopEndedPoll(): void {
+        if (this._endedPollTimer) {
+            clearInterval(this._endedPollTimer);
+            this._endedPollTimer = undefined;
         }
     }
 
-    set volume(value: number) {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        const clamped = Math.max(0, Math.min(1, value));
-
-        if (currentMedia && isVideo(currentMedia)) {
-            if (!this._video) return;
-            this._video.volume = clamped;
-        } else {
-            if (!this._audio) return;
-            this._audio.volume = clamped;
-        }
-        this._volumeAtom.set(clamped);
-    }
-
-    get volume(): number {
-        const currentMedia = rockIt.queueManager.currentMedia;
-        if (currentMedia && isVideo(currentMedia)) {
-            return this._video?.volume ?? 1;
-        }
-        return this._audio?.volume ?? 1;
-    }
-
-    get currentTime(): number {
-        return this._currentTimeAtom.get();
-    }
-
-    get playingAtom(): ReadonlyAtom<boolean> {
-        return this._playingAtom.getReadonlyAtom();
-    }
-
-    get loadingAtom(): ReadonlyAtom<boolean> {
-        return this._loadingAtom.getReadonlyAtom();
-    }
-
-    get currentTimeAtom(): ReadonlyAtom<number> {
-        return this._currentTimeAtom.getReadonlyAtom();
-    }
-
-    get volumeAtom(): ReadonlyAtom<number> {
-        return this._volumeAtom.getReadonlyAtom();
-    }
-
-    get crossFadeAtom(): ReadonlyAtom<number> {
-        return this._crossFadeAtom.getReadonlyAtom();
-    }
+    // ===== Web-only DOM helpers (consumed by the player UI / iOS unlock) =====
 
     get audioElement(): HTMLAudioElement | undefined {
         return this._audio;
@@ -587,8 +891,20 @@ export class MediaPlayerManager {
     attachVideoToContainer(container: HTMLElement): void {
         if (!this._video) return;
         container.appendChild(this._video);
+        this._video.style.display = "block";
+        this._video.style.position = "absolute";
+        this._video.style.inset = "0";
         this._video.style.width = "100%";
         this._video.style.height = "100%";
-        this._video.style.objectFit = "cover";
+        this._video.style.maxWidth = "100%";
+        this._video.style.maxHeight = "100%";
+        this._video.style.objectFit = "contain";
+        this._syncVideoPicture();
+    }
+
+    detachVideoFromContainer(container: HTMLElement): void {
+        if (this._video?.parentElement !== container) return;
+        const root = document.getElementById("rockit-video-root");
+        if (root) root.appendChild(this._video);
     }
 }

@@ -2,19 +2,19 @@
     "expo": {
         "name": "RockIt!",
         "slug": "rockit",
-        "version": "0.4.2",
-        "orientation": "portrait",
+        "version": "1.0.0",
+        "orientation": "default",
         "icon": "./assets/images/icon.png",
         "scheme": "mobile",
+        "jsEngine": "hermes",
         "userInterfaceStyle": "automatic",
         "ios": {
             "supportsTablet": true,
+            "requireFullScreen": true,
             "bundleIdentifier": "com.rockit.mobile",
             "icon": "./assets/images/icon.png",
             "infoPlist": {
-                "UIBackgroundModes": [
-                    "audio"
-                ]
+                "UIBackgroundModes": ["audio"]
             }
         },
         "android": {
@@ -31,9 +31,6 @@
                 "android.permission.BLUETOOTH_ADMIN",
                 "android.permission.BLUETOOTH_CONNECT",
                 "android.permission.BLUETOOTH_SCAN",
-                "android.permission.FOREGROUND_SERVICE",
-                "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
-                "android.permission.WAKE_LOCK",
                 "android.permission.RECEIVE_BOOT_COMPLETED"
             ]
         },
@@ -56,12 +53,14 @@
                 }
             ],
             "expo-asset",
+            "expo-font",
             "@react-native-community/datetimepicker",
             "expo-secure-store",
             [
                 "expo-audio",
                 {
-                    "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+                    "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone.",
+                    "enableBackgroundPlayback": true
                 }
             ],
             [
@@ -72,7 +71,15 @@
                     "skipForwardInterval": 10,
                     "skipBackwardInterval": 10
                 }
-            ]
+            ],
+            ["expo-video", { "supportsBackgroundPlayback": true }],
+            [
+                "expo-screen-orientation",
+                {
+                    "initialOrientation": "PORTRAIT_UP"
+                }
+            ],
+            "expo-web-browser"
         ],
         "experiments": {
             "typedRoutes": true,

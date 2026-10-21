@@ -8,7 +8,7 @@ export const ListenTogetherSyncRequestSchema = z.object({
     mediaPublicId: z.string().nullable(),
     currentTimeMs: z.number().nullable(),
     isPlaying: z.boolean().nullable(),
-    queueJson: z.string().nullable(),
+    queue: z.array(z.string()).nullable(),
 });
 
 export type ListenTogetherSyncRequest = z.infer<

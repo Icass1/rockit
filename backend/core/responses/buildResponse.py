@@ -5,7 +5,7 @@ from backend.core.baseModel import BaseModel
 
 
 class BuildResponse(BaseModel):
-    id: int
+    publicId: str
     version: str
     apkFilename: str
     description: Optional[str]

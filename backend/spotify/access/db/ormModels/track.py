@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING, Dict
 
-from sqlalchemy import String, ForeignKey, Text, Integer
+from sqlalchemy import String, ForeignKey, Integer, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped, WriteOnlyMapped
 
 from backend.core.access.db.ormModels.declarativeMixin import (
@@ -22,7 +22,22 @@ if TYPE_CHECKING:
 
 class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
     __tablename__ = "track"
-    __table_args__ = ({"schema": "spotify", "extend_existing": True},)
+    __table_args__ = (
+        Index(
+            "ix_collection_spotify_album_order",
+            "album_id",
+            "disc_number",
+            "track_number",
+            "id",
+        ),
+        Index(
+            "ix_spotify_track_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "spotify", "extend_existing": True},
+    )
 
     id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.media.id"), primary_key=True
@@ -40,8 +55,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     )
     isrc: Mapped[str] = mapped_column(String, nullable=False, unique=False)
     download_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
-    dynamic_lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
     preview_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
     artists: WriteOnlyMapped[List["ArtistRow"]] = relationship(
@@ -72,8 +85,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         popularity: int | None = None,
         path: str | None = None,
         download_url: str | None = None,
-        lyrics: str | None = None,
-        dynamic_lyrics: str | None = None,
         preview_url: str | None = None,
     ):
         kwargs: Dict[str, None | int | str] = {}
@@ -89,8 +100,6 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["popularity"] = popularity
         kwargs["path"] = path
         kwargs["download_url"] = download_url
-        kwargs["lyrics"] = lyrics
-        kwargs["dynamic_lyrics"] = dynamic_lyrics
         kwargs["preview_url"] = preview_url
         for k, v in kwargs.items():
             setattr(self, k, v)

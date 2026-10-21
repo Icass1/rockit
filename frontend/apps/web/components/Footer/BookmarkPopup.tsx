@@ -1,0 +1,388 @@
+"use client";
+
+import type { JSX } from "react";
+import { useEffect, useRef, useState } from "react";
+import { type BookmarkResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
+import {
+    Bookmark,
+    BookmarkCheck,
+    ChevronDown,
+    Pencil,
+    Plus,
+    Repeat1,
+    SkipBack,
+    Trash2,
+    X,
+} from "lucide-react";
+import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
+import { rockIt } from "@/lib/rockit/rockIt";
+import { getTime } from "@/lib/utils/getTime";
+
+enum EBookmarkModes {
+    Nothing = "NOTHING",
+    Autoskip = "AUTOSKIP",
+    RepeatFromBeginning = "REPEAT_FROM_BEGINNING",
+    PreviousBookmark = "PREVIOUS_BOOKMARK",
+}
+
+const MODE_ICONS: Record<
+    EBookmarkModes,
+    typeof Bookmark | typeof Repeat1 | typeof SkipBack
+> = {
+    [EBookmarkModes.Nothing]: Bookmark,
+    [EBookmarkModes.Autoskip]: BookmarkCheck,
+    [EBookmarkModes.RepeatFromBeginning]: Repeat1,
+    [EBookmarkModes.PreviousBookmark]: SkipBack,
+};
+
+function BookmarkEditForm({
+    bookmark,
+    onBack,
+}: {
+    bookmark: BookmarkResponse | null;
+    onBack: () => void;
+}): JSX.Element {
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+
+    const [description, setDescription] = useState(bookmark?.description ?? "");
+    const [mode, setMode] = useState<EBookmarkModes>(
+        (bookmark?.mode as EBookmarkModes) ?? EBookmarkModes.Nothing
+    );
+    const [showModeDropdown, setShowModeDropdown] = useState(false);
+    const [timestampText, setTimestampText] = useState(
+        getTime(bookmark?.timestamp ?? $currentTime ?? 0)
+    );
+
+    const modeBtnRef = useRef<HTMLButtonElement>(null);
+    const modeDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleDropdownOutside = (e: MouseEvent): void => {
+            if (
+                modeDropdownRef.current &&
+                !modeDropdownRef.current.contains(e.target as Node) &&
+                modeBtnRef.current &&
+                !modeBtnRef.current.contains(e.target as Node)
+            ) {
+                setShowModeDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleDropdownOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleDropdownOutside);
+        };
+    }, []);
+
+    const parseTimestamp = (text: string): number => {
+        const parts = text.split(":").map(Number);
+        if (parts.length === 3)
+            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        return Number(text) || 0;
+    };
+
+    const handleSave = async (): Promise<void> => {
+        const ts = parseTimestamp(timestampText);
+        if (bookmark) {
+            await rockIt.bookmarkManager.updateBookmarkAsync(
+                bookmark.publicId,
+                ts,
+                description || null,
+                mode
+            );
+        } else {
+            await rockIt.bookmarkManager.createBookmarkAsync(
+                ts,
+                description || null,
+                mode
+            );
+        }
+        onBack();
+    };
+
+    const handleDelete = async (): Promise<void> => {
+        if (bookmark) {
+            await rockIt.bookmarkManager.deleteBookmarkAsync(bookmark.publicId);
+        }
+        onBack();
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent): void => {
+        if (e.key === "Enter") handleSave();
+    };
+
+    const ModeIcon = MODE_ICONS[mode];
+
+    return (
+        <>
+            <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={onBack}
+                        className="ignore-click-player-ui rounded p-0.5 text-neutral-500 hover:text-white"
+                        title="Back"
+                    >
+                        <ChevronDown className="ignore-click-player-ui h-3.5 w-3.5 rotate-90" />
+                    </button>
+                    <span className="text-xs font-semibold text-neutral-400">
+                        {bookmark
+                            ? $vocabulary.EDIT_BOOKMARK
+                            : $vocabulary.NEW_BOOKMARK}
+                    </span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <input
+                        type="text"
+                        value={timestampText}
+                        onChange={(e): void => setTimestampText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="w-12 rounded border border-neutral-700 bg-neutral-800 px-1 py-0.5 text-[10px] text-neutral-300 outline-none focus:border-(--color-rockit-pink)"
+                    />
+                    {bookmark && (
+                        <button
+                            onClick={handleDelete}
+                            className="ignore-click-player-ui rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
+                            title={$vocabulary.DELETE}
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                    )}
+                    <button
+                        onClick={handleSave}
+                        className="ignore-click-player-ui rounded bg-(--color-rockit-pink) px-2 py-0.5 text-[11px] font-medium text-white transition-colors hover:bg-(--color-rockit-pink-light)"
+                    >
+                        {$vocabulary.SAVE}
+                    </button>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+                <input
+                    type="text"
+                    value={description}
+                    onChange={(e): void => setDescription(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={$vocabulary.BOOKMARK_DESCRIPTION_PLACEHOLDER}
+                    className="min-w-0 flex-1 rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-white outline-none placeholder:text-neutral-500 focus:border-(--color-rockit-pink)"
+                />
+                <div className="relative">
+                    <button
+                        ref={modeBtnRef}
+                        onClick={(): void =>
+                            setShowModeDropdown(!showModeDropdown)
+                        }
+                        className="flex items-center gap-0.5 rounded px-1.5 py-1 text-neutral-400 transition-colors hover:text-white"
+                        title={$vocabulary[mode]}
+                    >
+                        <span
+                            className="h-2 w-2 rounded-full"
+                            style={{
+                                backgroundColor: BOOKMARK_MODE_COLORS[mode],
+                            }}
+                        />
+                        <ModeIcon className="h-3.5 w-3.5" />
+                        <ChevronDown className="h-2.5 w-2.5" />
+                    </button>
+
+                    {showModeDropdown && (
+                        <div
+                            ref={modeDropdownRef}
+                            className="absolute top-full right-0 z-50 mt-1 max-h-20 w-56 overflow-y-auto rounded-lg border border-neutral-700 bg-(--color-elevated) py-1 shadow-xl"
+                        >
+                            {Object.values(EBookmarkModes).map(
+                                (m): JSX.Element => {
+                                    const Icon = MODE_ICONS[m];
+                                    return (
+                                        <button
+                                            key={m}
+                                            onClick={(): void => {
+                                                setMode(m);
+                                                setShowModeDropdown(false);
+                                            }}
+                                            className={`ignore-click-player-ui flex w-full items-center gap-2 px-2.5 py-1.5 text-xs transition-colors ${
+                                                m === mode
+                                                    ? "text-white"
+                                                    : "text-neutral-400 hover:text-white"
+                                            }`}
+                                        >
+                                            <span
+                                                className="ignore-click-player-ui h-2 w-2 rounded-full"
+                                                style={{
+                                                    backgroundColor:
+                                                        BOOKMARK_MODE_COLORS[m],
+                                                }}
+                                            />
+                                            <Icon className="ignore-click-player-ui h-3.5 w-3.5" />
+                                            <span className="ignore-click-player-ui">
+                                                {$vocabulary[m]}
+                                            </span>
+                                        </button>
+                                    );
+                                }
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+}
+
+export default function BookmarkPopup({
+    onClose,
+}: {
+    onClose: () => void;
+}): JSX.Element {
+    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
+    const $currentMediaBookmarks = useStore(
+        rockIt.bookmarkManager.currentMediaBookmarksAtom
+    );
+    const $editingBookmark = useStore(
+        rockIt.bookmarkManager.editingBookmarkAtom
+    );
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
+    const [userOverride, setUserOverride] = useState<
+        BookmarkResponse | "new" | null | undefined
+    >(undefined);
+
+    const formBookmark =
+        userOverride !== undefined ? userOverride : $editingBookmark;
+
+    const popupRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent): void => {
+            if (
+                popupRef.current &&
+                !popupRef.current.contains(e.target as Node)
+            ) {
+                onClose();
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [onClose]);
+
+    if (!$currentMedia) return <></>;
+
+    const sortedBookmarks = [...$currentMediaBookmarks].sort(
+        (a, b) => a.timestamp - b.timestamp
+    );
+
+    const handleBackToList = (): void => {
+        setUserOverride(null);
+        rockIt.bookmarkManager.clearEditingBookmark();
+    };
+
+    if (formBookmark === undefined) return <></>;
+
+    if (formBookmark) {
+        return (
+            <div
+                ref={popupRef}
+                className="absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border border-neutral-700 bg-(--color-elevated) p-2 shadow-xl"
+            >
+                <BookmarkEditForm
+                    bookmark={formBookmark === "new" ? null : formBookmark}
+                    onBack={handleBackToList}
+                />
+            </div>
+        );
+    }
+
+    return (
+        <div
+            ref={popupRef}
+            className="absolute right-0 bottom-full z-50 mb-2 w-72 rounded-lg border border-neutral-700 bg-(--color-elevated) p-2 shadow-xl"
+        >
+            <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-semibold text-neutral-400">
+                    {$vocabulary.BOOKMARKS}
+                </span>
+                <button
+                    onClick={onClose}
+                    className="rounded p-0.5 text-neutral-500 hover:text-white"
+                >
+                    <X className="h-3.5 w-3.5" />
+                </button>
+            </div>
+
+            <div className="max-h-60 space-y-0.5 overflow-y-auto">
+                {sortedBookmarks.length === 0 && (
+                    <p className="py-2 text-center text-xs text-neutral-500">
+                        {$vocabulary.NO_BOOKMARKS}
+                    </p>
+                )}
+                {sortedBookmarks.map((bookmark) => (
+                    <div
+                        key={bookmark.publicId}
+                        className="group flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-neutral-800"
+                    >
+                        <span
+                            className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                            style={{
+                                backgroundColor:
+                                    BOOKMARK_MODE_COLORS[bookmark.mode],
+                            }}
+                        />
+
+                        <button
+                            onClick={(): void => {
+                                rockIt.mediaPlayerManager.setCurrentTime(
+                                    bookmark.timestamp,
+                                    true
+                                );
+                                onClose();
+                            }}
+                            className="ignore-click-player-ui min-w-0 flex-1 text-left"
+                        >
+                            <span className="ignore-click-player-ui text-xs font-medium text-white">
+                                {getTime(bookmark.timestamp)}
+                            </span>
+                            {bookmark.description && (
+                                <p className="ignore-click-player-ui truncate text-[10px] text-neutral-400">
+                                    {bookmark.description}
+                                </p>
+                            )}
+                        </button>
+
+                        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button
+                                onClick={(): void => setUserOverride(bookmark)}
+                                className="rounded p-1 text-neutral-500 transition-colors hover:text-white"
+                                title="Edit"
+                            >
+                                <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                                onClick={async (): Promise<void> => {
+                                    await rockIt.bookmarkManager.deleteBookmarkAsync(
+                                        bookmark.publicId
+                                    );
+                                }}
+                                className="rounded p-1 text-neutral-500 transition-colors hover:text-red-400"
+                                title={$vocabulary.DELETE}
+                            >
+                                <Trash2 className="h-3 w-3" />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <button
+                onClick={(): void => setUserOverride("new")}
+                className="ignore-click-player-ui mt-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-neutral-700 px-2 py-1.5 text-xs text-neutral-400 transition-colors hover:border-neutral-500 hover:text-white"
+            >
+                <Plus className="ignore-click-player-ui h-3 w-3" />
+                {$vocabulary.ADD_BOOKMARK_AT} {getTime($currentTime ?? 0)}
+            </button>
+        </div>
+    );
+}

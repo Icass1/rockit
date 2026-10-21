@@ -11,6 +11,7 @@ from backend.core.access.db import rockit_db
 
 from backend.core.access.enumAccess import EnumAccess
 from backend.core.access.imageAccess import ImageAccess
+from backend.core.framework.media.image import Image
 
 from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
     PlaylistContributorRoleEnumRow,
@@ -89,7 +90,7 @@ async def add_default_images(session: AsyncSession):
             logger.info(f"Image already in database: {filename}")
             continue
 
-        a_result = await ImageAccess.create_image_async(
+        a_result = await Image.create_image_async(
             session=session,
             path=filename,
             url=None,
@@ -161,4 +162,3 @@ async def add_initial_content_async():
             enum_class=ListenTogetherStatusEnum,
             table=ListenTogetherStatusEnumRow,
         )
-        

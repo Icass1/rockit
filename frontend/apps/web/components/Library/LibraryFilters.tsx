@@ -22,6 +22,7 @@ export function LibraryFilters({
         { key: EContentType.Videos, label: $vocabulary.VIDEOS },
         { key: EContentType.Stations, label: $vocabulary.RADIO_STATIONS },
         { key: EContentType.Shared, label: $vocabulary.SHARED_2_YOU },
+        { key: EContentType.Offline, label: $vocabulary.OFFLINE },
     ];
 
     return (
@@ -29,21 +30,19 @@ export function LibraryFilters({
             className="flex min-w-0 items-center gap-1.5 overflow-x-auto pb-0.5"
             style={{ scrollbarWidth: "none" }}
         >
-            {pills.map(
-                ({ key, label }): JSX.Element => (
-                    <button
-                        key={key}
-                        onClick={(): void => setActiveType(key)}
-                        className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors select-none ${
-                            activeType === key
-                                ? "bg-white text-black"
-                                : "bg-neutral-800 text-white hover:bg-neutral-700"
-                        }`}
-                    >
-                        {label}
-                    </button>
-                )
-            )}
+            {pills.map(({ key, label }): JSX.Element => (
+                <button
+                    key={key}
+                    onClick={(): void => setActiveType(key)}
+                    className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors select-none ${
+                        activeType === key
+                            ? "bg-white text-black"
+                            : "bg-neutral-800 text-white hover:bg-neutral-700"
+                    }`}
+                >
+                    {label}
+                </button>
+            ))}
         </div>
     );
 }

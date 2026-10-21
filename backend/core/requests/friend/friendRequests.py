@@ -1,11 +1,9 @@
-from datetime import datetime
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SendFriendRequest(BaseModel):
-    userPublicId: str
-    message: str | None = None
+    userPublicId: str = Field(min_length=1, max_length=128)
+    message: str | None = Field(default=None, max_length=2000)
 
 
 class ActionFriendRequest(BaseModel):
@@ -13,9 +11,9 @@ class ActionFriendRequest(BaseModel):
 
 
 class ShareMediaRequest(BaseModel):
-    recipientPublicId: str
-    mediaPublicId: str
-    message: str | None = None
+    recipientPublicId: str = Field(min_length=1, max_length=128)
+    mediaPublicId: str = Field(min_length=1, max_length=128)
+    message: str | None = Field(default=None, max_length=2000)
 
 
 class ShareActionRequest(BaseModel):
@@ -23,27 +21,27 @@ class ShareActionRequest(BaseModel):
 
 
 class ListenTogetherInviteRequest(BaseModel):
-    userPublicId: str
+    userPublicId: str = Field(min_length=1, max_length=128)
 
 
 class ListenTogetherJoinRequest(BaseModel):
-    sessionPublicId: str
+    sessionPublicId: str = Field(min_length=1, max_length=128)
 
 
 class ListenTogetherLeaveRequest(BaseModel):
-    sessionPublicId: str
+    sessionPublicId: str = Field(min_length=1, max_length=128)
 
 
 class ListenTogetherSyncRequest(BaseModel):
-    sessionPublicId: str
+    sessionPublicId: str = Field(min_length=1, max_length=128)
     mediaPublicId: str | None = None
-    currentTimeMs: int | None = None
+    currentTimeMs: int | None = Field(default=None, ge=0, le=86400000)
     isPlaying: bool | None = None
-    queueJson: str | None = None
+    queue: list[str] | None = Field(default=None, max_length=500)
 
 
 class StreakBattleChallengeRequest(BaseModel):
-    userPublicId: str
+    userPublicId: str = Field(min_length=1, max_length=128)
 
 
 class FriendStatsRequest(BaseModel):

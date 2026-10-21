@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, TypeVar
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,15 +35,32 @@ from backend.core.responses.searchResponse import (
 
 logger: Logger = getLogger(__name__)
 
+TMedia = TypeVar("TMedia")
+
 
 class Media:
+    @staticmethod
+    def _extract_first_async_result(
+        a_result: AResult[List[TMedia]],
+        media_name: str,
+    ) -> AResult[TMedia]:
+        """Extract the first element of a list result, or return NOT_FOUND if empty."""
+
+        items = a_result.result()
+        if not items:
+            logger.error(f"No {media_name} returned by provider.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message=f"{media_name} not found"
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=items[0])
+
     @staticmethod
     async def get_medias_from_public_ids_async(
         session: AsyncSession,
         public_ids: List[str],
         media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[List[MediaModel]]:
-        """TODO"""
+        """Get multiple media items from the database by their public IDs."""
 
         a_result: AResult[List[CoreMediaRow]] = (
             await MediaAccess.get_medias_from_public_ids_async(
@@ -74,7 +91,7 @@ class Media:
         public_id: str,
         media_type_keys: List[MediaTypeEnum] | None,
     ) -> AResult[MediaModel]:
-        """TODO"""
+        """Get a single media item from the database by its public ID."""
 
         a_result_media: AResult[CoreMediaRow] = (
             await MediaAccess.get_media_from_public_id_async(
@@ -132,7 +149,7 @@ class Media:
             logger.error(f"Provider error getting song. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(a_result=a_result, media_name="song")
 
     @staticmethod
     async def get_album_async(
@@ -170,7 +187,7 @@ class Media:
             logger.error(f"Provider error getting album. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(a_result=a_result, media_name="album")
 
     @staticmethod
     async def get_artist_async(
@@ -210,7 +227,7 @@ class Media:
             logger.error(f"Provider error getting artist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(a_result=a_result, media_name="artist")
 
     @staticmethod
     async def get_playlist_with_medias_async(
@@ -252,7 +269,9 @@ class Media:
             logger.error(f"Provider error getting playlist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(
+            a_result=a_result, media_name="playlist"
+        )
 
     @staticmethod
     async def get_playlist_without_async(
@@ -294,7 +313,9 @@ class Media:
             logger.error(f"Provider error getting playlist. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Media._extract_first_async_result(
+            a_result=a_result, media_name="playlist"
+        )
 
     @staticmethod
     async def search_async(
@@ -334,14 +355,34 @@ class Media:
 
             results.extend(a_result.result())
 
+        # Deduplicate: group by (type, name, artist names) — prefer downloaded items.
+        seen: dict[tuple[str, str, tuple[str, ...]], BaseSearchResultsItem] = {}
+        for item in results:
+            artist_key: tuple[str, ...] = tuple(
+                a.name.lower().strip() for a in item.artists
+            )
+            key: tuple[str, str, tuple[str, ...]] = (
+                item.type,
+                item.name.lower().strip(),
+                artist_key,
+            )
+
+            existing = seen.get(key)
+            if existing is None:
+                seen[key] = item
+            elif item.downloaded and not existing.downloaded:
+                seen[key] = item
+
         return AResult(
             code=AResultCode.OK,
             message="OK",
-            result=SearchResultsResponse(results=results),
+            result=SearchResultsResponse(results=list(seen.values())),
         )
 
     @staticmethod
-    async def delete_media_async(session: AsyncSession, public_id: str) -> AResultCode:
+    async def delete_media_file_async(
+        session: AsyncSession, public_id: str
+    ) -> AResultCode:
         """Delete the media file for a media item so it can be downloaded again."""
 
         a_result_media: AResult[CoreMediaRow] = (
@@ -375,6 +416,44 @@ class Media:
             return AResultCode(code=a_result.code(), message=a_result.message())
 
         return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    async def get_frame_async(
+        session: AsyncSession, public_id: str, timestamp_ms: float
+    ) -> AResult[bytes]:
+        """Extract a single frame from a video at the given timestamp."""
+
+        a_result_video: AResult[CoreMediaRow] = (
+            await MediaAccess.get_media_from_public_id_async(
+                session=session,
+                public_id=public_id,
+                media_type_keys=[MediaTypeEnum.VIDEO],
+            )
+        )
+        if a_result_video.is_not_ok():
+            logger.error(
+                f"Error getting video from database for public id {public_id}. {a_result_video.info()}"
+            )
+            return AResult(code=a_result_video.code(), message=a_result_video.message())
+
+        video: CoreMediaRow = a_result_video.result()
+        provider: BaseMediaProvider | None = providers.find_media_provider(
+            video.provider_id
+        )
+        if provider is None:
+            logger.error(f"No provider found for provider_id {video.provider_id}.")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Provider not found for video"
+            )
+
+        a_result: AResult[bytes] = await provider.get_frame_async(
+            session=session, public_id=public_id, timestamp_ms=timestamp_ms
+        )
+        if a_result.is_not_ok():
+            logger.error(f"Provider error getting video frame. {a_result.info()}")
+            return AResult(code=a_result.code(), message=a_result.message())
+
+        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
     async def get_image_async(
@@ -475,7 +554,7 @@ class Media:
 
     @staticmethod
     async def get_media_async(
-        session: AsyncSession, public_id: str
+        session: AsyncSession, public_id: str, user_id: int = 0
     ) -> AResult[MediaResponse]:
         """Get a media item by public_id without specifying type. Returns song, album, artist, playlist, or video."""
 
@@ -514,33 +593,24 @@ class Media:
                 result=MediaResponse(media=a_result.result()[0]),
             )
 
-        elif media_type == MediaTypeEnum.ALBUM:
-            a_result = await provider.get_albums_async(
-                session=session, public_ids=[public_id]
+        elif media_type in (MediaTypeEnum.ALBUM, MediaTypeEnum.PLAYLIST):
+            from backend.core.framework.media.collection import Collection
+
+            collection = await Collection.metadata_async(
+                session=session, public_id=public_id, user_id=user_id
             )
-            if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
+            if collection.is_not_ok():
+                logger.error(f"Error getting collection metadata. {collection.info()}")
+                return AResult(code=collection.code(), message=collection.message())
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
+                result=MediaResponse(media=collection.result()),
             )
 
         elif media_type == MediaTypeEnum.ARTIST:
             a_result = await provider.get_artists_async(
                 session=session, public_ids=[public_id]
-            )
-            if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(
-                code=AResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
-            )
-
-        elif media_type == MediaTypeEnum.PLAYLIST:
-            a_result = await provider.get_playlists_without_medias_async(
-                session=session, user_id=0, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())

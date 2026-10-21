@@ -1,0 +1,366 @@
+import {
+    BaseMediaPlayerManager,
+    createAtom,
+    getMediaAudioUrl,
+    getMediaDuration,
+    getMediaVideoUrl,
+    type ReadonlyAtom,
+    type TMediaKind,
+    type TPlayableMedia,
+} from "@rockit/shared";
+import {
+    createAudioPlayer,
+    setAudioModeAsync,
+    type AudioPlayer,
+    type AudioStatus,
+} from "expo-audio";
+import { createVideoPlayer, type VideoPlayer } from "expo-video";
+import {
+    DEFAULT_CROSSFADE,
+    type CrossfadeSettings,
+} from "@/lib/audio/crossfade";
+import { mediaCacheManager } from "@/lib/audio/MediaCacheManager";
+import { mediaStorage } from "@/lib/storage/mediaStorage";
+
+/**
+ * Mobile media player: implements the shared BaseMediaPlayerManager primitives
+ * against a single expo-audio player and a persistent expo-video player. All
+ * playback/queue orchestration lives in the base class.
+ *
+ * This is single-deck: the previous dual-deck crossfade/preload engine was
+ * dropped so mobile matches web's canonical single-element behavior.
+ */
+export class MediaPlayerManager extends BaseMediaPlayerManager {
+    private _audioPlayer: AudioPlayer | null = null;
+    private _audioSub: { remove: () => void } | null = null;
+
+    private _videoPlayer: VideoPlayer;
+    private _videoPlayerAtom = createAtom<VideoPlayer | null>(null);
+
+    // True while the persistent video player is swapping its source. During a
+    // swap expo-video emits spurious playToEnd / timeUpdate / playingChange
+    // events for the outgoing source; handling them would clobber the progress
+    // bar and (via onNativeEnded → _handleEnded) trigger runaway queue skips.
+    private _videoReplacing = false;
+    private _videoReplacePromise: Promise<void> = Promise.resolve();
+
+    private _durationAtom = createAtom<number>(0);
+    private _crossfadeSettingsAtom =
+        createAtom<CrossfadeSettings>(DEFAULT_CROSSFADE);
+
+    // Remote URI we last seeded into the disk cache (so we can evict on switch).
+    private _seededRemoteUri?: string;
+    private _audioModeReady: Promise<void>;
+
+    constructor() {
+        super();
+
+        this._audioModeReady = setAudioModeAsync({
+            allowsRecording: false,
+            shouldPlayInBackground: true,
+            interruptionMode: "doNotMix",
+            playsInSilentMode: true,
+            interruptionModeAndroid: "doNotMix",
+            shouldRouteThroughEarpiece: false,
+        }).catch((error): void => {
+            console.error(
+                "MediaPlayerManager: audio session setup failed",
+                error
+            );
+        });
+
+        this._videoPlayer = createVideoPlayer(null);
+        this._videoPlayer.loop = false;
+        this._videoPlayer.muted = false;
+        this._videoPlayer.staysActiveInBackground = true;
+        this._videoPlayer.timeUpdateEventInterval = 0.25;
+        this._videoPlayerAtom.set(this._videoPlayer);
+
+        this._videoPlayer.addListener(
+            "playingChange",
+            ({ isPlaying }): void => {
+                // The persistent video player keeps emitting events even when
+                // the audio deck is the active source; ignore them so it can't
+                // clobber audio playback state. Also ignore while swapping the
+                // source (video → video skip), where transient events fire.
+                if (this._audioPlayer || this._videoReplacing) return;
+                if (isPlaying) this.onNativePlaying();
+                else this.onNativePaused();
+            }
+        );
+        this._videoPlayer.addListener("timeUpdate", ({ currentTime }): void => {
+            // Same guard: while playing audio the idle video player ticks with
+            // currentTime === 0 and would otherwise reset the progress bar; and
+            // during a source swap it emits stale positions.
+            if (this._audioPlayer || this._videoReplacing) return;
+            this.onNativeTimeUpdate(currentTime);
+        });
+        this._videoPlayer.addListener("playToEnd", (): void => {
+            // Same guard as playingChange/timeUpdate. Beyond the idle-audio-deck
+            // case, replacing the source (including a video → video skip) makes
+            // expo-video emit playToEnd for the outgoing source; without the
+            // _videoReplacing guard that would fire onNativeEnded → _handleEnded
+            // and skip the queue again, cascading into runaway skips.
+            if (this._audioPlayer || this._videoReplacing) return;
+            this.onNativeEnded();
+        });
+        this._videoPlayer.addListener(
+            "statusChange",
+            ({ status, error }): void => {
+                // The idle video deck must not overwrite the active audio state.
+                if (this._audioPlayer) return;
+                if (status === "loading") {
+                    this.onNativeLoadStart();
+                } else if (status === "readyToPlay") {
+                    this.onNativeLoaded();
+                } else if (status === "error" && !this._videoReplacing) {
+                    this.onNativeError(error);
+                }
+            }
+        );
+    }
+
+    // ===== Duration =====
+
+    /**
+     * Publish a duration, ignoring anything that isn't a finite positive
+     * number. Duration comes exclusively from the media DTO (see
+     * afterMediaLoadedAsync); the native audio/video objects are never used,
+     * since their reported duration differs between the audio and video decks
+     * and would make the progress bar jump when toggling audio-only.
+     */
+    private _setDuration(value: number): void {
+        if (typeof value === "number" && isFinite(value) && value > 0) {
+            this._durationAtom.set(value);
+        }
+    }
+
+    // ===== expo-audio player lifecycle (single deck) =====
+
+    private _createAudioPlayer(uri: string): void {
+        this._destroyAudioPlayer();
+        this.onNativeLoadStart();
+
+        const player = createAudioPlayer(uri, { updateInterval: 250 });
+        player.shouldCorrectPitch = true;
+
+        this._audioSub = player.addListener(
+            "playbackStatusUpdate",
+            (status: AudioStatus): void => {
+                if (!status || this._audioPlayer !== player) return;
+                if (!status.isLoaded || status.isBuffering) {
+                    this.onNativeLoadStart();
+                } else {
+                    this.onNativeLoaded();
+                }
+                if (status.playing) this.onNativePlaying();
+                else this.onNativePaused();
+                if (typeof status.currentTime === "number") {
+                    this.onNativeTimeUpdate(status.currentTime);
+                }
+                if (status.didJustFinish) this.onNativeEnded();
+            }
+        );
+
+        this._audioPlayer = player;
+    }
+
+    private _destroyAudioPlayer(): void {
+        if (!this._audioPlayer) return;
+        try {
+            this._audioPlayer.pause();
+        } catch {
+            // player already released
+        }
+        this._audioSub?.remove();
+        this._audioPlayer.remove();
+        this._audioPlayer = null;
+        this._audioSub = null;
+    }
+
+    /** Stop playback and release every native source owned by the app. */
+    stopAndClear(): void {
+        this._destroyAudioPlayer();
+        this._videoPlayer.pause();
+        void this._replaceVideoSource(null);
+        this._durationAtom.set(0);
+        this._currentTimeAtom.set(0);
+        this._playingAtom.set(false);
+        this.onNativeLoaded();
+    }
+
+    // ===== Platform primitives =====
+
+    protected override async loadNativeSource(
+        kind: TMediaKind,
+        uri: string
+    ): Promise<void> {
+        await this._audioModeReady;
+        // Both engines share AVAudioSession. Match their policies when loading
+        // media so the idle video engine cannot override background audio.
+        this._videoPlayer.audioMixingMode = "doNotMix";
+        if (kind === "audio") {
+            this._createAudioPlayer(uri);
+            return;
+        }
+        return this._replaceVideoSource(uri);
+    }
+
+    protected override clearNativeSource(kind: TMediaKind): void {
+        if (kind === "audio") {
+            this._destroyAudioPlayer();
+            return;
+        }
+        this._videoPlayer.pause();
+        void this._replaceVideoSource(null);
+    }
+
+    private _replaceVideoSource(uri: string | null): Promise<void> {
+        this._videoReplacePromise = this._videoReplacePromise
+            .catch((error): void => {
+                console.error(
+                    "MediaPlayerManager: video replacement failed",
+                    error
+                );
+            })
+            .then(async (): Promise<void> => {
+                this._videoReplacing = true;
+                try {
+                    await this._videoPlayer.replaceAsync(uri ? { uri } : null);
+                } finally {
+                    this._videoReplacing = false;
+                }
+            });
+        return this._videoReplacePromise;
+    }
+
+    protected override playNative(kind: TMediaKind): void {
+        if (kind === "audio") this._audioPlayer?.play();
+        else this._videoPlayer.play();
+    }
+
+    protected override pauseNative(kind: TMediaKind): void {
+        if (kind === "audio") this._audioPlayer?.pause();
+        else this._videoPlayer.pause();
+    }
+
+    protected override seekNative(kind: TMediaKind, sec: number): void {
+        if (kind === "audio") this._audioPlayer?.seekTo(sec);
+        else this._videoPlayer.currentTime = sec;
+    }
+
+    protected override getNativePosition(kind: TMediaKind): number {
+        if (kind === "audio") return this._audioPlayer?.currentTime ?? 0;
+        return this._videoPlayer.currentTime ?? 0;
+    }
+
+    protected override setNativeVolume(kind: TMediaKind, vol: number): void {
+        if (kind === "audio") {
+            if (this._audioPlayer) this._audioPlayer.volume = vol;
+        } else {
+            this._videoPlayer.volume = vol;
+        }
+    }
+
+    protected override getNativeVolume(kind: TMediaKind): number {
+        if (kind === "audio") return this._audioPlayer?.volume ?? 1;
+        return this._videoPlayer.volume ?? 1;
+    }
+
+    protected override isNativePaused(kind: TMediaKind): boolean {
+        if (kind === "audio") return !this._audioPlayer?.playing;
+        return !this._videoPlayer.playing;
+    }
+
+    // ===== URI resolution + caching =====
+
+    private _remoteUri(
+        media: TPlayableMedia,
+        kind: TMediaKind
+    ): string | undefined {
+        if (kind === "video") {
+            return (
+                getMediaVideoUrl(media) ?? getMediaAudioUrl(media) ?? undefined
+            );
+        }
+        return getMediaAudioUrl(media) ?? undefined;
+    }
+
+    protected override async resolveMediaUriAsync(
+        media: TPlayableMedia,
+        kind: TMediaKind
+    ): Promise<string | undefined> {
+        const remoteUri = this._remoteUri(media, kind);
+        if (!remoteUri) return undefined;
+
+        try {
+            const localUri =
+                kind === "video"
+                    ? await mediaStorage.getVideoUri(media.publicId)
+                    : await mediaStorage.getSongUri(media.publicId);
+            if (localUri) return localUri;
+        } catch {
+            // Fall through to cache/remote
+        }
+
+        // Only the audio deck seeds the disk cache, and the audio/video stream
+        // URLs collide on the same publicId-keyed cache filename — so reading it
+        // for the video deck would load the cached audio (black picture). Videos
+        // therefore stream straight from the remote URL.
+        if (kind === "video") return remoteUri;
+
+        const cached = await mediaCacheManager.getCachedUri(
+            remoteUri,
+            media.publicId
+        );
+        return cached ?? remoteUri;
+    }
+
+    protected override async afterMediaLoadedAsync(
+        media: TPlayableMedia,
+        kind: TMediaKind,
+        resolvedUri: string
+    ): Promise<void> {
+        // Duration is taken solely from the media DTO. The native audio/video
+        // objects report differing durations per deck, so relying on them makes
+        // the progress bar jump when toggling audio-only.
+        this._setDuration(getMediaDuration(media) ?? 0);
+
+        if (kind !== "audio") return;
+
+        const remoteUri = this._remoteUri(media, "audio");
+
+        // Evict the previously seeded track before caching the new one.
+        if (this._seededRemoteUri && this._seededRemoteUri !== remoteUri) {
+            void mediaCacheManager.deleteCached(this._seededRemoteUri);
+            this._seededRemoteUri = undefined;
+        }
+
+        // Seed the cache only when playing straight from the remote URL.
+        if (remoteUri && resolvedUri === remoteUri) {
+            void mediaCacheManager.downloadToCache(remoteUri, media.publicId);
+            this._seededRemoteUri = remoteUri;
+        }
+    }
+
+    // ===== Mobile-only surface =====
+
+    get videoPlayerAtom(): ReadonlyAtom<VideoPlayer | null> {
+        return this._videoPlayerAtom.getReadonlyAtom();
+    }
+
+    get durationAtom(): ReadonlyAtom<number> {
+        return this._durationAtom.getReadonlyAtom();
+    }
+
+    get crossfadeSettingsAtom(): ReadonlyAtom<CrossfadeSettings> {
+        return this._crossfadeSettingsAtom.getReadonlyAtom();
+    }
+
+    updateCrossfadeSettings(settings: Partial<CrossfadeSettings>): void {
+        this._crossfadeSettingsAtom.set({
+            ...this._crossfadeSettingsAtom.get(),
+            ...settings,
+        });
+    }
+}

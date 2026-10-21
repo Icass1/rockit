@@ -9,7 +9,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Http } from "@/lib/http";
 import useFetch from "@/lib/useFetch";
 import { useVocabulary } from "@/lib/vocabulary";
-import UserStats from "./UserStats";
+import UserStats from "@/components/Stats/UserStats";
 
 const RANGE_OPTIONS: { label: string; value: Range }[] = [
     { label: "7 days", value: "7d" },
@@ -78,11 +78,14 @@ export default function StatsClient() {
             range: range,
             start: customStart?.toISOString() ?? null,
             end: customEnd?.toISOString() ?? null,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
         })
     );
 
     const updateRef = useRef(update);
-    updateRef.current = update;
+    useEffect(() => {
+        updateRef.current = update;
+    }, [update]);
 
     useEffect(() => {
         updateRef.current();

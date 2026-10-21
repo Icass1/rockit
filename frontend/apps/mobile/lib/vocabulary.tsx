@@ -10,6 +10,7 @@ import {
 import { type Vocabulary } from "@rockit/shared";
 import { NativeModules, Platform } from "react-native";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { toasterManager } from "@/lib/toasterManager";
 
 function createVocabularyProxy(data: Record<string, string>): Vocabulary {
@@ -62,6 +63,7 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
         if (response.isOk()) {
             const res = response.result;
             setVocabulary(createVocabularyProxy(res.vocabulary));
+            rockIt.vocabularyManager.setVocabulary(res.vocabulary);
             setLang(res.currentLang);
             setIsLoading(false);
             return;
@@ -74,6 +76,7 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
         if (fallback.isOk()) {
             const res = fallback.result;
             setVocabulary(createVocabularyProxy(res.vocabulary));
+            rockIt.vocabularyManager.setVocabulary(res.vocabulary);
             setLang(res.currentLang);
         } else {
             console.error(

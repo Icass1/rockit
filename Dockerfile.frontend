@@ -11,6 +11,7 @@ COPY frontend/apps/web/package.json ./apps/web/
 COPY frontend/apps/mobile/package.json ./apps/mobile/
 COPY frontend/packages/config/package.json ./packages/config/
 COPY frontend/packages/shared/package.json ./packages/shared/
+COPY frontend/patches/ ./patches/
 RUN --mount=type=cache,id=pnpm-frontend,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
 COPY frontend/ /app

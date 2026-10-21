@@ -4,6 +4,8 @@
 import { z } from "zod";
 
 export const MediaEndedMessageRequestSchema = z.object({
+    playbackId: z.string(),
+    queueMediaId: z.number(),
     mediaPublicId: z.string(),
 });
 

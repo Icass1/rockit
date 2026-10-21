@@ -8,6 +8,8 @@ export const SharedMediaItemSchema = z.object({
     senderPublicId: z.string(),
     senderUsername: z.string(),
     senderImageUrl: z.string().nullable(),
+    recipientPublicId: z.string(),
+    recipientUsername: z.string(),
     mediaPublicId: z.string(),
     mediaName: z.string(),
     mediaImageUrl: z.string().nullable(),

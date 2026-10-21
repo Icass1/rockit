@@ -56,7 +56,7 @@ export class NotificationManager {
     announceReleases(vocabulary: Record<string, string>): void {
         if (!this._storageKey) return;
         for (const release of [...RELEASES].reverse()) {
-            const message = `RockIt v${release.version} · ${vocabulary[release.titleKey]}`;
+            const message = `RockIt! v${release.version} · ${vocabulary[release.titleKey]}`;
             const detail = vocabulary[release.detailKey];
             const key = `release:${release.version}`;
             const existing = this._notificationsAtom

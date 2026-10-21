@@ -83,7 +83,7 @@ export default function HeaderUser(): JSX.Element {
                             {$username}
                         </p>
                         <p className="mt-1 text-xs text-neutral-500">
-                            RockIt v{APP_VERSION}
+                            RockIt! v{APP_VERSION}
                         </p>
                     </div>
                     <div className="p-1.5">

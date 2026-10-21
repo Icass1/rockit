@@ -7,6 +7,7 @@ import { Bell } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import NotificationMenu from "@/components/Header/HeaderNotificationMenu";
 import OnlineUserIndicator from "@/components/Header/HeaderOnlineUsers";
+import HeaderRightSkeleton from "@/components/Header/HeaderRightSkeleton";
 import StreakIndicator from "@/components/Header/HeaderStreakIndicator";
 import HeaderUser from "@/components/Header/HeaderUser";
 import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
@@ -16,6 +17,7 @@ export default function HeaderRight(): JSX.Element {
     const [isUserLoaded, setIsUserLoaded] = useState(false);
     const bellRef = useRef<HTMLDivElement>(null);
     const $loggedIn = useStore(rockIt.userManager.loggedInAtom);
+    const $sessionReady = useStore(rockIt.userManager.sessionReadyAtom);
 
     useEffect((): void => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -50,6 +52,8 @@ export default function HeaderRight(): JSX.Element {
         []
     );
     useClickOutside(bellRef, closeNotifications);
+
+    if (!isUserLoaded || !$sessionReady) return <HeaderRightSkeleton />;
 
     return (
         <div className="relative ml-auto flex items-center gap-5">
@@ -86,7 +90,7 @@ export default function HeaderRight(): JSX.Element {
             </div>
 
             {/* User / Login */}
-            {!isUserLoaded ? null : $loggedIn ? (
+            {$loggedIn ? (
                 <HeaderUser />
             ) : (
                 <Link

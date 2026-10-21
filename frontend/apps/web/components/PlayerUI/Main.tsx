@@ -232,13 +232,12 @@ export default function PlayerUIMain({
                     )}
                     {vinylMode ? (
                         <div className="relative h-full w-full">
-                            <VinylTransition publicId={currentMedia.publicId}>
+                            <VinylTransition media={currentMedia}>
                                 <VinylRecord
                                     imageUrl={coverSrc}
                                     name={currentMedia.name}
                                     artists={currentMedia.artists}
                                     isPlaying={$playing}
-                                    publicId={currentMedia.publicId}
                                 />
                             </VinylTransition>
                             <button

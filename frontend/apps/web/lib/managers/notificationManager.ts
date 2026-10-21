@@ -56,16 +56,32 @@ export class NotificationManager {
     announceReleases(vocabulary: Record<string, string>): void {
         if (!this._storageKey) return;
         for (const release of [...RELEASES].reverse()) {
-            this.notify(
-                ENotificationType.INFO,
-                `RockIt ${release.version} · ${vocabulary[release.titleKey]}`,
-                {
-                    category: "release",
-                    key: `release:${release.version}`,
-                    detail: vocabulary[release.detailKey],
-                    toast: false,
-                }
-            );
+            const message = `RockIt v${release.version} · ${vocabulary[release.titleKey]}`;
+            const detail = vocabulary[release.detailKey];
+            const key = `release:${release.version}`;
+            const existing = this._notificationsAtom
+                .get()
+                .find((n) => n.key === key);
+            // Refresh announcement copy without changing read state or restoring dismissed news.
+            if (
+                existing &&
+                (existing.message !== message || existing.detail !== detail)
+            ) {
+                this._notificationsAtom.set(
+                    this._notificationsAtom
+                        .get()
+                        .map((n) =>
+                            n.id === existing.id ? { ...n, message, detail } : n
+                        )
+                );
+                this._persist();
+            }
+            this.notify(ENotificationType.INFO, message, {
+                category: "release",
+                key,
+                detail,
+                toast: false,
+            });
         }
     }
 

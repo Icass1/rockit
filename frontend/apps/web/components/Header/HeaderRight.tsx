@@ -62,7 +62,7 @@ export default function HeaderRight(): JSX.Element {
                     onClick={(): void =>
                         setShowNotifications((prev): boolean => !prev)
                     }
-                    className={`relative grid h-10 w-10 place-items-center rounded-xl border transition focus-visible:outline-2 focus-visible:outline-pink-400 ${showNotifications ? "border-pink-400/30 bg-pink-500/15 text-pink-300" : "border-transparent text-neutral-300 hover:bg-white/10 hover:text-white"}`}
+                    className={`relative grid h-10 w-10 place-items-center rounded-xl border transition focus-visible:outline-2 focus-visible:outline-(--rockit-pink) ${showNotifications ? "border-(--rockit-pink)/30 bg-(--rockit-pink)/15 text-(--rockit-pink)" : "border-transparent text-neutral-300 hover:bg-white/10 hover:text-white"}`}
                     aria-label={`${vocabulary.NOTIFICATIONS_TITLE} (${notificationCount})`}
                     aria-controls={
                         showNotifications ? "notification-center" : undefined

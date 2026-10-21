@@ -6,7 +6,7 @@ export const NOTIFICATION_VOCABULARY: Record<string, Record<string, string>> = {
         NOTIFICATIONS_RELEASES: "Releases",
         NOTIFICATIONS_MARK_ALL: "Mark all as read",
         NOTIFICATIONS_CLEAR: "Clear read",
-        NOTIFICATIONS_EMPTY: "You're all caught up",
+        NOTIFICATIONS_EMPTY: "No notifications",
         NOTIFICATIONS_EMPTY_DETAIL:
             "Downloads, imports and release news will appear here.",
         NOTIFICATIONS_NO_UNREAD: "No unread notifications",
@@ -19,11 +19,10 @@ export const NOTIFICATION_VOCABULARY: Record<string, Record<string, string>> = {
         NOTIFICATIONS_IMPORT_DONE: "Import completed",
         NOTIFICATIONS_IMPORT_FAILED: "Import failed",
         NOTIFICATIONS_ZIP_READY: "ZIP ready",
-        NOTIFICATIONS_ZIP_DETAIL:
-            "The file has been handed to your browser for saving.",
-        NOTIFICATIONS_RELEASE_TITLE: "Your new notification center",
+        NOTIFICATIONS_ZIP_DETAIL: "Save the file from your browser.",
+        NOTIFICATIONS_RELEASE_TITLE: "Notification center",
         NOTIFICATIONS_RELEASE_DETAIL:
-            "Download and import results, unread activity and release news now live together. Your history is saved in this browser.",
+            "Check your downloads, imports and updates here.",
     },
     es: {
         NOTIFICATIONS_TITLE: "Notificaciones",
@@ -32,7 +31,7 @@ export const NOTIFICATION_VOCABULARY: Record<string, Record<string, string>> = {
         NOTIFICATIONS_RELEASES: "Versiones",
         NOTIFICATIONS_MARK_ALL: "Marcar todas como leídas",
         NOTIFICATIONS_CLEAR: "Borrar leídas",
-        NOTIFICATIONS_EMPTY: "Estás al día",
+        NOTIFICATIONS_EMPTY: "No hay notificaciones",
         NOTIFICATIONS_EMPTY_DETAIL:
             "Aquí aparecerán tus descargas, importaciones y novedades.",
         NOTIFICATIONS_NO_UNREAD: "No tienes notificaciones sin leer",
@@ -45,10 +44,9 @@ export const NOTIFICATION_VOCABULARY: Record<string, Record<string, string>> = {
         NOTIFICATIONS_IMPORT_DONE: "Importación completada",
         NOTIFICATIONS_IMPORT_FAILED: "Importación fallida",
         NOTIFICATIONS_ZIP_READY: "ZIP preparado",
-        NOTIFICATIONS_ZIP_DETAIL:
-            "El archivo se ha enviado al navegador para guardarlo.",
-        NOTIFICATIONS_RELEASE_TITLE: "Tu nuevo centro de notificaciones",
+        NOTIFICATIONS_ZIP_DETAIL: "Guarda el archivo desde tu navegador.",
+        NOTIFICATIONS_RELEASE_TITLE: "Centro de notificaciones",
         NOTIFICATIONS_RELEASE_DETAIL:
-            "Los resultados de descargas e importaciones, la actividad sin leer y las novedades de versiones, juntos. El historial se guarda en este navegador.",
+            "Consulta aquí tus descargas, importaciones y novedades.",
     },
 };

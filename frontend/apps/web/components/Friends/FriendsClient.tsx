@@ -32,7 +32,7 @@ export default function FriendsClient(): JSX.Element {
         <div className={styles.root}>
             {error && <p role="alert">{error}</p>}
             <header className={styles.header}>
-                <p className={styles.eyebrow}>Rocket · {v.FRIENDS}</p>
+                <p className={styles.eyebrow}>RockIt! · {v.FRIENDS}</p>
                 <h1 className={styles.title}>{v.SOCIAL_HEADLINE}</h1>
                 <p className={styles.subtitle}>{v.SOCIAL_INTRO}</p>
                 <a className={styles.circleLink} href="#social-circle">

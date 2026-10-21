@@ -14,14 +14,18 @@ type Activity = FriendActivity & {
     isLiveNow?: boolean;
 };
 
-function timeAgo(dateStr: string, justNowText: string): string {
+function timeAgo(
+    dateStr: string,
+    justNowText: string,
+    units: string[]
+): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const m = Math.floor(diff / 60_000);
     if (m < 1) return justNowText;
-    if (m < 60) return `${m}m`;
+    if (m < 60) return units[0].replace("{count}", String(m));
     const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h`;
-    return `${Math.floor(h / 24)}d`;
+    if (h < 24) return units[1].replace("{count}", String(h));
+    return units[2].replace("{count}", String(Math.floor(h / 24)));
 }
 
 function formatMs(ms: number): string {
@@ -70,7 +74,11 @@ function ActivityCard({
                     </span>
                 )}
                 <span className="ml-auto text-[10px] text-neutral-700">
-                    {timeAgo(item.listenedAt, justNowText)}
+                    {timeAgo(item.listenedAt, justNowText, [
+                        v.SOCIAL_MINUTES_AGO,
+                        v.SOCIAL_HOURS_AGO,
+                        v.SOCIAL_DAYS_AGO,
+                    ])}
                 </span>
             </div>
 

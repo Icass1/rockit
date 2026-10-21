@@ -1,4 +1,4 @@
-# Rocket Friends — social dashboard
+# RockIt! Friends — social dashboard
 
 The screen brings your music identity, friends' progress and shared listening
 into one continuous space. Five destination tabs hid the context needed to
@@ -6,7 +6,7 @@ compare friends; the dashboard now puts that context together.
 
 ## Design direction
 
-A record-shaped level indicator references Rocket's vinyl player. Your identity
+A record-shaped level indicator references RockIt!'s vinyl player. Your identity
 sits beside the listening league on desktop and above it on mobile. Activity,
 listening invitations, shares and friend management remain on the same page.
 Existing dark surfaces, pink accents, system typography, visible focus and

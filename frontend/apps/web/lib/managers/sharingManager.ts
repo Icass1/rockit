@@ -46,7 +46,10 @@ export class SharingManager {
     async queueSharedMedia(publicId: string): Promise<void> {
         const result = await rockIt.mediaManager.getMedia(publicId);
         if (!result.isOk()) {
-            rockIt.notificationManager.notifyError(String(result.detail));
+            console.error(result.detail);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return;
         }
         const media = result.result.media;
@@ -56,7 +59,10 @@ export class SharingManager {
     async playSharedMedia(publicId: string): Promise<void> {
         const result = await rockIt.mediaManager.getMedia(publicId);
         if (!result.isOk()) {
-            rockIt.notificationManager.notifyError(String(result.detail));
+            console.error(result.detail);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return;
         }
         const media = result.result.media;
@@ -124,7 +130,10 @@ export class SharingManager {
             );
             return true;
         } catch (e) {
-            rockIt.notificationManager.notifyError((e as Error).message);
+            console.error(e);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return false;
         }
     }
@@ -132,7 +141,10 @@ export class SharingManager {
     async deleteShare(publicId: string): Promise<void> {
         const result = await Http.deleteShare(publicId);
         if (!result.isOk()) {
-            rockIt.notificationManager.notifyError(String(result.detail));
+            console.error(result.detail);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return;
         }
         await Promise.all([this.fetchInbox(), this.fetchSent()]);

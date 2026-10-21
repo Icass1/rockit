@@ -7,6 +7,7 @@ import { Check, X } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function FriendRequests(): JSX.Element {
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $incoming = useStore(rockIt.friendManager.incomingRequestsAtom);
 
     if ($incoming.length === 0) return <></>;
@@ -15,7 +16,7 @@ export default function FriendRequests(): JSX.Element {
         <div className="rounded-2xl border border-[#ee1086]/15 bg-[#ee1086]/[0.04] p-4">
             <p className="mb-3 text-[11px] font-semibold tracking-widest text-[#ee1086] uppercase">
                 {$incoming.length}{" "}
-                {$incoming.length === 1 ? "Friend Request" : "Friend Requests"}
+                {$incoming.length === 1 ? v.FRIEND_REQUEST : v.FRIEND_REQUESTS}
             </p>
 
             <div className="flex flex-col gap-3">
@@ -55,7 +56,7 @@ export default function FriendRequests(): JSX.Element {
                                         req.publicId
                                     )
                                 }
-                                aria-label="Accept"
+                                aria-label={v.FRIENDS_ACCEPT}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 text-green-400 transition-colors hover:bg-green-500/20"
                             >
                                 <Check size={15} />
@@ -66,7 +67,7 @@ export default function FriendRequests(): JSX.Element {
                                         req.publicId
                                     )
                                 }
-                                aria-label="Decline"
+                                aria-label={v.FRIENDS_DECLINE}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-neutral-500 transition-colors hover:bg-white/10 hover:text-white"
                             >
                                 <X size={15} />

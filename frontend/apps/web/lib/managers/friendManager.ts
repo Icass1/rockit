@@ -72,13 +72,21 @@ export class FriendManager {
         )
             return;
         if (result.isOk()) this._blockedAtom.set(result.result.friends);
-        else this._errorAtom.set(String(result.detail));
+        else {
+            console.error(result.detail);
+            this._errorAtom.set(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
+            );
+        }
     }
 
     async blockUser(publicId: string): Promise<void> {
         const result = await Http.blockUser(publicId);
         if (!result.isOk()) {
-            rockIt.notificationManager.notifyError(String(result.detail));
+            console.error(result.detail);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return;
         }
         await Promise.all([
@@ -91,7 +99,10 @@ export class FriendManager {
     async unblockUser(publicId: string): Promise<void> {
         const result = await Http.unblockUser(publicId);
         if (!result.isOk()) {
-            rockIt.notificationManager.notifyError(String(result.detail));
+            console.error(result.detail);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return;
         }
         await this.fetchBlocked();
@@ -114,7 +125,10 @@ export class FriendManager {
             if (!res.isOk()) throw new Error(String(res.detail));
             this._errorAtom.set(null);
         } catch (e) {
-            this._errorAtom.set((e as Error).message);
+            console.error(e);
+            this._errorAtom.set(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
+            );
         } finally {
             this._loadingAtom.set(false);
         }
@@ -135,7 +149,10 @@ export class FriendManager {
                 this._sentRequestsAtom.set(res.result.sent ?? []);
             }
         } catch (e) {
-            this._errorAtom.set((e as Error).message);
+            console.error(e);
+            this._errorAtom.set(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
+            );
         }
     }
 
@@ -158,7 +175,10 @@ export class FriendManager {
                 this._searchResultsAtom.set(res.result.results ?? []);
             }
         } catch (e) {
-            this._errorAtom.set((e as Error).message);
+            console.error(e);
+            this._errorAtom.set(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
+            );
         }
     }
 
@@ -181,7 +201,10 @@ export class FriendManager {
             );
             return true;
         } catch (e) {
-            rockIt.notificationManager.notifyError((e as Error).message);
+            console.error(e);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return false;
         }
     }
@@ -197,7 +220,10 @@ export class FriendManager {
             );
             return true;
         } catch (e) {
-            rockIt.notificationManager.notifyError((e as Error).message);
+            console.error(e);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.FRIENDS_ACTION_ERROR
+            );
             return false;
         }
     }

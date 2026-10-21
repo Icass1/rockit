@@ -122,7 +122,11 @@ export default function FriendLeaderboard(): JSX.Element {
                         <div className={styles.identityName}>
                             <h2>{self.username}</h2>
                             <p>{v[self.title] || self.title}</p>
-                            <span>{self.xp.toLocaleString()} XP</span>
+                            <span>
+                                {text("SOCIAL_XP_TOTAL", {
+                                    xp: self.xp.toLocaleString(),
+                                })}
+                            </span>
                         </div>
                     </div>
                     <div className={styles.progressCopy}>
@@ -161,7 +165,9 @@ export default function FriendLeaderboard(): JSX.Element {
             >
                 <div className={styles.leagueHeading}>
                     <div>
-                        <p className={styles.eyebrow}>Rocket · XP</p>
+                        <p className={styles.eyebrow}>
+                            RockIt! · {v.SOCIAL_XP}
+                        </p>
                         <h2 id="listening-league">{v.SOCIAL_RACE}</h2>
                     </div>
                     <ArrowUpRight aria-hidden="true" />
@@ -207,7 +213,7 @@ export default function FriendLeaderboard(): JSX.Element {
                                     </span>
                                     <span className={styles.rankXp}>
                                         {entry.xp.toLocaleString()}
-                                        <small>XP</small>
+                                        <small>{v.SOCIAL_XP}</small>
                                     </span>
                                 </button>
                             </li>

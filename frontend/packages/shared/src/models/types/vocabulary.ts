@@ -558,4 +558,13 @@ export interface Vocabulary {
     SOCIAL_ERROR: string;
     SOCIAL_RETRY: string;
     SOCIAL_EMPTY: string;
+    FRIENDS_ACCEPT: string;
+    FRIENDS_DECLINE: string;
+    SOCIAL_XP: string;
+    SOCIAL_XP_TOTAL: string;
+    SOCIAL_MINUTES_AGO: string;
+    SOCIAL_HOURS_AGO: string;
+    SOCIAL_DAYS_AGO: string;
+    FRIENDS_ACTION_ERROR: string;
+    FRIENDS_LOAD_ERROR: string;
 }

@@ -7,6 +7,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import FriendActivityFeed from "@/components/Friends/FriendActivityFeed";
 import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
 import FriendRequests from "@/components/Friends/FriendRequests";
+import styles from "@/components/Friends/Friends.module.css";
 import FriendsList from "@/components/Friends/FriendsList";
 import ListenTogetherPanel from "@/components/Friends/ListenTogetherPanel";
 import LivePulseBanner from "@/components/Friends/LivePulseBanner";
@@ -15,7 +16,6 @@ import SharedMediaInbox from "@/components/Friends/SharedMediaInbox";
 export default function FriendsClient(): JSX.Element {
     const [activeTab, setActiveTab] = useState<EFriendTab>(EFriendTab.ACTIVITY);
     const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-    const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const v = $vocabulary as unknown as Record<string, string>;
@@ -46,15 +46,33 @@ export default function FriendsClient(): JSX.Element {
     }, []);
 
     useEffect(() => {
-        const idx = tabs.findIndex((t) => t.id === activeTab);
-        const el = tabRefs.current[idx];
-        if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+        const selected =
+            tabRefs.current[tabs.findIndex((tab) => tab.id === activeTab)];
+        const container = selected?.parentElement;
+        if (!selected || !container) return;
+        const reveal = (): void => {
+            if (selected.offsetLeft < container.scrollLeft)
+                container.scrollLeft = selected.offsetLeft - 6;
+            else if (
+                selected.offsetLeft + selected.offsetWidth >
+                container.scrollLeft + container.clientWidth
+            )
+                container.scrollLeft =
+                    selected.offsetLeft +
+                    selected.offsetWidth -
+                    container.clientWidth +
+                    6;
+        };
+        reveal();
+        const observer = new ResizeObserver(reveal);
+        observer.observe(container);
+        return () => observer.disconnect();
     }, [activeTab, tabs]);
 
     const onlineCount = $friends.filter((f) => f.isOnline).length;
 
     return (
-        <div className="mx-auto w-full overflow-x-hidden px-4 pt-6 pb-24 sm:max-w-lg md:max-w-3xl md:px-8 md:pt-10 lg:max-w-5xl xl:max-w-7xl 2xl:max-w-[1600px]">
+        <div className={styles.root}>
             {error && (
                 <p
                     role="alert"
@@ -63,14 +81,9 @@ export default function FriendsClient(): JSX.Element {
                     {error}
                 </p>
             )}
-            <div
-                className="animate-fade-in-up mb-8 md:mb-10"
-                style={{ animationDelay: "0ms" }}
-            >
-                <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
-                    {$vocabulary.FRIENDS}
-                </h1>
-                <p className="mt-1.5 text-sm text-neutral-500 md:text-base">
+            <header className={styles.header}>
+                <h1 className={styles.title}>{$vocabulary.FRIENDS}</h1>
+                <p className={styles.subtitle}>
                     {onlineCount > 0
                         ? v.FRIENDS_LISTENING_NOW.replace(
                               "{count}",
@@ -78,48 +91,62 @@ export default function FriendsClient(): JSX.Element {
                           )
                         : v.SEE_WHAT_WORLD_LISTENING}
                 </p>
-            </div>
-
+            </header>
             <div
-                className="animate-fade-in-up mb-6"
-                style={{ animationDelay: "50ms" }}
+                role="tablist"
+                aria-label={$vocabulary.FRIENDS}
+                className={styles.tabs}
+                onKeyDown={(event) => {
+                    const index = tabs.findIndex((tab) => tab.id === activeTab);
+                    const next =
+                        event.key === "ArrowRight"
+                            ? (index + 1) % tabs.length
+                            : event.key === "ArrowLeft"
+                              ? (index + tabs.length - 1) % tabs.length
+                              : event.key === "Home"
+                                ? 0
+                                : event.key === "End"
+                                  ? tabs.length - 1
+                                  : -1;
+                    if (next >= 0) {
+                        event.preventDefault();
+                        setActiveTab(tabs[next].id);
+                        tabRefs.current[next]?.focus();
+                    }
+                }}
             >
-                <div className="relative flex overflow-x-auto border-b border-white/[0.06] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {tabs.map((tab, i) => (
-                        <button
-                            key={tab.id}
-                            ref={(el) => {
-                                tabRefs.current[i] = el;
-                            }}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors duration-200 ${
-                                activeTab === tab.id
-                                    ? "text-white"
-                                    : "text-neutral-600 hover:text-neutral-400"
-                            }`}
-                        >
-                            {tab.label}
-                            {tab.id === EFriendTab.FRIENDS &&
-                                $requests.length > 0 && (
-                                    <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#ee1086] px-1 text-[10px] font-bold text-white">
-                                        {$requests.length}
-                                    </span>
-                                )}
-                        </button>
-                    ))}
-                    <span
-                        aria-hidden
-                        className="pointer-events-none absolute bottom-0 h-px rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all duration-200 ease-out"
-                        style={{ left: indicator.left, width: indicator.width }}
-                    />
-                </div>
+                {tabs.map((tab, i) => (
+                    <button
+                        key={tab.id}
+                        ref={(el) => {
+                            tabRefs.current[i] = el;
+                        }}
+                        onClick={() => setActiveTab(tab.id)}
+                        role="tab"
+                        id={`friends-tab-${tab.id}`}
+                        aria-selected={activeTab === tab.id}
+                        aria-controls="friends-panel"
+                        tabIndex={activeTab === tab.id ? 0 : -1}
+                        className={styles.tab}
+                    >
+                        {tab.label}
+                        {tab.id === EFriendTab.FRIENDS &&
+                            $requests.length > 0 && (
+                                <span className={styles.badge}>
+                                    {$requests.length}
+                                </span>
+                            )}
+                    </button>
+                ))}
             </div>
-
             <div
-                className="animate-fade-in-up"
-                style={{ animationDelay: "100ms" }}
+                id="friends-panel"
+                role="tabpanel"
+                aria-labelledby={`friends-tab-${activeTab}`}
+                tabIndex={0}
+                className={styles.panel}
             >
-                {$loading ? (
+                {$loading && $friends.length === 0 ? (
                     <div className="flex flex-col gap-3">
                         <div className="skeleton h-20 w-full rounded-2xl" />
                         <div className="skeleton h-32 w-full rounded-2xl" />

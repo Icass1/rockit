@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import { LoaderCircle } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import styles from "@/components/Friends/Friends.module.css";
 
 function ShareForm({ publicId }: { publicId: string }): JSX.Element {
     const ref = useRef<HTMLDialogElement>(null);
@@ -12,17 +14,22 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
     const [message, setMessage] = useState("");
     const [sending, setSending] = useState(false);
     useEffect(() => {
-        ref.current?.showModal();
+        const dialog = ref.current;
+        dialog?.showModal();
         void rockIt.friendManager.fetchFriends();
+        return () => {
+            if (dialog?.open) dialog.close();
+        };
     }, []);
     return (
         <dialog
             ref={ref}
+            aria-labelledby="share-media-title"
             onCancel={() => rockIt.sharingManager.closeComposer()}
-            className="m-auto w-[min(92vw,28rem)] rounded-2xl border border-white/10 bg-neutral-950 p-6 text-white backdrop:bg-black/70"
+            className={styles.dialog}
         >
             <form
-                className="flex flex-col gap-4"
+                className={styles.form}
                 onSubmit={async (event) => {
                     event.preventDefault();
                     if (sending) return;
@@ -41,7 +48,7 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                     }
                 }}
             >
-                <h2 className="text-xl font-bold">{v.FRIENDS_SHARE}</h2>
+                <h2 id="share-media-title">{v.FRIENDS_SHARE}</h2>
                 <label className="flex flex-col gap-2 text-sm">
                     {v.FRIENDS_SHARE_TO}
                     <select
@@ -86,9 +93,17 @@ function ShareForm({ publicId }: { publicId: string }): JSX.Element {
                         {v.CANCEL}
                     </button>
                     <button
+                        type="submit"
+                        aria-busy={sending}
                         disabled={sending || !recipient}
                         className="rounded-full bg-[#ee1086] px-4 py-2 disabled:opacity-40"
                     >
+                        {sending && (
+                            <LoaderCircle
+                                className="mr-2 inline h-4 w-4 animate-spin motion-reduce:animate-none"
+                                aria-hidden
+                            />
+                        )}
                         {v.FRIENDS_SHARE}
                     </button>
                 </div>

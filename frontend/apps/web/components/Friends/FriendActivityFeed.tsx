@@ -43,7 +43,7 @@ function ActivityCard({
             : null;
 
     return (
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
+        <div className="social-card">
             <div className="mb-3 flex items-center gap-2">
                 <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-neutral-800">
                     {item.userImageUrl ? (

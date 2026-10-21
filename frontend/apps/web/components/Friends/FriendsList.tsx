@@ -78,7 +78,8 @@ export default function FriendsList({
             <div className="relative">
                 <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-600" />
                 <input
-                    type="text"
+                    aria-label={v.FRIENDS_SEARCH_PLACEHOLDER}
+                    type="search"
                     value={query}
                     onChange={(e) => handleSearch(e.target.value)}
                     placeholder={v.FRIENDS_SEARCH_PLACEHOLDER}
@@ -87,10 +88,11 @@ export default function FriendsList({
                 />
                 {query && (
                     <button
+                        aria-label={v.CANCEL}
                         onClick={() => {
                             setQuery("");
                         }}
-                        className="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-600 transition-colors hover:text-white"
+                        className="absolute top-1/2 right-1 flex w-11 -translate-y-1/2 items-center justify-center text-neutral-400"
                     >
                         <X size={15} />
                     </button>
@@ -210,6 +212,10 @@ export default function FriendsList({
 
                                     <div className="relative">
                                         <button
+                                            aria-label={friend.username}
+                                            aria-expanded={
+                                                openMenu === friend.publicId
+                                            }
                                             onClick={() =>
                                                 setOpenMenu(
                                                     openMenu === friend.publicId

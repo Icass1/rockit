@@ -856,6 +856,10 @@ export abstract class BaseMediaPlayerManager {
         return this._currentTimeAtom.get();
     }
 
+    get isPlaybackOwner(): boolean {
+        return this._syncOwner && this._playbackConfirmed;
+    }
+
     get playingAtom(): ReadonlyAtom<boolean> {
         return this._playingAtom.getReadonlyAtom();
     }

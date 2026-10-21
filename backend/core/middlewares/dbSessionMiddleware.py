@@ -18,7 +18,11 @@ class DBSessionMiddleware(BaseHTTPMiddleware):
         async with rockit_db.session_scope_async() as session:
             request.state.db = session
             response: Response = await call_next(request)
-            return response
+            if response.status_code >= 400:
+                await session.rollback()
+                session.info.pop("social_events", None)
+                session.info.pop("after_commit", None)
+        return response
 
     @staticmethod
     def get_session(request: Request) -> AsyncSession:

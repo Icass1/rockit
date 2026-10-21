@@ -14,10 +14,31 @@ import type {
     QueueTypeMessage,
 } from "@rockit/shared";
 
+export interface FriendActivityMessage {
+    type: "friend_activity";
+    userPublicId: string;
+    username: string;
+    userImageUrl: string | null;
+    mediaPublicId: string;
+    mediaName: string;
+    mediaImageUrl: string | null;
+    listenedAt: string;
+}
+
+export interface ListenTogetherSyncMessage {
+    type: "listen_together_sync";
+}
+export interface SocialChangedMessage {
+    type: "social_changed";
+}
+
 export enum EWebSocketMessage {
     DownloadProgress = "download_progress",
+    FriendActivity = "friend_activity",
+    SocialChanged = "social_changed",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
+    ListenTogetherSync = "listen_together_sync",
     MediaAddedToPlaylist = "media_added_to_playlist",
     MediaRemovedFromPlaylist = "media_removed_from_playlist",
     MediaListened = "media_listened",
@@ -31,9 +52,12 @@ export enum EWebSocketMessage {
 }
 
 export interface IWebSocketMessagePayloadMap {
+    [EWebSocketMessage.SocialChanged]: SocialChangedMessage;
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
+    [EWebSocketMessage.FriendActivity]: FriendActivityMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
     [EWebSocketMessage.LibraryMediaRemoved]: LibraryMediaRemovedMessage;
+    [EWebSocketMessage.ListenTogetherSync]: ListenTogetherSyncMessage;
     [EWebSocketMessage.MediaAddedToPlaylist]: MediaAddedToPlaylistMessage;
     [EWebSocketMessage.MediaRemovedFromPlaylist]: MediaRemovedFromPlaylistMessage;
     [EWebSocketMessage.MediaListened]: MediaListenedMessage;
@@ -48,8 +72,11 @@ export interface IWebSocketMessagePayloadMap {
 
 export type TWebSocketIncomingMessage =
     | DownloadProgressMessage
+    | FriendActivityMessage
+    | SocialChangedMessage
     | LibraryMediaAddedMessage
     | LibraryMediaRemovedMessage
+    | ListenTogetherSyncMessage
     | MediaAddedToPlaylistMessage
     | MediaRemovedFromPlaylistMessage
     | MediaListenedMessage

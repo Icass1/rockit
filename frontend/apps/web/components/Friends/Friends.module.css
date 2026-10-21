@@ -1,0 +1,705 @@
+.root {
+    --social-base: #0b0b0b;
+    --social-surface: #171719;
+    --social-raised: #242426;
+    --social-text: #f5f5f7;
+    --social-secondary: #b0b0b8;
+    --social-tint: #ff6aa6;
+    max-width: 1120px;
+    margin-inline: auto;
+    padding: 2rem 1rem 5rem;
+    color: var(--social-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    isolation: isolate;
+}
+.header {
+    margin-bottom: 2rem;
+}
+.title {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1.12;
+}
+.subtitle {
+    margin-top: 0.75rem;
+    max-width: 42rem;
+    color: var(--social-secondary);
+    text-wrap: pretty;
+}
+.root button,
+.root input,
+.root select {
+    min-height: 44px;
+    min-width: 44px;
+}
+.root button {
+    cursor: pointer;
+}
+.root button:disabled {
+    cursor: default;
+}
+.root :is(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--social-tint);
+    outline-offset: 4px;
+}
+.root :global(.text-neutral-400),
+.root :global(.text-neutral-500),
+.root :global(.text-neutral-600),
+.root :global(.text-neutral-700) {
+    color: var(--social-secondary);
+}
+.root :global(.text-xs) {
+    font-size: 0.8125rem;
+}
+.root :global(.text-\[10px\]) {
+    font-size: 0.75rem;
+}
+.root :global(.bg-neutral-900),
+.root :global(.bg-neutral-950) {
+    background-color: var(--social-surface);
+}
+.root :global(.bg-\[\#ee1086\]) {
+    background-color: var(--social-tint);
+    color: var(--social-base);
+}
+.root :global(.text-\[\#ee1086\]) {
+    color: var(--social-tint);
+}
+.root :global(.social-card) {
+    background: var(--social-surface);
+    border: 1px solid #ffffff10;
+    border-radius: 1.5rem;
+    padding: 1.25rem;
+}
+.root button[class*="opacity-0"] {
+    opacity: 1;
+}
+.session {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 1px solid #ffffff14;
+    border-radius: 2rem;
+    background: var(--social-surface);
+}
+.artwork {
+    position: relative;
+    aspect-ratio: 1;
+    width: min(100%, 280px);
+    margin: auto;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    background: var(--social-raised);
+    box-shadow: 0 20px 48px #0005;
+    display: grid;
+    place-items: center;
+}
+.artwork img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.sessionCopy {
+    min-width: 0;
+    text-align: center;
+}
+.eyebrow {
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+.sessionTitle {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 650;
+    letter-spacing: -0.035em;
+    overflow-wrap: anywhere;
+    line-height: 1.15;
+}
+.track {
+    margin-top: 0.75rem;
+    color: var(--social-secondary);
+    overflow-wrap: anywhere;
+}
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.75rem;
+    flex-wrap: wrap;
+}
+.play {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--social-text);
+    color: var(--social-base);
+}
+.leave {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 2rem;
+    color: var(--social-secondary);
+    background: var(--social-raised);
+}
+.empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    border-radius: 1.5rem;
+    background: var(--social-surface);
+}
+.emptyIcon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    margin: 0 auto 1.25rem;
+    color: var(--social-tint);
+    background: var(--social-raised);
+}
+.empty h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+.people {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 0.75rem;
+}
+.person {
+    display: flex;
+    gap: 0.875rem;
+    align-items: center;
+    min-width: 0;
+    padding: 1rem;
+    text-align: start;
+    border-radius: 1.25rem;
+    background: var(--social-surface);
+    border: 1px solid #ffffff10;
+}
+.person:hover {
+    background: var(--social-raised);
+}
+.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--social-raised);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+.personName {
+    display: block;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+.personAction {
+    display: block;
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+@media (min-width: 768px) {
+    .root {
+        padding: 3rem 2.5rem 5rem;
+    }
+    .session {
+        grid-template-columns: minmax(200px, 0.85fr) minmax(0, 1fr);
+    }
+    .sessionCopy {
+        text-align: start;
+    }
+    .controls {
+        justify-content: start;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .root *,
+    .root *::before,
+    .root *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+@media (prefers-contrast: more) {
+    .root {
+        --social-secondary: #dedee3;
+    }
+    .tabs,
+    .session,
+    .person {
+        border-color: #ffffff80;
+    }
+}
+.dialog {
+    color-scheme: dark;
+    width: min(92vw, 28rem);
+    max-height: min(85dvh, 46rem);
+    margin: auto;
+    padding: 0;
+    overflow-y: auto;
+    border: 1px solid #ffffff24;
+    border-radius: 1.75rem;
+    background: #1c1c1e;
+    color: #f5f5f7;
+    box-shadow: 0 24px 100px #0008;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.dialog::backdrop {
+    background: #0009;
+}
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.75rem;
+}
+.form h2 {
+    font-size: 1.5rem;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+}
+.form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    font-size: 0.875rem;
+    color: #d1d1d6;
+}
+.form :is(select, textarea) {
+    width: 100%;
+    border-radius: 0.875rem;
+    border: 1px solid #ffffff20;
+    background: #2c2c2e;
+    padding: 0.875rem;
+    font-size: 1rem;
+    color: #f5f5f7;
+}
+.form textarea {
+    min-height: 7rem;
+    resize: vertical;
+}
+.form button {
+    min-height: 44px;
+    padding: 0.625rem 1.25rem;
+    border-radius: 2rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+.form button[type="submit"] {
+    background: #ff6aa6;
+    color: #0b0b0b;
+}
+.form :is(button, select, textarea):focus-visible {
+    outline: 2px solid #ff6aa6;
+    outline-offset: 4px;
+}
+.form button:disabled {
+    opacity: 0.5;
+}
+@media (max-width: 480px) {
+    .dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: 90dvh;
+        margin: auto 0 0;
+        border-radius: 1.75rem 1.75rem 0 0;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+@media (prefers-contrast: more) {
+    .dialog,
+    .form :is(select, textarea) {
+        border-color: #fff9;
+    }
+}
+
+.competition {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+.passport,
+.league {
+    min-width: 0;
+    padding: 1.5rem;
+    border: 1px solid #ffffff16;
+    border-radius: 1.75rem;
+    background: var(--social-surface);
+}
+.passport {
+    background:
+        radial-gradient(ellipse at 10% 0%, #77344f60, transparent 75%),
+        var(--social-surface);
+}
+.circleLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 44px;
+    color: var(--social-tint);
+    font-weight: 600;
+}
+.identity {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-block: 1.5rem;
+}
+.levelDisc {
+    position: relative;
+    flex: 0 0 120px;
+    height: 120px;
+    border-radius: 50%;
+    background:
+        repeating-radial-gradient(circle, #ffffff06 0 1px, transparent 2px 7px),
+        #141416;
+}
+.levelDisc svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    fill: none;
+    stroke: #ffffff12;
+    stroke-width: 3;
+}
+.levelDisc circle:last-child {
+    stroke: var(--social-tint);
+    stroke-linecap: round;
+}
+.levelDisc > span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.levelDisc small {
+    font-size: 0.7rem;
+    color: var(--social-secondary);
+}
+.levelDisc strong {
+    font-size: 2.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.06em;
+}
+.identityName {
+    min-width: 0;
+}
+.identityName h2 {
+    overflow-wrap: anywhere;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+.identityName p,
+.statFootnote {
+    color: var(--social-secondary);
+    font-size: 0.8rem;
+}
+.identityName > span {
+    display: inline-block;
+    margin-top: 0.65rem;
+    font-size: 0.8rem;
+    color: var(--social-tint);
+}
+.progressCopy {
+    font-size: 0.85rem;
+}
+.levelProgress {
+    display: block;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    margin-block: 0.75rem 1.5rem;
+    border: 0;
+    border-radius: 8px;
+    background: #ffffff16;
+}
+.levelProgress::-webkit-progress-bar {
+    background: #ffffff16;
+    border-radius: 8px;
+}
+.levelProgress::-webkit-progress-value {
+    background: var(--social-tint);
+    border-radius: 8px;
+}
+.levelProgress::-moz-progress-bar {
+    background: var(--social-tint);
+}
+.personalStats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    border-top: 1px solid #ffffff16;
+    padding-block: 1.25rem;
+}
+.personalStats > div {
+    display: grid;
+    gap: 0.35rem;
+}
+.personalStats svg {
+    color: var(--social-tint);
+}
+.personalStats strong {
+    font-size: 1.8rem;
+    font-variant-numeric: tabular-nums;
+}
+.personalStats span {
+    font-size: 0.75rem;
+    color: var(--social-secondary);
+}
+.leagueHeading {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.leagueHeading h2,
+.sectionTitle {
+    font-size: 1.3rem;
+    font-weight: 650;
+    letter-spacing: -0.035em;
+}
+.leagueHeading > svg {
+    color: var(--social-tint);
+}
+.rankings {
+    padding: 0;
+    list-style: none;
+    margin-block: 1rem;
+    max-height: 330px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.root .rankRow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+    border: 1px solid transparent;
+    border-radius: 0.875rem;
+    transition: background-color 160ms;
+}
+.rankRow:hover,
+.rankRow[aria-pressed="true"] {
+    background: #ffffff08;
+    border-color: #ffffff20;
+}
+.rankRow[data-self="true"] {
+    background: #ff6aa60b;
+}
+.rankNumber {
+    width: 1.4rem;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: var(--social-secondary);
+}
+.leagueAvatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    height: 36px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #343037;
+}
+.leagueAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.rankName {
+    min-width: 0;
+    flex: 1;
+}
+.rankName strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9rem;
+}
+.rankName small {
+    display: block;
+    color: var(--social-secondary);
+    font-size: 0.7rem;
+}
+.rankXp {
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+}
+.rankXp small {
+    display: block;
+    color: var(--social-secondary);
+    font-size: 0.65rem;
+}
+.comparison {
+    border-top: 1px solid #ffffff16;
+    padding-top: 1rem;
+}
+.comparison > p {
+    color: var(--social-tint);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+.compareNames {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 600;
+    gap: 1rem;
+    overflow-wrap: anywhere;
+}
+.comparison dl > div {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-variant-numeric: tabular-nums;
+}
+.comparison dt {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--social-secondary);
+}
+.comparison dd:last-child {
+    text-align: right;
+}
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 2rem;
+}
+.activitySection,
+.socialRail {
+    min-width: 0;
+}
+.socialRail {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+.sectionTitle {
+    margin-bottom: 1rem;
+}
+.circleSection {
+    margin-top: 2.5rem;
+    scroll-margin-top: 5rem;
+}
+.socialRail .session {
+    grid-template-columns: 1fr;
+}
+.socialRail .artwork {
+    max-width: 160px;
+}
+@media (max-width: 800px) {
+    .competition,
+    .dashboardGrid {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 380px) {
+    .passport,
+    .league {
+        padding: 1rem;
+    }
+    .levelDisc {
+        flex-basis: 96px;
+        height: 96px;
+    }
+    .identity {
+        gap: 0.75rem;
+    }
+}
+
+/* Brief feedback, never an ambient loop: keep the listening screen calm. */
+@keyframes social-arrive {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes social-compare {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .header {
+        animation: social-arrive 360ms ease-out both;
+    }
+    .passport {
+        animation: social-arrive 420ms 40ms ease-out both;
+    }
+    .league {
+        animation: social-arrive 420ms 100ms ease-out both;
+    }
+    .dashboardGrid {
+        animation: social-arrive 420ms 160ms ease-out both;
+    }
+    .comparison {
+        animation: social-compare 220ms ease-out both;
+    }
+    .levelDisc circle:last-child {
+        transition: stroke-dasharray 650ms ease-out;
+    }
+    .rankRow {
+        transition:
+            background-color 180ms,
+            border-color 180ms,
+            transform 180ms;
+    }
+    .rankRow:active:not(:disabled) {
+        transform: scale(0.985);
+    }
+    .circleLink {
+        transition: gap 180ms;
+    }
+    .circleLink:hover {
+        gap: 0.9rem;
+    }
+    @media (hover: hover) {
+        .rankRow:hover:not(:disabled) {
+            transform: translateX(3px);
+        }
+        .leagueAvatar {
+            transition: transform 180ms;
+        }
+        .rankRow:hover .leagueAvatar {
+            transform: scale(1.06);
+        }
+    }
+}

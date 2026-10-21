@@ -1,148 +1,167 @@
 import { createElement, ReactNode } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { ENotificationType } from "@/models/enums/notificationType";
 import {
     INotification,
+    LegacyNotificationsStorageSchema,
     NotificationOptions,
     NotificationSchema,
 } from "@/models/interfaces/notification";
-import { RELEASES } from "@/lib/notifications/releases";
-import { ArrayAtom, createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
+import { Http } from "@/lib/http";
+import { createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
 
 const TAP_MAX_MOVEMENT_PX = 10;
 
 export class NotificationManager {
     private _notificationsAtom = createArrayAtom<INotification>([]);
-    private _nextId = 0;
     private _dismissListenerRegistered = false;
     private _pointerDownPosition: { x: number; y: number } | null = null;
-
-    private _storageKey?: string;
-    private _seenKeys = new Set<string>();
+    private _username?: string;
+    private _generation = 0;
+    private _revision = 0;
+    private _loaded = false;
+    private _migration?: Promise<void>;
+    private _timer?: ReturnType<typeof setInterval>;
+    private _refreshListener = (): void => {
+        void this.refreshAsync();
+    };
+    private _writeQueue: Promise<void> = Promise.resolve();
 
     setUser(username?: string): void {
-        const key = username
-            ? `rockit.notifications.v1:${encodeURIComponent(username)}`
-            : undefined;
-        if (key === this._storageKey) return;
+        if (username === this._username) return;
+        this._username = username;
+        this._generation++;
+        this._revision++;
+        this._loaded = false;
+        this._migration = undefined;
+        this._writeQueue = Promise.resolve();
         toast.dismiss();
-        this._storageKey = key;
-        this._seenKeys.clear();
         this._notificationsAtom.set([]);
-        if (!key || typeof window === "undefined") return;
+        if (this._timer) clearInterval(this._timer);
+        if (typeof window === "undefined") return;
+        window.removeEventListener("focus", this._refreshListener);
+        window.removeEventListener("online", this._refreshListener);
+        if (!username) return;
+        window.addEventListener("focus", this._refreshListener);
+        window.addEventListener("online", this._refreshListener);
+        this._timer = setInterval(this._refreshListener, 30000);
+        void this.refreshAsync();
+    }
+
+    async refreshAsync(): Promise<void> {
+        if (!this._username || typeof window === "undefined") return;
+        const generation = this._generation;
+        this._migration ??= this._migrateLegacyAsync(generation);
+        await this._migration;
+        if (generation !== this._generation) return;
+        this._migration = undefined;
+        const revision = ++this._revision;
+        const result = await Http.getNotifications();
+        if (generation !== this._generation || revision !== this._revision)
+            return;
+        if (result.isNotOk() || !result.result) return;
+        const parsed = NotificationSchema.array().safeParse(
+            result.result.items
+        );
+        if (!parsed.success) return;
+        const previous = new Set(
+            this._notificationsAtom.get().map((n) => n.id)
+        );
+        if (this._loaded) {
+            for (const item of [...parsed.data].reverse()) {
+                if (
+                    !item.read &&
+                    item.category !== "release" &&
+                    !previous.has(item.id)
+                )
+                    this._showToast(item.type, item.message, item.id);
+            }
+        }
+        this._loaded = true;
+        this._notificationsAtom.set(parsed.data);
+    }
+
+    private async _migrateLegacyAsync(generation: number): Promise<void> {
+        const key = `rockit.notifications.v1:${encodeURIComponent(this._username!)}`;
         try {
-            const stored = z
-                .object({
-                    items: z.array(NotificationSchema).max(100),
-                    seen: z.array(z.string()).max(1000),
-                })
-                .parse(
-                    JSON.parse(
-                        localStorage.getItem(key) || '{"items":[],"seen":[]}'
-                    )
-                );
-            this._notificationsAtom.set(stored.items);
-            this._seenKeys = new Set(stored.seen);
-            this._nextId = Math.max(
-                this._nextId,
-                ...stored.items.map((n) => n.id + 1)
+            if (localStorage.getItem(`${key}:migrated`)) return;
+            const raw = localStorage.getItem(key);
+            if (!raw) return;
+            const legacy = LegacyNotificationsStorageSchema.safeParse(
+                JSON.parse(raw)
             );
+            if (!legacy.success || generation !== this._generation) return;
+            const result = await Http.migrateLegacyNotifications(legacy.data);
+            if (result.isNotOk()) {
+                console.error("Cannot migrate notifications", result.message);
+                return;
+            }
+            // Keep the original browser data as a backup; it is no longer the inbox.
+            localStorage.setItem(`${key}:migrated`, "true");
         } catch {
-            /* Unavailable or outdated storage must not block the app. */
+            // Private browsing or malformed old storage must not block the server inbox.
         }
     }
 
-    announceReleases(vocabulary: Record<string, string>): void {
-        if (!this._storageKey) return;
-        for (const release of [...RELEASES].reverse()) {
-            const message = `RockIt! v${release.version} · ${vocabulary[release.titleKey]}`;
-            const detail = vocabulary[release.detailKey];
-            const key = `release:${release.version}`;
-            const existing = this._notificationsAtom
+    markRead(id: string): void {
+        this._markRead([id]);
+    }
+
+    markAllRead(): void {
+        this._markRead(
+            this._notificationsAtom
                 .get()
-                .find((n) => n.key === key);
-            // Refresh announcement copy without changing read state or restoring dismissed news.
-            if (
-                existing &&
-                (existing.message !== message || existing.detail !== detail)
-            ) {
+                .filter((n) => !n.read)
+                .map((n) => n.id)
+        );
+    }
+
+    private _markRead(ids: string[]): void {
+        if (!this._username || ids.length === 0) return;
+        const generation = this._generation;
+        // Invalidate any older inbox response while the write is in flight.
+        this._revision++;
+        this._writeQueue = this._writeQueue
+            .then(async (): Promise<void> => {
+                if (generation !== this._generation) return;
+                const result = await Http.markNotificationsRead({ ids });
+                if (generation !== this._generation) return;
+                if (result.isNotOk()) {
+                    console.error(
+                        "Cannot mark notifications read",
+                        result.message
+                    );
+                    return;
+                }
+                this._revision++;
                 this._notificationsAtom.set(
                     this._notificationsAtom
                         .get()
                         .map((n) =>
-                            n.id === existing.id ? { ...n, message, detail } : n
+                            ids.includes(n.id) ? { ...n, read: true } : n
                         )
                 );
-                this._persist();
-            }
-            this.notify(ENotificationType.INFO, message, {
-                category: "release",
-                key,
-                detail,
-                toast: false,
+                await this.refreshAsync();
+            })
+            .catch((error: unknown): void => {
+                console.error("Notification update failed", error);
             });
-        }
-    }
-
-    markRead(id: number): void {
-        this._notificationsAtom.set(
-            this._notificationsAtom
-                .get()
-                .map((n) => (n.id === id ? { ...n, read: true } : n))
-        );
-        this._persist();
-    }
-
-    markAllRead(): void {
-        this._notificationsAtom.set(
-            this._notificationsAtom.get().map((n) => ({ ...n, read: true }))
-        );
-        this._persist();
-    }
-
-    clearRead(): void {
-        this._notificationsAtom.set(
-            this._notificationsAtom.get().filter((n) => !n.read)
-        );
-        this._persist();
-    }
-
-    private _persist(): void {
-        if (!this._storageKey || typeof window === "undefined") return;
-        try {
-            localStorage.setItem(
-                this._storageKey,
-                JSON.stringify({
-                    items: this._notificationsAtom.get(),
-                    seen: [...this._seenKeys].slice(-1000),
-                })
-            );
-        } catch {
-            /* Storage can be full or disabled. Keep the in-memory history. */
-        }
     }
 
     notifyError(message: string): void {
-        console.error("NotificationManager.notifyError", message);
-        this._notify(ENotificationType.ERROR, message);
+        this.notify(ENotificationType.ERROR, message);
     }
-
     notifyInfo(message: string): void {
-        console.info("NotificationManager.notifyInfo", message);
-        this._notify(ENotificationType.INFO, message);
+        this.notify(ENotificationType.INFO, message);
     }
-
     notifyWarn(message: string): void {
-        this._notify(ENotificationType.WARN, message);
+        this.notify(ENotificationType.WARN, message);
     }
-
     notifySuccess(message: string): void {
-        console.info("NotificationManager.notifySuccess", message);
-        this._notify(ENotificationType.SUCCESS, message);
+        this.notify(ENotificationType.SUCCESS, message);
     }
 
-    dismiss(id: number): void {
+    dismiss(id: string): void {
         this.markRead(id);
         toast.dismiss(`rockit-notification-${id}`);
     }
@@ -151,51 +170,53 @@ export class NotificationManager {
         return this._notificationsAtom.getReadonlyAtom();
     }
 
-    get notificationsAtomForDirectAccess(): ArrayAtom<INotification> {
-        return this._notificationsAtom;
-    }
-
-    private _notify(type: ENotificationType, message: string): void {
-        this.notify(type, message);
-    }
-
     notify(
         type: ENotificationType,
         message: string,
         options: NotificationOptions = {}
     ): void {
-        if (options.key && this._seenKeys.has(options.key)) return;
-        if (options.key) this._seenKeys.add(options.key);
-        // Bound both history and deduplication metadata.
-        this._seenKeys = new Set([...this._seenKeys].slice(-1000));
-        const numericId = this._nextId++;
-        const sonnerId = `rockit-notification-${numericId}`;
-
-        this._notificationsAtom.set(
-            [
-                {
-                    id: numericId,
-                    message,
+        // Server operations produce their own history; UI feedback stays immediate.
+        if (options.toast !== false) this._showToast(type, message);
+        if (
+            !this._username ||
+            (options.category && options.category !== "activity")
+        ) {
+            void this.refreshAsync();
+            return;
+        }
+        const generation = this._generation;
+        const key = options.key ?? crypto.randomUUID();
+        this._writeQueue = this._writeQueue
+            .then(async (): Promise<void> => {
+                if (generation !== this._generation) return;
+                const result = await Http.createNotificationActivity({
                     type,
-                    category: options.category ?? "activity",
-                    createdAt: Date.now(),
-                    read: false,
-                    key: options.key,
-                    detail: options.detail,
-                },
-                ...this._notificationsAtom.get(),
-            ].slice(0, 100)
-        );
-        this._persist();
-        if (options.toast === false) return;
+                    message,
+                    detail: options.detail ?? null,
+                    key,
+                });
+                if (generation !== this._generation) return;
+                if (result.isNotOk()) {
+                    console.error("Cannot save notification", result.message);
+                    return;
+                }
+                // The immediate toast above already showed this activity.
+                this._loaded = false;
+                await this.refreshAsync();
+            })
+            .catch((error: unknown): void => {
+                console.error("Notification update failed", error);
+            });
+    }
 
+    private _showToast(
+        type: ENotificationType,
+        message: string,
+        id: string = crypto.randomUUID()
+    ): void {
+        if (typeof window === "undefined") return;
         this._ensureDismissListener();
-
-        // Sonner's built-in tap-to-dismiss relies on a click event that iOS
-        // Safari often suppresses because the toast calls setPointerCapture()
-        // during touch sequences. Wrapping the content with a marker attribute
-        // lets the delegated pointerup listener below dismiss reliably on
-        // every platform.
+        const sonnerId = `rockit-notification-${id}`;
         const content: ReactNode = createElement(
             "div",
             {
@@ -204,11 +225,7 @@ export class NotificationManager {
             },
             message
         );
-        const data = {
-            id: sonnerId,
-            dismissible: true,
-        };
-
+        const data = { id: sonnerId, dismissible: true };
         switch (type) {
             case ENotificationType.ERROR:
                 toast.error(content, data);
@@ -219,7 +236,6 @@ export class NotificationManager {
             case ENotificationType.SUCCESS:
                 toast.success(content, data);
                 break;
-            case ENotificationType.INFO:
             default:
                 toast(content, data);
                 break;

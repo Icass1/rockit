@@ -1,15 +1,13 @@
+import {
+    LegacyNotificationRequestSchema,
+    LegacyNotificationsRequestSchema,
+    NotificationResponseSchema,
+} from "@rockit/shared";
 import { z } from "zod";
 import { ENotificationType } from "@/models/enums/notificationType";
 
-export const NotificationSchema = z.object({
-    id: z.number(),
-    message: z.string(),
+export const NotificationSchema = NotificationResponseSchema.extend({
     type: z.nativeEnum(ENotificationType),
-    category: z.enum(["activity", "download", "import", "release"]),
-    createdAt: z.number(),
-    read: z.boolean(),
-    key: z.string().optional(),
-    detail: z.string().optional(),
 });
 export type INotification = z.infer<typeof NotificationSchema>;
 export type NotificationCategory = INotification["category"];
@@ -19,9 +17,14 @@ export interface NotificationOptions {
     detail?: string;
     toast?: boolean;
 }
-export interface ReleaseAnnouncement {
-    version: string;
-    date: string;
-    titleKey: string;
-    detailKey: string;
-}
+
+// Only used to transfer the previous browser-local inbox to the server.
+export const LegacyNotificationsStorageSchema =
+    LegacyNotificationsRequestSchema.extend({
+        items: LegacyNotificationRequestSchema.extend({
+            key: z.string().nullable().default(null),
+            detail: z.string().nullable().default(null),
+        })
+            .array()
+            .max(100),
+    });

@@ -240,6 +240,14 @@ export {
     type LatestVersionResponse,
 } from "./latestVersionResponse";
 export {
+    LegacyNotificationRequestSchema,
+    type LegacyNotificationRequest,
+} from "./legacyNotificationRequest";
+export {
+    LegacyNotificationsRequestSchema,
+    type LegacyNotificationsRequest,
+} from "./legacyNotificationsRequest";
+export {
     LibraryMediaAddedMessageSchema,
     type LibraryMediaAddedMessage,
 } from "./libraryMediaAddedMessage";
@@ -292,6 +300,22 @@ export {
     type MediaRemovedFromPlaylistMessage,
 } from "./mediaRemovedFromPlaylistMessage";
 export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
+export {
+    NotificationActivityRequestSchema,
+    type NotificationActivityRequest,
+} from "./notificationActivityRequest";
+export {
+    NotificationResponseSchema,
+    type NotificationResponse,
+} from "./notificationResponse";
+export {
+    NotificationsReadRequestSchema,
+    type NotificationsReadRequest,
+} from "./notificationsReadRequest";
+export {
+    NotificationsResponseSchema,
+    type NotificationsResponse,
+} from "./notificationsResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {
     PlaylistContributorSchema,

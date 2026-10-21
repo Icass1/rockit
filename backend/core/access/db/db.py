@@ -69,3 +69,7 @@ from backend.core.access.db.ormEnums.bookmarkModeEnum import (
 
 schemas = ["core"]
 base = CoreBase
+
+from backend.core.access.db.ormModels.notification import (
+    NotificationRow as NotificationRow,
+)

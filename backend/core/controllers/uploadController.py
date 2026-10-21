@@ -11,6 +11,8 @@ from backend.utils.backendUtils import create_id
 from backend.core.aResult import AResult
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
+from backend.core.framework.notifications import Notifications
+
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
@@ -250,6 +252,16 @@ async def upload_file(
             file_path=file_path,
             image_path=image_path,
         )
+        notification = await Notifications.import_async(
+            session=session,
+            user_id=_get_user(request=request).id,
+            operation_id=upload_id,
+            success=a_result.is_ok(),
+            title=request_model.title,
+        )
+        if notification.is_not_ok():
+            logger.error(f"Import notification failed: {notification.info()}")
+
         await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
             logger.error(f"Failed to upload song. {a_result.info()}")
@@ -272,6 +284,16 @@ async def upload_file(
             file_path=file_path,
             image_path=image_path,
         )
+        notification = await Notifications.import_async(
+            session=session,
+            user_id=_get_user(request=request).id,
+            operation_id=upload_id,
+            success=a_result.is_ok(),
+            title=video_request.title,
+        )
+        if notification.is_not_ok():
+            logger.error(f"Import notification failed: {notification.info()}")
+
         await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
             logger.error(f"Failed to upload video. {a_result.info()}")
@@ -398,6 +420,15 @@ async def upload_album_song_file(
             cover_path=cover_path_to_pass,
             song_paths=song_paths,
         )
+        notification = await Notifications.import_async(
+            session=session,
+            user_id=_get_user(request=request).id,
+            operation_id=upload_id,
+            success=a_result.is_ok(),
+            title=album_request.title,
+        )
+        if notification.is_not_ok():
+            logger.error(f"Import notification failed: {notification.info()}")
 
         await _cleanup_upload_temp_dir(upload_id=upload_id)
 
@@ -501,6 +532,16 @@ async def assemble_media_upload(
             file_path=file_path,
             image_path=image_path,
         )
+        notification = await Notifications.import_async(
+            session=session,
+            user_id=_get_user(request=request).id,
+            operation_id=upload_id,
+            success=a_result.is_ok(),
+            title=request_model.title,
+        )
+        if notification.is_not_ok():
+            logger.error(f"Import notification failed: {notification.info()}")
+
         await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
             logger.error(f"Error assembling song upload. {a_result.info()}")
@@ -523,6 +564,16 @@ async def assemble_media_upload(
             file_path=file_path,
             image_path=image_path,
         )
+        notification = await Notifications.import_async(
+            session=session,
+            user_id=_get_user(request=request).id,
+            operation_id=upload_id,
+            success=a_result.is_ok(),
+            title=video_request.title,
+        )
+        if notification.is_not_ok():
+            logger.error(f"Import notification failed: {notification.info()}")
+
         await _cleanup_upload_temp_dir(upload_id=upload_id)
         if a_result.is_not_ok():
             logger.error(f"Error assembling video upload. {a_result.info()}")

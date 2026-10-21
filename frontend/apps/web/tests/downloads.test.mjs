@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import vm from "node:vm";
 import { build } from "esbuild";
+
 const { outputFiles } = await build({
     stdin: {
         contents: `export {DownloaderManager} from './lib/managers/downloaderManager'; export {BaseHttp} from '../../packages/shared/src/http/baseHttp';`,
@@ -65,6 +66,7 @@ function setup() {
     };
     const rockIt = {
         notificationManager: {
+            refreshAsync: async () => {},
             notify: (_type, message) => messages.push(message),
             notifySuccess: (m) => messages.push(m),
             notifyError: (m) => messages.push(m),

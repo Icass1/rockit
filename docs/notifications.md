@@ -1,58 +1,69 @@
-# Web notifications
+# Notifications
 
-The bell and Sonner toasts share `NotificationManager`. Existing `notifyInfo`,
-`notifySuccess`, `notifyWarn` and `notifyError` calls remain compatible and appear
-under activity. Use `notify(type, message, options)` for a feature event:
+The backend owns the inbox, event identity and read receipts. `core.notification`
+contains one row per recipient/event, with a unique `(user_id, event_key)` constraint.
+Notifications survive browser changes and disconnected clients. Listing and marking
+read always use the authenticated user's internal ID; the API exposes public IDs only.
+The bell keeps All, Unread and Read filters. Its X marks read without deleting history.
+Opening the bell does not mark anything read.
 
-```ts
-rockIt.notificationManager.notify(ENotificationType.SUCCESS, title, {
-    category: "import", // activity | download | import | release
-    key: `import:${operationId}:completed`, // optional stable event identity
-    detail: importedFileName,
-    toast: true,
-});
+## Delivery and producers
+
+- Download workers persist COMPLETED/FAILED notifications after automatic retries
+  finish, before broadcasting terminal websocket progress. Keys include the download
+  ID, status and retry count. Progress ticks do not create notifications.
+- Upload endpoints record the provider's final result for songs, albums and videos,
+  including chunked uploads. Validation and transport errors before a provider result
+  remain local form errors.
+- ZIP creation records archive availability. The browser toast reports handoff to the
+  browser, not completion of saving to disk.
+- Published release announcements live in `backend/core/framework/notifications.py`.
+  The server lazily creates the current announcement once per user; reads never reset
+  on a subsequent request. Existing announcements stay in the database.
+- Other UI activity can use the authenticated personal-activity endpoint. It cannot
+  publish releases or download results for other users.
+
+`NotificationManager` is a presentation/synchronization adapter. It loads history on
+login, focus, reconnecting to the network and every 30 seconds while logged in.
+Terminal download websocket events and upload responses refresh immediately. Other
+devices pick up read receipts on the next refresh. Initial history and releases are
+silent; newly received unread activity can show a toast. Failed read requests do not
+change local read state. Signing out clears the visible history and toasts, and stale
+requests cannot restore another account's data.
+
+## API
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| GET | `/notifications` | Latest 100 notifications, newest event date first |
+| POST | `/notifications/read` | Mark a supplied list of public IDs read |
+| POST | `/notifications/activity` | Record personal UI feedback |
+| POST | `/notifications/legacy` | Import up to 100 retained browser notifications |
+
+History is retained in PostgreSQL; the current panel displays the latest 100.
+Mark-all-read applies to the displayed unread entries. Server copy is resolved from
+the existing database vocabulary for the user's language. Add translations to
+`Vocabulary.xlsx` and run `python3 -m backend import-vocabulary` as usual; there is
+no frontend release catalog or fallback dictionary.
+
+## Upgrade and verification
+
+The existing backend schema initialization creates the new table and index on startup.
+Deploy the backend before the frontend. On first login, the client imports that
+account's old `rockit.notifications.v1:*` history through the bounded migration API.
+The import is idempotent and combines read receipts without resetting read entries.
+The browser retains its old data as a backup and records a migration marker only
+once the server acknowledges the import. Failed imports retry on a subsequent
+refresh. Old entries already deleted by previous versions cannot be recovered.
+
+Run web `npm test`, `tsc --noEmit`, backend `pyright` and `black --check .`.
+PostgreSQL integration tests cover recipient isolation, deduplication, read receipts,
+translations, disconnected producers and legacy migration. They use disposable
+per-test databases via the existing `ROCKIT_TEST_DATABASE_URL` fixture:
+
+```sh
+pytest backend/tests/integration/test_notifications.py
 ```
-
-A key prevents repeated websocket deliveries from creating repeated entries or
-toasts, including after dismissal and reload. Use operation IDs, not file names.
-Retry attempts can have separate keys. Progress ticks should not create entries.
-Toasts disappear independently from history; opening the bell does not mark
-anything read. Users can mark individual/all entries read. The row X marks its notification
-read and dismisses its toast; it does not delete history. Read entries show a
-check instead of another close action. The panel has no delete-history control. History retains the latest 100 entries and
-the latest 1,000 deduplication keys.
-
-## Releases
-
-Add published releases to `frontend/apps/web/lib/notifications/releases.ts`,
-newest first, with a unique version, publication date and vocabulary keys for the
-title and details. Entries are source controlled with the web deployment. The
-initial announcement identifies RockIt 2 (2.0.0). Add future
-announcement copy to `Vocabulary.xlsx` for each supported language, then run
-`python3 -m backend import-vocabulary` against the target database. This imports
-translations and regenerates the shared vocabulary interface. Notifications use
-the same server vocabulary as the rest of the application, with no frontend
-translation dictionary. Releases
-appear silently once per browser/user; they do not use the Android APK API.
-
-## Delivery and storage
-
-History and read/dismiss state are local to this browser, under a username-scoped
-versioned localStorage key. Invalid storage is validated with Zod and discarded;
-unavailable storage falls back to memory. Signing out clears the active history
-and visible toasts; signing in restores that account's local history. This does
-not provide cross-device synchronization or a server-side inbox. Download
-results are received through the existing authenticated websocket while the app
-is connected; missed events are not replayed by this feature.
-
-Downloads use explicit COMPLETED/FAILED states, not progress percentages.
-Imports report the actual upload result. ZIP preparation reports that the file
-has been handed to the browser: browsers do not expose completion of saving to
-disk. Existing backend and mobile contracts are unchanged.
-
-Run web `npm test`, `tsc --noEmit` and ESLint for verification. Notification tests
-cover deduplication, persisted read state and retained history, account isolation, corrupt
-storage, bounded history and release announcements.
 
 ## Header panels
 
@@ -95,7 +106,3 @@ passes the calculated value. Mobile APK/store versioning remains separate.
 No pre-commit file mutation or bot version commits are needed. Version tags do
 not automatically create notification copy: published announcements remain curated
 in the release catalog, so every development commit does not generate a new alert.
-
-Notifications deleted using the previous UI cannot be recovered: their stored
-contents are no longer available. The new close behavior applies to retained
-and newly received entries. History still retains at most 100 notifications.

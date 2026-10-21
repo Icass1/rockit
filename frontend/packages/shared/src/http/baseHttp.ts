@@ -470,49 +470,75 @@ export class BaseHttp {
         );
     }
 
+    static async browseDownloads(
+        page?: number,
+        status?: string,
+        kind?: string,
+        q?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (page !== undefined) queryParams.append("page", `${page}`);
+        if (status !== undefined) queryParams.append("status", `${status}`);
+        if (kind !== undefined) queryParams.append("kind", `${kind}`);
+        if (q !== undefined) queryParams.append("q", `${q}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/downloader/browse${queryString ? `?${queryString}` : ""}`,
+            dto.DownloadBrowseResponseSchema
+        );
+    }
+
     static downloadZipURL() {
         return `${BACKEND_URL}/downloader/download-zip`;
     }
 
-    static async browseDownloads(
-        page = 0,
-        status = "all",
-        kind = "all",
-        query = ""
-    ) {
-        const params = new URLSearchParams({
-            page: String(page),
-            status,
-            kind,
-            q: query,
-        });
+    static async getDownloads() {
         return this.apiGetAsync(
-            `/downloader/browse?${params}`,
-            dto.DownloadBrowseResponseSchema
+            `/downloader/downloads`,
+            dto.DownloadsResponseSchema
+        );
+    }
+
+    static async deleteDownload(publicId: string) {
+        return this.apiDeleteAsync(
+            `/downloader/downloads/${publicId}`,
+            dto.OkResponseSchema
+        );
+    }
+
+    static async retryDownload(publicId: string) {
+        return this.apiFetchAsync(
+            `/downloader/downloads/${publicId}/retry`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
+    static async markDownloadSeen(publicId: string) {
+        return this.apiGetAsync(
+            `/downloader/downloads/${publicId}/seen`,
+            dto.OkResponseSchema
         );
     }
 
     static async getDownloadGroupItems(
         publicId: string,
-        offset = 0,
-        status = "all",
-        query = ""
+        offset?: number,
+        status?: string,
+        q?: string
     ) {
-        const params = new URLSearchParams({
-            offset: String(offset),
-            status,
-            q: query,
-        });
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (status !== undefined) queryParams.append("status", `${status}`);
+        if (q !== undefined) queryParams.append("q", `${q}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/downloader/groups/${publicId}/items?${params}`,
+            `/downloader/groups/${publicId}/items${queryString ? `?${queryString}` : ""}`,
             dto.DownloadItemsPageResponseSchema
         );
     }
 
-    static async manageDownloadGroup(
-        publicId: string,
-        action: "delete" | "retry"
-    ) {
+    static async manageDownloadGroup(publicId: string, action: string) {
         return this.apiFetchAsync(
             `/downloader/groups/${publicId}/${action}`,
             dto.OkResponseSchema,
@@ -533,35 +559,6 @@ export class BaseHttp {
             dto.DownloadSettingsResponseSchema,
             dto.OkResponseSchema,
             payload
-        );
-    }
-
-    static async deleteDownload(publicId: string) {
-        return this.apiDeleteAsync(
-            `/downloader/downloads/${publicId}`,
-            dto.OkResponseSchema
-        );
-    }
-
-    static async getDownloads() {
-        return this.apiGetAsync(
-            `/downloader/downloads`,
-            dto.DownloadsResponseSchema
-        );
-    }
-
-    static async retryDownload(publicId: string) {
-        return this.apiFetchAsync(
-            `/downloader/downloads/${publicId}/retry`,
-            dto.OkResponseSchema,
-            { method: "POST" }
-        );
-    }
-
-    static async markDownloadSeen(publicId: string) {
-        return this.apiGetAsync(
-            `/downloader/downloads/${publicId}/seen`,
-            dto.OkResponseSchema
         );
     }
 
@@ -826,6 +823,44 @@ export class BaseHttp {
 
     static async getMediaAsync(publicId: string) {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
+    }
+
+    static async getNotifications() {
+        return this.apiGetAsync(
+            `/notifications`,
+            dto.NotificationsResponseSchema
+        );
+    }
+
+    static async createNotificationActivity(
+        payload: dto.NotificationActivityRequest
+    ) {
+        return this.apiPostAsync(
+            `/notifications/activity`,
+            dto.NotificationActivityRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async migrateLegacyNotifications(
+        payload: dto.LegacyNotificationsRequest
+    ) {
+        return this.apiPostAsync(
+            `/notifications/legacy`,
+            dto.LegacyNotificationsRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async markNotificationsRead(payload: dto.NotificationsReadRequest) {
+        return this.apiPostAsync(
+            `/notifications/read`,
+            dto.NotificationsReadRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
     }
 
     static async getStation(publicId: string) {

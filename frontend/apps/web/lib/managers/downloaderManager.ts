@@ -12,7 +12,6 @@ import {
     isQueueable,
 } from "@rockit/shared";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
-import { ENotificationType } from "@/models/enums/notificationType";
 import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import type {
     DownloadDetail,
@@ -563,21 +562,7 @@ export class DownloaderManager {
                     message: data.status,
                 });
                 if (data.status === "COMPLETED" || data.status === "FAILED") {
-                    const v = rockIt.vocabularyManager
-                        .vocabulary as unknown as Record<string, string>;
-                    rockIt.notificationManager.notify(
-                        data.status === "FAILED"
-                            ? ENotificationType.ERROR
-                            : ENotificationType.SUCCESS,
-                        data.status === "FAILED"
-                            ? v.NOTIFICATIONS_DOWNLOAD_FAILED
-                            : v.NOTIFICATIONS_DOWNLOAD_DONE,
-                        {
-                            category: "download",
-                            key: `download:${data.publicId}:${data.status}:${data.retryCount}`,
-                            detail: data.name,
-                        }
-                    );
+                    void rockIt.notificationManager.refreshAsync();
                 }
                 if (data.status === "COMPLETED")
                     rockIt.eventManager.dispatchEvent(EEvent.MediaDownloaded, {

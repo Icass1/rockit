@@ -321,9 +321,9 @@ async def browse_download_group_items(
 
 @router.post("/groups/{public_id}/{action}")
 async def manage_download_group(
-    request: Request, public_id: str, action: Literal["retry", "delete"]
+    request: Request, public_id: str, action: Literal["retry", "delete", "library"]
 ) -> OkResponse:
-    """Delete or redownload all of a terminal group's tracks in one request."""
+    """Manage a complete download group, including its library membership."""
     user = AuthMiddleware.get_current_user(request=request)
     if user.is_not_ok():
         logger.error(f"Download group action authentication failed: {user.info()}")

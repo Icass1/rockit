@@ -12,12 +12,46 @@ import {
     ExternalLink,
     Library,
     LoaderCircle,
+    MoreHorizontal,
     Music,
     RefreshCw,
     Trash2,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import { useContextMenu } from "@/components/ContextMenu/context";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import DownloadCoverCard from "@/components/Downloader/DownloadCoverCard";
+
+function GroupMenuButton({
+    label,
+    className,
+}: {
+    label: string;
+    className: string;
+}): JSX.Element {
+    const { _setContextMenuOpen, _setContextMenuPos } = useContextMenu();
+    return (
+        <button
+            className={className}
+            aria-label={label}
+            aria-haspopup="menu"
+            onClick={(event) => {
+                const bounds = event.currentTarget.getBoundingClientRect();
+                _setContextMenuPos?.(
+                    event.detail === 0
+                        ? [bounds.left, bounds.bottom]
+                        : [event.clientX, event.clientY]
+                );
+                _setContextMenuOpen?.((open) => !open);
+            }}
+        >
+            <MoreHorizontal size={16} />
+        </button>
+    );
+}
 
 function DownloadGroupSection({
     group,
@@ -45,50 +79,66 @@ function DownloadGroupSection({
             className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4"
             aria-busy={!!pending}
         >
-            <div className="flex flex-wrap items-start gap-4">
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
-                    {group.imageUrl ? (
-                        <Image
-                            src={group.imageUrl}
-                            alt={group.name}
-                            fill
-                            sizes="80px"
-                            className="object-cover"
+            <ContextMenu>
+                <div className="flex flex-wrap items-start gap-4">
+                    <div className="min-w-0 flex-1">
+                        <ContextMenuTrigger>
+                            <div className="flex items-start gap-4">
+                                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
+                                    {group.imageUrl ? (
+                                        <Image
+                                            src={group.imageUrl}
+                                            alt={group.name}
+                                            fill
+                                            sizes="80px"
+                                            className="object-cover"
+                                        />
+                                    ) : (
+                                        <Music className="m-6 h-8 w-8 text-neutral-500" />
+                                    )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs text-neutral-400">
+                                        {title}
+                                        {group.provider
+                                            ? ` · ${group.provider}`
+                                            : ""}
+                                    </p>
+                                    <h2 className="mt-1 truncate font-semibold text-white">
+                                        {group.sourceUrl ? (
+                                            <Link
+                                                href={group.sourceUrl}
+                                                className="hover:underline"
+                                            >
+                                                {group.name}
+                                            </Link>
+                                        ) : (
+                                            group.name
+                                        )}
+                                    </h2>
+                                    <p className="mt-1 text-xs text-neutral-400">
+                                        {group.total} {vocabulary.SONGS} ·{" "}
+                                        {group.success} {vocabulary.COMPLETED} ·{" "}
+                                        {group.fail} {vocabulary.FAILED}
+                                    </p>
+                                    {group.active > 0 && (
+                                        <p
+                                            role="status"
+                                            className="mt-1 text-xs text-pink-400"
+                                        >
+                                            {vocabulary.DOWNLOADING} ·{" "}
+                                            {group.active}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </ContextMenuTrigger>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <GroupMenuButton
+                            className={buttonClass}
+                            label={vocabulary.MORE_OPTIONS}
                         />
-                    ) : (
-                        <Music className="m-6 h-8 w-8 text-neutral-500" />
-                    )}
-                </div>
-                <div className="min-w-0 flex-1">
-                    <p className="text-xs text-neutral-400">
-                        {title}
-                        {group.provider ? ` · ${group.provider}` : ""}
-                    </p>
-                    <h2 className="mt-1 truncate font-semibold text-white">
-                        {group.sourceUrl ? (
-                            <Link
-                                href={group.sourceUrl}
-                                className="hover:underline"
-                            >
-                                {group.name}
-                            </Link>
-                        ) : (
-                            group.name
-                        )}
-                    </h2>
-                    <p className="mt-1 text-xs text-neutral-400">
-                        {group.total} {vocabulary.SONGS} · {group.success}{" "}
-                        {vocabulary.COMPLETED} · {group.fail}{" "}
-                        {vocabulary.FAILED}
-                    </p>
-                    {group.active > 0 && (
-                        <p role="status" className="mt-1 text-xs text-pink-400">
-                            {vocabulary.DOWNLOADING} · {group.active}
-                        </p>
-                    )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    {group.sourcePublicId && (
                         <button
                             className={buttonClass}
                             disabled={!!pending || group.inLibrary}
@@ -111,10 +161,70 @@ function DownloadGroupSection({
                                 ? vocabulary.ADDED_TO_LIBRARY
                                 : vocabulary.ADD_TO_LIBRARY}
                         </button>
-                    )}
-                    <button
-                        className={buttonClass}
-                        disabled={!!pending || !group.canManage}
+                        <button
+                            className={buttonClass}
+                            disabled={!!pending || !group.canManage}
+                            onClick={() =>
+                                void rockIt.downloaderManager.runGroupActionAsync(
+                                    group,
+                                    "retry"
+                                )
+                            }
+                        >
+                            {pending === "retry" ? (
+                                <LoaderCircle
+                                    size={14}
+                                    className="animate-spin"
+                                />
+                            ) : (
+                                <RefreshCw size={14} />
+                            )}
+                            {vocabulary.REDOWNLOAD}
+                        </button>
+                        <button
+                            className={buttonClass}
+                            disabled={!!pending || !group.canManage}
+                            onClick={() => confirmation.current?.showModal()}
+                        >
+                            <Trash2 size={14} />
+                            {vocabulary.DELETE}
+                        </button>
+                        {group.providerUrl && (
+                            <a
+                                className={buttonClass}
+                                href={group.providerUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <ExternalLink size={14} />
+                                {group.provider}
+                            </a>
+                        )}
+                    </div>
+                </div>
+                <ContextMenuContent
+                    cover={group.imageUrl ?? undefined}
+                    title={group.name}
+                    description={[title, group.provider]
+                        .filter(Boolean)
+                        .join(" · ")}
+                >
+                    <ContextMenuOption
+                        disable={!!pending || group.inLibrary}
+                        onClick={() =>
+                            void rockIt.downloaderManager.runGroupActionAsync(
+                                group,
+                                "library"
+                            )
+                        }
+                    >
+                        <Library size={16} />
+                        {group.inLibrary
+                            ? vocabulary.ADDED_TO_LIBRARY
+                            : vocabulary.ADD_TO_LIBRARY}
+                    </ContextMenuOption>
+                    <ContextMenuOption
+                        disable={!!pending || !group.canManage}
                         onClick={() =>
                             void rockIt.downloaderManager.runGroupActionAsync(
                                 group,
@@ -122,34 +232,18 @@ function DownloadGroupSection({
                             )
                         }
                     >
-                        {pending === "retry" ? (
-                            <LoaderCircle size={14} className="animate-spin" />
-                        ) : (
-                            <RefreshCw size={14} />
-                        )}
+                        <RefreshCw size={16} />
                         {vocabulary.REDOWNLOAD}
-                    </button>
-                    <button
-                        className={buttonClass}
-                        disabled={!!pending || !group.canManage}
+                    </ContextMenuOption>
+                    <ContextMenuOption
+                        disable={!!pending || !group.canManage}
                         onClick={() => confirmation.current?.showModal()}
                     >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                         {vocabulary.DELETE}
-                    </button>
-                    {group.providerUrl && (
-                        <a
-                            className={buttonClass}
-                            href={group.providerUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <ExternalLink size={14} />
-                            {group.provider}
-                        </a>
-                    )}
-                </div>
-            </div>
+                    </ContextMenuOption>
+                </ContextMenuContent>
+            </ContextMenu>
             <button
                 className="my-4 flex items-center gap-2 text-sm text-neutral-300"
                 aria-expanded={expanded}

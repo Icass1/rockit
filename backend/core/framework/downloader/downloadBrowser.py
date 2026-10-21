@@ -13,6 +13,7 @@ from backend.core.enums.mediaTypeEnum import MEDIA_TYPE_NAMES
 from backend.core.framework import providers
 from backend.core.framework.downloader import downloads_manager
 from backend.core.framework.downloader.deferredDownload import DeferredDownload
+from backend.core.framework.user.user import User
 from backend.core.responses.downloadBrowseResponse import (
     DownloadBrowseResponse,
     DownloadBrowseGroupResponse,
@@ -217,6 +218,26 @@ class DownloadBrowser:
             logger.error(f"Error reading action targets: {result.info()}")
             return AResult(code=result.code(), message=result.message())
         rows = result.result()
+        if action == "library":
+            if group.seen or not rows:
+                logger.warning("Cannot save a hidden or empty download group")
+                return AResult(
+                    code=AResultCode.NOT_FOUND, message="Download group not found"
+                )
+            public_ids = (
+                [group.source_public_id]
+                if group.source_public_id
+                else list(dict.fromkeys(media.public_id for _, media in rows))
+            )
+            saved = await User.add_medias_to_library_async(
+                session=session, user_id=user_id, public_ids=public_ids
+            )
+            if saved.is_not_ok():
+                logger.error(
+                    f"Could not save download group to library: {saved.info()}"
+                )
+                return AResult(code=saved.code(), message=saved.message())
+            return AResult(code=AResultCode.OK, message="OK", result=True)
         if (
             group.seen
             or not rows

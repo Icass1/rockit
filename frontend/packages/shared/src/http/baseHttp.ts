@@ -511,7 +511,7 @@ export class BaseHttp {
 
     static async manageDownloadGroup(
         publicId: string,
-        action: "delete" | "retry"
+        action: "delete" | "retry" | "library"
     ) {
         return this.apiFetchAsync(
             `/downloader/groups/${publicId}/${action}`,

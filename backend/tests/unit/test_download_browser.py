@@ -16,6 +16,7 @@ from backend.core.framework.downloader import downloadBrowser
 from backend.core.framework.downloader import downloads_manager
 from backend.core.framework.downloader.downloadBrowser import DownloadBrowser
 from backend.core.framework.downloader.deferredDownload import DeferredDownload
+from backend.core.framework.user.user import User
 
 T = TypeVar("T")
 
@@ -315,3 +316,66 @@ async def test_track_pages_propagate_song_search_and_report_the_real_total(
     assert load.call_args.kwargs["query"] == "A song"
     assert load.call_args.kwargs["limit"] == 49
     assert count.call_args.kwargs["query"] == "A song"
+
+
+@pytest.mark.parametrize("source_public_id", ["playlist-source", "album-source", None])
+async def test_library_group_saves_source_or_all_legacy_tracks_without_changing_files(
+    group_action: GroupActionFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    source_public_id: str | None,
+) -> None:
+    group_action.group.source_public_id = source_public_id
+    group_action.row.status_key = 1
+    second = SimpleNamespace(id=21, public_id="song-two", provider_id=2)
+    monkeypatch.setattr(
+        DownloadBrowseAccess,
+        "group_rows_async",
+        AsyncMock(
+            return_value=ok(
+                [
+                    (group_action.row, group_action.media),
+                    (group_action.row, second),
+                    (group_action.row, group_action.media),
+                ]
+            )
+        ),
+    )
+    save = AsyncMock(return_value=ok(True))
+    monkeypatch.setattr(User, "add_medias_to_library_async", save)
+    session = AsyncMock(spec=AsyncSession)
+    result = await DownloadBrowser.group_action_async(
+        session=session, user_id=1, public_id="group", action="library"
+    )
+    assert result.is_ok()
+    save.assert_awaited_once_with(
+        session=session,
+        user_id=1,
+        public_ids=[source_public_id] if source_public_id else ["song", "song-two"],
+    )
+    group_action.clear.assert_not_awaited()
+    group_action.queue.assert_not_called()
+    assert (group_action.folder / "song.mp3").read_bytes() == b"audio"
+
+
+async def test_library_group_rejects_hidden_group_and_propagates_save_failure(
+    group_action: GroupActionFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    group_action.group.source_public_id = None
+    save = AsyncMock(
+        return_value=AResult(code=AResultCode.GENERAL_ERROR, message="Save failed")
+    )
+    monkeypatch.setattr(User, "add_medias_to_library_async", save)
+    group_action.group.seen = True
+    session = AsyncMock(spec=AsyncSession)
+    result = await DownloadBrowser.group_action_async(
+        session=session, user_id=1, public_id="group", action="library"
+    )
+    assert result.code() == AResultCode.NOT_FOUND
+    save.assert_not_awaited()
+    group_action.group.seen = False
+    result = await DownloadBrowser.group_action_async(
+        session=session, user_id=1, public_id="group", action="library"
+    )
+    assert result.code() == AResultCode.GENERAL_ERROR
+    assert result.message() == "Save failed"

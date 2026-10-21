@@ -7,6 +7,7 @@ import { useStore } from "@nanostores/react";
 import { Vocabulary } from "@rockit/shared";
 import { ChartLine, ImageUp, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
@@ -171,6 +172,10 @@ export default function SettingsClient(): JSX.Element {
                             </span>
                         </div>
                         <PasswordSection vocabulary={$vocabulary} />
+                    </SettingsSection>
+
+                    <SettingsSection title={$vocabulary.DOWNLOADS}>
+                        <DownloadLibrarySetting />
                     </SettingsSection>
 
                     <SettingsSection title="Audio">

@@ -474,6 +474,75 @@ export class BaseHttp {
         return `${BACKEND_URL}/downloader/download-zip`;
     }
 
+    static async browseDownloads(
+        page = 0,
+        status = "all",
+        kind = "all",
+        query = ""
+    ) {
+        const params = new URLSearchParams({
+            page: String(page),
+            status,
+            kind,
+            q: query,
+        });
+        return this.apiGetAsync(
+            `/downloader/browse?${params}`,
+            dto.DownloadBrowseResponseSchema
+        );
+    }
+
+    static async getDownloadGroupItems(
+        publicId: string,
+        offset = 0,
+        status = "all",
+        query = ""
+    ) {
+        const params = new URLSearchParams({
+            offset: String(offset),
+            status,
+            q: query,
+        });
+        return this.apiGetAsync(
+            `/downloader/groups/${publicId}/items?${params}`,
+            dto.DownloadItemsPageResponseSchema
+        );
+    }
+
+    static async manageDownloadGroup(
+        publicId: string,
+        action: "delete" | "retry"
+    ) {
+        return this.apiFetchAsync(
+            `/downloader/groups/${publicId}/${action}`,
+            dto.OkResponseSchema,
+            { method: "POST" }
+        );
+    }
+
+    static async getDownloadSettings() {
+        return this.apiGetAsync(
+            `/downloader/settings`,
+            dto.DownloadSettingsResponseSchema
+        );
+    }
+
+    static async updateDownloadSettings(payload: dto.DownloadSettingsResponse) {
+        return this.apiPostAsync(
+            `/downloader/settings`,
+            dto.DownloadSettingsResponseSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async deleteDownload(publicId: string) {
+        return this.apiDeleteAsync(
+            `/downloader/downloads/${publicId}`,
+            dto.OkResponseSchema
+        );
+    }
+
     static async getDownloads() {
         return this.apiGetAsync(
             `/downloader/downloads`,

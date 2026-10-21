@@ -1,5 +1,3 @@
-import asyncio
-
 from logging import Logger
 from typing import List
 from sqlalchemy.ext.asyncio import (
@@ -12,7 +10,12 @@ from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
 from backend.core.access.downloadAccess import DownloadAccess
+from backend.core.access.downloadReuseAccess import DownloadReuseAccess
+from backend.utils.downloadFiles import DownloadFiles
+from backend.core.framework.downloader.deferredDownload import DeferredDownload
 from backend.core.access.mediaAccess import MediaAccess
+from backend.core.access.userAccess import UserAccess
+from backend.core.access.db.ormModels.user import UserRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
@@ -98,78 +101,84 @@ class Downloader:
         )
 
     @staticmethod
-    async def _queue_single_download_async(
+    async def _queue_downloads_async(
         session: AsyncSession,
-        public_id: str,
+        public_ids: list[str],
         group: DownloadGroupRow,
         user_id: int,
-    ) -> None:
-        """Queue a single song/video for download under the given group."""
-
-        a_result_media: AResult[MediaModel] = (
-            await Media.get_media_from_public_id_async(
-                session=session,
-                public_id=public_id,
-                media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
+    ) -> AResult[bool]:
+        """Reuse available files in a new source group and queue only missing media."""
+        unique_ids = list(dict.fromkeys(public_ids))
+        if not unique_ids:
+            logger.warning("Download source has no playable media")
+            return AResult(
+                code=AResultCode.BAD_REQUEST, message="No downloadable media found"
             )
+        result = await DownloadReuseAccess.candidates_async(
+            session=session, public_ids=unique_ids
         )
-        if a_result_media.is_not_ok():
-            logger.error(f"Error getting media {public_id}. {a_result_media.info()}")
-            return
-
-        media: MediaModel = a_result_media.result()
-        provider: BaseMediaProvider | None = providers.find_media_provider(
-            provider_id=media.provider_id
+        if result.is_not_ok():
+            logger.error(f"Error resolving reusable downloads: {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        by_public_id = {candidate.public_id: candidate for candidate in result.result()}
+        if any(public_id not in by_public_id for public_id in unique_ids):
+            logger.warning("Some requested downloads could not be resolved")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Download media unavailable"
+            )
+        candidates = [by_public_id[public_id] for public_id in unique_ids]
+        existing = await DownloadFiles.existing_ids_async(candidates=candidates)
+        for candidate in candidates:
+            if (
+                candidate.id not in existing
+                and providers.find_media_provider(provider_id=candidate.provider_id)
+                is None
+            ):
+                logger.warning("Requested download provider is unavailable")
+                return AResult(
+                    code=AResultCode.NOT_FOUND, message="Download provider unavailable"
+                )
+        created = await DownloadReuseAccess.create_group_items_async(
+            session=session, group=group, candidates=candidates, existing_ids=existing
         )
-        if provider is None:
-            logger.error(f"No provider found for media {public_id}.")
-            return
-
-        a_result_download: AResult[DownloadRow] = await DownloadAccess.create_download(
-            session=session,
-            download_group_id=group.id,
-            media_id=media.id,
-        )
-        if a_result_download.is_not_ok():
-            if a_result_download.code() == AResultCode.ALREADY_EXISTS:
-                existing_download = a_result_download.result()
-                if existing_download.status_key == 3:
-                    logger.info(f"Download already completed for {public_id}, skipping")
-                    return
-                if existing_download.status_key in [1, 2, 5, 6, 7]:
-                    logger.info(
-                        f"Download already in progress for {public_id}, skipping"
-                    )
-                    return
+        if created.is_not_ok():
+            logger.error(f"Error creating source download records: {created.info()}")
+            return AResult(code=created.code(), message=created.message())
+        # Workers use a different session; persist records before making them runnable.
+        try:
+            await session.commit()
+        except Exception as error:
+            await session.rollback()
             logger.error(
-                f"Error creating download row for {public_id}. {a_result_download.info()}"
+                f"Error saving reusable download group: {error}", exc_info=True
             )
-            return
-
-        download_row: DownloadRow = a_result_download.result()
-
-        a_result_base_download: AResult[BaseDownload] = (
-            await provider.start_download_async(
-                session=session,
-                public_id=public_id,
-                download_id=download_row.id,
+            return AResult(
+                code=AResultCode.GENERAL_ERROR, message="Could not save download group"
+            )
+        by_media_id = {candidate.id: candidate for candidate in candidates}
+        for row in created.result():
+            if row.status_key == DownloadStatusEnum.COMPLETED.value:
+                continue
+            candidate = by_media_id[row.media_id]
+            task = DeferredDownload(
+                public_id=candidate.public_id,
+                download_id=row.id,
                 download_group_id=group.id,
                 user_id=user_id,
             )
-        )
-        if a_result_base_download.is_not_ok():
-            logger.error(
-                f"Provider could not create download for {public_id}. {a_result_base_download.info()}"
-            )
-            return
-
-        base_download: BaseDownload = a_result_base_download.result()
-        base_download.provider_id = media.provider_id
-        downloads_manager.add_download(base_download)
+            task.provider_id = candidate.provider_id
+            task.title = candidate.name or candidate.public_id
+            task.artist = candidate.provider
+            downloads_manager.add_download(task)
+        return AResult(code=AResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def download_multiple_medias_async(
-        session: AsyncSession, user_id: int, title: str, public_ids: List[str]
+        session: AsyncSession,
+        user_id: int,
+        title: str,
+        public_ids: List[str],
+        add_to_library: bool = False,
     ) -> AResult[StartDownloadResponse]:
         """Create a download group, queue a BaseDownload per media, and return the group's public_id."""
 
@@ -178,6 +187,7 @@ class Downloader:
                 session=session,
                 user_id=user_id,
                 title=title,
+                source_public_id=public_ids[0] if len(public_ids) == 1 else None,
             )
         )
         if a_result_group.is_not_ok():
@@ -186,7 +196,20 @@ class Downloader:
 
         group: DownloadGroupRow = a_result_group.result()
 
-        for public_id in public_ids:
+        if add_to_library and public_ids:
+            library_result = await User.add_medias_to_library_async(
+                session=session, user_id=user_id, public_ids=public_ids
+            )
+            if library_result.is_not_ok():
+                logger.error(
+                    f"Error saving download to library. {library_result.info()}"
+                )
+                return AResult(
+                    code=library_result.code(), message=library_result.message()
+                )
+
+        resolved_ids: list[str] = []
+        for public_id in dict.fromkeys(public_ids):
             a_result_media: AResult[MediaModel] = (
                 await Media.get_media_from_public_id_async(
                     session=session,
@@ -195,25 +218,24 @@ class Downloader:
                 )
             )
             if a_result_media.is_ok():
-                await Downloader._queue_single_download_async(
-                    session=session, public_id=public_id, group=group, user_id=user_id
-                )
+                resolved_ids.append(public_id)
             else:
                 a_result_expanded = await Downloader.expand_container_async(
                     session=session, public_id=public_id, user_id=user_id
                 )
                 if a_result_expanded.is_ok():
-                    for child_public_id in a_result_expanded.result():
-                        await Downloader._queue_single_download_async(
-                            session=session,
-                            public_id=child_public_id,
-                            group=group,
-                            user_id=user_id,
-                        )
+                    resolved_ids.extend(a_result_expanded.result())
                 else:
                     logger.error(
                         f"Could not resolve media {public_id} for download. {a_result_expanded.info()}"
                     )
+
+        queued = await Downloader._queue_downloads_async(
+            session=session, public_ids=resolved_ids, group=group, user_id=user_id
+        )
+        if queued.is_not_ok():
+            logger.error(f"Error preparing download group: {queued.info()}")
+            return AResult(code=queued.code(), message=queued.message())
 
         return AResult(
             code=AResultCode.OK,
@@ -266,6 +288,9 @@ class Downloader:
                 logger.error(
                     f"Error adding media to library. {a_result_library.info()}"
                 )
+                return AResult(
+                    code=a_result_library.code(), message=a_result_library.message()
+                )
 
         a_result_download: AResult[StartDownloadResponse] = (
             await Downloader.download_multiple_medias_async(
@@ -315,7 +340,11 @@ class Downloader:
 
         download_row: DownloadRow = a_result_download.result()
 
-        if download_row.status_key != DownloadStatusEnum.FAILED.value:
+        if download_row.status_key not in (
+            DownloadStatusEnum.FAILED.value,
+            DownloadStatusEnum.COMPLETED.value,
+        ):
+            logger.warning("Download is not in a retryable state")
             return AResult(
                 code=AResultCode.BAD_REQUEST,
                 message="Download is not in a retryable state",
@@ -331,6 +360,14 @@ class Downloader:
             return AResult(code=a_result_media.code(), message=a_result_media.message())
 
         media: CoreMediaRow = a_result_media.result()
+
+        if download_row.status_key == DownloadStatusEnum.COMPLETED.value:
+            deleted = await Media.delete_media_file_async(
+                session=session, public_id=media.public_id
+            )
+            if deleted.is_not_ok():
+                logger.error(f"Error removing file for redownload. {deleted.info()}")
+                return AResult(code=deleted.code(), message=deleted.message())
 
         a_result_reset: AResult[DownloadRow] = (
             await DownloadAccess.reset_download_for_retry(
@@ -437,7 +474,7 @@ class Downloader:
             media_by_id = {media.id: media for media in a_result_medias.result()}
 
             # 3. Batch fetch provider metadata (name/image/artist) grouped by
-            #    provider + media type, running each provider batch concurrently.
+            #    provider + media type, executing batches serially on the request session.
             #    Build a lookup public_id -> (name, imageUrl, subtitle).
             batches: list[tuple[BaseMediaProvider, str, list[str]]] = []
 
@@ -500,9 +537,10 @@ class Downloader:
                 except Exception as e:
                     logger.error(f"Error fetching provider batch. {e}", exc_info=True)
 
-            await asyncio.gather(
-                *(fetch_provider_batch(p, m, ids) for p, m, ids in batches)
-            )
+            for provider, media_type, public_ids in batches:
+                await fetch_provider_batch(
+                    provider, media_type, list(dict.fromkeys(public_ids))
+                )
 
         # 4. Assemble the response groups/items.
         result_groups: list[DownloadGroupResponse] = []
@@ -533,7 +571,7 @@ class Downloader:
 
                 items.append(
                     DownloadItemResponse(
-                        publicId=media.public_id,
+                        publicId=download.public_id,
                         mediaPublicId=media.public_id,
                         name=meta_name,
                         subtitle=meta_subtitle,
@@ -550,6 +588,7 @@ class Downloader:
             result_groups.append(
                 DownloadGroupResponse(
                     publicId=group.public_id,
+                    sourcePublicId=group.source_public_id,
                     name=group.title,
                     dateStarted=group.date_started,
                     dateEnded=group.date_ended,
@@ -588,3 +627,49 @@ class Downloader:
             return AResult(code=a_result_mark.code(), message=a_result_mark.message())
 
         return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    async def update_settings_async(
+        session: AsyncSession, user: UserRow, auto_add: bool
+    ) -> AResult[bool]:
+        """Update the download preference through the access layer."""
+        return await UserAccess.update_download_settings_async(
+            session=session, user=user, auto_add=auto_add
+        )
+
+    @staticmethod
+    async def delete_download_async(
+        session: AsyncSession, user_id: int, public_id: str
+    ) -> AResult[bool]:
+        """Delete a finished file and hide its history entry for this user."""
+        found = await DownloadAccess.get_download_by_media_public_id(
+            session=session, media_public_id=public_id, user_id=user_id
+        )
+        if found.is_not_ok():
+            logger.error(f"Error finding download to delete. {found.info()}")
+            return AResult(code=found.code(), message=found.message())
+        download = found.result()
+        media_result = await MediaAccess.get_media_from_id_async(
+            session=session, id=download.media_id
+        )
+        if media_result.is_not_ok():
+            logger.error(f"Error resolving downloaded media. {media_result.info()}")
+            return AResult(code=media_result.code(), message=media_result.message())
+        if download.status_key not in (
+            DownloadStatusEnum.COMPLETED.value,
+            DownloadStatusEnum.FAILED.value,
+        ):
+            logger.warning("Cannot delete an active download")
+            return AResult(
+                code=AResultCode.BAD_REQUEST, message="Cannot delete an active download"
+            )
+        if download.status_key == DownloadStatusEnum.COMPLETED.value:
+            deleted = await Media.delete_media_file_async(
+                session=session, public_id=media_result.result().public_id
+            )
+            if deleted.is_not_ok():
+                logger.error(f"Error deleting download file. {deleted.info()}")
+                return AResult(code=deleted.code(), message=deleted.message())
+        return await DownloadAccess.dismiss_download_async(
+            session=session, download=download
+        )

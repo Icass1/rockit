@@ -250,6 +250,34 @@ class User:
         return AResult(code=AResultCode.OK, message="OK", result=library_medias)
 
     @staticmethod
+    async def add_medias_to_library_async(
+        session: AsyncSession, user_id: int, public_ids: list[str]
+    ) -> AResult[bool]:
+        """Save download roots (including whole playlists) with bounded DB queries."""
+        found = await MediaAccess.get_medias_from_public_ids_async(
+            session=session, public_ids=public_ids, media_type_keys=None
+        )
+        if found.is_not_ok():
+            logger.error(f"Error resolving library media. {found.info()}")
+            return AResult(code=found.code(), message=found.message())
+        medias = found.result()
+        if len({media.public_id for media in medias}) != len(set(public_ids)):
+            logger.warning("Some requested library media were not found")
+            return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+        saved = await UserAccess.add_user_library_medias_async(
+            session=session, user_id=user_id, media_ids=[media.id for media in medias]
+        )
+        if saved.is_not_ok():
+            logger.error(f"Error saving library media. {saved.info()}")
+            return AResult(code=saved.code(), message=saved.message())
+        for media in medias:
+            await SendToUser.send_to_user(
+                user_id=user_id,
+                message=LibraryMediaAddedMessage(publicId=media.public_id),
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
     async def add_media_to_library(
         session: AsyncSession, user_id: int, media_public_id: str
     ) -> AResult[UserLibraryMediaRow]:

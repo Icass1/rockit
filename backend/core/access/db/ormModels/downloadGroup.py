@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -21,11 +21,16 @@ class DownloadGroupRow(
     CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded
 ):
     __tablename__ = "download_group"
-    __table_args__ = ({"schema": "core", "extend_existing": True},)
+    __table_args__ = (
+        Index("ix_download_group_browse", "user_id", "seen", "date_started", "id"),
+        {"schema": "core", "extend_existing": True},
+    )
 
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.user.id"), nullable=False
     )
+    source_public_id: Mapped[str | None] = mapped_column(String, nullable=True)
+
     title: Mapped[str] = mapped_column(String, nullable=False)
     date_started: Mapped[datetime] = mapped_column(TZAwareTimestamp, nullable=False)
     date_ended: Mapped[datetime | None] = mapped_column(TZAwareTimestamp, nullable=True)
@@ -46,6 +51,7 @@ class DownloadGroupRow(
         user_id: int,
         title: str,
         date_started: datetime,
+        source_public_id: str | None = None,
         date_ended: datetime | None = None,
         status_key: int = 1,
         success: int | None = None,
@@ -57,6 +63,7 @@ class DownloadGroupRow(
         kwargs["user_id"] = user_id
         kwargs["title"] = title
         kwargs["date_started"] = date_started
+        kwargs["source_public_id"] = source_public_id
         kwargs["date_ended"] = date_ended
         kwargs["status_key"] = status_key
         kwargs["success"] = success

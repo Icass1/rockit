@@ -423,4 +423,13 @@ export interface Vocabulary {
     LIBRARY_SELECT_ITEMS: string;
     LIBRARY_ZIP: string;
     LIBRARY_DOWNLOAD_ALL: string;
+    DOWNLOADER_NEXT_PAGE: string;
+    DOWNLOADER_PREVIOUS_PAGE: string;
+    DOWNLOADER_SEARCH: string;
+    DOWNLOADER_DELETE_GROUP: string;
+    DOWNLOADER_SHOW_TRACKS: string;
+    DOWNLOADER_HIDE_TRACKS: string;
+    DOWNLOADER_AUTO_LIBRARY: string;
+    DOWNLOADER_PAGE: string;
+    DOWNLOADER_ACTIVITY: string;
 }

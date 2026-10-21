@@ -1,51 +1,41 @@
 "use client";
 
-import { type JSX } from "react";
-import { DownloadGroupResponse } from "@/dto";
+import type { JSX } from "react";
+import type { DownloadTotalsResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
+import type { DownloadFilter } from "@/models/types/downloadBrowser";
+import { rockIt } from "@/lib/rockit/rockIt";
 
-export type DownloadFilter = "all" | "active" | "completed" | "failed";
+export type { DownloadFilter } from "@/models/types/downloadBrowser";
 
 export default function DownloadFilterTabs({
     value,
     onChange,
-    groups,
+    totals,
 }: {
     value: DownloadFilter;
-    onChange: (f: DownloadFilter) => void;
-    groups: DownloadGroupResponse[];
+    onChange: (filter: DownloadFilter) => void;
+    totals: DownloadTotalsResponse;
 }): JSX.Element {
-    const items = groups.flatMap((g) => g.items);
-    const counts: Record<DownloadFilter, number> = {
-        all: items.length,
-        active: items.filter(
-            (i) => i.status !== "COMPLETED" && i.status !== "FAILED"
-        ).length,
-        completed: items.filter((i) => i.status === "COMPLETED").length,
-        failed: items.filter((i) => i.status === "FAILED").length,
-    };
-
-    const tabs: { key: DownloadFilter; label: string }[] = [
-        { key: "all", label: "Todas" },
-        { key: "active", label: "Descargando" },
-        { key: "completed", label: "Completadas" },
-        { key: "failed", label: "Fallidas" },
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const tabs: { key: DownloadFilter; label: string; count: number }[] = [
+        { key: "all", label: v.ALL, count: totals.total },
+        { key: "active", label: v.DOWNLOADING, count: totals.active },
+        { key: "completed", label: v.COMPLETED, count: totals.completed },
+        { key: "failed", label: v.FAILED, count: totals.failed },
     ];
-
     return (
-        <div className="flex gap-2 border-b border-neutral-700">
+        <div className="flex flex-wrap gap-2 border-b border-neutral-700">
             {tabs.map((tab) => (
                 <button
                     key={tab.key}
-                    onClick={(): void => onChange(tab.key)}
-                    className={`flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
-                        value === tab.key
-                            ? "border-(--color-rockit-pink) text-white"
-                            : "border-transparent text-neutral-400 hover:text-neutral-200"
-                    }`}
+                    aria-pressed={value === tab.key}
+                    onClick={() => onChange(tab.key)}
+                    className={`flex items-center gap-2 border-b-2 px-3 py-2 text-sm ${value === tab.key ? "border-pink-500 text-white" : "border-transparent text-neutral-400"}`}
                 >
                     {tab.label}
-                    <span className="rounded-full bg-neutral-700 px-1.5 text-xs">
-                        {counts[tab.key]}
+                    <span className="rounded-full bg-neutral-800 px-2 text-xs">
+                        {tab.count}
                     </span>
                 </button>
             ))}

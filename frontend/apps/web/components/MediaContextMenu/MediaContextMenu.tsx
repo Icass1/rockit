@@ -51,6 +51,7 @@ import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAc
 import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/RemoveFromPlaylistAction";
 import SaveOfflineAction from "@/components/MediaContextMenu/actions/SaveOfflineAction";
 import SaveOfflineListAction from "@/components/MediaContextMenu/actions/SaveOfflineListAction";
+import ShareAction from "@/components/MediaContextMenu/actions/ShareAction";
 import {
     AddSongQueueRandomAction,
     AddSongToQueueBottomAction,
@@ -167,6 +168,7 @@ export default function MediaContextMenu({
 
                         return <Component key={action.id} {...actionProps} />;
                     })}
+                    {!isSearchResult(media) && <ShareAction {...actionProps} />}
                 </ContextMenuContent>
             </ContextMenu>
             {showEditMetadata && (

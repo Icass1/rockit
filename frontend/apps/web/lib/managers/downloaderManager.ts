@@ -189,7 +189,7 @@ export class DownloaderManager {
             hasMore: false,
         });
         try {
-            const result = await Http.getDownloadGroupItems(
+            const result = await Http.browseDownloadGroupItems(
                 groupId,
                 offset,
                 status,

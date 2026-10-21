@@ -8,7 +8,7 @@ import { VocabularyResponse } from "@/dto";
 import { Http } from "@/lib/http";
 import { loadVocabularyOffline } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
-import Footer from "@/components/Footer/Footer";
+import ShareMediaDialog from "@/components/Friends/ShareMediaDialog";
 import Header from "@/components/Header/Header";
 import KeyboardHandler from "@/components/KeyboardHandler/KeyboardHandler";
 import MobileBottomNav from "@/components/Navigation/MobileBottomNav";
@@ -19,6 +19,12 @@ const MobilePlayer = dynamic(
     () => import("@/components/MobilePlayer/MobilePlayer"),
     { ssr: false }
 );
+
+// Queue state may hydrate before React starts; the fixed footer slot keeps its
+// geometry while transport controls mount against the actual client state.
+const Footer = dynamic(() => import("@/components/Footer/Footer"), {
+    ssr: false,
+});
 
 export default function AppClientLayout({
     vocabulary,
@@ -126,6 +132,7 @@ export default function AppClientLayout({
 
             {/* Mobile Player (MiniPlayerBar + MobilePlayerSheet) - después de MobileBottomNav para que el MiniPlayerBar quede encima */}
             <MobilePlayer />
+            <ShareMediaDialog />
         </>
     );
 }

@@ -30,7 +30,7 @@ def add_init_to_orm():
 
         dirpaths = dirpath.split("/")
 
-        if dirpaths[-1] != "ormModels" and dirpaths[-1] != "ormEnums":
+        if "ormModels" not in dirpaths and "ormEnums" not in dirpaths:
             continue
 
         for filename in filenames:

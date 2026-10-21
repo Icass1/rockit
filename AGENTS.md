@@ -1089,3 +1089,10 @@ See `skills/backend.md` for detailed conventions, patterns, and best practices f
 - Running the project commands
 
 ---
+
+### Apple design reviews
+
+For UI/UX improvements and design reviews, read
+[`skills/apple-design-skill/SKILL.md`](skills/apple-design-skill/SKILL.md).
+The vendored revision is recorded in `skills/apple-design-skill.source.json`.
+Apply its accessibility and design principles to Rocket's web/PWA conventions.

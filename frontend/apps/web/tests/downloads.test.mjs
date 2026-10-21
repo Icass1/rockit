@@ -61,7 +61,7 @@ function setup() {
         retryDownload: async () => ok({}),
         addMediaToLibrary: async () => ok({}),
         manageDownloadGroup: async () => ok({}),
-        getDownloadGroupItems: async (_id, offset) =>
+        browseDownloadGroupItems: async (_id, offset) =>
             ok({ items: [item], offset, hasMore: false, total: 1 }),
     };
     const rockIt = {
@@ -261,12 +261,12 @@ test("changing a filter rejects the previous page response", async () => {
 test("track pagination replaces the old page and ignores late responses", async () => {
     const { manager, http } = setup();
     let resolve;
-    http.getDownloadGroupItems = () =>
+    http.browseDownloadGroupItems = () =>
         new Promise((done) => {
             resolve = done;
         });
     const old = manager.openGroupAsync("group", 0);
-    http.getDownloadGroupItems = async () =>
+    http.browseDownloadGroupItems = async () =>
         ok({ items: [{ ...item, publicId: "page-two" }], hasMore: false });
     await manager.openGroupAsync("group", 48);
     resolve(ok({ items: [item], hasMore: true }));
@@ -340,7 +340,7 @@ test("track page requests preserve search text and status in the actual HTTP tra
         requested = path;
         return ok({});
     };
-    await transport.getDownloadGroupItems(
+    await transport.browseDownloadGroupItems(
         "group",
         48,
         "failed",

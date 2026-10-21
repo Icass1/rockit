@@ -1,6 +1,6 @@
 import { JSX } from "react";
-import WorkInProgress from "@/components/WorkInProgress/WorkInProgress";
+import FriendsClient from "@/components/Friends/FriendsClient";
 
-export default function Stats(): JSX.Element {
-    return <WorkInProgress />;
+export default function FriendsPage(): JSX.Element {
+    return <FriendsClient />;
 }

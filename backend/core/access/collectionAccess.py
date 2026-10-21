@@ -57,7 +57,16 @@ class CollectionAccess:
             if (
                 table.schema != "core"
                 and table.name
-                in {"playlist", "album", "song", "track", "video", "station"}
+                in {
+                    "playlist",
+                    "album",
+                    "song",
+                    "track",
+                    "video",
+                    "station",
+                    "artist",
+                    "channel",
+                }
                 and "id" in table.c
             ):
                 name = table.c.get("name")

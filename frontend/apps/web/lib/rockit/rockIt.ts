@@ -4,7 +4,9 @@ import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
 import { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
+import { FriendManager } from "@/lib/managers/friendManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
+import { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
@@ -14,6 +16,7 @@ import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { PlaylistManager } from "@/lib/managers/playlistManager";
 import { QueueManager } from "@/lib/managers/queueManager";
 import { SearchManager } from "@/lib/managers/searchManager";
+import { SharingManager } from "@/lib/managers/sharingManager";
 import { StationManager } from "@/lib/managers/stationManager";
 import { UserManager } from "@/lib/managers/userManager";
 import { VocabularyManager } from "@/lib/managers/vocabularyManager";
@@ -55,6 +58,9 @@ export class RockIt {
     playerUIManager = new PlayerUIManager();
     eventManager = new EventManager();
     libraryManager = new LibraryManager();
+    friendManager = new FriendManager();
+    listenTogetherManager = new ListenTogetherManager();
+    sharingManager = new SharingManager();
     offlineManager = new OfflineManager();
     mediaSessionManager = new MediaSessionManager();
     http = Http;
@@ -98,6 +104,9 @@ export class RockIt {
             rockIt.playlistManager.init(),
         ]);
         rockIt.libraryManager.init();
+        rockIt.friendManager.init();
+        rockIt.sharingManager.init();
+        rockIt.listenTogetherManager.init();
         rockIt.mediaSessionManager.init();
 
         cleanupLegacyIndexedDB();

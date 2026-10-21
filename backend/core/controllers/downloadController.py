@@ -293,7 +293,7 @@ async def browse_downloads(
 
 
 @router.get("/groups/{public_id}/items")
-async def get_download_group_items(
+async def browse_download_group_items(
     request: Request,
     public_id: str,
     offset: int = Query(default=0, ge=0, le=10000000),

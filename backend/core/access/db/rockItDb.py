@@ -27,6 +27,7 @@ from sqlalchemy.sql.base import Executable
 from sqlalchemy.util.concurrency import greenlet_spawn
 
 from backend.core.access.db.base import CoreBase
+from backend.core.utils.afterCommit import run_after_commit
 from backend.core.access.db.ormModels.declarativeMixin import triggers
 from backend.utils.backendUtils import time_it
 from backend.utils.logger import getLogger
@@ -396,6 +397,7 @@ class RockItDB:
             yield session
             if session.is_active:
                 await session.commit()
+                await run_after_commit(session)
             else:
                 await session.rollback()
         except Exception as e:

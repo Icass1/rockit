@@ -2,14 +2,6 @@
 // Do not modify this file manually.
 
 export interface Vocabulary {
-    PLAYER_ENTER_FULLSCREEN: string;
-    PLAYER_EXIT_FULLSCREEN: string;
-    PLAYER_SHOW_CONTROLS: string;
-    PLAYER_SEEK: string;
-    PLAYER_REWIND_TEN_SECONDS: string;
-    PLAYER_FORWARD_TEN_SECONDS: string;
-    PLAYER_CLOSE_BOOKMARKS: string;
-    PLAYER_FULLSCREEN_UNAVAILABLE: string;
     ADD_BOOKMARK_AT: string;
     ADD_LIST_RANDOMLY: string;
     ADD_LIST_TO_BOTTOM: string;
@@ -232,7 +224,6 @@ export interface Vocabulary {
     LOG_OUT: string;
     LOGGING_IN: string;
     LOGS: string;
-    SETTINGS_SHARE_SHEET_LOGS: string;
     LYRICS: string;
     LYRICS_BY: string;
     MARCH: string;
@@ -264,7 +255,6 @@ export interface Vocabulary {
     NO_LYRICS: string;
     NO_MEDIA_FOUND: string;
     NO_MEDIA_PLAYING: string;
-    NO_OFFLINE_MEDIA: string;
     NO_PLAYLISTS: string;
     NO_REPEAT: string;
     NO_RESULTS: string;
@@ -276,10 +266,6 @@ export interface Vocabulary {
     NOTHING: string;
     NOVEMBER: string;
     OCTOBER: string;
-    OFFLINE: string;
-    OFFLINE_DOWNLOAD_FAILED_SUMMARY: string;
-    OFFLINE_DOWNLOAD_SUMMARY: string;
-    OFFLINE_REMOVE_SUMMARY: string;
     OPEN_LIST: string;
     OPEN_SONG: string;
     OR_CREATE_ACCOUNT: string;
@@ -423,6 +409,19 @@ export interface Vocabulary {
     LIBRARY_SELECT_ITEMS: string;
     LIBRARY_ZIP: string;
     LIBRARY_DOWNLOAD_ALL: string;
+    OFFLINE: string;
+    NO_OFFLINE_MEDIA: string;
+    OFFLINE_DOWNLOAD_SUMMARY: string;
+    OFFLINE_DOWNLOAD_FAILED_SUMMARY: string;
+    OFFLINE_REMOVE_SUMMARY: string;
+    PLAYER_ENTER_FULLSCREEN: string;
+    PLAYER_EXIT_FULLSCREEN: string;
+    PLAYER_SHOW_CONTROLS: string;
+    PLAYER_SEEK: string;
+    PLAYER_REWIND_TEN_SECONDS: string;
+    PLAYER_FORWARD_TEN_SECONDS: string;
+    PLAYER_CLOSE_BOOKMARKS: string;
+    PLAYER_FULLSCREEN_UNAVAILABLE: string;
     DOWNLOADER_NEXT_PAGE: string;
     DOWNLOADER_PREVIOUS_PAGE: string;
     DOWNLOADER_SEARCH: string;
@@ -431,5 +430,25 @@ export interface Vocabulary {
     DOWNLOADER_HIDE_TRACKS: string;
     DOWNLOADER_AUTO_LIBRARY: string;
     DOWNLOADER_PAGE: string;
+    SETTINGS_SHARE_SHEET_LOGS: string;
     DOWNLOADER_ACTIVITY: string;
+    NOTIFICATIONS_ALL: string;
+    NOTIFICATIONS_CLOSE: string;
+    NOTIFICATIONS_DOWNLOAD_DONE: string;
+    NOTIFICATIONS_DOWNLOAD_FAILED: string;
+    NOTIFICATIONS_EMPTY: string;
+    NOTIFICATIONS_EMPTY_DETAIL: string;
+    NOTIFICATIONS_IMPORT_DONE: string;
+    NOTIFICATIONS_IMPORT_FAILED: string;
+    NOTIFICATIONS_MARK_ALL: string;
+    NOTIFICATIONS_NO_READ: string;
+    NOTIFICATIONS_NO_UNREAD: string;
+    NOTIFICATIONS_READ: string;
+    NOTIFICATIONS_READ_TAB: string;
+    NOTIFICATIONS_RELEASE_DETAIL: string;
+    NOTIFICATIONS_RELEASE_TITLE: string;
+    NOTIFICATIONS_TITLE: string;
+    NOTIFICATIONS_UNREAD: string;
+    NOTIFICATIONS_ZIP_DETAIL: string;
+    NOTIFICATIONS_ZIP_READY: string;
 }

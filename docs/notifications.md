@@ -28,8 +28,11 @@ Add published releases to `frontend/apps/web/lib/notifications/releases.ts`,
 newest first, with a unique version, publication date and vocabulary keys for the
 title and details. Entries are source controlled with the web deployment. The
 initial announcement identifies RockIt 2 (2.0.0). Add future
-announcement copy to the notification vocabulary defaults (English and Spanish),
-or the server vocabulary. Server vocabulary values override defaults. Releases
+announcement copy to `Vocabulary.xlsx` for each supported language, then run
+`python3 -m backend import-vocabulary` against the target database. This imports
+translations and regenerates the shared vocabulary interface. Notifications use
+the same server vocabulary as the rest of the application, with no frontend
+translation dictionary. Releases
 appear silently once per browser/user; they do not use the Android APK API.
 
 ## Delivery and storage
@@ -68,7 +71,7 @@ do not add a patch; merging a feature into develop retains the count of its
 actual commits. Squash merging retains one commit and therefore counts once.
 Versions follow committed history; uncommitted edits do not change the number.
 
-A merged PR from develop into master (or main, the existing stable branch) is
+A merged PR from develop into main is
 detected by the Docker publishing workflow. It increments minor, resets patch,
 and creates `v2.N.0` on that promotion commit. Retrying that workflow reuses its
 existing tag. Subsequent develop commits count from that release's contents even
@@ -76,9 +79,9 @@ if its merge commit has not been merged back to develop. Use merge commits for
 develop-to-stable promotions to preserve shared commit ancestry; squash/rebase
 promotions would count the retained development commits again.
 
-Publishing runs on develop, main and master. Both images receive the same version
-and a version-plus-SHA image tag; rolling tags remain latest for develop and
-latest-stable for stable branches. Full Git history and tags are required. The
+Publishing runs only on main. Develop does not publish images. Both images receive
+the same version and a version-plus-SHA image tag; the rolling tag is
+latest-stable. Full Git history and tags are required. The
 web dev/build config calculates its version automatically and displays it in the
 account menu. Docker receives it as ROCKIT_VERSION because .git is excluded from
 the image context. For local Docker builds use:

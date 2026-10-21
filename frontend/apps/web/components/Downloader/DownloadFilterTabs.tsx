@@ -1,9 +1,11 @@
 "use client";
+
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import type { DownloadTotalsResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import type { DownloadFilter } from "@/models/types/downloadBrowser";
 import { rockIt } from "@/lib/rockit/rockIt";
+
 export type { DownloadFilter } from "@/models/types/downloadBrowser";
 
 export default function DownloadFilterTabs({

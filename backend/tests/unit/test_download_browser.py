@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from typing import TypeVar
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -11,17 +13,22 @@ from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.downloadBrowseAccess import DownloadBrowseAccess
 from backend.core.framework import providers
 from backend.core.framework.downloader import downloadBrowser
+from backend.core.framework.downloader import downloads_manager
 from backend.core.framework.downloader.downloadBrowser import DownloadBrowser
 from backend.core.framework.downloader.deferredDownload import DeferredDownload
+
+T = TypeVar("T")
 
 pytestmark = pytest.mark.unit
 
 
-def ok(value):
+def ok(value: T) -> AResult[T]:
     return AResult(code=AResultCode.OK, message="OK", result=value)
 
 
-async def test_browse_limits_headers_and_previews_before_loading_metadata(monkeypatch):
+async def test_browse_limits_headers_and_previews_before_loading_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     now = datetime.now(timezone.utc)
     rows = [
         dict(
@@ -82,11 +89,14 @@ async def test_browse_limits_headers_and_previews_before_loading_metadata(monkey
     assert group.name == "Spotify playlist"
     assert group.sourceType == "playlist" and group.sourceUrl == "/playlist/playlist"
     assert group.providerUrl == "https://open.spotify.com/playlist/spotify-playlist"
+    assert group.imageUrl is not None
     assert group.imageUrl.endswith("/media/image/cover")
     assert group.total == 1000 and group.hasMoreItems and group.canManage
 
 
-async def test_group_item_page_checks_ownership_before_loading_tracks(monkeypatch):
+async def test_group_item_page_checks_ownership_before_loading_tracks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         DownloadAccess,
         "get_download_group_by_public_id",
@@ -107,8 +117,20 @@ async def test_group_item_page_checks_ownership_before_loading_tracks(monkeypatc
     tracks.assert_not_awaited()
 
 
+@dataclass
+class GroupActionFixture:
+    group: SimpleNamespace
+    row: SimpleNamespace
+    media: SimpleNamespace
+    clear: AsyncMock
+    reset: AsyncMock
+    hide: AsyncMock
+    queue: Mock
+    folder: Path
+
+
 @pytest.fixture
-def group_action(monkeypatch, tmp_path):
+def group_action(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> GroupActionFixture:
     group = SimpleNamespace(id=10, seen=False)
     row = SimpleNamespace(id=12, status_key=3)
     media = SimpleNamespace(id=20, public_id="song", provider_id=2)
@@ -137,10 +159,10 @@ def group_action(monkeypatch, tmp_path):
     monkeypatch.setattr(DownloadBrowseAccess, "clear_files_async", clear)
     monkeypatch.setattr(DownloadBrowseAccess, "reset_group_async", reset)
     monkeypatch.setattr(DownloadAccess, "mark_download_group_seen", hide)
-    monkeypatch.setattr(downloadBrowser.downloads_manager, "add_download", queue)
+    monkeypatch.setattr(downloads_manager, "add_download", queue)
     monkeypatch.setattr(downloadBrowser, "MEDIA_PATH", str(tmp_path))
     (tmp_path / "song.mp3").write_bytes(b"audio")
-    return SimpleNamespace(
+    return GroupActionFixture(
         group=group,
         row=row,
         media=media,
@@ -154,8 +176,8 @@ def group_action(monkeypatch, tmp_path):
 
 @pytest.mark.parametrize("action", ["delete", "retry"])
 async def test_group_actions_are_atomic_batches_and_preserve_source_context(
-    group_action, action
-):
+    group_action: GroupActionFixture, action: str
+) -> None:
     session = AsyncMock(spec=AsyncSession)
     fixture = group_action
     result = await DownloadBrowser.group_action_async(
@@ -180,7 +202,9 @@ async def test_group_actions_are_atomic_batches_and_preserve_source_context(
 
 
 @pytest.mark.parametrize("status", [1, 2, 5, 6, 7])
-async def test_active_group_actions_do_not_touch_files_or_queue(group_action, status):
+async def test_active_group_actions_do_not_touch_files_or_queue(
+    group_action: GroupActionFixture, status: int
+) -> None:
     group_action.row.status_key = status
     result = await DownloadBrowser.group_action_async(
         session=AsyncMock(spec=AsyncSession),
@@ -193,7 +217,9 @@ async def test_active_group_actions_do_not_touch_files_or_queue(group_action, st
     group_action.queue.assert_not_called()
 
 
-async def test_another_active_group_prevents_file_changes(group_action, monkeypatch):
+async def test_another_active_group_prevents_file_changes(
+    group_action: GroupActionFixture, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(
         DownloadBrowseAccess, "has_other_active_async", AsyncMock(return_value=ok(True))
     )
@@ -207,7 +233,9 @@ async def test_another_active_group_prevents_file_changes(group_action, monkeypa
     group_action.clear.assert_not_awaited()
 
 
-async def test_failed_group_commit_restores_files_and_does_not_queue(group_action):
+async def test_failed_group_commit_restores_files_and_does_not_queue(
+    group_action: GroupActionFixture,
+) -> None:
     session = AsyncMock(spec=AsyncSession)
     session.commit.side_effect = RuntimeError("Database unavailable")
     result = await DownloadBrowser.group_action_async(
@@ -220,7 +248,9 @@ async def test_failed_group_commit_restores_files_and_does_not_queue(group_actio
     group_action.queue.assert_not_called()
 
 
-async def test_deferred_download_prepares_only_inside_worker(monkeypatch):
+async def test_deferred_download_prepares_only_inside_worker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from backend.core.access.downloadReuseAccess import DownloadReuseAccess
     from backend.core.framework.models.downloadCandidate import DownloadCandidate
     from backend.utils.downloadFiles import DownloadFiles
@@ -261,7 +291,9 @@ async def test_deferred_download_prepares_only_inside_worker(monkeypatch):
     task.download_method_async.assert_awaited_once()
 
 
-async def test_track_pages_propagate_song_search_and_report_the_real_total(monkeypatch):
+async def test_track_pages_propagate_song_search_and_report_the_real_total(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         DownloadAccess,
         "get_download_group_by_public_id",

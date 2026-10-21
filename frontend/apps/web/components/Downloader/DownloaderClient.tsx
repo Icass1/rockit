@@ -1,14 +1,15 @@
 "use client";
+
 import { useEffect, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
 import type { DownloadKind } from "@/models/types/downloadBrowser";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
 import DownloadFilterTabs from "@/components/Downloader/DownloadFilterTabs";
 import DownloadGroupSection from "@/components/Downloader/DownloadGroupSection";
 import DownloadInputBar from "@/components/Downloader/DownloadInputBar";
+import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
 import DownloadSkeleton from "@/components/Downloader/DownloadSkeleton";
 import DownloadStats from "@/components/Downloader/DownloadStats";
 

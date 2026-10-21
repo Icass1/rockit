@@ -1,3 +1,4 @@
+from typing import TypeVar
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -14,14 +15,18 @@ from backend.core.framework.media.media import Media
 from backend.core.framework.user.user import User
 from backend.core.framework.websocket.sendToUser import SendToUser
 
+T = TypeVar("T")
+
 pytestmark = pytest.mark.unit
 
 
-def ok(value):
+def ok(value: T) -> AResult[T]:
     return AResult(code=AResultCode.OK, message="OK", result=value)
 
 
-async def test_playlist_download_preserves_root_and_saves_root_once(monkeypatch):
+async def test_playlist_download_preserves_root_and_saves_root_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     group = SimpleNamespace(id=1, public_id="group")
     create = AsyncMock(return_value=ok(group))
     save = AsyncMock(return_value=ok(True))
@@ -57,7 +62,9 @@ async def test_playlist_download_preserves_root_and_saves_root_once(monkeypatch)
     )
 
 
-async def test_library_failure_prevents_queueing(monkeypatch):
+async def test_library_failure_prevents_queueing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         DownloadAccess,
         "create_download_group",
@@ -86,7 +93,9 @@ async def test_library_failure_prevents_queueing(monkeypatch):
 
 
 @pytest.mark.parametrize("status", [1, 2, 5, 6, 7])
-async def test_active_download_cannot_be_deleted(monkeypatch, status):
+async def test_active_download_cannot_be_deleted(
+    monkeypatch: pytest.MonkeyPatch, status: int
+) -> None:
     monkeypatch.setattr(
         DownloadAccess,
         "get_download_by_media_public_id",
@@ -109,7 +118,9 @@ async def test_active_download_cannot_be_deleted(monkeypatch, status):
     hide.assert_not_awaited()
 
 
-async def test_delete_failure_keeps_history_visible(monkeypatch):
+async def test_delete_failure_keeps_history_visible(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         DownloadAccess,
         "get_download_by_media_public_id",
@@ -137,7 +148,9 @@ async def test_delete_failure_keeps_history_visible(monkeypatch):
     hide.assert_not_awaited()
 
 
-async def test_bulk_library_save_is_one_batch_and_preserves_playlist(monkeypatch):
+async def test_bulk_library_save_is_one_batch_and_preserves_playlist(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         MediaAccess,
         "get_medias_from_public_ids_async",
@@ -166,7 +179,9 @@ async def test_bulk_library_save_is_one_batch_and_preserves_playlist(monkeypatch
     ]
 
 
-async def test_download_response_uses_download_id_for_websocket_matching(monkeypatch):
+async def test_download_response_uses_download_id_for_websocket_matching(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     now = datetime.now(timezone.utc)
     group = SimpleNamespace(
         id=1,
@@ -213,7 +228,9 @@ async def test_download_response_uses_download_id_for_websocket_matching(monkeyp
     assert response.items[0].mediaPublicId == "media-id"
 
 
-async def test_url_library_failure_is_reported_before_download_starts(monkeypatch):
+async def test_url_library_failure_is_reported_before_download_starts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from backend.core.framework import providers
 
     monkeypatch.setattr(

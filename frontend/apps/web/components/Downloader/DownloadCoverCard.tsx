@@ -8,8 +8,8 @@ import { getMediaSubtitle, isAlbum, isPlayable } from "@rockit/shared";
 import {
     Check,
     Library,
-    LoaderCircle,
     ListEnd,
+    LoaderCircle,
     Music,
     Play,
     RefreshCw,
@@ -22,9 +22,9 @@ import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
 import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
 import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
-import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 
 function DownloadCoverCard({

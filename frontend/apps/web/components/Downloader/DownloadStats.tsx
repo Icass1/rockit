@@ -1,7 +1,8 @@
 "use client";
+
 import type { JSX } from "react";
-import { useStore } from "@nanostores/react";
 import type { DownloadTotalsResponse } from "@/dto";
+import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function DownloadStats({

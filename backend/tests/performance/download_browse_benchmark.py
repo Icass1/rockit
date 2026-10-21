@@ -6,6 +6,9 @@ DOWNLOAD_BENCHMARK_DATABASE_URL=postgresql+asyncpg://... PYTHONPATH=. python bac
 
 import asyncio, json, time, uuid, os
 from pathlib import Path
+from typing import Any
+from sqlalchemy.engine import Connection
+from sqlalchemy.engine.interfaces import ExecutionContext
 
 DATABASE_URL = os.environ.get("DOWNLOAD_BENCHMARK_DATABASE_URL")
 if not DATABASE_URL:
@@ -13,9 +16,15 @@ if not DATABASE_URL:
         "Set DOWNLOAD_BENCHMARK_DATABASE_URL to a migrated development database"
     )
 # Use the hermetic test configuration, never deployment credentials or services.
-import conftest
+import conftest  # pyright: ignore[reportUnusedImport] -- initializes hermetic test settings
+from backend.core.responses.downloadBrowseResponse import (
+    DownloadBrowseResponse,
+    DownloadItemsPageResponse,
+)
+from backend.core.responses.downloadsResponse import DownloadsResponse
+from backend.core.framework.downloader.baseDownload import BaseDownload
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import insert, select, func, event
+from sqlalchemy import insert, select, event
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.download import DownloadRow
@@ -28,13 +37,22 @@ from backend.core.framework.downloader.downloader import Downloader
 from backend.core.framework import providers
 
 
-async def main():
+async def main() -> None:
+    assert DATABASE_URL is not None
     engine = create_async_engine(DATABASE_URL)
-    queries = []
+    queries: list[str] = []
 
-    @event.listens_for(engine.sync_engine, "before_cursor_execute")
-    def count(*args):
-        queries.append(args[2])
+    def count(
+        _connection: Connection,
+        _cursor: Any,
+        statement: str,
+        _parameters: Any,
+        _context: ExecutionContext,
+        _executemany: bool,
+    ) -> None:
+        queries.append(statement)
+
+    event.listen(engine.sync_engine, "before_cursor_execute", count)
 
     async with engine.connect() as connection:
         outer = await connection.begin()
@@ -50,6 +68,7 @@ async def main():
             user_id = await session.scalar(
                 select(shared_metadata.tables["core.user"].c.id).limit(1)
             )
+            assert isinstance(user_id, int), "Benchmark requires a seeded user"
             album_id = (
                 await session.execute(
                     insert(CoreMediaRow)
@@ -197,12 +216,15 @@ async def main():
                 assert result.is_ok(), result.message()
                 data = result.result()
                 raw = data.model_dump_json()
-                group_list = getattr(data, "groups", getattr(data, "downloads", []))
-                count_items = (
-                    sum(len(g.items) for g in group_list)
-                    if group_list
-                    else len(getattr(data, "items", []))
-                )
+                if isinstance(data, DownloadBrowseResponse):
+                    group_count = len(data.groups)
+                    count_items = sum(len(g.items) for g in data.groups)
+                elif isinstance(data, DownloadsResponse):
+                    group_count = len(data.downloads)
+                    count_items = sum(len(g.items) for g in data.downloads)
+                else:
+                    group_count = 0
+                    count_items = len(data.items)
                 print(
                     json.dumps(
                         dict(
@@ -210,12 +232,13 @@ async def main():
                             ms=round(elapsed, 1),
                             queries=len(queries),
                             bytes=len(raw.encode()),
-                            groups=len(group_list),
+                            groups=group_count,
                             items=count_items,
                         )
                     )
                 )
                 if label == "paginated_first_page":
+                    assert isinstance(data, DownloadBrowseResponse)
                     assert (
                         len(data.groups) == 12
                         and count_items == 72
@@ -228,12 +251,14 @@ async def main():
                         and data.groups[0].canManage
                     )
                 if label == "paginated_failed_albums":
+                    assert isinstance(data, DownloadBrowseResponse)
                     assert all(
                         g.fail == 10
                         and all("Benchmark song 7" in item.name for item in g.items)
                         for g in data.groups
                     )
                 if label == "expanded_group":
+                    assert isinstance(data, DownloadItemsPageResponse)
                     assert len(data.items) == 48 and data.hasMore and data.total == 50
             # Exercise the batched SQL used by whole-group file actions as well.
             tracks = shared_metadata.tables["spotify.track"]
@@ -277,7 +302,7 @@ async def main():
             from unittest.mock import patch
             from backend.core.access.downloadAccess import DownloadAccess
             from backend.utils import downloadFiles
-            from backend.core.framework.downloader import downloader
+            from backend.core.framework.downloader import downloads_manager
 
             with tempfile.TemporaryDirectory(prefix="rockit-reuse-") as folder:
                 Path(folder, "already-downloaded.mp3").write_bytes(b"existing audio")
@@ -298,15 +323,15 @@ async def main():
                     source_public_id=prefix + "-album",
                 )
                 assert imported.is_ok()
-                queued = []
+                queued: list[BaseDownload] = []
                 with patch.object(downloadFiles, "MEDIA_PATH", folder), patch.object(
                     providers, "find_media_provider", return_value=object()
                 ), patch.object(
-                    downloader.downloads_manager,
+                    downloads_manager,
                     "add_download",
                     side_effect=queued.append,
                 ):
-                    started = await Downloader._queue_downloads_async(
+                    started = await Downloader._queue_downloads_async(  # pyright: ignore[reportPrivateUsage]
                         session=session,
                         public_ids=[f"{prefix}-song-0", f"{prefix}-song-1"],
                         group=imported.result(),
@@ -350,11 +375,11 @@ async def main():
                 assert complete.is_ok()
                 queued.clear()
                 with patch.object(downloadFiles, "MEDIA_PATH", folder), patch.object(
-                    downloader.downloads_manager,
+                    downloads_manager,
                     "add_download",
                     side_effect=queued.append,
                 ):
-                    reused = await Downloader._queue_downloads_async(
+                    reused = await Downloader._queue_downloads_async(  # pyright: ignore[reportPrivateUsage]
                         session=session,
                         public_ids=[f"{prefix}-song-0", f"{prefix}-song-1"],
                         group=complete.result(),

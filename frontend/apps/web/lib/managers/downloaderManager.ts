@@ -11,13 +11,13 @@ import {
     isPlayable,
     isQueueable,
 } from "@rockit/shared";
-import type {
-    DownloadView,
-    DownloadDetail,
-} from "@/models/types/downloadBrowser";
 import { EDownloadInfoStatus } from "@/models/enums/downloadInfoStatus";
 import { ENotificationType } from "@/models/enums/notificationType";
 import { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
+import type {
+    DownloadDetail,
+    DownloadView,
+} from "@/models/types/downloadBrowser";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { ArrayAtom, createArrayAtom, createAtom } from "@/lib/store";

@@ -3,6 +3,7 @@
 import { memo, useRef, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { DownloadBrowseGroupResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     ChevronDown,
@@ -15,7 +16,6 @@ import {
     RefreshCw,
     Trash2,
 } from "lucide-react";
-import type { DownloadBrowseGroupResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadCoverCard from "@/components/Downloader/DownloadCoverCard";
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -21,7 +21,10 @@ class DownloadGroupRow(
     CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded
 ):
     __tablename__ = "download_group"
-    __table_args__ = ({"schema": "core", "extend_existing": True},)
+    __table_args__ = (
+        Index("ix_download_group_browse", "user_id", "seen", "date_started", "id"),
+        {"schema": "core", "extend_existing": True},
+    )
 
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.user.id"), nullable=False

@@ -163,6 +163,14 @@ export {
     type CurrentTimeMessageRequest,
 } from "./currentTimeMessageRequest";
 export {
+    DownloadBrowseGroupResponseSchema,
+    type DownloadBrowseGroupResponse,
+} from "./downloadBrowseGroupResponse";
+export {
+    DownloadBrowseResponseSchema,
+    type DownloadBrowseResponse,
+} from "./downloadBrowseResponse";
+export {
     DownloadGroupResponseSchema,
     type DownloadGroupResponse,
 } from "./downloadGroupResponse";
@@ -171,6 +179,10 @@ export {
     type DownloadItemResponse,
 } from "./downloadItemResponse";
 export {
+    DownloadItemsPageResponseSchema,
+    type DownloadItemsPageResponse,
+} from "./downloadItemsPageResponse";
+export {
     DownloadProgressMessageSchema,
     type DownloadProgressMessage,
 } from "./downloadProgressMessage";
@@ -178,6 +190,10 @@ export {
     DownloadSettingsResponseSchema,
     type DownloadSettingsResponse,
 } from "./downloadSettingsResponse";
+export {
+    DownloadTotalsResponseSchema,
+    type DownloadTotalsResponse,
+} from "./downloadTotalsResponse";
 export {
     DownloadZipRequestSchema,
     type DownloadZipRequest,

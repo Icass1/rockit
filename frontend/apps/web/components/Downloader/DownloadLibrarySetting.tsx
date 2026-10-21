@@ -39,7 +39,7 @@ export default function DownloadLibrarySetting(): JSX.Element {
                     disabled={loading || saving || !!error}
                     onChange={(event) => void change(event.target.checked)}
                 />
-                {vocabulary.DOWNLOAD_AND_ADD_TO_LIBRARY}
+                {vocabulary.DOWNLOADER_AUTO_LIBRARY}
                 {saving && <span role="status">{vocabulary.SAVING}</span>}
             </label>
             {error && (

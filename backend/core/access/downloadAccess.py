@@ -271,15 +271,16 @@ class DownloadAccess:
         session: AsyncSession,
         public_id: str,
         user_id: int,
+        lock: bool = False,
     ) -> AResult[DownloadGroupRow]:
         """Get a download group by public_id, scoped to a user."""
 
-        result = await session.execute(
-            select(DownloadGroupRow).where(
-                DownloadGroupRow.public_id == public_id,
-                DownloadGroupRow.user_id == user_id,
-            )
+        stmt = select(DownloadGroupRow).where(
+            DownloadGroupRow.public_id == public_id, DownloadGroupRow.user_id == user_id
         )
+        if lock:
+            stmt = stmt.with_for_update()
+        result = await session.execute(stmt)
         group: DownloadGroupRow | None = result.scalar_one_or_none()
         if group is None:
             return AResult(

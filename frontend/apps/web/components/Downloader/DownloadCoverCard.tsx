@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, type JSX } from "react";
+import { memo, useCallback, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { DownloadItemResponse, type MediaResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
@@ -27,7 +27,7 @@ import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigg
 import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 
-export default function DownloadCoverCard({
+function DownloadCoverCard({
     item,
 }: {
     item: DownloadItemResponse;
@@ -244,9 +244,9 @@ export default function DownloadCoverCard({
                 </div>
             </ContextMenuTrigger>
             <ContextMenuContent
-                cover={menuCover}
-                title={menuTitle}
-                description={menuSubtitle}
+                cover={menuCover ?? item.imageUrl ?? undefined}
+                title={menuTitle ?? item.name}
+                description={menuSubtitle ?? item.subtitle ?? undefined}
             >
                 {isCompleted && (
                     <>
@@ -322,3 +322,5 @@ export default function DownloadCoverCard({
         </ContextMenu>
     );
 }
+
+export default memo(DownloadCoverCard);

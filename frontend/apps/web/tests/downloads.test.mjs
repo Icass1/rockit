@@ -5,7 +5,7 @@ import vm from "node:vm";
 import { build } from "esbuild";
 const { outputFiles } = await build({
     stdin: {
-        contents: `export {DownloaderManager} from './lib/managers/downloaderManager';`,
+        contents: `export {DownloaderManager} from './lib/managers/downloaderManager'; export {BaseHttp} from '../../packages/shared/src/http/baseHttp';`,
         resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true,
@@ -43,9 +43,12 @@ function setup() {
         listeners = new Map(),
         timers = [];
     const http = {
-        getDownloads: async () =>
+        browseDownloads: async () =>
             ok({
-                downloads: [
+                totals: { total: 1, active: 0, completed: 1, failed: 0 },
+                hasMore: false,
+                page: 0,
+                groups: [
                     {
                         publicId: "group",
                         sourcePublicId: "playlist",
@@ -56,6 +59,9 @@ function setup() {
         deleteDownload: async () => ok({}),
         retryDownload: async () => ok({}),
         addMediaToLibrary: async () => ok({}),
+        manageDownloadGroup: async () => ok({}),
+        getDownloadGroupItems: async (_id, offset) =>
+            ok({ items: [item], offset, hasMore: false, total: 1 }),
     };
     const rockIt = {
         notificationManager: {
@@ -73,6 +79,7 @@ function setup() {
         rockIt,
         console,
         process,
+        URLSearchParams,
         setTimeout: (fn) => {
             timers.push(fn);
             return timers.length;
@@ -84,7 +91,14 @@ function setup() {
     manager.groupsAtom.set([
         { publicId: "group", sourcePublicId: "playlist", items: [item] },
     ]);
-    return { manager, http, messages, listeners, timers };
+    return {
+        manager,
+        http,
+        messages,
+        listeners,
+        timers,
+        transport: context.module.BaseHttp,
+    };
 }
 test("delete disappears immediately, blocks duplicate requests and survives refresh", async () => {
     const { manager, http } = setup();
@@ -109,7 +123,7 @@ test("delete disappears immediately, blocks duplicate requests and survives refr
 test("failed deletion restores card even if recovery fetch fails", async () => {
     const { manager, http, messages } = setup();
     http.deleteDownload = async () => failure();
-    http.getDownloads = async () => failure();
+    http.browseDownloads = async () => failure();
     await manager.runActionAsync(item, "delete");
     assert.equal(manager.groupsAtom.get()[0].items[0].publicId, "download");
     assert.equal(messages[0], "Server unavailable");
@@ -133,7 +147,7 @@ test("websocket matches download IDs and retains updates across older HTTP data"
     const { manager, listeners, http } = setup();
     await manager.init();
     let resolve;
-    http.getDownloads = () =>
+    http.browseDownloads = () =>
         new Promise((done) => {
             resolve = done;
         });
@@ -143,13 +157,15 @@ test("websocket matches download IDs and retains updates across older HTTP data"
         status: "DOWNLOADING",
         progress: 45,
     });
-    resolve(ok({ downloads: [{ publicId: "group", items: [item] }] }));
+    resolve(ok({ groups: [{ publicId: "group", items: [item] }] }));
     await request;
     assert.equal(manager.groupsAtom.get()[0].items[0].progress, 45);
 });
 test("unknown download messages coalesce refresh requests", async () => {
     const { manager, listeners, timers } = setup();
     await manager.init();
+    manager.watch();
+    await manager.refreshAsync();
     const handler = [...listeners.values()][0];
     handler({ ...item, publicId: "new" });
     handler({ ...item, publicId: "new", progress: 15 });
@@ -174,14 +190,162 @@ test("adding group saves playlist root and propagates server error", async () =>
 test("refresh ignores downloads from a signed-out session", async () => {
     const { manager, http } = setup();
     let resolve;
-    http.getDownloads = () =>
+    http.browseDownloads = () =>
         new Promise((done) => {
             resolve = done;
         });
     const request = manager.refreshAsync();
     manager.reset();
-    resolve(ok({ downloads: [{ publicId: "old-user", items: [item] }] }));
+    resolve(ok({ groups: [{ publicId: "old-user", items: [item] }] }));
     await request;
     assert.equal(manager.groupsAtom.get().length, 0);
     assert.equal(manager.loadingAtom.get(), true);
+});
+
+test("progress bursts publish once and retain unaffected group references", async () => {
+    const { manager, listeners, timers } = setup();
+    const other = {
+        publicId: "other",
+        items: [{ ...item, publicId: "other-item" }],
+    };
+    manager.groupsAtom.set([...manager.groupsAtom.get(), other]);
+    await manager.init();
+    const handler = [...listeners.values()][0];
+    for (let progress = 1; progress <= 100; progress++)
+        handler({ ...item, status: "DOWNLOADING", progress });
+    assert.equal(timers.length, 1);
+    timers[0]();
+    assert.equal(manager.groupsAtom.get()[0].items[0].progress, 100);
+    assert.equal(manager.groupsAtom.get()[1], other);
+});
+
+test("events do not fetch history while the downloads screen is unmounted", async () => {
+    const { manager, listeners, timers } = setup();
+    await manager.init();
+    [...listeners.values()][0]({
+        ...item,
+        publicId: "unseen",
+        status: "COMPLETED",
+    });
+    assert.equal(timers.length, 0);
+});
+
+test("changing a filter rejects the previous page response", async () => {
+    const { manager, http } = setup();
+    let resolve;
+    http.browseDownloads = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const old = manager.refreshAsync();
+    http.browseDownloads = async () =>
+        ok({
+            groups: [{ publicId: "filtered", items: [] }],
+            totals: { total: 10 },
+            hasMore: false,
+        });
+    await manager.setViewAsync({ status: "failed" });
+    resolve(
+        ok({
+            groups: [{ publicId: "stale", items: [] }],
+            totals: { total: 10 },
+        })
+    );
+    await old;
+    assert.equal(manager.groupsAtom.get()[0].publicId, "filtered");
+    assert.equal(manager.viewAtom.get().page, 0);
+});
+
+test("track pagination replaces the old page and ignores late responses", async () => {
+    const { manager, http } = setup();
+    let resolve;
+    http.getDownloadGroupItems = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const old = manager.openGroupAsync("group", 0);
+    http.getDownloadGroupItems = async () =>
+        ok({ items: [{ ...item, publicId: "page-two" }], hasMore: false });
+    await manager.openGroupAsync("group", 48);
+    resolve(ok({ items: [item], hasMore: true }));
+    await old;
+    assert.equal(manager.detailAtom.get().offset, 48);
+    assert.equal(manager.detailAtom.get().items.length, 1);
+    assert.equal(manager.detailAtom.get().items[0].publicId, "page-two");
+});
+
+test("whole-group delete is immediate and restores context on server rejection", async () => {
+    const { manager, http, messages } = setup();
+    const group = manager.groupsAtom.get()[0];
+    let resolve;
+    http.manageDownloadGroup = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const request = manager.runGroupActionAsync(group, "delete");
+    assert.equal(manager.groupsAtom.get().length, 0);
+    await manager.runGroupActionAsync(group, "delete");
+    resolve(failure());
+    await request;
+    assert.equal(manager.groupsAtom.get()[0].publicId, "group");
+    assert.equal(messages[0], "Server unavailable");
+});
+
+test("redownloading a whole group immediately marks its expanded tracks as queued", async () => {
+    const { manager, http } = setup();
+    const group = { ...manager.groupsAtom.get()[0], total: 1000, active: 0 };
+    manager.groupsAtom.set([group]);
+    manager.detailAtom.set({
+        groupId: "group",
+        offset: 0,
+        items: [item],
+        loading: false,
+        hasMore: true,
+        error: null,
+    });
+    let resolve;
+    http.manageDownloadGroup = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const request = manager.runGroupActionAsync(group, "retry");
+    assert.equal(manager.detailAtom.get().items[0].status, "PENDING");
+    assert.equal(manager.groupsAtom.get()[0].active, 1000);
+    resolve(failure());
+    await request;
+    assert.equal(manager.detailAtom.get().items[0].status, "COMPLETED");
+});
+
+test("a late group failure cannot restore the signed-out user's groups", async () => {
+    const { manager, http } = setup();
+    const group = manager.groupsAtom.get()[0];
+    let resolve;
+    http.manageDownloadGroup = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const request = manager.runGroupActionAsync(group, "delete");
+    manager.reset();
+    resolve(failure());
+    await request;
+    assert.equal(manager.groupsAtom.get().length, 0);
+});
+
+test("track page requests preserve search text and status in the actual HTTP transport", async () => {
+    const { transport } = setup();
+    let requested;
+    transport.apiGetAsync = async (path) => {
+        requested = path;
+        return ok({});
+    };
+    await transport.getDownloadGroupItems(
+        "group",
+        48,
+        "failed",
+        "Song & album"
+    );
+    const url = new URL(requested, "http://test");
+    assert.equal(url.searchParams.get("q"), "Song & album");
+    assert.equal(url.searchParams.get("status"), "failed");
+    assert.equal(url.searchParams.get("offset"), "48");
 });

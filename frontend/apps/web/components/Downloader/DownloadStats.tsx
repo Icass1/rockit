@@ -1,76 +1,57 @@
 "use client";
-
-import { useMemo, type JSX } from "react";
-import { DownloadGroupResponse } from "@/dto";
-
-const DAYS_TO_SHOW = 14;
+import type { JSX } from "react";
+import { useStore } from "@nanostores/react";
+import type { DownloadTotalsResponse } from "@/dto";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function DownloadStats({
-    groups,
+    totals,
 }: {
-    groups: DownloadGroupResponse[];
+    totals: DownloadTotalsResponse;
 }): JSX.Element {
-    const items = useMemo(() => groups.flatMap((g) => g.items), [groups]);
-
-    const completed = items.filter((i) => i.status === "COMPLETED").length;
-    const failed = items.filter((i) => i.status === "FAILED").length;
-    const active = items.length - completed - failed;
-
-    const timeline = useMemo((): number[] => {
-        const counts = new Array(DAYS_TO_SHOW).fill(0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        items.forEach((item) => {
-            if (!item.dateEnded || item.status !== "COMPLETED") return;
-            const ended = new Date(item.dateEnded);
-            ended.setHours(0, 0, 0, 0);
-            const diff = Math.round(
-                (today.getTime() - ended.getTime()) / 86_400_000
-            );
-            if (diff >= 0 && diff < DAYS_TO_SHOW)
-                counts[DAYS_TO_SHOW - 1 - diff] += 1;
-        });
-        return counts;
-    }, [items]);
-
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard label="Total" value={items.length} />
-            <StatCard label="Descargando" value={active} accent="#ee1086" />
-            <StatCard label="Completadas" value={completed} accent="#1cad60" />
-            <StatCard label="Fallidas" value={failed} accent="#c72e2e" />
-
-            <div className="col-span-2 rounded-lg border border-neutral-600 bg-neutral-900/50 p-4 sm:col-span-4">
-                <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-medium text-neutral-300">
-                        Actividad (últimos {DAYS_TO_SHOW} días)
-                    </span>
-                    <span className="text-xs text-neutral-500">
-                        {timeline.reduce((a, b) => a + b, 0)} descargas
-                    </span>
+            {[
+                {
+                    label: v.DOWNLOADS,
+                    value: totals.total,
+                    color: "text-white",
+                },
+                {
+                    label: v.DOWNLOADING,
+                    value: totals.active,
+                    color: "text-pink-400",
+                },
+                {
+                    label: v.COMPLETED,
+                    value: totals.completed,
+                    color: "text-green-400",
+                },
+                {
+                    label: v.FAILED,
+                    value: totals.failed,
+                    color: "text-red-400",
+                },
+            ].map((stat) => (
+                <div
+                    key={stat.label}
+                    className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4"
+                >
+                    <p className={`text-2xl font-bold ${stat.color}`}>
+                        {stat.value}
+                    </p>
+                    <p className="text-xs text-neutral-400">{stat.label}</p>
                 </div>
-                <Sparkline data={timeline} />
-            </div>
-        </div>
-    );
-}
-
-function StatCard({
-    label,
-    value,
-    accent = "#ffffff",
-}: {
-    label: string;
-    value: number;
-    accent?: string;
-}): JSX.Element {
-    return (
-        <div className="rounded-lg border border-neutral-600 bg-neutral-900/50 p-4">
-            <div className="text-2xl font-bold" style={{ color: accent }}>
-                {value}
-            </div>
-            <div className="text-xs text-neutral-400">{label}</div>
+            ))}
+            {totals.daily?.length > 0 && (
+                <div className="col-span-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 sm:col-span-4">
+                    <p className="mb-2 text-sm text-neutral-400">
+                        {v.DOWNLOADER_ACTIVITY}
+                    </p>
+                    <Sparkline data={totals.daily} />
+                </div>
+            )}
         </div>
     );
 }

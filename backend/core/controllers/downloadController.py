@@ -1,7 +1,8 @@
 import os
 from logging import Logger
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from typing import Literal
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
@@ -11,6 +12,11 @@ from backend.core.aResult import AResult
 from backend.core.access.db.ormModels.user import UserRow
 
 from backend.core.framework.downloader.downloader import Downloader
+from backend.core.framework.downloader.downloadBrowser import DownloadBrowser
+from backend.core.responses.downloadBrowseResponse import (
+    DownloadBrowseResponse,
+    DownloadItemsPageResponse,
+)
 from backend.core.framework.downloader.downloadZip import DownloadZip
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -255,5 +261,80 @@ async def delete_download(request: Request, public_id: str) -> OkResponse:
     )
     if result.is_not_ok():
         logger.error(f"Error deleting download. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
+
+
+@router.get("/browse")
+async def browse_downloads(
+    request: Request,
+    page: int = Query(default=0, ge=0, le=100000),
+    status: Literal["all", "active", "completed", "failed"] = "all",
+    kind: Literal["all", "album", "playlist"] = "all",
+    q: str = Query(default="", max_length=200),
+) -> DownloadBrowseResponse:
+    """Browse a bounded page; counts describe the complete download history."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Download browsing authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await DownloadBrowser.page_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        page=page,
+        status=status,
+        kind=kind,
+        query=q.strip(),
+    )
+    if result.is_not_ok():
+        logger.error(f"Download browsing failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
+
+
+@router.get("/groups/{public_id}/items")
+async def browse_download_group_items(
+    request: Request,
+    public_id: str,
+    offset: int = Query(default=0, ge=0, le=10000000),
+    status: Literal["all", "active", "completed", "failed"] = "all",
+    q: str = Query(default="", max_length=200),
+) -> DownloadItemsPageResponse:
+    """Load one track page without expanding the rest of the history."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Download item authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await DownloadBrowser.items_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        public_id=public_id,
+        offset=offset,
+        status=status,
+        query=q.strip(),
+    )
+    if result.is_not_ok():
+        logger.error(f"Download items failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
+
+
+@router.post("/groups/{public_id}/{action}")
+async def manage_download_group(
+    request: Request, public_id: str, action: Literal["retry", "delete"]
+) -> OkResponse:
+    """Delete or redownload all of a terminal group's tracks in one request."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Download group action authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await DownloadBrowser.group_action_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        public_id=public_id,
+        action=action,
+    )
+    if result.is_not_ok():
+        logger.error(f"Download group action failed: {result.info()}")
         raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()

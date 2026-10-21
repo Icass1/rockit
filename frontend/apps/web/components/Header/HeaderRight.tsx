@@ -22,9 +22,28 @@ export default function HeaderRight(): JSX.Element {
         setIsUserLoaded(true);
     }, []);
 
-    const notificationCount =
-        rockIt.notificationManager.notificationsAtomForDirectAccess.get()
-            .length;
+    const notifications = useStore(
+        rockIt.notificationManager.notificationsAtom
+    );
+    const vocabulary = useStore(
+        rockIt.vocabularyManager.vocabularyAtom
+    ) as unknown as Record<string, string>;
+    const notificationCount = notifications.filter((n) => !n.read).length;
+
+    useEffect(() => {
+        if (!showNotifications) return;
+        bellRef.current
+            ?.querySelector<HTMLElement>("#notification-center button")
+            ?.focus();
+        const onKey = (event: KeyboardEvent): void => {
+            if (event.key === "Escape") {
+                setShowNotifications(false);
+                bellRef.current?.querySelector("button")?.focus();
+            }
+        };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, [showNotifications]);
 
     const closeNotifications = useCallback(
         (): void => setShowNotifications(false),
@@ -44,7 +63,10 @@ export default function HeaderRight(): JSX.Element {
                         setShowNotifications((prev): boolean => !prev)
                     }
                     className="relative p-1 text-white transition md:hover:text-gray-300"
-                    aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount} unread)` : ""}`}
+                    aria-label={`${vocabulary.NOTIFICATIONS_TITLE} (${notificationCount})`}
+                    aria-controls={
+                        showNotifications ? "notification-center" : undefined
+                    }
                     aria-expanded={showNotifications}
                 >
                     <Bell className="h-6 w-6" />
@@ -58,7 +80,9 @@ export default function HeaderRight(): JSX.Element {
                     )}
                 </button>
 
-                {showNotifications && <NotificationMenu />}
+                {showNotifications && (
+                    <NotificationMenu onClose={closeNotifications} />
+                )}
             </div>
 
             {/* User / Login */}

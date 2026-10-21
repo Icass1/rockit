@@ -23,8 +23,8 @@ export class UserManager extends BaseUserManager {
             this._admin.set(res.result.admin);
             this._username.set(res.result.username);
             this._currentTimeMs.set(res.result.currentTimeMs);
+            rockIt.notificationManager.setUser(res.result.username);
             this._loggedIn.set(true);
-
             saveSessionOffline(res.result).catch(() => {});
         } else if (res.code !== 401) {
             const cached = await loadSessionOffline();
@@ -35,12 +35,15 @@ export class UserManager extends BaseUserManager {
                 this._admin.set(cached.admin);
                 this._username.set(cached.username);
                 this._currentTimeMs.set(cached.currentTimeMs);
+                rockIt.notificationManager.setUser(cached.username);
                 this._loggedIn.set(true);
             } else {
                 this._loggedIn.set(false);
+                rockIt.notificationManager.setUser();
             }
         } else {
             this._loggedIn.set(false);
+            rockIt.notificationManager.setUser();
             clearSessionOffline().catch(() => {});
             console.error(res.detail);
         }
@@ -70,6 +73,7 @@ export class UserManager extends BaseUserManager {
             rockIt.searchManager.clearResults();
             await clearSessionOffline().catch(() => {});
             this._loggedIn.set(false);
+            rockIt.notificationManager.setUser();
         } else {
             console.error(
                 "Error logging out",

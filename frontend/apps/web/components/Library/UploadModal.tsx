@@ -16,6 +16,7 @@ import {
     X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import { ENotificationType } from "@/models/enums/notificationType";
 import type { SongFile, UploadType } from "@/models/upload";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -376,11 +377,37 @@ export default function UploadModal({
             } else {
                 await uploadVideoAsync();
             }
+            rockIt.notificationManager.notify(
+                ENotificationType.SUCCESS,
+                (
+                    rockIt.vocabularyManager.vocabulary as unknown as Record<
+                        string,
+                        string
+                    >
+                ).NOTIFICATIONS_IMPORT_DONE,
+                {
+                    category: "import",
+                    detail:
+                        albumTitle ||
+                        videoTitle ||
+                        files.map((f) => f.title).join(", "),
+                }
+            );
             reset();
             onClose();
         } catch (err) {
             console.error("Upload error:", err);
             setUploadError($vocabulary.UPLOAD_ERROR);
+            rockIt.notificationManager.notify(
+                ENotificationType.ERROR,
+                (
+                    rockIt.vocabularyManager.vocabulary as unknown as Record<
+                        string,
+                        string
+                    >
+                ).NOTIFICATIONS_IMPORT_FAILED,
+                { category: "import", detail: $vocabulary.UPLOAD_ERROR }
+            );
         } finally {
             setUploading(false);
         }

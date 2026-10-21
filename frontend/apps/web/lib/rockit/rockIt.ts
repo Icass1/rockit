@@ -75,6 +75,12 @@ export class RockIt {
         // the authenticated state and all message handlers are registered.
         await this.init();
         await this.userManager.updateAsync();
+        this.notificationManager.announceReleases(
+            this.vocabularyManager.vocabulary as unknown as Record<
+                string,
+                string
+            >
+        );
         await this.webSocketManager.reconnectAsync();
         await this.queueManager.refreshAsync();
         await Promise.all([
@@ -84,8 +90,21 @@ export class RockIt {
     }
 
     private async initializeAsync(): Promise<void> {
+        const announce = (): void => {
+            if (rockIt.vocabularyManager.lang)
+                rockIt.notificationManager.announceReleases(
+                    rockIt.vocabularyManager.vocabulary as unknown as Record<
+                        string,
+                        string
+                    >
+                );
+        };
+        rockIt.vocabularyManager.vocabularyAtom.listen(announce);
+        rockIt.vocabularyManager.langAtom.listen(announce);
+        rockIt.userManager.loggedInAtom.listen(announce);
         rockIt.mediaPlayerManager.init();
         await rockIt.userManager.init();
+        announce();
         await rockIt.queueManager.init();
         await Promise.all([
             rockIt.downloaderManager.init(),

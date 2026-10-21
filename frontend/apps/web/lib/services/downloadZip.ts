@@ -1,3 +1,4 @@
+import { ENotificationType } from "@/models/enums/notificationType";
 import type { TMediaWithSearch } from "@/models/types/media";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -46,6 +47,18 @@ export async function downloadMediaAsZip(
     anchor.style.display = "none";
     document.body.appendChild(anchor);
     anchor.click();
+    const vocabulary = rockIt.vocabularyManager.vocabulary as unknown as Record<
+        string,
+        string
+    >;
+    rockIt.notificationManager.notify(
+        ENotificationType.SUCCESS,
+        vocabulary.NOTIFICATIONS_ZIP_READY,
+        {
+            category: "download",
+            detail: `${archiveName} · ${vocabulary.NOTIFICATIONS_ZIP_DETAIL}`,
+        }
+    );
 
     // Firefox only downloads from an anchor attached to the document, and
     // revoking the object URL synchronously can abort the download that the

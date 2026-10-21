@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/dickwu/apple-design-skill",
+  "commit": "914b6a377c22755597e4405e54911b996de822d7",
+  "location": "skills/apple-design-skill",
+  "installation": "Vendored source; read SKILL.md before applying. No runtime dependency."
+}

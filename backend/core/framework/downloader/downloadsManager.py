@@ -14,6 +14,7 @@ from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
+from backend.core.framework.notifications import Notifications
 from backend.core.framework import providers
 from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.core.framework.models.ongoingDownload import OngoingDownload
@@ -275,6 +276,21 @@ class DownloadsManager:
                                         else 0
                                     )
                                 )
+                                notification = await Notifications.download_async(
+                                    session=session,
+                                    user_id=d.user_id,
+                                    public_id=download_public_id,
+                                    retry_count=download_row.retry_count,
+                                    success=status_key
+                                    == DownloadStatusEnum.COMPLETED.value,
+                                    title=d.title,
+                                )
+                                if notification.is_not_ok():
+                                    logger.error(
+                                        f"Download notification failed: {notification.info()}"
+                                    )
+                                # Commit before broadcasting; an immediate inbox fetch must see the event.
+                                await session.commit()
                                 await ws_manager.broadcast_progress_async(
                                     user_id=d.user_id,
                                     download_public_id=download_public_id,

@@ -99,3 +99,7 @@ from backend.core.access.db.ormEnums.listenTogetherStatusEnum import (
 
 schemas = ["core"]
 base = CoreBase
+
+from backend.core.access.db.ormModels.notification import (
+    NotificationRow as NotificationRow,
+)

@@ -1033,6 +1033,44 @@ export class BaseHttp {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
     }
 
+    static async getNotifications() {
+        return this.apiGetAsync(
+            `/notifications`,
+            dto.NotificationsResponseSchema
+        );
+    }
+
+    static async createNotificationActivity(
+        payload: dto.NotificationActivityRequest
+    ) {
+        return this.apiPostAsync(
+            `/notifications/activity`,
+            dto.NotificationActivityRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async migrateLegacyNotifications(
+        payload: dto.LegacyNotificationsRequest
+    ) {
+        return this.apiPostAsync(
+            `/notifications/legacy`,
+            dto.LegacyNotificationsRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
+    static async markNotificationsRead(payload: dto.NotificationsReadRequest) {
+        return this.apiPostAsync(
+            `/notifications/read`,
+            dto.NotificationsReadRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
     static async getStation(publicId: string) {
         return this.apiGetAsync(
             `/radio/station/${publicId}`,

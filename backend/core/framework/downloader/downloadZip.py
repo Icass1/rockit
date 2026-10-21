@@ -17,6 +17,8 @@ from backend.core.utils.safeAsyncCall import safe_async
 
 from backend.core.access.downloadZipAccess import DownloadZipAccess
 
+from backend.core.access.notificationAccess import NotificationAccess
+from backend.utils.backendUtils import create_id
 from backend.core.framework.downloader.downloader import Downloader
 
 logger: Logger = getLogger(name=__name__)
@@ -176,4 +178,15 @@ class DownloadZip:
                 code=AResultCode.NOT_FOUND, message="No downloaded files found"
             )
 
+        notification = await NotificationAccess.create_async(
+            session=session,
+            user_id=user_id,
+            event_key=f"zip:{create_id(32)}",
+            type=3,
+            category="download",
+            message_key="NOTIFICATIONS_ZIP_READY",
+            detail=title[:2000],
+        )
+        if notification.is_not_ok():
+            logger.error(f"ZIP notification failed: {notification.info()}")
         return AResult(code=AResultCode.OK, message="OK", result=zip_path)

@@ -1,18 +1,15 @@
 "use client";
 
-import type { JSX } from "react";
+import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import { LogOut, Settings } from "lucide-react";
+import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { networkStatus } from "@/lib/stores/networkStatus";
-import {
-    PopupMenu,
-    PopupMenuContent,
-    PopupMenuOption,
-    PopupMenuTrigger,
-} from "@/components/PopupMenu";
+import { APP_VERSION } from "@/lib/version";
+import HeaderPopover from "@/components/Header/HeaderPopover";
+import { useClickOutside } from "@/components/Header/hooks/useClickOutside";
 
 export default function HeaderUser(): JSX.Element {
     const router = useRouter();
@@ -20,47 +17,97 @@ export default function HeaderUser(): JSX.Element {
     const $image = useStore(rockIt.userManager.imageAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const $networkStatus = useStore(networkStatus);
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const close = useCallback((): void => setOpen(false), []);
+    useClickOutside(ref, close);
 
-    const handleLogOut = (): void => {
+    useEffect(() => {
+        if (!open) return;
+        ref.current
+            ?.querySelector<HTMLButtonElement>("#header-user-menu button")
+            ?.focus();
+        const handleKey = (event: KeyboardEvent): void => {
+            if (event.key === "Escape") {
+                setOpen(false);
+                buttonRef.current?.focus();
+            }
+        };
+        document.addEventListener("keydown", handleKey);
+        return () => document.removeEventListener("keydown", handleKey);
+    }, [open]);
+
+    const handleLogOut = async (): Promise<void> => {
         if ($networkStatus === "offline") return;
-        rockIt.userManager.signOut();
-        router.push("/login");
+        await rockIt.userManager.signOut();
+        if (!rockIt.userManager.loggedInAtom.get()) router.push("/login");
     };
 
     return (
-        <PopupMenu>
-            <PopupMenuTrigger>
-                <div className="relative grid grid-cols-[1fr_40px] items-center gap-x-2 rounded-lg p-2 transition md:hover:cursor-pointer md:hover:bg-(--color-hover-bg-alt)">
-                    <span className="w-full min-w-0 truncate text-sm font-medium">
-                        {$username}
-                    </span>
-
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-400">
-                        <Image
-                            width={40}
-                            height={40}
-                            src={$image}
-                            alt={`${$username}'s avatar`}
-                            className="h-full w-full object-cover"
-                        />
-                    </div>
-                </div>
-            </PopupMenuTrigger>
-
-            <PopupMenuContent>
-                <PopupMenuOption onClick={(): void => router.push("/settings")}>
-                    <Settings className="h-5 w-5" />
-                    <span>{$vocabulary.SETTINGS}</span>
-                </PopupMenuOption>
-
-                <PopupMenuOption
-                    onClick={handleLogOut}
-                    disable={$networkStatus === "offline"}
+        <div ref={ref} className="relative">
+            <button
+                ref={buttonRef}
+                type="button"
+                onClick={() => setOpen((previous) => !previous)}
+                aria-expanded={open}
+                aria-controls={open ? "header-user-menu" : undefined}
+                className={`flex items-center gap-2 rounded-xl border px-2 py-1.5 transition focus-visible:outline-2 focus-visible:outline-pink-400 ${open ? "border-pink-400/30 bg-pink-500/15 text-pink-300" : "border-transparent hover:bg-white/10"}`}
+            >
+                <span className="max-w-36 truncate text-sm font-medium">
+                    {$username}
+                </span>
+                <ChevronDown
+                    size={14}
+                    aria-hidden="true"
+                    className={`text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`}
+                />
+                <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-neutral-700">
+                    <Image
+                        width={36}
+                        height={36}
+                        src={$image || rockIt.USER_PLACEHOLDER_IMAGE_URL}
+                        alt=""
+                        className="h-full w-full object-cover"
+                    />
+                </span>
+            </button>
+            {open && (
+                <HeaderPopover
+                    id="header-user-menu"
+                    label={$username}
+                    className="w-64 max-w-[calc(100vw-2rem)]"
                 >
-                    <LogOut className="h-5 w-5" />
-                    <span>{$vocabulary.LOG_OUT}</span>
-                </PopupMenuOption>
-            </PopupMenuContent>
-        </PopupMenu>
+                    <div className="border-b border-white/10 px-4 py-3">
+                        <p className="truncate text-sm font-semibold">
+                            {$username}
+                        </p>
+                        <p className="mt-1 text-xs text-neutral-500">
+                            RockIt 2 · v{APP_VERSION}
+                        </p>
+                    </div>
+                    <div className="p-1.5">
+                        <button
+                            onClick={() => {
+                                close();
+                                router.push("/settings");
+                            }}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-pink-400"
+                        >
+                            <Settings size={17} />
+                            {$vocabulary.SETTINGS}
+                        </button>
+                        <button
+                            disabled={$networkStatus === "offline"}
+                            onClick={handleLogOut}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-pink-400 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            <LogOut size={17} />
+                            {$vocabulary.LOG_OUT}
+                        </button>
+                    </div>
+                </HeaderPopover>
+            )}
+        </div>
     );
 }

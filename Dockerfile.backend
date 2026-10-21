@@ -22,6 +22,10 @@ COPY backend/requirements.txt /tmp/requirements.txt
 
 RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
+ARG ROCKIT_VERSION=2.0.0
+ENV ROCKIT_VERSION=${ROCKIT_VERSION}
+LABEL org.opencontainers.image.version=${ROCKIT_VERSION}
+
 ARG ROCKIT_BUILD_REVISION=unknown
 ENV ROCKIT_BUILD_REVISION=${ROCKIT_BUILD_REVISION}
 LABEL org.opencontainers.image.revision=${ROCKIT_BUILD_REVISION}

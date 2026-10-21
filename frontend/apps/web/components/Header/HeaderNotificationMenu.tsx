@@ -13,6 +13,7 @@ import {
     Upload,
     X,
 } from "lucide-react";
+import HeaderPopover from "@/components/Header/HeaderPopover";
 import { ENotificationType } from "@/models/enums/notificationType";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -30,18 +31,12 @@ export default function NotificationMenu({
     const lang = useStore(rockIt.vocabularyManager.langAtom);
     const [filter, setFilter] = useState("all");
     const unread = notifications.filter((n) => !n.read).length;
-    const visible = notifications.filter((n) =>
-        filter === "unread"
-            ? !n.read
-            : filter === "release"
-              ? n.category === "release"
-              : true
-    );
+    const visible = notifications.filter((n) => filter !== "unread" || !n.read);
     return (
-        <section
+        <HeaderPopover
             id="notification-center"
-            aria-label={vocabulary.NOTIFICATIONS_TITLE}
-            className="fixed top-20 right-3 left-3 z-50 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-2xl md:absolute md:top-auto md:right-0 md:left-auto md:mt-3 md:w-100"
+            label={vocabulary.NOTIFICATIONS_TITLE}
+            className="w-[min(25rem,calc(100vw-2rem))]"
         >
             <div className="flex items-center gap-2 px-4 pt-4 pb-3">
                 <h2 className="flex-1 text-base font-semibold">
@@ -68,7 +63,6 @@ export default function NotificationMenu({
                 {[
                     ["all", vocabulary.NOTIFICATIONS_ALL],
                     ["unread", vocabulary.NOTIFICATIONS_UNREAD],
-                    ["release", vocabulary.NOTIFICATIONS_RELEASES],
                 ].map(([value, label]) => (
                     <button
                         key={value}
@@ -87,9 +81,7 @@ export default function NotificationMenu({
                         <p className="text-sm font-medium">
                             {filter === "unread"
                                 ? vocabulary.NOTIFICATIONS_NO_UNREAD
-                                : filter === "release"
-                                  ? vocabulary.NOTIFICATIONS_NO_RELEASES
-                                  : vocabulary.NOTIFICATIONS_EMPTY}
+                                : vocabulary.NOTIFICATIONS_EMPTY}
                         </p>
                         <p className="text-xs leading-relaxed text-neutral-400">
                             {vocabulary.NOTIFICATIONS_EMPTY_DETAIL}
@@ -202,6 +194,6 @@ export default function NotificationMenu({
                     </button>
                 </div>
             )}
-        </section>
+        </HeaderPopover>
     );
 }

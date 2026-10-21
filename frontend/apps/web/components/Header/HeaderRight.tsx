@@ -62,7 +62,7 @@ export default function HeaderRight(): JSX.Element {
                     onClick={(): void =>
                         setShowNotifications((prev): boolean => !prev)
                     }
-                    className="relative p-1 text-white transition md:hover:text-gray-300"
+                    className={`relative grid h-10 w-10 place-items-center rounded-xl border transition focus-visible:outline-2 focus-visible:outline-pink-400 ${showNotifications ? "border-pink-400/30 bg-pink-500/15 text-pink-300" : "border-transparent text-neutral-300 hover:bg-white/10 hover:text-white"}`}
                     aria-label={`${vocabulary.NOTIFICATIONS_TITLE} (${notificationCount})`}
                     aria-controls={
                         showNotifications ? "notification-center" : undefined
@@ -72,7 +72,7 @@ export default function HeaderRight(): JSX.Element {
                     <Bell className="h-6 w-6" />
                     {notificationCount > 0 && (
                         <span
-                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+                            className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
                             aria-hidden
                         >
                             {notificationCount > 9 ? "9+" : notificationCount}

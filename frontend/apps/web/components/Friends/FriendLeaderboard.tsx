@@ -3,181 +3,260 @@
 import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { Flame, Trophy } from "lucide-react";
+import { ArrowUpRight, Flame, Headphones } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
+import styles from "@/components/Friends/Friends.module.css";
 
 export default function FriendLeaderboard(): JSX.Element {
     const v = useStore(
         rockIt.vocabularyManager.vocabularyAtom
     ) as unknown as Record<string, string>;
+    const friends = useStore(rockIt.friendManager.friendsAtom);
+    const activity = useStore(rockIt.friendManager.activityAtom);
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-    const [currentUser, setCurrentUser] = useState<LeaderboardEntry | null>(
-        null
-    );
+    const [self, setSelf] = useState<LeaderboardEntry | null>(null);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [failed, setFailed] = useState(false);
+    const [retry, setRetry] = useState(0);
+    const text = (
+        key: string,
+        values: Record<string, string | number> = {}
+    ): string =>
+        Object.entries(values).reduce(
+            (s, [k, value]) => s.replace(`{${k}}`, String(value)),
+            v[key] || key
+        );
 
     useEffect(() => {
-        (async () => {
-            try {
-                const data = await rockIt.friendManager.fetchLeaderboard();
+        let live = true;
+        void rockIt.friendManager
+            .fetchLeaderboard()
+            .then((data) => {
+                if (!live) return;
                 setEntries(data.entries);
-                setCurrentUser(data.currentUser);
-            } catch {
-                // silent
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+                setSelf(data.currentUser);
+                setFailed(false);
+            })
+            .catch(() => {
+                if (live) setFailed(true);
+            })
+            .finally(() => {
+                if (live) setLoading(false);
+            });
+        return () => {
+            live = false;
+        };
+    }, [friends, activity, retry]);
 
-    if (loading) {
+    if (loading)
+        return <div className="skeleton h-72 rounded-3xl" aria-busy="true" />;
+    if (failed)
         return (
-            <div className="flex flex-col gap-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="skeleton h-14 w-full rounded-lg" />
-                ))}
+            <div className={styles.league} role="alert">
+                <p>{v.SOCIAL_ERROR}</p>
+                <button onClick={() => setRetry((n) => n + 1)}>
+                    {v.SOCIAL_RETRY}{" "}
+                    <ArrowUpRight size={16} aria-hidden="true" />
+                </button>
             </div>
         );
-    }
-
-    const allEntries = currentUser
-        ? [
-              ...entries.filter((e) => e.userId !== currentUser.userId),
-              currentUser,
-          ]
-        : entries;
+    const sorted = [
+        ...entries.filter((e) => e.userId !== self?.userId),
+        ...(self ? [self] : []),
+    ].sort((a, b) => b.xp - a.xp || a.username.localeCompare(b.username));
+    const others = sorted.filter((e) => e.userId !== self?.userId);
+    const selected = others.find((e) => e.userId === selectedId) || others[0];
+    const progress = self
+        ? self.xpToNext > 0
+            ? Math.max(
+                  0,
+                  Math.min(
+                      100,
+                      (100 * (self.xp - self.levelStartXp)) /
+                          (self.xp + self.xpToNext - self.levelStartXp)
+                  )
+              )
+            : 100
+        : 0;
+    const avatar = (entry: LeaderboardEntry): JSX.Element => (
+        <span className={styles.leagueAvatar}>
+            {entry.imageUrl ? (
+                <Image src={entry.imageUrl} alt="" width={40} height={40} />
+            ) : (
+                entry.username[0]?.toUpperCase()
+            )}
+        </span>
+    );
 
     return (
-        <div className="flex flex-col gap-3">
-            {currentUser && (
-                <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-r from-[#ee1086]/20 to-transparent p-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#ee1086] to-[#fb6467] text-lg font-bold text-white">
-                            {currentUser.imageUrl ? (
-                                <Image
-                                    src={currentUser.imageUrl}
-                                    alt={currentUser.username}
-                                    width={48}
-                                    height={48}
-                                    className="h-full w-full rounded-full object-cover"
+        <div className={styles.competition}>
+            {self && (
+                <section
+                    className={styles.passport}
+                    aria-labelledby="music-identity"
+                >
+                    <p id="music-identity" className={styles.eyebrow}>
+                        {v.SOCIAL_PASSPORT}
+                    </p>
+                    <div className={styles.identity}>
+                        <div className={styles.levelDisc}>
+                            <svg viewBox="0 0 120 120" aria-hidden="true">
+                                <circle cx="60" cy="60" r="54" />
+                                <circle
+                                    cx="60"
+                                    cy="60"
+                                    r="54"
+                                    pathLength="100"
+                                    strokeDasharray={`${progress} 100`}
                                 />
-                            ) : (
-                                currentUser.username[0]?.toUpperCase()
-                            )}
+                            </svg>
+                            <span>
+                                <small>
+                                    {v.SOCIAL_LEVEL?.replace("{level}", "")}
+                                </small>
+                                <strong>{self.level}</strong>
+                            </span>
                         </div>
-                        <div className="flex-1">
-                            <p className="text-sm font-bold text-white">
-                                {currentUser.username}
-                            </p>
-                            <p className="text-xs text-neutral-400">
-                                {v[currentUser.title] ||
-                                    currentUser.title ||
-                                    `Level ${currentUser.level}`}
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-lg font-bold text-white">
-                                Lv.{currentUser.level}
-                            </p>
-                            <p className="text-xs text-neutral-500">
-                                {currentUser.xp} XP
-                            </p>
+                        <div className={styles.identityName}>
+                            <h2>{self.username}</h2>
+                            <p>{v[self.title] || self.title}</p>
+                            <span>{self.xp.toLocaleString()} XP</span>
                         </div>
                     </div>
-                    {currentUser.xpToNext > 0 && (
-                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-800">
-                            <div
-                                className="h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467] transition-all"
-                                style={{
-                                    width: `${Math.min(
-                                        100,
-                                        (currentUser.xp /
-                                            (currentUser.xp +
-                                                currentUser.xpToNext)) *
-                                            100
-                                    )}%`,
-                                }}
-                            />
+                    <div className={styles.progressCopy}>
+                        {self.xpToNext > 0
+                            ? text("SOCIAL_NEXT", {
+                                  xp: self.xpToNext.toLocaleString(),
+                              })
+                            : v.SOCIAL_MAX}
+                    </div>
+                    <progress
+                        className={styles.levelProgress}
+                        value={progress}
+                        max={100}
+                        aria-label={text("SOCIAL_LEVEL", { level: self.level })}
+                    />
+                    <div className={styles.personalStats}>
+                        <div>
+                            <Headphones size={18} />
+                            <strong>
+                                {self.songsListened.toLocaleString()}
+                            </strong>
+                            <span>{v.SOCIAL_LISTENS}</span>
                         </div>
-                    )}
-                </div>
+                        <div>
+                            <Flame size={18} />
+                            <strong>{self.streak}</strong>
+                            <span>{v.SOCIAL_STREAK}</span>
+                        </div>
+                    </div>
+                    <p className={styles.statFootnote}>{v.SOCIAL_XP_RULE}</p>
+                </section>
             )}
-
-            <p className="text-[10px] font-semibold tracking-wider text-neutral-500 uppercase">
-                Leaderboard
-            </p>
-
-            {allEntries
-                .sort((a, b) => b.xp - a.xp)
-                .map((entry, i) => (
-                    <div
-                        key={entry.userId}
-                        className={
-                            "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-neutral-900/50 " +
-                            (currentUser?.userId === entry.userId
-                                ? "ring-1 ring-[#ee1086]/30"
-                                : "")
-                        }
-                    >
-                        <div className="flex w-6 items-center justify-center">
-                            {i === 0 ? (
-                                <Trophy className="h-4 w-4 text-yellow-500" />
-                            ) : i === 1 ? (
-                                <Trophy className="h-4 w-4 text-neutral-400" />
-                            ) : i === 2 ? (
-                                <Trophy className="h-4 w-4 text-amber-700" />
-                            ) : (
-                                <span className="text-xs text-neutral-600">
-                                    #{i + 1}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="h-9 w-9 overflow-hidden rounded-full bg-neutral-800">
-                            {entry.imageUrl ? (
-                                <Image
-                                    src={entry.imageUrl}
-                                    alt={entry.username}
-                                    width={36}
-                                    height={36}
-                                    className="h-full w-full object-cover"
-                                />
-                            ) : (
-                                <div className="flex h-full w-full items-center justify-center text-sm font-bold text-neutral-500">
-                                    {entry.username[0]?.toUpperCase()}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-white">
-                                {entry.username}
-                            </p>
-                            {entry.title && (
-                                <p className="truncate text-[10px] text-neutral-500">
-                                    {v[entry.title] || entry.title}
-                                </p>
-                            )}
-                        </div>
-
-                        {entry.streak > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-orange-400">
-                                <Flame size={12} />
-                                {entry.streak}
-                            </div>
-                        )}
-
-                        <div className="text-right">
-                            <p className="text-sm font-semibold text-white">
-                                Lv.{entry.level}
-                            </p>
-                            <p className="text-[10px] text-neutral-500">
-                                {entry.xp} XP
-                            </p>
-                        </div>
+            <section
+                className={styles.league}
+                aria-labelledby="listening-league"
+            >
+                <div className={styles.leagueHeading}>
+                    <div>
+                        <p className={styles.eyebrow}>Rocket · XP</p>
+                        <h2 id="listening-league">{v.SOCIAL_RACE}</h2>
                     </div>
-                ))}
+                    <ArrowUpRight aria-hidden="true" />
+                </div>
+                <p className={styles.statFootnote}>
+                    {others.length ? v.SOCIAL_COMPARE : v.SOCIAL_EMPTY}
+                </p>
+                <ol className={styles.rankings}>
+                    {sorted.map((entry) => {
+                        const rank =
+                            sorted.findIndex((e) => e.xp === entry.xp) + 1;
+                        const isSelf = entry.userId === self?.userId;
+                        return (
+                            <li key={entry.userId}>
+                                <button
+                                    className={styles.rankRow}
+                                    aria-pressed={
+                                        !isSelf &&
+                                        selected?.userId === entry.userId
+                                    }
+                                    disabled={isSelf}
+                                    data-self={isSelf}
+                                    onClick={() => setSelectedId(entry.userId)}
+                                >
+                                    <span className={styles.rankNumber}>
+                                        {String(rank).padStart(2, "0")}
+                                    </span>
+                                    {avatar(entry)}
+                                    <span className={styles.rankName}>
+                                        <strong>
+                                            {isSelf
+                                                ? v.SOCIAL_YOU
+                                                : entry.username}
+                                        </strong>
+                                        <small>
+                                            {text("SOCIAL_LEVEL", {
+                                                level: entry.level,
+                                            })}{" "}
+                                            ·{" "}
+                                            {entry.songsListened.toLocaleString()}{" "}
+                                            {v.SOCIAL_LISTENS?.toLowerCase()}
+                                        </small>
+                                    </span>
+                                    <span className={styles.rankXp}>
+                                        {entry.xp.toLocaleString()}
+                                        <small>XP</small>
+                                    </span>
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ol>
+                {selected && self && (
+                    <div key={selected.userId} className={styles.comparison}>
+                        <p>
+                            {selected.xp > self.xp
+                                ? text("SOCIAL_GAP", {
+                                      xp: (
+                                          selected.xp - self.xp
+                                      ).toLocaleString(),
+                                      name: selected.username,
+                                  })
+                                : selected.xp === self.xp
+                                  ? v.SOCIAL_TIED
+                                  : v.SOCIAL_LEAD}
+                        </p>
+                        <div className={styles.compareNames}>
+                            <span>{v.SOCIAL_YOU}</span>
+                            <span>{selected.username}</span>
+                        </div>
+                        <dl>
+                            {[
+                                [
+                                    v.SOCIAL_LISTENS,
+                                    self.songsListened,
+                                    selected.songsListened,
+                                ],
+                                [v.SOCIAL_STREAK, self.streak, selected.streak],
+                            ].map(([label, a, b]) => (
+                                <div key={label}>
+                                    <dd>{Number(a).toLocaleString()}</dd>
+                                    <dt>{label}</dt>
+                                    <dd>{Number(b).toLocaleString()}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </div>
+                )}
+                {!others.length && (
+                    <a className={styles.circleLink} href="#social-circle">
+                        {v.SOCIAL_MANAGE}{" "}
+                        <ArrowUpRight size={16} aria-hidden="true" />
+                    </a>
+                )}
+            </section>
         </div>
     );
 }

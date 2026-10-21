@@ -249,18 +249,12 @@ export class FriendManager {
         entries: LeaderboardEntry[];
         currentUser: LeaderboardEntry | null;
     }> {
-        try {
-            const res = await Http.getLeaderboard();
-            if (res.isOk()) {
-                return {
-                    entries: res.result.entries ?? [],
-                    currentUser: res.result.currentUser,
-                };
-            }
-            return { entries: [], currentUser: null };
-        } catch {
-            return { entries: [], currentUser: null };
-        }
+        const res = await Http.getLeaderboard();
+        if (!res.isOk()) throw new Error("Could not load leaderboard");
+        return {
+            entries: res.result.entries ?? [],
+            currentUser: res.result.currentUser,
+        };
     }
 
     get friendsAtom(): ReadonlyAtom<Friend[]> {

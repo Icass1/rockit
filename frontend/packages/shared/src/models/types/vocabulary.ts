@@ -509,4 +509,25 @@ export interface Vocabulary {
     FRIENDS_BLOCKED: string;
     FRIENDS_UNBLOCK: string;
     SETTINGS_SHARE_SHEET_LOGS: string;
+    SOCIAL_HEADLINE: string;
+    SOCIAL_INTRO: string;
+    SOCIAL_PASSPORT: string;
+    SOCIAL_LEVEL: string;
+    SOCIAL_LISTENS: string;
+    SOCIAL_STREAK: string;
+    SOCIAL_NEXT: string;
+    SOCIAL_MAX: string;
+    SOCIAL_XP_RULE: string;
+    SOCIAL_RACE: string;
+    SOCIAL_COMPARE: string;
+    SOCIAL_YOU: string;
+    SOCIAL_GAP: string;
+    SOCIAL_LEAD: string;
+    SOCIAL_TIED: string;
+    SOCIAL_PEOPLE: string;
+    SOCIAL_DISCOVER: string;
+    SOCIAL_MANAGE: string;
+    SOCIAL_ERROR: string;
+    SOCIAL_RETRY: string;
+    SOCIAL_EMPTY: string;
 }

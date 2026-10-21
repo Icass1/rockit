@@ -18,6 +18,8 @@ class UserLevelResponse(BaseModel):
     xpToNext: int = 0
     title: str = ""
     streak: int = 0
+    songsListened: int = 0
+    levelStartXp: int = 0
 
 
 class LeaderboardResponse(BaseModel):

@@ -233,7 +233,13 @@ async def test_http_contract_and_profile_privacy(social: AsyncSession) -> None:
             },
         )
         assert synced.status_code == 200, synced.text
-        assert (await client.get("/friends/leaderboard")).status_code == 200
+        leaderboard = await client.get("/friends/leaderboard")
+        assert leaderboard.status_code == 200, leaderboard.text
+        profiles = leaderboard.json()["entries"]
+        assert {profile["userId"] for profile in profiles} == {"user-1", "user-2"}
+        for profile in profiles:
+            assert profile["songsListened"] * 10 == profile["xp"]
+            assert profile["levelStartXp"] <= profile["xp"]
         blocked = await client.post("/friends/block/user-2")
         assert blocked.status_code == 200, blocked.text
         block_list = await client.get("/friends/blocked")

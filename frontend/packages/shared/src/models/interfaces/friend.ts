@@ -35,6 +35,8 @@ export interface LeaderboardEntry {
     level: number;
     xp: number;
     xpToNext: number;
+    songsListened: number;
+    levelStartXp: number;
     title: string;
     streak: number;
 }

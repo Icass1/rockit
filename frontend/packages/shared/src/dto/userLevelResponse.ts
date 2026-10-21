@@ -12,6 +12,8 @@ export const UserLevelResponseSchema = z.object({
     xpToNext: z.number().default(0),
     title: z.string().default(""),
     streak: z.number().default(0),
+    songsListened: z.number().default(0),
+    levelStartXp: z.number().default(0),
 });
 
 export type UserLevelResponse = z.infer<typeof UserLevelResponseSchema>;

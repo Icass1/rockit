@@ -96,6 +96,15 @@ class Levels:
                     xpToNext=max(0, next_xp - row.xp),
                     title=title,
                     streak=streaks.result().get(user.id, 0),
+                    songsListened=row.xp // 10,
+                    levelStartXp=next(
+                        (
+                            c.xp_required
+                            for c in configs.result()
+                            if c.level == row.level
+                        ),
+                        0,
+                    ),
                 )
             )
         return AResult(code=AResultCode.OK, message="OK", result=responses)

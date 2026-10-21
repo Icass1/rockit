@@ -272,6 +272,104 @@ async def main():
                 session=session, group_id=group_ids[0], media_ids=media_ids[:50]
             )
             assert active.is_ok() and not active.result()
+            # Re-import an old source: one real file is reused, one missing file is queued.
+            import tempfile
+            from unittest.mock import patch
+            from backend.core.access.downloadAccess import DownloadAccess
+            from backend.utils import downloadFiles
+            from backend.core.framework.downloader import downloader
+
+            with tempfile.TemporaryDirectory(prefix="rockit-reuse-") as folder:
+                Path(folder, "already-downloaded.mp3").write_bytes(b"existing audio")
+                await session.execute(
+                    tracks.update()
+                    .where(tracks.c.id == media_ids[0])
+                    .values(path="already-downloaded.mp3")
+                )
+                await session.execute(
+                    tracks.update()
+                    .where(tracks.c.id == media_ids[1])
+                    .values(path="missing.mp3")
+                )
+                imported = await DownloadAccess.create_download_group(
+                    session=session,
+                    user_id=user_id,
+                    title="Reimported album",
+                    source_public_id=prefix + "-album",
+                )
+                assert imported.is_ok()
+                queued = []
+                with patch.object(downloadFiles, "MEDIA_PATH", folder), patch.object(
+                    providers, "find_media_provider", return_value=object()
+                ), patch.object(
+                    downloader.downloads_manager,
+                    "add_download",
+                    side_effect=queued.append,
+                ):
+                    started = await Downloader._queue_downloads_async(
+                        session=session,
+                        public_ids=[f"{prefix}-song-0", f"{prefix}-song-1"],
+                        group=imported.result(),
+                        user_id=user_id,
+                    )
+                    assert started.is_ok(), started.message()
+                reused_rows = (
+                    (
+                        await session.execute(
+                            select(DownloadRow)
+                            .where(
+                                DownloadRow.download_group_id == imported.result().id
+                            )
+                            .order_by(DownloadRow.id)
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                assert [row.status_key for row in reused_rows] == [3, 1]
+                assert [task.public_id for task in queued] == [f"{prefix}-song-1"]
+                assert imported.result().source_public_id == prefix + "-album"
+                assert (
+                    imported.result().success == 1
+                    and imported.result().date_ended is None
+                )
+                assert (
+                    Path(folder, "already-downloaded.mp3").read_bytes()
+                    == b"existing audio"
+                )
+                print(
+                    "Reimport verified: existing file preserved, missing track queued, original source retained."
+                )
+                Path(folder, "missing.mp3").write_bytes(b"now downloaded")
+                complete = await DownloadAccess.create_download_group(
+                    session=session,
+                    user_id=user_id,
+                    title="Fully downloaded album",
+                    source_public_id=prefix + "-album",
+                )
+                assert complete.is_ok()
+                queued.clear()
+                with patch.object(downloadFiles, "MEDIA_PATH", folder), patch.object(
+                    downloader.downloads_manager,
+                    "add_download",
+                    side_effect=queued.append,
+                ):
+                    reused = await Downloader._queue_downloads_async(
+                        session=session,
+                        public_ids=[f"{prefix}-song-0", f"{prefix}-song-1"],
+                        group=complete.result(),
+                        user_id=user_id,
+                    )
+                assert reused.is_ok(), reused.message()
+                assert queued == []
+                assert (
+                    complete.result().status_key == 3
+                    and complete.result().success == 2
+                    and complete.result().date_ended is not None
+                )
+                print(
+                    "Fully downloaded source verified: completed immediately, no download workers queued."
+                )
             denied = await DownloadBrowser.items_async(
                 session=session,
                 user_id=-1,

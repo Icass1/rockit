@@ -221,6 +221,22 @@ async def test_failed_group_commit_restores_files_and_does_not_queue(group_actio
 
 
 async def test_deferred_download_prepares_only_inside_worker(monkeypatch):
+    from backend.core.access.downloadReuseAccess import DownloadReuseAccess
+    from backend.core.framework.models.downloadCandidate import DownloadCandidate
+    from backend.utils.downloadFiles import DownloadFiles
+
+    monkeypatch.setattr(
+        DownloadReuseAccess,
+        "candidates_async",
+        AsyncMock(
+            return_value=ok(
+                [DownloadCandidate(id=1, public_id="song", provider_id=4, path=None)]
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        DownloadFiles, "existing_ids_async", AsyncMock(return_value=set())
+    )
     provider = Mock()
     task = SimpleNamespace(
         title="Song title",

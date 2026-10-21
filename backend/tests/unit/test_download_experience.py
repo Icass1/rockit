@@ -25,7 +25,7 @@ async def test_playlist_download_preserves_root_and_saves_root_once(monkeypatch)
     group = SimpleNamespace(id=1, public_id="group")
     create = AsyncMock(return_value=ok(group))
     save = AsyncMock(return_value=ok(True))
-    queue = AsyncMock()
+    queue = AsyncMock(return_value=ok(True))
     monkeypatch.setattr(DownloadAccess, "create_download_group", create)
     monkeypatch.setattr(User, "add_medias_to_library_async", save)
     monkeypatch.setattr(
@@ -40,7 +40,7 @@ async def test_playlist_download_preserves_root_and_saves_root_once(monkeypatch)
         "expand_container_async",
         AsyncMock(return_value=ok(["song-a", "song-b"])),
     )
-    monkeypatch.setattr(Downloader, "_queue_single_download_async", queue)
+    monkeypatch.setattr(Downloader, "_queue_downloads_async", queue)
     session = AsyncMock(spec=AsyncSession)
     result = await Downloader.download_multiple_medias_async(
         session=session,
@@ -52,10 +52,9 @@ async def test_playlist_download_preserves_root_and_saves_root_once(monkeypatch)
     assert result.is_ok()
     assert create.call_args.kwargs["source_public_id"] == "playlist"
     save.assert_awaited_once_with(session=session, user_id=7, public_ids=["playlist"])
-    assert [call.kwargs["public_id"] for call in queue.await_args_list] == [
-        "song-a",
-        "song-b",
-    ]
+    queue.assert_awaited_once_with(
+        session=session, public_ids=["song-a", "song-b"], group=group, user_id=7
+    )
 
 
 async def test_library_failure_prevents_queueing(monkeypatch):
@@ -73,8 +72,8 @@ async def test_library_failure_prevents_queueing(monkeypatch):
             )
         ),
     )
-    queue = AsyncMock()
-    monkeypatch.setattr(Downloader, "_queue_single_download_async", queue)
+    queue = AsyncMock(return_value=ok(True))
+    monkeypatch.setattr(Downloader, "_queue_downloads_async", queue)
     result = await Downloader.download_multiple_medias_async(
         session=AsyncMock(spec=AsyncSession),
         user_id=7,
@@ -233,7 +232,7 @@ async def test_url_library_failure_is_reported_before_download_starts(monkeypatc
             )
         ),
     )
-    queue = AsyncMock()
+    queue = AsyncMock(return_value=ok(True))
     monkeypatch.setattr(Downloader, "download_multiple_medias_async", queue)
     result = await Downloader.start_download_from_url_async(
         session=AsyncMock(spec=AsyncSession),

@@ -18,6 +18,12 @@ Group file actions are a single HTTP request and do not depend on which track pa
 
 The web UI removes a deleted group or track immediately and restores it on failure. Group deletion has a confirmation dialog; pending actions block repeated clicks. Retry/redownload switches to a queued state immediately and errors are reported. Track context menus have their name, cover and subtitle before any playback fetch. Completed tracks offer Add to library and Add to playlist as well.
 
+## Reimporting a source that was already downloaded
+
+Sending the original playlist/album URL again creates a source-aware group and reuses the existing files. The server reads stored paths in one provider-independent batch and checks actual, nonempty files inside the media directory in a worker thread. Existing files get completed records in the new group immediately; only missing files are queued. A fully available playlist is completed immediately with no provider downloads. Missing, empty or invalid paths are never treated as complete just because an older history entry succeeded.
+
+Records are created in a batch and committed before workers can pick them up. Workers check availability again before contacting the provider, in case a file became available while waiting. Repeated songs within a source are deduplicated. Existing files and old history entries are preserved; the new group carries the original album/playlist identity. Explicit Redownload continues to clear/archive files and request fresh downloads.
+
 ## Automatic library preference
 
 The “Automatically add downloads to my library” checkbox is available in Downloads and Settings. It is an account preference stored on the server, disabled by default, and applies to URL downloads and downloads of existing media, including requests from other clients. Explicit add-to-library requests still work when the preference is off. Album/playlist roots are saved as library entries with their songs inside the original container. Library insertion is idempotent.
@@ -48,4 +54,4 @@ One final local run on that fixture (full-history query first, so cache state ma
 | Search + failed albums | 606 ms | 4 | 31,100 bytes | 68 |
 | Expanded group page | 15 ms | 3 | 17,776 bytes | 48 |
 
-The benchmark also verifies batched path clearing, group retry resets and ownership checks. These values exclude real Spotify/YouTube network calls and browser/network latency.
+The benchmark also verifies batched path clearing, group retry resets, ownership checks and reimporting mixed/fully available sources without re-downloading existing files. These values exclude real Spotify/YouTube network calls and browser/network latency.

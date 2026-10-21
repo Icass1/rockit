@@ -1,7 +1,7 @@
 from typing import Any
 from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import select, func, literal, union_all, exists, or_, update
+from sqlalchemy import select, func, literal, union_all, exists, or_, update, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
@@ -234,11 +234,29 @@ class DownloadBrowseAccess:
                 CoreMediaRow.provider_id,
                 ImageRow.public_id.label("image_public_id"),
                 ProviderRow.name.label("provider"),
-                exists(
-                    select(UserLibraryMediaRow.id).where(
-                        UserLibraryMediaRow.user_id == user_id,
-                        UserLibraryMediaRow.media_id == CoreMediaRow.id,
-                    )
+                case(
+                    (
+                        DownloadGroupRow.source_public_id.is_(None),
+                        ~exists(
+                            select(DownloadRow.id)
+                            .where(
+                                DownloadRow.download_group_id == DownloadGroupRow.id,
+                                DownloadRow.seen.is_(False),
+                                DownloadRow.media_id.not_in(
+                                    select(UserLibraryMediaRow.media_id).where(
+                                        UserLibraryMediaRow.user_id == user_id
+                                    )
+                                ),
+                            )
+                            .correlate(DownloadGroupRow)
+                        ),
+                    ),
+                    else_=exists(
+                        select(UserLibraryMediaRow.id).where(
+                            UserLibraryMediaRow.user_id == user_id,
+                            UserLibraryMediaRow.media_id == CoreMediaRow.id,
+                        )
+                    ),
                 ).label("in_library"),
             )
             .select_from(DownloadGroupRow)

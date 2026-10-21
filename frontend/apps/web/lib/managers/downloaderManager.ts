@@ -474,9 +474,19 @@ export class DownloaderManager {
             );
         try {
             if (action === "library") {
-                if (!group.sourcePublicId)
-                    throw new Error(rockIt.vocabularyManager.vocabulary.ERROR);
-                await this.addGroupToLibraryAsync(group.sourcePublicId);
+                if (group.sourcePublicId) {
+                    await this.addGroupToLibraryAsync(group.sourcePublicId);
+                } else {
+                    const result = await Http.manageDownloadGroup(
+                        group.publicId,
+                        "library"
+                    );
+                    if (sessionVersion !== this.sessionVersion) return;
+                    if (!result.isOk()) throw new Error(result.message);
+                    rockIt.notificationManager.notifySuccess(
+                        rockIt.vocabularyManager.vocabulary.ADDED_TO_LIBRARY
+                    );
+                }
                 if (sessionVersion !== this.sessionVersion) return;
                 this.groupsAtom.set(
                     this.groupsAtom

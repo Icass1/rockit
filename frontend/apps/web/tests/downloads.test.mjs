@@ -352,3 +352,70 @@ test("track page requests preserve search text and status in the actual HTTP tra
     assert.equal(url.searchParams.get("status"), "failed");
     assert.equal(url.searchParams.get("offset"), "48");
 });
+
+for (const sourceType of ["album", "playlist"]) {
+    test(`adding a ${sourceType} group saves its source, including tracks outside the visible page`, async () => {
+        const { manager, http, messages } = setup();
+        const group = {
+            ...manager.groupsAtom.get()[0],
+            sourceType,
+            sourcePublicId: `${sourceType}-source`,
+            total: 1000,
+            inLibrary: false,
+        };
+        manager.groupsAtom.set([group]);
+        const calls = [];
+        let resolve;
+        http.addMediaToLibrary = (id) => {
+            calls.push(id);
+            return new Promise((done) => {
+                resolve = done;
+            });
+        };
+        const request = manager.runGroupActionAsync(group, "library");
+        assert.equal(manager.groupPendingAtom.get()[group.publicId], "library");
+        await manager.runGroupActionAsync(group, "library");
+        assert.deepEqual(calls, [`${sourceType}-source`]);
+        resolve(ok({}));
+        await request;
+        assert.equal(manager.groupsAtom.get()[0].inLibrary, true);
+        assert.equal(manager.groupPendingAtom.get()[group.publicId], undefined);
+        assert.equal(messages[0], "ADDED_TO_LIBRARY");
+    });
+}
+
+test("a rejected group library action preserves the group and allows retry", async () => {
+    const { manager, http, messages } = setup();
+    const group = { ...manager.groupsAtom.get()[0], inLibrary: false };
+    manager.groupsAtom.set([group]);
+    http.addMediaToLibrary = async () => failure();
+    await manager.runGroupActionAsync(group, "library");
+    assert.equal(manager.groupsAtom.get()[0].inLibrary, false);
+    assert.equal(manager.groupPendingAtom.get()[group.publicId], undefined);
+    assert.equal(messages[0], "Server unavailable");
+    http.addMediaToLibrary = async () => ok({});
+    await manager.runGroupActionAsync(group, "library");
+    assert.equal(manager.groupsAtom.get()[0].inLibrary, true);
+});
+
+test("a legacy group saves all server-side tracks in one request even when its preview is empty", async () => {
+    const { manager, http } = setup();
+    const group = {
+        publicId: "legacy-group",
+        sourcePublicId: null,
+        items: [],
+        total: 1000,
+    };
+    manager.groupsAtom.set([group]);
+    const calls = [];
+    http.addMediaToLibrary = () => {
+        throw new Error("Must not infer a source from preview tracks");
+    };
+    http.manageDownloadGroup = async (...args) => {
+        calls.push(args);
+        return ok({});
+    };
+    await manager.runGroupActionAsync(group, "library");
+    assert.deepEqual(calls, [["legacy-group", "library"]]);
+    assert.equal(manager.groupsAtom.get()[0].inLibrary, true);
+});

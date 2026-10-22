@@ -206,3 +206,34 @@ async def test_storage_mutations_are_batched_and_failures_stop_dispatch() -> Non
     failure.assert_awaited_once_with(session, ids)
     skipped.assert_not_awaited()
     session.commit.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "source", ["spotify", "spotifyScrapper", "youtube", "youtubeMusic"]
+)
+async def test_downloader_health_is_checked_without_an_active_youtube_provider(
+    monkeypatch: pytest.MonkeyPatch, source: str
+) -> None:
+    from importlib import import_module
+    from backend.youtube.framework.potProvider import PotProvider
+
+    module_names = {
+        "spotify": "spotifyProvider",
+        "spotifyScrapper": "spotifyScrapperProvider",
+        "youtube": "yotubeProvider",
+        "youtubeMusic": "youtubeMusicProvider",
+    }
+    module = import_module(
+        f"backend.{source}.framework.provider.{module_names[source]}"
+    )
+    check = AsyncMock(
+        return_value=AResult(
+            code=AResultCode.CONFIGURATION_ERROR, message="Missing runtime"
+        )
+    )
+    monkeypatch.setattr(PotProvider, "check_health_async", check)
+    monkeypatch.setattr(providers, "_providers", [])
+    health = await module.provider.check_health_async()
+    assert health.code() == AResultCode.CONFIGURATION_ERROR
+    assert health.message() == "Missing runtime"
+    check.assert_awaited_once_with(max_age_seconds=30.0)

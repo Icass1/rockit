@@ -83,7 +83,7 @@ class YoutubeProvider(BaseMediaProvider):
     async def check_health_async(self) -> AResultCode:
         from backend.youtube.framework.potProvider import PotProvider
 
-        health = await PotProvider.check_health_async()
+        health = await PotProvider.check_health_async(max_age_seconds=30.0)
         return AResultCode(code=health.code(), message=health.message())
 
     def can_manage_downloads(self) -> bool:

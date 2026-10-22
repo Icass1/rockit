@@ -85,6 +85,13 @@ class YoutubeMusicProvider(BaseMediaProvider):
 
         return youtube_gate.cooldown_remaining()
 
+    async def check_health_async(self) -> AResultCode:
+        """Check the downloader used by this provider even if its source is disabled."""
+        from backend.youtube.framework.potProvider import PotProvider
+
+        health = await PotProvider.check_health_async(max_age_seconds=30.0)
+        return AResultCode(code=health.code(), message=health.message())
+
     def can_manage_downloads(self) -> bool:
         return True
 

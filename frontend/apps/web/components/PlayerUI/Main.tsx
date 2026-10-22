@@ -296,7 +296,7 @@ export default function PlayerUIMain({
                     onClick={handleClick}
                 >
                     <Image
-                        src={currentMedia.imageUrl}
+                        src={currentMedia.imageUrl || "/radio-placeholder.png"}
                         fill
                         alt={currentMedia.name}
                         className="object-cover"

@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import L from "leaflet";
 import {
-    CircleMarker,
     GeoJSON,
     MapContainer,
+    Marker,
     Popup,
     Tooltip,
     useMap,
@@ -289,11 +289,41 @@ export default function RadioMap({
     savedStations = [],
 }: RadioMapProps): JSX.Element {
     const [worldRadius, setWorldRadius] = useState(2);
-    const renderer = useMemo(() => L.svg({ padding: 1 }), []);
     const worlds = Array.from(
         { length: worldRadius * 2 + 1 },
         (_, index) => index - worldRadius
     );
+    const renderer = useMemo(() => L.svg({ padding: 1 }), []);
+    const stationIcons = useMemo(() => {
+        const icons = new Map<string, L.DivIcon>();
+        if (typeof document === "undefined") return icons;
+        for (let world = -worldRadius; world <= worldRadius; world++) {
+            for (const station of savedStations) {
+                const image = document.createElement("img");
+                image.src = station.imageUrl || "/radio-placeholder.png";
+                image.alt = "";
+                image.width = 44;
+                image.height = 44;
+                image.style.cssText =
+                    "width:44px;height:44px;object-fit:cover;border:2px solid #ee1086;border-radius:8px;background:#171717;box-shadow:0 2px 8px #0008";
+                image.onerror = (): void => {
+                    image.onerror = null;
+                    image.src = "/radio-placeholder.png";
+                };
+                icons.set(
+                    `${station.publicId}:${world}`,
+                    L.divIcon({
+                        html: image,
+                        className: "radio-station-marker",
+                        iconSize: [44, 44],
+                        iconAnchor: [22, 22],
+                        popupAnchor: [0, -22],
+                    })
+                );
+            }
+        }
+        return icons;
+    }, [savedStations, worldRadius]);
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const countries: FeatureCollection | null = useMemo(() => {
         try {
@@ -362,19 +392,17 @@ export default function RadioMap({
                                 Number.isFinite(station.geoLong)
                         )
                         .map((station) => (
-                            <CircleMarker
+                            <Marker
                                 key={`${station.publicId}:${world}`}
                                 center={[
                                     station.geoLat!,
                                     station.geoLong! + world * 360,
                                 ]}
-                                radius={6}
-                                pathOptions={{
-                                    color: "#fff",
-                                    weight: 1.5,
-                                    fillColor: "#ee1086",
-                                    fillOpacity: 1,
-                                }}
+                                icon={stationIcons.get(
+                                    `${station.publicId}:${world}`
+                                )}
+                                title={station.name}
+                                alt={station.name}
                             >
                                 <Tooltip>{station.name}</Tooltip>
                                 <Popup>
@@ -390,7 +418,7 @@ export default function RadioMap({
                                         {vocabulary.PLAY}
                                     </button>
                                 </Popup>
-                            </CircleMarker>
+                            </Marker>
                         ))
                 )}
             </MapContainer>

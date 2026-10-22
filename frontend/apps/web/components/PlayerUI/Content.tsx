@@ -47,7 +47,10 @@ export default function PlayerUIContent(): JSX.Element {
     const bgCoverSrc =
         offlineBgCover && offlineBgCover.publicId === $currentMedia?.publicId
             ? offlineBgCover.url
-            : ($currentMedia?.imageUrl ?? "");
+            : $currentMedia?.imageUrl ||
+              ($currentMedia?.type === "station"
+                  ? "/radio-placeholder.png"
+                  : "");
 
     // Close player when clicking outside
     useEffect((): (() => void) => {

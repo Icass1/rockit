@@ -22,6 +22,7 @@ export default function LyricsPanel({
     const activeLineRef = useRef<HTMLParagraphElement>(null);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLyrics(undefined);
         setLoading(false);
         if (currentMedia?.type !== "song") return;

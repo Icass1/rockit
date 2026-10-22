@@ -6,7 +6,7 @@ from urllib.parse import quote
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timezone
 from logging import Logger
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 from backend.utils.logger import getLogger
 from backend.utils.backendUtils import time_it
@@ -96,10 +96,12 @@ class RadioBrowserApi:
                     if error.response.status_code == 429:
                         retry_after = error.response.headers.get("Retry-After", "30")
                         try:
-                            delay = float(retry_after)
+                            delay: float = float(retry_after)
                         except ValueError:
                             try:
-                                deadline = parsedate_to_datetime(retry_after)
+                                deadline = cast(
+                                    datetime, parsedate_to_datetime(retry_after)
+                                )
                                 delay = (
                                     deadline - datetime.now(timezone.utc)
                                 ).total_seconds()

@@ -17,8 +17,8 @@ import type { Topology } from "topojson-specification";
 import worldData from "world-atlas/countries-110m.json";
 import "leaflet/dist/leaflet.css";
 import { useStore } from "@nanostores/react";
-import { Play } from "lucide-react";
 import type { BaseStationResponse } from "@rockit/shared";
+import { Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 interface RadioMapProps {
@@ -300,7 +300,9 @@ function MapHoverReset({
                     };
                     if (typeof path.setStyle !== "function") return;
                     path.closeTooltip();
-                    path.setStyle(getCountryStyle(selectedCountry)(path.feature));
+                    path.setStyle(
+                        getCountryStyle(selectedCountry)(path.feature)
+                    );
                 });
             });
         };

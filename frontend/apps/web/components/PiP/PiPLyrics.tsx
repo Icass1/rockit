@@ -13,6 +13,7 @@ export function PiPLyrics(): JSX.Element | null {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLyrics(undefined);
         setLoading(false);
         if ($currentMedia?.type !== "song") return;

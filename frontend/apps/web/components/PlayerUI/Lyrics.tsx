@@ -28,6 +28,7 @@ function Lyrics(): JSX.Element {
     const [lyrics, setLyrics] = useState<BaseLyricsResponse>();
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLyrics(undefined);
         if ($currentMedia?.type !== "song") return;
         let cancelled = false;
@@ -99,6 +100,7 @@ function DynamicLyrics(): JSX.Element {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLyrics(undefined);
         setLoading(false);
         if ($currentMedia?.type !== "song") return;

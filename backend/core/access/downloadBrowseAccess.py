@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.aResult import AResult, AResultCode
 from backend.core.utils.safeAsyncCall import safe_async
 from backend.core.access.providerStorage import provider_storage
-from backend.core.access.db.shared_metadata import shared_metadata
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
@@ -341,20 +340,9 @@ class DownloadBrowseAccess:
         session: AsyncSession, media_ids: list[int]
     ) -> AResult[list[str]]:
         """Clear paths in provider batches, returning files for the framework to archive."""
-        paths: list[str] = []
-        for source in provider_storage.available():
-            if not source.manageable or not source.path:
-                continue
-            table = shared_metadata.tables[source.table]
-            column = source.path
-            old = await session.execute(
-                select(table.c[column]).where(table.c.id.in_(media_ids))
-            )
-            paths.extend(value for value in old.scalars() if value)
-            await session.execute(
-                update(table).where(table.c.id.in_(media_ids)).values({column: None})
-            )
-        return AResult(code=AResultCode.OK, message="OK", result=paths)
+        return await provider_storage.clear_files_async(
+            session=session, media_ids=media_ids
+        )
 
     @staticmethod
     @safe_async

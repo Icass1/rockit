@@ -123,3 +123,81 @@ async def test_disabled_provider_storage_supports_browse_reuse_zip_and_clear(
     assert (
         await session.scalar(select(tables["rockit.song"].c.file_path)) == "upload.mp3"
     )
+
+
+@pytest.mark.parametrize("schema", ["spotify", "spotify_scrapper", "youtube_music"])
+async def test_track_storage_preserves_images_and_batch_mutation(
+    database: AsyncSession, schema: str
+) -> None:
+    """Exercise each track projection and mutation against its real schema."""
+    from backend.core.access.providerStorage import provider_storage
+
+    tables = shared_metadata.tables
+    music = schema == "youtube_music"
+    external_key, name_key = (
+        ("youtube_id", "title") if music else ("spotify_id", "name")
+    )
+    await database.execute(
+        insert(tables["core.media"]),
+        [
+            dict(id=200, public_id="album", provider_id=2, media_type_key=2),
+            dict(id=201, public_id="track", provider_id=2, media_type_key=4),
+            dict(id=202, public_id="untouched", provider_id=2, media_type_key=4),
+        ],
+    )
+    album = dict(id=200, image_id=1, release_date="2026")
+    album.update({external_key: "external-album", name_key: "Album"})
+    if not music:
+        album.update(popularity=1, disc_count=1)
+    await database.execute(insert(tables[f"{schema}.album"]), album)
+    tracks: list[dict[str, int | str]] = []
+    for media_id in (201, 202):
+        track = dict(
+            id=media_id,
+            duration_ms=1000,
+            track_number=1,
+            disc_number=1,
+            album_id=200,
+            path=f"{media_id}.mp3",
+        )
+        track.update(
+            {external_key: f"external-{media_id}", name_key: f"Track {media_id}"}
+        )
+        if music:
+            track["image_id"] = 1
+        elif schema == "spotify":
+            track["isrc"] = "test"
+        tracks.append(track)
+    await database.execute(insert(tables[f"{schema}.track"]), tracks)
+    await database.commit()
+
+    for images in (True, False):
+        metadata = provider_storage.metadata(with_images=images)
+        row = (
+            (await database.execute(select(metadata).where(metadata.c.id == 201)))
+            .mappings()
+            .one()
+        )
+        assert row["name"] == "Track 201"
+        assert row["image_id"] == (1 if images else None)
+        assert row["external_id"] == "external-201"
+        assert row["manageable"] is True
+    cleared = await DownloadBrowseAccess.clear_files_async(database, [201])
+    assert cleared.is_ok(), cleared.info()
+    assert cleared.result() == ["201.mp3"]
+    # The provider participates in the caller's transaction; it cannot commit it.
+    assert (
+        await database.scalar(
+            select(tables[f"{schema}.track"].c.path).where(
+                tables[f"{schema}.track"].c.id == 201
+            )
+        )
+        is None
+    )
+    await database.rollback()
+    rows = (
+        (await database.execute(select(tables[f"{schema}.track"].c.path)))
+        .scalars()
+        .all()
+    )
+    assert set(rows) == {"201.mp3", "202.mp3"}

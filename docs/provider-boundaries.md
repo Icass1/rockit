@@ -6,12 +6,20 @@ provider that implements them.
 
 ## Local metadata and files
 
-Each provider declares its `MediaStorage` entries in `access/downloadStorage.py`.
+Each provider implements its `MediaStorage` operations in `access/downloadStorage.py`.
 Its `access/db/db.py` registers these during the existing database discovery step.
-Entries identify the display name, image, external ID, stored file path, and whether
-files support deletion and redownload. Track images can come from an album join.
-Core combines these declarations into batch queries for download history, search,
-file reuse, and ZIP export. It does not infer provider-specific column names.
+Providers supply narrow SQL projections for metadata (`id`, `name`, `image_id`,
+`external_id`, `manageable`) and optional files (`id`, `path`, `name`). IDs are
+shared core media IDs. The provider owns its table selection, columns, and joins;
+core only combines the projections for pagination, search, file reuse, and ZIP
+export. Registration keys are opaque identifiers, not schema instructions.
+
+Providers that support deletion and redownload also supply `clear_files_async`.
+It accepts the full batch of media IDs, clears only that provider's stored paths,
+and returns the previous paths. It does not commit: core owns the transaction,
+file archiving, rollback, and download group lifecycle. Calls are sequential on
+the shared session, with a fixed number of queries per provider rather than per
+media item. Uploaded files expose a read projection without a clear operation.
 
 Local storage registration is independent of provider activation: disabling remote
 API access still permits reading historical metadata and exporting existing files.
@@ -24,7 +32,8 @@ Concrete providers override them where needed. The download manager consults the
 owning provider, so one source's cooldown does not delay unrelated sources.
 
 `BaseMediaProvider.can_manage_downloads()` controls group actions. Keep it aligned
-with `MediaStorage.manageable`, which supplies the same capability to SQL queries.
+with the provider's metadata `manageable` projection, which supplies the same capability
+to SQL queries.
 Collection URLs accept the neutral `external_id` key; providers may also accept
 their native metadata keys for existing collection callers.
 
@@ -43,5 +52,10 @@ It is an operator tool, separate from core runtime code.
 ## Validation
 
 `backend/tests/unit/test_provider_boundaries.py` checks that core has no concrete
-provider imports or schema names, validates registered SQL columns, and exercises
+provider imports or schema names, validates registered SQL projections, and exercises
 provider dispatch, empty registries, and provider-defined concurrency.
+
+Integration tests cover disabled sources, all downloadable track schemas, album
+artwork, file reuse and ZIP export, preservation of uploads and unrelated files,
+and rollback of provider path mutations. These contracts do not change HTTP or
+WebSocket payloads and require no frontend changes.

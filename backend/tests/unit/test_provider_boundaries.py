@@ -28,9 +28,7 @@ def test_core_has_no_concrete_provider_imports_or_schema_names() -> None:
         for p in backend.iterdir()
         if p.name != "core" and (p / "framework/provider").is_dir()
     }
-    schemas = {
-        source.table.split(".")[0] for source in provider_storage.sources.values()
-    }
+    schemas = {source.key.split(".")[0] for source in provider_storage.sources.values()}
     for path in (backend / "core").rglob("*.py"):
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
@@ -55,14 +53,18 @@ def test_core_has_no_concrete_provider_imports_or_schema_names() -> None:
 
 def test_all_registered_storage_queries_use_valid_provider_columns() -> None:
     assert provider_storage.sources
-    for source in provider_storage.available():
+    for source in provider_storage.sources.values():
         source.metadata_statement(True).compile(dialect=postgresql.dialect())
         source.metadata_statement(False).compile(dialect=postgresql.dialect())
-        if source.path:
+        if source.files_statement is not None:
             source.files_statement().compile(dialect=postgresql.dialect())
     metadata = DownloadBrowseAccess.metadata()
     select(metadata).compile(dialect=postgresql.dialect())
-    assert {source.table for source in provider_storage.available() if source.path} == {
+    assert {
+        source.key
+        for source in provider_storage.sources.values()
+        if source.files_statement is not None
+    } == {
         "spotify.track",
         "spotify_scrapper.track",
         "youtube_music.track",
@@ -167,3 +169,40 @@ async def test_provider_controls_concurrency_without_a_known_name(
     await semaphore.acquire()
     assert semaphore.locked()
     semaphore.release()
+
+
+async def test_storage_mutations_are_batched_and_failures_stop_dispatch() -> None:
+    from backend.core.access.providerStorage import MediaStorage
+
+    storage = ProviderStorage()
+    metadata = Mock()
+    first = AsyncMock(
+        return_value=AResult(code=AResultCode.OK, message="OK", result=["a"])
+    )
+    failure = AsyncMock(
+        return_value=AResult(code=AResultCode.BAD_REQUEST, message="Cannot detach")
+    )
+    skipped = AsyncMock()
+    storage.register(
+        MediaStorage(
+            key="opaque key", metadata_statement=metadata, clear_files_async=first
+        ),
+        MediaStorage(key="read only", metadata_statement=metadata),
+        MediaStorage(
+            key="failing", metadata_statement=metadata, clear_files_async=failure
+        ),
+        MediaStorage(
+            key="later", metadata_statement=metadata, clear_files_async=skipped
+        ),
+    )
+    session = AsyncMock(spec=AsyncSession)
+    empty = await storage.clear_files_async(session=session, media_ids=[])
+    assert empty.is_ok() and empty.result() == []
+    first.assert_not_awaited()
+    ids = list(range(500))
+    result = await storage.clear_files_async(session=session, media_ids=ids)
+    assert result.code() == AResultCode.BAD_REQUEST
+    first.assert_awaited_once_with(session, ids)
+    failure.assert_awaited_once_with(session, ids)
+    skipped.assert_not_awaited()
+    session.commit.assert_not_awaited()

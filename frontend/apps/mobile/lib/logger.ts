@@ -67,6 +67,10 @@ class Logger {
         return this._logsAtom;
     }
 
+    debug(...args: unknown[]) {
+        this._capture("debug", ...args);
+    }
+
     getLogs(): LogEntry[] {
         return this._logsAtom.get();
     }

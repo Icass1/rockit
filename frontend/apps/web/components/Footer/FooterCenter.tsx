@@ -2,7 +2,7 @@
 
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { EQueueType, ERepeatMode, isStation } from "@rockit/packages/shared";
+import { EQueueType, ERepeatMode, isStation } from "@rockit/shared";
 import {
     Bookmark,
     CirclePause,
@@ -66,8 +66,8 @@ export default function FooterCenter(): JSX.Element {
                 <button
                     aria-label={
                         $queueType === EQueueType.RANDOM
-                            ? "Disable shuffle"
-                            : "Enable shuffle"
+                            ? $vocabulary.PLAYER_DISABLE_SHUFFLE
+                            : $vocabulary.PLAYER_ENABLE_SHUFFLE
                     }
                     aria-pressed={$queueType === EQueueType.RANDOM}
                     onClick={(): void => rockIt.userManager.toggleRandomQueue()}
@@ -90,7 +90,9 @@ export default function FooterCenter(): JSX.Element {
                     <CirclePlay className="h-8 w-8 animate-pulse text-gray-400" />
                 ) : (
                     <button
-                        aria-label={$playing ? "Pause" : "Play"}
+                        aria-label={
+                            $playing ? $vocabulary.PAUSE : $vocabulary.PLAY
+                        }
                         onClick={(): void =>
                             $playing
                                 ? rockIt.mediaPlayerManager.pause()
@@ -126,7 +128,7 @@ export default function FooterCenter(): JSX.Element {
 
                 <div className="relative flex items-center justify-center">
                     <button
-                        aria-label="Bookmark"
+                        aria-label={$vocabulary.BOOKMARKS}
                         onClick={(): void =>
                             rockIt.bookmarkManager.togglePopup()
                         }
@@ -162,56 +164,51 @@ export default function FooterCenter(): JSX.Element {
             </div>
 
             {/* Progress bar */}
-            <div className="relative flex h-7 w-full items-center space-x-2">
-                <span className="min-w-6 text-xs font-semibold tabular-nums">
-                    {getTime($currentTime ?? 0)}
-                </span>
-                <div className="relative flex-1">
-                    <Slider
-                        id="default-slider"
-                        className="h-1 w-full rounded bg-neutral-700 accent-(--color-rockit-pink)"
-                        value={$currentTime}
-                        min={0}
-                        max={
-                            isLiveStation
-                                ? 3600
-                                : getMediaDuration($currentMedia)
-                        }
-                        onChange={
-                            isLiveStation
-                                ? undefined
-                                : (e): void =>
-                                      rockIt.mediaPlayerManager.setCurrentTime(
-                                          Number(e.target.value),
-                                          false
-                                      )
-                        }
-                        onPointerDown={
-                            isLiveStation
-                                ? undefined
-                                : (): void =>
-                                      rockIt.mediaPlayerManager.beginSeek()
-                        }
-                        onPointerUp={
-                            isLiveStation
-                                ? undefined
-                                : (e): void =>
-                                      rockIt.mediaPlayerManager.endSeek(
-                                          Number(e.currentTarget.value)
-                                      )
-                        }
+            {isLiveStation ? (
+                <div
+                    role="status"
+                    className="flex h-7 items-center gap-2 text-xs font-semibold text-pink-400"
+                >
+                    <span
+                        className={`h-1.5 w-1.5 rounded-full bg-current ${$playing ? "animate-pulse" : "opacity-40"}`}
                     />
-                    {/* Bookmark markers */}
-                    <Bookmarks />
+                    {$loading ? $vocabulary.RADIO_LOADING : $vocabulary.LIVE}
                 </div>
-                <span className="min-w-6 text-xs font-semibold tabular-nums">
-                    {getTime(
-                        isLiveStation
-                            ? ($currentTime ?? 0)
-                            : (getMediaDuration($currentMedia) ?? 0)
-                    )}
-                </span>
-            </div>
+            ) : (
+                <div className="relative flex h-7 w-full items-center space-x-2">
+                    <span className="min-w-6 text-xs font-semibold tabular-nums">
+                        {getTime($currentTime ?? 0)}
+                    </span>
+                    <div className="relative flex-1">
+                        <Slider
+                            id="default-slider"
+                            className="h-1 w-full rounded bg-neutral-700 accent-(--color-rockit-pink)"
+                            value={$currentTime}
+                            min={0}
+                            max={getMediaDuration($currentMedia)}
+                            onChange={(e): void =>
+                                rockIt.mediaPlayerManager.setCurrentTime(
+                                    Number(e.target.value),
+                                    false
+                                )
+                            }
+                            onPointerDown={(): void =>
+                                rockIt.mediaPlayerManager.beginSeek()
+                            }
+                            onPointerUp={(e): void =>
+                                rockIt.mediaPlayerManager.endSeek(
+                                    Number(e.currentTarget.value)
+                                )
+                            }
+                        />
+                        {/* Bookmark markers */}
+                        <Bookmarks />
+                    </div>
+                    <span className="min-w-6 text-xs font-semibold tabular-nums">
+                        {getTime(getMediaDuration($currentMedia) ?? 0)}
+                    </span>
+                </div>
+            )}
         </div>
     );
 }

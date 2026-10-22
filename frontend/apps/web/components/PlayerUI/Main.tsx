@@ -1,17 +1,13 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import {
-    isSong,
-    isStation,
-    isVideo,
-    TPlayableMedia,
-} from "@rockit/packages/shared";
+import { isSong, isStation, isVideo, TPlayableMedia } from "@rockit/shared";
 import { Disc3, DiscAlbum, Pause, Play, Video, VideoOff } from "lucide-react";
 import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
+import VinylTransition from "@/components/PlayerUI/VinylTransition";
 
 export default function PlayerUIMain({
     currentMedia,
@@ -23,8 +19,11 @@ export default function PlayerUIMain({
     const [showIcon, setShowIcon] = useState(false);
     const [titleVisible, setTitleVisible] = useState(true);
     const [songHover, setSongHover] = useState(false);
-    const [vinylMode, setVinylMode] = useState(false);
-    const videoContainerRef = useRef<HTMLDivElement>(null);
+    const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
+    useEffect(() => {
+        rockIt.playerUIManager.initializeArtworkMode();
+    }, []);
+    const videoContainerRef = useRef<HTMLDivElement | null>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
     const [offlineCover, setOfflineCover] = useState<{
         publicId: string;
@@ -55,13 +54,33 @@ export default function PlayerUIMain({
         return (): void => clearTimeout(t);
     }, [showIcon]);
 
-    useEffect((): void => {
-        if (videoContainerRef.current && isVideo(currentMedia) && !$audioOnly) {
-            rockIt.mediaPlayerManager.attachVideoToContainer(
-                videoContainerRef.current
-            );
-        }
-    }, [currentMedia, $audioOnly]);
+    // Attach synchronously during React's commit. A passive effect left a frame
+    // where the player showed an empty placeholder; moving the long-lived DOM
+    // video through a ref makes its presence deterministic when the player opens.
+    const attachVideoRef = useCallback(
+        (container: HTMLDivElement | null): void => {
+            const previous = videoContainerRef.current;
+            if (previous) {
+                rockIt.mediaPlayerManager.detachVideoFromContainer(previous);
+            }
+            videoContainerRef.current = container;
+            if (container && isVideo(currentMedia) && !$audioOnly) {
+                rockIt.mediaPlayerManager.attachVideoToContainer(container);
+                const video = rockIt.mediaPlayerManager.videoElement;
+                const updateAspectRatio = (): void => {
+                    if (!video?.videoWidth || !video.videoHeight) return;
+                    container.style.setProperty(
+                        "--player-video-aspect",
+                        `${video.videoWidth} / ${video.videoHeight}`
+                    );
+                };
+                updateAspectRatio();
+                video?.addEventListener("loadedmetadata", updateAspectRatio);
+                video?.addEventListener("resize", updateAspectRatio);
+            }
+        },
+        [currentMedia, $audioOnly]
+    );
 
     useEffect((): (() => void) | undefined => {
         if (!isVideo(currentMedia)) return;
@@ -109,7 +128,10 @@ export default function PlayerUIMain({
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className="relative aspect-video h-[90%] max-w-full cursor-pointer overflow-hidden rounded-xl bg-black"
+                    className="relative h-[90%] max-h-[90%] w-full max-w-full cursor-pointer overflow-hidden rounded-xl"
+                    style={{
+                        aspectRatio: "var(--player-video-aspect, 16 / 9)",
+                    }}
                     onClick={handleClick}
                 >
                     {$audioOnly ? (
@@ -122,8 +144,9 @@ export default function PlayerUIMain({
                         />
                     ) : (
                         <div
-                            ref={videoContainerRef}
-                            className="absolute inset-0"
+                            ref={attachVideoRef}
+                            className="absolute inset-0 overflow-hidden [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain"
+                            data-testid="player-video-surface"
                         />
                     )}
                     {iconOverlay}
@@ -178,12 +201,12 @@ export default function PlayerUIMain({
     } else if (isSong(currentMedia)) {
         return (
             <div
-                className="group ignore-click-player-ui relative flex h-full w-full items-center justify-center"
+                className="group ignore-click-player-ui @container relative flex h-full w-full items-center justify-center"
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
                 <div
-                    className="relative aspect-square h-[93%] cursor-pointer overflow-hidden rounded-xl"
+                    className="relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl"
                     onClick={handleClick}
                 >
                     {!vinylMode && (
@@ -198,7 +221,7 @@ export default function PlayerUIMain({
                                 type="button"
                                 onClick={(e): void => {
                                     e.stopPropagation();
-                                    setVinylMode((p) => !p);
+                                    rockIt.playerUIManager.toggleVinylMode();
                                 }}
                                 className="ignore-click-player-ui flex items-center justify-center rounded-full p-2 text-white/80 transition-colors hover:text-white"
                                 title="Vinyl record"
@@ -209,18 +232,19 @@ export default function PlayerUIMain({
                     )}
                     {vinylMode ? (
                         <div className="relative h-full w-full">
-                            <VinylRecord
-                                imageUrl={coverSrc}
-                                name={currentMedia.name}
-                                artists={currentMedia.artists}
-                                isPlaying={$playing}
-                                publicId={currentMedia.publicId}
-                            />
+                            <VinylTransition media={currentMedia}>
+                                <VinylRecord
+                                    imageUrl={coverSrc}
+                                    name={currentMedia.name}
+                                    artists={currentMedia.artists}
+                                    isPlaying={$playing}
+                                />
+                            </VinylTransition>
                             <button
                                 type="button"
                                 onClick={(e): void => {
                                     e.stopPropagation();
-                                    setVinylMode(false);
+                                    rockIt.playerUIManager.toggleVinylMode();
                                 }}
                                 className="ignore-click-player-ui absolute top-2 left-2 z-30 flex items-center justify-center rounded-full p-3 text-white/80 opacity-0 transition-opacity group-hover:opacity-100 hover:text-white"
                                 title="Square cover"
@@ -263,16 +287,16 @@ export default function PlayerUIMain({
     } else if (isStation(currentMedia)) {
         return (
             <div
-                className="relative flex h-full w-full items-center justify-center"
+                className="@container relative flex h-full w-full items-center justify-center"
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
                 <div
-                    className="relative aspect-square h-[93%] cursor-pointer overflow-hidden rounded-xl"
+                    className="relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl"
                     onClick={handleClick}
                 >
                     <Image
-                        src={currentMedia.imageUrl}
+                        src={currentMedia.imageUrl || "/radio-placeholder.png"}
                         fill
                         alt={currentMedia.name}
                         className="object-cover"

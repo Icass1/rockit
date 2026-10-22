@@ -1,171 +1,150 @@
 "use client";
 
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX } from "react";
 import type { StatsV2SummaryResponse } from "@/dto";
-import { useStore } from "@nanostores/react";
-import { rockIt } from "@/lib/rockit/rockIt";
-
-function formatNumber(num: number): string {
-    if (num >= 1_000_000) {
-        return `${(num / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-    }
-    if (num >= 10_000) {
-        return `${(num / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-    }
-    return num.toLocaleString();
-}
-
-function formatDuration(minutes: number): string {
-    const d = Math.floor(minutes / 1440);
-    const h = Math.floor((minutes % 1440) / 60);
-    const m = Math.round(minutes % 60);
-    const parts: string[] = [];
-    if (d > 0) parts.push(`${d}d`);
-    if (h > 0) parts.push(`${h}h`);
-    if (m > 0 || parts.length === 0) parts.push(`${m}m`);
-    return parts.join(" ");
-}
-
-function formatMs(ms: number): string {
-    const totalSeconds = Math.round(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    if (minutes > 0) {
-        return `${minutes}m ${seconds}s`;
-    }
-    return `${seconds}s`;
-}
-
-function AnimatedNumber({
-    value,
-    format,
-}: {
-    value: number;
-    format?: (n: number) => string;
-}): JSX.Element {
-    const [display, setDisplay] = useState(0);
-    const ref = useRef<number>(0);
-    const raf = useRef<number>(0);
-
-    useEffect(() => {
-        const duration = 1200;
-        const start = performance.now();
-        const from = ref.current;
-
-        function tick(now: number): void {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.round(from + (value - from) * eased);
-            setDisplay(current);
-            ref.current = current;
-
-            if (progress < 1) {
-                raf.current = requestAnimationFrame(tick);
-            }
-        }
-
-        raf.current = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(raf.current);
-    }, [value]);
-
-    const formatted = format ? format(display) : display.toLocaleString();
-    return <>{formatted}</>;
-}
+import { Clock3, Flame, Headphones, Radio, Waves } from "lucide-react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 interface SummaryCardsV2Props {
     summary: StatsV2SummaryResponse;
+    rangeLabel: string;
+}
+
+function formatDuration(minutes: number): string {
+    const days = Math.floor(minutes / 1440);
+    const hours = Math.floor((minutes % 1440) / 60);
+    const mins = Math.round(minutes % 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
 }
 
 export default function SummaryCardsV2({
     summary,
+    rangeLabel,
 }: SummaryCardsV2Props): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [showMinutes, setShowMinutes] = useState(false);
-    const [showMediaBreakdown, setShowMediaBreakdown] = useState(false);
-
-    const minutesDisplay = showMinutes
-        ? `${Math.round(summary.totalPlayTimeMinutes).toLocaleString()} ${$vocabulary.MINUTES}`
-        : formatDuration(summary.totalPlayTimeMinutes);
+    const mediaMix = [
+        { name: "Songs", value: summary.uniqueSongsListened, color: "#ee1086" },
+        {
+            name: "Videos",
+            value: summary.uniqueVideosListened,
+            color: "#38bdf8",
+        },
+    ];
+    const facts = [
+        {
+            icon: Waves,
+            label: "Listening sessions",
+            value: summary.totalListenSessions.toLocaleString(),
+        },
+        {
+            icon: Headphones,
+            label: "Unique media",
+            value: summary.uniqueMediasListened.toLocaleString(),
+        },
+        {
+            icon: Clock3,
+            label: "Average play",
+            value: formatDuration(summary.avgPlayTimePerMediaMs / 60000),
+        },
+        {
+            icon: Flame,
+            label: "Current streak",
+            value: `${summary.currentStreak} days`,
+        },
+    ];
 
     return (
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 md:gap-x-10 md:gap-y-0">
-            <button
-                type="button"
-                onClick={() => setShowMediaBreakdown(!showMediaBreakdown)}
-                className="cursor-pointer text-left"
-            >
-                {showMediaBreakdown ? (
-                    <div>
-                        <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-                            <AnimatedNumber
-                                value={summary.uniqueSongsListened}
-                                format={formatNumber}
-                            />
-                        </p>
-                        <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                            {$vocabulary.UNIQUE_SONGS_LISTENED}
-                        </p>
-                        <div className="mt-4 border-t border-neutral-800 pt-4">
-                            <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-                                <AnimatedNumber
-                                    value={summary.uniqueVideosListened}
-                                    format={formatNumber}
-                                />
-                            </p>
-                            <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                                {$vocabulary.UNIQUE_VIDEOS_LISTENED}
-                            </p>
-                        </div>
-                    </div>
-                ) : (
-                    <div>
-                        <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-                            <AnimatedNumber
-                                value={summary.uniqueMediasListened}
-                                format={formatNumber}
-                            />
-                        </p>
-                        <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                            {$vocabulary.UNIQUE_MEDIAS_LISTENED}
-                        </p>
-                    </div>
-                )}
-            </button>
-
-            <button
-                type="button"
-                onClick={() => setShowMinutes(!showMinutes)}
-                className="cursor-pointer text-left"
-            >
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-                    {minutesDisplay}
+        <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+            <div className="relative min-h-80 overflow-hidden rounded-[2rem] border border-fuchsia-500/20 bg-[radial-gradient(circle_at_15%_20%,rgba(238,16,134,0.32),transparent_38%),linear-gradient(135deg,#171014,#080808)] p-7 md:p-10">
+                <div className="absolute -right-16 -bottom-24 h-72 w-72 rounded-full border-[48px] border-fuchsia-500/8" />
+                <p className="text-xs font-semibold tracking-[0.25em] text-fuchsia-300 uppercase">
+                    {rangeLabel}
                 </p>
-                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.MINUTES_LISTEND}
+                <p className="mt-7 text-6xl font-black tracking-[-0.06em] text-white md:text-8xl">
+                    {formatDuration(summary.totalPlayTimeMinutes)}
                 </p>
-            </button>
-
-            <div>
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-                    {formatMs(summary.avgPlayTimePerMediaMs)}
+                <p className="mt-2 text-lg text-neutral-400">
+                    total listening time
                 </p>
-                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.AVERAGE_MINUTES_PER_SONG}
-                </p>
-            </div>
-
-            <div>
-                <p className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-                    {summary.currentStreak}
-                    <span className="ml-1 text-2xl text-(--color-rockit-pink) md:text-3xl">
-                        d
+                <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-neutral-400">
+                    <span>
+                        <strong className="text-white">
+                            {Math.round(
+                                summary.totalPlayTimeMinutes
+                            ).toLocaleString()}
+                        </strong>{" "}
+                        minutes
                     </span>
-                </p>
-                <p className="mt-1.5 text-[11px] font-semibold tracking-[0.2em] text-neutral-500 uppercase md:text-xs">
-                    {$vocabulary.LEVEL_ABBR}
-                </p>
+                    <span>
+                        <strong className="text-white">
+                            {summary.uniqueMediasListened.toLocaleString()}
+                        </strong>{" "}
+                        different plays
+                    </span>
+                </div>
             </div>
-        </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2 flex min-h-40 items-center rounded-3xl border border-white/7 bg-white/3 px-5">
+                    <div className="h-36 w-36 shrink-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={mediaMix}
+                                    dataKey="value"
+                                    innerRadius={38}
+                                    outerRadius={58}
+                                    paddingAngle={4}
+                                    stroke="none"
+                                >
+                                    {mediaMix.map((entry) => (
+                                        <Cell
+                                            key={entry.name}
+                                            fill={entry.color}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{
+                                        background: "#171717",
+                                        border: "1px solid #333",
+                                        borderRadius: 12,
+                                    }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div>
+                        <Radio size={18} className="mb-3 text-neutral-500" />
+                        <p className="text-sm font-bold text-white">
+                            Your media mix
+                        </p>
+                        <p className="mt-2 text-xs text-neutral-500">
+                            <span className="text-fuchsia-400">●</span>{" "}
+                            {summary.uniqueSongsListened} songs
+                        </p>
+                        <p className="mt-1 text-xs text-neutral-500">
+                            <span className="text-sky-400">●</span>{" "}
+                            {summary.uniqueVideosListened} videos
+                        </p>
+                    </div>
+                </div>
+                {facts.map(({ icon: Icon, label, value }) => (
+                    <div
+                        key={label}
+                        className="rounded-2xl border border-white/7 bg-white/3 p-4"
+                    >
+                        <Icon size={17} className="text-neutral-600" />
+                        <p className="mt-5 text-xl font-bold text-white">
+                            {value}
+                        </p>
+                        <p className="mt-1 text-[10px] font-semibold tracking-wider text-neutral-600 uppercase">
+                            {label}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </section>
     );
 }

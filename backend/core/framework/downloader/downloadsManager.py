@@ -14,15 +14,25 @@ from backend.core.access.downloadAccess import DownloadAccess
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 
+from backend.core.framework.notifications import Notifications
 from backend.core.framework import providers
 from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.core.framework.models.ongoingDownload import OngoingDownload
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
+from backend.youtube.framework.youtubeGate import youtube_gate
+
 logger: Logger = getLogger(__name__)
 
-MAX_RETRIES: int = 3
-RETRY_DELAYS_SECONDS: List[float] = [30.0, 120.0, 600.0]
+MAX_RETRIES: int = 4
+
+# Ordinary failures: something broke, try again shortly.
+RETRY_DELAYS_SECONDS: List[float] = [30.0, 120.0, 600.0, 1800.0]
+
+# Throttling: the provider told us to slow down, so retrying in 30 seconds only
+# deepens the block. YouTube Data API quota in particular resets once a day, so
+# the last rung is long enough to be worth waiting for.
+RATE_LIMIT_RETRY_DELAYS_SECONDS: List[float] = [300.0, 1800.0, 3600.0, 7200.0]
 
 PROVIDER_CONCURRENCY_LIMITS: Dict[str, int] = {
     "SpotifyScrapper": 2,
@@ -174,12 +184,19 @@ class DownloadsManager:
                                     if a_result_retry.is_ok():
                                         retry_count: int = a_result_retry.result()
                                         if retry_count <= MAX_RETRIES:
-                                            delay: float = RETRY_DELAYS_SECONDS[
-                                                min(
-                                                    retry_count - 1,
-                                                    len(RETRY_DELAYS_SECONDS) - 1,
-                                                )
+                                            delays: List[float] = (
+                                                RATE_LIMIT_RETRY_DELAYS_SECONDS
+                                                if a_result.is_rate_limited()
+                                                else RETRY_DELAYS_SECONDS
+                                            )
+                                            delay: float = delays[
+                                                min(retry_count - 1, len(delays) - 1)
                                             ]
+                                            # Never come back before the shared
+                                            # YouTube cooldown has expired.
+                                            delay = max(
+                                                delay, youtube_gate.cooldown_remaining()
+                                            )
                                             await DownloadAccess.update_download_status(
                                                 session=session,
                                                 download_id=d.download_id,
@@ -259,6 +276,21 @@ class DownloadsManager:
                                         else 0
                                     )
                                 )
+                                notification = await Notifications.download_async(
+                                    session=session,
+                                    user_id=d.user_id,
+                                    public_id=download_public_id,
+                                    retry_count=download_row.retry_count,
+                                    success=status_key
+                                    == DownloadStatusEnum.COMPLETED.value,
+                                    title=d.title,
+                                )
+                                if notification.is_not_ok():
+                                    logger.error(
+                                        f"Download notification failed: {notification.info()}"
+                                    )
+                                # Commit before broadcasting; an immediate inbox fetch must see the event.
+                                await session.commit()
                                 await ws_manager.broadcast_progress_async(
                                     user_id=d.user_id,
                                     download_public_id=download_public_id,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from logging import Logger
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -68,6 +68,26 @@ class BaseMediaProvider(BaseProvider):
             code=AResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement search_media_async method.'",
         )
+
+    async def search_page_async(
+        self,
+        session: AsyncSession,
+        query: str,
+        limit: int = 15,
+        media_type: str | None = None,
+    ) -> AResult[List[BaseSearchResultsItem]]:
+        """Providers without pagination return their complete supported result set."""
+        return await self.search_media_async(session=session, query=query)
+
+    def search_on_demand(self) -> bool:
+        return False
+
+    def search_supports_category(self) -> bool:
+        return False
+
+    def search_page_size(self) -> int:
+        """Zero means that expanding search is unsupported."""
+        return 0
 
     def match_url(self, url: str) -> str | None:
         return None
@@ -219,6 +239,12 @@ class BaseMediaProvider(BaseProvider):
         multiple genres). Return None if the provider has no genre data.
         """
         return None
+
+    def get_collection_provider_url(
+        self, metadata: dict[str, Any], media_type_key: int
+    ) -> str:
+        """Build the provider-owned link for unloaded album or playlist metadata."""
+        return str(metadata.get("provider_url", ""))
 
     def get_search_index_cte_fragment(self) -> str | None:
         """SELECT fragment for search_index (internal_id, public_id, name, subtitle, media_type_key, provider_name, image_url).

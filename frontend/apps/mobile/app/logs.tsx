@@ -8,12 +8,22 @@ import {
     CircleX,
     Eraser,
     Info,
+    Share2,
     TriangleAlert,
     X,
 } from "lucide-react-native";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+    FlatList,
+    Pressable,
+    Share,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { logger, type LogEntry, type LogLevel } from "@/lib/logger";
+import { SHEET_DEBUG_PREFIX } from "@/lib/sheetDebug";
+import { useVocabulary } from "@/lib/vocabulary";
 
 const LEVEL_CONFIG: Record<
     LogLevel,
@@ -122,6 +132,29 @@ export default function LogsScreen() {
     const logs = useStore(logger.logsAtom);
     const [filter, setFilter] = useState<LogLevel | null>(null);
     const { top: safeTop } = useSafeAreaInsets();
+    const { vocabulary } = useVocabulary();
+
+    const shareSheetLogs = async () => {
+        const message = logger
+            .getLogs()
+            .filter((entry) =>
+                String(entry.args[0]).startsWith(SHEET_DEBUG_PREFIX)
+            )
+            .map(
+                (entry) =>
+                    `${entry.timestamp} ${entry.args.map(formatArg).join(" ")}`
+            )
+            .join("\n");
+        try {
+            await Share.share({
+                message:
+                    message ||
+                    `${SHEET_DEBUG_PREFIX} No sheet events recorded.`,
+            });
+        } catch (error) {
+            console.error("Failed to share sheet debug logs", error);
+        }
+    };
 
     const filtered = useMemo(() => {
         const arr = filter ? logs.filter((l) => l.level === filter) : logs;
@@ -146,6 +179,19 @@ export default function LogsScreen() {
                     <Text style={styles.headerTitle}>Logs</Text>
                     <Text style={styles.logCount}>{logs.length}</Text>
                 </View>
+                <Pressable
+                    style={styles.clearButton}
+                    onPress={shareSheetLogs}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                        vocabulary.SETTINGS_SHARE_SHEET_LOGS ===
+                        "SETTINGS_SHARE_SHEET_LOGS"
+                            ? "Share sheet logs"
+                            : vocabulary.SETTINGS_SHARE_SHEET_LOGS
+                    }
+                >
+                    <Share2 size={16} color={COLORS.gray400} />
+                </Pressable>
                 <Pressable
                     style={styles.clearButton}
                     onPress={() => logger.clear()}

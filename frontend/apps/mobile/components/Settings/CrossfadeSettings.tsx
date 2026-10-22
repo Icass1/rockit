@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import Slider from "@react-native-community/slider";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
@@ -13,18 +13,10 @@ import { usePlayer } from "@/lib/PlayerContext";
  */
 export default function CrossfadeSettings() {
     const { crossfadeSettings, updateCrossfadeSettings } = usePlayer();
-    const [durationSec, setDurationSec] = useState(
-        crossfadeSettings.durationMs / 1000
-    );
+    const durationSec = crossfadeSettings.durationMs / 1000;
     const [isSaving, setIsSaving] = useState(false);
 
-    // Keep local duration in sync if context updates elsewhere (e.g., from another screen)
-    useEffect(() => {
-        setDurationSec(crossfadeSettings.durationMs / 1000);
-    }, [crossfadeSettings.durationMs]);
-
     const handleSliderChange = (value: number) => {
-        setDurationSec(value);
         // Update the PlayerContext immediately (store ms)
         updateCrossfadeSettings({ durationMs: Math.round(value * 1000) });
     };

@@ -71,7 +71,6 @@ export class MediaSessionManager {
             // to overwrite the current song's src and wire unlock failures
             // into the player's error handler (wrong song skips on iOS).
             this._startAudioKeepalive();
-            this._unlockVideoElement();
         }
     }
 
@@ -193,50 +192,6 @@ export class MediaSessionManager {
         } catch {
             this._stopKeepalive();
             this._startKeepalive();
-        }
-    }
-
-    // ── Video unlock via canvas.captureStream ──────────────────────────
-
-    private static _unlockedElements = new WeakMap<
-        HTMLAudioElement | HTMLVideoElement,
-        boolean
-    >();
-
-    private _unlockVideoElement(): void {
-        const videoEl = rockIt.mediaPlayerManager.videoElement;
-        if (!videoEl) return;
-        if (MediaSessionManager._unlockedElements.get(videoEl)) return;
-
-        try {
-            const canvas = document.createElement("canvas");
-            canvas.width = 1;
-            canvas.height = 1;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return;
-
-            ctx.fillStyle = "black";
-            ctx.fillRect(0, 0, 1, 1);
-
-            const stream = canvas.captureStream(1);
-            videoEl.muted = true;
-            videoEl.srcObject = stream;
-            videoEl
-                .play()
-                .then((): void => {
-                    MediaSessionManager._unlockedElements.set(videoEl, true);
-                    videoEl.pause();
-                    videoEl.srcObject = null;
-                    videoEl.load();
-                    stream.getTracks().forEach((t): void => t.stop());
-                })
-                .catch((): void => {
-                    videoEl.srcObject = null;
-                    videoEl.load();
-                    stream.getTracks().forEach((t): void => t.stop());
-                });
-        } catch {
-            /* canvas.captureStream not supported */
         }
     }
 

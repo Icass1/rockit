@@ -6,6 +6,9 @@ FLUSH_INTERVAL_SECONDS = 30
 
 @dataclass
 class UserPlaybackState:
+    playback_id: str = ""
+    queue_media_id: int | None = None
+    queue_type: str = "SORTED"
     media_public_id: str = ""
     last_time_ms: int = 0
     last_timestamp: float = 0.0

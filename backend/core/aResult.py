@@ -13,6 +13,7 @@ class AResultCode:
     VALIDATION_ERROR = 0x7
     RATE_LIMITED = 0x8
     QUOTA_EXHAUSTED = 0x9
+    CONFIGURATION_ERROR = 0xA
 
     _code: int
     _message: str
@@ -28,7 +29,16 @@ class AResultCode:
         return not self.is_ok()
 
     def is_retryable(self) -> bool:
-        return self._code in (self.GENERAL_ERROR, self.RATE_LIMITED)
+        return self._code in (
+            self.GENERAL_ERROR,
+            self.RATE_LIMITED,
+            self.QUOTA_EXHAUSTED,
+        )
+
+    def is_rate_limited(self) -> bool:
+        """Whether this failure was caused by throttling rather than by the request itself."""
+
+        return self._code in (self.RATE_LIMITED, self.QUOTA_EXHAUSTED)
 
     def get_http_code(self):
         if self._code == AResultCode.OK:
@@ -49,6 +59,8 @@ class AResultCode:
             return 429
         if self._code == AResultCode.QUOTA_EXHAUSTED:
             return 429
+        if self._code == AResultCode.CONFIGURATION_ERROR:
+            return 503
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -107,6 +119,9 @@ class AResult(Generic[T]):
 
     def is_retryable(self) -> bool:
         return self._code.is_retryable()
+
+    def is_rate_limited(self) -> bool:
+        return self._code.is_rate_limited()
 
     def get_http_code(self):
         return self._code.get_http_code()

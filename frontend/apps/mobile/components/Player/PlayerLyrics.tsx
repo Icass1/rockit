@@ -12,25 +12,30 @@ export default function PlayerLyrics() {
     const { currentTime } = usePlayerTime();
     const { vocabulary } = useVocabulary();
 
-    const [lyrics, setLyrics] = useState<BaseDynamicLyricsResponse>();
-    const [loading, setLoading] = useState(true);
+    const [fetchedLyrics, setLyrics] = useState<BaseDynamicLyricsResponse>();
+    const [loadedPublicId, setLoadedPublicId] = useState<string>();
+    const publicId = currentMedia?.publicId;
+    const loading = !!publicId && loadedPublicId !== publicId;
+    const lyrics =
+        publicId && loadedPublicId === publicId ? fetchedLyrics : undefined;
     const scrollRef = useRef<ScrollView>(null);
 
     useEffect(() => {
-        if (!currentMedia) return;
+        if (!publicId) return;
+        let cancelled = false;
 
-        setLoading(true);
-
-        Http.getDynamicLyricsAsync(currentMedia.publicId).then((response) => {
-            if (response.isOk()) {
-                setLyrics(response.result);
-            }
-            setLoading(false);
+        Http.getDynamicLyricsAsync(publicId).then((response) => {
+            if (cancelled) return;
+            setLyrics(response.isOk() ? response.result : undefined);
+            setLoadedPublicId(publicId);
         });
-    }, [currentMedia]);
+        return () => {
+            cancelled = true;
+        };
+    }, [publicId]);
 
     const currentIndex = useMemo(() => {
-        if (!lyrics || !currentTime) return null;
+        if (loading || !lyrics || !currentTime) return null;
 
         const offset = lyrics.offset;
 
@@ -44,7 +49,7 @@ export default function PlayerLyrics() {
         }
 
         return null;
-    }, [lyrics, currentTime]);
+    }, [lyrics, currentTime, loading]);
 
     useEffect(() => {
         if (!scrollRef.current || currentIndex === null || !lyrics) return;

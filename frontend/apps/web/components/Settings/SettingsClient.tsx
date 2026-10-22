@@ -4,9 +4,10 @@ import { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { Vocabulary } from "@rockit/packages/shared";
-import { ChartLine, ImageUp, Lock } from "lucide-react";
+import { Vocabulary } from "@rockit/shared";
+import { ChartLine, Download, ImageUp, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
 import ChangeLang from "@/components/Settings/ChangeLang";
 import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
@@ -66,6 +67,13 @@ function ProfileSidebar(): JSX.Element {
                 >
                     <ChartLine className="h-4 w-4" />
                     Stats
+                </Link>
+                <Link
+                    href="/downloader"
+                    className="flex items-center gap-1.5 rounded-xl bg-neutral-800 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 md:hidden"
+                >
+                    <Download className="h-4 w-4" />
+                    Downloads
                 </Link>
             </div>
         </div>
@@ -172,6 +180,10 @@ export default function SettingsClient(): JSX.Element {
                             </span>
                         </div>
                         <PasswordSection vocabulary={$vocabulary} />
+                    </SettingsSection>
+
+                    <SettingsSection title={$vocabulary.DOWNLOADS}>
+                        <DownloadLibrarySetting />
                     </SettingsSection>
 
                     <SettingsSection title="Audio">

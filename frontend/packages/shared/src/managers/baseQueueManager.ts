@@ -2,16 +2,14 @@ import {
     type BaseAlbumWithSongsResponse,
     type CurrentMediaMessage,
     type CurrentQueueMessageRequestItem,
+    type QueueResponse,
 } from "@/dto";
 import { getRockIt } from "@/rockit/rockitRef";
 import { shuffle } from "@/utils/arrayTools";
 import { EQueueType } from "@/models/enums/queueType";
 import { type QueueMediaItem } from "@/models/interfaces/queue";
 import {
-    isAlbum,
-    isAlbumWithSongs,
     isDownloadable,
-    isPlaylist,
     isQueueable,
     isStation,
     type TListMedia,
@@ -77,6 +75,7 @@ export class BaseQueueManager {
             EWebSocketMessage.CurrentMedia,
             this._handleCurrentMedia
         );
+        getRockIt().webSocketManager.requestPlaybackState();
 
         // Refresh the suggestions as the queue plays, but only near its end —
         // that is the only moment they are consumed, and it turns a burst of
@@ -90,13 +89,14 @@ export class BaseQueueManager {
 
     protected _handleCurrentQueue = async (): Promise<void> => {
         await this._refreshQueueAsync(false);
+        getRockIt().webSocketManager.requestPlaybackState();
     };
 
     protected _handleCurrentMedia = (data: CurrentMediaMessage): void => {
         const queue = this._queueAtom.get();
         const item = queue.find(
             (item): boolean =>
-                item.queueMediaId === data.queueMediaId ||
+                item.queueMediaId === data.queueMediaId &&
                 item.media.publicId === data.mediaPublicId
         );
 
@@ -104,7 +104,12 @@ export class BaseQueueManager {
             this._currentQueueMediaIdAtom.set(data.queueMediaId);
             this._currentMediaAtom.set(item.media);
             this._currentListAtom.set(item.listPublicId ?? undefined);
-            getRockIt().mediaPlayerManager.setMedia(true);
+            void getRockIt().mediaPlayerManager.setMedia(
+                false,
+                data.playbackId,
+                data.currentTimeMs,
+                data.isPlaybackOwner
+            );
         }
     };
 
@@ -149,7 +154,8 @@ export class BaseQueueManager {
             if (updateCurrentMedia)
                 this._currentMediaAtom.set(currentMedia?.media);
             this._currentListAtom.set(currentMedia?.listPublicId ?? undefined);
-            getRockIt().mediaPlayerManager.setMedia(true);
+            if (updateCurrentMedia)
+                void getRockIt().mediaPlayerManager.setMedia(true);
         }
     }
 
@@ -529,34 +535,82 @@ export class BaseQueueManager {
         this.updateQueue();
     }
 
-    async playList(media: TListMedia): Promise<void> {
-        const medias = await this.getListMediasAsync(media);
-
-        if (medias.length === 0) return;
-
-        this.setMedia(medias.filter(isQueueable), media.publicId);
-        this.setQueueMediaId(0);
+    async playCollection(
+        publicId: string,
+        startPublicId?: string
+    ): Promise<void> {
+        const payload = { startPublicId: startPublicId ?? null };
+        const featuredIds = [
+            "liked",
+            "most-listened",
+            "recent-mix",
+            "last-month",
+            "year-recap",
+        ];
+        const response = featuredIds.includes(publicId)
+            ? await getRockIt().http.createFeaturedQueue(publicId, payload)
+            : await getRockIt().http.createCollectionQueue(publicId, payload);
+        if (response.isNotOk()) {
+            if (response.code === 0) {
+                const cached =
+                    await getRockIt().http.resolveCollectionQueue(publicId);
+                if (cached.isOk()) {
+                    this.setMedia(
+                        cached.result.queue.map((item) => item.media),
+                        publicId
+                    );
+                    if (startPublicId) this.moveToMedia(startPublicId);
+                    else this.setQueueMediaId();
+                    getRockIt().mediaPlayerManager.play();
+                    return;
+                }
+            }
+            getRockIt().notificationManager.notifyError(response.message);
+            return;
+        }
+        if (!response.isOk()) return;
+        const queue = response.result;
+        void this.cacheCollectionQueueAsync(publicId, queue);
+        this.sortedQueue = [...queue.queue].sort(
+            (a, b) => a.sortedIndex - b.sortedIndex
+        );
+        this.randomQueue = [...queue.queue].sort(
+            (a, b) => a.randomIndex - b.randomIndex
+        );
+        this._currentQueueMediaIdAtom.set(queue.currentQueueMediaId);
+        this._sortedQueueAtom.set([...this.sortedQueue]);
+        this._queueAtom.set(
+            queue.queueType === EQueueType.RANDOM
+                ? this.randomQueue
+                : this.sortedQueue
+        );
+        if (queue.currentQueueMediaId !== null)
+            this.setQueueMediaId(queue.currentQueueMediaId);
         getRockIt().mediaPlayerManager.play();
     }
 
+    protected async cacheCollectionQueueAsync(
+        _publicId: string,
+        _queue: QueueResponse
+    ): Promise<void> {
+        // Platforms may preserve the resolved queue for offline playback.
+    }
+
+    async playList(media: TListMedia): Promise<void> {
+        await this.playCollection(media.publicId);
+    }
+
     async getListMediasAsync(media: TListMedia): Promise<TPlayableMedia[]> {
-        const medias: TPlayableMedia[] = [];
-
-        if (isAlbumWithSongs(media)) {
-            return media.songs;
-        } else if (isAlbum(media)) {
-            const album = await this.getAlbumAsync(media.publicId);
-
-            if (album) {
-                return album.songs;
-            }
-        } else if (isPlaylist(media)) {
-            getRockIt().notificationManager.notifyWarn(
-                getRockIt().vocabularyManager.vocabulary.PLAYLIST_WITHOUT_MEDIAS
-            );
+        const response = await getRockIt().http.resolveCollectionQueue(
+            media.publicId
+        );
+        if (response.isNotOk()) {
+            getRockIt().notificationManager.notifyError(response.message);
+            return [];
         }
-
-        return medias;
+        return response.isOk()
+            ? response.result.queue.map((item) => item.media)
+            : [];
     }
 
     reorderQueue(fromIndex: number, toIndex: number): void {

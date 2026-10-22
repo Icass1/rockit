@@ -26,4 +26,5 @@ export enum EMediaContextAction {
     SaveOffline = "saveOffline",
     DownloadList = "downloadList",
     SimilarToSong = "similarToSong",
+    DownloadOfflineList = "downloadOfflineList",
 }

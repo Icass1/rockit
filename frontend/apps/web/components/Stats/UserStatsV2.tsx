@@ -3,34 +3,20 @@
 import { useCallback, type JSX } from "react";
 import type { StatsRankedItemResponse, UserStatsV2Response } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { isQueueable } from "@rockit/packages/shared/models/types/media";
-import type { TPlayableMedia } from "@rockit/packages/shared/models/types/media";
+import { isQueueable } from "@rockit/shared/models/types/media";
+import type { TPlayableMedia } from "@rockit/shared/models/types/media";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ListeningHeatmap from "@/components/Stats/Charts/ListeningHeatmap";
 import MinutesBarChart from "@/components/Stats/Charts/MinutesBarChart";
-import RankingList from "@/components/Stats/RankingList";
-import StatsSection from "@/components/Stats/StatsSection";
+import StatsInsights from "@/components/Stats/StatsInsights";
 import SummaryCardsV2 from "@/components/Stats/SummaryCardsV2";
+import TopMediaChart from "@/components/Stats/TopMediaChart";
 
 interface UserStatsV2Props {
     data: UserStatsV2Response;
     range: string;
     rangeLabel: string;
-}
-
-function formatMs(ms: number): string {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    const pad = (n: number): string => n.toString().padStart(2, "0");
-
-    if (hours > 0) {
-        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-    }
-    return `${pad(minutes)}:${pad(seconds)}`;
 }
 
 export default function UserStatsV2({
@@ -82,65 +68,72 @@ export default function UserStatsV2({
     );
 
     return (
-        <div className="flex flex-col gap-21 md:gap-30">
-            <SummaryCardsV2 summary={data.summary} />
+        <div className="flex flex-col gap-8 md:gap-12">
+            <SummaryCardsV2 summary={data.summary} rangeLabel={rangeLabel} />
 
-            <StatsSection
-                title={`${$vocabulary.MINUTES_LISTEND} — ${rangeLabel}`}
-                stagger={1}
-            >
-                <MinutesBarChart data={data.minutes} range={range} />
-            </StatsSection>
-
-            <div className="flex flex-col gap-8 md:gap-10">
-                <div className="grid gap-8 md:grid-cols-2 md:gap-20">
-                    <StatsSection title={$vocabulary.TOP_SONGS} stagger={2}>
-                        <RankingList
-                            items={data.topSongs}
-                            showImages
-                            onPlay={handlePlaySong}
-                            formatValue={formatMs}
-                        />
-                    </StatsSection>
-
-                    <StatsSection
-                        title={$vocabulary.MOST_LISTENED_ARTISTS}
-                        stagger={3}
-                    >
-                        <RankingList
-                            items={data.topArtists}
-                            showImages
-                            formatValue={formatMs}
-                        />
-                    </StatsSection>
+            <div className="rounded-[2rem] border border-white/7 bg-neutral-950/60 p-5 md:p-8">
+                <div className="mb-8 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                    <div>
+                        <p className="text-[10px] font-semibold tracking-[0.22em] text-(--color-rockit-pink) uppercase">
+                            Listening timeline
+                        </p>
+                        <h2 className="mt-1 text-2xl font-bold text-white">
+                            Your rhythm over time
+                        </h2>
+                    </div>
+                    <p className="text-sm text-neutral-500">{rangeLabel}</p>
                 </div>
+                <MinutesBarChart data={data.minutes} range={range} />
+            </div>
 
-                <div className="grid gap-8 md:grid-cols-2 md:gap-20">
-                    <StatsSection title={$vocabulary.TOP_VIDEOS} stagger={4}>
-                        <RankingList
-                            items={data.topVideos}
-                            showImages
-                            onPlay={handlePlayVideo}
-                            formatValue={formatMs}
-                        />
-                    </StatsSection>
+            <StatsInsights insights={data.insights} />
 
-                    <StatsSection title={$vocabulary.TOP_ALBUMS} stagger={5}>
-                        <RankingList
-                            items={data.topAlbums}
-                            showImages
-                            formatValue={formatMs}
-                        />
-                    </StatsSection>
+            <div>
+                <div className="mb-5">
+                    <p className="text-[10px] font-semibold tracking-[0.22em] text-(--color-rockit-pink) uppercase">
+                        Leaderboards
+                    </p>
+                    <h2 className="mt-1 text-2xl font-bold text-white">
+                        What owned your ears
+                    </h2>
+                </div>
+                <div className="grid gap-4 xl:grid-cols-2">
+                    <TopMediaChart
+                        title={$vocabulary.TOP_SONGS}
+                        items={data.topSongs}
+                        onPlay={handlePlaySong}
+                    />
+                    <TopMediaChart
+                        title={$vocabulary.MOST_LISTENED_ARTISTS}
+                        items={data.topArtists}
+                    />
+                    <TopMediaChart
+                        title={$vocabulary.TOP_ALBUMS}
+                        items={data.topAlbums}
+                    />
+                    <TopMediaChart
+                        title={$vocabulary.TOP_VIDEOS}
+                        items={data.topVideos}
+                        onPlay={handlePlayVideo}
+                    />
                 </div>
             </div>
 
-            <StatsSection
-                title={$vocabulary.MINUTES_LISTENED_PER_DAY}
-                stagger={6}
-            >
+            <section className="rounded-[2rem] border border-white/7 bg-neutral-950/60 p-5 md:p-8">
+                <div className="mb-8">
+                    <p className="text-[10px] font-semibold tracking-[0.22em] text-(--color-rockit-pink) uppercase">
+                        Weekly pulse
+                    </p>
+                    <h2 className="mt-1 text-2xl font-bold text-white">
+                        When you press play
+                    </h2>
+                    <p className="mt-2 text-sm text-neutral-500">
+                        Every hour is shown in your local time. Hover a cell for
+                        the exact listening minutes.
+                    </p>
+                </div>
                 <ListeningHeatmap data={data.heatmap} />
-            </StatsSection>
+            </section>
         </div>
     );
 }

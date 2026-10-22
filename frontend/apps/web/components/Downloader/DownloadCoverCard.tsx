@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useRef, useState, type JSX } from "react";
+import { memo, useCallback, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { DownloadItemResponse, type MediaResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { getMediaSubtitle, isAlbum, isPlayable } from "@rockit/shared";
 import {
     Check,
+    Library,
     ListEnd,
+    LoaderCircle,
     Music,
     Play,
     RefreshCw,
@@ -20,9 +22,12 @@ import ContextMenuContent from "@/components/ContextMenu/Content";
 import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import ContextMenuOption from "@/components/ContextMenu/Option";
 import ContextMenuSplitter from "@/components/ContextMenu/Splitter";
+import SubContextMenuContent from "@/components/ContextMenu/SubContextMenu/Content";
+import SubContextMenu from "@/components/ContextMenu/SubContextMenu/ContextMenu";
+import SubContextMenuTrigger from "@/components/ContextMenu/SubContextMenu/Trigger";
 import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 
-export default function DownloadCoverCard({
+function DownloadCoverCard({
     item,
 }: {
     item: DownloadItemResponse;
@@ -33,6 +38,10 @@ export default function DownloadCoverCard({
     const [menuSubtitle, setMenuSubtitle] = useState<string | undefined>();
     const fetchedMedia = useRef<MediaResponse["media"] | null>(null);
 
+    const pending = useStore(rockIt.downloaderManager.pendingAtom)[
+        item.publicId
+    ];
+    const playlists = useStore(rockIt.playlistManager.playlistsAtom);
     const isCompleted = item.status === "COMPLETED";
     const isFailed = item.status === "FAILED";
     const isRetrying = item.status === "RETRYING";
@@ -80,33 +89,19 @@ export default function DownloadCoverCard({
         }
     }, [fetchMediaAsync]);
 
-    const [retryingManual, setRetryingManual] = useState<boolean>(false);
-
-    const handleRetry = useCallback(async (): Promise<void> => {
-        setRetryingManual(true);
-        try {
-            await Http.retryDownload(item.mediaPublicId);
-        } catch (err) {
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : $vocabulary.DOWNLOADER_RETRY_ERROR;
-            rockIt.notificationManager.notifyError(message);
-        } finally {
-            setRetryingManual(false);
-        }
-    }, [item.mediaPublicId, $vocabulary.DOWNLOADER_RETRY_ERROR]);
-
-    const handleDelete = useCallback((): void => {
-        console.warn("Delete not yet implemented for", item.mediaPublicId);
-    }, [item.mediaPublicId]);
+    const retryingManual = pending === "retry";
+    const handleRetry = (): Promise<void> =>
+        rockIt.downloaderManager.runActionAsync(item, "retry");
+    const handleDelete = (): Promise<void> =>
+        rockIt.downloaderManager.runActionAsync(item, "delete");
 
     return (
         <ContextMenu>
             <ContextMenuTrigger>
                 <div
                     className={`group flex cursor-pointer flex-col gap-2 ${isCompleted ? "" : ""}`}
-                    onClick={isCompleted ? handlePlay : undefined}
+                    aria-busy={!!pending}
+                    onClick={isCompleted && !pending ? handlePlay : undefined}
                 >
                     <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800">
                         {item.imageUrl ? (
@@ -123,6 +118,22 @@ export default function DownloadCoverCard({
                             </div>
                         )}
 
+                        {pending && (
+                            <div
+                                role="status"
+                                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/70 text-white"
+                            >
+                                <LoaderCircle
+                                    size={24}
+                                    className="animate-spin"
+                                />
+                                <span className="text-xs">
+                                    {pending === "retry"
+                                        ? $vocabulary.DOWNLOADING
+                                        : $vocabulary.SAVING}
+                                </span>
+                            </div>
+                        )}
                         {isRetrying && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                 <div className="flex flex-col items-center gap-1">
@@ -219,13 +230,23 @@ export default function DownloadCoverCard({
                         <p className="truncate text-xs text-neutral-400">
                             {item.subtitle ?? "—"}
                         </p>
+                        {!isCompleted && (
+                            <p
+                                role="status"
+                                className="text-xs text-neutral-400"
+                            >
+                                {isFailed
+                                    ? $vocabulary.ERROR
+                                    : `${$vocabulary.DOWNLOADING} · ${Math.round(progress)}%`}
+                            </p>
+                        )}
                     </div>
                 </div>
             </ContextMenuTrigger>
             <ContextMenuContent
-                cover={menuCover}
-                title={menuTitle}
-                description={menuSubtitle}
+                cover={menuCover ?? item.imageUrl ?? undefined}
+                title={menuTitle ?? item.name}
+                description={menuSubtitle ?? item.subtitle ?? undefined}
             >
                 {isCompleted && (
                     <>
@@ -237,16 +258,63 @@ export default function DownloadCoverCard({
                             <ListEnd size={16} />
                             <span>{$vocabulary.ADD_TO_QUEUE}</span>
                         </ContextMenuOption>
+                        <ContextMenuOption
+                            disable={!!pending}
+                            onClick={() =>
+                                void rockIt.downloaderManager.runActionAsync(
+                                    item,
+                                    "library"
+                                )
+                            }
+                        >
+                            <Library size={16} />
+                            <span>{$vocabulary.ADD_TO_LIBRARY}</span>
+                        </ContextMenuOption>
+                        {playlists.length > 0 && (
+                            <SubContextMenu>
+                                <SubContextMenuTrigger>
+                                    <ListEnd size={16} />
+                                    {$vocabulary.ADD_MEDIA_TO_PLAYLIST}
+                                </SubContextMenuTrigger>
+                                <SubContextMenuContent>
+                                    {playlists.map((playlist) => (
+                                        <ContextMenuOption
+                                            key={playlist.publicId}
+                                            disable={!!pending}
+                                            onClick={() =>
+                                                void rockIt.downloaderManager.runActionAsync(
+                                                    item,
+                                                    "playlist",
+                                                    playlist.publicId
+                                                )
+                                            }
+                                        >
+                                            {playlist.name}
+                                        </ContextMenuOption>
+                                    ))}
+                                </SubContextMenuContent>
+                            </SubContextMenu>
+                        )}
                         <ContextMenuSplitter />
                     </>
                 )}
-                {isFailed && (
-                    <ContextMenuOption onClick={handleRetry}>
+                {(isFailed || isCompleted) && (
+                    <ContextMenuOption
+                        disable={!!pending}
+                        onClick={handleRetry}
+                    >
                         <RefreshCw size={16} />
-                        <span>{$vocabulary.RETRY}</span>
+                        <span>
+                            {isCompleted
+                                ? $vocabulary.REDOWNLOAD
+                                : $vocabulary.RETRY}
+                        </span>
                     </ContextMenuOption>
                 )}
-                <ContextMenuOption onClick={handleDelete}>
+                <ContextMenuOption
+                    disable={!!pending || (!isCompleted && !isFailed)}
+                    onClick={handleDelete}
+                >
                     <Trash2 size={16} />
                     <span>{$vocabulary.DELETE}</span>
                 </ContextMenuOption>
@@ -254,3 +322,5 @@ export default function DownloadCoverCard({
         </ContextMenu>
     );
 }
+
+export default memo(DownloadCoverCard);

@@ -13,6 +13,7 @@ import {
     NativeMediaBridge,
     type AutoQueueItem,
 } from "@/lib/audio/NativeMediaBridge";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 // NativeMediaBridge expects durations in milliseconds; getMediaDuration()
 // returns seconds, so every value crossing that bridge must be converted.
@@ -44,7 +45,7 @@ export class LockScreenManager {
         if (this._initialized) return;
         this._initialized = true;
 
-        const player = getRockIt().mediaPlayerManager;
+        const player = rockIt.mediaPlayerManager;
         const queue = getRockIt().queueManager;
 
         // Lock-screen transport commands → player actions
@@ -60,25 +61,22 @@ export class LockScreenManager {
                 ),
             onNextTrack: () => queue.skipForward(),
             onPreviousTrack: () => queue.skipBack(),
-            onBluetoothConnect: () => {
-                if (queue.currentMedia) player.play();
-            },
-            onBluetoothDisconnect: () => {},
-            onHeadsetConnect: () => {
-                if (queue.currentMedia) player.play();
-            },
-            onHeadsetDisconnect: () => {},
+            onBluetoothConnect: () => {},
+            onBluetoothDisconnect: () => player.pause(),
+            onHeadsetConnect: () => {},
+            onHeadsetDisconnect: () => player.pause(),
         });
 
         // Android Auto transport commands → player actions
         NativeMediaBridge.setup({
-            onBluetoothConnected: () => {
-                if (queue.currentMedia) player.play();
-            },
-            onBluetoothDisconnected: () => {},
+            onBluetoothConnected: () => player.pause(),
+            onBluetoothDisconnected: () => player.pause(),
             onAutoPlay: () => player.play(),
             onAutoPause: () => player.pause(),
-            onAutoStop: () => player.pause(),
+            onAutoStop: () => {
+                player.stopAndClear();
+                queue.clearCurrentMedia();
+            },
             onAutoNext: () => queue.skipForward(),
             onAutoPrevious: () => queue.skipBack(),
             onAutoSeekTo: (seconds) => player.setCurrentTime(seconds, true),
@@ -89,16 +87,7 @@ export class LockScreenManager {
                     player.play();
                 }
             },
-            // Best-effort recovery for a Bluetooth car stereo that silently
-            // drops the A2DP audio stream mid-track (song keeps advancing,
-            // no sound) without a full profile disconnect. A quick
-            // pause/resume forces expo-audio to re-engage the audio route;
-            // it's a no-op audible blip if the route was actually fine.
-            onAudioRouteChanged: () => {
-                if (!player.playingAtom.get()) return;
-                player.pause();
-                setTimeout(() => player.play(), 300);
-            },
+            onAudioOutputChanged: () => player.pause(),
         });
 
         // Current media → lock-screen metadata + Android Auto now-playing

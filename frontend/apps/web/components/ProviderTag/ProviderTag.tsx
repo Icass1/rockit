@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import { EProviders } from "@rockit/packages/shared";
+import { EProviders } from "@rockit/shared";
 import LrclibProviderTag from "@/components/ProviderTag/Lrclib";
 import SpotifyProviderTag from "@/components/ProviderTag/Spotify";
 import YoutubeProviderTag from "@/components/ProviderTag/Youtube";

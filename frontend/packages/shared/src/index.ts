@@ -51,3 +51,10 @@ export * from "@/rockit/rockitRef";
 export * from "@/managers/baseUserManager";
 export * from "@/managers/baseQueueManager";
 export * from "@/managers/baseMediaPlayerManager";
+
+export { CollectionPager } from "@/managers/collectionPager";
+export { CollectionTree } from "@/managers/collectionTree";
+export { VirtualRowLayout } from "@/managers/virtualRowLayout";
+export type { CollectionTreeRow } from "@/models/interfaces/collectionTree";
+
+export * from "@/models/enums/friendTab";

@@ -22,27 +22,27 @@ export default function MobileLikeButton({
     const isLiked = $liked.includes(mediaPublicId);
 
     const [flameState, setFlameState] = useState<FlameState>("hidden");
-    const prevLiked = useRef(isLiked);
     const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Animation values (opacity + scale) for the flame wrapper
-    const flameOpacity = useRef(new Animated.Value(0)).current;
-    const flameScale = useRef(new Animated.Value(0.4)).current;
-    const handTilt = useRef(new Animated.Value(0)).current; // rotation in degrees
+    const [flameOpacity] = useState(() => new Animated.Value(0));
+    const [flameScale] = useState(() => new Animated.Value(0.4));
+    const [handTilt] = useState(() => new Animated.Value(0)); // rotation in degrees
 
     // ---------------------------------------------------------------------
     // React to like state changes – trigger entry animation when a track becomes liked
     // ---------------------------------------------------------------------
     useEffect(() => {
-        if (prevLiked.current === isLiked) return;
-        prevLiked.current = isLiked;
-        if (isLiked) {
-            setFlameState("enter");
-        } else {
-            // If unliked, hide immediately (no exit flame animation needed)
-            setFlameState("hidden");
-        }
-    }, [isLiked]);
+        let wasLiked = rockIt.mediaManager.likedMediaAtom
+            .get()
+            .includes(mediaPublicId);
+        return rockIt.mediaManager.likedMediaAtom.listen((liked) => {
+            const nowLiked = liked.includes(mediaPublicId);
+            if (wasLiked === nowLiked) return;
+            wasLiked = nowLiked;
+            setFlameState(nowLiked ? "enter" : "hidden");
+        });
+    }, [mediaPublicId]);
 
     // ---------------------------------------------------------------------
     // Flame animation sequencer – enter → visible → exit → hidden

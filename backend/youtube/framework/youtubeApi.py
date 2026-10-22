@@ -1,3 +1,4 @@
+import asyncio
 import requests
 from typing import Any, List
 from pydantic import BaseModel
@@ -187,7 +188,9 @@ class YoutubeApi:
                     "videoCategoryId": "10",
                 }
             )
-            response: requests.Response = requests.get(url, params=params, timeout=10)
+            response: requests.Response = await asyncio.to_thread(
+                requests.get, url, params=params, timeout=10
+            )
 
             if response.status_code != 200:
                 body: dict[str, Any] | None = None

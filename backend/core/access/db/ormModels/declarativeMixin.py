@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
-from typing import Any, List
+from typing import Any
 
-from sqlalchemy import TIMESTAMP, Integer, String, func, event
-from sqlalchemy.orm import mapped_column, declarative_mixin, Mapped, Mapper
+from sqlalchemy import TIMESTAMP, Integer, String, event, func
+from sqlalchemy.orm import Mapped, Mapper, declarative_mixin, mapped_column
 from sqlalchemy.schema import Table
 from sqlalchemy.types import TypeDecorator
 
@@ -25,12 +25,12 @@ class TZAwareTimestamp(TypeDecorator[datetime]):
         self, value: datetime | None, dialect: Any
     ) -> datetime | None:
         if value is not None and value.tzinfo is None:
-            logger.warning(f"TZAwareTimestamp value doesn't have tzinfo {value}")
+            # asyncpg returns naive UTC datetimes for TIMESTAMPTZ. Attach UTC
             return value.replace(tzinfo=timezone.utc)
         return value
 
 
-triggers: List[str] = []
+triggers: list[str] = []
 
 
 @declarative_mixin
@@ -66,7 +66,7 @@ def add_timestamp_trigger(
     if hasattr(class_, "date_updated"):
         trigger_name = f"{table_name}_update_timestamp"
 
-        triggers.append(f"""
+        triggers.append("""
         DO $$
         BEGIN
             IF NOT EXISTS (

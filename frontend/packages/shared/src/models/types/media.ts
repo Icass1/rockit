@@ -37,10 +37,7 @@ export type DownloadableMediaType =
     | BaseVideoResponse;
 
 export type TMediaWithSearch =
-    | TPlayableMedia
-    | TListMedia
-    | BaseSearchResultsItem
-    | BaseArtistResponse;
+    TPlayableMedia | TListMedia | BaseSearchResultsItem | BaseArtistResponse;
 
 export type TMedia = TPlayableMedia | TListMedia | BaseArtistResponse;
 
@@ -122,8 +119,7 @@ export function isPlaylistWithMedias(
         media.type === "playlist" &&
         (
             media as
-                | BasePlaylistWithMediasResponse
-                | BasePlaylistForPlaylistResponse
+                BasePlaylistWithMediasResponse | BasePlaylistForPlaylistResponse
         ).medias !== undefined
     );
 }

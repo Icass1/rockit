@@ -4,7 +4,7 @@ import {
     BasePlaylistWithMediasResponse,
     EMediaType,
     TMedia,
-} from "@rockit/packages/shared";
+} from "@rockit/shared";
 import { History } from "lucide-react";
 import { getFeaturedListAsync } from "@/lib/services/mediaService";
 import RenderListClient from "@/components/RenderList/RenderListClient";

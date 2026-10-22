@@ -12,6 +12,8 @@ from backend.utils.backendUtils import create_id
 
 from backend.core.aResult import AResult
 
+from backend.core.framework.notifications import Notifications
+
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
@@ -105,6 +107,16 @@ async def upload_rockit_song(
         file_path=file_path,
         image_path=image_path,
     )
+
+    notification = await Notifications.import_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        operation_id=upload_id,
+        success=a_result.is_ok(),
+        title=upload_request.title,
+    )
+    if notification.is_not_ok():
+        logger.error(f"Import notification failed: {notification.info()}")
 
     shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -217,6 +229,16 @@ async def upload_rockit_album(
         cover_path=cover_path,
         song_paths=song_paths,
     )
+
+    notification = await Notifications.import_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        operation_id=upload_id,
+        success=a_result.is_ok(),
+        title=upload_request.title,
+    )
+    if notification.is_not_ok():
+        logger.error(f"Import notification failed: {notification.info()}")
 
     shutil.rmtree(temp_dir, ignore_errors=True)
 

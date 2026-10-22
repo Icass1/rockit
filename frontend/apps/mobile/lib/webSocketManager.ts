@@ -1,8 +1,10 @@
 import {
     BACKEND_URL,
     CurrentMediaMessageRequest,
+    CurrentMediaMessageSchema,
     CurrentQueueMessageRequest,
     CurrentTimeMessageRequest,
+    CurrentTimeMessageSchema,
     EEvent,
     EventManager,
     EWebSocketMessage,
@@ -33,6 +35,8 @@ export class WebSocketManager {
 
     private _webSocket?: WebSocket;
     private _init = false;
+    private _latestPlaybackId = "";
+    private _outgoingPlayback?: CurrentMediaMessageRequest;
     private _connecting = false;
     private _messageHandlers: Map<
         EWebSocketMessage,
@@ -41,7 +45,18 @@ export class WebSocketManager {
 
     private _onMessageHandler = (event: MessageEvent) => {
         try {
-            const data = JSON.parse(event.data) as TWebSocketIncomingMessage;
+            let data = JSON.parse(event.data) as TWebSocketIncomingMessage;
+            if (data.type === EWebSocketMessage.CurrentMedia) {
+                data = CurrentMediaMessageSchema.parse(data);
+                if (this._outgoingPlayback?.playbackId !== data.playbackId) {
+                    this._outgoingPlayback = undefined;
+                }
+                this._latestPlaybackId = data.playbackId;
+            } else if (data.type === EWebSocketMessage.CurrentTime) {
+                data = CurrentTimeMessageSchema.parse(data);
+                if (!this._latestPlaybackId)
+                    this._latestPlaybackId = data.playbackId;
+            }
 
             const type = data.type as EWebSocketMessage;
             const handlers = this._messageHandlers.get(type);
@@ -77,7 +92,7 @@ export class WebSocketManager {
                 });
             }
         } catch (error) {
-            console.warn("Error parsing WebSocket message:", error);
+            console.error("Error parsing WebSocket message:", error);
         }
     };
 
@@ -133,7 +148,10 @@ export class WebSocketManager {
                 cookie = await refreshSessionFromBackend();
             }
             if (!cookie) {
-                console.warn("No cookie found.");
+                console.error(
+                    "WebSocket connection requires a session cookie."
+                );
+                retries++;
                 continue;
             }
 
@@ -141,8 +159,6 @@ export class WebSocketManager {
                 // React Native's WebSocket accepts headers as a non-standard 3rd argument.
                 // The session cookie must be passed explicitly since SecureStore is not
                 // the system cookie jar and Android/OkHttp won't include it automatically.
-
-                console.log("Creating new WebSocket", getWsUrl());
 
                 this._webSocket = new (WebSocket as any)(
                     getWsUrl(),
@@ -156,6 +172,11 @@ export class WebSocketManager {
 
                 this._webSocket.onopen = () => {
                     this._init = true;
+                    if (this._outgoingPlayback) {
+                        this.sendCurrentMedia(this._outgoingPlayback);
+                    } else {
+                        this.requestPlaybackState();
+                    }
                     this._connecting = false;
                 };
 
@@ -179,32 +200,34 @@ export class WebSocketManager {
         this._connecting = false;
     }
 
-    async send(message: object) {
-        if (!this._webSocket) {
+    get isConnected(): boolean {
+        return this._webSocket?.readyState === WebSocket.OPEN;
+    }
+
+    private _isOpen(): boolean {
+        return this._webSocket?.readyState === WebSocket.OPEN;
+    }
+
+    requestPlaybackState(): void {
+        void this.send({ type: "playback_state" });
+    }
+
+    async send(message: object): Promise<void> {
+        if (this._webSocket?.readyState !== WebSocket.OPEN) {
             await this.init();
+            const deadline = Date.now() + 10000;
+            while (!this._isOpen() && Date.now() < deadline) {
+                await new Promise<void>((resolve) => setTimeout(resolve, 100));
+            }
         }
-
-        if (this._webSocket?.readyState === WebSocket.CLOSED) {
-            await this.init();
-        }
-
-        if (this._webSocket?.readyState === WebSocket.CONNECTING) {
-            await new Promise<void>((resolve) => {
-                const checkConnection = setInterval(() => {
-                    if (this._webSocket?.readyState === WebSocket.OPEN) {
-                        clearInterval(checkConnection);
-                        resolve();
-                    }
-                }, 100);
-            });
-        }
-
+        if (this._webSocket?.readyState !== WebSocket.OPEN) return;
+        const playbackId = (message as Partial<CurrentTimeMessageRequest>)
+            .playbackId;
+        if (playbackId && playbackId !== this._latestPlaybackId) return;
         try {
             this._webSocket?.send(JSON.stringify(message));
-        } catch (e) {
-            console.error(
-                `Error sending web socket message ${e}. Sending message ${JSON.stringify(message)}`
-            );
+        } catch (error) {
+            console.error("Error sending WebSocket message", error);
         }
     }
 
@@ -213,6 +236,8 @@ export class WebSocketManager {
     }
 
     sendCurrentMedia(data: CurrentMediaMessageRequest) {
+        this._latestPlaybackId = data.playbackId;
+        this._outgoingPlayback = { ...data };
         this.send({ type: "current_media", ...data });
     }
 
@@ -221,6 +246,10 @@ export class WebSocketManager {
     }
 
     sendCurrentTime(data: CurrentTimeMessageRequest) {
+        if (this._outgoingPlayback?.playbackId === data.playbackId) {
+            this._outgoingPlayback.currentTimeMs = data.currentTimeMs;
+        }
+        if (this._webSocket?.readyState !== WebSocket.OPEN) return;
         this.send({ type: "current_time", ...data });
     }
 

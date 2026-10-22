@@ -87,6 +87,7 @@ export default function StatsClientV2(): JSX.Element {
                     range === "custom" && customEnd
                         ? getLocalEndOfDay(customEnd)
                         : null,
+                timezoneOffsetMinutes: new Date().getTimezoneOffset(),
             }),
         [range, customStart, customEnd]
     );

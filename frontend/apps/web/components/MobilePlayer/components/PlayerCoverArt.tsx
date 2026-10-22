@@ -1,6 +1,8 @@
 "use client";
 
-import type { JSX } from "react";
+import { useCallback, useRef, type JSX } from "react";
+import { useStore } from "@nanostores/react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface PlayerCoverArtProps {
     uri: string | undefined;
@@ -17,14 +19,39 @@ export default function PlayerCoverArt({
     uri,
     mediaType,
 }: PlayerCoverArtProps): JSX.Element {
+    const coverUri =
+        uri ||
+        (mediaType === "station" || mediaType === "radio"
+            ? "/radio-placeholder.png"
+            : undefined);
+    const audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
+    const videoContainerRef = useRef<HTMLDivElement>(null);
+    const showVideo = mediaType === "video" && !audioOnly;
+
+    const attachVideoRef = useCallback(
+        (container: HTMLDivElement | null): void => {
+            const previous = videoContainerRef.current;
+            if (previous) {
+                rockIt.mediaPlayerManager.detachVideoFromContainer(previous);
+            }
+            videoContainerRef.current = container;
+            if (container && showVideo) {
+                rockIt.mediaPlayerManager.attachVideoToContainer(container);
+            }
+        },
+        [showVideo]
+    );
+
     return (
         <div
-            className={`mx-auto w-full max-w-85 overflow-hidden bg-(--color-surface) shadow-xl ${aspectClass(mediaType)}`}
+            className={`relative mx-auto w-full max-w-85 overflow-hidden bg-(--color-surface) shadow-xl ${aspectClass(mediaType)}`}
         >
-            {uri ? (
+            {showVideo ? (
+                <div ref={attachVideoRef} className="absolute inset-0" />
+            ) : coverUri ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                    src={uri}
+                    src={coverUri}
                     alt=""
                     className="h-full w-full object-cover"
                     loading="eager"

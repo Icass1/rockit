@@ -28,6 +28,7 @@ async def get_user_stats_v2(
     a_result_user = AuthMiddleware.get_current_user(request=request)
 
     if a_result_user.is_not_ok():
+        logger.warning("Unauthenticated request for v2 user stats")
         raise HTTPException(status_code=401, detail="User not authenticated")
 
     a_result = await StatsV2.get_user_stats_async(
@@ -36,9 +37,11 @@ async def get_user_stats_v2(
         range_value=body.range,
         custom_start=body.start,
         custom_end=body.end,
+        timezone_offset_minutes=body.timezoneOffsetMinutes,
     )
 
     if a_result.is_not_ok():
+        logger.error(f"Error getting v2 user stats. {a_result.info()}")
         raise HTTPException(status_code=400, detail=a_result.message())
 
     return a_result.result()

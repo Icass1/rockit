@@ -9,12 +9,21 @@ import {
 import { isQueueable, type TPlayableMedia } from "@rockit/shared";
 import { Http } from "@/lib/http";
 
+// Session-scoped memory cache for full albums/playlists: avoids re-fetching
+// the same publicId over and over during one app session (the service worker
+// only mitigates repeated requests; this removes them entirely).
+const albumCache = new Map<string, BaseAlbumWithSongsResponse>();
+
 export async function getAlbumAsync(
     publicId: string
 ): Promise<BaseAlbumWithSongsResponse | undefined> {
+    const cached = albumCache.get(publicId);
+    if (cached) return cached;
+
     const response = await Http.getAlbum(publicId);
 
     if (response.isOk()) {
+        albumCache.set(publicId, response.result);
         return response.result;
     } else {
         console.error("Error getting album", response.message, response.detail);

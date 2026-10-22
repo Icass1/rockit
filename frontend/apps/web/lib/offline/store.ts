@@ -4,6 +4,7 @@ import {
     getOfflineSong,
     listOfflineSongIds,
     saveSongOffline,
+    updateOfflineSongPlaylist,
 } from "@/lib/offline/db";
 
 type DownloadStatus = "idle" | "downloading" | "downloaded" | "error";
@@ -23,16 +24,48 @@ export async function hydrateOfflineIds(): Promise<void> {
 export async function downloadSongOffline(
     publicId: string,
     audioUrl: string,
-    coverUrl: string | null
+    coverUrl: string | null,
+    parentAlbumIds: string[] = [],
+    parentPlaylistIds: string[] = []
 ): Promise<void> {
     offlineStatusMap.setKey(publicId, "downloading");
     try {
-        await saveSongOffline(publicId, audioUrl, coverUrl);
+        await saveSongOffline(
+            publicId,
+            audioUrl,
+            coverUrl,
+            parentAlbumIds,
+            parentPlaylistIds
+        );
         offlineStatusMap.setKey(publicId, "downloaded");
     } catch (err) {
         offlineStatusMap.setKey(publicId, "error");
         throw err;
     }
+}
+
+/**
+ * Record a playlist↔song relationship for an already-offline song. Used when
+ * a song that's saved offline is added to a playlist, so the Offline library
+ * chip can later group by that playlist without any network call.
+ */
+export async function addSongPlaylistRef(
+    publicId: string,
+    playlistPublicId: string
+): Promise<void> {
+    await updateOfflineSongPlaylist(publicId, playlistPublicId, true);
+}
+
+/**
+ * Remove a playlist↔song relationship for an offline song. Used when a song
+ * that's saved offline is removed from a playlist, to avoid the Offline chip
+ * showing that playlist forever.
+ */
+export async function removeSongPlaylistRef(
+    publicId: string,
+    playlistPublicId: string
+): Promise<void> {
+    await updateOfflineSongPlaylist(publicId, playlistPublicId, false);
 }
 
 export async function removeOfflineSong(publicId: string): Promise<void> {

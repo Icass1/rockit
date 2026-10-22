@@ -68,26 +68,24 @@ export default function SettingsClient({
                     <p className="text-neutral-400">Loading...</p>
                 ) : (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                        {languages.map(
-                            (lang): JSX.Element => (
-                                <button
-                                    key={lang.langCode}
-                                    onClick={(): Promise<void> =>
-                                        handleLanguageChange(lang.langCode)
-                                    }
-                                    className={`flex items-center justify-between rounded-md px-4 py-3 text-left transition ${
-                                        $lang === lang.langCode
-                                            ? "bg-(--color-rockit-pink) text-white"
-                                            : "bg-neutral-700 text-neutral-200 hover:bg-neutral-600"
-                                    }`}
-                                >
-                                    <span>{lang.language}</span>
-                                    {$lang === lang.langCode && (
-                                        <Check className="h-4 w-4" />
-                                    )}
-                                </button>
-                            )
-                        )}
+                        {languages.map((lang): JSX.Element => (
+                            <button
+                                key={lang.langCode}
+                                onClick={(): Promise<void> =>
+                                    handleLanguageChange(lang.langCode)
+                                }
+                                className={`flex items-center justify-between rounded-md px-4 py-3 text-left transition ${
+                                    $lang === lang.langCode
+                                        ? "bg-(--color-rockit-pink) text-white"
+                                        : "bg-neutral-700 text-neutral-200 hover:bg-neutral-600"
+                                }`}
+                            >
+                                <span>{lang.language}</span>
+                                {$lang === lang.langCode && (
+                                    <Check className="h-4 w-4" />
+                                )}
+                            </button>
+                        ))}
                     </div>
                 )}
             </section>

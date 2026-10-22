@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict
 
-from sqlalchemy import DOUBLE_PRECISION, ForeignKey, Integer, String
+from sqlalchemy import DOUBLE_PRECISION, ForeignKey, Integer, String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.access.db.base import CoreBase
@@ -15,7 +15,10 @@ if TYPE_CHECKING:
 
 class DownloadStatusRow(CoreBase, TableAutoincrementId, TableDateAdded):
     __tablename__ = "download_status"
-    __table_args__ = ({"schema": "core", "extend_existing": True},)
+    __table_args__ = (
+        Index("ix_download_status_browse", "download_id", "id"),
+        {"schema": "core", "extend_existing": True},
+    )
 
     download_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("core.download.id"), nullable=False

@@ -2,6 +2,7 @@ from typing import List, Tuple
 from logging import Logger
 from sqlalchemy.future import select
 from sqlalchemy import Result, Select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
@@ -184,34 +185,44 @@ class UserAccess:
             )
 
     @staticmethod
+    @safe_async
     async def add_user_library_media(
         session: AsyncSession, user_id: int, media_id: int
     ) -> AResult[UserLibraryMediaRow]:
-        """Add an media to user's library."""
-        try:
-            user_library_media = UserLibraryMediaRow(user_id=user_id, media_id=media_id)
-            session.add(instance=user_library_media)
-            await session.commit()
-            await session.refresh(instance=user_library_media)
-            return AResult(code=AResultCode.OK, message="OK", result=user_library_media)
-
-        except Exception as e:
-            await session.rollback()
-
-            if "already exists" in str(e):
-                logger.info(
-                    f"Media {media_id} already exists in user {user_id} library"
-                )
-                return AResult(
-                    code=AResultCode.ALREADY_EXISTS,
-                    message="Media already exists in library.",
-                )
-
-            logger.error(f"Error in add_user_library_media: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
-                message=f"Failed to add media to user library: {e}",
+        """Idempotently add a library entry without committing the caller's transaction."""
+        statement = (
+            insert(UserLibraryMediaRow)
+            .values(user_id=user_id, media_id=media_id)
+            .on_conflict_do_nothing(constraint="uq_user_library_media")
+        )
+        await session.execute(statement)
+        result = await session.execute(
+            select(UserLibraryMediaRow).where(
+                UserLibraryMediaRow.user_id == user_id,
+                UserLibraryMediaRow.media_id == media_id,
             )
+        )
+        return AResult(code=AResultCode.OK, message="OK", result=result.scalar_one())
+
+    @staticmethod
+    @safe_async
+    async def add_user_library_medias_async(
+        session: AsyncSession, user_id: int, media_ids: list[int]
+    ) -> AResult[bool]:
+        """Add a batch to the library in one idempotent database operation."""
+        if media_ids:
+            statement = (
+                insert(UserLibraryMediaRow)
+                .values(
+                    [
+                        dict(user_id=user_id, media_id=media_id)
+                        for media_id in set(media_ids)
+                    ]
+                )
+                .on_conflict_do_nothing(constraint="uq_user_library_media")
+            )
+            await session.execute(statement)
+        return AResult(code=AResultCode.OK, message="OK", result=True)
 
     @staticmethod
     @safe_async
@@ -307,6 +318,8 @@ class UserAccess:
         user: UserRow | None = await session.get(entity=UserRow, ident=user_id)
         if user is None:
             return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        if user.current_queue_id != queue_id:
+            user.current_time_ms = 0
         user.current_queue_id = queue_id
         await session.commit()
         return AResult(code=AResultCode.OK, message="OK", result=True)
@@ -441,3 +454,13 @@ class UserAccess:
         interval.time_ms_end = max(interval.time_ms_end, time_ms_end)
         await session.commit()
         return AResultCode(code=AResultCode.OK, message="OK")
+
+    @staticmethod
+    @safe_async
+    async def update_download_settings_async(
+        session: AsyncSession, user: UserRow, auto_add: bool
+    ) -> AResult[bool]:
+        """Persist the user's automatic library preference."""
+        user.auto_add_downloads_to_library = auto_add
+        await session.flush()
+        return AResult(code=AResultCode.OK, message="OK", result=True)

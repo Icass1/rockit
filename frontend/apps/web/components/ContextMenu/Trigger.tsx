@@ -41,7 +41,6 @@ export default function ContextMenuTrigger({
 
         // Ignore contextmenu if it was triggered by a handled long-press
         if (longPressFired.current) {
-            longPressFired.current = false;
             event.preventDefault();
             return;
         }
@@ -53,7 +52,7 @@ export default function ContextMenuTrigger({
     };
 
     useEffect((): (() => void) | undefined => {
-        if (!_setContextMenuOpen || innerWidth < 768) return;
+        if (!_setContextMenuOpen) return;
 
         const closeContextMenu = (
             event:
@@ -88,9 +87,11 @@ export default function ContextMenuTrigger({
     const handleTouchStart = (
         event: React.TouchEvent<HTMLDivElement>
     ): void => {
-        if (!_setContextMenuOpen || !_setContextMenuPos) return;
+        // Search cards open on a tap; preserve native clicks and horizontal scrolling.
+        if (openOnLeftClick || !_setContextMenuOpen || !_setContextMenuPos)
+            return;
 
-        event.preventDefault();
+        longPressFired.current = false;
 
         const touch = event.touches[0];
         touchStartPos.current = { x: touch.clientX, y: touch.clientY };
@@ -126,6 +127,37 @@ export default function ContextMenuTrigger({
     return (
         <div
             ref={divRef}
+            role={openOnLeftClick ? "button" : undefined}
+            tabIndex={openOnLeftClick ? 0 : undefined}
+            aria-haspopup={openOnLeftClick ? "dialog" : undefined}
+            aria-expanded={openOnLeftClick ? _contextMenuOpen : undefined}
+            onClickCapture={(event): void => {
+                if (!longPressFired.current) return;
+                event.preventDefault();
+                event.stopPropagation();
+                longPressFired.current = false;
+            }}
+            onKeyDown={(event): void => {
+                if (
+                    !openOnLeftClick ||
+                    event.target !== event.currentTarget ||
+                    !["Enter", " "].includes(event.key)
+                )
+                    return;
+                event.preventDefault();
+                const bounds = event.currentTarget.getBoundingClientRect();
+                _setContextMenuPos?.([
+                    Math.max(1, bounds.left),
+                    Math.max(1, bounds.top),
+                ]);
+                _setContextMenuOpen?.((value) => !value);
+            }}
+            className={
+                openOnLeftClick
+                    ? "rounded-lg focus-visible:outline-2 focus-visible:outline-white"
+                    : undefined
+            }
+            onTouchCancel={clearLongPress}
             onContextMenu={handleContextMenu}
             onClick={handleClick}
             onTouchStart={handleTouchStart}

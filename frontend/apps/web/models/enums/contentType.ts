@@ -6,4 +6,5 @@ export enum EContentType {
     Videos,
     Stations,
     Shared,
+    Offline,
 }

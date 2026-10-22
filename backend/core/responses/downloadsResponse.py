@@ -33,6 +33,7 @@ class DownloadGroupResponse(BaseModel):
     success: int
     fail: int
     items: List[DownloadItemResponse]
+    sourcePublicId: str | None = None
 
 
 class DownloadsResponse(BaseModel):

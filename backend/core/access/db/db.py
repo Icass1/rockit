@@ -53,6 +53,27 @@ from backend.core.access.db.ormModels.userRecommendationSettings import (
     UserRecommendationSettingsRow as UserRecommendationSettingsRow,
 )
 
+# FRIEND MODELS
+from backend.core.access.db.ormModels.friend.friend import FriendRow as FriendRow
+from backend.core.access.db.ormModels.friend.friendRequest import (
+    FriendRequestRow as FriendRequestRow,
+)
+from backend.core.access.db.ormModels.friend.sharedMedia import (
+    SharedMediaRow as SharedMediaRow,
+)
+from backend.core.access.db.ormModels.friend.listenTogether import (
+    ListenTogetherSessionRow as ListenTogetherSessionRow,
+)
+from backend.core.access.db.ormModels.friend.userLevel import (
+    UserLevelRow as UserLevelRow,
+)
+from backend.core.access.db.ormModels.friend.levelConfig import (
+    LevelConfigRow as LevelConfigRow,
+)
+from backend.core.access.db.ormModels.friend.streakBattle import (
+    StreakBattleRow as StreakBattleRow,
+)
+
 # ENUMS
 from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
     PlaylistContributorRoleEnumRow as PlaylistContributorRoleEnumRow,
@@ -84,6 +105,16 @@ from backend.core.access.db.ormEnums.requestStatusEnum import (
 from backend.core.access.db.ormEnums.platformEnum import (
     PlatformEnumRow as PlatformEnumRow,
 )
+from backend.core.access.db.ormEnums.friendStatusEnum import (
+    FriendStatusEnumRow as FriendStatusEnumRow,
+)
+from backend.core.access.db.ormEnums.listenTogetherStatusEnum import (
+    ListenTogetherStatusEnumRow as ListenTogetherStatusEnumRow,
+)
 
 schemas = ["core"]
 base = CoreBase
+
+from backend.core.access.db.ormModels.notification import (
+    NotificationRow as NotificationRow,
+)

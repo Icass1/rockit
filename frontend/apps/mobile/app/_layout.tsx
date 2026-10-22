@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
+import * as ScreenOrientation from "expo-screen-orientation";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProvider } from "@/lib/PlayerContext";
@@ -26,6 +28,11 @@ const RockItTheme = {
 
 export default function RootLayout() {
     useEffect(() => {
+        if (Platform.OS !== "web") {
+            void ScreenOrientation.lockAsync(
+                ScreenOrientation.OrientationLock.PORTRAIT_UP
+            ).catch(() => {});
+        }
         async function init() {
             try {
                 await mediaStorage.init();

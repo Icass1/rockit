@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
 import Slider from "@react-native-community/slider";
@@ -20,9 +20,13 @@ const THUMB_HALF = THUMB_SIZE / 2;
 
 interface PlayerProgressProps {
     onSeek: (seconds: number) => void;
+    onSeekingChange?: (seeking: boolean) => void;
 }
 
-export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
+export default function PlayerProgress({
+    onSeek,
+    onSeekingChange,
+}: PlayerProgressProps) {
     const { currentTime, duration } = usePlayerTime();
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
@@ -31,12 +35,10 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
     const [seekValue, setSeekValue] = useState(currentTime);
     const [trackWidth, setTrackWidth] = useState(0);
 
-    const progress = duration > 0 ? seekValue / duration : 0;
+    const displayedTime = isSeeking ? seekValue : currentTime;
+    const progress =
+        duration > 0 ? Math.min(1, Math.max(0, displayedTime / duration)) : 0;
     const fillWidth = trackWidth > 0 ? progress * trackWidth : 0;
-
-    useEffect(() => {
-        if (!isSeeking) setSeekValue(currentTime);
-    }, [currentTime, isSeeking]);
 
     return (
         <View style={styles.container}>
@@ -60,13 +62,25 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                     style={styles.slider}
                     minimumValue={0}
                     maximumValue={duration > 0 ? duration : 1}
-                    value={seekValue}
+                    value={displayedTime}
+                    disabled={duration <= 0}
+                    accessibilityLabel={
+                        rockIt.vocabularyManager.vocabulary.PLAYER_SEEK
+                    }
+                    tapToSeek
+                    onSlidingStart={() => {
+                        setIsSeeking(true);
+                        onSeekingChange?.(true);
+                    }}
                     onValueChange={(v) => {
                         setIsSeeking(true);
+                        onSeekingChange?.(true);
                         setSeekValue(v);
                     }}
                     onSlidingComplete={(v) => {
+                        setSeekValue(v);
                         setIsSeeking(false);
+                        onSeekingChange?.(false);
                         onSeek(v);
                     }}
                     minimumTrackTintColor="transparent"
@@ -75,7 +89,12 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                 />
                 {trackWidth > 0 &&
                     $bookmarks.map((bm) => {
-                        if (duration <= 0) return null;
+                        if (
+                            duration <= 0 ||
+                            bm.timestamp < 0 ||
+                            bm.timestamp > duration
+                        )
+                            return null;
                         const offset =
                             THUMB_HALF + (bm.timestamp / duration) * trackWidth;
                         const color =
@@ -83,6 +102,7 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                         return (
                             <View
                                 key={bm.publicId}
+                                pointerEvents="none"
                                 style={[
                                     styles.bookmarkMarker,
                                     {
@@ -95,7 +115,7 @@ export default function PlayerProgress({ onSeek }: PlayerProgressProps) {
                     })}
             </View>
             <View style={styles.labels}>
-                <Text style={styles.time}>{formatTime(seekValue)}</Text>
+                <Text style={styles.time}>{formatTime(displayedTime)}</Text>
                 <Text style={styles.time}>{formatTime(duration)}</Text>
             </View>
         </View>

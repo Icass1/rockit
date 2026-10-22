@@ -8,10 +8,8 @@ import {
     ExpirationPlugin,
     NetworkFirst,
     NetworkOnly,
-    RangeRequestsPlugin,
     Serwist,
     StaleWhileRevalidate,
-    type SerwistPlugin,
 } from "serwist";
 
 declare global {
@@ -21,33 +19,37 @@ declare global {
 }
 declare const self: ServiceWorkerGlobalScope;
 
-/*
- * Strips the `Vary` header before a response is stored in Cache Storage.
- *
- * The backend (Starlette CORSMiddleware with explicit origins) sends
- * `Vary: Origin` on every response. Cache Storage honors Vary when
- * matching, so a response cached from the app's CORS fetch would never
- * match the no-cors request an <audio> element makes (no Origin header).
- * Removing Vary makes matching purely URL-based — safe here because this
- * cache is private, per-device and per-origin.
- */
-const stripVaryHeaderPlugin: SerwistPlugin = {
-    cacheWillUpdate: async ({
-        response,
-    }): Promise<Response | null | undefined> => {
-        if (!response.headers.has("vary")) return response;
-
-        const headers = new Headers(response.headers);
-        headers.delete("vary");
-        return new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers,
-        });
-    },
-};
-
+// Streaming must be matched before API caches and Serwist's default media
+// routes. Keep Range headers and partial responses untouched, and never clone
+// a media response into Cache Storage (which can drain the entire stream).
 const runtimeCaching = [
+    {
+        matcher: ({ url, request }: { url: URL; request: Request }) =>
+            request.headers.has("range") ||
+            request.destination === "audio" ||
+            request.destination === "video" ||
+            /^\/youtube\/video\/[^/]+\/stream(?:\/|$)/.test(url.pathname) ||
+            url.pathname.startsWith("/rockit/audio/") ||
+            /^\/rockit\/video\/[^/]+\/stream(?:\/|$)/.test(url.pathname),
+        handler: new NetworkOnly(),
+    },
+    {
+        matcher: ({ url }: { url: URL }) =>
+            url.origin !== self.location.origin &&
+            url.pathname.startsWith("/media/collection/"),
+        handler: new NetworkFirst({
+            cacheName: "rockit-collections",
+            networkTimeoutSeconds: 3,
+            plugins: [
+                new CacheableResponsePlugin({ statuses: [200] }),
+                new ExpirationPlugin({
+                    maxEntries: 100,
+                    maxAgeSeconds: 7 * 24 * 60 * 60,
+                    purgeOnQuotaError: true,
+                }),
+            ],
+        }),
+    },
     // Session — NetworkFirst with short timeout (falls back to SW cache if offline/slow)
     {
         matcher: ({ url }: { url: URL }) =>
@@ -75,29 +77,6 @@ const runtimeCaching = [
             plugins: [
                 new ExpirationPlugin({
                     maxEntries: 1,
-                    maxAgeSeconds: 30 * 24 * 60 * 60,
-                    purgeOnQuotaError: true,
-                }),
-            ],
-        }),
-    },
-    // Audio streams — CacheFirst over full (200) responses.
-    // A 206 partial response cannot be stored in Cache Storage, so
-    // CacheableResponsePlugin rejects them and they pass through to the
-    // network untouched. The app warms this cache by fetching the complete
-    // file without a Range header when playback starts; subsequent <audio>
-    // element requests hit the cache and RangeRequestsPlugin slices them.
-    {
-        matcher: ({ url }: { url: URL }) =>
-            url.pathname.startsWith("/rockit/audio/"),
-        handler: new CacheFirst({
-            cacheName: "rockit-audio",
-            plugins: [
-                new CacheableResponsePlugin({ statuses: [200] }),
-                stripVaryHeaderPlugin,
-                new RangeRequestsPlugin(),
-                new ExpirationPlugin({
-                    maxEntries: 200,
                     maxAgeSeconds: 30 * 24 * 60 * 60,
                     purgeOnQuotaError: true,
                 }),

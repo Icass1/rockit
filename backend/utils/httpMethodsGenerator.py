@@ -49,15 +49,15 @@ def build_query_params(
         optional = not qp.required
         signature_parts.append(f"{camel_name}{'?' if optional else ''}: {ts_type}")
 
-        append = f'query.append("{qp.name}", `${{{camel_name}}}`)'
+        append = f'queryParams.append("{qp.name}", `${{{camel_name}}}`)'
         if optional:
             append_lines.append(f"        if ({camel_name} !== undefined) {append}\n")
         else:
             append_lines.append(f"        {append}\n")
 
-    preamble = "        const query = new URLSearchParams()\n"
+    preamble = "        const queryParams = new URLSearchParams()\n"
     preamble += "".join(append_lines)
-    preamble += "        const queryString = query.toString()\n"
+    preamble += "        const queryString = queryParams.toString()\n"
 
     path_suffix = '${queryString ? `?${queryString}` : ""}'
     return signature_parts, preamble, path_suffix

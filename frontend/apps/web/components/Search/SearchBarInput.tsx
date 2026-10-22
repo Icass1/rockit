@@ -1,47 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState, type JSX } from "react";
+import { useId, type JSX } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
-import type { DebouncedFunc } from "lodash";
-import debounce from "lodash/debounce";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function SearchBarInput(): JSX.Element {
-    const [value, setValue] = useState("");
+    const value = useStore(rockIt.searchManager.inputAtom);
+    const id = useId();
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const pathname = usePathname();
     const router = useRouter();
     const searching = useStore(rockIt.searchManager.searchingAtom);
 
-    const searchDebounce = useRef<DebouncedFunc<(q: string) => void> | null>(
-        null
-    );
-
-    useEffect((): (() => void | undefined) => {
-        searchDebounce.current = debounce((query: string): void => {
-            rockIt.searchManager.search(query);
-        }, 300);
-
-        return (): void | undefined => searchDebounce.current?.cancel();
-    }, []);
-
     return (
         <div className="relative top-1/2 mx-auto w-full -translate-y-1/2">
             <input
                 type="search"
-                id="search-bar"
+                id={id}
+                aria-label={$vocabulary.SEARCH_BAR}
+                maxLength={200}
                 value={value}
                 onChange={(e): void => {
                     const query = e.target.value;
-                    setValue(query);
-
-                    if (query === "") {
-                        searchDebounce.current?.cancel();
-                        rockIt.searchManager.clearResults();
-                    } else {
-                        searchDebounce.current?.(query);
-                    }
+                    rockIt.searchManager.scheduleSearch(query);
                 }}
                 onClick={(): void => {
                     if (pathname !== "/search") router.push("/search");

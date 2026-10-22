@@ -78,11 +78,14 @@ export default function StatsClient() {
             range: range,
             start: customStart?.toISOString() ?? null,
             end: customEnd?.toISOString() ?? null,
+            timezoneOffsetMinutes: new Date().getTimezoneOffset(),
         })
     );
 
     const updateRef = useRef(update);
-    updateRef.current = update;
+    useEffect(() => {
+        updateRef.current = update;
+    }, [update]);
 
     useEffect(() => {
         updateRef.current();

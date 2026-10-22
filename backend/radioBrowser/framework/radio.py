@@ -112,10 +112,13 @@ class Radio:
     async def search_media_async(
         session: AsyncSession,
         query: str,
+        limit: int = 15,
     ) -> AResult[List[BaseSearchResultsItem]]:
         """Search radio stations via Radio Browser API and persist them."""
 
-        a_result_api = await RadioBrowserApi.search_stations_async(query=query)
+        a_result_api = await RadioBrowserApi.search_stations_async(
+            query=query, limit=limit
+        )
         if a_result_api.is_not_ok():
             return AResult(code=a_result_api.code(), message=a_result_api.message())
 

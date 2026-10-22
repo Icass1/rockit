@@ -48,6 +48,6 @@ const styles = StyleSheet.create({
         height: 68,
     },
     gradient: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
     },
 });

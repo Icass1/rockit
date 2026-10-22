@@ -788,3 +788,42 @@ class StatsAccess:
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
+
+
+def get_media_info_cte() -> str:
+    """Provider-independent media metadata for social activity."""
+    return _get_media_info_cte()
+
+
+def get_artist_info_cte() -> str:
+    """Provider-independent artists for social taste comparisons."""
+    return _get_artist_info_cte()
+
+
+async def get_streaks_for_users_async(
+    session: AsyncSession, user_ids: list[int]
+) -> AResult[dict[int, int]]:
+    """Calculate friend streaks in one query, including listeners with no history."""
+    from sqlalchemy import bindparam
+    from backend.core.utils.safeAsyncCall import safe_async
+
+    @safe_async
+    async def query(session: AsyncSession) -> AResult[dict[int, int]]:
+        sql = text("""SELECT DISTINCT user_id, DATE(date_added) AS day
+            FROM core.user_media_listened WHERE user_id IN :user_ids
+            ORDER BY user_id, day DESC""").bindparams(
+            bindparam("user_ids", expanding=True)
+        )
+        rows = await session.execute(sql, {"user_ids": user_ids})
+        today = datetime.now(timezone.utc).date()
+        streaks = dict.fromkeys(user_ids, 0)
+        expected: dict[int, Any] = {}
+        for user_id, day in rows:
+            if user_id not in expected:
+                expected[user_id] = day if day >= today - timedelta(days=1) else None
+            if day == expected[user_id]:
+                streaks[user_id] += 1
+                expected[user_id] = day - timedelta(days=1)
+        return AResult(code=AResultCode.OK, message="OK", result=streaks)
+
+    return await query(session)

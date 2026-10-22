@@ -38,6 +38,7 @@ import {
 } from "@/lib/ContextMenuContext";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { logSheetDebug } from "@/lib/sheetDebug";
 import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
@@ -159,7 +160,12 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
                     icon: Play,
                     onPress: () => {
                         console.log("Playing media from context menu", media);
-                        handlePlay(media, getAllPlayableMedia(allMedia));
+                        if (listPublicId)
+                            void rockIt.queueManager.playCollection(
+                                listPublicId,
+                                media.publicId
+                            );
+                        else handlePlay(media, getAllPlayableMedia(allMedia));
                         hide();
                     },
                 });
@@ -408,10 +414,14 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     );
 
     const handleLongPress = useCallback(() => {
+        logSheetDebug("media.longPress", {
+            isSearchResult: isSearchResult(media),
+            menuOnly: !!menuOnly,
+        });
         if (!isSearchResult(media)) {
             show(buildMainMenu(media));
         }
-    }, [media, show, buildMainMenu]);
+    }, [media, menuOnly, show, buildMainMenu]);
 
     const handlePress = useCallback(() => {
         if (onPress) {
@@ -419,7 +429,12 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         } else if (menuOnly || isSearchResult(media)) {
             show(buildMainMenu(media));
         } else if (isPlayable(media)) {
-            handlePlay(media, getAllPlayableMedia(allMedia));
+            if (listPublicId)
+                void rockIt.queueManager.playCollection(
+                    listPublicId,
+                    media.publicId
+                );
+            else handlePlay(media, getAllPlayableMedia(allMedia));
         } else if (isList(media)) {
             router.push(media.url);
         }
@@ -432,6 +447,7 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
         handlePlay,
         menuOnly,
         onPress,
+        listPublicId,
     ]);
 
     return (

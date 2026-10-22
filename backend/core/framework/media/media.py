@@ -397,35 +397,25 @@ class Media:
 
         results: List[BaseSearchResultsItem] = []
 
-        tasks: List[asyncio.Task[AResult[List[BaseSearchResultsItem]]]] = []
+        from backend.core.framework.media.search import provider_search
 
-        for provider in providers.get_media_providers():
-            a_result_id: AResult[int] = provider.get_id()
-            if a_result_id.is_not_ok():
-                logger.error(f"Skipping provider with no id. {a_result_id.info()}")
-                continue
-
-            # Schedule provider search
-            task: asyncio.Task[AResult[List[BaseSearchResultsItem]]] = (
-                asyncio.create_task(
-                    provider.search_media_async(session=session, query=query)
-                )
+        if len(query.strip()) < 2:
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=SearchResultsResponse(results=[]),
             )
-            tasks.append(task)
-
-        # Run all searches concurrently.
-        search_results: List[AResult[List[BaseSearchResultsItem]]] = (
-            await asyncio.gather(*tasks, return_exceptions=False)
+        search_results = await asyncio.gather(
+            *[
+                provider_search.search_async(provider_id=entry.id, query=query)
+                for entry in provider_search.catalog().providers
+            ]
         )
-
-        # Collect results.
         for a_result in search_results:
             if a_result.is_not_ok():
-                if a_result.code() != AResultCode.NOT_IMPLEMENTED:
-                    logger.error(f"Provider search error. {a_result.info()}")
+                logger.error(f"Provider search error. {a_result.info()}")
                 continue
-
-            results.extend(a_result.result())
+            results.extend(a_result.result().results)
 
         # Deduplicate: group by (type, name, artist names) — prefer downloaded items.
         seen: dict[tuple[str, str, tuple[str, ...]], BaseSearchResultsItem] = {}
@@ -665,33 +655,24 @@ class Media:
                 result=MediaResponse(media=a_result.result()[0]),
             )
 
-        elif media_type == MediaTypeEnum.ALBUM:
-            a_result = await provider.get_albums_async(
-                session=session, public_ids=[public_id]
+        elif media_type in (MediaTypeEnum.ALBUM, MediaTypeEnum.PLAYLIST):
+            from backend.core.framework.media.collection import Collection
+
+            collection = await Collection.metadata_async(
+                session=session, public_id=public_id, user_id=user_id
             )
-            if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
+            if collection.is_not_ok():
+                logger.error(f"Error getting collection metadata. {collection.info()}")
+                return AResult(code=collection.code(), message=collection.message())
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
+                result=MediaResponse(media=collection.result()),
             )
 
         elif media_type == MediaTypeEnum.ARTIST:
             a_result = await provider.get_artists_async(
                 session=session, public_ids=[public_id]
-            )
-            if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(
-                code=AResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
-            )
-
-        elif media_type == MediaTypeEnum.PLAYLIST:
-            a_result = await provider.get_playlists_with_medias_async(
-                session=session, user_id=user_id, public_ids=[public_id]
             )
             if a_result.is_not_ok():
                 return AResult(code=a_result.code(), message=a_result.message())

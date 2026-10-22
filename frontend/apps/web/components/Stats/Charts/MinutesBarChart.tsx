@@ -3,7 +3,7 @@
 import { JSX, useMemo } from "react";
 import type { StatsMinutesEntryResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { toLocalHHMM } from "@rockit/packages/shared";
+import { toLocalHHMM } from "@rockit/shared";
 import {
     Bar,
     BarChart,

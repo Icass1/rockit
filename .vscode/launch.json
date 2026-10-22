@@ -119,7 +119,8 @@
             "runtimeArgs": [
                 "expo",
                 "start",
-                "--offline"
+                "--offline",
+                "--go"
             ],
             "cwd": "${workspaceFolder}/frontend/apps/mobile",
             "console": "integratedTerminal",

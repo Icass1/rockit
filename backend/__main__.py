@@ -1,15 +1,16 @@
+import argparse
+import asyncio
 import json
 import os
 import shutil
 import sqlite3
 import sys
 import uuid
-import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
-from concurrent.futures import ThreadPoolExecutor
-import argparse
+from typing import Any
+from tqdm import tqdm
 
 from backend.utils.logger import getLogger
 
@@ -28,6 +29,11 @@ parser.add_argument(
     type=str,
     default="database.db",
     help="Path to the legacy SQLite database.db",
+)
+parser.add_argument(
+    "--user-id",
+    type=int,
+    help="User ID used by commands that operate on one user",
 )
 parser.add_argument("command", nargs="?", help="Command to run")
 args, _ = parser.parse_known_args()
@@ -68,13 +74,13 @@ async def import_vocabulary() -> None:
         workbook.close()
         return
 
-    first_row: List[Any] = [cell.value for cell in sheet[1]]
+    first_row: list[Any] = [cell.value for cell in sheet[1]]
     logger.info(f"Found columns: {first_row}")
 
-    language_columns: List[str] = [str(h) for h in first_row[1:] if h is not None]
+    language_columns: list[str] = [str(h) for h in first_row[1:] if h is not None]
     logger.info(f"Found languages: {language_columns}")
 
-    second_row: List[Any] = [cell.value for cell in sheet[2]]
+    second_row: list[Any] = [cell.value for cell in sheet[2]]
 
     if not second_row or second_row[0] is None:
         logger.error("First column must be 'KEY'")
@@ -84,20 +90,20 @@ async def import_vocabulary() -> None:
         logger.error("First column must be 'KEY'")
         return
 
-    language_code_columns: List[str] = [str(h) for h in second_row[1:] if h is not None]
+    language_code_columns: list[str] = [str(h) for h in second_row[1:] if h is not None]
     logger.info(f"Found languages codes: {language_code_columns}")
 
-    types_content: List[str] = [
+    types_content: list[str] = [
         "// This file is generated using: python3 -m backend import_vocabulary",
         "// Do not modify this file manually.",
         "",
         "export interface Vocabulary {",
     ]
 
-    vocabulary_data: Dict[str, Dict[str, str]] = {
+    vocabulary_data: dict[str, dict[str, str]] = {
         lang: {} for lang in language_code_columns
     }
-    all_keys: List[str] = []
+    all_keys: list[str] = []
 
     max_row: int = sheet.max_row or 0
     for row_idx in range(3, max_row + 1):
@@ -129,8 +135,8 @@ async def import_vocabulary() -> None:
 
     async with rockit_db.session_scope_async() as session:
         from backend.core.framework.language import Language
-        from backend.core.framework.vocabulary import Vocabulary
         from backend.core.framework.models.vocabulary import VocabularyImportData
+        from backend.core.framework.vocabulary import Vocabulary
 
         for lang_name, lang_code in zip(language_columns, language_code_columns):
             a_result = await Language.get_or_create_language(
@@ -173,27 +179,21 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
     """
 
     import requests as req
-
     from sqlalchemy import select, update
 
     from backend.constants import IMAGES_PATH
-    from backend.utils.colorExtractor import extract_dominant_color
-
-    from backend.core.aResult import AResult
     from backend.core.access.db import rockit_db
-    from backend.core.access.imageAccess import ImageAccess
     from backend.core.access.db.ormModels.image import ImageRow
     from backend.core.access.db.ormModels.user import UserRow
-
+    from backend.core.access.imageAccess import ImageAccess
+    from backend.core.aResult import AResult
     from backend.default.access.db.ormModels.playlist import (
         PlaylistRow as DefaultPlaylistRow,
     )
-
     from backend.rockit.access.db.ormModels.album import RockitAlbumRow
     from backend.rockit.access.db.ormModels.artist import RockitArtistRow
     from backend.rockit.access.db.ormModels.song import RockitSongRow
     from backend.rockit.access.db.ormModels.video import RockitVideoRow
-
     from backend.spotify.access.db.ormModels.album import AlbumRow as SpotifyAlbumRow
     from backend.spotify.access.db.ormModels.artist import (
         ArtistRow as SpotifyArtistRow,
@@ -201,7 +201,6 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
     from backend.spotify.access.db.ormModels.playlist import (
         PlaylistRow as SpotifyPlaylistRow,
     )
-
     from backend.spotifyScrapper.access.db.ormModels.album import (
         AlbumRow as ScrapperAlbumRow,
     )
@@ -211,11 +210,10 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
     from backend.spotifyScrapper.access.db.ormModels.playlist import (
         PlaylistRow as ScrapperPlaylistRow,
     )
-
+    from backend.utils.colorExtractor import extract_dominant_color
     from backend.youtube.access.db.ormModels.channel import ChannelRow
     from backend.youtube.access.db.ormModels.playlist import YoutubePlaylistRow
     from backend.youtube.access.db.ormModels.video import VideoRow as YoutubeVideoRow
-
     from backend.youtubeMusic.access.db.ormModels.album import (
         AlbumRow as YoutubeMusicAlbumRow,
     )
@@ -245,7 +243,7 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
         image_folder: str | None = None
         sqlite_table: str | None = None
 
-    spotify_tables: List[Tuple[Any, str, str, str]] = [
+    spotify_tables: list[tuple[Any, str, str, str]] = [
         # (model, label, image folder for new paths, sqlite table for url lookup)
         (SpotifyAlbumRow, "spotify album", "albums", "album"),
         (SpotifyArtistRow, "spotify artist", "artists", "artist"),
@@ -255,7 +253,7 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
         (ScrapperPlaylistRow, "spotify_scrapper playlist", "playlists", "playlist"),
     ]
 
-    keep_tables: List[Tuple[Any, str]] = [
+    keep_tables: list[tuple[Any, str]] = [
         (UserRow, "core user"),
         (DefaultPlaylistRow, "default playlist"),
         (RockitAlbumRow, "rockit album"),
@@ -376,7 +374,7 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
     try:
         async with rockit_db.session_scope_async() as session:
             keep_image_ids: set[int] = set()
-            spotify_refs: Dict[int, List[ImageReference]] = {}
+            spotify_refs: dict[int, list[ImageReference]] = {}
 
             for model, _label in keep_tables:
                 result = await session.execute(select(model.id, model.image_id))
@@ -385,7 +383,7 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
                         keep_image_ids.add(row.image_id)
 
             existing_paths: set[str] = set()
-            a_result_images: AResult[List[ImageRow]] = (
+            a_result_images: AResult[list[ImageRow]] = (
                 await ImageAccess.get_all_images_async(session=session)
             )
             if a_result_images.is_ok():
@@ -410,7 +408,7 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
                         )
                     )
 
-            candidate_ids: List[int] = [
+            candidate_ids: list[int] = [
                 image_id
                 for image_id, refs in spotify_refs.items()
                 if len(refs) + (1 if image_id in keep_image_ids else 0) > 1
@@ -426,7 +424,7 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
             error_count: int = 0
 
             for image_id in sorted(candidate_ids):
-                refs: List[ImageReference] = spotify_refs[image_id]
+                refs: list[ImageReference] = spotify_refs[image_id]
                 has_keep: bool = image_id in keep_image_ids
 
                 a_result_image: AResult[ImageRow] = (
@@ -442,8 +440,8 @@ async def fix_shared_images_async(sqlite_path: str) -> None:
                     continue
                 original_image: ImageRow = a_result_image.result()
 
-                refs_to_keep: List[ImageReference] = []
-                refs_to_split: List[ImageReference] = refs
+                refs_to_keep: list[ImageReference] = []
+                refs_to_split: list[ImageReference] = refs
 
                 if not has_keep:
                     keep_ref: ImageReference | None = None
@@ -563,9 +561,112 @@ async def backfill_dominant_colors() -> None:
         logger.info("Dominant color backfill complete")
 
 
-async def main() -> None:
+async def migrate_media_listened_to_intervals_async(user_id: int) -> None:
+    """Copy historical completed listens into full-media listen intervals."""
+    from sqlalchemy import func, select
+
     from backend.core.access.db import rockit_db
+    from backend.core.access.db.ormModels.media import CoreMediaRow
+    from backend.core.access.db.ormModels.user_media_listen_interval import (
+        UserMediaListenIntervalRow,
+    )
+    from backend.core.access.db.ormModels.user_media_listened import (
+        UserMediaListenedRow,
+    )
+    from backend.core.framework import providers
+
+    async with rockit_db.session_scope_async() as session:
+        await providers.async_init(session=session)
+
+        oldest_interval_date = await session.scalar(
+            select(func.min(UserMediaListenIntervalRow.date_added)).where(
+                UserMediaListenIntervalRow.user_id == user_id
+            )
+        )
+        if oldest_interval_date is None:
+            logger.error(
+                f"No listen interval exists for user {user_id}; cannot determine the migration cutoff"
+            )
+            return
+
+        logger.info(f"Using oldest interval date {oldest_interval_date}")
+
+        listened_rows = (
+            await session.execute(
+                select(UserMediaListenedRow, CoreMediaRow)
+                .join(
+                    CoreMediaRow,
+                    CoreMediaRow.id == UserMediaListenedRow.media_id,
+                )
+                .where(
+                    UserMediaListenedRow.user_id == user_id,
+                    UserMediaListenedRow.date_added < oldest_interval_date,
+                )
+                .order_by(UserMediaListenedRow.date_added)
+            )
+        ).all()
+
+        if not listened_rows:
+            logger.info(
+                f"No user_media_listened rows before {oldest_interval_date} for user {user_id}"
+            )
+            return
+
+        migrated_count = 0
+        skipped_count = 0
+        for listened, media in tqdm(
+            listened_rows, desc="Migrating listened media", unit="media"
+        ):
+            provider = providers.find_media_provider(media.provider_id)
+            if provider is None:
+                logger.error(
+                    f"No provider found for media {media.id} (provider_id={media.provider_id}); skipping"
+                )
+                skipped_count += 1
+                continue
+
+            a_result_duration = await provider.get_media_duration_ms_async(
+                session=session,
+                public_id=media.public_id,
+            )
+            if a_result_duration.is_not_ok():
+                logger.error(
+                    f"Error getting duration for media {media.public_id}. "
+                    f"{a_result_duration.info()}"
+                )
+                skipped_count += 1
+                continue
+
+            duration_ms = a_result_duration.result()
+            if duration_ms <= 0:
+                logger.error(
+                    f"Invalid duration for media {media.public_id}: {duration_ms}; skipping"
+                )
+                skipped_count += 1
+                continue
+
+            interval = UserMediaListenIntervalRow(
+                user_id=user_id,
+                media_id=media.id,
+                time_ms_start=0,
+                time_ms_end=duration_ms,
+            )
+            interval.date_added = listened.date_added
+            logger.debug(
+                f"Added {interval.user_id=} {interval.media_id=} {interval.time_ms_end=} {interval.date_added}"
+            )
+            session.add(interval)
+            migrated_count += 1
+
+        await session.commit()
+        logger.info(
+            f"Migrated {migrated_count} listens for user {user_id}; skipped {skipped_count}"
+        )
+
+
+async def main() -> None:
     from backend.core import add_initial_content_async
+    from backend.core.access.db import rockit_db
 
     # Only init DB for commands that need it.
     needs_db: bool = not command_to_run in ["models"]
@@ -603,8 +704,8 @@ async def main() -> None:
                 await rockit_db.reinit()
 
             elif command == "models":
-                from backend.utils.zodGenerator import generate_zod_schemas
                 from backend.utils.httpMethodsGenerator import http_methods_generator
+                from backend.utils.zodGenerator import generate_zod_schemas
 
                 await generate_zod_schemas()
                 await http_methods_generator()
@@ -624,9 +725,24 @@ async def main() -> None:
             elif command == "backfill-dominant-colors":
                 await backfill_dominant_colors()
 
+            elif command.startswith("migrate-media-listened-to-interval"):
+                parts = command.split()
+                user_id = args.user_id
+                for i, part in enumerate(parts):
+                    if part == "--user-id" and i + 1 < len(parts):
+                        user_id = int(parts[i + 1])
+
+                if user_id is None:
+                    logger.error(
+                        "Usage: migrate-media-listened-to-interval --user-id <int>"
+                    )
+                    continue
+
+                await migrate_media_listened_to_intervals_async(user_id=user_id)
+
             elif command == "cleanup-images":
-                from backend.core.access.imageAccess import ImageAccess
                 from backend.constants import IMAGES_PATH
+                from backend.core.access.imageAccess import ImageAccess
 
                 db_paths: set[str] = set()
                 fs_paths: set[str] = set()
@@ -681,8 +797,8 @@ async def main() -> None:
             elif command == "fix-images":
                 import requests as req
 
-                from backend.core.access.imageAccess import ImageAccess
                 from backend.constants import IMAGES_PATH
+                from backend.core.access.imageAccess import ImageAccess
 
                 async with rockit_db.session_scope_async() as session:
                     a_result = await ImageAccess.get_all_images_async(session=session)

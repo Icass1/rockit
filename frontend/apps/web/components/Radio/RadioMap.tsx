@@ -67,7 +67,7 @@ function MapBounds({
         map.fitBounds(bounds, {
             maxZoom: 4,
             animate: false,
-            paddingTopLeft: size.x >= 768 ? [420, 32] : [24, 180],
+            paddingTopLeft: size.x >= 768 && size.y >= 404 ? [420, 128] : [24, 180],
             paddingBottomRight: size.x >= 768 ? [32, 32] : [24, size.y * 0.45],
         });
     }, [map, selectedCountry, countries]);

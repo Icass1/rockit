@@ -22,7 +22,10 @@ export default function LyricsPanel({
     const activeLineRef = useRef<HTMLParagraphElement>(null);
 
     useEffect(() => {
-        if (!currentMedia) return;
+        setLyrics(undefined);
+        setLoading(false);
+        if (currentMedia?.type !== "song") return;
+        setLoading(true);
 
         let cancelled = false;
 

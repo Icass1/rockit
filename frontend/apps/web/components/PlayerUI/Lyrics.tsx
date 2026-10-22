@@ -28,13 +28,18 @@ function Lyrics(): JSX.Element {
     const [lyrics, setLyrics] = useState<BaseLyricsResponse>();
 
     useEffect(() => {
-        if (!$currentMedia) return;
+        setLyrics(undefined);
+        if ($currentMedia?.type !== "song") return;
+        let cancelled = false;
 
         Http.getLyricsAsync($currentMedia.publicId).then((response) => {
-            if (response.isOk()) {
+            if (!cancelled && response.isOk()) {
                 setLyrics(response.result);
             }
         });
+        return (): void => {
+            cancelled = true;
+        };
     }, [$currentMedia]);
 
     return (
@@ -94,14 +99,22 @@ function DynamicLyrics(): JSX.Element {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!$currentMedia) return;
+        setLyrics(undefined);
+        setLoading(false);
+        if ($currentMedia?.type !== "song") return;
+        setLoading(true);
+        let cancelled = false;
 
         Http.getDynamicLyricsAsync($currentMedia.publicId).then((response) => {
+            if (cancelled) return;
             if (response.isOk()) {
                 setLyrics(response.result);
             }
             setLoading(false);
         });
+        return (): void => {
+            cancelled = true;
+        };
     }, [$currentMedia]);
 
     const currentIndex = useMemo(() => {

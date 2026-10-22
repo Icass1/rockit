@@ -13,14 +13,22 @@ export function PiPLyrics(): JSX.Element | null {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!$currentMedia) return;
+        setLyrics(undefined);
+        setLoading(false);
+        if ($currentMedia?.type !== "song") return;
+        setLoading(true);
+        let cancelled = false;
 
         Http.getLrclibLyricsAsync($currentMedia.publicId).then((response) => {
+            if (cancelled) return;
             if (response.isOk()) {
                 setLyrics(response.result);
             }
             setLoading(false);
         });
+        return (): void => {
+            cancelled = true;
+        };
     }, [$currentMedia]);
 
     const syncedLines = useMemo(() => {

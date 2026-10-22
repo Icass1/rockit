@@ -72,8 +72,19 @@ YOUTUBE_URL_PATTERNS: list[UrlPattern] = [
 class YoutubeProvider(BaseMediaProvider):
     """Provider implementation for YouTube video and channel media."""
 
+    def download_concurrency_limit(self) -> int:
+        return 1
 
+    def download_cooldown_remaining(self) -> float:
+        from backend.youtube.framework.youtubeGate import youtube_gate
 
+        return youtube_gate.cooldown_remaining()
+
+    async def check_health_async(self) -> AResultCode:
+        from backend.youtube.framework.potProvider import PotProvider
+
+        health = await PotProvider.check_health_async()
+        return AResultCode(code=health.code(), message=health.message())
 
     def can_manage_downloads(self) -> bool:
         return True

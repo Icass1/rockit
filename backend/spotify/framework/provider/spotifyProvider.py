@@ -66,6 +66,10 @@ SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyProvider(BaseMediaProvider):
+    def download_cooldown_remaining(self) -> float:
+        from backend.youtube.framework.youtubeGate import youtube_gate
+
+        return youtube_gate.cooldown_remaining()
 
     def can_manage_downloads(self) -> bool:
         return True

@@ -35,6 +35,11 @@ logger: Logger = getLogger(__name__)
 
 
 class DefaultProvider(BaseMediaProvider):
+    def download_concurrency_limit(self) -> int:
+        return 2
+
+
+
     def __init__(self) -> None:
         super().__init__()
 

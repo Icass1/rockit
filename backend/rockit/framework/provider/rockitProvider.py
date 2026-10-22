@@ -37,6 +37,9 @@ logger: Logger = getLogger(__name__)
 
 
 class RockItProvider(BaseMediaProvider, BaseUploadProvider):
+    def download_concurrency_limit(self) -> int:
+        return 3
+
     def __init__(self) -> None:
         super().__init__()
 

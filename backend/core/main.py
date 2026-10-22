@@ -18,7 +18,7 @@ from backend.core.access.db import rockit_db
 
 from backend.core.framework.downloader import downloads_manager
 
-from backend.youtube.framework.potProvider import PotProvider
+from backend.core.framework import providers
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 os.environ["TERM"] = "xterm"
@@ -110,10 +110,13 @@ async def app_startup():
 
     await rockit_db.wait_for_session_local_async()
 
-    # Keep the API available when download prerequisites need operator action.
-    a_result_provider = await PotProvider.check_health_async()
-    if a_result_provider.is_not_ok():
-        logger.error(f"YouTube downloader is not ready: {a_result_provider.message()}")
+    # Provider health failures do not prevent the API from starting.
+    for provider in providers.get_providers():
+        health = await provider.check_health_async()
+        if health.is_not_ok():
+            logger.error(
+                f"Provider {provider.get_name()} is not ready: {health.message()}"
+            )
 
     asyncio.create_task(downloads_manager.download_manager(), name="Download Manager")
     # asyncio.create_task(telegram_bot_task(), name="Rockit Telegram Bot")

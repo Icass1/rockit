@@ -3,6 +3,7 @@ from pydantic import BaseModel, field_serializer
 
 from backend.core.enums.queueTypeEnum import QueueTypeEnum
 
+from backend.core.responses.baseStationResponse import BaseStationResponse
 from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseSongWithoutAlbumResponse import (
@@ -13,7 +14,12 @@ from backend.core.responses.baseSongWithoutAlbumResponse import (
 class QueueResponseItem(BaseModel):
     queueMediaId: int
     listPublicId: str | None
-    media: BaseSongWithAlbumResponse | BaseVideoResponse | BaseSongWithoutAlbumResponse
+    media: (
+        BaseSongWithAlbumResponse
+        | BaseVideoResponse
+        | BaseSongWithoutAlbumResponse
+        | BaseStationResponse
+    )
     randomIndex: int
     sortedIndex: int
 

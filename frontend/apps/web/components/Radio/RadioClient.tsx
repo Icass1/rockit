@@ -141,7 +141,7 @@ export default function RadioClient(): JSX.Element {
     const failed = browsing ? error : Boolean(library.error);
     return (
         <div className="relative isolate h-full min-h-0 w-full overflow-hidden md:-mt-24 md:h-[calc(100%+96px)]">
-            <div className="absolute inset-0 z-0 md:[&_.leaflet-top]:top-24">
+            <div className="absolute inset-0 z-0 md:[&_.leaflet-top]:top-24!">
                 <RadioMap
                     onCountryClick={selectCountry}
                     selectedCountry={country}

@@ -72,6 +72,12 @@ YOUTUBE_URL_PATTERNS: list[UrlPattern] = [
 class YoutubeProvider(BaseMediaProvider):
     """Provider implementation for YouTube video and channel media."""
 
+
+
+
+    def can_manage_downloads(self) -> bool:
+        return True
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -299,7 +305,7 @@ class YoutubeProvider(BaseMediaProvider):
         self, metadata: dict[str, Any], media_type_key: int
     ) -> str:
         """Build a source link without loading collection contents."""
-        external_id = metadata.get("youtube_id")
+        external_id = metadata.get("external_id") or metadata.get("youtube_id")
         if not external_id:
             return ""
         return (

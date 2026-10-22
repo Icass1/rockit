@@ -28,3 +28,6 @@ from backend.spotifyScrapper.access.db.ormModels.track import (
 
 schemas = ["spotify_scrapper"]
 base = SpotifyScrapperBase
+
+# Register local storage independently of remote provider activation.
+from backend.spotifyScrapper.access import downloadStorage as downloadStorage

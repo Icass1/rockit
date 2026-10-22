@@ -31,7 +31,7 @@ logger: Logger = getLogger(__name__)
 
 
 class BaseMediaProvider(BaseProvider):
-    """Base class for media providers (Spotify, YouTube, etc.)."""
+    """Shared contract for media providers."""
 
     def start_download(self, publicId: str) -> AResult[BaseDownload]:
         logger.warning(
@@ -250,3 +250,8 @@ class BaseMediaProvider(BaseProvider):
         has no contribution.
         """
         return None
+
+    def can_manage_downloads(self) -> bool:
+        return False
+
+

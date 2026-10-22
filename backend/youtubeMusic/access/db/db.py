@@ -9,3 +9,6 @@ from backend.youtubeMusic.access.db.ormModels.track import TrackRow as TrackRow
 
 schemas = ["youtube_music", "youtube_music_cache"]
 base = YoutubeMusicBase
+
+# Register local storage independently of remote provider activation.
+from backend.youtubeMusic.access import downloadStorage as downloadStorage

@@ -1087,6 +1087,16 @@ export class BaseHttp {
         );
     }
 
+    static async searchStations(q: string) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("q", `${q}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/radio/search${queryString ? `?${queryString}` : ""}`,
+            dto.SearchResultsResponseSchema
+        );
+    }
+
     static async getStation(publicId: string) {
         return this.apiGetAsync(
             `/radio/station/${publicId}`,

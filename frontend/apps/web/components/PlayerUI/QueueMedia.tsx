@@ -52,8 +52,10 @@ export function QueueMedia({
             <div className="relative shrink-0">
                 <Image
                     src={
-                        media.media.imageUrl ??
-                        rockIt.SONG_PLACEHOLDER_IMAGE_URL
+                        media.media.imageUrl ||
+                        (media.media.type === "station"
+                            ? "/radio-placeholder.png"
+                            : rockIt.SONG_PLACEHOLDER_IMAGE_URL)
                     }
                     alt={media.media.name}
                     className={`h-12 w-12 rounded object-cover ${isCurrent ? "brightness-50" : ""}`}

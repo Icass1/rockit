@@ -68,7 +68,7 @@ export class LibraryManager {
                 rockIt.notificationManager.notifyError(res.message);
             } else {
                 rockIt.notificationManager.notifySuccess(
-                    `"${media.name}" added to library`
+                    `"${media.name}" ${rockIt.vocabularyManager.vocabulary.ADDED_TO_LIBRARY}`
                 );
             }
         }

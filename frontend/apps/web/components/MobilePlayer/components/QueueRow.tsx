@@ -3,6 +3,7 @@
 import type { JSX } from "react";
 import { getMediaArtistsString, type TPlayableMedia } from "@rockit/shared";
 import { GripVertical, Trash2 } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator";
 
 interface QueueRowProps {
@@ -46,7 +47,12 @@ export default function QueueRow({
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                    src={media.imageUrl}
+                    src={
+                        media.imageUrl ||
+                        (media.type === "station"
+                            ? "/radio-placeholder.png"
+                            : rockIt.SONG_PLACEHOLDER_IMAGE_URL)
+                    }
                     alt=""
                     loading="lazy"
                     className={`h-11.5 w-11.5 shrink-0 rounded bg-(--color-surface) object-cover ${

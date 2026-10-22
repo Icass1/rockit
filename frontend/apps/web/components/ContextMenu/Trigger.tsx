@@ -41,7 +41,6 @@ export default function ContextMenuTrigger({
 
         // Ignore contextmenu if it was triggered by a handled long-press
         if (longPressFired.current) {
-            longPressFired.current = false;
             event.preventDefault();
             return;
         }
@@ -92,7 +91,7 @@ export default function ContextMenuTrigger({
         if (openOnLeftClick || !_setContextMenuOpen || !_setContextMenuPos)
             return;
 
-        event.preventDefault();
+        longPressFired.current = false;
 
         const touch = event.touches[0];
         touchStartPos.current = { x: touch.clientX, y: touch.clientY };
@@ -132,6 +131,12 @@ export default function ContextMenuTrigger({
             tabIndex={openOnLeftClick ? 0 : undefined}
             aria-haspopup={openOnLeftClick ? "dialog" : undefined}
             aria-expanded={openOnLeftClick ? _contextMenuOpen : undefined}
+            onClickCapture={(event): void => {
+                if (!longPressFired.current) return;
+                event.preventDefault();
+                event.stopPropagation();
+                longPressFired.current = false;
+            }}
             onKeyDown={(event): void => {
                 if (
                     !openOnLeftClick ||
@@ -152,6 +157,7 @@ export default function ContextMenuTrigger({
                     ? "rounded-lg focus-visible:outline-2 focus-visible:outline-white"
                     : undefined
             }
+            onTouchCancel={clearLongPress}
             onContextMenu={handleContextMenu}
             onClick={handleClick}
             onTouchStart={handleTouchStart}

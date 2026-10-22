@@ -215,6 +215,17 @@ class User:
                         provider_id=provider_id,
                     )
                 )
+            elif media_type_key == MediaTypeEnum.RADIO.value:
+                task = provider_instance.get_stations_async(
+                    session=session, public_ids=public_ids
+                )
+                tasks.append(
+                    LibraryTask(
+                        coroutine=task,
+                        media_type="stations",
+                        provider_id=provider_id,
+                    )
+                )
             else:
                 logger.warning(
                     f"Unsupported media type {MediaTypeEnum(media_type_key)} in user library. Skipping."

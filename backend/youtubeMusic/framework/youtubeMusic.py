@@ -695,7 +695,10 @@ class YoutubeMusic:
     @staticmethod
     @time_it
     async def search_media_async(
-        session: AsyncSession, query: str
+        session: AsyncSession,
+        query: str,
+        limit: int = 15,
+        media_type: str | None = None,
     ) -> AResult[List[BaseSearchResultsItem]]:
         """Search YouTube Music and return songs, artists, albums and playlists."""
 
@@ -705,10 +708,34 @@ class YoutubeMusic:
             a_albums,
             a_playlists,
         ) = await asyncio.gather(
-            YoutubeMusicApi.search_track_async(query=query, max_results=15),
-            YoutubeMusicApi.search_artists_async(query=query, max_results=15),
-            YoutubeMusicApi.search_albums_async(query=query, max_results=15),
-            YoutubeMusicApi.search_playlists_async(query=query, max_results=15),
+            (
+                YoutubeMusicApi.search_track_async(query=query, max_results=limit)
+                if media_type in (None, "song")
+                else asyncio.sleep(
+                    0, result=AResult(code=AResultCode.OK, message="OK", result=[])
+                )
+            ),
+            (
+                YoutubeMusicApi.search_artists_async(query=query, max_results=limit)
+                if media_type in (None, "artist")
+                else asyncio.sleep(
+                    0, result=AResult(code=AResultCode.OK, message="OK", result=[])
+                )
+            ),
+            (
+                YoutubeMusicApi.search_albums_async(query=query, max_results=limit)
+                if media_type in (None, "album")
+                else asyncio.sleep(
+                    0, result=AResult(code=AResultCode.OK, message="OK", result=[])
+                )
+            ),
+            (
+                YoutubeMusicApi.search_playlists_async(query=query, max_results=limit)
+                if media_type in (None, "playlist")
+                else asyncio.sleep(
+                    0, result=AResult(code=AResultCode.OK, message="OK", result=[])
+                )
+            ),
         )
 
         result: List[BaseSearchResultsItem] = []

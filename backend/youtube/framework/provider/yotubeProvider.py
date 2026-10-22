@@ -84,6 +84,10 @@ class YoutubeProvider(BaseMediaProvider):
         self._id = provider_id
         self._name = provider_name
 
+    def search_on_demand(self) -> bool:
+        """A Data API search costs 100 quota units: require explicit video intent."""
+        return True
+
     @time_it
     async def search_media_async(
         self, session: AsyncSession, query: str

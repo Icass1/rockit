@@ -224,10 +224,12 @@ class SpotifyScrapperApi:
                 message=f"Error fetching playlist {id}: {e}",
             )
 
-    async def search_async(self, query: str) -> AResult[ScrappedSearchResults]:
+    async def search_async(
+        self, query: str, limit: int = 10
+    ) -> AResult[ScrappedSearchResults]:
         try:
             async with AsyncSpotifyClient(timeout=15.0) as client:
-                results = await client.search(query, limit=10)
+                results = await client.search(query, limit=limit)
                 return AResult(
                     code=AResultCode.OK,
                     message="OK",

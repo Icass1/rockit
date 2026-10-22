@@ -325,35 +325,25 @@ class Media:
 
         results: List[BaseSearchResultsItem] = []
 
-        tasks: List[asyncio.Task[AResult[List[BaseSearchResultsItem]]]] = []
+        from backend.core.framework.media.search import provider_search
 
-        for provider in providers.get_media_providers():
-            a_result_id: AResult[int] = provider.get_id()
-            if a_result_id.is_not_ok():
-                logger.error(f"Skipping provider with no id. {a_result_id.info()}")
-                continue
-
-            # Schedule provider search
-            task: asyncio.Task[AResult[List[BaseSearchResultsItem]]] = (
-                asyncio.create_task(
-                    provider.search_media_async(session=session, query=query)
-                )
+        if len(query.strip()) < 2:
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=SearchResultsResponse(results=[]),
             )
-            tasks.append(task)
-
-        # Run all searches concurrently.
-        search_results: List[AResult[List[BaseSearchResultsItem]]] = (
-            await asyncio.gather(*tasks, return_exceptions=False)
+        search_results = await asyncio.gather(
+            *[
+                provider_search.search_async(provider_id=entry.id, query=query)
+                for entry in provider_search.catalog().providers
+            ]
         )
-
-        # Collect results.
         for a_result in search_results:
             if a_result.is_not_ok():
-                if a_result.code() != AResultCode.NOT_IMPLEMENTED:
-                    logger.error(f"Provider search error. {a_result.info()}")
+                logger.error(f"Provider search error. {a_result.info()}")
                 continue
-
-            results.extend(a_result.result())
+            results.extend(a_result.result().results)
 
         # Deduplicate: group by (type, name, artist names) — prefer downloaded items.
         seen: dict[tuple[str, str, tuple[str, ...]], BaseSearchResultsItem] = {}

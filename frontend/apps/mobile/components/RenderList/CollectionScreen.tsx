@@ -9,9 +9,9 @@ import {
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
 import { View } from "react-native";
+import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import CollectionControls from "@/components/RenderList/CollectionControls";
 import CollectionFooter from "@/components/RenderList/CollectionFooter";
-import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import RenderList from "@/components/RenderList/RenderList";
 
 export default function CollectionScreen({ publicId }: { publicId: string }) {

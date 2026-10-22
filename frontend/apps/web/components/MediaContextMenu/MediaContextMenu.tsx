@@ -51,9 +51,9 @@ import PlayAction from "@/components/MediaContextMenu/actions/PlayAction";
 import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAction";
 import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/RemoveFromPlaylistAction";
 import SaveOfflineAction from "@/components/MediaContextMenu/actions/SaveOfflineAction";
-import SimilarSongsAction from "@/components/MediaContextMenu/actions/SimilarSongsAction";
 import SaveOfflineListAction from "@/components/MediaContextMenu/actions/SaveOfflineListAction";
 import ShareAction from "@/components/MediaContextMenu/actions/ShareAction";
+import SimilarSongsAction from "@/components/MediaContextMenu/actions/SimilarSongsAction";
 import {
     AddSongQueueRandomAction,
     AddSongToQueueBottomAction,

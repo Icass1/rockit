@@ -152,29 +152,27 @@ export default function PlayerUIQueue({
                     <p className="mt-4 border-t border-neutral-700 px-2 pt-4 text-sm font-semibold text-neutral-400">
                         {$vocabulary.AUTOPLAY_ON}
                     </p>
-                    {$autoplay.map(
-                        (media): JSX.Element => (
-                            <MediaContextMenu
-                                key={media.publicId}
-                                media={media}
-                                location={EMediaContextLocation.QUEUE}
-                            >
-                                <QueueMedia
-                                    // Negative ids never collide with the real
-                                    // queue, so these rows never render as the
-                                    // currently playing one.
-                                    media={{
-                                        media,
-                                        listPublicId: null,
-                                        queueMediaId: -1,
-                                    }}
-                                    onClick={(): void => {
-                                        rockIt.queueManager.addMediaNext(media);
-                                    }}
-                                />
-                            </MediaContextMenu>
-                        )
-                    )}
+                    {$autoplay.map((media): JSX.Element => (
+                        <MediaContextMenu
+                            key={media.publicId}
+                            media={media}
+                            location={EMediaContextLocation.QUEUE}
+                        >
+                            <QueueMedia
+                                // Negative ids never collide with the real
+                                // queue, so these rows never render as the
+                                // currently playing one.
+                                media={{
+                                    media,
+                                    listPublicId: null,
+                                    queueMediaId: -1,
+                                }}
+                                onClick={(): void => {
+                                    rockIt.queueManager.addMediaNext(media);
+                                }}
+                            />
+                        </MediaContextMenu>
+                    ))}
                 </>
             )}
         </div>

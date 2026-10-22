@@ -45,26 +45,25 @@ export default function PlayerRelated() {
     const [downloadingKeys, setDownloadingKeys] = useState<Set<string>>(
         new Set()
     );
-    const [loading, setLoading] = useState(true);
+    const [loadedSeed, setLoadedSeed] = useState<string | undefined>();
 
     const seedPublicId = currentMedia?.publicId;
+    const isCurrentSeed =
+        seedPublicId !== undefined && loadedSeed === seedPublicId;
+    const visibleSongs = isCurrentSeed ? songs : [];
+    const visibleDiscover = isCurrentSeed ? discover : [];
+    const loading = seedPublicId !== undefined && !isCurrentSeed;
 
     useEffect(() => {
+        if (!seedPublicId) return;
+
         let cancelled = false;
 
-        if (!seedPublicId) {
-            setSongs([]);
-            setDiscover([]);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
         Http.getRelatedSongs(seedPublicId, RELATED_LIMIT).then((response) => {
             if (cancelled) return;
             setSongs(response.isOk() ? response.result.songs : []);
             setDiscover(response.isOk() ? response.result.discover : []);
-            setLoading(false);
+            setLoadedSeed(seedPublicId);
         });
 
         return () => {
@@ -159,7 +158,7 @@ export default function PlayerRelated() {
         );
     }
 
-    if (songs.length === 0 && discover.length === 0) {
+    if (visibleSongs.length === 0 && visibleDiscover.length === 0) {
         return (
             <View style={styles.center}>
                 <Radio size={40} color={COLORS.gray400} />
@@ -179,14 +178,14 @@ export default function PlayerRelated() {
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
         >
-            {songs.length > 0 && (
+            {visibleSongs.length > 0 && (
                 <>
                     <View style={styles.header}>
                         <Text style={styles.headerTitle}>
                             {$vocabulary.PLAYER_RELATED_TITLE}
                         </Text>
                     </View>
-                    {songs.map((item) => {
+                    {visibleSongs.map((item) => {
                         const needsDownload =
                             isDownloadable(item) && !item.downloaded;
                         const isDownloading = downloadingKeys.has(
@@ -245,14 +244,14 @@ export default function PlayerRelated() {
                 </>
             )}
 
-            {discover.length > 0 && (
+            {visibleDiscover.length > 0 && (
                 <>
                     <View style={styles.header}>
                         <Text style={styles.headerTitle}>
                             {$vocabulary.PLAYER_DISCOVER_TITLE}
                         </Text>
                     </View>
-                    {discover.map((item) => {
+                    {visibleDiscover.map((item) => {
                         const key = getDiscoverKey(item);
                         const isDownloading = downloadingKeys.has(key);
                         const inLibrary = isDiscoverItemInLibrary(item);

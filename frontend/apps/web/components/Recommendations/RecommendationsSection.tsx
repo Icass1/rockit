@@ -209,15 +209,13 @@ export default function RecommendationsSection({
             </h2>
             {songs.length > 0 && (
                 <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                    {songs.map(
-                        (song): JSX.Element => (
-                            <KnownSongCard
-                                key={song.publicId}
-                                song={song}
-                                queue={songs}
-                            />
-                        )
-                    )}
+                    {songs.map((song): JSX.Element => (
+                        <KnownSongCard
+                            key={song.publicId}
+                            song={song}
+                            queue={songs}
+                        />
+                    ))}
                 </div>
             )}
             {discover.length > 0 && (
@@ -226,17 +224,15 @@ export default function RecommendationsSection({
                         {discoverTitle}
                     </h3>
                     <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
-                        {discover.map(
-                            (item): JSX.Element => (
-                                <DiscoverCard
-                                    key={
-                                        item.providerUrl ||
-                                        `${item.artists[0]?.name ?? ""}-${item.name}`
-                                    }
-                                    item={item}
-                                />
-                            )
-                        )}
+                        {discover.map((item): JSX.Element => (
+                            <DiscoverCard
+                                key={
+                                    item.providerUrl ||
+                                    `${item.artists[0]?.name ?? ""}-${item.name}`
+                                }
+                                item={item}
+                            />
+                        ))}
                     </div>
                 </>
             )}

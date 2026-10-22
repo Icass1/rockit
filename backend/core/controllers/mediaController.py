@@ -456,9 +456,7 @@ async def add_from_url_async(
     user: UserRow = a_result_user.result()
 
     if payload.addToPlaylist and payload.playlistPublicId:
-        from backend.default.framework.playlist import Playlist
-
-        a_result_add_to_playlist = await Playlist.add_media_to_playlist_async(
+        a_result_add_to_playlist = await providers.add_media_to_playlist_async(
             session=session,
             playlist_public_id=payload.playlistPublicId,
             user_id=user.id,

@@ -10,6 +10,7 @@ import {
     Popup,
     Tooltip,
     useMap,
+    ZoomControl,
 } from "react-leaflet";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
@@ -32,7 +33,13 @@ interface CountryProperties {
 
 const WORLD_BOUNDS = L.latLngBounds([-90, -180], [90, 180]);
 
-function MapBounds(): null {
+function MapBounds({
+    selectedCountry,
+    countries,
+}: {
+    selectedCountry: string | null;
+    countries: FeatureCollection | null;
+}): null {
     const map = useMap();
     const initialized = useRef(false);
 
@@ -42,6 +49,28 @@ function MapBounds(): null {
             initialized.current = true;
         }
     }, [map]);
+
+    useEffect(() => {
+        const observer = new ResizeObserver(() => map.invalidateSize());
+        observer.observe(map.getContainer());
+        return (): void => observer.disconnect();
+    }, [map]);
+
+    useEffect(() => {
+        if (!selectedCountry || !countries) return;
+        const selected = countries.features.filter(
+            (country) => country.properties?.name === selectedCountry
+        );
+        const bounds = L.geoJSON(selected).getBounds();
+        if (!bounds.isValid()) return;
+        const size = map.getSize();
+        map.fitBounds(bounds, {
+            maxZoom: 4,
+            animate: false,
+            paddingTopLeft: size.x >= 768 ? [420, 32] : [24, 180],
+            paddingBottomRight: size.x >= 768 ? [32, 32] : [24, size.y * 0.45],
+        });
+    }, [map, selectedCountry, countries]);
 
     return null;
 }
@@ -260,49 +289,24 @@ export default function RadioMap({
     }, []);
 
     return (
-        <div className="radio-map-container w-full overflow-hidden rounded-2xl border border-white/10">
-            <div className="flex flex-wrap items-center gap-3 bg-neutral-900 p-3">
-                <select
-                    aria-label={vocabulary.RADIO_COUNTRY}
-                    value={selectedCountry ?? ""}
-                    onChange={(event): void => {
-                        if (event.target.value)
-                            onCountryClick(event.target.value);
-                    }}
-                    className="min-h-11 max-w-full rounded-lg border border-white/10 bg-neutral-950 px-3 text-sm text-white"
-                >
-                    <option value="">{vocabulary.RADIO_COUNTRY}</option>
-                    {[
-                        ...new Set(
-                            countries?.features.map((f) =>
-                                String(f.properties?.name)
-                            ) ?? []
-                        ),
-                    ]
-                        .sort()
-                        .map((name) => (
-                            <option key={name} value={name}>
-                                {name}
-                            </option>
-                        ))}
-                </select>
-                <p className="flex-1 text-xs text-neutral-400">
-                    {vocabulary.RADIO_MAP_HINT}
-                </p>
-            </div>
+        <div className="radio-map-container h-full w-full overflow-hidden [&_.leaflet-control-zoom_a]:h-11 [&_.leaflet-control-zoom_a]:w-11 [&_.leaflet-control-zoom_a]:leading-11">
             <MapContainer
                 center={[20, 0]}
                 zoom={2}
                 minZoom={2}
                 maxZoom={6}
-                zoomControl={true}
+                zoomControl={false}
                 attributionControl={false}
                 dragging={true}
-                scrollWheelZoom={false}
-                doubleClickZoom={false}
-                className="h-75 w-full md:h-100"
+                scrollWheelZoom={true}
+                doubleClickZoom={true}
+                className="h-full w-full"
             >
-                <MapBounds />
+                <MapBounds
+                    selectedCountry={selectedCountry}
+                    countries={countries}
+                />
+                <ZoomControl position="topright" />
                 {countries && (
                     <GeoJSON
                         key={selectedCountry ?? "default"}

@@ -34,7 +34,10 @@ export default function ArtistsSection({
                                 width={350}
                                 height={350}
                                 className="aspect-square w-full rounded-full object-cover select-none"
-                                src={artist.imageUrl || "/logo-banner.png"}
+                                src={
+                                    artist.imageUrl?.trim() ||
+                                    "/logo-banner.png"
+                                }
                                 alt={artist.name}
                             />
                             <span className="mt-2 block truncate text-center font-semibold">

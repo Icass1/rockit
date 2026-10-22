@@ -34,7 +34,9 @@ export default function SongsSection({
                                 width={350}
                                 height={350}
                                 className="aspect-square w-full rounded-lg object-cover select-none"
-                                src={song.imageUrl || "/logo-banner.png"}
+                                src={
+                                    song.imageUrl?.trim() || "/logo-banner.png"
+                                }
                                 alt={$vocabulary.COVER_OF.replace(
                                     "{name}",
                                     song.name

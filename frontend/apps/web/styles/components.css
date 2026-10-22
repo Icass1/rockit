@@ -224,6 +224,10 @@ img {
     outline: none;
 }
 
+.radio-map-container .leaflet-dragging .radio-country {
+    pointer-events: none;
+}
+
 .radio-map-container .leaflet-tile-pane {
     filter: brightness(0.8) contrast(1.2);
 }

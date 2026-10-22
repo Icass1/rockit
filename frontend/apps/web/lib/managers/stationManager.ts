@@ -9,6 +9,11 @@ import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
 
+function trimImageUrl<T extends { imageUrl: string }>(item: T): T {
+    const imageUrl = item.imageUrl.trim();
+    return imageUrl === item.imageUrl ? item : { ...item, imageUrl };
+}
+
 export class StationManager {
     private _currentStationAtom = createAtom<BaseStationResponse | undefined>();
     private _countries = new Map<
@@ -49,7 +54,9 @@ export class StationManager {
                 )
             );
             if (!result.isOk()) throw new Error(result.message);
-            return BaseStationResponseSchema.array().parse(result.result);
+            return BaseStationResponseSchema.array()
+                .parse(result.result)
+                .map(trimImageUrl);
         });
     }
 
@@ -61,7 +68,7 @@ export class StationManager {
             async () => {
                 const result = await Http.searchStations(normalized);
                 if (!result.isOk()) throw new Error(result.message);
-                return result.result.results;
+                return result.result.results.map(trimImageUrl);
             }
         );
     }
@@ -85,7 +92,7 @@ export class StationManager {
         return this.cached(this._stations, publicId, async () => {
             const result = await Http.getStation(publicId);
             if (!result.isOk()) throw new Error(result.message);
-            return result.result;
+            return trimImageUrl(result.result);
         });
     }
 
@@ -98,9 +105,10 @@ export class StationManager {
             );
             return;
         }
-        this._currentStationAtom.set(station);
-        rockIt.queueManager.setMedia([station], station.publicId);
-        rockIt.queueManager.moveToMedia(station.publicId);
+        const cleanStation = trimImageUrl(station);
+        this._currentStationAtom.set(cleanStation);
+        rockIt.queueManager.setMedia([cleanStation], cleanStation.publicId);
+        rockIt.queueManager.moveToMedia(cleanStation.publicId);
         rockIt.mediaPlayerManager.play();
     }
 

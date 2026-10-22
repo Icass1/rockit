@@ -17,6 +17,7 @@ import type { Topology } from "topojson-specification";
 import worldData from "world-atlas/countries-110m.json";
 import "leaflet/dist/leaflet.css";
 import { useStore } from "@nanostores/react";
+import { Play } from "lucide-react";
 import type { BaseStationResponse } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -234,6 +235,7 @@ function getCountryStyle(
         const isSelected = props?.name === selected;
 
         return {
+            className: "radio-country",
             fillColor: isSelected ? "#ee1086" : "#27272a",
             fillOpacity: isSelected ? 0.6 : 1,
             color: isSelected ? "#ee1086" : "rgba(255, 255, 255, 0.15)",
@@ -281,6 +283,36 @@ function onEachCountryFeature(
     };
 }
 
+function MapHoverReset({
+    selectedCountry,
+}: {
+    selectedCountry: string | null;
+}): null {
+    const map = useMap();
+
+    useEffect(() => {
+        const reset = (): void => {
+            map.eachLayer((layer) => {
+                if (!(layer instanceof L.GeoJSON)) return;
+                layer.eachLayer((child) => {
+                    const path = child as L.Path & {
+                        feature?: GeoJSON.Feature;
+                    };
+                    if (typeof path.setStyle !== "function") return;
+                    path.closeTooltip();
+                    path.setStyle(getCountryStyle(selectedCountry)(path.feature));
+                });
+            });
+        };
+        map.on("dragstart", reset);
+        return (): void => {
+            map.off("dragstart", reset);
+        };
+    }, [map, selectedCountry]);
+
+    return null;
+}
+
 /* ── Component ─────────────────────────────────────────── */
 
 export default function RadioMap({
@@ -300,7 +332,8 @@ export default function RadioMap({
         for (let world = -worldRadius; world <= worldRadius; world++) {
             for (const station of savedStations) {
                 const image = document.createElement("img");
-                image.src = station.imageUrl || "/radio-placeholder.png";
+                image.src =
+                    station.imageUrl?.trim() || "/radio-placeholder.png";
                 image.alt = "";
                 image.width = 44;
                 image.height = 44;
@@ -399,6 +432,7 @@ export default function RadioMap({
                     countries={countries}
                     onWorldRadiusChange={setWorldRadius}
                 />
+                <MapHoverReset selectedCountry={selectedCountry} />
                 <ZoomControl position="topright" />
                 {countries &&
                     worlds.map((world) => (
@@ -431,7 +465,7 @@ export default function RadioMap({
                         .map((station) => (
                             <Marker
                                 key={`${station.publicId}:${world}`}
-                                center={[
+                                position={[
                                     station.geoLat!,
                                     station.geoLong! + world * 360,
                                 ]}
@@ -443,17 +477,24 @@ export default function RadioMap({
                             >
                                 <Tooltip>{station.name}</Tooltip>
                                 <Popup>
-                                    <p>{station.name}</p>
-                                    <button
-                                        className="min-h-11 cursor-pointer font-semibold"
-                                        onClick={(): void => {
-                                            void rockIt.stationManager.setAndPlayStation(
-                                                station
-                                            );
-                                        }}
-                                    >
-                                        {vocabulary.PLAY}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <p className="m-0 font-semibold">
+                                            {station.name}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            aria-label={`${vocabulary.PLAY}: ${station.name}`}
+                                            title={vocabulary.PLAY}
+                                            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-pink-500 text-white transition-colors hover:bg-pink-600"
+                                            onClick={(): void => {
+                                                void rockIt.stationManager.setAndPlayStation(
+                                                    station
+                                                );
+                                            }}
+                                        >
+                                            <Play className="h-4 w-4 fill-current" />
+                                        </button>
+                                    </div>
                                 </Popup>
                             </Marker>
                         ))

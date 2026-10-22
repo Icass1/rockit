@@ -10,6 +10,7 @@ import {
     type BaseStationResponse,
 } from "@rockit/shared";
 import {
+    AudioLines,
     Check,
     Library,
     ListEnd,
@@ -38,7 +39,7 @@ export default function RadioStationItem({
     const loading = useStore(rockIt.mediaPlayerManager.loadingAtom);
     const [busy, setBusy] = useState(false);
     const [image, setImage] = useState(
-        station.imageUrl || "/radio-placeholder.png"
+        station.imageUrl?.trim() || "/radio-placeholder.png"
     );
     const id = isSearchResult(station)
         ? (station.url || station.providerUrl).split("/").pop()
@@ -102,13 +103,23 @@ export default function RadioStationItem({
                 </span>
             </button>
             <div className={`min-w-0 flex-1 ${list ? "" : "mt-3"}`}>
-                <button
-                    onClick={play}
-                    className="block w-full cursor-pointer truncate text-left text-sm font-semibold text-white"
-                    title={station.name}
-                >
-                    {station.name}
-                </button>
+                <div className="flex min-w-0 items-center gap-1.5">
+                    {active && (
+                        <AudioLines
+                            className="h-3.5 w-3.5 shrink-0 text-pink-400"
+                            aria-hidden="true"
+                        />
+                    )}
+                    <button
+                        onClick={play}
+                        aria-label={`${active && playing ? v.PAUSE : v.PLAY}: ${station.name}`}
+                        aria-current={active ? "true" : undefined}
+                        className="block min-w-0 flex-1 cursor-pointer truncate text-left text-sm font-semibold text-white"
+                        title={station.name}
+                    >
+                        {station.name}
+                    </button>
+                </div>
                 <p className="truncate text-xs text-neutral-400">
                     {active && playing
                         ? v.LIVE

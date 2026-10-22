@@ -14,7 +14,7 @@ function RadioStationCard({
     onPlay: (station: BaseSearchResultsItem) => void;
 }): JSX.Element {
     const [imgSrc, setImgSrc] = useState(
-        station.imageUrl || "/radio-placeholder.png"
+        station.imageUrl.trim() || "/radio-placeholder.png"
     );
 
     return (

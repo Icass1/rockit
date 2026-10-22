@@ -1,9 +1,11 @@
 import unittest
+from typing import TypeVar
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import tests  # noqa: F401
+import tests  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from pydantic import ValidationError
 
+from backend.core.responses.songListResponse import SongListResponse
 from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.recommendationPrefetch import RecommendationPrefetch
 from backend.core.framework.models.recommendation import SeedTrack
@@ -13,13 +15,15 @@ from backend.core.requests.prepareRecommendationsRequest import (
 )
 from tests.backend.test_recommendation_framework import make_song
 
+T = TypeVar("T")
 
-def ok(value):
+
+def ok(value: T) -> AResult[T]:
     return AResult(code=AResultCode.OK, message="OK", result=value)
 
 
 class PrefetchTests(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.song = make_song("next")
         self.session = MagicMock()
         self.patches = [
@@ -42,14 +46,18 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
                 ),
             ),
         ]
-        RecommendationPrefetch._failed_until.clear()
+        cache_patch = patch.object(RecommendationPrefetch, "_failed_until", {})
+        cache_patch.start()
+        self.addCleanup(cache_patch.stop)
         self.resolve, self.admit, self.download, self.search = [
             p.start() for p in self.patches
         ]
         for p in self.patches:
             self.addCleanup(p.stop)
 
-    async def prepare(self, payload=None):
+    async def prepare(
+        self, payload: PrepareRecommendationsRequest | None = None
+    ) -> AResult[SongListResponse]:
         payload = payload or PrepareRecommendationsRequest(publicIds=["next"])
         return await RecommendationPrefetch.prepare_async(
             session=self.session,
@@ -61,26 +69,26 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
             ],
         )
 
-    async def test_ready_files_never_consume_download_budget(self):
+    async def test_ready_files_never_consume_download_budget(self) -> None:
         result = await self.prepare()
         self.assertTrue(result.is_ok())
         self.admit.assert_not_awaited()
         self.download.assert_not_awaited()
 
-    async def test_missing_song_uses_existing_downloader(self):
+    async def test_missing_song_uses_existing_downloader(self) -> None:
         self.song.downloaded = False
         await self.prepare()
         self.download.assert_awaited_once_with(
             session=self.session, user_id=1, title="Autoplay", public_ids=["next"]
         )
 
-    async def test_busy_or_duplicate_never_starts_download(self):
+    async def test_busy_or_duplicate_never_starts_download(self) -> None:
         self.song.downloaded = False
         self.admit.return_value = ok(False)
         await self.prepare()
         self.download.assert_not_awaited()
 
-    async def test_database_failure_keeps_existing_recommendations(self):
+    async def test_database_failure_keeps_existing_recommendations(self) -> None:
         self.song.downloaded = False
         self.admit.return_value = AResult(
             code=AResultCode.GENERAL_ERROR, message="offline"
@@ -90,7 +98,7 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.result().songs[0].publicId, "next")
         self.download.assert_not_awaited()
 
-    async def test_discovery_prepares_without_user_settings(self):
+    async def test_discovery_prepares_without_user_settings(self) -> None:
         await self.prepare(
             PrepareRecommendationsRequest(
                 discover=[RecommendationTrackRequest(artist="Artist", track="Song")]
@@ -98,7 +106,7 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
         )
         self.search.assert_awaited_once()
 
-    async def test_full_global_budget_does_not_even_search_providers(self):
+    async def test_full_global_budget_does_not_even_search_providers(self) -> None:
         self.admit.return_value = ok(False)
         await self.prepare(
             PrepareRecommendationsRequest(
@@ -107,13 +115,15 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
         )
         self.search.assert_not_awaited()
 
-    def test_client_cannot_submit_unbounded_batches(self):
+    def test_client_cannot_submit_unbounded_batches(self) -> None:
         with self.assertRaises(ValidationError):
             PrepareRecommendationsRequest(publicIds=["a", "b", "c"])
 
 
 class DiscoveryMatchingTests(unittest.IsolatedAsyncioTestCase):
-    async def test_uses_matching_artist_and_title_instead_of_first_search_hit(self):
+    async def test_uses_matching_artist_and_title_instead_of_first_search_hit(
+        self,
+    ) -> None:
         from backend.core.framework.downloader.downloader import Downloader
         from backend.core.responses.searchResponse import (
             BaseSearchResultsItem,
@@ -121,7 +131,7 @@ class DiscoveryMatchingTests(unittest.IsolatedAsyncioTestCase):
             SearchResultsResponse,
         )
 
-        def item(artist, name):
+        def item(artist: str, name: str) -> BaseSearchResultsItem:
             return BaseSearchResultsItem(
                 type="song",
                 name=name,
@@ -147,7 +157,7 @@ class DiscoveryMatchingTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(found.is_ok())
         self.assertEqual(found.result().name, match.name)
 
-    async def test_unrelated_results_are_not_automatically_downloaded(self):
+    async def test_unrelated_results_are_not_automatically_downloaded(self) -> None:
         from backend.core.framework.downloader.downloader import Downloader
         from backend.core.responses.searchResponse import SearchResultsResponse
 

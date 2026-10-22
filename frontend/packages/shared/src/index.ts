@@ -59,6 +59,6 @@ export type { CollectionTreeRow } from "@/models/interfaces/collectionTree";
 
 export * from "@/models/enums/friendTab";
 
-export type { AutoplayRecommendation } from "./models/types/autoplayRecommendation";
+export type { AutoplayRecommendation } from "@/models/types/autoplayRecommendation";
 
-export { mixHomeRecommendations } from "./lib/homeRecommendations";
+export { mixHomeRecommendations } from "@/lib/homeRecommendations";

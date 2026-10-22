@@ -434,10 +434,6 @@ export {
     type RadioBrowserStationResponse,
 } from "./radioBrowserStationResponse";
 export {
-    RecommendationSettingsResponseSchema,
-    type RecommendationSettingsResponse,
-} from "./recommendationSettingsResponse";
-export {
     RecommendationTrackRequestSchema,
     type RecommendationTrackRequest,
 } from "./recommendationTrackRequest";
@@ -664,10 +660,6 @@ export {
     UpdatePlaylistRequestSchema,
     type UpdatePlaylistRequest,
 } from "./updatePlaylistRequest";
-export {
-    UpdateRecommendationSettingsRequestSchema,
-    type UpdateRecommendationSettingsRequest,
-} from "./updateRecommendationSettingsRequest";
 export {
     UpdateTimestampItemSchema,
     type UpdateTimestampItem,

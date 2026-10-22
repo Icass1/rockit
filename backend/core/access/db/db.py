@@ -49,9 +49,6 @@ from backend.core.access.db.ormModels.bookmark import BookmarkRow as BookmarkRow
 from backend.core.access.db.ormModels.externalRecommendationCache import (
     ExternalRecommendationCacheRow as ExternalRecommendationCacheRow,
 )
-from backend.core.access.db.ormModels.userRecommendationSettings import (
-    UserRecommendationSettingsRow as UserRecommendationSettingsRow,
-)
 
 # FRIEND MODELS
 from backend.core.access.db.ormModels.friend.friend import FriendRow as FriendRow

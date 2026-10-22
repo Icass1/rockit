@@ -30,7 +30,6 @@ CACHE_ACCESS = (
 
 CONTEXT = ExternalRecommendationContext(
     kind=ERecommendationContextKind.USER,
-    listenbrainz_username="rob",
     seed=SeedTrack(artist_name="Seed", track_name="Song"),
 )
 
@@ -262,14 +261,11 @@ class ExternalRecommendationsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([s.track_name for s in result.suggestions], ["One"])
         self.assertEqual(provider.calls, 0)
 
-    def test_provider_order_comes_from_configuration(self) -> None:
-        def keys(order: str) -> list[str]:
-            return [p.key for p in ExternalRecommendations.from_config(order).providers]
-
-        self.assertEqual(keys("lastfm, listenbrainz"), ["lastfm", "listenbrainz"])
-        self.assertEqual(keys("none"), [])
-        self.assertEqual(keys(""), [])
-        self.assertEqual(keys("unknown,listenbrainz,LISTENBRAINZ"), ["listenbrainz"])
+    def test_server_configuration_uses_only_lastfm(self) -> None:
+        configured = ExternalRecommendations.from_config()
+        self.assertEqual(
+            [provider.key for provider in configured.providers], ["lastfm"]
+        )
 
 
 if __name__ == "__main__":

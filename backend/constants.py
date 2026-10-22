@@ -163,7 +163,7 @@ YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 
 # --- Recommendations ---------------------------------------------------------
 # Local recommendations need no configuration. Everything below is optional and
-# only affects the opt-in external "discover" suggestions.
+# enables Last.fm discovery for every user through one server-side key.
 # Shared admission budget, including queued and retrying automatic downloads.
 # Set to zero to disable automatic preparation without disabling recommendations.
 RECOMMENDATION_PREFETCH_MAX_PENDING = max(
@@ -171,11 +171,6 @@ RECOMMENDATION_PREFETCH_MAX_PENDING = max(
 )
 # Last.fm API key (secret). When unset the Last.fm provider is disabled.
 LASTFM_API_KEY = get_optional_env_str("LASTFM_API_KEY", default="")
-# Ordered, comma separated external providers to try. The first one that
-# returns usable suggestions wins; set to "none" to disable all of them.
-RECOMMENDATION_EXTERNAL_PROVIDERS = get_optional_env_str(
-    "RECOMMENDATION_EXTERNAL_PROVIDERS", default="listenbrainz,lastfm"
-)
 # Per-request timeout for external providers, in seconds.
 RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS = get_optional_env_float(
     "RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS", default=5.0
@@ -184,9 +179,7 @@ RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS = get_optional_env_float(
 RECOMMENDATION_EXTERNAL_CACHE_HOURS = get_optional_env_float(
     "RECOMMENDATION_EXTERNAL_CACHE_HOURS", default=24.0
 )
-LISTENBRAINZ_API_URL = get_optional_env_str(
-    "LISTENBRAINZ_API_URL", default="https://api.listenbrainz.org"
-)
+
 
 # --- YouTube download reliability -------------------------------------------
 # All of these are optional: with none of them set the downloader still works,

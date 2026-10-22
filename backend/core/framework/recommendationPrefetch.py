@@ -84,11 +84,8 @@ class RecommendationPrefetch:
                 logger.error(f"Could not prepare recommendation. {started.info()}")
                 break
 
-        enabled, _ = await Recommendation.get_external_settings_async(
-            session=session, user_id=user_id
-        )
         discoveries: list[BaseSearchResultsItem] = []
-        if enabled:
+        if discover:
             for suggestion in discover[: max(0, 2 - len(public_ids))]:
                 key = RecommendationRanking.suggestion_key(
                     suggestion.artist_name, suggestion.track_name

@@ -28,10 +28,6 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
                 AsyncMock(return_value=[self.song]),
             ),
             patch(
-                "backend.core.framework.recommendationPrefetch.Recommendation.get_external_settings_async",
-                AsyncMock(return_value=(False, None)),
-            ),
-            patch(
                 "backend.core.framework.recommendationPrefetch.RecommendationPrefetch.admit_async",
                 AsyncMock(return_value=ok(True)),
             ),
@@ -41,10 +37,13 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
             ),
             patch(
                 "backend.core.framework.recommendationPrefetch.Downloader.resolve_search_song_async",
-                AsyncMock(),
+                AsyncMock(
+                    return_value=AResult(code=AResultCode.NOT_FOUND, message="No match")
+                ),
             ),
         ]
-        self.resolve, self.settings, self.admit, self.download, self.search = [
+        RecommendationPrefetch._failed_until.clear()
+        self.resolve, self.admit, self.download, self.search = [
             p.start() for p in self.patches
         ]
         for p in self.patches:
@@ -91,16 +90,15 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.result().songs[0].publicId, "next")
         self.download.assert_not_awaited()
 
-    async def test_discovery_requires_opt_in(self):
+    async def test_discovery_prepares_without_user_settings(self):
         await self.prepare(
             PrepareRecommendationsRequest(
                 discover=[RecommendationTrackRequest(artist="Artist", track="Song")]
             )
         )
-        self.search.assert_not_awaited()
+        self.search.assert_awaited_once()
 
     async def test_full_global_budget_does_not_even_search_providers(self):
-        self.settings.return_value = (True, None)
         self.admit.return_value = ok(False)
         await self.prepare(
             PrepareRecommendationsRequest(

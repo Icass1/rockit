@@ -4,8 +4,8 @@ Rockit recommends music from two independent sources:
 
 1. **Local engine** (always on, offline, zero setup) — ranks songs this
    instance already knows using Rockit's own data.
-2. **External suggestions** (optional, opt-in per user) — tracks from
-   ListenBrainz or Last.fm, shown in a separate "Discover" row. They may not
+2. **Last.fm suggestions** (enabled for everyone when the server has a key) — tracks from
+   Last.fm, shown in a separate "Discover" row. They may not
    be on this instance yet; tapping one searches the existing providers once
    and starts a normal download.
 
@@ -21,7 +21,6 @@ simply carries no `discover` items and `discoverStatus` tells the client why.
 | `GET /recommendation/playlist/{id}`     | Every song/video in the playlist            |
 | `GET /media/song/{id}/related`          | One song or video                           |
 | `POST /recommendation/prepare`          | The next two playback suggestions only      |
-| `GET/POST /recommendation/settings`     | External opt-in and ListenBrainz username   |
 
 All three recommendation endpoints return `SongListResponse`:
 
@@ -29,7 +28,7 @@ All three recommendation endpoints return `SongListResponse`:
 {
   "songs": [/* BaseSongWithAlbumResponse: local, playable/queueable */],
   "discover": [/* BaseSearchResultsItem: external, play if publicId, else download */],
-  "discoverProvider": "ListenBrainz",   // or "Last.fm", or null
+  "discoverProvider": "Last.fm",       // or null
   "discoverStatus": "ok"                // "disabled" | "ok" | "empty" | "unavailable"
 }
 ```
@@ -71,70 +70,53 @@ This is transparent heuristic scoring, not machine learning:
 * Genres only exist for providers that store them (currently Spotify artist
   genres). Missing artist/album/genre data is simply a missing signal.
 
-## External providers
+## Last.fm
 
-Code: `backend/core/framework/externalRecommendation/`. Each provider
-implements `BaseExternalRecommendationProvider` (only "context → list of
-(artist, track)"); caching, fallback, deadlines, dedup and library matching
-live once in `ExternalRecommendations`, so providers are replaceable.
+Code: `backend/core/framework/externalRecommendation/`. Last.fm is the only
+production external provider. The provider interface keeps HTTP retrieval
+separate from caching, deadlines, deduplication and local matching.
 
-| Provider     | Used for                 | Needs                          | Sends                                  |
-| ------------ | ------------------------ | ------------------------------ | -------------------------------------- |
-| ListenBrainz | "For you"                | User's ListenBrainz username   | Only that username                     |
-| Last.fm      | "For you", related, playlist | `LASTFM_API_KEY` on the server | Artist + title of one seed song   |
-
-**Selection:** providers are tried in `RECOMMENDATION_EXTERNAL_PROVIDERS`
-order (default `listenbrainz,lastfm`), skipping those that are not configured
-or cannot serve the request. The first one with usable suggestions wins.
-
-**ListenBrainz** (verified against the ListenBrainz server source):
-`GET /1/cf/recommendation/user/{user}/recording?count=50` (no token; `204`
-means not generated yet, `404` unknown user) followed by a single batched
-`POST /1/metadata/recording/` to turn recording MBIDs into names. MBIDs are
-kept on each suggestion; entries without a name or artist are dropped.
+Every user uses the same server-side `LASTFM_API_KEY`. Last.fm receives only the
+artist and title of one seed track through `track.getsimilar`; no Last.fm user,
+shared secret, authentication token or per-user settings are needed. Home uses
+a recent/liked track; playlist and related requests use a track from that context.
+The local engine supplies personal ranking and remains available independently.
 
 **Rate limits & resilience:**
 
-* ListenBrainz: at most one request per second per process, as its API docs
-  require, plus a `User-Agent` identifying Rockit. `Retry-After`,
-  `X-RateLimit-Remaining` and `X-RateLimit-Reset-In` are honoured.
-* HTTP 429 is retried **once**, only when the server asks for ≤ 2 s;
-  otherwise the provider is skipped until the cooldown (capped at 10 min)
-  expires. Timeouts, connection errors and 5xx are not retried.
-* Every provider call has a hard deadline (2 × the per-request timeout).
-* After a failure the provider is skipped for that user/seed for 5 minutes
-  (memory only) to avoid hammering it and repeating log lines.
+* The shared Last.fm provider spaces requests at least 250 ms apart per process.
+* HTTP 429 is retried once, only when the requested wait is at most 2 s.
+  Timeouts, connection errors and 5xx are not retried.
+* Each provider call has a hard deadline (2 × the per-request timeout).
+* Failed seeds have a five-minute in-memory backoff.
 * Successful answers are cached in `core.cache_external_recommendation` for
-  `RECOMMENDATION_EXTERNAL_CACHE_HOURS` (default 24 h); empty answers for 1 h.
-  Failures are never cached.
+  `RECOMMENDATION_EXTERNAL_CACHE_HOURS` (default 24 h); empty answers for one hour.
+  Failures are not persisted as successful cache entries.
+* Without a key, with no usable seed, or on failure, Rockit serves its local
+  recommendations. No user action or settings screen is required.
 
 ## Configuration
 
 Local recommendations: nothing to configure.
 
-External suggestions (server, all optional):
+Server configuration (one key for every user):
 
 ```env
-RECOMMENDATION_EXTERNAL_PROVIDERS=listenbrainz,lastfm   # or "none"
 LASTFM_API_KEY=...                                      # enables Last.fm
 RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS=5
 RECOMMENDATION_EXTERNAL_CACHE_HOURS=24
 ```
 
-Per user: **Settings → Recommendations** → enable "Use external services"
-and optionally enter a public ListenBrainz username (no token needed).
-Everything is off by default; without opt-in no external request is made.
+Restart the backend after setting `LASTFM_API_KEY`. Last.fm discovery is enabled
+for every user automatically; there is no per-user opt-in or credentials form.
 
 ## Limitations
 
 * Rockit stores no MusicBrainz IDs, so external suggestions are matched to
   the local library by fuzzy artist + title (`pg_trgm`, conservative
   thresholds). Downloading one runs a single provider search on tap.
-* ListenBrainz only has recommendations for users who submit listens to it;
-  Rockit does not scrobble to ListenBrainz.
 * Recently *recommended* (as opposed to played) songs are not persisted.
   Rotation changes every six hours; recent actual plays affect the next ranking.
-* The settings UI exists on web; mobile reads the same per-user settings.
 
 
 ## Home and Up next
@@ -143,7 +125,7 @@ Web and mobile Home reuse the same personal feed in the hero carousel,
 Quick Selection (interleaved with familiar music) and recommendation cards.
 External discoveries remain recognizable as downloads. A local-only request
 (`external=false`) renders first; the external response is additive and cannot
-hold up Home or playback when Last.fm/ListenBrainz is slow.
+hold up Home or playback when Last.fm is slow.
 
 The player shows recommendations after the original queue in desktop, compact
 PWA and native mobile layouts. Repeat ONE and ALL retain their normal behavior;
@@ -159,7 +141,7 @@ with repeat OFF and within the last two positions of the queue, may call
 `POST /recommendation/prepare`. The real queue occupies the same two-song
 lookahead window: with one queued song remaining, prepare one recommendation;
 with none remaining, prepare two. At most two candidate IDs/artist-title pairs
-are handled, and external resolution still requires user opt-in.
+are handled, and external resolution uses the server-configured Last.fm suggestions.
 
 The endpoint uses the core provider registry and ordinary Downloader pipeline;
 there is no separate download worker. PostgreSQL transaction advisory locking

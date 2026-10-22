@@ -21,7 +21,7 @@ class BaseExternalRecommendationProvider(ABC):
         invalid data). It must not raise.
     """
 
-    # Identifier used in RECOMMENDATION_EXTERNAL_PROVIDERS and cache keys.
+    # Stable identifier used in cache keys.
     key: str
     # Name shown to users next to suggestions.
     display_name: str

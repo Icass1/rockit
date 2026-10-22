@@ -420,8 +420,6 @@ Local engine always; optional external suggestions (`discover`). See `docs/RECOM
 | GET    | `/recommendation/for-you`            | Yes  | Personalized songs + optional external suggestions  |
 | GET    | `/recommendation/playlist/{publicId}` | Yes | Songs to add to a playlist                          |
 | GET    | `/media/song/{publicId}/related`     | Yes  | Songs similar to one song/video                     |
-| GET    | `/recommendation/settings`           | Yes  | User's external opt-in + ListenBrainz username      |
-| POST   | `/recommendation/settings`           | Yes  | Update the above                                    |
 
 ### Stats — `/stats`
 

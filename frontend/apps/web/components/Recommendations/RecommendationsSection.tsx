@@ -65,7 +65,7 @@ function KnownSongCard({
     );
 }
 
-/** An external discovery suggestion (ListenBrainz, Last.fm…) shown as-is.
+/** An external discovery suggestion from Last.fm shown as-is.
  * Tapping one starts the single on-demand search+download; suggestions the
  * instance already has downloaded (flagged in the backend with
  * downloaded=true + publicId) play right away. */

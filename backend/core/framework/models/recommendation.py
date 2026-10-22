@@ -62,17 +62,14 @@ class ERecommendationContextKind(Enum):
 
 @dataclass(frozen=True)
 class ExternalRecommendationContext:
-    """Everything an external provider may use. Deliberately small: only
-    what the user explicitly configured (their ListenBrainz username) and a
-    single seed track are ever available to external services."""
+    """Generic artist/title seed; no user identity or credentials are sent."""
 
     kind: ERecommendationContextKind
     seed: SeedTrack | None = None
-    listenbrainz_username: str | None = None
 
 
 class EExternalStatus(Enum):
-    # The user has not opted in, or no provider is configured.
+    # No server API key, no usable seed, or a local-only request.
     DISABLED = "disabled"
     # A provider returned usable suggestions.
     OK = "ok"

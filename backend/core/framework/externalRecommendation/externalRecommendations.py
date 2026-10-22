@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.constants import (
     RECOMMENDATION_EXTERNAL_CACHE_HOURS,
-    RECOMMENDATION_EXTERNAL_PROVIDERS,
     RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS,
 )
 from backend.utils.logger import getLogger
@@ -22,9 +21,6 @@ from backend.core.framework.externalRecommendation.baseExternalRecommendationPro
 )
 from backend.core.framework.externalRecommendation.lastfmProvider import (
     LastfmProvider,
-)
-from backend.core.framework.externalRecommendation.listenBrainzProvider import (
-    ListenBrainzProvider,
 )
 from backend.core.framework.models.recommendation import (
     EExternalStatus,
@@ -40,16 +36,14 @@ logger = getLogger(__name__)
 # deduplication, exclusion and the per-artist cap.
 EXTERNAL_CANDIDATE_POOL = 30
 # An answer with no suggestions is reused for a shorter time than a full one,
-# so a new ListenBrainz account starts getting results the same day.
+# so a track with no matches can be checked again the same day.
 EMPTY_RESULT_CACHE_HOURS = 1.0
 # After a provider fails for a given context, skip it (memory only, never
 # persisted) for this long: avoids hammering a broken service and repeating
 # the same warning on every page load.
 FAILURE_BACKOFF_SECONDS = 300.0
 FAILURE_BACKOFF_MAX_ENTRIES = 1024
-# Hard ceiling for one provider call, including rate-limit waits and both
-# ListenBrainz requests. Local results never wait longer than this per
-# provider.
+# Hard ceiling for a provider call, including rate-limit waits.
 PROVIDER_DEADLINE_FACTOR = 2.0
 
 
@@ -74,9 +68,9 @@ class ExternalRecommendations:
     """Runs the configured external providers in order with caching, a hard
     deadline and fallback.
 
-    Selection is explicit and predictable: providers are tried in the order
-    of RECOMMENDATION_EXTERNAL_PROVIDERS, skipping those that are not
-    configured or cannot serve the context. The first provider that yields
+    Production uses Last.fm with the server API key. Providers are injected
+    through the shared interface so caching, resilience and ranking remain
+    independent of the external service. Unconfigured providers are skipped. The first provider that yields
     usable suggestions wins. Any failure — timeout, HTTP error, rate limit,
     invalid or empty data — moves on to the next provider; when none
     succeeds the caller simply gets no external suggestions and keeps its
@@ -100,27 +94,9 @@ class ExternalRecommendations:
         self._failed_until: dict[str, float] = {}
 
     @staticmethod
-    def from_config(
-        provider_order: str = RECOMMENDATION_EXTERNAL_PROVIDERS,
-    ) -> "ExternalRecommendations":
-        """Build the instance-wide orchestrator from the environment."""
-
-        available: dict[str, BaseExternalRecommendationProvider] = {
-            ListenBrainzProvider.key: ListenBrainzProvider(),
-            LastfmProvider.key: LastfmProvider(),
-        }
-        providers: list[BaseExternalRecommendationProvider] = []
-        for raw_key in provider_order.split(","):
-            key = raw_key.strip().lower()
-            if not key or key == "none":
-                continue
-            provider = available.get(key)
-            if provider is None:
-                logger.warning(f"Unknown external recommendation provider '{key}'")
-                continue
-            if provider not in providers:
-                providers.append(provider)
-        return ExternalRecommendations(providers=providers)
+    def from_config() -> "ExternalRecommendations":
+        """Last.fm is instance-wide; the server API key is the only setup."""
+        return ExternalRecommendations(providers=[LastfmProvider()])
 
     @property
     def providers(self) -> list[BaseExternalRecommendationProvider]:

@@ -1186,24 +1186,6 @@ export class BaseHttp {
         );
     }
 
-    static async getRecommendationSettings() {
-        return this.apiGetAsync(
-            `/recommendation/settings`,
-            dto.RecommendationSettingsResponseSchema
-        );
-    }
-
-    static async updateRecommendationSettings(
-        payload: dto.UpdateRecommendationSettingsRequest
-    ) {
-        return this.apiPostAsync(
-            `/recommendation/settings`,
-            dto.UpdateRecommendationSettingsRequestSchema,
-            dto.RecommendationSettingsResponseSchema,
-            payload
-        );
-    }
-
     static async createRequest(payload: dto.CreateUserRequestRequest) {
         return this.apiPostAsync(
             `/request`,

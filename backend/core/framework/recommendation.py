@@ -12,9 +12,6 @@ from backend.core.access.recommendationAccess import (
 )
 from backend.core.access.statsAccess import StatsAccess
 from backend.core.access.userLikedMediaAccess import UserLikedMediaAccess
-from backend.core.access.userRecommendationSettingsAccess import (
-    UserRecommendationSettingsAccess,
-)
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.framework.externalRecommendation.externalRecommendations import (
     ExternalRecommendations,
@@ -100,11 +97,11 @@ class RecommendationResult(NamedTuple):
 
 
 class Recommendation:
-    """Recommendations = local engine (always) + optional external discovery.
+    """Recommendations = local engine (always) + server-configured Last.fm discovery.
 
     The local engine ranks songs already known to this instance from
     Rockit's own data (see RecommendationRanking) and never touches the
-    network. External suggestions are opt-in per user and purely additive:
+    network. Last.fm suggestions are enabled instance-wide and purely additive:
     any provider failure leaves the local songs untouched.
     """
 
@@ -270,27 +267,6 @@ class Recommendation:
         return AResult(code=AResultCode.OK, message="OK", result=songs)
 
     @staticmethod
-    async def get_external_settings_async(
-        session: AsyncSession, user_id: int
-    ) -> tuple[bool, str | None]:
-        """(opted in, ListenBrainz username). Missing or unreadable settings
-        mean "not opted in" — external calls are never made by default."""
-
-        a_settings = await UserRecommendationSettingsAccess.get_settings_async(
-            session=session, user_id=user_id
-        )
-        if a_settings.is_not_ok():
-            if a_settings.code() != AResultCode.NOT_FOUND:
-                logger.warning(
-                    f"Could not read recommendation settings for user {user_id}. "
-                    f"{a_settings.info()}"
-                )
-            return False, None
-
-        row = a_settings.result()
-        return bool(row.external_enabled), row.listenbrainz_username
-
-    @staticmethod
     def build_discover_item(
         suggestion: ExternalSuggestion,
         provider_name: str,
@@ -317,27 +293,17 @@ class Recommendation:
     @staticmethod
     async def _get_discover_async(
         session: AsyncSession,
-        user_id: int,
         context: ExternalRecommendationContext,
         exclude_public_ids: set[str],
         include_external: bool = True,
     ) -> tuple[list[BaseSearchResultsItem], str | None, EExternalStatus]:
-        """External suggestions for an opted-in user, matched against the
+        """Last.fm suggestions from the server-configured provider, matched against the
         local library in one batched query. Never fails: every problem
         degrades to an empty list with an explanatory status."""
 
         if not include_external:
             return [], None, EExternalStatus.DISABLED
 
-        enabled, username = await Recommendation.get_external_settings_async(
-            session=session, user_id=user_id
-        )
-        if not enabled:
-            return [], None, EExternalStatus.DISABLED
-
-        context = ExternalRecommendationContext(
-            kind=context.kind, seed=context.seed, listenbrainz_username=username
-        )
         exclude_keys: set[tuple[str, str]] = (
             {
                 RecommendationRanking.suggestion_key(
@@ -444,7 +410,6 @@ class Recommendation:
         )
         discover, provider, status = await Recommendation._get_discover_async(
             session=session,
-            user_id=user_id,
             context=ExternalRecommendationContext(
                 kind=ERecommendationContextKind.SEED, seed=seed
             ),
@@ -475,8 +440,8 @@ class Recommendation:
         Seeds on recent plays and likes, excludes the last five listens, and
         penalizes frequent repeats over the last two weeks. Older familiar
         songs remain eligible when discovery is sparse. Users without history get the cold-start fallback.
-        External suggestions (if opted in) come from ListenBrainz for the
-        user, or Last.fm seeded on their most recent song.
+        Last.fm uses the most recent song's artist and title as a generic seed;
+        its API key is shared server configuration, never a user setting.
         """
 
         limit = Recommendation.clamp_limit(limit)
@@ -551,7 +516,6 @@ class Recommendation:
         )
         discover, provider, status = await Recommendation._get_discover_async(
             session=session,
-            user_id=user_id,
             context=ExternalRecommendationContext(
                 kind=ERecommendationContextKind.USER, seed=seed
             ),
@@ -638,7 +602,6 @@ class Recommendation:
         )
         discover, provider, status = await Recommendation._get_discover_async(
             session=session,
-            user_id=user_id,
             context=ExternalRecommendationContext(
                 kind=ERecommendationContextKind.SEED, seed=seed
             ),

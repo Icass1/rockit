@@ -1,7 +1,7 @@
 """Behaviour of the Recommendation framework with the database layer mocked.
 
 These tests check the contract that matters to users: local
-recommendations are always served, and external providers only ever add to
+recommendations are always served, and Last.fm suggestions only ever add to
 them — whatever goes wrong externally.
 """
 
@@ -87,7 +87,6 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         # --- user history -------------------------------------------------
         self.recent: list[str] = ["seed-1"]
         self.liked: list[str] = []
-        self.external_enabled = True
         self.candidates: list[LocalCandidate] = [
             LocalCandidate(
                 media_id=10, public_id="rec-1", artist_key="a", playlist_co=3
@@ -134,12 +133,6 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         async def in_library(session: Any, artists_and_tracks: Any):
             return ok_result(dict(self.in_library))
 
-        async def settings(session: Any, user_id: int) -> AResult[Any]:
-            if not self.external_enabled:
-                return AResult(code=AResultCode.NOT_FOUND, message="none")
-            row = mock.MagicMock(external_enabled=True, listenbrainz_username="rob")
-            return ok_result(row)
-
         async def seed_track(session: Any, public_id: str) -> SeedTrack | None:
             return SeedTrack(artist_name="Seed Artist", track_name="Seed Song")
 
@@ -164,10 +157,6 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
                 f"{MODULE}.RecommendationAccess."
                 "get_downloaded_discover_song_public_ids_async",
                 in_library,
-            ),
-            mock.patch(
-                f"{MODULE}.UserRecommendationSettingsAccess.get_settings_async",
-                settings,
             ),
             mock.patch.object(Recommendation, "_resolve_seed_track_async", seed_track),
         ]
@@ -239,11 +228,11 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
     async def test_external_failures_keep_local_results(self) -> None:
         local_only = ["rec-1", "rec-2", "popular-1"]
         for name, provider in {
-            "http error": FakeProvider("lb", failure()),
-            "rate limited": FakeProvider("lb", failure(AResultCode.RATE_LIMITED)),
-            "raises": FakeProvider("lb", raises=True),
-            "timeout": FakeProvider("lb", ok(("X", "Late")), delay=5),
-            "empty": FakeProvider("lb", ok()),
+            "http error": FakeProvider("primary", failure()),
+            "rate limited": FakeProvider("primary", failure(AResultCode.RATE_LIMITED)),
+            "raises": FakeProvider("primary", raises=True),
+            "timeout": FakeProvider("primary", ok(("X", "Late")), delay=5),
+            "empty": FakeProvider("primary", ok()),
         }.items():
             with self.subTest(failure=name):
                 recommendation_module._local_result_cache.clear()  # pyright: ignore[reportPrivateUsage]
@@ -256,19 +245,26 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
                     {EExternalStatus.UNAVAILABLE, EExternalStatus.EMPTY},
                 )
 
-    async def test_external_disabled_when_user_did_not_opt_in(self) -> None:
-        provider = FakeProvider("lb", ok(("A", "One")))
+    async def test_lastfm_enabled_without_any_user_settings(self) -> None:
+        provider = FakeProvider("lastfm", ok(("New Artist", "New Song")))
         self.use_providers(provider)
-        self.external_enabled = False
+        result = await self.for_you()
+        self.assertEqual(result.discover_status, EExternalStatus.OK)
+        self.assertEqual(provider.calls, 1)
+        self.assertEqual(result.discover[0].name, "New Song")
+
+    async def test_missing_server_key_keeps_local_recommendations(self) -> None:
+        provider = FakeProvider("lastfm", configured=False)
+        self.use_providers(provider)
         result = await self.for_you()
         self.assertEqual(result.discover_status, EExternalStatus.DISABLED)
         self.assertEqual(provider.calls, 0)
-        self.assertEqual(len(result.songs), 3)
+        self.assertGreater(len(result.songs), 0)
 
     async def test_external_suggestions_are_actionable_and_deduplicated(self) -> None:
         self.use_providers(
             FakeProvider(
-                "lb",
+                "primary",
                 ok(
                     ("Seed Artist", "Seed Song"),  # the seed itself: dropped
                     ("New Artist", "New Song"),  # not here yet: downloadable
@@ -284,7 +280,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         result = await self.for_you()
 
         self.assertEqual(result.discover_status, EExternalStatus.OK)
-        self.assertEqual(result.discover_provider, "Lb")
+        self.assertEqual(result.discover_provider, "Primary")
         self.assertEqual(
             [(d.name, d.publicId, d.downloaded) for d in result.discover],
             [("New Song", None, False), ("Known Song", "known-id", True)],
@@ -297,13 +293,13 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result.songs), 3)
 
     async def test_response_contract(self) -> None:
-        self.use_providers(FakeProvider("lb", ok(("New Artist", "New Song"))))
+        self.use_providers(FakeProvider("primary", ok(("New Artist", "New Song"))))
         result = await self.for_you()
         response = Recommendation.to_song_list_response(result=result)
         self.assertIsInstance(response, SongListResponse)
         dumped = response.model_dump()
         self.assertEqual(dumped["discoverStatus"], "ok")
-        self.assertEqual(dumped["discoverProvider"], "Lb")
+        self.assertEqual(dumped["discoverProvider"], "Primary")
         # Discover items keep the shape the existing download flow consumes.
         BaseSearchResultsItem.model_validate(dumped["discover"][0])
 

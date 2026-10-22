@@ -66,12 +66,10 @@ none of these; see [RECOMMENDATIONS.md](RECOMMENDATIONS.md)):
 
 | Var                                     | Desc                                     | Default                       |
 | --------------------------------------- | ---------------------------------------- | ----------------------------- |
-| RECOMMENDATION_EXTERNAL_PROVIDERS       | Ordered providers, or `none`             | listenbrainz,lastfm           |
 | LASTFM_API_KEY                          | Last.fm API key (enables Last.fm)        | - (Last.fm disabled)          |
-| LISTENBRAINZ_API_URL                    | ListenBrainz API base URL                | https://api.listenbrainz.org  |
 | RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS | Per-request timeout                      | 5                             |
 | RECOMMENDATION_EXTERNAL_CACHE_HOURS     | Reuse successful external results for    | 24                            |
-RECOMMENDATION_PREFETCH_MAX_PENDING=2  # Shared automatic download budget; 0 disables prefetch
+| RECOMMENDATION_PREFETCH_MAX_PENDING     | Shared automatic download budget; 0 disables prefetch | 2                   |
 
 Generate `SESSION_TOKEN_SECRET` with `python3 -c 'import secrets; print(secrets.token_urlsafe(48))'`
 and keep the same secret across backend replicas and restarts. Rotating it invalidates

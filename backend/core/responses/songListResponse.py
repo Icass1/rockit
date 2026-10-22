@@ -11,10 +11,10 @@ class SongListResponse(BaseModel):
     songs: List[BaseSongWithAlbumResponse]
     # Optional external suggestions (not necessarily in this instance yet).
     # Download one through /downloader/start-from-search. Empty unless the
-    # user opted in and a provider answered.
+    # server has a Last.fm API key and the service returned usable results.
     discover: List[BaseSearchResultsItem] = []
     # Which external provider produced `discover`, if any.
     discoverProvider: str | None = None
-    # "disabled" (not opted in / not configured), "ok", "empty" (provider had
+    # "disabled" (not configured / local-only request), "ok", "empty" (provider had
     # nothing usable) or "unavailable" (provider failed; local results only).
     discoverStatus: Literal["disabled", "ok", "empty", "unavailable"] = "disabled"

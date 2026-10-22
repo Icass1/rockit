@@ -38,7 +38,6 @@ _TEST_ENV: dict[str, str] = {
     "DB_PORT": "5432",
     "DB_NAME": "test",
     # External providers must never be reachable from tests.
-    "LISTENBRAINZ_API_URL": "https://listenbrainz.invalid",
     "LASTFM_API_KEY": "",
 }
 

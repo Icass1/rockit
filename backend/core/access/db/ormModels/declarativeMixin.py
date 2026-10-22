@@ -104,6 +104,24 @@ def add_timestamp_trigger(
                     END IF;
                 END
                 $$;""")
+        # Tables that used to be immutable may still carry the guard trigger
+        # from a previous installation. Upgrade them in place.
+        triggers.append(f"""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1
+                FROM pg_trigger
+                WHERE tgname = '{table_name}_no_update'
+                AND tgrelid = '{schema}.{table_name}'::regclass
+            ) THEN
+                ALTER TABLE {schema}.{table_name}
+                ADD COLUMN IF NOT EXISTS date_updated TIMESTAMP WITH TIME ZONE
+                NOT NULL DEFAULT NOW();
+                DROP TRIGGER {table_name}_no_update ON {schema}.{table_name};
+            END IF;
+        END
+        $$;""")
     else:
         disable_update = True
 

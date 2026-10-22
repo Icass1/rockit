@@ -7,10 +7,13 @@ from backend.core.access.db.ormModels.declarativeMixin import (
     TableAutoincrementId,
     TablePublicId,
     TableDateAdded,
+    TableDateUpdated,
 )
 
 
-class NotificationRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded):
+class NotificationRow(
+    CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded
+):
     __tablename__ = "notification"
     __table_args__ = (
         UniqueConstraint("user_id", "event_key", name="uq_notification_user_event"),

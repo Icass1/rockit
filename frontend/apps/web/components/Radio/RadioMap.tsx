@@ -3,15 +3,26 @@
 import { useEffect, useMemo, useRef, type JSX } from "react";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import L from "leaflet";
-import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
+import {
+    CircleMarker,
+    GeoJSON,
+    MapContainer,
+    Popup,
+    Tooltip,
+    useMap,
+} from "react-leaflet";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldData from "world-atlas/countries-110m.json";
 import "leaflet/dist/leaflet.css";
+import { useStore } from "@nanostores/react";
+import type { BaseStationResponse } from "@rockit/shared";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface RadioMapProps {
     onCountryClick: (countryName: string) => void;
     selectedCountry: string | null;
+    savedStations?: BaseStationResponse[];
 }
 
 interface CountryProperties {
@@ -177,8 +188,8 @@ function getCountryStyle(
         const isSelected = props?.name === selected;
 
         return {
-            fillColor: isSelected ? "#ee1086" : "transparent",
-            fillOpacity: isSelected ? 0.3 : 0,
+            fillColor: isSelected ? "#ee1086" : "#27272a",
+            fillOpacity: isSelected ? 0.6 : 1,
             color: isSelected ? "#ee1086" : "rgba(255, 255, 255, 0.15)",
             weight: isSelected ? 2 : 0.5,
             opacity: 1,
@@ -187,7 +198,8 @@ function getCountryStyle(
 }
 
 function onEachCountryFeature(
-    onCountryClick: (name: string) => void
+    onCountryClick: (name: string) => void,
+    selectedCountry: string | null
 ): (f: GeoJSON.Feature, layer: L.GeoJSON) => void {
     return (f: GeoJSON.Feature, layer: L.GeoJSON): void => {
         const name = (f.properties as CountryProperties | undefined)?.name;
@@ -215,10 +227,7 @@ function onEachCountryFeature(
             mouseout: (e: L.LeafletMouseEvent) => {
                 const target = e.target as L.Path;
                 target.setStyle({
-                    fillOpacity: 0,
-                    weight: 0.5,
-                    color: "rgba(255, 255, 255, 0.15)",
-                    fillColor: "transparent",
+                    ...getCountryStyle(selectedCountry)(f),
                 });
                 target.closeTooltip();
             },
@@ -231,7 +240,9 @@ function onEachCountryFeature(
 export default function RadioMap({
     onCountryClick,
     selectedCountry,
+    savedStations = [],
 }: RadioMapProps): JSX.Element {
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const countries: FeatureCollection | null = useMemo(() => {
         try {
             const topology = worldData as unknown as Topology;
@@ -249,33 +260,96 @@ export default function RadioMap({
     }, []);
 
     return (
-        <div className="radio-map-container w-full overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.08)]">
+        <div className="radio-map-container w-full overflow-hidden rounded-2xl border border-white/10">
+            <div className="flex flex-wrap items-center gap-3 bg-neutral-900 p-3">
+                <select
+                    aria-label={vocabulary.RADIO_COUNTRY}
+                    value={selectedCountry ?? ""}
+                    onChange={(event): void => {
+                        if (event.target.value)
+                            onCountryClick(event.target.value);
+                    }}
+                    className="min-h-11 max-w-full rounded-lg border border-white/10 bg-neutral-950 px-3 text-sm text-white"
+                >
+                    <option value="">{vocabulary.RADIO_COUNTRY}</option>
+                    {[
+                        ...new Set(
+                            countries?.features.map((f) =>
+                                String(f.properties?.name)
+                            ) ?? []
+                        ),
+                    ]
+                        .sort()
+                        .map((name) => (
+                            <option key={name} value={name}>
+                                {name}
+                            </option>
+                        ))}
+                </select>
+                <p className="flex-1 text-xs text-neutral-400">
+                    {vocabulary.RADIO_MAP_HINT}
+                </p>
+            </div>
             <MapContainer
                 center={[20, 0]}
                 zoom={2}
                 minZoom={2}
                 maxZoom={6}
-                zoomControl={false}
+                zoomControl={true}
                 attributionControl={false}
                 dragging={true}
-                scrollWheelZoom={true}
+                scrollWheelZoom={false}
                 doubleClickZoom={false}
                 className="h-75 w-full md:h-100"
             >
                 <MapBounds />
-                <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    tileSize={512}
-                    zoomOffset={-1}
-                />
                 {countries && (
                     <GeoJSON
                         key={selectedCountry ?? "default"}
                         data={countries}
                         style={getCountryStyle(selectedCountry)}
-                        onEachFeature={onEachCountryFeature(onCountryClick)}
+                        onEachFeature={onEachCountryFeature(
+                            onCountryClick,
+                            selectedCountry
+                        )}
                     />
                 )}
+                {savedStations
+                    .filter(
+                        (station) =>
+                            station.geoLat !== null &&
+                            station.geoLong !== null &&
+                            Number.isFinite(station.geoLat) &&
+                            Number.isFinite(station.geoLong)
+                    )
+                    .map((station) => (
+                        <CircleMarker
+                            key={station.publicId}
+                            center={[station.geoLat!, station.geoLong!]}
+                            radius={6}
+                            pathOptions={{
+                                color: "#fff",
+                                weight: 1.5,
+                                fillColor: "#ee1086",
+                                fillOpacity: 1,
+                            }}
+                        >
+                            <Tooltip>{station.name}</Tooltip>
+                            <Popup>
+                                <p>{station.name}</p>
+                                <button
+                                    className="min-h-11 cursor-pointer font-semibold"
+                                    onClick={(): void => {
+                                        void rockIt.stationManager.setAndPlayStation(
+                                            station
+                                        );
+                                    }}
+                                >
+                                    {vocabulary.PLAY}
+                                </button>
+                            </Popup>
+                        </CircleMarker>
+                    ))}
             </MapContainer>
         </div>
     );

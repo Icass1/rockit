@@ -41,7 +41,6 @@ export default function ContextMenuTrigger({
 
         // Ignore contextmenu if it was triggered by a handled long-press
         if (longPressFired.current) {
-            longPressFired.current = false;
             event.preventDefault();
             return;
         }
@@ -90,7 +89,7 @@ export default function ContextMenuTrigger({
     ): void => {
         if (!_setContextMenuOpen || !_setContextMenuPos) return;
 
-        event.preventDefault();
+        longPressFired.current = false;
 
         const touch = event.touches[0];
         touchStartPos.current = { x: touch.clientX, y: touch.clientY };
@@ -126,6 +125,13 @@ export default function ContextMenuTrigger({
     return (
         <div
             ref={divRef}
+            onClickCapture={(event): void => {
+                if (!longPressFired.current) return;
+                event.preventDefault();
+                event.stopPropagation();
+                longPressFired.current = false;
+            }}
+            onTouchCancel={clearLongPress}
             onContextMenu={handleContextMenu}
             onClick={handleClick}
             onTouchStart={handleTouchStart}

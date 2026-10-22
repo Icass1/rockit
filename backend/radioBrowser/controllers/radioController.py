@@ -12,6 +12,7 @@ from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
 
 from backend.core.responses.baseStationResponse import BaseStationResponse
+from backend.core.responses.searchResponse import SearchResultsResponse
 
 from backend.radioBrowser.framework.radio import Radio
 
@@ -90,3 +91,20 @@ async def get_stations_by_country(
         )
 
     return a_result.result()
+
+
+@router.get("/search")
+async def search_stations(
+    request: Request,
+    q: str = Query(min_length=2, max_length=120),
+) -> SearchResultsResponse:
+    """Search only radio stations, avoiding unrelated provider requests."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await Radio.search_media_async(session=session, query=q.strip())
+    if a_result.is_not_ok():
+        logger.error(f"Radio search failed. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+    return SearchResultsResponse(results=a_result.result())

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
-import { isStation } from "@rockit/shared";
+import { EMediaContextLocation, isStation } from "@rockit/shared";
 import type { BaseStationResponse } from "@rockit/shared";
 import { Ellipsis, Pause, PauseIcon, Play, PlayIcon } from "lucide-react";
 import {
@@ -17,6 +17,7 @@ import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import LikeButton from "@/components/LikeButton/LikeButton";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 function FooterLeftForMedia({
     currentMedia,
@@ -138,36 +139,42 @@ function FooterLeftForStation({
     currentStation: BaseStationResponse;
 }): JSX.Element {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const [failedCover, setFailedCover] = useState<string | null>(null);
 
     return (
         <div className="flex w-full max-w-full min-w-0 items-center gap-x-4 md:w-1/3">
-            {/* Station cover — hover con CSS group, sin useState */}
-            <div className="group relative h-9 w-9 overflow-hidden rounded-md md:h-16 md:w-16">
+            <button
+                aria-label={$playing ? vocabulary.PAUSE : vocabulary.PLAY}
+                onClick={(): void =>
+                    rockIt.mediaPlayerManager.togglePlayPause()
+                }
+                className="group relative h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-md md:h-16 md:w-16"
+            >
                 <Image
                     width={64}
                     height={64}
-                    src={currentStation.imageUrl}
+                    src={
+                        failedCover === currentStation.imageUrl
+                            ? "/radio-placeholder.png"
+                            : currentStation.imageUrl ||
+                              "/radio-placeholder.png"
+                    }
+                    onError={(): void =>
+                        setFailedCover(currentStation.imageUrl)
+                    }
+                    unoptimized
                     alt={currentStation.name}
-                    className="absolute h-full w-full object-cover select-none"
+                    className="absolute inset-0 h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 hidden items-center justify-center bg-neutral-500/70 group-hover:flex">
+                <span className="absolute inset-0 flex items-center justify-center bg-black/30">
                     {$playing ? (
-                        <PauseIcon
-                            className="h-6 w-6 cursor-pointer text-white"
-                            onClick={(): void =>
-                                rockIt.mediaPlayerManager.pause()
-                            }
-                        />
+                        <PauseIcon className="h-5 w-5 text-white" />
                     ) : (
-                        <PlayIcon
-                            className="h-6 w-6 cursor-pointer text-white"
-                            onClick={(): void =>
-                                rockIt.mediaPlayerManager.play()
-                            }
-                        />
+                        <PlayIcon className="h-5 w-5 text-white" />
                     )}
-                </div>
-            </div>
+                </span>
+            </button>
 
             <div className="flex min-w-0 flex-1 flex-col">
                 <span className="line-clamp-1 truncate font-semibold">
@@ -178,9 +185,18 @@ function FooterLeftForStation({
                 </span>
             </div>
 
-            <div className="hidden flex-row pr-4 md:flex">
-                <Ellipsis className="h-6 w-5 text-gray-400 md:hover:scale-105 md:hover:text-white" />
-            </div>
+            <MediaContextMenu
+                media={currentStation}
+                location={EMediaContextLocation.QUEUE}
+                openOnLeftClick
+            >
+                <button
+                    aria-label={currentStation.name}
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center text-gray-400 hover:text-white"
+                >
+                    <Ellipsis className="h-5 w-5" />
+                </button>
+            </MediaContextMenu>
         </div>
     );
 }

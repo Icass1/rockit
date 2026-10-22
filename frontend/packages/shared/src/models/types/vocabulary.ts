@@ -567,4 +567,18 @@ export interface Vocabulary {
     SOCIAL_DAYS_AGO: string;
     FRIENDS_ACTION_ERROR: string;
     FRIENDS_LOAD_ERROR: string;
+    RADIO_DESCRIPTION: string;
+    RADIO_EXPLORE: string;
+    RADIO_SAVED: string;
+    RADIO_COUNTRY: string;
+    RADIO_GRID: string;
+    RADIO_LIST: string;
+    RADIO_CLEAR: string;
+    RADIO_LOADING: string;
+    RADIO_LOAD_ERROR: string;
+    RADIO_UNAVAILABLE: string;
+    RADIO_MAP_HINT: string;
+    RADIO_EMPTY: string;
+    PLAYER_ENABLE_SHUFFLE: string;
+    PLAYER_DISABLE_SHUFFLE: string;
 }

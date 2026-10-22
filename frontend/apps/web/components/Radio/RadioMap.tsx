@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import L from "leaflet";
 import {
@@ -31,14 +31,16 @@ interface CountryProperties {
     [key: string]: unknown;
 }
 
-const WORLD_BOUNDS = L.latLngBounds([-90, -180], [90, 180]);
+const WORLD_BOUNDS = L.latLngBounds([-85, -Infinity], [85, Infinity]);
 
 function MapBounds({
     selectedCountry,
     countries,
+    onWorldRadiusChange,
 }: {
     selectedCountry: string | null;
     countries: FeatureCollection | null;
+    onWorldRadiusChange: (radius: number) => void;
 }): null {
     const map = useMap();
     const initialized = useRef(false);
@@ -51,10 +53,24 @@ function MapBounds({
     }, [map]);
 
     useEffect(() => {
-        const observer = new ResizeObserver(() => map.invalidateSize());
+        const updateWorlds = (): void => {
+            const worldWidth = map.getPixelWorldBounds().getSize().x;
+            onWorldRadiusChange(
+                Math.ceil(map.getSize().x / (2 * worldWidth)) + 1
+            );
+        };
+        const observer = new ResizeObserver(() => {
+            map.invalidateSize();
+            updateWorlds();
+        });
+        map.on("zoomend", updateWorlds);
+        updateWorlds();
         observer.observe(map.getContainer());
-        return (): void => observer.disconnect();
-    }, [map]);
+        return (): void => {
+            observer.disconnect();
+            map.off("zoomend", updateWorlds);
+        };
+    }, [map, onWorldRadiusChange]);
 
     useEffect(() => {
         if (!selectedCountry || !countries) return;
@@ -272,6 +288,11 @@ export default function RadioMap({
     selectedCountry,
     savedStations = [],
 }: RadioMapProps): JSX.Element {
+    const [worldRadius, setWorldRadius] = useState(2);
+    const worlds = Array.from(
+        { length: worldRadius * 2 + 1 },
+        (_, index) => index - worldRadius
+    );
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const countries: FeatureCollection | null = useMemo(() => {
         try {
@@ -299,6 +320,7 @@ export default function RadioMap({
                 zoomControl={false}
                 attributionControl={false}
                 dragging={true}
+                worldCopyJump={true}
                 scrollWheelZoom={true}
                 doubleClickZoom={true}
                 className="h-full w-full"
@@ -306,55 +328,69 @@ export default function RadioMap({
                 <MapBounds
                     selectedCountry={selectedCountry}
                     countries={countries}
+                    onWorldRadiusChange={setWorldRadius}
                 />
                 <ZoomControl position="topright" />
-                {countries && (
-                    <GeoJSON
-                        key={selectedCountry ?? "default"}
-                        data={countries}
-                        style={getCountryStyle(selectedCountry)}
-                        onEachFeature={onEachCountryFeature(
-                            onCountryClick,
-                            selectedCountry
-                        )}
-                    />
-                )}
-                {savedStations
-                    .filter(
-                        (station) =>
-                            station.geoLat !== null &&
-                            station.geoLong !== null &&
-                            Number.isFinite(station.geoLat) &&
-                            Number.isFinite(station.geoLong)
-                    )
-                    .map((station) => (
-                        <CircleMarker
-                            key={station.publicId}
-                            center={[station.geoLat!, station.geoLong!]}
-                            radius={6}
-                            pathOptions={{
-                                color: "#fff",
-                                weight: 1.5,
-                                fillColor: "#ee1086",
-                                fillOpacity: 1,
-                            }}
-                        >
-                            <Tooltip>{station.name}</Tooltip>
-                            <Popup>
-                                <p>{station.name}</p>
-                                <button
-                                    className="min-h-11 cursor-pointer font-semibold"
-                                    onClick={(): void => {
-                                        void rockIt.stationManager.setAndPlayStation(
-                                            station
-                                        );
-                                    }}
-                                >
-                                    {vocabulary.PLAY}
-                                </button>
-                            </Popup>
-                        </CircleMarker>
+                {countries &&
+                    worlds.map((world) => (
+                        <GeoJSON
+                            key={`${selectedCountry ?? "default"}:${world}`}
+                            data={countries}
+                            coordsToLatLng={(coordinates): L.LatLng =>
+                                L.latLng(
+                                    coordinates[1],
+                                    coordinates[0] + world * 360,
+                                    coordinates[2]
+                                )
+                            }
+                            style={getCountryStyle(selectedCountry)}
+                            onEachFeature={onEachCountryFeature(
+                                onCountryClick,
+                                selectedCountry
+                            )}
+                        />
                     ))}
+                {worlds.flatMap((world) =>
+                    savedStations
+                        .filter(
+                            (station) =>
+                                station.geoLat !== null &&
+                                station.geoLong !== null &&
+                                Number.isFinite(station.geoLat) &&
+                                Number.isFinite(station.geoLong)
+                        )
+                        .map((station) => (
+                            <CircleMarker
+                                key={`${station.publicId}:${world}`}
+                                center={[
+                                    station.geoLat!,
+                                    station.geoLong! + world * 360,
+                                ]}
+                                radius={6}
+                                pathOptions={{
+                                    color: "#fff",
+                                    weight: 1.5,
+                                    fillColor: "#ee1086",
+                                    fillOpacity: 1,
+                                }}
+                            >
+                                <Tooltip>{station.name}</Tooltip>
+                                <Popup>
+                                    <p>{station.name}</p>
+                                    <button
+                                        className="min-h-11 cursor-pointer font-semibold"
+                                        onClick={(): void => {
+                                            void rockIt.stationManager.setAndPlayStation(
+                                                station
+                                            );
+                                        }}
+                                    >
+                                        {vocabulary.PLAY}
+                                    </button>
+                                </Popup>
+                            </CircleMarker>
+                        ))
+                )}
             </MapContainer>
         </div>
     );

@@ -110,11 +110,13 @@ class SpotifyScrapper:
         )
 
     @staticmethod
-    async def search_async(query: str) -> AResult[List[BaseSearchResultsItem]]:
+    async def search_async(
+        query: str, limit: int = 10
+    ) -> AResult[List[BaseSearchResultsItem]]:
         """Search Spotify (scraper API) and map results to BaseSearchResultsItem list."""
 
         a_result_search: AResult[ScrappedSearchResults] = (
-            await spotify_scrapper_api.search_async(query)
+            await spotify_scrapper_api.search_async(query, limit=limit)
         )
         if a_result_search.is_not_ok():
             logger.error(f"Error searching Spotify scrapper. {a_result_search.info()}")

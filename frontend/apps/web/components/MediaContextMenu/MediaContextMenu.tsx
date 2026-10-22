@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useCallback, useState, type JSX } from "react";
+import { ReactNode, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import {
     BasePlaylistWithoutMediasResponse,
@@ -9,6 +9,7 @@ import {
     getMediaSubtitle,
     isSearchResult,
     TMediaWithSearch,
+    type BaseSearchResultsItem,
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import ContextMenuContent from "@/components/ContextMenu/Content";
@@ -58,6 +59,7 @@ import {
     AddSongToQueueTopAction,
     RemoveFromQueueAction,
 } from "@/components/MediaContextMenu/actions/SongQueueActions";
+import SearchSourcePicker from "@/components/Search/SearchSourcePicker";
 
 const actionComponents: Partial<
     Record<EMediaContextAction, React.ComponentType<ActionComponentProps>>
@@ -104,39 +106,49 @@ export default function MediaContextMenu({
     location,
     listPublicId,
     openOnLeftClick,
+    sources,
 }: {
     children: ReactNode;
     media: TMediaWithSearch;
     location: EMediaContextLocation;
     listPublicId?: string;
     openOnLeftClick?: boolean;
+    sources?: readonly BaseSearchResultsItem[];
 }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [loading, setLoading] = useState(false);
     const [showEditMetadata, setShowEditMetadata] = useState(false);
     const $playlists = useStore(rockIt.playlistManager.playlistsAtom);
 
-    const visibleActions = getActionsForMedia(media, location);
+    const [selectedSource, setSelectedSource] = useState(
+        isSearchResult(media) ? media.providerUrl : ""
+    );
+    const activeMedia =
+        sources?.find((source) => source.providerUrl === selectedSource) ??
+        media;
+    const visibleActions = getActionsForMedia(activeMedia, location);
 
     const isSearch =
         openOnLeftClick !== undefined ? openOnLeftClick : isSearchResult(media);
 
-    const handleAddToPlaylist = useCallback(
-        async (playlist: BasePlaylistWithoutMediasResponse): Promise<void> => {
-            if (isSearchResult(media)) {
-                rockIt.playlistManager.addUrlToPlaylistAsync(
-                    media.providerUrl,
-                    playlist.publicId
-                );
-            } else {
-                rockIt.playlistManager.addMediaToPlaylist(media, playlist);
-            }
-        },
-        [media]
-    );
+    const handleAddToPlaylist = async (
+        playlist: BasePlaylistWithoutMediasResponse
+    ): Promise<void> => {
+        if (isSearchResult(activeMedia)) {
+            await rockIt.playlistManager.addUrlToPlaylistAsync(
+                activeMedia.providerUrl,
+                playlist.publicId
+            );
+        } else {
+            await rockIt.playlistManager.addMediaToPlaylist(
+                activeMedia,
+                playlist
+            );
+        }
+    };
 
     const actionProps: ActionComponentProps = {
-        media,
+        media: activeMedia,
         vocabulary: $vocabulary,
         playlists: $playlists,
         loading,
@@ -153,10 +165,17 @@ export default function MediaContextMenu({
                     {children}
                 </ContextMenuTrigger>
                 <ContextMenuContent
-                    cover={getMediaCover(media)}
-                    title={media.name}
-                    description={getMediaSubtitle(media)}
+                    cover={getMediaCover(activeMedia)}
+                    title={activeMedia.name}
+                    description={getMediaSubtitle(activeMedia)}
                 >
+                    {sources && isSearchResult(activeMedia) && (
+                        <SearchSourcePicker
+                            sources={sources}
+                            selected={activeMedia.providerUrl}
+                            onSelect={setSelectedSource}
+                        />
+                    )}
                     {visibleActions.map((item, index) => {
                         if (item.type === "separator") {
                             return <ContextMenuSplitter key={`sep-${index}`} />;

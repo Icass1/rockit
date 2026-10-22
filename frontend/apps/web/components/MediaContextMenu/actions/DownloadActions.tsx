@@ -73,7 +73,12 @@ export function DownloadSearchResultAndPlayAction({
     return (
         <ContextMenuOption onClick={downloadAndPlay}>
             <Play className="h-5 w-5" />
-            {vocabulary.DOWNLOAD_AND_PLAY}
+            {isSearchResult(media)
+                ? vocabulary.SEARCH_PLAY_FROM.replace(
+                      "{provider}",
+                      media.provider
+                  )
+                : vocabulary.DOWNLOAD_AND_PLAY}
         </ContextMenuOption>
     );
 }
@@ -89,7 +94,12 @@ export function DownloadSearchResultAction({
     return (
         <ContextMenuOption onClick={download}>
             <HardDriveDownload className="h-5 w-5" />
-            {vocabulary.DOWNLOAD_TO_SERVER}
+            {isSearchResult(media)
+                ? vocabulary.SEARCH_DOWNLOAD_FROM.replace(
+                      "{provider}",
+                      media.provider
+                  )
+                : vocabulary.DOWNLOAD_TO_SERVER}
         </ContextMenuOption>
     );
 }
@@ -105,7 +115,12 @@ export function DownloadSearchResultAndAddToLibraryAction({
     return (
         <ContextMenuOption onClick={download}>
             <HardDriveDownload className="h-5 w-5" />
-            {vocabulary.DOWNLOAD_AND_ADD_TO_LIBRARY}
+            {isSearchResult(media)
+                ? vocabulary.SEARCH_DOWNLOAD_AND_ADD_FROM.replace(
+                      "{provider}",
+                      media.provider
+                  )
+                : vocabulary.DOWNLOAD_AND_ADD_TO_LIBRARY}
         </ContextMenuOption>
     );
 }

@@ -85,6 +85,7 @@ class RadioBrowserApi:
     @time_it
     async def search_stations_async(
         query: str,
+        limit: int = SEARCH_LIMIT,
     ) -> AResult[List[RadioBrowserStationResponse]]:
         """Search stations by name via Radio Browser API."""
 
@@ -93,7 +94,7 @@ class RadioBrowserApi:
 
         url = f"{RADIO_BROWSER_BASE}/stations/byname/{quote(query)}"
         params: Dict[str, Any] = {
-            "limit": SEARCH_LIMIT,
+            "limit": limit,
             "offset": 0,
             "hidebroken": "true",
             "order": "clickcount",

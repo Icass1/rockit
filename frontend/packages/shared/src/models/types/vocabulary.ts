@@ -567,4 +567,13 @@ export interface Vocabulary {
     SOCIAL_DAYS_AGO: string;
     FRIENDS_ACTION_ERROR: string;
     FRIENDS_LOAD_ERROR: string;
+    SEARCH_LOAD_MORE: string;
+    SEARCH_NO_RESULTS: string;
+    SEARCH_LOADING: string;
+    SEARCH_CHOOSE_SOURCE: string;
+    SEARCH_SOURCE_DOWNLOADED: string;
+    SEARCH_ADD_TO_LIBRARY_FROM: string;
+    SEARCH_DOWNLOAD_FROM: string;
+    SEARCH_DOWNLOAD_AND_ADD_FROM: string;
+    SEARCH_PLAY_FROM: string;
 }

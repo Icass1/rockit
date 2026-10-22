@@ -200,14 +200,20 @@ function LibraryCard({
     const selectionOverlay = selectable ? (
         <div
             role="checkbox"
-            aria-checked={"publicId" in media && isSelected(media.publicId)}
+            aria-checked={
+                "publicId" in media &&
+                media.publicId !== null &&
+                isSelected(media.publicId)
+            }
             aria-label={name}
             tabIndex={0}
             onClick={handleSelectionClick}
             onKeyDown={handleSelectionKeyDown}
             className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded bg-black/60"
         >
-            {"publicId" in media && isSelected(media.publicId) ? (
+            {"publicId" in media &&
+            media.publicId !== null &&
+            isSelected(media.publicId) ? (
                 <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
             ) : (
                 <SquareDashed className="h-5 w-5 text-white/80" />

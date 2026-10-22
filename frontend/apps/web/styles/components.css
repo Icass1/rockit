@@ -220,6 +220,10 @@ img {
     outline: none;
 }
 
+.radio-map-container .leaflet-interactive:focus:not(:focus-visible) {
+    outline: none;
+}
+
 .radio-map-container .leaflet-tile-pane {
     filter: brightness(0.8) contrast(1.2);
 }

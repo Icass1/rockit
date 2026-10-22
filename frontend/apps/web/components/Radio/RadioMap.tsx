@@ -341,6 +341,43 @@ export default function RadioMap({
         return null;
     }, []);
 
+    const locatedStations = useMemo(() => {
+        const countryCenters = new Map<
+            string,
+            { center: L.LatLng; area: number }
+        >();
+        for (const country of countries?.features ?? []) {
+            const bounds = L.geoJSON(country).getBounds();
+            if (!bounds.isValid()) continue;
+            const area =
+                (bounds.getEast() - bounds.getWest()) *
+                (bounds.getNorth() - bounds.getSouth());
+            const name = String(country.properties?.name).toLowerCase();
+            if (area > (countryCenters.get(name)?.area ?? -1)) {
+                countryCenters.set(name, { center: bounds.getCenter(), area });
+            }
+        }
+        return savedStations.flatMap((station) => {
+            if (
+                station.geoLat !== null &&
+                station.geoLong !== null &&
+                Number.isFinite(station.geoLat) &&
+                Number.isFinite(station.geoLong)
+            )
+                return [station];
+            const name =
+                station.country === "United States"
+                    ? "United States of America"
+                    : station.country;
+            const location = countryCenters.get(
+                name?.toLowerCase() ?? ""
+            )?.center;
+            return location
+                ? [{ ...station, geoLat: location.lat, geoLong: location.lng }]
+                : [];
+        });
+    }, [countries, savedStations]);
+
     return (
         <div className="radio-map-container h-full w-full overflow-hidden [&_.leaflet-control-zoom_a]:h-11 [&_.leaflet-control-zoom_a]:w-11 [&_.leaflet-control-zoom_a]:leading-11">
             <MapContainer
@@ -383,7 +420,7 @@ export default function RadioMap({
                         />
                     ))}
                 {worlds.flatMap((world) =>
-                    savedStations
+                    locatedStations
                         .filter(
                             (station) =>
                                 station.geoLat !== null &&

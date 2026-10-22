@@ -267,9 +267,7 @@ class Downloader:
         media: AddFromUrlAResult = a_result_media.result()
 
         if add_to_playlist and playlist_public_id:
-            from backend.default.framework.playlist import Playlist
-
-            a_result_playlist = await Playlist.add_media_to_playlist_async(
+            a_result_playlist = await providers.add_media_to_playlist_async(
                 session=session,
                 playlist_public_id=playlist_public_id,
                 user_id=user_id,

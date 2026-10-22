@@ -12,3 +12,6 @@ from backend.youtube.access.db.ormModels.video import VideoRow as VideoRow
 
 schemas = ["youtube"]
 base = YoutubeBase
+
+# Register local storage independently of remote provider activation.
+from backend.youtube.access import downloadStorage as downloadStorage

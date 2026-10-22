@@ -2,6 +2,7 @@ from typing import Any
 
 from sqlalchemy import (
     select,
+    and_,
     union_all,
     literal,
     func,
@@ -18,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 from backend.constants import BACKEND_URL
-from backend.core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
+from backend.core.access.collectionSources import collection_sources
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db.shared_metadata import shared_metadata
@@ -33,21 +34,9 @@ class CollectionAccess:
     @staticmethod
     def _visible(user_id: int) -> Any:
         """SQL predicate shared by browsing, traversal, search, and queue creation."""
-        playlists = shared_metadata.tables["default_schema.playlist"]
-        contributors = shared_metadata.tables["default_schema.playlist_contributor"]
-        return ~exists(
-            select(playlists.c.id).where(
-                playlists.c.id == shared_metadata.tables["core.media"].c.id,
-                playlists.c.is_public.is_(False),
-                playlists.c.owner_id != user_id,
-                ~exists(
-                    select(contributors.c.playlist_id).where(
-                        contributors.c.playlist_id == playlists.c.id,
-                        contributors.c.user_id == user_id,
-                    )
-                ).correlate(playlists),
-            )
-        ).correlate(shared_metadata.tables["core.media"])
+        return and_(
+            *(source.visible(user_id) for source in collection_sources), literal(True)
+        )
 
     @staticmethod
     def _names() -> Any:
@@ -106,18 +95,8 @@ class CollectionAccess:
                 )
                 if "disabled" in table.c:
                     stmt = stmt.where(table.c.disabled.is_(False))
-                if table.name == "playlist_media":
-                    disabled = shared_metadata.tables[
-                        "default_schema.user_disabled_playlist_media"
-                    ]
-                    stmt = stmt.where(
-                        ~exists(
-                            select(disabled.c.playlist_media_id).where(
-                                disabled.c.user_id == user_id,
-                                disabled.c.playlist_media_id == table.c.id,
-                            )
-                        )
-                    )
+                for source in collection_sources:
+                    stmt = source.filter_edges(stmt, table, user_id)
                 statements.append(stmt)
             elif table.name in {"song", "track"} and "album_id" in table.c:
                 disc = table.c.get("disc_number", literal(0))
@@ -292,31 +271,11 @@ class CollectionAccess:
                         ),
                     )
                 )
-        contributors = shared_metadata.tables["default_schema.playlist_contributor"]
-        rows = (
-            (
-                await session.execute(
-                    select(
-                        contributors.c.playlist_id,
-                        contributors.c.role_key,
-                        users.c.public_id,
-                        users.c.username,
-                    )
-                    .join(users, users.c.id == contributors.c.user_id)
-                    .where(contributors.c.playlist_id.in_(collection_ids))
-                )
-            )
-            .mappings()
-            .all()
-        )
-        for row in rows:
-            records[row["playlist_id"]].data.setdefault("contributors", []).append(
-                dict(
-                    userPublicId=row["public_id"],
-                    username=row["username"],
-                    role=PlaylistContributorRoleEnum(row["role_key"]),
-                )
-            )
+        for source in collection_sources:
+            enriched = await source.enrich_async(session, records, collection_ids)
+            if enriched.is_not_ok():
+                logger.error(f"Error loading collection details: {enriched.info()}")
+                return AResult(code=enriched.code(), message=enriched.message())
         return AResult(code=AResultCode.OK, message="OK", result=list(records.values()))
 
     @staticmethod
@@ -396,25 +355,15 @@ class CollectionAccess:
         rows = (await session.execute(stmt)).mappings().all()
         entries = [CollectionEntry(**dict(r)) for r in rows]
         if entries and not recursive:
-            membership = shared_metadata.tables["default_schema.playlist_media"]
-            expanded = shared_metadata.tables[
-                "default_schema.user_playlist_media_expanded"
-            ]
-            values = (
-                await session.execute(
-                    select(
-                        membership.c.playlist_id,
-                        membership.c.position,
-                        expanded.c.is_expanded,
+            expanded_map: dict[tuple[int, int], bool] = {}
+            for source in collection_sources:
+                result = await source.expanded_async(session, entries, user_id)
+                if result.is_not_ok():
+                    logger.error(
+                        f"Error loading expanded collection items: {result.info()}"
                     )
-                    .join(expanded, expanded.c.playlist_media_id == membership.c.id)
-                    .where(
-                        expanded.c.user_id == user_id,
-                        membership.c.playlist_id.in_({e.parent_id for e in entries}),
-                    )
-                )
-            ).all()
-            expanded_map = {(pid, position): value for pid, position, value in values}
+                    return AResult(code=result.code(), message=result.message())
+                expanded_map.update(result.result())
             for entry in entries:
                 entry.expanded = expanded_map.get(
                     (entry.parent_id, entry.position), False

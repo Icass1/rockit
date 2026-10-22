@@ -13,16 +13,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.utils.safeAsyncCall import safe_async
 
 from backend.core.access.db.ormModels.media import CoreMediaRow
-from backend.rockit.access.db.ormModels.song import RockitSongRow
-from backend.rockit.access.db.ormModels.video import RockitVideoRow
-from backend.spotify.access.db.ormModels.track import TrackRow as SpotifyTrackRow
-from backend.spotifyScrapper.access.db.ormModels.track import (
-    TrackRow as SpotifyScrapperTrackRow,
-)
-from backend.youtube.access.db.ormModels.video import VideoRow as YoutubeVideoRow
-from backend.youtubeMusic.access.db.ormModels.track import (
-    TrackRow as YoutubeMusicTrackRow,
-)
+from backend.core.access.providerStorage import provider_storage
 
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 
@@ -73,43 +64,21 @@ class DownloadZipAccess:
             return AResult(code=AResultCode.OK, message="OK", result=[])
 
         paths: List[Tuple[str, str]] = []
-        models_and_columns = [
-            (SpotifyTrackRow, SpotifyTrackRow.name, SpotifyTrackRow.path),
-            (
-                SpotifyScrapperTrackRow,
-                SpotifyScrapperTrackRow.name,
-                SpotifyScrapperTrackRow.path,
-            ),
-            (
-                YoutubeMusicTrackRow,
-                YoutubeMusicTrackRow.title,
-                YoutubeMusicTrackRow.path,
-            ),
-            (
-                YoutubeVideoRow,
-                YoutubeVideoRow.name,
-                YoutubeVideoRow.video_path,
-            ),
-            (RockitSongRow, RockitSongRow.name, RockitSongRow.file_path),
-            (RockitVideoRow, RockitVideoRow.name, RockitVideoRow.file_path),
-        ]
-        for model, name_column, path_column in models_and_columns:
-            rows = await session.execute(
-                select(name_column, path_column).where(
-                    model.id.in_(media_ids), path_column.isnot(None)
-                )
+        files = provider_storage.files()
+        rows = await session.execute(
+            select(files.c.name, files.c.path).where(
+                files.c.id.in_(media_ids), files.c.path.isnot(None)
             )
-            for name, path in rows.all():
-                full_path = (
-                    path if os.path.isabs(path) else os.path.join(MEDIA_PATH, path)
+        )
+        for name, path in rows.all():
+            full_path = path if os.path.isabs(path) else os.path.join(MEDIA_PATH, path)
+            if not os.path.isfile(full_path):
+                logger.warning(
+                    f"Media '{name}' is marked as downloaded but its file "
+                    f"is missing. {full_path}"
                 )
-                if not os.path.isfile(full_path):
-                    logger.warning(
-                        f"Media '{name}' is marked as downloaded but its file "
-                        f"is missing. {full_path}"
-                    )
-                    continue
+                continue
 
-                paths.append((name, full_path))
+            paths.append((name, full_path))
 
         return AResult(code=AResultCode.OK, message="OK", result=paths)

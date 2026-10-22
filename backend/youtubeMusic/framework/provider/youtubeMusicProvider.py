@@ -77,6 +77,24 @@ YOUTUBE_MUSIC_URL_PATTERNS: List[UrlPattern] = [
 
 
 class YoutubeMusicProvider(BaseMediaProvider):
+    def download_concurrency_limit(self) -> int:
+        return 1
+
+    def download_cooldown_remaining(self) -> float:
+        from backend.youtube.framework.youtubeGate import youtube_gate
+
+        return youtube_gate.cooldown_remaining()
+
+    async def check_health_async(self) -> AResultCode:
+        """Check the downloader used by this provider even if its source is disabled."""
+        from backend.youtube.framework.potProvider import PotProvider
+
+        health = await PotProvider.check_health_async(max_age_seconds=30.0)
+        return AResultCode(code=health.code(), message=health.message())
+
+    def can_manage_downloads(self) -> bool:
+        return True
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -335,7 +353,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
         self, metadata: dict[str, Any], media_type_key: int
     ) -> str:
         """Build a source link without loading collection contents."""
-        external_id = metadata.get("youtube_id")
+        external_id = metadata.get("external_id") or metadata.get("youtube_id")
         if not external_id:
             return ""
         return (

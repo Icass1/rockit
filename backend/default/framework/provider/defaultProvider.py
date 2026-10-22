@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import List
+from typing import Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -35,6 +35,39 @@ logger: Logger = getLogger(__name__)
 
 
 class DefaultProvider(BaseMediaProvider):
+    def download_concurrency_limit(self) -> int:
+        return 2
+
+    async def add_media_to_playlist_async(
+        self,
+        session: AsyncSession,
+        playlist_public_id: str,
+        user_id: int,
+        media_public_id: str,
+    ) -> AResult[Any]:
+        return await Playlist.add_media_to_playlist_async(
+            session=session,
+            playlist_public_id=playlist_public_id,
+            user_id=user_id,
+            media_public_id=media_public_id,
+        )
+
+    async def set_media_expanded_async(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        playlist_public_id: str,
+        media_public_id: str,
+        is_expanded: bool,
+    ) -> AResult[bool]:
+        return await Playlist.set_media_expanded_async(
+            session=session,
+            user_id=user_id,
+            playlist_public_id=playlist_public_id,
+            media_public_id=media_public_id,
+            is_expanded=is_expanded,
+        )
+
     def __init__(self) -> None:
         super().__init__()
 

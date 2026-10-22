@@ -31,7 +31,7 @@ logger: Logger = getLogger(__name__)
 
 
 class BaseMediaProvider(BaseProvider):
-    """Base class for media providers (Spotify, YouTube, etc.)."""
+    """Shared contract for media providers."""
 
     def start_download(self, publicId: str) -> AResult[BaseDownload]:
         logger.warning(
@@ -250,3 +250,31 @@ class BaseMediaProvider(BaseProvider):
         has no contribution.
         """
         return None
+
+    def can_manage_downloads(self) -> bool:
+        return False
+
+    async def add_media_to_playlist_async(
+        self,
+        session: AsyncSession,
+        playlist_public_id: str,
+        user_id: int,
+        media_public_id: str,
+    ) -> AResult[Any]:
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message="This provider does not support playlist editing",
+        )
+
+    async def set_media_expanded_async(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        playlist_public_id: str,
+        media_public_id: str,
+        is_expanded: bool,
+    ) -> AResult[bool]:
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message="This provider does not support expanded playlist items",
+        )

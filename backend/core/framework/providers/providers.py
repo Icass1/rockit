@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Any, List
 from logging import Logger
 from types import ModuleType
 from dataclasses import dataclass
@@ -229,3 +229,63 @@ class Providers:
         await rockit_db.after_all_providers_tables_init()
 
         return AResultCode(code=AResultCode.OK, message="OK")
+
+    async def _playlist_provider_async(
+        self, session: AsyncSession, public_id: str
+    ) -> AResult[BaseMediaProvider]:
+        from backend.core.enums.mediaTypeEnum import MediaTypeEnum
+        from backend.core.framework.media.media import Media
+
+        media = await Media.get_media_from_public_id_async(
+            session=session,
+            public_id=public_id,
+            media_type_keys=[MediaTypeEnum.PLAYLIST],
+        )
+        if media.is_not_ok():
+            logger.error(f"Error finding playlist provider: {media.info()}")
+            return AResult(code=media.code(), message=media.message())
+        provider = self.find_media_provider(media.result().provider_id)
+        if provider is None:
+            logger.error("Playlist provider is unavailable")
+            return AResult(
+                code=AResultCode.NOT_FOUND, message="Playlist provider unavailable"
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=provider)
+
+    async def add_media_to_playlist_async(
+        self,
+        session: AsyncSession,
+        playlist_public_id: str,
+        user_id: int,
+        media_public_id: str,
+    ) -> AResult[Any]:
+        found = await self._playlist_provider_async(session, playlist_public_id)
+        if found.is_not_ok():
+            logger.error(f"Cannot add playlist item: {found.info()}")
+            return AResult(code=found.code(), message=found.message())
+        return await found.result().add_media_to_playlist_async(
+            session=session,
+            playlist_public_id=playlist_public_id,
+            user_id=user_id,
+            media_public_id=media_public_id,
+        )
+
+    async def set_media_expanded_async(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        playlist_public_id: str,
+        media_public_id: str,
+        is_expanded: bool,
+    ) -> AResult[bool]:
+        found = await self._playlist_provider_async(session, playlist_public_id)
+        if found.is_not_ok():
+            logger.error(f"Cannot set expanded playlist item: {found.info()}")
+            return AResult(code=found.code(), message=found.message())
+        return await found.result().set_media_expanded_async(
+            session=session,
+            user_id=user_id,
+            playlist_public_id=playlist_public_id,
+            media_public_id=media_public_id,
+            is_expanded=is_expanded,
+        )

@@ -20,8 +20,6 @@ from backend.core.framework.downloader.baseDownload import BaseDownload
 from backend.core.framework.models.ongoingDownload import OngoingDownload
 from backend.core.framework.websocket.webSocketManager import ws_manager
 
-from backend.youtube.framework.youtubeGate import youtube_gate
-
 logger: Logger = getLogger(__name__)
 
 MAX_RETRIES: int = 4
@@ -30,18 +28,8 @@ MAX_RETRIES: int = 4
 RETRY_DELAYS_SECONDS: List[float] = [30.0, 120.0, 600.0, 1800.0]
 
 # Throttling: the provider told us to slow down, so retrying in 30 seconds only
-# deepens the block. YouTube Data API quota in particular resets once a day, so
-# the last rung is long enough to be worth waiting for.
+# deepens the block. Use a longer backoff for quota and throttling failures.
 RATE_LIMIT_RETRY_DELAYS_SECONDS: List[float] = [300.0, 1800.0, 3600.0, 7200.0]
-
-PROVIDER_CONCURRENCY_LIMITS: Dict[str, int] = {
-    "SpotifyScrapper": 2,
-    "YouTube": 1,
-    "YouTube Music": 1,
-    "RockIt": 3,
-    "Default": 2,
-}
-_DEFAULT_PROVIDER_LIMIT: int = 2
 
 
 class DownloadsManager:
@@ -85,7 +73,8 @@ class DownloadsManager:
     def _get_provider_semaphore(self, provider_id: int) -> asyncio.Semaphore:
         name: str = self._get_provider_name(provider_id)
         if name not in self.provider_semaphores:
-            limit: int = PROVIDER_CONCURRENCY_LIMITS.get(name, _DEFAULT_PROVIDER_LIMIT)
+            provider = providers.find_provider(provider_id)
+            limit = provider.download_concurrency_limit() if provider else 2
             self.provider_semaphores[name] = asyncio.Semaphore(limit)
         return self.provider_semaphores[name]
 
@@ -192,11 +181,14 @@ class DownloadsManager:
                                             delay: float = delays[
                                                 min(retry_count - 1, len(delays) - 1)
                                             ]
-                                            # Never come back before the shared
-                                            # YouTube cooldown has expired.
-                                            delay = max(
-                                                delay, youtube_gate.cooldown_remaining()
+                                            provider = providers.find_provider(
+                                                d.provider_id
                                             )
+                                            if provider is not None:
+                                                delay = max(
+                                                    delay,
+                                                    provider.download_cooldown_remaining(),
+                                                )
                                             await DownloadAccess.update_download_status(
                                                 session=session,
                                                 download_id=d.download_id,

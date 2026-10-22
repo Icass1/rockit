@@ -9,7 +9,7 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult
 from backend.core.framework.websocket.webSocketRouter import websocket_router
 from backend.core.requests.wsMessages import MediaExpandedMessageRequest
-from backend.default.framework.playlist import Playlist
+from backend.core.framework import providers
 
 if TYPE_CHECKING:
     from backend.core.framework.websocket.webSocketManager import WebSocketManager
@@ -31,7 +31,7 @@ async def handle_media_expanded(
         f"in playlist {expanded_msg.playlistPublicId}: {expanded_msg.expanded}"
     )
 
-    a_result: AResult[bool] = await Playlist.set_media_expanded_async(
+    a_result: AResult[bool] = await providers.set_media_expanded_async(
         session=session,
         user_id=user_id,
         playlist_public_id=expanded_msg.playlistPublicId,

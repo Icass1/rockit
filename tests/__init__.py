@@ -16,6 +16,7 @@ _TEST_ENV: dict[str, str] = {
     "BACKEND_URL": "http://localhost:8000",
     "CORS_URLS": "http://localhost:3000",
     "SESSION_DURATION": "3600",
+    "SESSION_TOKEN_SECRET": "rockit-unit-tests-placeholder-0123456789",
     "SESSION_DURATION_REMEMBER_ME": "3600",
     "PROD_WEB_SESSION_DOMAIN": "localhost",
     "PROD_MOBILE_SESSION_DOMAIN": "localhost",

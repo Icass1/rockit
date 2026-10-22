@@ -47,6 +47,7 @@ class RecommendationAccess:
         seed_media_ids: list[int],
         exclude_media_ids: list[int],
         limit: int = LOCAL_CANDIDATE_LIMIT,
+        user_id: int = 0,
     ) -> AResult[list[LocalCandidate]]:
         """Songs related to the seed songs, with the raw signals the ranking
         layer scores them by. Everything comes from Rockit's own data:
@@ -141,6 +142,12 @@ class RecommendationAccess:
                 WHERE  uml.media_id IN (SELECT media_id FROM candidate_ids)
                 GROUP BY uml.media_id
             ),
+            user_plays AS (
+                SELECT media_id, COUNT(*) AS recent_user_plays
+                FROM core.user_media_listened
+                WHERE user_id = :user_id AND date_added >= now() - INTERVAL '14 days'
+                GROUP BY media_id
+            ),
             primary_artist AS (
                 SELECT ai.media_id, MIN(ai.artist_public_id) AS artist_key
                 FROM   artist_info ai
@@ -162,7 +169,8 @@ class RecommendationAccess:
                    COALESCE(am.shared_artists, 0)     AS shared_artists,
                    (alm.media_id IS NOT NULL)         AS same_album,
                    COALESCE(gm.shared_genres, 0)      AS shared_genres,
-                   COALESCE(pl.play_count, 0)         AS play_count
+                   COALESCE(pl.play_count, 0)         AS play_count,
+                   COALESCE(up.recent_user_plays, 0) AS recent_user_plays
             FROM      candidate_ids  c
             JOIN      media_info     mi  ON mi.media_id  = c.media_id
             LEFT JOIN playlist_co    p   ON p.media_id   = c.media_id
@@ -171,6 +179,7 @@ class RecommendationAccess:
             LEFT JOIN album_match    alm ON alm.media_id = c.media_id
             LEFT JOIN genre_match    gm  ON gm.media_id  = c.media_id
             LEFT JOIN plays          pl  ON pl.media_id  = c.media_id
+            LEFT JOIN user_plays up ON up.media_id = c.media_id
             LEFT JOIN primary_artist pa  ON pa.media_id  = c.media_id
             LEFT JOIN primary_album  pal ON pal.media_id = c.media_id
             WHERE  mi.media_type_key = :song_type_key
@@ -193,6 +202,7 @@ class RecommendationAccess:
                     sql,
                     {
                         "seed_ids": seed_media_ids,
+                        "user_id": user_id,
                         "exclude_ids": exclude_media_ids,
                         "song_type_key": MediaTypeEnum.SONG.value,
                         "limit": limit,
@@ -215,6 +225,7 @@ class RecommendationAccess:
                         same_album=bool(r.same_album),
                         shared_genres=int(r.shared_genres),
                         play_count=int(r.play_count),
+                        recent_user_plays=int(r.recent_user_plays),
                     )
                     for r in rows
                 ],
@@ -231,11 +242,12 @@ class RecommendationAccess:
         session: AsyncSession,
         exclude_media_ids: list[int],
         limit: int = LOCAL_CANDIDATE_LIMIT,
+        rotation_key: str = "",
     ) -> AResult[list[LocalCandidate]]:
         """Cold-start candidates for users (or seeds) with little or no
-        history: the instance's most played songs, then the most recently
-        added ones, so an instance with no listens at all still gets
-        suggestions. Returns [] on an empty library."""
+        history: a stable rotating sample when rotation_key is supplied,
+        otherwise the most played and newest songs. Ranking and diversity
+        remain in the framework layer. Returns [] on an empty library."""
 
         if limit <= 0:
             return AResult(code=AResultCode.OK, message="OK", result=[])
@@ -279,7 +291,9 @@ class RecommendationAccess:
             LEFT JOIN plays          pl  ON pl.media_id  = s.media_id
             LEFT JOIN primary_artist pa  ON pa.media_id  = s.media_id
             LEFT JOIN primary_album  pal ON pal.media_id = s.media_id
-            ORDER BY COALESCE(pl.play_count, 0) DESC, cm.date_added DESC, s.public_id
+            ORDER BY CASE WHEN :rotation_key = '' THEN COALESCE(pl.play_count, 0) ELSE 0 END DESC,
+                     CASE WHEN :rotation_key <> '' THEN md5(s.public_id || :rotation_key) END,
+                     cm.date_added DESC, s.public_id
             LIMIT :limit
             """).bindparams(
                 bindparam("exclude_ids", type_=ARRAY(Integer)),
@@ -292,6 +306,7 @@ class RecommendationAccess:
                     sql,
                     {
                         "exclude_ids": exclude_media_ids,
+                        "rotation_key": rotation_key,
                         "song_type_key": MediaTypeEnum.SONG.value,
                         "limit": limit,
                     },

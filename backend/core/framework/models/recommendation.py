@@ -26,6 +26,8 @@ class LocalCandidate:
     shared_genres: int = 0
     # Total plays across all users of this instance.
     play_count: int = 0
+    # Personal repetition penalty over the last two weeks.
+    recent_user_plays: int = 0
 
 
 @dataclass(frozen=True)

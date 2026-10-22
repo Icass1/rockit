@@ -78,6 +78,7 @@ async def get_related_songs(
     request: Request,
     public_id: str,
     limit: int = 20,
+    external: bool = True,
     _=Depends(dependency=AuthMiddleware.auth_dependency),
 ) -> SongListResponse:
     """Songs similar to this one (local engine), plus optional external
@@ -97,6 +98,7 @@ async def get_related_songs(
             user_id=a_result_user.result().id,
             public_id=public_id,
             limit=limit,
+            include_external=external,
         )
     )
     if a_result.is_not_ok():

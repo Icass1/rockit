@@ -1017,10 +1017,16 @@ export class BaseHttp {
         );
     }
 
-    static async getRelatedSongs(publicId: string, limit?: number) {
-        const query = new URLSearchParams();
-        if (limit !== undefined) query.append("limit", `${limit}`);
-        const queryString = query.toString();
+    static async getRelatedSongs(
+        publicId: string,
+        limit?: number,
+        external?: boolean
+    ) {
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (external !== undefined)
+            queryParams.append("external", `${external}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/media/song/${publicId}/related${queryString ? `?${queryString}` : ""}`,
             dto.SongListResponseSchema
@@ -1141,10 +1147,12 @@ export class BaseHttp {
         );
     }
 
-    static async getRecommendationsForYou(limit?: number) {
-        const query = new URLSearchParams();
-        if (limit !== undefined) query.append("limit", `${limit}`);
-        const queryString = query.toString();
+    static async getRecommendationsForYou(limit?: number, external?: boolean) {
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (external !== undefined)
+            queryParams.append("external", `${external}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/recommendation/for-you${queryString ? `?${queryString}` : ""}`,
             dto.SongListResponseSchema
@@ -1153,14 +1161,28 @@ export class BaseHttp {
 
     static async getRecommendationsForPlaylist(
         publicId: string,
-        limit?: number
+        limit?: number,
+        external?: boolean
     ) {
-        const query = new URLSearchParams();
-        if (limit !== undefined) query.append("limit", `${limit}`);
-        const queryString = query.toString();
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (external !== undefined)
+            queryParams.append("external", `${external}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/recommendation/playlist/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.SongListResponseSchema
+        );
+    }
+
+    static async prepareRecommendations(
+        payload: dto.PrepareRecommendationsRequest
+    ) {
+        return this.apiPostAsync(
+            `/recommendation/prepare`,
+            dto.PrepareRecommendationsRequestSchema,
+            dto.SongListResponseSchema,
+            payload
         );
     }
 

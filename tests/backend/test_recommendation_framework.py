@@ -170,8 +170,6 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
                 settings,
             ),
             mock.patch.object(Recommendation, "_resolve_seed_track_async", seed_track),
-            # Never start background downloads from unit tests.
-            mock.patch.object(Recommendation, "_schedule_auto_downloads"),
         ]
         for patcher in patches:
             patcher.start()
@@ -318,6 +316,27 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
     async def test_limit_is_bounded(self) -> None:
         self.assertEqual(Recommendation.clamp_limit(0), 1)
         self.assertEqual(Recommendation.clamp_limit(10_000), 50)
+
+    async def test_reading_recommendations_never_starts_downloads(self):
+        self.use_providers()
+        with mock.patch(
+            "backend.core.framework.downloader.downloader.Downloader.download_multiple_medias_async"
+        ) as download:
+            await self.for_you()
+            download.assert_not_called()
+
+    async def test_local_only_request_does_not_wait_for_external_provider(self):
+        provider = FakeProvider("slow")
+        self.use_providers(provider)
+        with mock.patch.object(
+            Recommendation.external, "get_suggestions_async"
+        ) as external:
+            result = await Recommendation.get_recommendations_for_user_async(
+                session=mock.MagicMock(), user_id=1, include_external=False
+            )
+            self.assertTrue(result.is_ok())
+            self.assertGreater(len(result.result().songs), 0)
+            external.assert_not_called()
 
 
 if __name__ == "__main__":

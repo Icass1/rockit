@@ -1,21 +1,20 @@
 import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
+import type { SongListResponse } from "@/dto";
+import { mixHomeRecommendations } from "@rockit/shared";
+import type { HttpResult } from "@rockit/shared";
+import type { HomeData } from "@/models/interfaces/homeData";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
 
-export interface HomeData {
-    songsByTimePlayed: BaseSongWithAlbumResponse[];
-    randomSongsLastMonth: BaseSongWithAlbumResponse[];
-    nostalgicMix: BaseSongWithAlbumResponse[];
-    hiddenGems: BaseSongWithAlbumResponse[];
-    communityTop: BaseSongWithAlbumResponse[];
-    monthlyTop: BaseSongWithAlbumResponse[];
-    moodSongs: BaseSongWithAlbumResponse[];
-    currentStreak: number;
-    minutesListenedThisWeek: number;
-    isEmpty: boolean;
-}
+const fetchLocalRecommendations = (): Promise<HttpResult<SongListResponse>> =>
+    Http.getRecommendationsForYou(20, false);
 
-function transformStats(dataResponse: HomeStatsResponse): HomeData {
+function transformStats(
+    dataResponse: HomeStatsResponse
+): Omit<
+    HomeData,
+    "recommendations" | "quickSelections" | "recommendationsLoading"
+> {
     const songsByTimePlayed = dataResponse.songsByTimePlayed.map(
         (song): BaseSongWithAlbumResponse => song
     );
@@ -63,6 +62,20 @@ function transformStats(dataResponse: HomeStatsResponse): HomeData {
 
 export function useHomeData(): HomeData | null {
     const { data: dataResponse } = useFetch(Http.getHomeStats);
+    const { data: localRecommendations, loading: localLoading } = useFetch(
+        fetchLocalRecommendations
+    );
+    const { data: externalRecommendations, loading: externalLoading } =
+        useFetch(Http.getRecommendationsForYou);
+    const recommendations = externalRecommendations ?? localRecommendations;
     if (!dataResponse) return null;
-    return transformStats(dataResponse);
+    return {
+        ...transformStats(dataResponse),
+        recommendations,
+        recommendationsLoading: localLoading || externalLoading,
+        quickSelections: mixHomeRecommendations(
+            recommendations?.songs ?? [],
+            dataResponse.randomSongsLastMonth
+        ),
+    };
 }

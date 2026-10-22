@@ -17,6 +17,7 @@ drown out every other signal. Ties break on public_id, so the same inputs
 always produce the same order.
 """
 
+import hashlib
 import math
 import re
 import unicodedata
@@ -82,7 +83,7 @@ class RecommendationRanking:
             + (ALBUM_WEIGHT if candidate.same_album else 0.0)
             + GENRE_WEIGHT * math.log1p(max(candidate.shared_genres, 0))
             + POPULARITY_WEIGHT * math.log1p(max(candidate.play_count, 0))
-        )
+        ) / (1.0 + 0.6 * math.log1p(max(candidate.recent_user_plays, 0)))
 
     @staticmethod
     def diversify(
@@ -161,6 +162,7 @@ class RecommendationRanking:
         candidates: Iterable[LocalCandidate],
         limit: int,
         exclude_public_ids: set[str] | None = None,
+        rotation_key: str = "",
     ) -> list[str]:
         """Score, deduplicate, filter and diversify local candidates.
 
@@ -178,6 +180,15 @@ class RecommendationRanking:
             if not candidate.public_id or candidate.public_id in excluded:
                 continue
             score = RecommendationRanking.score_candidate(candidate)
+            if rotation_key:
+                # Stable for six hours, personal to each user. Exploration is
+                # bounded so affinity still dominates unrelated popularity.
+                digest = hashlib.blake2b(
+                    f"{rotation_key}:{candidate.public_id}".encode(), digest_size=8
+                ).digest()
+                exploration = int.from_bytes(digest, "big") / (2**64 - 1)
+                score = score * (0.8 + 0.4 * exploration) + exploration
+
             current = best.get(candidate.public_id)
             if current is None or score > current[1]:
                 best[candidate.public_id] = (candidate, score)

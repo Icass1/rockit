@@ -11,8 +11,8 @@ import HomeSkeleton from "@/components/Home/HomeSkeleton";
 import { useGreeting } from "@/components/Home/hooks/useGreeting";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
 import BentoSection from "@/components/Home/sections/BentoSection";
-import ForYouSection from "@/components/Home/sections/ForYouSection";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
+import RecommendationsSection from "@/components/Recommendations/RecommendationsSection";
 
 export default function HomeClient(): JSX.Element {
     const data = useHomeData();
@@ -28,6 +28,13 @@ export default function HomeClient(): JSX.Element {
     const coverflowCards = useMemo(() => {
         if (!data) return [];
         const cards: CoverflowCard[] = [];
+        const picks = data.recommendations?.songs ?? [];
+        if (picks.length > 0)
+            cards.push({
+                eyebrow: $vocabulary.FOR_YOU,
+                song: picks[0],
+                queue: picks,
+            });
 
         if (data.songsByTimePlayed.length > 0) {
             cards.push({
@@ -148,10 +155,10 @@ export default function HomeClient(): JSX.Element {
                 />
 
                 {/* Quick selections grid */}
-                {data.randomSongsLastMonth.length > 0 && (
+                {data.quickSelections.length > 0 && (
                     <QuickSelectionsSection
                         title={$vocabulary.QUICK_SELECTIONS}
-                        songs={data.randomSongsLastMonth}
+                        songs={data.quickSelections}
                     />
                 )}
             </div>
@@ -178,7 +185,33 @@ export default function HomeClient(): JSX.Element {
                 />
             )}
 
-            <ForYouSection />
+            {data.recommendations ? (
+                <>
+                    <BentoSection
+                        title={$vocabulary.FOR_YOU}
+                        songs={data.recommendations.songs}
+                    />
+                    <RecommendationsSection
+                        title={$vocabulary.PLAYER_DISCOVER_TITLE}
+                        songs={[]}
+                        discover={data.recommendations.discover}
+                        discoverProvider={data.recommendations.discoverProvider}
+                        discoverStatus={data.recommendations.discoverStatus}
+                    />
+                </>
+            ) : data.recommendationsLoading ? (
+                <div className="px-5 py-6 md:px-12" aria-busy="true">
+                    <div className="skeleton mb-4 h-7 w-40 rounded" />
+                    <div className="flex gap-4 overflow-hidden">
+                        {[0, 1, 2, 3].map((index) => (
+                            <div
+                                key={index}
+                                className="skeleton h-40 w-40 shrink-0 rounded-2xl"
+                            />
+                        ))}
+                    </div>
+                </div>
+            ) : null}
 
             {data.monthlyTop.length > 0 && (
                 <BentoSection

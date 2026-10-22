@@ -836,21 +836,17 @@ export abstract class BaseMediaPlayerManager {
             void getRockIt()
                 .queueManager.startAutoplayAsync()
                 .then((started): void => {
+                    if (
+                        currentId !==
+                            getRockIt().queueManager.currentQueueMediaId &&
+                        !started
+                    )
+                        return;
                     if (started) {
                         this.play();
                         return;
                     }
-                    // No suggestions available: keep the previous behaviour of
-                    // looping back to the top of the queue rather than stopping.
-                    const first = queue[0];
-                    if (first) {
-                        getRockIt().queueManager.setQueueMediaId(
-                            first.queueMediaId
-                        );
-                        this.play();
-                    } else {
-                        this._playingAtom.set(false);
-                    }
+                    this._playingAtom.set(false);
                 })
                 .catch((): void => {
                     this._playingAtom.set(false);

@@ -20,6 +20,7 @@ simply carries no `discover` items and `discoverStatus` tells the client why.
 | `GET /recommendation/for-you`           | The user's recent plays and likes           |
 | `GET /recommendation/playlist/{id}`     | Every song/video in the playlist            |
 | `GET /media/song/{id}/related`          | One song or video                           |
+| `POST /recommendation/prepare`          | The next two playback suggestions only      |
 | `GET/POST /recommendation/settings`     | External opt-in and ListenBrainz username   |
 
 All three recommendation endpoints return `SongListResponse`:
@@ -50,14 +51,19 @@ This is transparent heuristic scoring, not machine learning:
 | Shares a genre with a seed               | 1.0    | `log1p(count)`   |
 | Plays across the instance (popularity)   | 0.25   | `log1p(count)`   |
 
-* Ties break on `public_id`, so results are deterministic.
+* Ties break on `public_id`. A stable hash of the user, song and six-hour
+  period gives a bounded exploration bonus; equal inputs within that period
+  stay stable. Recently repeated songs are penalized using the user's own
+  play count over the last 14 days: `score / (1 + 0.6 * log1p(plays))`.
+  This is broader than simply repeating the user's two-week top list.
 * **Diversity:** a greedy re-rank multiplies a candidate's score by 0.6 per
   song already picked from the same artist (0.8 per same album), and no artist
   may exceed 30% of the list while alternatives exist.
-* **Exclusions:** the seed/current track; for "For you" also everything the
-  user has played or liked.
+* **Exclusions:** the seed/current track; "For you" excludes the five most
+  recently played songs. Older familiar music remains eligible as fallback,
+  so a small library does not disappear once it has been listened to.
 * **Cold start:** if history is too sparse to fill the list, it is padded with
-  the instance's most-played songs, then the newest. An empty library returns
+  a rotating pool from the instance, ranked with popularity and diversity. An empty library returns
   empty lists.
 * **Cost:** at most 300 candidate rows per query; ranked lists for "For you"
   and "related" are cached in memory for 60 seconds (playlists are not cached
@@ -126,6 +132,52 @@ Everything is off by default; without opt-in no external request is made.
   thresholds). Downloading one runs a single provider search on tap.
 * ListenBrainz only has recommendations for users who submit listens to it;
   Rockit does not scrobble to ListenBrainz.
-* Recently *recommended* (as opposed to played) songs are not tracked, so an
-  unchanged history yields the same list until it changes.
+* Recently *recommended* (as opposed to played) songs are not persisted.
+  Rotation changes every six hours; recent actual plays affect the next ranking.
 * The settings UI exists on web; mobile reads the same per-user settings.
+
+
+## Home and Up next
+
+Web and mobile Home reuse the same personal feed in the hero carousel,
+Quick Selection (interleaved with familiar music) and recommendation cards.
+External discoveries remain recognizable as downloads. A local-only request
+(`external=false`) renders first; the external response is additive and cannot
+hold up Home or playback when Last.fm/ListenBrainz is slow.
+
+The player shows recommendations after the original queue in desktop, compact
+PWA and native mobile layouts. Repeat ONE and ALL retain their normal behavior;
+repeat OFF continues with one ready recommendation at a time. When nothing is
+playable, playback stops instead of looping without permission. Radio stations
+do not seed music autoplay. Pending downloads can be skipped in favor of a
+ready local fallback. Already queued songs are excluded.
+
+## Playback preparation
+
+GET requests never download anything. Only active playback on its owning device,
+with repeat OFF and within the last two positions of the queue, may call
+`POST /recommendation/prepare`. The real queue occupies the same two-song
+lookahead window: with one queued song remaining, prepare one recommendation;
+with none remaining, prepare two. At most two candidate IDs/artist-title pairs
+are handled, and external resolution still requires user opt-in.
+
+The endpoint uses the core provider registry and ordinary Downloader pipeline;
+there is no separate download worker. PostgreSQL transaction advisory locking
+serializes automatic admission across users and workers. The server-wide budget
+counts queued, fetching, running and retrying automatic downloads, and defaults
+to **two outstanding downloads total**, not two per user. Existing pending media
+are reused; failed media have a ten-minute automatic cooldown. Provider search
+failures have a bounded five-minute backoff. Explicit manual downloads continue
+through their existing concurrency controls.
+
+```env
+RECOMMENDATION_PREFETCH_MAX_PENDING=2  # 0 disables automatic preparation
+```
+
+Preparation rechecks download state every 15 seconds during eligible playback.
+It stops requesting preparation on pause, repeat, a different device taking
+playback ownership, or leaving the end of the queue. Downloads already admitted
+remain ordinary downloads and can finish; they are not cancelled on pause.
+
+External suggestions are matched conservatively by both artist and title before
+importing provider metadata. Rendering a card never searches media providers.

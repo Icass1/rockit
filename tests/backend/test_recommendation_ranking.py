@@ -171,3 +171,29 @@ class ExternalSuggestionRankingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PersonalRotationTests(unittest.TestCase):
+    def test_personal_repetition_reduces_affinity_score(self):
+        fresh = LocalCandidate(media_id=1, public_id="fresh", shared_artists=1)
+        repeated = LocalCandidate(
+            media_id=2, public_id="repeat", shared_artists=1, recent_user_plays=20
+        )
+        self.assertGreater(
+            RecommendationRanking.score_candidate(fresh),
+            RecommendationRanking.score_candidate(repeated),
+        )
+
+    def test_rotation_is_stable_but_varies_between_users_and_periods(self):
+        candidates = [LocalCandidate(media_id=i, public_id=str(i)) for i in range(30)]
+        rank = RecommendationRanking.rank_local_candidates
+        first = rank(candidates, limit=10, rotation_key="user1:period1")
+        self.assertEqual(
+            first, rank(candidates, limit=10, rotation_key="user1:period1")
+        )
+        self.assertNotEqual(
+            first, rank(candidates, limit=10, rotation_key="user2:period1")
+        )
+        self.assertNotEqual(
+            first, rank(candidates, limit=10, rotation_key="user1:period2")
+        )

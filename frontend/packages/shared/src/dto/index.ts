@@ -411,6 +411,10 @@ export {
     PlaylistResponseItemSchema,
     type PlaylistResponseItem,
 } from "./playlistResponseItem";
+export {
+    PrepareRecommendationsRequestSchema,
+    type PrepareRecommendationsRequest,
+} from "./prepareRecommendationsRequest";
 export { QueueItemSchema, type QueueItem } from "./queueItem";
 export { QueueResponseSchema, type QueueResponse } from "./queueResponse";
 export {
@@ -433,6 +437,10 @@ export {
     RecommendationSettingsResponseSchema,
     type RecommendationSettingsResponse,
 } from "./recommendationSettingsResponse";
+export {
+    RecommendationTrackRequestSchema,
+    type RecommendationTrackRequest,
+} from "./recommendationTrackRequest";
 export { RegisterRequestSchema, type RegisterRequest } from "./registerRequest";
 export {
     RegisterResponseSchema,

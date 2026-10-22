@@ -58,3 +58,7 @@ export { VirtualRowLayout } from "@/managers/virtualRowLayout";
 export type { CollectionTreeRow } from "@/models/interfaces/collectionTree";
 
 export * from "@/models/enums/friendTab";
+
+export type { AutoplayRecommendation } from "./models/types/autoplayRecommendation";
+
+export { mixHomeRecommendations } from "./lib/homeRecommendations";

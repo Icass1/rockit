@@ -1,4 +1,3 @@
-import asyncio
 import time
 from typing import NamedTuple
 
@@ -46,25 +45,15 @@ DEFAULT_RECOMMENDATION_LIMIT = 20
 MAX_RECOMMENDATION_LIMIT = 50
 # How many of the user's own top/liked songs to seed a personalized feed with.
 PROFILE_SEED_LIMIT = 25
-# How far back into a user's own listen history to look when excluding
-# already-known songs from their personalized feed.
-PROFILE_EXCLUDE_LIMIT = 10000
+# Keep a short recent-listen exclusion window; older familiar music can
+# return as fallback instead of exhausting small libraries.
+PROFILE_EXCLUDE_LIMIT = 5
 # How many external (not-yet-downloaded) suggestions to show per request.
 DISCOVER_LIMIT = 8
-# How many recommended songs that are already known to this instance (same
-# library, just missing their audio file) to fetch to the server automatically
-# per request. Each one costs a yt-dlp download, so this stays small. External
-# suggestions are never auto-downloaded — resolving one costs a provider
-# search, so it only happens on the user's tap. Set to 0 to disable.
-AUTO_DOWNLOAD_LIMIT = 3
 # Ranked local results are reused for this long, so re-rendering the home
 # page or reopening the player does not re-run the candidate query.
 LOCAL_RESULT_CACHE_SECONDS = 60.0
 LOCAL_RESULT_CACHE_MAX_ENTRIES = 512
-
-# Strong references to in-flight auto-download tasks. asyncio only keeps weak
-# references, so without this a task can be garbage collected mid-download.
-_BACKGROUND_TASKS: set["asyncio.Task[None]"] = set()
 
 
 class _LocalResultCache:
@@ -140,68 +129,6 @@ class Recommendation:
         return max(1, min(limit, MAX_RECOMMENDATION_LIMIT))
 
     @staticmethod
-    async def _auto_download_async(
-        user_id: int,
-        media_public_ids: list[str],
-    ) -> None:
-        """Queue server-side downloads for recommended songs that have no
-        audio file yet.
-
-        Runs detached from the request, on its own session, because the
-        request's session is closed as soon as the response is sent.
-        Re-queueing is safe: the downloader skips media already downloaded or
-        in progress.
-        """
-
-        from backend.core.access.db import rockit_db
-        from backend.core.framework.downloader.downloader import Downloader
-
-        try:
-            async with rockit_db.session_scope_async() as session:
-                a_result = await Downloader.download_multiple_medias_async(
-                    session=session,
-                    user_id=user_id,
-                    title="Recommendations",
-                    public_ids=media_public_ids,
-                )
-                if a_result.is_not_ok():
-                    logger.error(
-                        f"Error auto-downloading recommended media. {a_result.info()}"
-                    )
-        except Exception as e:
-            # Never let a background failure surface as an unhandled task error;
-            # the recommendation response has already been sent by now.
-            logger.error(f"Auto-download task failed: {e}", exc_info=True)
-
-    @staticmethod
-    def _schedule_auto_downloads(
-        user_id: int,
-        songs: list[BaseSongWithAlbumResponse],
-    ) -> None:
-        """Fire-and-forget the download of recommended songs that are known to
-        this instance but still lack audio, capped at AUTO_DOWNLOAD_LIMIT.
-        External suggestions are intentionally excluded."""
-
-        if AUTO_DOWNLOAD_LIMIT <= 0:
-            return
-
-        missing_public_ids: list[str] = [s.publicId for s in songs if not s.downloaded][
-            :AUTO_DOWNLOAD_LIMIT
-        ]
-
-        if not missing_public_ids:
-            return
-
-        task = asyncio.create_task(
-            Recommendation._auto_download_async(
-                user_id=user_id, media_public_ids=missing_public_ids
-            )
-        )
-        # Keep a reference so the task isn't garbage collected mid-flight.
-        _BACKGROUND_TASKS.add(task)
-        task.add_done_callback(_BACKGROUND_TASKS.discard)
-
-    @staticmethod
     async def _resolve_seed_track_async(
         session: AsyncSession,
         public_id: str,
@@ -256,10 +183,12 @@ class Recommendation:
         exclude_media_ids: list[int],
         exclude_public_ids: set[str],
         limit: int,
+        rotation_key: str = "",
+        user_id: int = 0,
     ) -> AResult[list[str]]:
         """Ranked local public_ids: related candidates first, then, if
-        history is too sparse to fill the list, the cold-start fallback
-        (most played, then newest). An empty library yields []."""
+        history is too sparse to fill the list, the rotating cold-start fallback. An empty library yields [].
+        """
 
         candidates: list[LocalCandidate] = []
         if seed_media_ids:
@@ -268,6 +197,7 @@ class Recommendation:
                 seed_media_ids=seed_media_ids,
                 exclude_media_ids=exclude_media_ids,
                 limit=LOCAL_CANDIDATE_LIMIT,
+                user_id=user_id,
             )
             if a_candidates.is_not_ok():
                 logger.error(f"Error loading local candidates. {a_candidates.info()}")
@@ -275,15 +205,19 @@ class Recommendation:
             candidates = a_candidates.result()
 
         ranked = RecommendationRanking.rank_local_candidates(
-            candidates=candidates, limit=limit, exclude_public_ids=exclude_public_ids
+            candidates=candidates,
+            limit=limit,
+            exclude_public_ids=exclude_public_ids,
+            rotation_key=rotation_key,
         )
         if len(ranked) >= limit:
             return AResult(code=AResultCode.OK, message="OK", result=ranked)
 
         a_fallback = await RecommendationAccess.get_fallback_candidates_async(
             session=session,
-            exclude_media_ids=list({*exclude_media_ids, *seed_media_ids}),
+            exclude_media_ids=list(set(exclude_media_ids)),
             limit=LOCAL_CANDIDATE_LIMIT,
+            rotation_key=rotation_key,
         )
         if a_fallback.is_not_ok():
             # The personalized part is still valid; serve it alone.
@@ -294,6 +228,7 @@ class Recommendation:
             candidates=a_fallback.result(),
             limit=limit - len(ranked),
             exclude_public_ids=exclude_public_ids | set(ranked),
+            rotation_key=rotation_key,
         )
         return AResult(code=AResultCode.OK, message="OK", result=ranked)
 
@@ -319,6 +254,8 @@ class Recommendation:
                 exclude_media_ids=exclude_media_ids,
                 exclude_public_ids=exclude_public_ids,
                 limit=limit,
+                rotation_key=f"{cache_key[1] if cache_key else 0}:{int(time.time() // 21600)}",
+                user_id=cache_key[1] if cache_key else 0,
             )
             if a_ranked.is_not_ok():
                 return AResult(code=a_ranked.code(), message=a_ranked.message())
@@ -327,12 +264,13 @@ class Recommendation:
                 _local_result_cache.set(cache_key, ranked)
 
         songs = await Media.resolve_songs_from_public_ids_async(
-            session=session, public_ids=ranked
+            session=session,
+            public_ids=[pid for pid in ranked if pid not in exclude_public_ids],
         )
         return AResult(code=AResultCode.OK, message="OK", result=songs)
 
     @staticmethod
-    async def _get_external_settings_async(
+    async def get_external_settings_async(
         session: AsyncSession, user_id: int
     ) -> tuple[bool, str | None]:
         """(opted in, ListenBrainz username). Missing or unreadable settings
@@ -353,7 +291,7 @@ class Recommendation:
         return bool(row.external_enabled), row.listenbrainz_username
 
     @staticmethod
-    def _build_discover_item(
+    def build_discover_item(
         suggestion: ExternalSuggestion,
         provider_name: str,
         public_id: str | None,
@@ -382,12 +320,16 @@ class Recommendation:
         user_id: int,
         context: ExternalRecommendationContext,
         exclude_public_ids: set[str],
+        include_external: bool = True,
     ) -> tuple[list[BaseSearchResultsItem], str | None, EExternalStatus]:
         """External suggestions for an opted-in user, matched against the
         local library in one batched query. Never fails: every problem
         degrades to an empty list with an explanatory status."""
 
-        enabled, username = await Recommendation._get_external_settings_async(
+        if not include_external:
+            return [], None, EExternalStatus.DISABLED
+
+        enabled, username = await Recommendation.get_external_settings_async(
             session=session, user_id=user_id
         )
         if not enabled:
@@ -446,7 +388,7 @@ class Recommendation:
                     continue
                 seen_public_ids.add(public_id)
             discover.append(
-                Recommendation._build_discover_item(
+                Recommendation.build_discover_item(
                     suggestion=suggestion,
                     provider_name=result.provider_name,
                     public_id=public_id,
@@ -462,6 +404,7 @@ class Recommendation:
         user_id: int,
         public_id: str,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
+        include_external: bool = True,
     ) -> AResult[RecommendationResult]:
         """Songs similar to one seed song or video (excluding the seed
         itself), plus optional external suggestions seeded on it."""
@@ -506,9 +449,8 @@ class Recommendation:
                 kind=ERecommendationContextKind.SEED, seed=seed
             ),
             exclude_public_ids={public_id, *(s.publicId for s in songs)},
+            include_external=include_external,
         )
-
-        Recommendation._schedule_auto_downloads(user_id=user_id, songs=songs)
 
         return AResult(
             code=AResultCode.OK,
@@ -526,12 +468,13 @@ class Recommendation:
         session: AsyncSession,
         user_id: int,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
+        include_external: bool = True,
     ) -> AResult[RecommendationResult]:
         """Personalized recommendations from the user's own profile.
 
-        Seeds on the user's most-recently-played and liked songs and excludes
-        anything they've already listened to or liked, so results are
-        new-to-them. Users without history get the cold-start fallback.
+        Seeds on recent plays and likes, excludes the last five listens, and
+        penalizes frequent repeats over the last two weeks. Older familiar
+        songs remain eligible when discovery is sparse. Users without history get the cold-start fallback.
         External suggestions (if opted in) come from ListenBrainz for the
         user, or Last.fm seeded on their most recent song.
         """
@@ -552,7 +495,9 @@ class Recommendation:
         )
         liked_ids: list[str] = a_liked.result() if a_liked.is_ok() else []
 
-        seed_public_ids: list[str] = list(dict.fromkeys(recent_ids + liked_ids))
+        seed_public_ids: list[str] = list(
+            dict.fromkeys(recent_ids + liked_ids[:PROFILE_SEED_LIMIT])
+        )
 
         a_seed_ids = await Recommendation._get_media_ids_async(
             session=session, public_ids=seed_public_ids
@@ -564,15 +509,15 @@ class Recommendation:
             return AResult(code=a_seed_ids.code(), message=a_seed_ids.message())
         seed_ids = a_seed_ids.result()
 
-        # Exclude everything the user has ever listened to (not just the
-        # seed set) so this stays about new-to-them discovery.
+        # Exclude the most recent listens while retaining older familiar
+        # music as fallback, especially on smaller self-hosted libraries.
         a_all_played: AResult[list[str]] = (
             await StatsAccess.get_recently_played_songs_async(
                 session=session, user_id=user_id, limit=PROFILE_EXCLUDE_LIMIT
             )
         )
         played_ids: list[str] = a_all_played.result() if a_all_played.is_ok() else []
-        exclude_public_ids: set[str] = {*played_ids, *seed_public_ids}
+        exclude_public_ids: set[str] = set(played_ids)
 
         a_exclude_ids = await Recommendation._get_media_ids_async(
             session=session, public_ids=list(exclude_public_ids)
@@ -611,9 +556,8 @@ class Recommendation:
                 kind=ERecommendationContextKind.USER, seed=seed
             ),
             exclude_public_ids={*exclude_public_ids, *(s.publicId for s in songs)},
+            include_external=include_external,
         )
-
-        Recommendation._schedule_auto_downloads(user_id=user_id, songs=songs)
 
         return AResult(
             code=AResultCode.OK,
@@ -632,6 +576,7 @@ class Recommendation:
         user_id: int,
         playlist_public_id: str,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
+        include_external: bool = True,
     ) -> AResult[RecommendationResult]:
         """Songs to add to a playlist, related to everything already in it,
         plus optional external suggestions seeded on its first song. Not
@@ -698,9 +643,8 @@ class Recommendation:
                 kind=ERecommendationContextKind.SEED, seed=seed
             ),
             exclude_public_ids={*seed_public_ids, *(s.publicId for s in songs)},
+            include_external=include_external,
         )
-
-        Recommendation._schedule_auto_downloads(user_id=user_id, songs=songs)
 
         return AResult(
             code=AResultCode.OK,

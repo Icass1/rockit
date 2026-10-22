@@ -103,7 +103,7 @@ export function resolveOnMediaError<T extends QueueItem>(
  *
  * With repeat ALL the queue loops back to the beginning. With repeat OFF the
  * end of the queue asks for AUTOPLAY instead, so playback can continue into
- * recommended songs; callers that cannot supply any fall back to looping.
+ * recommended songs; callers stop when no playable suggestion is available.
  */
 export function resolveNextOnEnd<T extends QueueItem>(
     queue: T[],

@@ -336,10 +336,32 @@ class Downloader:
         in one atomic operation by reusing the same add-and-queue path as
         start_download_from_url_async.
 
-        This is the one place a provider search happens for the discovery
-        flow — only here, and only on the user's tap.
+        Explicit selections share the same resolver used by the bounded
+        playback preparation window. Reading suggestions never searches.
         """
 
+        found = await Downloader.resolve_search_song_async(
+            session=session, artist_name=artist_name, track_name=track_name
+        )
+        if found.is_not_ok():
+            logger.error(f"Could not resolve discovery suggestion. {found.info()}")
+            return AResult(code=found.code(), message=found.message())
+        match = found.result()
+
+        return await Downloader.start_download_from_url_async(
+            session=session,
+            user_id=user_id,
+            url=match.providerUrl,
+            add_to_library=add_to_library,
+            add_to_playlist=add_to_playlist,
+            playlist_public_id=playlist_public_id,
+        )
+
+    @staticmethod
+    async def resolve_search_song_async(
+        session: AsyncSession, artist_name: str, track_name: str
+    ) -> AResult[BaseSearchResultsItem]:
+        """Resolve a conservative artist/title match through registered providers."""
         a_search: AResult[SearchResultsResponse] = await Media.search_async(
             session=session, query=f"{artist_name} {track_name}"
         )
@@ -349,19 +371,32 @@ class Downloader:
             )
             return AResult(code=a_search.code(), message=a_search.message())
 
-        # Prefer a song that isn't downloaded here yet (that's the point of the
-        # tap), then any song with a fetchable URL.
         items: List[BaseSearchResultsItem] = a_search.result().results
-        match: BaseSearchResultsItem | None = next(
-            (
-                item
-                for item in items
-                if item.type == "song" and item.providerUrl and not item.downloaded
-            ),
-            next(
-                (item for item in items if item.type == "song" and item.providerUrl),
+        from difflib import SequenceMatcher
+        from backend.core.framework.recommendationRanking import RecommendationRanking
+
+        def similarity(left: str, right: str) -> float:
+            return SequenceMatcher(
                 None,
-            ),
+                RecommendationRanking.normalize_text(left),
+                RecommendationRanking.normalize_text(right),
+            ).ratio()
+
+        matches = [
+            item
+            for item in items
+            if item.type == "song"
+            and item.providerUrl
+            and similarity(item.name, track_name) >= 0.65
+            and any(
+                similarity(artist.name, artist_name) >= 0.65 for artist in item.artists
+            )
+        ]
+        match = max(
+            matches,
+            key=lambda item: similarity(item.name, track_name)
+            + max(similarity(artist.name, artist_name) for artist in item.artists),
+            default=None,
         )
 
         if match is None:
@@ -373,13 +408,21 @@ class Downloader:
                 message=f"No song found for {artist_name} - {track_name}",
             )
 
-        return await Downloader.start_download_from_url_async(
-            session=session,
-            user_id=user_id,
-            url=match.providerUrl,
-            add_to_library=add_to_library,
-            add_to_playlist=add_to_playlist,
-            playlist_public_id=playlist_public_id,
+        return AResult(code=AResultCode.OK, message="OK", result=match)
+
+    @staticmethod
+    async def add_search_song_async(
+        session: AsyncSession, match: BaseSearchResultsItem
+    ) -> AResult[str]:
+        """Import provider metadata without downloading or modifying a library."""
+        added = await providers.add_from_url_async(
+            session=session, url=match.providerUrl
+        )
+        if added.is_not_ok():
+            logger.error(f"Could not add search match. {added.info()}")
+            return AResult(code=added.code(), message=added.message())
+        return AResult(
+            code=AResultCode.OK, message="OK", result=added.result().publicId
         )
 
     @staticmethod

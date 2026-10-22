@@ -10,6 +10,11 @@ from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 from backend.core.framework.recommendation import Recommendation, RecommendationResult
 from backend.core.framework.recommendationSettings import RecommendationSettings
+from backend.core.framework.recommendationPrefetch import RecommendationPrefetch
+from backend.core.framework.models.recommendation import SeedTrack
+from backend.core.requests.prepareRecommendationsRequest import (
+    PrepareRecommendationsRequest,
+)
 
 from backend.core.responses.songListResponse import SongListResponse
 from backend.core.responses.recommendationSettingsResponse import (
@@ -32,6 +37,7 @@ router = APIRouter(
 async def get_recommendations_for_you(
     request: Request,
     limit: int = 20,
+    external: bool = True,
 ) -> SongListResponse:
     """Personalized song recommendations from the current user's listening profile."""
 
@@ -48,6 +54,7 @@ async def get_recommendations_for_you(
             session=session,
             user_id=a_result_user.result().id,
             limit=limit,
+            include_external=external,
         )
     )
     if a_result.is_not_ok():
@@ -64,6 +71,7 @@ async def get_recommendations_for_playlist(
     request: Request,
     public_id: str,
     limit: int = 20,
+    external: bool = True,
 ) -> SongListResponse:
     """Song suggestions to add to a playlist, based on what's already in it."""
 
@@ -81,6 +89,7 @@ async def get_recommendations_for_playlist(
             user_id=a_result_user.result().id,
             playlist_public_id=public_id,
             limit=limit,
+            include_external=external,
         )
     )
     if a_result.is_not_ok():
@@ -144,3 +153,31 @@ async def update_recommendation_settings(
         )
 
     return a_result.result()
+
+
+@router.post("/prepare")
+async def prepare_recommendations(
+    request: Request,
+    payload: PrepareRecommendationsRequest,
+) -> SongListResponse:
+    """Prepare only the next two recommendations during active playback."""
+    session = DBSessionMiddleware.get_session(request=request)
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Unauthenticated recommendation preparation. {user.info()}")
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    prepared = await RecommendationPrefetch.prepare_async(
+        session=session,
+        user_id=user.result().id,
+        public_ids=payload.publicIds,
+        discover=[
+            SeedTrack(artist_name=item.artist, track_name=item.track)
+            for item in payload.discover
+        ],
+    )
+    if prepared.is_not_ok():
+        logger.error(f"Could not prepare recommendations. {prepared.info()}")
+        raise HTTPException(
+            status_code=prepared.get_http_code(), detail=prepared.message()
+        )
+    return prepared.result()

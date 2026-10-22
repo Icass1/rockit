@@ -164,6 +164,11 @@ YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 # --- Recommendations ---------------------------------------------------------
 # Local recommendations need no configuration. Everything below is optional and
 # only affects the opt-in external "discover" suggestions.
+# Shared admission budget, including queued and retrying automatic downloads.
+# Set to zero to disable automatic preparation without disabling recommendations.
+RECOMMENDATION_PREFETCH_MAX_PENDING = max(
+    0, get_env_int_optional("RECOMMENDATION_PREFETCH_MAX_PENDING", 2)
+)
 # Last.fm API key (secret). When unset the Last.fm provider is disabled.
 LASTFM_API_KEY = get_optional_env_str("LASTFM_API_KEY", default="")
 # Ordered, comma separated external providers to try. The first one that

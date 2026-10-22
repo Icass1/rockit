@@ -1,5 +1,10 @@
 import {
+    buildRecommendationQueue,
+    recommendationWindowSize,
+} from "@/audio/recommendationQueue";
+import {
     type BaseAlbumWithSongsResponse,
+    type BaseSongWithAlbumResponse,
     type CurrentMediaMessage,
     type CurrentQueueMessageRequestItem,
     type QueueResponse,
@@ -7,9 +12,10 @@ import {
 import { getRockIt } from "@/rockit/rockitRef";
 import { shuffle } from "@/utils/arrayTools";
 import { EQueueType } from "@/models/enums/queueType";
+import { ERepeatMode } from "@/models/enums/repeatMode";
 import { type QueueMediaItem } from "@/models/interfaces/queue";
+import type { AutoplayRecommendation } from "@/models/types/autoplayRecommendation";
 import {
-    isDownloadable,
     isQueueable,
     isStation,
     type TListMedia,
@@ -47,6 +53,13 @@ export class BaseQueueManager {
     /** Song the current suggestions were built from, so they are only
      * refetched when the queue actually moves on to something else. */
     protected _autoplaySeedPublicId: string | undefined;
+    protected _autoplayRecommendationsAtom =
+        createArrayAtom<AutoplayRecommendation>([]);
+    protected _autoplayPreparing = false;
+    protected _autoplayLoadingAtom = createAtom<boolean>(false);
+    protected _autoplayLoading: Promise<void> | undefined;
+    protected _autoplayPrepareTimer: ReturnType<typeof setTimeout> | undefined;
+
     /** Pending autoplay refresh (debounced), so a burst of track changes near
      * the end of the queue becomes a single request. */
     protected _autoplayLoadTimer: ReturnType<typeof setTimeout> | undefined;
@@ -84,7 +97,13 @@ export class BaseQueueManager {
         this._currentMediaAtom.listen((): void => {
             this._scheduleAutoplayLoad();
         });
-        void this.loadAutoplaySuggestionsAsync();
+        getRockIt().mediaPlayerManager.playingAtom.listen((): void => {
+            this._scheduleAutoplayLoad();
+        });
+        getRockIt().userManager.repeatModeAtom.listen((): void => {
+            this._scheduleAutoplayLoad();
+        });
+        this._scheduleAutoplayLoad();
     }
 
     protected _handleCurrentQueue = async (): Promise<void> => {
@@ -844,107 +863,310 @@ export class BaseQueueManager {
 
     // #region: Autoplay
 
-    /**
-     * Fetch songs recommended from whatever is playing now, so the UI can
-     * show what comes after the queue before it actually ends.
-     *
-     * Songs with no audio file yet are kept so their metadata still shows in
-     * the queue (greyed out); only playback filters them out. Safe to call
-     * repeatedly — it no-ops while the seed song hasn't changed.
-     */
-    async loadAutoplaySuggestionsAsync(): Promise<void> {
-        const seed = this.currentMedia;
-        if (!seed) {
-            this._autoplayAtom.set([]);
-            this._autoplaySeedPublicId = undefined;
+    /** Explicit Home/queue selection: missing audio is downloaded on demand,
+     * never as a side effect of rendering a recommendation. */
+    async playRecommendedSongAsync(
+        song: BaseSongWithAlbumResponse,
+        songs: BaseSongWithAlbumResponse[] = [song]
+    ): Promise<void> {
+        if (
+            this.currentMedia?.publicId === song.publicId &&
+            getRockIt().mediaPlayerManager.playingAtom.get()
+        ) {
+            getRockIt().mediaPlayerManager.pause();
             return;
         }
-
-        if (this._autoplaySeedPublicId === seed.publicId) return;
-        this._autoplaySeedPublicId = seed.publicId;
-
-        const response = await getRockIt().http.getRelatedSongs(seed.publicId);
-        if (!response.isOk()) {
-            this._autoplayAtom.set([]);
+        const fresh = await getRockIt().http.getSong(song.publicId);
+        if (!fresh.isOk()) {
+            getRockIt().notificationManager.notifyError(fresh.message);
             return;
         }
-
-        const queuedPublicIds = new Set(
-            this.queue.map((item): string => item.media.publicId)
+        if (!fresh.result.downloaded) {
+            const started = await getRockIt().http.startDownload({
+                ids: [song.publicId],
+                title: song.name,
+            });
+            if (started.isOk())
+                getRockIt().notificationManager.notifyInfo(
+                    getRockIt().vocabularyManager.vocabulary.DOWNLOAD_STARTED
+                );
+            else getRockIt().notificationManager.notifyError(started.message);
+            return;
+        }
+        this.setMedia(
+            songs
+                .map((entry) =>
+                    entry.publicId === song.publicId ? fresh.result : entry
+                )
+                .filter((entry) => entry.downloaded),
+            "recommendations"
         );
+        this.moveToMedia(song.publicId);
+        getRockIt().mediaPlayerManager.play();
+    }
+
+    async playAutoplayRecommendationAsync(
+        item: AutoplayRecommendation
+    ): Promise<void> {
+        if (item.kind === "song") {
+            await this.playRecommendedSongAsync(item.song);
+            return;
+        }
+        if (item.item.publicId && item.item.downloaded) {
+            const song = await getRockIt().http.getSong(item.item.publicId);
+            if (song.isOk()) await this.playRecommendedSongAsync(song.result);
+            else getRockIt().notificationManager.notifyError(song.message);
+            return;
+        }
+        const started = await getRockIt().http.startDownloadFromSearch({
+            artistName: item.item.artists[0]?.name ?? "",
+            trackName: item.item.name,
+            addToLibrary: true,
+            addToPlaylist: false,
+            playlistPublicId: null,
+        });
+        if (started.isOk())
+            getRockIt().notificationManager.notifyInfo(
+                getRockIt().vocabularyManager.vocabulary.DOWNLOAD_STARTED
+            );
+        else getRockIt().notificationManager.notifyError(started.message);
+    }
+
+    get autoplayLoadingAtom(): ReadonlyAtom<boolean> {
+        return this._autoplayLoadingAtom.getReadonlyAtom();
+    }
+
+    get autoplayRecommendationsAtom(): ReadonlyArrayAtom<AutoplayRecommendation> {
+        return this._autoplayRecommendationsAtom.getReadonlyAtom();
+    }
+
+    protected _setRecommendations(items: AutoplayRecommendation[]): void {
+        const queued = new Set(this.queue.map((entry) => entry.media.publicId));
+        const filtered = items.filter((entry) =>
+            entry.kind === "song"
+                ? !queued.has(entry.song.publicId)
+                : !entry.item.publicId || !queued.has(entry.item.publicId)
+        );
+        this._autoplayRecommendationsAtom.set(filtered);
         this._autoplayAtom.set(
-            response.result.songs.filter(
-                (song): boolean => !queuedPublicIds.has(song.publicId)
+            filtered.flatMap((entry) =>
+                entry.kind === "song" ? [entry.song] : []
             )
         );
     }
 
-    /** Load the suggestions only when playback is close enough to the end of
-     * the queue to actually use them, debounced so quickly-arriving track
-     * changes collapse into one request. */
-    protected _scheduleAutoplayLoad(): void {
-        if (!this._isNearQueueEnd()) return;
-        if (this._autoplayLoadTimer) return;
+    async loadAutoplaySuggestionsAsync(): Promise<void> {
+        const current = this.currentMedia;
+        if (!current || isStation(current)) {
+            this._setRecommendations([]);
+            this._autoplaySeedPublicId = undefined;
+            return;
+        }
+        const seed = this.queue.at(-1)?.media ?? current;
+        if (this._autoplaySeedPublicId === seed.publicId) {
+            if (this._autoplayLoading) await this._autoplayLoading;
+            return;
+        }
+        this._autoplaySeedPublicId = seed.publicId;
+        this._autoplayLoadingAtom.set(true);
+        this._setRecommendations([]);
+        const loading = (async (): Promise<void> => {
+            const response = await getRockIt().http.getRelatedSongs(
+                seed.publicId,
+                20,
+                false
+            );
+            if (
+                this._autoplaySeedPublicId !== seed.publicId ||
+                this.queue.at(-1)?.media.publicId !== seed.publicId
+            )
+                return;
+            if (!response.isOk()) {
+                this._autoplaySeedPublicId = undefined;
+                return;
+            }
+            this._setRecommendations(
+                buildRecommendationQueue(
+                    response.result,
+                    new Set(this.queue.map((entry) => entry.media.publicId))
+                )
+            );
+            // Discover is additive and never delays a playable local answer.
+            void getRockIt()
+                .http.getRelatedSongs(seed.publicId, 20, true)
+                .then((external) => {
+                    if (
+                        !external.isOk() ||
+                        this._autoplaySeedPublicId !== seed.publicId ||
+                        this.queue.at(-1)?.media.publicId !== seed.publicId
+                    )
+                        return;
+                    const queued = new Set(
+                        this.queue.map((item) => item.media.publicId)
+                    );
+                    this._setRecommendations(
+                        buildRecommendationQueue(
+                            {
+                                ...external.result,
+                                songs: this._autoplayRecommendationsAtom
+                                    .get()
+                                    .flatMap((item) =>
+                                        item.kind === "song" ? [item.song] : []
+                                    ),
+                            },
+                            queued
+                        )
+                    );
+                });
+        })();
+        this._autoplayLoading = loading;
+        try {
+            await loading;
+        } finally {
+            if (this._autoplayLoading === loading) {
+                this._autoplayLoading = undefined;
+                this._autoplayLoadingAtom.set(false);
+            }
+        }
+    }
 
+    protected _canPrepareAutoplay(): boolean {
+        const player = getRockIt().mediaPlayerManager;
+        const media = this.currentMedia;
+        return (
+            !!media &&
+            player.playingAtom.get() &&
+            player.isPlaybackOwner &&
+            getRockIt().userManager.repeatModeAtom.get() === ERepeatMode.OFF &&
+            this._isNearQueueEnd() &&
+            !isStation(media)
+        );
+    }
+
+    protected _scheduleAutoplayLoad(): void {
+        if (this._autoplayPrepareTimer)
+            clearTimeout(this._autoplayPrepareTimer);
+        this._autoplayPrepareTimer = undefined;
+        if (!this._canPrepareAutoplay() || this._autoplayLoadTimer) return;
         this._autoplayLoadTimer = setTimeout((): void => {
             this._autoplayLoadTimer = undefined;
-            void this.loadAutoplaySuggestionsAsync();
+            void this.prepareAutoplayAsync();
         }, AUTOPLAY_LOAD_DELAY_MS);
     }
 
-    /** True while the current song is within the last AUTOPLAY_NEAR_END_OFFSET
-     * positions of the active queue (a shorter queue always qualifies). */
     protected _isNearQueueEnd(): boolean {
-        const currentMedia = this.currentMedia;
-        if (!currentMedia) return false;
-
-        const queue = this.queue;
-        const index = queue.findIndex(
-            (item): boolean => item.media.publicId === currentMedia.publicId
+        const index = this.queue.findIndex(
+            (item) => item.queueMediaId === this.currentQueueMediaId
         );
-        if (index < 0) return false;
-
-        return index >= queue.length - AUTOPLAY_NEAR_END_OFFSET;
+        return (
+            index >= 0 && index >= this.queue.length - AUTOPLAY_NEAR_END_OFFSET
+        );
     }
 
-    /**
-     * Append the suggested songs to the queue and continue playing from the
-     * first of them. Returns false when there is nothing to continue with,
-     * so the caller can fall back to its previous end-of-queue behaviour.
-     */
-    async startAutoplayAsync(): Promise<boolean> {
-        if (this.autoplay.length === 0) {
+    /** Only the active playback owner may request preparation. Each request
+     * refreshes file state; the server owns global admission and deduplication. */
+    async prepareAutoplayAsync(): Promise<void> {
+        if (!this._canPrepareAutoplay() || this._autoplayPreparing) return;
+        this._autoplayPreparing = true;
+        const currentId = this.currentQueueMediaId;
+        try {
             await this.loadAutoplaySuggestionsAsync();
+            if (
+                !this._canPrepareAutoplay() ||
+                currentId !== this.currentQueueMediaId
+            )
+                return;
+            const index = this.queue.findIndex(
+                (item) => item.queueMediaId === currentId
+            );
+            const count = recommendationWindowSize(
+                this.queue.length - index - 1
+            );
+            const window = this._autoplayRecommendationsAtom
+                .get()
+                .slice(0, count);
+            if (window.length === 0) return;
+            const response = await getRockIt().http.prepareRecommendations({
+                publicIds: window.flatMap((item) =>
+                    item.kind === "song" ? [item.song.publicId] : []
+                ),
+                discover: window.flatMap((item) =>
+                    item.kind === "discover"
+                        ? [
+                              {
+                                  artist: item.item.artists[0]?.name ?? "",
+                                  track: item.item.name,
+                              },
+                          ]
+                        : []
+                ),
+            });
+            if (!response.isOk() || currentId !== this.currentQueueMediaId)
+                return;
+            this._setRecommendations(
+                this._autoplayRecommendationsAtom.get().map((item) => {
+                    if (item.kind === "song") {
+                        const fresh = response.result.songs.find(
+                            (song) => song.publicId === item.song.publicId
+                        );
+                        return fresh ? { kind: "song", song: fresh } : item;
+                    }
+                    const resolved = response.result.discover.find(
+                        (entry) =>
+                            entry.name === item.item.name &&
+                            entry.artists[0]?.name ===
+                                item.item.artists[0]?.name
+                    );
+                    const song = response.result.songs.find(
+                        (entry) => entry.publicId === resolved?.publicId
+                    );
+                    return song ? { kind: "song", song } : item;
+                })
+            );
+        } finally {
+            this._autoplayPreparing = false;
+            if (this._canPrepareAutoplay()) {
+                this._autoplayPrepareTimer = setTimeout((): void => {
+                    this._autoplayPrepareTimer = undefined;
+                    void this.prepareAutoplayAsync();
+                }, 15000);
+            }
         }
+    }
 
-        // Only songs with an audio file on the server can actually play; the
-        // rest are display-only in the queue.
-        const suggestions = this.autoplay.filter(
-            (media): boolean => !isDownloadable(media) || media.downloaded
+    /** Append one ready song at a time. Pending/failed downloads never block
+     * an already playable local fallback, and the original queue stays intact. */
+    async startAutoplayAsync(): Promise<boolean> {
+        if (getRockIt().userManager.repeatModeAtom.get() !== ERepeatMode.OFF)
+            return false;
+        const currentId = this.currentQueueMediaId;
+        const wasPlaying = getRockIt().mediaPlayerManager.playingAtom.get();
+        await this.loadAutoplaySuggestionsAsync();
+        if (
+            currentId !== this.currentQueueMediaId ||
+            (wasPlaying && !getRockIt().mediaPlayerManager.playingAtom.get()) ||
+            getRockIt().userManager.repeatModeAtom.get() !== ERepeatMode.OFF
+        )
+            return false;
+        const items = this._autoplayRecommendationsAtom.get();
+        const queued = new Set(this.queue.map((item) => item.media.publicId));
+        const next = items.find(
+            (item) =>
+                item.kind === "song" &&
+                item.song.downloaded &&
+                !queued.has(item.song.publicId)
         );
-        if (suggestions.length === 0) return false;
-
-        const listPublicId = this.currentList ?? "";
-        let nextQueueMediaId = this.sortedQueue.reduce(
-            (max, item): number => Math.max(max, item.queueMediaId),
-            -1
-        );
-
-        const appended: QueueMediaItem[] = suggestions.map(
-            (media): QueueMediaItem => ({
-                media,
-                listPublicId,
-                queueMediaId: ++nextQueueMediaId,
-            })
-        );
-
-        this.sortedQueue = [...this.sortedQueue, ...appended];
-        this.randomQueue = [...this.randomQueue, ...appended];
-        this._autoplayAtom.set([]);
-        this._autoplaySeedPublicId = undefined;
-
-        this.updateQueue();
-        this.setQueueMediaId(appended[0].queueMediaId);
+        if (!next || next.kind !== "song") return false;
+        this.addMediaToEnd(next.song);
+        this._setRecommendations(items.filter((item) => item !== next));
+        // Reuse the remaining recommendations instead of replacing them after
+        // every track. Refill once the current batch has been consumed.
+        this._autoplaySeedPublicId = this.queue.at(-1)?.media.publicId;
+        if (this._autoplayRecommendationsAtom.get().length < 3)
+            this._autoplaySeedPublicId = undefined;
+        const appended = this.sortedQueue.at(-1);
+        if (!appended) return false;
+        this.setQueueMediaId(appended.queueMediaId);
         this._sendCurrentQueue();
         return true;
     }

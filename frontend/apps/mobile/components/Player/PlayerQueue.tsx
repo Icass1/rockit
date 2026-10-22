@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
-import { EQueueType, type TQueueMedia } from "@rockit/shared";
+import { EQueueType, ERepeatMode, type TQueueMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
 import QueueItem from "@/components/Player/QueueItem";
+import { RecommendationRow } from "@/components/Recommendations/AutoplayDiscovery";
 
 /** Fixed height of a QueueItem row (46px image + 2×10 vertical padding). */
 const ITEM_HEIGHT = 66;
@@ -26,12 +27,17 @@ export default function PlayerQueue() {
         originalQueue,
     } = usePlayer();
 
-    const $autoplay = useStore(rockIt.queueManager.autoplayAtom);
+    const $autoplay = useStore(rockIt.queueManager.autoplayRecommendationsAtom);
+    const repeat = useStore(rockIt.userManager.repeatModeAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const listRef = useRef<FlatList<TQueueMedia>>(null);
     const currentIndex =
         queue?.findIndex((m) => m.publicId === currentMedia?.publicId) ?? -1;
+
+    useEffect(() => {
+        void rockIt.queueManager.loadAutoplaySuggestionsAsync();
+    }, [currentMedia?.publicId]);
 
     // On open (the panel remounts this component each time the queue tab shows),
     // center the currently-playing item so the user lands on it.
@@ -102,21 +108,18 @@ export default function PlayerQueue() {
                     $autoplay.length > 0 ? (
                         <View>
                             <Text style={styles.autoplayHeader}>
-                                {$vocabulary.AUTOPLAY_ON}
+                                {repeat === ERepeatMode.OFF
+                                    ? $vocabulary.AUTOPLAY_ON
+                                    : $vocabulary.RECOMMENDED_SONGS}
                             </Text>
-                            {$autoplay.map((media) => (
-                                <QueueItem
-                                    key={media.publicId}
-                                    media={media}
-                                    // Not part of the queue yet: it has no
-                                    // index to remove, and tapping queues it
-                                    // next rather than jumping to it.
-                                    index={-1}
-                                    isActive={false}
-                                    onDelete={(): void => undefined}
-                                    onPlay={(m: TQueueMedia): void =>
-                                        rockIt.queueManager.addMediaNext(m)
+                            {$autoplay.map((entry, index) => (
+                                <RecommendationRow
+                                    key={
+                                        entry.kind === "song"
+                                            ? entry.song.publicId
+                                            : `discover-${index}`
                                     }
+                                    entry={entry}
                                 />
                             ))}
                         </View>

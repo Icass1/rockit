@@ -1,0 +1,163 @@
+import unittest
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import tests  # noqa: F401
+from pydantic import ValidationError
+
+from backend.core.aResult import AResult, AResultCode
+from backend.core.framework.recommendationPrefetch import RecommendationPrefetch
+from backend.core.framework.models.recommendation import SeedTrack
+from backend.core.requests.prepareRecommendationsRequest import (
+    PrepareRecommendationsRequest,
+    RecommendationTrackRequest,
+)
+from tests.backend.test_recommendation_framework import make_song
+
+
+def ok(value):
+    return AResult(code=AResultCode.OK, message="OK", result=value)
+
+
+class PrefetchTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.song = make_song("next")
+        self.session = MagicMock()
+        self.patches = [
+            patch(
+                "backend.core.framework.recommendationPrefetch.Media.resolve_songs_from_public_ids_async",
+                AsyncMock(return_value=[self.song]),
+            ),
+            patch(
+                "backend.core.framework.recommendationPrefetch.Recommendation.get_external_settings_async",
+                AsyncMock(return_value=(False, None)),
+            ),
+            patch(
+                "backend.core.framework.recommendationPrefetch.RecommendationPrefetch.admit_async",
+                AsyncMock(return_value=ok(True)),
+            ),
+            patch(
+                "backend.core.framework.recommendationPrefetch.Downloader.download_multiple_medias_async",
+                AsyncMock(return_value=ok(True)),
+            ),
+            patch(
+                "backend.core.framework.recommendationPrefetch.Downloader.resolve_search_song_async",
+                AsyncMock(),
+            ),
+        ]
+        self.resolve, self.settings, self.admit, self.download, self.search = [
+            p.start() for p in self.patches
+        ]
+        for p in self.patches:
+            self.addCleanup(p.stop)
+
+    async def prepare(self, payload=None):
+        payload = payload or PrepareRecommendationsRequest(publicIds=["next"])
+        return await RecommendationPrefetch.prepare_async(
+            session=self.session,
+            user_id=1,
+            public_ids=payload.publicIds,
+            discover=[
+                SeedTrack(artist_name=item.artist, track_name=item.track)
+                for item in payload.discover
+            ],
+        )
+
+    async def test_ready_files_never_consume_download_budget(self):
+        result = await self.prepare()
+        self.assertTrue(result.is_ok())
+        self.admit.assert_not_awaited()
+        self.download.assert_not_awaited()
+
+    async def test_missing_song_uses_existing_downloader(self):
+        self.song.downloaded = False
+        await self.prepare()
+        self.download.assert_awaited_once_with(
+            session=self.session, user_id=1, title="Autoplay", public_ids=["next"]
+        )
+
+    async def test_busy_or_duplicate_never_starts_download(self):
+        self.song.downloaded = False
+        self.admit.return_value = ok(False)
+        await self.prepare()
+        self.download.assert_not_awaited()
+
+    async def test_database_failure_keeps_existing_recommendations(self):
+        self.song.downloaded = False
+        self.admit.return_value = AResult(
+            code=AResultCode.GENERAL_ERROR, message="offline"
+        )
+        result = await self.prepare()
+        self.assertTrue(result.is_ok())
+        self.assertEqual(result.result().songs[0].publicId, "next")
+        self.download.assert_not_awaited()
+
+    async def test_discovery_requires_opt_in(self):
+        await self.prepare(
+            PrepareRecommendationsRequest(
+                discover=[RecommendationTrackRequest(artist="Artist", track="Song")]
+            )
+        )
+        self.search.assert_not_awaited()
+
+    async def test_full_global_budget_does_not_even_search_providers(self):
+        self.settings.return_value = (True, None)
+        self.admit.return_value = ok(False)
+        await self.prepare(
+            PrepareRecommendationsRequest(
+                discover=[RecommendationTrackRequest(artist="Artist", track="Song")]
+            )
+        )
+        self.search.assert_not_awaited()
+
+    def test_client_cannot_submit_unbounded_batches(self):
+        with self.assertRaises(ValidationError):
+            PrepareRecommendationsRequest(publicIds=["a", "b", "c"])
+
+
+class DiscoveryMatchingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_uses_matching_artist_and_title_instead_of_first_search_hit(self):
+        from backend.core.framework.downloader.downloader import Downloader
+        from backend.core.responses.searchResponse import (
+            BaseSearchResultsItem,
+            ArtistSearchResultsItem,
+            SearchResultsResponse,
+        )
+
+        def item(artist, name):
+            return BaseSearchResultsItem(
+                type="song",
+                name=name,
+                artists=[ArtistSearchResultsItem(name=artist, url="")],
+                provider="Test",
+                providerUrl="https://example.com/song",
+                imageUrl="",
+                downloaded=False,
+                url=None,
+            )
+
+        wrong = item("Unrelated artist", "Unrelated song")
+        match = item("The Beatles", "Here Comes the Sun (2019 Remaster)")
+        with patch(
+            "backend.core.framework.downloader.downloader.Media.search_async",
+            AsyncMock(return_value=ok(SearchResultsResponse(results=[wrong, match]))),
+        ):
+            found = await Downloader.resolve_search_song_async(
+                session=MagicMock(),
+                artist_name="The Beatles",
+                track_name="Here Comes the Sun",
+            )
+        self.assertTrue(found.is_ok())
+        self.assertEqual(found.result().name, match.name)
+
+    async def test_unrelated_results_are_not_automatically_downloaded(self):
+        from backend.core.framework.downloader.downloader import Downloader
+        from backend.core.responses.searchResponse import SearchResultsResponse
+
+        with patch(
+            "backend.core.framework.downloader.downloader.Media.search_async",
+            AsyncMock(return_value=ok(SearchResultsResponse(results=[]))),
+        ):
+            found = await Downloader.resolve_search_song_async(
+                session=MagicMock(), artist_name="Artist", track_name="Song"
+            )
+        self.assertTrue(found.is_not_ok())

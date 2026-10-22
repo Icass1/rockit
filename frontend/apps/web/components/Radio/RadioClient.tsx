@@ -140,7 +140,7 @@ export default function RadioClient(): JSX.Element {
     const loading = browsing ? pending : library.loading;
     const failed = browsing ? error : Boolean(library.error);
     return (
-        <div className="relative isolate h-[calc(100dvh-256px-env(safe-area-inset-bottom,0px))] min-h-96 w-full overflow-hidden md:h-[calc(100dvh-192px)]">
+        <div className="relative isolate h-full min-h-0 w-full overflow-hidden">
             <div className="absolute inset-0 z-0">
                 <RadioMap
                     onCountryClick={selectCountry}
@@ -152,7 +152,7 @@ export default function RadioClient(): JSX.Element {
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-linear-to-r from-neutral-950/60 to-transparent"
             />
-            <aside className="pointer-events-none absolute inset-3 z-20 flex flex-col justify-between gap-3 md:right-auto md:w-96 md:justify-start">
+            <aside className="pointer-events-none absolute inset-3 z-20 flex flex-col justify-between gap-3 overflow-y-auto overscroll-contain md:right-auto md:w-96 md:justify-start">
                 <div className="pointer-events-auto shrink-0 space-y-3 rounded-2xl border border-white/10 bg-neutral-950/85 p-4 shadow-xl backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-neutral-950 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none">
                     <header className="space-y-3">
                         <div>
@@ -241,7 +241,7 @@ export default function RadioClient(): JSX.Element {
                 </div>
                 <section
                     aria-busy={loading}
-                    className="pointer-events-auto flex max-h-[45%] min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/85 p-3 shadow-xl backdrop-blur-xl md:max-h-none md:flex-1 [@media(prefers-reduced-transparency:reduce)]:bg-neutral-950 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
+                    className="pointer-events-auto flex max-h-[45%] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/85 p-3 shadow-xl backdrop-blur-xl md:max-h-none md:flex-1 [@media(prefers-reduced-transparency:reduce)]:bg-neutral-950 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
                 >
                     <div className="mb-4 flex items-center justify-between gap-3">
                         <h2 className="flex min-w-0 items-center gap-2 text-lg font-semibold text-white">

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import type { BaseSearchResultsItem } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
+import SearchRail from "@/components/Search/SearchRail";
 
 function RadioStationCard({
     station,
@@ -25,11 +26,12 @@ function RadioStationCard({
             }}
         >
             <Image
+                sizes="(min-width: 768px) 192px, 144px"
                 width={350}
                 height={350}
                 className="aspect-square w-full rounded-lg object-cover select-none"
                 src={imgSrc}
-                alt={`Radio station ${station.name}`}
+                alt={station.name}
                 loading="lazy"
                 unoptimized
                 onError={(): void => setImgSrc("/radio-placeholder.png")}
@@ -64,7 +66,7 @@ export default function RadioSection({
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.RADIO_STATIONS}
             </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
+            <SearchRail kind="radio">
                 {[...stations]
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((station): JSX.Element => (
@@ -74,7 +76,7 @@ export default function RadioSection({
                             onPlay={handlePlay}
                         />
                     ))}
-            </div>
+            </SearchRail>
         </section>
     );
 }

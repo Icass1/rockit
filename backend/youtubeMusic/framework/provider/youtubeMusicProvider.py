@@ -86,6 +86,23 @@ class YoutubeMusicProvider(BaseMediaProvider):
         YoutubeMusic.provider = self
         YoutubeMusic.provider_name = provider_name
 
+    async def search_page_async(
+        self,
+        session: AsyncSession,
+        query: str,
+        limit: int = 15,
+        media_type: str | None = None,
+    ) -> AResult[List[BaseSearchResultsItem]]:
+        return await youtube_music.search_media_async(
+            session=session, query=query, limit=limit, media_type=media_type
+        )
+
+    def search_supports_category(self) -> bool:
+        return True
+
+    def search_page_size(self) -> int:
+        return 100
+
     @time_it
     async def search_media_async(
         self, session: AsyncSession, query: str

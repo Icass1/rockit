@@ -4,9 +4,9 @@ import { JSX } from "react";
 import Image from "next/image";
 import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EMediaContextLocation } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
-import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
+import SearchRail from "@/components/Search/SearchRail";
+import SearchResultCard from "@/components/Search/SearchResultCard";
 
 export default function SongsSection({
     songs,
@@ -22,22 +22,23 @@ export default function SongsSection({
             <h2 className="px-5 text-left text-2xl font-bold md:px-0 md:text-3xl">
                 {$vocabulary.SONGS}
             </h2>
-            <div className="relative flex items-center gap-4 overflow-x-auto px-8 py-4 md:pr-14 md:pl-4">
+            <SearchRail kind="song">
                 {songs.map((song): JSX.Element => (
-                    <MediaContextMenu
-                        key={song.providerUrl}
+                    <SearchResultCard
+                        key={rockIt.searchManager.getResultKey(song)}
                         media={song}
-                        location={EMediaContextLocation.SEARCH}
                     >
-                        <div
-                            className={`w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${song.downloaded === false && "opacity-50"}`}
-                        >
+                        <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
                             <Image
+                                sizes="(min-width: 768px) 192px, 144px"
                                 width={350}
                                 height={350}
                                 className="aspect-square w-full rounded-lg object-cover select-none"
-                                src={song.imageUrl}
-                                alt={`Cover of ${song.name}`}
+                                src={song.imageUrl || "/logo-banner.png"}
+                                alt={$vocabulary.COVER_OF.replace(
+                                    "{name}",
+                                    song.name
+                                )}
                             />
                             <span className="mt-2 block truncate text-center font-semibold">
                                 {song.name}
@@ -53,9 +54,9 @@ export default function SongsSection({
                                 ))}
                             </span>
                         </div>
-                    </MediaContextMenu>
+                    </SearchResultCard>
                 ))}
-            </div>
+            </SearchRail>
         </section>
     );
 }

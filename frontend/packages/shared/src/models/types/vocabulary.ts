@@ -581,4 +581,13 @@ export interface Vocabulary {
     RADIO_EMPTY: string;
     PLAYER_ENABLE_SHUFFLE: string;
     PLAYER_DISABLE_SHUFFLE: string;
+    SEARCH_LOAD_MORE: string;
+    SEARCH_NO_RESULTS: string;
+    SEARCH_LOADING: string;
+    SEARCH_CHOOSE_SOURCE: string;
+    SEARCH_SOURCE_DOWNLOADED: string;
+    SEARCH_ADD_TO_LIBRARY_FROM: string;
+    SEARCH_DOWNLOAD_FROM: string;
+    SEARCH_DOWNLOAD_AND_ADD_FROM: string;
+    SEARCH_PLAY_FROM: string;
 }

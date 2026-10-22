@@ -69,6 +69,26 @@ class BaseMediaProvider(BaseProvider):
             message=f"Provider '{self._name} doesn't implement search_media_async method.'",
         )
 
+    async def search_page_async(
+        self,
+        session: AsyncSession,
+        query: str,
+        limit: int = 15,
+        media_type: str | None = None,
+    ) -> AResult[List[BaseSearchResultsItem]]:
+        """Providers without pagination return their complete supported result set."""
+        return await self.search_media_async(session=session, query=query)
+
+    def search_on_demand(self) -> bool:
+        return False
+
+    def search_supports_category(self) -> bool:
+        return False
+
+    def search_page_size(self) -> int:
+        """Zero means that expanding search is unsupported."""
+        return 0
+
     def match_url(self, url: str) -> str | None:
         return None
 

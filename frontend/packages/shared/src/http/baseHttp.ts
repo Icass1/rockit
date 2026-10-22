@@ -985,6 +985,22 @@ export class BaseHttp {
         );
     }
 
+    static async searchProviderAsync(payload: dto.SearchProviderRequest) {
+        return this.apiPostAsync(
+            `/media/search/provider`,
+            dto.SearchProviderRequestSchema,
+            dto.SearchProviderResponseSchema,
+            payload
+        );
+    }
+
+    static async searchProvidersAsync() {
+        return this.apiGetAsync(
+            `/media/search/providers`,
+            dto.SearchProvidersResponseSchema
+        );
+    }
+
     static async getSong(publicId: string) {
         return this.apiGetAsync(
             `/media/song/${publicId}`,

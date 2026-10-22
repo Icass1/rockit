@@ -9,9 +9,11 @@ import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
 
-function trimImageUrl<T extends { imageUrl: string }>(item: T): T {
-    const imageUrl = item.imageUrl.trim();
-    return imageUrl === item.imageUrl ? item : { ...item, imageUrl };
+function trimImageUrl<T extends { imageUrl?: string | null }>(item: T): T {
+    const imageUrl = item.imageUrl?.trim();
+    return !imageUrl || imageUrl === item.imageUrl
+        ? item
+        : { ...item, imageUrl };
 }
 
 export class StationManager {

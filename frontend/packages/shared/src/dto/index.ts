@@ -479,6 +479,22 @@ export {
     ReviewUserRequestRequestSchema,
     type ReviewUserRequestRequest,
 } from "./reviewUserRequestRequest";
+export {
+    SearchProviderInfoSchema,
+    type SearchProviderInfo,
+} from "./searchProviderInfo";
+export {
+    SearchProviderRequestSchema,
+    type SearchProviderRequest,
+} from "./searchProviderRequest";
+export {
+    SearchProviderResponseSchema,
+    type SearchProviderResponse,
+} from "./searchProviderResponse";
+export {
+    SearchProvidersResponseSchema,
+    type SearchProvidersResponse,
+} from "./searchProvidersResponse";
 export { SearchRequestSchema, type SearchRequest } from "./searchRequest";
 export {
     SearchResultsResponseSchema,

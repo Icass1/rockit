@@ -6,7 +6,7 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "test": "node tests/radio.test.mjs && node tests/iosPlayback.test.mjs && node tests/mediaStreaming.test.mjs && node tests/adaptiveTransitions.test.mjs && node tests/vinylArtwork.test.mjs && node tests/listenTogether.test.mjs && node tests/downloads.test.mjs && node tests/notifications.test.mjs",
+        "test": "node tests/radio.test.mjs && node tests/iosPlayback.test.mjs && node tests/mediaStreaming.test.mjs && node tests/adaptiveTransitions.test.mjs && node tests/vinylArtwork.test.mjs && node tests/listenTogether.test.mjs && node tests/downloads.test.mjs && node tests/notifications.test.mjs && node tests/search.test.mjs",
         "lint": "eslint --cache app components && npx tsc --noEmit",
         "prettier": "prettier --write app components hooks styles environment.ts"
     },

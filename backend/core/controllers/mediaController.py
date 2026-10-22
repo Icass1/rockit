@@ -41,6 +41,13 @@ from backend.core.responses.basePlaylistWithMediasResponse import (
 )
 from backend.core.requests import searchRequest
 
+from backend.core.framework.media.search import provider_search
+from backend.core.requests.searchProviderRequest import SearchProviderRequest
+from backend.core.responses.searchProviderResponse import (
+    SearchProviderResponse,
+    SearchProvidersResponse,
+)
+
 logger: Logger = getLogger(__name__)
 router = APIRouter(
     prefix="/media",
@@ -215,6 +222,30 @@ async def get_station_async(request: Request, public_id: str) -> BaseStationResp
         )
 
     return a_result.result()
+
+
+@router.get("/search/providers")
+async def search_providers_async(
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> SearchProvidersResponse:
+    return provider_search.catalog()
+
+
+@router.post("/search/provider")
+async def search_provider_async(
+    payload: SearchProviderRequest,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> SearchProviderResponse:
+    result = await provider_search.search_async(
+        provider_id=payload.providerId,
+        query=payload.query,
+        limit=payload.limit,
+        media_type=payload.mediaType,
+    )
+    if result.is_not_ok():
+        logger.error(f"Provider search error. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.post("/search")

@@ -304,6 +304,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         icon: CloudDownload,
         labelKey: "SAVE_OFFLINE",
         mediaTypes: [EMediaType.Song],
+        condition: (m) => !isSearchResult(m),
     },
     {
         id: EMediaContextAction.DownloadOfflineList,

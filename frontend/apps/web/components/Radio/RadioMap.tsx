@@ -54,7 +54,9 @@ function MapBounds({
 
     useEffect(() => {
         const updateWorlds = (): void => {
-            const worldWidth = map.getPixelWorldBounds().getSize().x;
+            const worldWidth = map
+                .getPixelWorldBounds(map.getMinZoom())
+                .getSize().x;
             onWorldRadiusChange(
                 Math.ceil(map.getSize().x / (2 * worldWidth)) + 1
             );
@@ -63,12 +65,10 @@ function MapBounds({
             map.invalidateSize();
             updateWorlds();
         });
-        map.on("zoomend", updateWorlds);
         updateWorlds();
         observer.observe(map.getContainer());
         return (): void => {
             observer.disconnect();
-            map.off("zoomend", updateWorlds);
         };
     }, [map, onWorldRadiusChange]);
 
@@ -289,6 +289,7 @@ export default function RadioMap({
     savedStations = [],
 }: RadioMapProps): JSX.Element {
     const [worldRadius, setWorldRadius] = useState(2);
+    const renderer = useMemo(() => L.svg({ padding: 1 }), []);
     const worlds = Array.from(
         { length: worldRadius * 2 + 1 },
         (_, index) => index - worldRadius
@@ -313,6 +314,7 @@ export default function RadioMap({
     return (
         <div className="radio-map-container h-full w-full overflow-hidden [&_.leaflet-control-zoom_a]:h-11 [&_.leaflet-control-zoom_a]:w-11 [&_.leaflet-control-zoom_a]:leading-11">
             <MapContainer
+                renderer={renderer}
                 center={[20, 0]}
                 zoom={2}
                 minZoom={2}

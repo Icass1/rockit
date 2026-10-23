@@ -101,7 +101,7 @@ class DownloadBrowser:
             external = row["external_id"]
             provider_url = (
                 provider.get_collection_provider_url(
-                    metadata={"spotify_id": external, "youtube_id": external},
+                    metadata={"external_id": external},
                     media_type_key=row["media_type_key"],
                 )
                 if provider and source_type in {"album", "playlist"}
@@ -250,12 +250,7 @@ class DownloadBrowser:
             )
         for _, media in rows:
             provider = providers.find_media_provider(provider_id=media.provider_id)
-            if provider is None or provider.get_name() not in {
-                "Spotify",
-                "SpotifyScrapper",
-                "YouTube",
-                "YouTube Music",
-            }:
+            if provider is None or not provider.can_manage_downloads():
                 logger.warning("Group contains media that cannot be downloaded again")
                 return AResult(
                     code=AResultCode.BAD_REQUEST,

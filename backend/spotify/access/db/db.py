@@ -29,3 +29,6 @@ from backend.spotify.access.db.ormModels.track import TrackRow as TrackRow
 
 schemas = ["spotify", "spotify_cache"]
 base = SpotifyBase
+
+# Register local storage independently of remote provider activation.
+from backend.spotify.access import downloadStorage as downloadStorage

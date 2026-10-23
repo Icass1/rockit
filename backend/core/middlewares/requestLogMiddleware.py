@@ -44,6 +44,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         start_time: float = time.monotonic()
         timestamp: str = datetime.now(timezone.utc).isoformat()
 
+        logger.debug("Request started: %s %s", request.method, request.url.path)
         response: Response = await call_next(request)
 
         time_taken_ms: int = int((time.monotonic() - start_time) * 1000)

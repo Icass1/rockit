@@ -18,6 +18,7 @@ from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.baseStationResponse import BaseStationResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
+from backend.core.responses.artistPageResponse import ArtistCatalogResponse
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
@@ -31,7 +32,15 @@ logger: Logger = getLogger(__name__)
 
 
 class BaseMediaProvider(BaseProvider):
-    """Base class for media providers (Spotify, YouTube, etc.)."""
+    """Shared contract for media providers."""
+
+    async def get_artist_catalog_async(
+        self, session: AsyncSession, name: str, public_id: str | None = None
+    ) -> AResult[ArtistCatalogResponse]:
+        """Return locally indexed references. Unsupported sources contribute nothing."""
+        return AResult(
+            code=AResultCode.OK, message="OK", result=ArtistCatalogResponse()
+        )
 
     def start_download(self, publicId: str) -> AResult[BaseDownload]:
         logger.warning(
@@ -220,6 +229,10 @@ class BaseMediaProvider(BaseProvider):
     # Return None if the provider has no contribution for that CTE.
     # ------------------------------------------------------------------
 
+    def get_recommendation_playlist_edges_cte_fragment(self) -> str | None:
+        """SELECT playlist_id, media_id for playlist co-occurrence ranking."""
+        return None
+
     def get_stats_media_info_cte_fragment(self) -> str | None:
         """SELECT fragment for media_info (media_id, duration_ms, public_id, media_name, image_url, media_type_key)."""
         return None
@@ -258,3 +271,31 @@ class BaseMediaProvider(BaseProvider):
         has no contribution.
         """
         return None
+
+    def can_manage_downloads(self) -> bool:
+        return False
+
+    async def add_media_to_playlist_async(
+        self,
+        session: AsyncSession,
+        playlist_public_id: str,
+        user_id: int,
+        media_public_id: str,
+    ) -> AResult[Any]:
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message="This provider does not support playlist editing",
+        )
+
+    async def set_media_expanded_async(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        playlist_public_id: str,
+        media_public_id: str,
+        is_expanded: bool,
+    ) -> AResult[bool]:
+        return AResult(
+            code=AResultCode.NOT_IMPLEMENTED,
+            message="This provider does not support expanded playlist items",
+        )

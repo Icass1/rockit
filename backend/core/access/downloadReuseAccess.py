@@ -1,10 +1,8 @@
-from sqlalchemy import select, union_all
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select
-from typing import Any
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.access.db.shared_metadata import shared_metadata
+from backend.core.access.providerStorage import provider_storage
 from backend.core.access.db.ormModels.media import CoreMediaRow
 from backend.core.access.db.ormModels.provider import ProviderRow
 from backend.core.access.db.ormModels.download import DownloadRow
@@ -22,28 +20,7 @@ class DownloadReuseAccess:
         session: AsyncSession, public_ids: list[str]
     ) -> AResult[list[DownloadCandidate]]:
         """Read playable IDs and their stored file paths in one local batch query."""
-        statements: list[Select[Any]] = []
-        for key, column in [
-            ("spotify.track", "path"),
-            ("spotify_scrapper.track", "path"),
-            ("youtube_music.track", "path"),
-            ("youtube.video", "video_path"),
-            ("rockit.song", "file_path"),
-            ("rockit.video", "file_path"),
-        ]:
-            table = shared_metadata.tables.get(key)
-            if table is not None:
-                name = table.c.get("name")
-                if name is None:
-                    name = table.c.title
-                statements.append(
-                    select(
-                        table.c.id.label("id"),
-                        table.c[column].label("path"),
-                        name.label("name"),
-                    )
-                )
-        paths = union_all(*statements).subquery("download_files")
+        paths = provider_storage.files()
         rows = (
             await session.execute(
                 select(

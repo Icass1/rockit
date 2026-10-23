@@ -146,7 +146,7 @@ def group_action(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> GroupAction
         AsyncMock(return_value=ok([(row, media)])),
     )
     provider = Mock()
-    provider.get_name.return_value = "Spotify"
+    provider.can_manage_downloads.return_value = True
     monkeypatch.setattr(providers, "find_media_provider", Mock(return_value=provider))
     monkeypatch.setattr(
         DownloadBrowseAccess,
@@ -379,3 +379,20 @@ async def test_library_group_rejects_hidden_group_and_propagates_save_failure(
     )
     assert result.code() == AResultCode.GENERAL_ERROR
     assert result.message() == "Save failed"
+
+
+async def test_group_action_rejects_provider_without_download_management(
+    group_action: GroupActionFixture, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    provider = Mock()
+    provider.can_manage_downloads.return_value = False
+    monkeypatch.setattr(providers, "find_media_provider", Mock(return_value=provider))
+    result = await DownloadBrowser.group_action_async(
+        session=AsyncMock(spec=AsyncSession),
+        user_id=1,
+        public_id="group",
+        action="retry",
+    )
+    assert result.code() == AResultCode.BAD_REQUEST
+    group_action.clear.assert_not_awaited()
+    group_action.queue.assert_not_called()

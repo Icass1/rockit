@@ -30,8 +30,7 @@ export class RockIt {
 
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
         "/playlist-placeholder.png";
-    public readonly ALBUM_PLACEHOLDER_IMAGE_URL =
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/image/album-placeholder.png";
+    public readonly ALBUM_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
     public readonly MEDIA_PLACEHOLDER_IMAGE_URL =
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/song-placeholder.png";
     public readonly SONG_PLACEHOLDER_IMAGE_URL =

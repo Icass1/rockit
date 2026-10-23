@@ -1,13 +1,12 @@
 from typing import Any
 from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import select, func, literal, union_all, exists, or_, update, case
+from sqlalchemy import select, func, literal, exists, or_, update, case
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select
 
 from backend.core.aResult import AResult, AResultCode
 from backend.core.utils.safeAsyncCall import safe_async
-from backend.core.access.db.shared_metadata import shared_metadata
+from backend.core.access.providerStorage import provider_storage
 from backend.core.access.db.ormModels.download import DownloadRow
 from backend.core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from backend.core.access.db.ormModels.downloadStatus import DownloadStatusRow
@@ -21,42 +20,7 @@ class DownloadBrowseAccess:
     @staticmethod
     def metadata(with_images: bool = True) -> Any:
         """A local, narrow provider index; never fetch container children or remote APIs."""
-        statements: list[Select[Any]] = []
-        for table in shared_metadata.tables.values():
-            if table.schema == "core" or table.name not in {
-                "playlist",
-                "album",
-                "song",
-                "track",
-                "video",
-            }:
-                continue
-            name = table.c.get("name")
-            if name is None:
-                name = table.c.get("title")
-            if name is None or "id" not in table.c:
-                continue
-            image = table.c.get("image_id")
-            source = table
-            if with_images and image is None and "album_id" in table.c:
-                album = shared_metadata.tables.get(f"{table.schema}.album")
-                if album is not None:
-                    source = table.outerjoin(album, album.c.id == table.c.album_id)
-                    image = album.c.get("image_id")
-            external = table.c.get("spotify_id")
-            if external is None:
-                external = table.c.get("youtube_id")
-            statements.append(
-                select(
-                    table.c.id.label("id"),
-                    name.label("name"),
-                    (image if image is not None else literal(None)).label("image_id"),
-                    (external if external is not None else literal(None)).label(
-                        "external_id"
-                    ),
-                ).select_from(source)
-            )
-        return union_all(*statements).subquery("download_metadata")
+        return provider_storage.metadata(with_images=with_images)
 
     @staticmethod
     def status_predicate(status: str) -> Any:
@@ -195,17 +159,8 @@ class DownloadBrowseAccess:
                 func.bool_and(
                     DownloadRow.media_id.in_(
                         select(CoreMediaRow.id)
-                        .join(ProviderRow, ProviderRow.id == CoreMediaRow.provider_id)
-                        .where(
-                            ProviderRow.name.in_(
-                                [
-                                    "Spotify",
-                                    "SpotifyScrapper",
-                                    "YouTube",
-                                    "YouTube Music",
-                                ]
-                            )
-                        )
+                        .join(meta, meta.c.id == CoreMediaRow.id)
+                        .where(meta.c.manageable.is_(True))
                     )
                 ).label("manageable"),
             )
@@ -385,24 +340,9 @@ class DownloadBrowseAccess:
         session: AsyncSession, media_ids: list[int]
     ) -> AResult[list[str]]:
         """Clear paths in provider batches, returning files for the framework to archive."""
-        paths: list[str] = []
-        for key, column in [
-            ("spotify.track", "path"),
-            ("spotify_scrapper.track", "path"),
-            ("youtube_music.track", "path"),
-            ("youtube.video", "video_path"),
-        ]:
-            table = shared_metadata.tables.get(key)
-            if table is None:
-                continue
-            old = await session.execute(
-                select(table.c[column]).where(table.c.id.in_(media_ids))
-            )
-            paths.extend(value for value in old.scalars() if value)
-            await session.execute(
-                update(table).where(table.c.id.in_(media_ids)).values({column: None})
-            )
-        return AResult(code=AResultCode.OK, message="OK", result=paths)
+        return await provider_storage.clear_files_async(
+            session=session, media_ids=media_ids
+        )
 
     @staticmethod
     @safe_async

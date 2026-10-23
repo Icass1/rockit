@@ -166,22 +166,28 @@ function LibraryCard({
         </div>
     );
 
+    const titleBlock = (
+        <div className="mt-1 flex min-w-0 items-center justify-center gap-1">
+            <p className="truncate font-semibold">{name}</p>
+            {titleSuffix}
+        </div>
+    );
+    const subtitleBlock =
+        subtitle !== undefined ? (
+            typeof subtitle === "string" ? (
+                <p className="truncate text-center text-sm text-gray-400">
+                    {subtitle}
+                </p>
+            ) : (
+                <div className="text-center text-sm text-gray-400">
+                    {subtitle}
+                </div>
+            )
+        ) : undefined;
     const textBlock = (
         <>
-            <div className="mt-1 flex min-w-0 items-center justify-center gap-1">
-                <p className="truncate font-semibold">{name}</p>
-                {titleSuffix}
-            </div>
-            {subtitle !== undefined &&
-                (typeof subtitle === "string" ? (
-                    <p className="truncate text-center text-sm text-gray-400">
-                        {subtitle}
-                    </p>
-                ) : (
-                    <div className="text-center text-sm text-gray-400">
-                        {subtitle}
-                    </div>
-                ))}
+            {titleBlock}
+            {subtitleBlock}
         </>
     );
 
@@ -225,18 +231,15 @@ function LibraryCard({
         <CardShell>
             <MediaContextMenu media={media} location={location}>
                 {href ? (
-                    <>
-                        <Link
-                            href={href}
-                            className={linkClass}
-                            onClick={handleSelectionClick}
-                        >
+                    <div className={linkClass}>
+                        <Link href={href} onClick={handleSelectionClick}>
                             {imageBlock}
-                            {textBlock}
-                            {selectionOverlay}
+                            {titleBlock}
                         </Link>
+                        {subtitleBlock}
+                        {selectionOverlay}
                         {children}
-                    </>
+                    </div>
                 ) : (
                     <div
                         className={`${linkClass} cursor-pointer`}
@@ -294,7 +297,6 @@ export function AlbumCard({
                 <Artists
                     artists={album.artists}
                     className="text-sm text-gray-400"
-                    linkable={false}
                 />
             }
             href={album.url}
@@ -385,7 +387,7 @@ export function SongCard({
             <DownloadStatusIcon
                 stroke={0.8}
                 publicId={$song.publicId}
-                className="absolute h-full w-full"
+                className="pointer-events-none absolute h-full w-full"
             />
         </LibraryCard>
     );

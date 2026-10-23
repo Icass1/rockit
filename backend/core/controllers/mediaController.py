@@ -1,3 +1,5 @@
+from backend.core.framework.media.artist import Artist
+from backend.core.responses.artistPageResponse import ArtistPageResponse
 import os
 import io
 import cv2
@@ -495,9 +497,7 @@ async def add_from_url_async(
     user: UserRow = a_result_user.result()
 
     if payload.addToPlaylist and payload.playlistPublicId:
-        from backend.default.framework.playlist import Playlist
-
-        a_result_add_to_playlist = await Playlist.add_media_to_playlist_async(
+        a_result_add_to_playlist = await providers.add_media_to_playlist_async(
             session=session,
             playlist_public_id=payload.playlistPublicId,
             user_id=user.id,
@@ -518,3 +518,55 @@ async def add_from_url_async(
             logger.error("Error adding media to library.")
 
     return AddFromUrlResponse(data=media)
+
+
+@router.get("/artist/{public_id}/page")
+async def get_artist_catalog_page(
+    request: Request,
+    public_id: str,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    _=Depends(AuthMiddleware.auth_dependency),
+) -> ArtistPageResponse:
+    """Read the local artist catalog across registered providers."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Artist authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Artist.page_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        public_id=public_id,
+        offset=offset,
+        limit=limit,
+    )
+    if result.is_not_ok():
+        logger.error(f"Artist page failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
+
+
+@router.get("/artists/profile")
+async def get_artist_page_by_name(
+    request: Request,
+    name: str = Query(min_length=1, max_length=200),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    _=Depends(AuthMiddleware.auth_dependency),
+) -> ArtistPageResponse:
+    """Resolve an uploaded artist without inventing a Core media identifier."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Artist authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Artist.page_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        name=name,
+        offset=offset,
+        limit=limit,
+    )
+    if result.is_not_ok():
+        logger.error(f"Artist page failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()

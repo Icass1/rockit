@@ -1707,7 +1707,12 @@ class YoutubeMusic:
                     )
                 )
 
-        image_url = Image.get_internal_image_url(db_artist.image)
+        # Synthesized playlist artists borrow track artwork; it is not a portrait.
+        image_url = (
+            ""
+            if db_artist.youtube_id.startswith("artist-")
+            else Image.get_internal_image_url(db_artist.image)
+        )
         dominant_color = db_artist.image.dominant_color
 
         response = YoutubeMusicArtistResponse(

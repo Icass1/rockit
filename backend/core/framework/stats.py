@@ -93,8 +93,8 @@ class Stats:
         """Assemble home page sections from real listening data.
 
         Each section uses its own query — no arbitrary slicing or fake data.
-        moodSongs draws on genre data where a provider has it (Spotify
-        artist genres today) and is empty for users with none.
+        moodSongs draws on genre data supplied by providers and is empty
+        for users with none.
         """
 
         now: datetime = datetime.now(timezone.utc)
@@ -194,7 +194,7 @@ class Stats:
         community_ids: List[str] = a_community.result() if a_community.is_ok() else []
 
         # --- moodSongs: random songs from the user's top genres, excluding
-        # what they've played very recently (Spotify-genre data only) ---
+        # what they've played very recently (where genre data is available) ---
         a_recently_played_for_mood: AResult[List[str]] = (
             await StatsAccess.get_recently_played_songs_async(
                 session=session, user_id=user_id, limit=30

@@ -88,6 +88,10 @@ def get_base_models_from_folder(
             logger.warning(f"Could not import {module_name} from {folder}: {e}")
             continue
 
+        # Provider source payloads are internal validation models, not API DTOs.
+        if getattr(module, "__generate_frontend__", True) is False:
+            continue
+
         for _name, obj in inspect.getmembers(module, inspect.isclass):
             if issubclass(obj, BaseModel) and obj is not BaseModel:
                 if obj.__module__ == module.__name__:

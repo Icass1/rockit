@@ -8,6 +8,7 @@ from backend.core.access.mediaInfoCte import (
     get_artist_info_cte,
     get_genre_info_cte,
     get_media_info_cte,
+    get_recommendation_playlist_edges_cte,
 )
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.framework.models.recommendation import LocalCandidate
@@ -71,6 +72,7 @@ class RecommendationAccess:
             {get_artist_info_cte()},
             {get_album_info_cte()},
             {get_genre_info_cte()},
+            {get_recommendation_playlist_edges_cte()},
             seed AS (
                 SELECT DISTINCT unnest(:seed_ids) AS media_id
             ),
@@ -92,8 +94,8 @@ class RecommendationAccess:
             playlist_co AS (
                 SELECT pm2.media_id                   AS media_id,
                        COUNT(DISTINCT pm1.playlist_id) AS playlist_co
-                FROM   default_schema.playlist_media pm1
-                JOIN   default_schema.playlist_media pm2
+                FROM   recommendation_playlist_edges pm1
+                JOIN   recommendation_playlist_edges pm2
                        ON pm2.playlist_id = pm1.playlist_id
                       AND pm2.media_id   != pm1.media_id
                 WHERE  pm1.media_id IN (SELECT media_id FROM seed)

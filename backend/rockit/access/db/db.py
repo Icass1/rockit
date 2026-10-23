@@ -7,3 +7,6 @@ from backend.rockit.access.db.ormModels.artist import RockitArtistRow as RockitA
 
 schemas = ["rockit"]
 base = RockitBase
+
+# Register local storage independently of remote provider activation.
+from backend.rockit.access import downloadStorage as downloadStorage

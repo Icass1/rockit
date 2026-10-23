@@ -9,6 +9,23 @@ def empty_cte(name: str, columns: list[tuple[str, str]]) -> str:
     return f"{name} AS (SELECT {cols} WHERE false)"
 
 
+def get_recommendation_playlist_edges_cte() -> str:
+    """Compose playlist membership supplied by available media providers."""
+    from backend.core.framework import providers
+
+    fragments = [
+        fragment
+        for provider in providers.get_media_providers()
+        if (fragment := provider.get_recommendation_playlist_edges_cte_fragment())
+    ]
+    if not fragments:
+        return empty_cte(
+            "recommendation_playlist_edges",
+            [("playlist_id", "int"), ("media_id", "int")],
+        )
+    return build_cte("recommendation_playlist_edges", fragments)
+
+
 def get_media_info_cte() -> str:
     """CTE aggregating (media_id, duration_ms, public_id, media_name, image_url,
     media_type_key) across every registered media provider."""

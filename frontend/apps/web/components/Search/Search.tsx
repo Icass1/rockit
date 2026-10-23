@@ -1,6 +1,6 @@
 "use client";
 
-import type { JSX } from "react";
+import { useEffect, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -165,7 +165,14 @@ function SearchResults(): JSX.Element {
     );
 }
 
-export default function Search(): JSX.Element {
+export default function Search({
+    initialQuery,
+}: {
+    initialQuery?: string;
+}): JSX.Element {
+    useEffect(() => {
+        if (initialQuery) rockIt.searchManager.scheduleSearch(initialQuery);
+    }, [initialQuery]);
     return (
         <>
             <section className="mt-0 block h-28 px-5 md:mt-20 md:hidden">

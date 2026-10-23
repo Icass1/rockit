@@ -14,13 +14,7 @@ import type {
     ArtistPageResponse,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
-import {
-    ChevronRight,
-    Download,
-    LoaderCircle,
-    Play,
-    Search,
-} from "lucide-react";
+import { ChevronRight, Download, LoaderCircle, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     artistSearchUrl,
@@ -32,6 +26,7 @@ import {
     partitionArtistEvents,
 } from "@/lib/services/artistMetadataService";
 import { playArtistSongs } from "@/lib/services/artistService";
+import ArtistSources from "@/components/Artist/ArtistSources";
 
 export default function ArtistMetadataClient({
     name,
@@ -122,7 +117,7 @@ export default function ArtistMetadataClient({
                         <p className="artist-context">{profile.description}</p>
                         {!!profile.genres.length && (
                             <p className="artist-genres">
-                                {profile.genres.join(" · ")}
+                                {profile.genres.slice(0, 4).join(" · ")}
                             </p>
                         )}
                     </>
@@ -365,14 +360,12 @@ function MetadataCatalog({
     const visible = expanded ? items : items.slice(0, albums ? 8 : 5);
     return (
         <section className="artist-metadata-catalog">
-            <p className="artist-catalog-caption">
-                {v.ARTIST_CATALOG_AVAILABLE}{" "}
-                {catalog && (
-                    <span className="artist-catalog-count">
-                        {catalog.items.length} / {catalog.total}
-                    </span>
-                )}
-            </p>
+            {catalog && (
+                <p className="artist-catalog-count">
+                    {catalog.total}{" "}
+                    {albums ? v.ARTIST_RELEASES : v.ARTIST_SONGS}
+                </p>
+            )}
             {catalog?.stale && (
                 <p className="artist-notice" role="status">
                     {v.ARTIST_METADATA_STALE}
@@ -402,7 +395,7 @@ function MetadataCatalog({
                             ) : match?.type === "album" ? (
                                 <ChevronRight size={16} aria-hidden />
                             ) : (
-                                <Search size={16} aria-hidden />
+                                <Download size={16} aria-hidden />
                             )}
                         </>
                     );
@@ -422,16 +415,21 @@ function MetadataCatalog({
                         >
                             {content}
                         </button>
+                    ) : match?.type !== "album" ? (
+                        <CatalogSources
+                            key={item.id}
+                            name={name}
+                            title={item.title}
+                            type={albums ? "album" : "song"}
+                        >
+                            {content}
+                        </CatalogSources>
                     ) : (
                         <Link
                             key={item.id}
                             className="artist-metadata-row"
-                            href={
-                                match?.type === "album"
-                                    ? `/album/${match.publicId}`
-                                    : artistSearchUrl(`${name} ${item.title}`)
-                            }
-                            aria-label={`${match ? v.ARTIST_OPEN_ALBUM : v.ARTIST_FIND_MUSIC}: ${item.title}`}
+                            href={`/album/${match.publicId}`}
+                            aria-label={`${v.ARTIST_OPEN_ALBUM}: ${item.title}`}
                         >
                             {content}
                         </Link>
@@ -491,5 +489,33 @@ function MetadataCatalog({
                 </button>
             )}
         </section>
+    );
+}
+
+function CatalogSources({
+    name,
+    title,
+    type,
+    children,
+}: {
+    name: string;
+    title: string;
+    type: "album" | "song";
+    children: ReactNode;
+}): JSX.Element {
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const [open, setOpen] = useState(false);
+    return (
+        <div className="artist-release">
+            <button
+                className="artist-metadata-row"
+                aria-expanded={open}
+                aria-label={`${v.DOWNLOAD}: ${title}`}
+                onClick={() => setOpen(!open)}
+            >
+                {children}
+            </button>
+            {open && <ArtistSources artist={name} title={title} type={type} />}
+        </div>
     );
 }

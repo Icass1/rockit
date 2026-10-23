@@ -103,8 +103,8 @@ export default function ArtistClient({
         () => getArtistPortrait(artist.name),
         getServerArtistPortrait
     );
-    const image = searchPortrait || artist.imageUrl;
-    async function loadMore(): Promise<void> {
+    const image = artist.imageUrl || searchPortrait;
+    async function loadMore(reset = false): Promise<void> {
         if (loading) return;
         setLoading(true);
         setFailed(false);
@@ -112,7 +112,7 @@ export default function ArtistClient({
             const next = await getArtistPageAsync(
                 artistName ? undefined : artist.publicId,
                 artistName,
-                page.offset + 100
+                reset ? 0 : page.offset + 100
             );
             if (!next) {
                 setFailed(true);
@@ -120,8 +120,10 @@ export default function ArtistClient({
             }
             setPage((current) => ({
                 ...next,
-                songs: [...current.songs, ...next.songs],
-                albums: [...current.albums, ...next.albums],
+                songs: reset ? next.songs : [...current.songs, ...next.songs],
+                albums: reset
+                    ? next.albums
+                    : [...current.albums, ...next.albums],
             }));
         } catch {
             setFailed(true);
@@ -139,40 +141,42 @@ export default function ArtistClient({
                             alt=""
                             fill
                             priority
-                            sizes="(max-width: 720px) 260px, 380px"
-                            className="object-contain"
+                            sizes="(max-width: 720px) 112px, 232px"
+                            className="object-cover"
                         />
                     </div>
                 )}
                 <div className="artist-intro">
                     <h1>{artist.name}</h1>
-                    <p className="artist-inventory">
-                        <span>{v.ARTIST_KNOWN_CATALOG}</span>
-                        <span>
-                            {page.totalSongs} {v.ARTIST_SONGS}
-                        </span>
-                        <span>
-                            {page.totalAlbums} {v.ARTIST_ALBUMS}
-                        </span>
-                    </p>
-                    <div className="artist-actions">
-                        <button
-                            className="artist-play"
-                            disabled={!playable}
-                            onClick={() => playArtistSongs(songs)}
-                        >
-                            <Play size={18} fill="currentColor" aria-hidden />
-                            {v.ARTIST_PLAY}
-                        </button>
-                    </div>
+                    {(page.totalSongs > 0 || page.totalAlbums > 0) && (
+                        <p className="artist-inventory">
+                            <span>
+                                {page.totalSongs} {v.ARTIST_SONGS}
+                            </span>
+                            <span>
+                                {page.totalAlbums} {v.ARTIST_ALBUMS}
+                            </span>
+                        </p>
+                    )}
+                    {playable && (
+                        <div className="artist-actions">
+                            <button
+                                className="artist-play"
+                                disabled={!playable}
+                                onClick={() => playArtistSongs(songs)}
+                            >
+                                <Play
+                                    size={18}
+                                    fill="currentColor"
+                                    aria-hidden
+                                />
+                                {v.ARTIST_PLAY}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
             <div className="artist-body">
-                {page.partial && (
-                    <p className="artist-notice" role="status">
-                        {v.ARTIST_PARTIAL}
-                    </p>
-                )}
                 <ArtistMetadataClient
                     key={`${artist.publicId}:${artist.name}`}
                     name={artist.name}
@@ -215,35 +219,39 @@ export default function ArtistClient({
                             <h2 id="artist-songs-title">
                                 {v.ARTIST_COLLECTION}
                             </h2>
-                            <button
-                                className="artist-filter"
-                                aria-pressed={downloadedOnly}
-                                onClick={() =>
-                                    setDownloadedOnly(!downloadedOnly)
-                                }
-                            >
-                                <Download size={16} aria-hidden />
-                                {v.ARTIST_DOWNLOADED}
-                                {downloadedOnly && (
-                                    <Check size={15} aria-hidden />
-                                )}
-                            </button>
+                            {page.songs.length > 0 && (
+                                <button
+                                    className="artist-filter"
+                                    aria-pressed={downloadedOnly}
+                                    onClick={() =>
+                                        setDownloadedOnly(!downloadedOnly)
+                                    }
+                                >
+                                    <Download size={16} aria-hidden />
+                                    {v.ARTIST_DOWNLOADED}
+                                    {downloadedOnly && (
+                                        <Check size={15} aria-hidden />
+                                    )}
+                                </button>
+                            )}
                         </div>
-                        <label
-                            className="artist-search"
-                            htmlFor="artist-song-search"
-                        >
-                            <Search size={17} aria-hidden />
-                            <input
-                                id="artist-song-search"
-                                type="search"
-                                value={query}
-                                onChange={(event) =>
-                                    setQuery(event.target.value)
-                                }
-                                placeholder={v.ARTIST_SEARCH}
-                            />
-                        </label>
+                        {page.songs.length > 0 && (
+                            <label
+                                className="artist-search"
+                                htmlFor="artist-song-search"
+                            >
+                                <Search size={17} aria-hidden />
+                                <input
+                                    id="artist-song-search"
+                                    type="search"
+                                    value={query}
+                                    onChange={(event) =>
+                                        setQuery(event.target.value)
+                                    }
+                                    placeholder={v.ARTIST_SEARCH}
+                                />
+                            </label>
+                        )}
                         <ol className="artist-tracklist">
                             {(collectionExpanded || query || downloadedOnly
                                 ? songs
@@ -335,7 +343,18 @@ export default function ArtistClient({
                             <p className="artist-empty">
                                 {query || downloadedOnly
                                     ? v.ARTIST_NO_MATCHES
-                                    : v.ARTIST_EMPTY}
+                                    : page.partial
+                                      ? v.ERROR_GETTING_MEDIA
+                                      : v.ARTIST_COLLECTION_EMPTY}
+                                {page.partial && (
+                                    <button
+                                        className="artist-text-action"
+                                        disabled={loading}
+                                        onClick={() => void loadMore(true)}
+                                    >
+                                        {v.RETRY}
+                                    </button>
+                                )}
                             </p>
                         )}
                     </section>
@@ -369,7 +388,6 @@ export default function ArtistClient({
                         {loading ? v.ARTIST_LOADING : v.ARTIST_MORE}
                     </button>
                 )}
-                <p className="artist-footnote">{v.ARTIST_LOCAL_NOTE}</p>
             </div>
         </div>
     );

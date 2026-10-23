@@ -6,48 +6,6 @@
     color: #f5f5f5;
     scrollbar-color: #525252 #0b0b0b;
 }
-.artist-stage {
-    position: relative;
-    min-height: 410px;
-    min-height: clamp(330px, 49vw, 570px);
-    display: flex;
-    align-items: flex-end;
-    isolation: isolate;
-}
-.artist-portrait {
-    position: absolute;
-    inset: 0 0 0 30%;
-    z-index: -2;
-    overflow: hidden;
-}
-.artist-portrait img {
-    object-position: center 30%;
-}
-.artist-stage::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-        linear-gradient(0deg, #0b0b0b, transparent 75%),
-        linear-gradient(90deg, #0b0b0b 5%, #0b0b0be6 25%, #0b0b0b20 85%);
-}
-.artist-intro {
-    padding: 60px 6% 38px;
-    width: 100%;
-    max-width: 1280px;
-    margin-inline: auto;
-}
-.artist-intro h1 {
-    font-size: clamp(2.8rem, 7vw, 6rem);
-    line-height: 1.04;
-    font-weight: 750;
-    letter-spacing: -0.04em;
-    max-width: 13ch;
-    overflow-wrap: anywhere;
-    text-wrap: balance;
-    margin: 0 0 24px;
-}
 .artist-inventory {
     display: flex;
     gap: 8px 20px;
@@ -91,11 +49,6 @@
     color: #d4d4d4;
     font-size: 14px;
     min-height: 44px;
-}
-.artist-body {
-    padding: 0 6% 64px;
-    max-width: 1280px;
-    margin-inline: auto;
 }
 .artist-body h2 {
     font-size: clamp(1.5rem, 3vw, 2rem);
@@ -286,26 +239,6 @@
     outline-offset: 5px;
 }
 @media (max-width: 720px) {
-    .artist-stage {
-        min-height: 440px;
-    }
-    .artist-portrait {
-        left: 0;
-    }
-    .artist-stage::after {
-        background: linear-gradient(
-            0deg,
-            #0b0b0b 0%,
-            #0b0b0bc9 30%,
-            #0b0b0b00 90%
-        );
-    }
-    .artist-intro {
-        padding: 150px 6% 32px;
-    }
-    .artist-intro h1 {
-        font-size: clamp(2.8rem, 12vw, 4.5rem);
-    }
     .artist-track {
         gap: 10px;
         padding-inline: 0;
@@ -523,65 +456,132 @@
     }
 }
 
-/* Portrait and title share a stage without overlapping or borrowing album art. */
+/* A compact portrait sits in the page, rather than enlarging a thumbnail. */
 .artist-stage {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(180px, 30vw, 380px);
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 232px);
     align-items: center;
-    gap: 32px;
-    min-height: 0;
-    max-width: 1280px;
-    margin-inline: auto;
-    padding: 48px 6% 40px;
-}
-.artist-stage::after {
-    display: none;
+    gap: clamp(24px, 5vw, 72px);
+    padding: 32px clamp(20px, 4vw, 56px) 24px;
 }
 .artist-portrait {
-    position: relative;
-    inset: auto;
     grid-column: 2;
     grid-row: 1;
-    z-index: auto;
+    position: relative;
     width: 100%;
     aspect-ratio: 1;
+    overflow: hidden;
+    mask-image: radial-gradient(
+        ellipse 70% 70% at 50% 44%,
+        #000 60%,
+        transparent 100%
+    );
 }
 .artist-portrait img {
-    object-fit: contain;
-    object-position: center;
+    object-fit: cover;
+    object-position: center 30%;
 }
 .artist-intro {
     grid-column: 1;
     grid-row: 1;
-    width: 100%;
     min-width: 0;
-    padding: 0;
 }
 .artist-intro h1 {
-    max-width: none;
-    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    font-size: clamp(2.4rem, 4.5vw, 4.5rem);
+    font-weight: 750;
+    letter-spacing: -0.045em;
+    line-height: 1.06;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    margin: 0 0 24px;
 }
 .artist-stage:not(:has(.artist-portrait)) {
     grid-template-columns: minmax(0, 1fr);
 }
+.artist-body {
+    max-width: none;
+    margin: 0;
+    padding: 0 clamp(20px, 4vw, 56px) 64px;
+}
+.artist-about {
+    margin-bottom: 24px;
+}
+.artist-context {
+    margin-top: 0;
+}
+.artist-discography {
+    margin-top: 32px;
+}
+.artist-metadata-row {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+.artist-metadata-row:hover strong {
+    color: rgb(var(--accent-light));
+}
+.artist-metadata-row:focus-visible,
+.artist-source:focus-visible {
+    outline: 2px solid rgb(var(--accent-light));
+    outline-offset: 3px;
+}
+.artist-release-list {
+    align-items: start;
+}
+.artist-sources {
+    padding: 0 0 16px 16px;
+}
+.artist-source {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 52px;
+    padding: 10px 0;
+    text-align: left;
+    cursor: pointer;
+}
+.artist-source > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.artist-source strong {
+    font-size: 14px;
+    font-weight: 500;
+}
+.artist-source small {
+    display: block;
+    color: #bdbdbd;
+    font-size: 12px;
+    margin-top: 4px;
+}
+.artist-source svg {
+    flex-shrink: 0;
+    color: rgb(var(--accent-light));
+}
+.artist-source:hover strong {
+    text-decoration: underline;
+}
+.artist-source:disabled {
+    cursor: default;
+    opacity: 0.65;
+}
 @media (max-width: 720px) {
     .artist-stage {
+        grid-template-columns: minmax(0, 1fr) 112px;
+        gap: 16px;
+        padding-top: 24px;
+    }
+    .artist-intro h1 {
+        font-size: clamp(2rem, 7vw, 3rem);
+    }
+}
+@media (max-width: 380px) {
+    .artist-stage {
         grid-template-columns: minmax(0, 1fr);
-        gap: 24px;
-        padding-top: 28px;
     }
     .artist-portrait {
-        grid-column: 1;
-        grid-row: 1;
-        width: min(70vw, 260px);
-        margin-inline: auto;
-    }
-    .artist-intro {
-        grid-column: 1;
-        grid-row: 2;
-        padding: 0;
-    }
-    .artist-stage:not(:has(.artist-portrait)) .artist-intro {
-        grid-row: 1;
+        display: none;
     }
 }

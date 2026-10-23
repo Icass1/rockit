@@ -103,3 +103,33 @@ command on the deployment (or `scripts/update.sh`) to update its database.
 
 The real vocabulary import completed against temporary local PostgreSQL for this
 fix. No tests, build, lint or type checks were run, as requested.
+
+### Artist identity and in-place acquisition
+
+Indexed Search and Library artists now retain their provider-backed `/artist/{publicId}`
+URL. For external Search results without a local ID, an ordinary click uses the existing
+provider `add-from-url` operation (without downloading or adding to Library) and navigates
+to its artist ID. Name routes remain a fallback for unsupported sources and uploaded
+artists, which currently have no Core artist identity. Modifier-clicks retain native
+link behavior. Uploaded artist responses no longer borrow IDs or images from songs.
+
+Provider catalog queries accept distinct case/spacing variants as a read-only view.
+Identically named records with different source IDs still require explicit identity;
+name matches never persist identity merges. Album discovery includes albums associated
+through their tracks as well as direct album artist associations.
+
+Unmatched MusicBrainz releases/recordings expand a source chooser inside the page.
+Only opened items query the existing media-provider search endpoints, with two workers
+and five results per provider. The user chooses an actual edition/provider result;
+its download uses the existing download-from-URL flow and adds it to Library, without
+changing playback or the queue. Failed sources can be retried in place. MusicBrainz
+metadata alone is never treated as an audio source or silently matched to an edition.
+
+The header uses a compact, softly masked portrait and wider text area. Spotify search
+selects the largest supplied portrait. Actual local counts and metadata release counts
+remain separate; explanatory catalog copy, the blanket partial-source banner and the
+local-catalog footnote are removed. Empty or failed collection states remain explicit.
+Three labels were added to Vocabulary.xlsx and imported with the real backend importer
+against temporary PostgreSQL before committing. No tests/build/type/lint checks were run.
+Runtime verification against the user's database and visual browser verification remain
+outstanding; source-query fixes do not establish the state of that deployment.

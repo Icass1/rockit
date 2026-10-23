@@ -37,7 +37,10 @@
         "ARTIST_EVENT_HISTORY": "Past concerts",
         "ARTIST_CATALOG_AVAILABLE": "Explore the catalog · releases and editions",
         "ARTIST_OPEN_ALBUM": "Open album",
-        "ARTIST_FIND_MUSIC": "Find in Rockit"
+        "ARTIST_FIND_MUSIC": "Find in Rockit",
+        "ARTIST_RELEASES": "releases",
+        "ARTIST_SOURCE_CHOOSER": "Choose a source",
+        "ARTIST_COLLECTION_EMPTY": "No music saved yet."
     },
     "es": {
         "ARTIST_SONGS": "canciones",
@@ -77,7 +80,10 @@
         "ARTIST_EVENT_HISTORY": "Conciertos anteriores",
         "ARTIST_CATALOG_AVAILABLE": "Explora el catálogo · lanzamientos y ediciones",
         "ARTIST_OPEN_ALBUM": "Abrir álbum",
-        "ARTIST_FIND_MUSIC": "Buscar en Rockit"
+        "ARTIST_FIND_MUSIC": "Buscar en Rockit",
+        "ARTIST_RELEASES": "lanzamientos",
+        "ARTIST_SOURCE_CHOOSER": "Elige una fuente",
+        "ARTIST_COLLECTION_EMPTY": "Todavía no hay música guardada."
     },
     "fr": {
         "ARTIST_SONGS": "titres",
@@ -117,6 +123,9 @@
         "ARTIST_EVENT_HISTORY": "Concerts passés",
         "ARTIST_CATALOG_AVAILABLE": "Explorer le catalogue · parutions et éditions",
         "ARTIST_OPEN_ALBUM": "Ouvrir l’album",
-        "ARTIST_FIND_MUSIC": "Rechercher dans Rockit"
+        "ARTIST_FIND_MUSIC": "Rechercher dans Rockit",
+        "ARTIST_RELEASES": "sorties",
+        "ARTIST_SOURCE_CHOOSER": "Choisir une source",
+        "ARTIST_COLLECTION_EMPTY": "Aucune musique enregistrée pour le moment."
     }
 }

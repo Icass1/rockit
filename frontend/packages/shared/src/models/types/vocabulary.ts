@@ -628,4 +628,7 @@ export interface Vocabulary {
     ARTIST_CATALOG_AVAILABLE: string;
     ARTIST_OPEN_ALBUM: string;
     ARTIST_FIND_MUSIC: string;
+    ARTIST_RELEASES: string;
+    ARTIST_SOURCE_CHOOSER: string;
+    ARTIST_COLLECTION_EMPTY: string;
 }

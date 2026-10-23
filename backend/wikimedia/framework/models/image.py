@@ -58,3 +58,5 @@ class CommonsResponse(BaseModel):
 
 class ArtistImage(ArtistImageMetadata):
     """Cached image projection shared with generic metadata consumers."""
+
+    lookupVersion: int = 2

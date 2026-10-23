@@ -54,7 +54,11 @@ The `Wikimedia` metadata provider accepts `artist-image` and an exact Wikidata
 Q identifier. It retrieves the cacheable public `Special:EntityData/{QID}.json`
 document and reads P18 (preferred claims first, excluding deprecated claims),
 then asks Commons for an image up to 1600 pixels wide without upscaling smaller
-originals. Only HTTPS images hosted by `upload.wikimedia.org` are accepted.
+originals. Only HTTPS images under `upload.wikimedia.org/wikipedia/commons/` and the
+Commons `commons.wikimedia.org/w/thumb.php` thumbnail endpoint are accepted.
+A rejected thumbnail falls back to the original URL. URL rejection is not
+cached as a missing image; earlier empty snapshots are retried once under
+lookup version 2, while existing successful images are reused.
 There is no name search, scraping, API key, login, or album-cover substitution.
 
 The provider owns the `wikimedia.metadata_cache` table. Successful images and

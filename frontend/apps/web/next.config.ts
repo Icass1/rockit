@@ -50,6 +50,11 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: "https",
+                hostname: "commons.wikimedia.org",
+                pathname: "/w/thumb.php",
+            },
+            {
+                protocol: "https",
                 hostname: "upload.wikimedia.org",
                 pathname: "/wikipedia/**",
             },

@@ -57,7 +57,14 @@ class WikimediaProvider(BaseMetadataProvider):
                         return AResult(code=cached.code(), message=cached.message())
                     rows = cached.result()
                     old = rows[0] if rows else None
-                    if old is not None and not refresh:
+                    if (
+                        old is not None
+                        and not refresh
+                        and (
+                            old.payload.get("imageUrl")
+                            or old.payload.get("lookupVersion") == 2
+                        )
+                    ):
                         return self._response(
                             external_id,
                             ArtistImage.model_validate(old.payload),
@@ -98,7 +105,14 @@ class WikimediaProvider(BaseMetadataProvider):
                                 "Wikimedia cache recheck failed: %s", latest.info()
                             )
                             return AResult(code=latest.code(), message=latest.message())
-                        if latest.result() and not refresh:
+                        if (
+                            latest.result()
+                            and not refresh
+                            and (
+                                latest.result()[0].payload.get("imageUrl")
+                                or latest.result()[0].payload.get("lookupVersion") == 2
+                            )
+                        ):
                             row = latest.result()[0]
                             return self._response(
                                 external_id,
@@ -249,11 +263,37 @@ class WikimediaProvider(BaseMetadataProvider):
             info = next((page.imageinfo[0] for page in pages if page.imageinfo), None)
             if info is None:
                 return ArtistImage()
-            url = info.thumburl if info.width > 1600 and info.thumburl else info.url
-            parsed = urlsplit(url)
-            if parsed.scheme != "https" or parsed.hostname != "upload.wikimedia.org":
-                logger.warning("Rejected unexpected Commons image host")
-                return ArtistImage()
+            preferred = info.thumburl if info.width > 1600 else info.url
+            url = ""
+            for candidate in dict.fromkeys([preferred, info.url, info.thumburl]):
+                if not candidate:
+                    continue
+                parsed = urlsplit(candidate)
+                allowed = (
+                    parsed.hostname == "upload.wikimedia.org"
+                    and parsed.path.startswith("/wikipedia/commons/")
+                ) or (
+                    parsed.hostname == "commons.wikimedia.org"
+                    and parsed.path == "/w/thumb.php"
+                )
+                if (
+                    allowed
+                    and parsed.scheme in ("https", "http", "")
+                    and not parsed.username
+                    and parsed.port in (None, 443)
+                ):
+                    url = parsed._replace(scheme="https").geturl()
+                    break
+                logger.warning(
+                    "Rejected Commons image URL: scheme=%s host=%s path=%s",
+                    parsed.scheme,
+                    parsed.hostname,
+                    parsed.path[:200],
+                )
+            if not url:
+                # A rejected URL is a failed resolution, not proof that the
+                # artist has no image. Never persist it as a missing portrait.
+                raise ValueError("Commons returned no supported image URL")
             return ArtistImage(
                 imageUrl=url,
                 sourceUrl=info.descriptionurl,

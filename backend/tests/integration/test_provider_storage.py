@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.access.db.shared_metadata import shared_metadata
 from backend.core.access.downloadBrowseAccess import DownloadBrowseAccess
 from backend.core.access.downloadReuseAccess import DownloadReuseAccess
-from backend.core.access import downloadZipAccess
-from backend.core.access.downloadZipAccess import DownloadZipAccess
+from backend.zipExport.access import downloadZipAccess
+from backend.zipExport.access.downloadZipAccess import DownloadZipAccess
 
 pytestmark = pytest.mark.integration
 
@@ -110,9 +110,9 @@ async def test_disabled_provider_storage_supports_browse_reuse_zip_and_clear(
     monkeypatch.setattr(downloadZipAccess, "MEDIA_PATH", str(tmp_path))
     (tmp_path / "video.mp4").write_bytes(b"video")
     (tmp_path / "upload.mp3").write_bytes(b"audio")
-    files = await DownloadZipAccess.get_file_paths_async(session, ["video", "upload"])
+    files = await DownloadZipAccess.get_export_files_async(session, ["video", "upload"])
     assert files.is_ok(), files.info()
-    assert set(files.result()) == {
+    assert {(item.name, item.path) for item in files.result()} == {
         ("Video title", str(tmp_path / "video.mp4")),
         ("Upload", str(tmp_path / "upload.mp3")),
     }
@@ -127,7 +127,7 @@ async def test_disabled_provider_storage_supports_browse_reuse_zip_and_clear(
 
 @pytest.mark.parametrize("schema", ["spotify", "spotify_scrapper", "youtube_music"])
 async def test_track_storage_preserves_images_and_batch_mutation(
-    database: AsyncSession, schema: str
+    database: AsyncSession, schema: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Exercise each track projection and mutation against its real schema."""
     from backend.core.access.providerStorage import provider_storage
@@ -169,6 +169,23 @@ async def test_track_storage_preserves_images_and_batch_mutation(
             track["isrc"] = "test"
         tracks.append(track)
     await database.execute(insert(tables[f"{schema}.track"]), tracks)
+    await database.execute(
+        insert(tables["core.media"]),
+        dict(id=203, public_id="artist", provider_id=2, media_type_key=1),
+    )
+    artist = dict(id=203, name="Artist", image_id=1)
+    artist[external_key] = "external-artist"
+    if not music:
+        artist.update(popularity=1, followers=1)
+    await database.execute(insert(tables[f"{schema}.artist"]), artist)
+    track_link = "track_artists" if music else "track_artist"
+    album_link = "album_artists" if music else "album_artist"
+    await database.execute(
+        insert(tables[f"{schema}.{track_link}"]), dict(track_id=201, artist_id=203)
+    )
+    await database.execute(
+        insert(tables[f"{schema}.{album_link}"]), dict(album_id=200, artist_id=203)
+    )
     await database.commit()
 
     for images in (True, False):
@@ -182,6 +199,24 @@ async def test_track_storage_preserves_images_and_batch_mutation(
         assert row["image_id"] == (1 if images else None)
         assert row["external_id"] == "external-201"
         assert row["manageable"] is True
+    monkeypatch.setattr(downloadZipAccess, "MEDIA_PATH", str(tmp_path))
+    monkeypatch.setattr(downloadZipAccess, "IMAGES_PATH", str(tmp_path))
+    (tmp_path / "201.mp3").write_bytes(b"original audio")
+    exported = await DownloadZipAccess.get_export_files_async(
+        database, ["untouched", "track", "track"]
+    )
+    assert exported.is_ok(), exported.info()
+    # Requested ordering and deduplication must survive UNION ALL and DB ordering.
+    assert [item.name for item in exported.result()] == ["Track 202", "Track 201"]
+    item = exported.result()[1]
+    assert item.tags is not None
+    assert item.tags.album == "Album"
+    assert item.tags.artists == ("Artist",)
+    assert item.tags.album_artists == ("Artist",)
+    assert item.tags.date == "2026"
+    assert item.tags.track == 1 and item.tags.disc == 1
+    assert item.tags.cover_path == str(tmp_path / "test")
+    assert item.tags.isrc == ("test" if schema == "spotify" else "")
     cleared = await DownloadBrowseAccess.clear_files_async(database, [201])
     assert cleared.is_ok(), cleared.info()
     assert cleared.result() == ["201.mp3"]

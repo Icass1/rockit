@@ -24,12 +24,15 @@ class MediaStorage:
 
     Metadata projects id, name, image_id, external_id, manageable; files projects
     id, path, name. IDs are shared core media IDs. Keys are opaque registration
-    identifiers, never interpreted as table names by core.
+    identifiers, never interpreted as table names by core. Optional audio_tags_statement
+    projects id, artists, album, album_artists, date, track, disc, isrc, image_id
+    for exports; providers own the joins and artist aggregation.
     """
 
     key: str
     metadata_statement: Callable[[bool], Select[Any]]
     files_statement: Callable[[], Select[Any]] | None = None
+    audio_tags_statement: Callable[[list[int]], Select[Any]] | None = None
     clear_files_async: (
         Callable[[AsyncSession, list[int]], Awaitable[AResult[list[str]]]] | None
     ) = None

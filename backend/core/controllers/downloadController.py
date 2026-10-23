@@ -1,10 +1,7 @@
-import os
 from logging import Logger
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from typing import Literal
-from fastapi.responses import FileResponse
-from starlette.background import BackgroundTask
 
 from backend.utils.logger import getLogger
 
@@ -17,7 +14,6 @@ from backend.core.responses.downloadBrowseResponse import (
     DownloadBrowseResponse,
     DownloadItemsPageResponse,
 )
-from backend.core.framework.downloader.downloadZip import DownloadZip
 
 from backend.core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from backend.core.middlewares.authMiddleware import AuthMiddleware
@@ -32,7 +28,6 @@ from backend.core.responses.downloadSettingsResponse import DownloadSettingsResp
 
 from backend.core.requests.startDownloadRequest import StartDownloadRequest
 from backend.core.requests.addFromUrlRequest import AddFromUrlRequest
-from backend.core.requests.downloadZipRequest import DownloadZipRequest
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
@@ -40,35 +35,6 @@ router = APIRouter(
     dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
     tags=["Core", "Download"],
 )
-
-
-@router.post("/download-zip")
-async def download_zip(request: Request, payload: DownloadZipRequest) -> FileResponse:
-    """Create and return a ZIP containing downloaded requested media."""
-    session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
-    if a_result_user.is_not_ok():
-        raise HTTPException(
-            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
-        )
-
-    result = await DownloadZip.create_async(
-        session=session,
-        user_id=a_result_user.result().id,
-        public_ids=payload.ids,
-        title=payload.title,
-    )
-    if result.is_not_ok():
-        logger.error(f"Error creating ZIP. {result.info()}")
-        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
-
-    zip_path = result.result()
-    return FileResponse(
-        path=zip_path,
-        media_type="application/zip",
-        filename=f"{payload.title}.zip",
-        background=BackgroundTask(os.unlink, zip_path),
-    )
 
 
 @router.post("/start-downloads")

@@ -58,6 +58,20 @@ def test_all_registered_storage_queries_use_valid_provider_columns() -> None:
         source.metadata_statement(False).compile(dialect=postgresql.dialect())
         if source.files_statement is not None:
             source.files_statement().compile(dialect=postgresql.dialect())
+        if source.audio_tags_statement is not None:
+            tags = source.audio_tags_statement([1, 2])
+            tags.compile(dialect=postgresql.dialect())
+            assert set(tags.selected_columns.keys()) == {
+                "id",
+                "artists",
+                "album",
+                "album_artists",
+                "date",
+                "track",
+                "disc",
+                "isrc",
+                "image_id",
+            }
     metadata = DownloadBrowseAccess.metadata()
     select(metadata).compile(dialect=postgresql.dialect())
     assert {

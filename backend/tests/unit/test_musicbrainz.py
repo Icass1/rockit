@@ -102,8 +102,10 @@ async def test_core_dispatches_only_to_metadata_providers(
     fetch.assert_awaited_once()
 
 
+@pytest.mark.parametrize("secondary_types", [[], ["Live"]])
 async def test_artist_presentations_keep_provider_json_and_pagination(
     monkeypatch: pytest.MonkeyPatch,
+    secondary_types: list[str],
 ) -> None:
     """The provider projects display data without changing its durable source payload."""
     source = {
@@ -113,6 +115,7 @@ async def test_artist_presentations_keep_provider_json_and_pagination(
                 "title": "Album",
                 "first-release-date": "2025-05",
                 "primary-type": "Album",
+                "secondary-types": secondary_types,
             }
         ],
         "release-group-count": 240,
@@ -139,13 +142,23 @@ async def test_artist_presentations_keep_provider_json_and_pagination(
     assert result.is_ok()
     projected = result.result()
     assert projected.data == {
-        "items": [{"id": MBID, "title": "Album", "date": "2025-05", "kind": "Album"}],
+        "items": [
+            {
+                "id": MBID,
+                "title": "Album",
+                "date": "2025-05",
+                "kind": "Album",
+                "secondaryTypes": secondary_types,
+                "imageUrl": f"https://coverartarchive.org/release-group/{MBID}/front-250",
+            }
+        ],
         "total": 240,
         "offset": 100,
     }
     assert projected.stale and projected.cached
     assert payload.data == source
     assert fetch.call_args.kwargs["params"]["offset"] == 100
+    assert fetch.call_args.kwargs["params"]["release-group-status"] == "website-default"
 
 
 async def test_artist_profile_projects_members_and_events_with_nullable_area(

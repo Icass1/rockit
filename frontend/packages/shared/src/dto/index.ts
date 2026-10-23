@@ -42,6 +42,14 @@ export {
     type AllBuildsResponse,
 } from "./allBuildsResponse";
 export {
+    ArtistCatalogResponseSchema,
+    type ArtistCatalogResponse,
+} from "./artistCatalogResponse";
+export {
+    ArtistPageResponseSchema,
+    type ArtistPageResponse,
+} from "./artistPageResponse";
+export {
     ArtistSearchResultsItemSchema,
     type ArtistSearchResultsItem,
 } from "./artistSearchResultsItem";
@@ -374,6 +382,10 @@ export {
     type MediaRemovedFromPlaylistMessage,
 } from "./mediaRemovedFromPlaylistMessage";
 export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
+export {
+    MetadataResponseSchema,
+    type MetadataResponse,
+} from "./metadataResponse";
 export {
     NotificationActivityRequestSchema,
     type NotificationActivityRequest,
@@ -755,13 +767,3 @@ export { DictSchema, type Dict } from "./dict";
 export { ListSchema, type List } from "./list";
 export { SequenceSchema, type Sequence } from "./sequence";
 export { StrictIntSchema, type StrictInt } from "./strictInt";
-
-export {
-    ArtistPageResponseSchema,
-    type ArtistPageResponse,
-} from "./artistPageResponse";
-
-export {
-    ArtistCatalogResponseSchema,
-    type ArtistCatalogResponse,
-} from "./artistCatalogResponse";

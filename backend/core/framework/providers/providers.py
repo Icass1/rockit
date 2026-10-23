@@ -19,6 +19,7 @@ from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
 from backend.core.framework.provider.baseUploadProvider import BaseUploadProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.provider.baseProvider import BaseProvider
+from backend.core.framework.provider.baseMetadataProvider import BaseMetadataProvider
 
 logger: Logger = getLogger(__name__)
 
@@ -37,6 +38,10 @@ class Providers:
 
     def get_media_providers(self) -> List[BaseMediaProvider]:
         return [p for p in self._providers if isinstance(p, BaseMediaProvider)]
+
+    def get_metadata_providers(self) -> list[BaseMetadataProvider]:
+        """Return information providers separately from playable media sources."""
+        return [p for p in self._providers if isinstance(p, BaseMetadataProvider)]
 
     def get_lyrics_providers(self) -> List[BaseLyricsProvider]:
         return [p for p in self._providers if isinstance(p, BaseLyricsProvider)]

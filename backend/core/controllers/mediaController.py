@@ -482,7 +482,7 @@ async def add_from_url_async(
 
 
 @router.get("/artist/{public_id}/page")
-async def get_artist_page(
+async def get_artist_catalog_page(
     request: Request,
     public_id: str,
     offset: int = Query(default=0, ge=0),

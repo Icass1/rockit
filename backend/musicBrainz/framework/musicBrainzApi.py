@@ -21,6 +21,7 @@ USER_AGENT = os.environ.get(
 )
 INTERVAL_SECONDS = 1.1
 _inflight: set[asyncio.Task[AResult[MetadataResponse]]] = set()
+_pending: dict[str, asyncio.Task[AResult[MetadataResponse]]] = {}
 
 
 def retry_delay(value: str | None) -> float:
@@ -53,17 +54,29 @@ class MusicBrainzApi:
         This protects the shared cooldown and cache commit after an outbound
         request. Source metadata is global, never tied to a user's transaction.
         """
-        task = asyncio.create_task(
-            MusicBrainzApi._fetch_async(
-                path=path,
-                params=params,
-                entity=entity,
-                external_id=external_id,
-                refresh=refresh,
-            )
+        request_key = json.dumps(
+            [path, params, entity, external_id, refresh], sort_keys=True
         )
-        _inflight.add(task)
-        task.add_done_callback(_inflight.discard)
+        task = _pending.get(request_key)
+        if task is None:
+            task = asyncio.create_task(
+                MusicBrainzApi._fetch_async(
+                    path=path,
+                    params=params,
+                    entity=entity,
+                    external_id=external_id,
+                    refresh=refresh,
+                )
+            )
+            _pending[request_key] = task
+            _inflight.add(task)
+
+            def completed(done: asyncio.Task[AResult[MetadataResponse]]) -> None:
+                _inflight.discard(done)
+                if _pending.get(request_key) is done:
+                    _pending.pop(request_key, None)
+
+            task.add_done_callback(completed)
         return await asyncio.shield(task)
 
     @staticmethod
@@ -102,6 +115,20 @@ class MusicBrainzApi:
                 gate = await MetadataAccess.lock_async(session=session)
                 if gate.is_not_ok():
                     logger.error(f"MusicBrainz gate failed: {gate.info()}")
+                    if old is not None:
+                        return AResult(
+                            code=AResultCode.OK,
+                            message="Cached metadata retained",
+                            result=MetadataResponse(
+                                provider="MusicBrainz",
+                                entity=entity,
+                                externalId=external_id,
+                                data=old.payload,
+                                cached=True,
+                                fetchedAt=old.fetched_at.isoformat(),
+                                stale=True,
+                            ),
+                        )
                     return AResult(code=gate.code(), message=gate.message())
                 # Another worker may have populated/refreshed the same key while we waited.
                 latest = await MetadataAccess.read_async(session=session, key=key)

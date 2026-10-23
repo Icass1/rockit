@@ -141,3 +141,13 @@ Artist candidates are ordered by MusicBrainz relevance score. The first exact-na
 match, or first result when none are exact, is selected automatically, with the
 chooser retained for corrections. Relevance is not a popularity measurement.
 No labels changed and no tests were run for this follow-up.
+
+MusicBrainz advisory gate acquisition now polls the transaction-scoped try-lock
+for at most five seconds rather than waiting indefinitely. Busy requests return
+503 or an existing cached snapshot, without making another upstream request.
+Identical in-process lookups share one shielded task and one provider DB session.
+Different workers still coordinate via PostgreSQL. The request middleware logs
+method/path before dispatch at DEBUG level to distinguish requests arriving at
+the backend from browser-side pending resources. These changes address an
+unbounded wait found in code; the supplied Serwist log alone does not prove it
+caused the reported freeze. No labels changed; no tests were run.

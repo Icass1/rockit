@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import Any
 from sqlalchemy import select, text, func, update
@@ -33,9 +34,21 @@ class MetadataAccess:
     @safe_async
     async def lock_async(session: AsyncSession) -> AResult[float]:
         """Serialize workers and return seconds remaining on the shared gate."""
-        await session.execute(
-            text("SELECT pg_advisory_xact_lock(:key)"), {"key": GATE_LOCK}
-        )
+        # Waiting indefinitely here keeps a database connection occupied and
+        # can exhaust the shared pool during a burst of metadata requests.
+        deadline = asyncio.get_running_loop().time() + 5.0
+        while True:
+            acquired = await session.scalar(
+                text("SELECT pg_try_advisory_xact_lock(:key)"), {"key": GATE_LOCK}
+            )
+            if acquired:
+                break
+            if asyncio.get_running_loop().time() >= deadline:
+                return AResult(
+                    code=AResultCode.SERVICE_UNAVAILABLE,
+                    message="MusicBrainz request queue busy; retry later",
+                )
+            await asyncio.sleep(0.1)
         await session.execute(
             insert(RequestGateRow)
             .values(id=1, available_at=func.clock_timestamp())

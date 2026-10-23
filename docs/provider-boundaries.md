@@ -59,3 +59,31 @@ Integration tests cover disabled sources, all downloadable track schemas, album
 artwork, file reuse and ZIP export, preservation of uploads and unrelated files,
 and rollback of provider path mutations. These contracts do not change HTTP or
 WebSocket payloads and require no frontend changes.
+
+## Artist and metadata audit (2026-10-23)
+
+Reviewed the artist-page changes and scanned all 333 Python files under Core
+against the nine discovered concrete provider packages. There are no concrete
+provider imports, nor references to MusicBrainz, Spotify, YouTube or Cover Art
+Archive in Core. No provider-specific code needed moving out of Core.
+
+Artist pages aggregate `BaseMediaProvider.get_artist_catalog_async` results from
+the registry and use shared collection summaries. Metadata endpoints select a
+`BaseMetadataProvider` from the registry and dispatch through its contract. Core
+retains authentication, HTTP error mapping, pagination and shared response models.
+MusicBrainz owns external IDs, query parameters, JSON parsing, discography policy,
+artwork URLs, HTTP, persistent snapshots and the shared request gate. Removing or
+disabling a source leaves the generic dispatcher intact; missing providers return
+NOT_FOUND and unsupported media catalogs contribute an empty result.
+
+MusicBrainz source projections now use lightweight typed Pydantic models in its
+own `framework/models/metadata.py`, and construct shared response models directly.
+The raw JSON envelope remains intentionally open to preserve arbitrary source
+fields in the persistent cache. Validation does not alter that raw snapshot;
+invalid projected source data returns a controlled unavailable result rather
+than leaking dictionary key/type exceptions. No source model is imported by Core.
+
+Strict Pyright analysis covers the complete configured repository, including
+backend tests. Resolve runtime and development dependencies in the interpreter
+used by the checker before interpreting missing-import cascades as code defects;
+see docs/backend-tests.md. No runtime tests were executed for this audit.

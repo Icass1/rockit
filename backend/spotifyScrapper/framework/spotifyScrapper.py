@@ -186,8 +186,9 @@ class SpotifyScrapper:
                 if not artist.id or not artist.name:
                     continue
                 artist_image_url: str = ""
-                if artist.images and artist.images:
-                    artist_image_url = artist.images[0].url
+                artist_image = SpotifyScrapper._get_largest_image(artist.images)
+                if artist_image:
+                    artist_image_url = artist_image.url
                 items.append(
                     BaseSearchResultsItem(
                         type="artist",

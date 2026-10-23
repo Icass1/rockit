@@ -1,12 +1,12 @@
 import { cache, JSX } from "react";
 import { notFound } from "next/navigation";
-import { BaseArtistResponse } from "@rockit/shared";
-import { getArtistAsync } from "@/lib/services/mediaService";
+import { ArtistPageResponse } from "@rockit/shared";
+import { getArtistPageAsync } from "@/lib/services/artistService";
 import ArtistClient from "@/components/Artist/ArtistClient";
 
 const getArtist = cache(
-    async (publicId: string): Promise<BaseArtistResponse | undefined> => {
-        const artist = await getArtistAsync(publicId).catch(
+    async (publicId: string): Promise<ArtistPageResponse | undefined> => {
+        const artist = await getArtistPageAsync(publicId).catch(
             (): undefined => undefined
         );
         return artist;
@@ -27,7 +27,7 @@ export async function generateMetadata({
     }
 
     return {
-        title: artist.name,
+        title: artist.artist.name,
     };
 }
 
@@ -45,5 +45,5 @@ export default async function ArtistPage({
         notFound();
     }
 
-    return <ArtistClient artist={artist} />;
+    return <ArtistClient key={publicId} initialPage={artist} />;
 }

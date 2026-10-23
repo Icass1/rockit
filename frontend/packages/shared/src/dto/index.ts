@@ -42,6 +42,42 @@ export {
     type AllBuildsResponse,
 } from "./allBuildsResponse";
 export {
+    ArtistCatalogResponseSchema,
+    type ArtistCatalogResponse,
+} from "./artistCatalogResponse";
+export {
+    ArtistImageMetadataSchema,
+    type ArtistImageMetadata,
+} from "./artistImageMetadata";
+export {
+    ArtistImageSourceSchema,
+    type ArtistImageSource,
+} from "./artistImageSource";
+export {
+    ArtistMetadataCandidatesSchema,
+    type ArtistMetadataCandidates,
+} from "./artistMetadataCandidates";
+export {
+    ArtistMetadataCatalogSchema,
+    type ArtistMetadataCatalog,
+} from "./artistMetadataCatalog";
+export {
+    ArtistMetadataIdentitySchema,
+    type ArtistMetadataIdentity,
+} from "./artistMetadataIdentity";
+export {
+    ArtistMetadataItemSchema,
+    type ArtistMetadataItem,
+} from "./artistMetadataItem";
+export {
+    ArtistMetadataProfileSchema,
+    type ArtistMetadataProfile,
+} from "./artistMetadataProfile";
+export {
+    ArtistPageResponseSchema,
+    type ArtistPageResponse,
+} from "./artistPageResponse";
+export {
     ArtistSearchResultsItemSchema,
     type ArtistSearchResultsItem,
 } from "./artistSearchResultsItem";
@@ -374,6 +410,10 @@ export {
     type MediaRemovedFromPlaylistMessage,
 } from "./mediaRemovedFromPlaylistMessage";
 export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
+export {
+    MetadataResponseSchema,
+    type MetadataResponse,
+} from "./metadataResponse";
 export {
     NotificationActivityRequestSchema,
     type NotificationActivityRequest,

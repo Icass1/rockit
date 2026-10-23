@@ -908,6 +908,37 @@ export class BaseHttp {
         );
     }
 
+    static async getArtistCatalogPage(
+        publicId: string,
+        offset?: number,
+        limit?: number
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/media/artist/${publicId}/page${queryString ? `?${queryString}` : ""}`,
+            dto.ArtistPageResponseSchema
+        );
+    }
+
+    static async getArtistPageByName(
+        name: string,
+        offset?: number,
+        limit?: number
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("name", `${name}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/media/artists/profile${queryString ? `?${queryString}` : ""}`,
+            dto.ArtistPageResponseSchema
+        );
+    }
+
     static async getCollectionItems(
         publicId: string,
         offset?: number,
@@ -1047,6 +1078,44 @@ export class BaseHttp {
 
     static async getMediaAsync(publicId: string) {
         return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
+    }
+
+    static async searchArtists(
+        provider: string,
+        name: string,
+        offset?: number,
+        limit?: number,
+        refresh?: boolean
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("name", `${name}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (refresh !== undefined) queryParams.append("refresh", `${refresh}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/metadata/${provider}/artists/search${queryString ? `?${queryString}` : ""}`,
+            dto.MetadataResponseSchema
+        );
+    }
+
+    static async getMetadata(
+        provider: string,
+        entity: string,
+        externalId: string,
+        offset?: number,
+        limit?: number,
+        refresh?: boolean
+    ) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (refresh !== undefined) queryParams.append("refresh", `${refresh}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/metadata/${provider}/${entity}/${externalId}${queryString ? `?${queryString}` : ""}`,
+            dto.MetadataResponseSchema
+        );
     }
 
     static async getNotifications() {

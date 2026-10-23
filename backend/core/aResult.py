@@ -14,6 +14,7 @@ class AResultCode:
     RATE_LIMITED = 0x8
     QUOTA_EXHAUSTED = 0x9
     CONFIGURATION_ERROR = 0xA
+    SERVICE_UNAVAILABLE = 0xB
 
     _code: int
     _message: str
@@ -33,6 +34,7 @@ class AResultCode:
             self.GENERAL_ERROR,
             self.RATE_LIMITED,
             self.QUOTA_EXHAUSTED,
+            self.SERVICE_UNAVAILABLE,
         )
 
     def is_rate_limited(self) -> bool:
@@ -59,7 +61,10 @@ class AResultCode:
             return 429
         if self._code == AResultCode.QUOTA_EXHAUSTED:
             return 429
-        if self._code == AResultCode.CONFIGURATION_ERROR:
+        if self._code in (
+            AResultCode.CONFIGURATION_ERROR,
+            AResultCode.SERVICE_UNAVAILABLE,
+        ):
             return 503
 
         raise Exception(f"Code {self._code} not implemented")
@@ -89,6 +94,11 @@ class AResultCode:
             return "RATE_LIMITED"
         if self._code == AResultCode.QUOTA_EXHAUSTED:
             return "QUOTA_EXHAUSTED"
+
+        if self._code == AResultCode.SERVICE_UNAVAILABLE:
+            return "SERVICE_UNAVAILABLE"
+        if self._code == AResultCode.CONFIGURATION_ERROR:
+            return "CONFIGURATION_ERROR"
 
         raise Exception(f"Code {self._code} not implemented")
 

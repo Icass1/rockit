@@ -51,6 +51,9 @@ from backend.spotifyScrapper.responses.albumResponse import (
 from backend.constants import MEDIA_PATH
 from backend.spotifyScrapper.access.trackAccess import TrackAccess
 
+from backend.core.responses.artistPageResponse import ArtistCatalogResponse
+from backend.spotifyScrapper.access.artistCatalogAccess import ArtistCatalogAccess
+
 logger: Logger = getLogger(__name__)
 
 SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
@@ -74,6 +77,14 @@ SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyScrapperProvider(BaseMediaProvider):
+    async def get_artist_catalog_async(
+        self, session: AsyncSession, name: str, public_id: str | None = None
+    ) -> AResult[ArtistCatalogResponse]:
+        """Expose this provider's indexed artist catalog to Core."""
+        return await ArtistCatalogAccess.get_async(
+            session=session, name=name, public_id=public_id
+        )
+
     def download_concurrency_limit(self) -> int:
         return 2
 

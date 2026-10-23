@@ -15,6 +15,7 @@ import { CircleCheck, SquareCheck, SquareDashed } from "lucide-react";
 import type { TMediaWithSearch } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { artistPageUrl } from "@/lib/services/artistService";
 import Artists from "@/components/Artists/Artists";
 import {
     isZippable,
@@ -342,7 +343,7 @@ export function StationRow({
 function ArtistGroupHeader({ name }: { name: string }): JSX.Element {
     return (
         <h3 className="mt-6 mb-1 px-1 text-xs font-semibold tracking-widest text-neutral-400 uppercase">
-            <Link href={`/artists/${encodeURIComponent(name)}`}>{name}</Link>
+            <Link href={artistPageUrl(name)}>{name}</Link>
         </h3>
     );
 }

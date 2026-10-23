@@ -1,6 +1,9 @@
 import type { JSX } from "react";
 import { notFound } from "next/navigation";
-import { getArtistPageAsync } from "@/lib/services/artistService";
+import {
+    artistNameFromRoute,
+    getArtistPageAsync,
+} from "@/lib/services/artistService";
 import ArtistClient from "@/components/Artist/ArtistClient";
 
 export default async function ArtistByNamePage({
@@ -8,7 +11,8 @@ export default async function ArtistByNamePage({
 }: {
     params: Promise<{ name: string }>;
 }): Promise<JSX.Element> {
-    const { name } = await params;
+    const { name: segment } = await params;
+    const name = artistNameFromRoute(segment);
     const page = await getArtistPageAsync(undefined, name);
     if (!page) notFound();
     return <ArtistClient key={name} initialPage={page} artistName={name} />;

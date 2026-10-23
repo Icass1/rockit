@@ -72,9 +72,21 @@ This is transparent heuristic scoring, not machine learning:
 
 ## Last.fm
 
-Code: `backend/core/framework/externalRecommendation/`. Last.fm is the only
-production external provider. The provider interface keeps HTTP retrieval
-separate from caching, deadlines, deduplication and local matching.
+Last.fm lives in `backend/lastfm/`, with its credentials in `constants.py`
+and its implementation in `framework/provider/lastfmProvider.py`. The existing
+provider registry discovers the exported `provider` and `name` exactly as it
+discovers every other integration. Last.fm is the only external recommendation
+implementation shipped by Rockit.
+
+Core owns `BaseExternalRecommendationProvider` and the generic orchestrator in
+`backend/core/framework/externalRecommendation/`. It requests recommendation
+capabilities from the registry at call time, after provider startup; it never
+imports, names or instantiates an integration. Adding a future implementation
+requires a module implementing the contract, without editing core.
+
+Discovery matching uses each media provider's search metadata, then resolves
+availability through the Media API. Provider responses decide whether a song
+has audio; core contains no special case for any media provider's name or tables.
 
 Every user uses the same server-side `LASTFM_API_KEY`. Last.fm receives only the
 artist and title of one seed track through `track.getsimilar`; no Last.fm user,

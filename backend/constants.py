@@ -163,14 +163,12 @@ YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 
 # --- Recommendations ---------------------------------------------------------
 # Local recommendations need no configuration. Everything below is optional and
-# enables Last.fm discovery for every user through one server-side key.
+# controls generic external recommendation resilience and preparation.
 # Shared admission budget, including queued and retrying automatic downloads.
 # Set to zero to disable automatic preparation without disabling recommendations.
 RECOMMENDATION_PREFETCH_MAX_PENDING = max(
     0, get_env_int_optional("RECOMMENDATION_PREFETCH_MAX_PENDING", 2)
 )
-# Last.fm API key (secret). When unset the Last.fm provider is disabled.
-LASTFM_API_KEY = get_optional_env_str("LASTFM_API_KEY", default="")
 # Per-request timeout for external providers, in seconds.
 RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS = get_optional_env_float(
     "RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS", default=5.0

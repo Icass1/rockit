@@ -9,7 +9,6 @@ from backend.core.access.mediaInfoCte import (
     get_genre_info_cte,
     get_media_info_cte,
 )
-from backend.core.enums.downloadStatusEnum import DownloadStatusEnum
 from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.framework.models.recommendation import LocalCandidate
 from backend.utils.logger import getLogger
@@ -20,7 +19,7 @@ logger = getLogger(__name__)
 MOOD_TOP_GENRE_COUNT = 3
 
 # --- Discovery "already in library" matching --------------------------------
-# pg_trgm similarity bars a Last.fm suggestion must clear before it is flagged
+# pg_trgm similarity bars an external suggestion must clear before it is flagged
 # as already available in this Rockit instance. Both must pass: the track name
 # AND the contributing artist, so a same-titled different-track false positive
 # (which would hide the suggestion and offer nothing playable) is very
@@ -335,17 +334,15 @@ class RecommendationAccess:
             )
 
     @staticmethod
-    async def get_downloaded_discover_song_public_ids_async(
+    async def get_discover_song_candidates_async(
         session: AsyncSession,
         artists_and_tracks: list[tuple[str, str]],
-    ) -> AResult[dict[int, str]]:
-        """For each (artist, track) discovery suggestion, find the public_id of
-        a song this instance has actually downloaded (audio on disk), matching
-        both the track name and the artist — all in one batched query.
+    ) -> AResult[dict[int, list[str]]]:
+        """Return up to three artist/title matches per suggestion in one batch.
 
-        Returns a {suggestion_index: public_id} map; pairs with no match are
-        simply absent. The matching deliberately requires both the name and the
-        artist to clear a conservative similarity bar.
+        Availability is deliberately not decided here: each media provider
+        owns its download/file state, resolved through the generic Media API.
+        Keys use the SQL's 1-based suggestion ordinality.
         """
 
         if not artists_and_tracks:
@@ -379,9 +376,13 @@ class RecommendationAccess:
                 ) WITH ORDINALITY AS c(artist_name, track_name, ordinality)
             ),
             matches AS (
-                SELECT DISTINCT ON (c.idx)
-                    c.idx        AS idx,
-                    si.public_id AS public_id
+                SELECT c.idx AS idx,
+                    si.public_id AS public_id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY c.idx
+                        ORDER BY word_similarity(lower(c.track_name), lower(si.name)) DESC,
+                                 si.public_id
+                    ) AS match_rank
                 FROM   candidates  c
                 JOIN   search_index si
                     ON  si.media_type_key = :song_type_key
@@ -389,28 +390,17 @@ class RecommendationAccess:
                         >= :name_threshold
                     AND word_similarity(lower(c.artist_name), lower(si.subtitle))
                         >= :artist_threshold
-                    AND (
-                        si.provider_name = :rockit_provider_name
-                        OR EXISTS (
-                            SELECT 1
-                            FROM   core.download d
-                            WHERE  d.media_id = si.internal_id
-                              AND  d.status_key = :completed_status_key
-                        )
-                    )
-                ORDER BY c.idx, word_similarity(lower(c.track_name), lower(si.name)) DESC
             )
             SELECT idx, public_id
             FROM   matches
-            ORDER BY idx
+            WHERE match_rank <= 3
+            ORDER BY idx, match_rank
             """).bindparams(
                 bindparam("artist_names", type_=ARRAY(String)),
                 bindparam("track_names", type_=ARRAY(String)),
                 bindparam("song_type_key", type_=Integer),
                 bindparam("name_threshold", type_=Float),
                 bindparam("artist_threshold", type_=Float),
-                bindparam("rockit_provider_name", type_=String),
-                bindparam("completed_status_key", type_=Integer),
             )
 
             rows = (
@@ -422,17 +412,14 @@ class RecommendationAccess:
                         "song_type_key": MediaTypeEnum.SONG.value,
                         "name_threshold": DISCOVER_LIBRARY_NAME_MATCH_THRESHOLD,
                         "artist_threshold": DISCOVER_LIBRARY_ARTIST_MATCH_THRESHOLD,
-                        "rockit_provider_name": "RockIt",
-                        "completed_status_key": DownloadStatusEnum.COMPLETED.value,
                     },
                 )
             ).fetchall()
 
-            return AResult(
-                code=AResultCode.OK,
-                message="OK",
-                result={int(r[0]): str(r[1]) for r in rows},
-            )
+            candidates: dict[int, list[str]] = {}
+            for row in rows:
+                candidates.setdefault(int(row[0]), []).append(str(row[1]))
+            return AResult(code=AResultCode.OK, message="OK", result=candidates)
         except Exception as e:
             logger.error(
                 f"Error matching discover suggestions to the library: {e}",
@@ -499,7 +486,7 @@ class RecommendationAccess:
     ) -> AResult[list[str]]:
         """Random songs from the user's top genres (by recent listens).
 
-        Only providers that contribute genre data (currently Spotify, via
+        Only providers that contribute genre data (through
         artist genres) participate — returns empty if none apply to this
         user's listening history.
         """

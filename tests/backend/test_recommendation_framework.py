@@ -101,6 +101,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
         self.in_library: dict[int, str] = {}
+        self.missing_audio: set[str] = set()
 
         async def recently_played(
             session: Any, user_id: int, limit: int
@@ -121,7 +122,10 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             )
 
         async def resolve(session: Any, public_ids: list[str]):
-            return [make_song(pid) for pid in public_ids]
+            songs = [make_song(pid) for pid in public_ids]
+            for song in songs:
+                song.downloaded = song.publicId not in self.missing_audio
+            return songs
 
         async def candidates(session: Any, **kwargs: Any):
             self.candidate_calls += 1
@@ -131,7 +135,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             return ok_result(list(self.fallback))
 
         async def in_library(session: Any, artists_and_tracks: Any):
-            return ok_result(dict(self.in_library))
+            return ok_result({idx: [pid] for idx, pid in self.in_library.items()})
 
         async def seed_track(session: Any, public_id: str) -> SeedTrack | None:
             return SeedTrack(artist_name="Seed Artist", track_name="Seed Song")
@@ -154,8 +158,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
                 f"{MODULE}.RecommendationAccess.get_fallback_candidates_async", fallback
             ),
             mock.patch(
-                f"{MODULE}.RecommendationAccess."
-                "get_downloaded_discover_song_public_ids_async",
+                f"{MODULE}.RecommendationAccess." "get_discover_song_candidates_async",
                 in_library,
             ),
             mock.patch.object(Recommendation, "_resolve_seed_track_async", seed_track),
@@ -291,6 +294,27 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNone(item.url)
             self.assertTrue(item.artists[0].name)
         self.assertEqual(len(result.songs), 3)
+
+    async def test_discovery_uses_provider_download_state(self) -> None:
+        self.use_providers(FakeProvider("external", ok(("Artist", "Song"))))
+        self.in_library = {1: "metadata-only"}
+        self.missing_audio = {"metadata-only"}
+        result = await self.for_you()
+        self.assertEqual(result.discover[0].publicId, None)
+        self.assertFalse(result.discover[0].downloaded)
+
+    async def test_discovery_can_reuse_a_downloaded_alternative(self) -> None:
+        self.use_providers(FakeProvider("external", ok(("Artist", "Song"))))
+        self.missing_audio = {"metadata-only"}
+        with mock.patch(
+            f"{MODULE}.RecommendationAccess.get_discover_song_candidates_async",
+            mock.AsyncMock(
+                return_value=ok_result({1: ["metadata-only", "playable-version"]})
+            ),
+        ):
+            result = await self.for_you()
+        self.assertEqual(result.discover[0].publicId, "playable-version")
+        self.assertTrue(result.discover[0].downloaded)
 
     async def test_response_contract(self) -> None:
         self.use_providers(FakeProvider("primary", ok(("New Artist", "New Song"))))

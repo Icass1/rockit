@@ -1,12 +1,13 @@
 import unittest
 from typing import Callable
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 
 import tests  # noqa: F401  # pyright: ignore[reportUnusedImport]  (test env setup)
 
-from backend.core.aResult import AResultCode
-from backend.core.framework.externalRecommendation.lastfmProvider import (
+from backend.core.aResult import AResult, AResultCode
+from backend.lastfm.framework.provider.lastfmProvider import (
     LastfmProvider,
 )
 from backend.core.framework.models.recommendation import (
@@ -127,6 +128,91 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
                 )
             )
         )
+
+    async def test_existing_registry_discovers_and_registers_the_integration(
+        self,
+    ) -> None:
+        from backend.core.access.db import rockit_db
+        from backend.core.access.db.ormModels.provider import ProviderRow
+        from backend.core.access.providerAccess import ProviderAccess
+        from backend.core.framework.providers.providers import Providers
+
+        registry = Providers()
+        integration = LastfmProvider(api_key="test-registry-key")
+        row = ProviderRow(
+            name="Last.fm", module="backend.lastfm.framework.provider.lastfmProvider"
+        )
+        row.id = 123
+        with (
+            patch.object(registry, "_providers", []),
+            patch(
+                "backend.core.framework.providers.providers.os.walk",
+                return_value=[
+                    ("backend/lastfm/framework/provider", [], ["lastfmProvider.py"])
+                ],
+            ),
+            patch.object(
+                ProviderAccess,
+                "get_providers",
+                AsyncMock(
+                    return_value=AResult(code=AResultCode.OK, message="OK", result=[])
+                ),
+            ),
+            patch.object(
+                ProviderAccess,
+                "add_provider",
+                AsyncMock(
+                    return_value=AResult(code=AResultCode.OK, message="OK", result=row)
+                ),
+            ),
+            patch.object(rockit_db, "after_all_providers_tables_init", AsyncMock()),
+            patch(
+                "backend.lastfm.framework.provider.lastfmProvider.provider", integration
+            ),
+        ):
+            result = await registry.search_providers(session=MagicMock())
+            self.assertTrue(result.is_ok())
+            self.assertEqual(registry.get_recommendation_providers(), [integration])
+            self.assertEqual(registry.get_media_providers(), [])
+            provider_id = integration.get_id()
+            self.assertTrue(provider_id.is_ok())
+            self.assertEqual(provider_id.result(), 123)
+
+    async def test_disabled_registry_entry_does_not_expose_the_capability(self) -> None:
+        from backend.core.access.db import rockit_db
+        from backend.core.access.db.ormModels.provider import ProviderRow
+        from backend.core.access.providerAccess import ProviderAccess
+        from backend.core.framework.providers.providers import Providers
+
+        registry = Providers()
+        row = ProviderRow(
+            name="Last.fm",
+            module="backend.lastfm.framework.provider.lastfmProvider",
+            disabled=True,
+        )
+        row.id = 123
+        with (
+            patch.object(registry, "_providers", []),
+            patch(
+                "backend.core.framework.providers.providers.os.walk",
+                return_value=[
+                    ("backend/lastfm/framework/provider", [], ["lastfmProvider.py"])
+                ],
+            ),
+            patch.object(
+                ProviderAccess,
+                "get_providers",
+                AsyncMock(
+                    return_value=AResult(
+                        code=AResultCode.OK, message="OK", result=[row]
+                    )
+                ),
+            ),
+            patch.object(rockit_db, "after_all_providers_tables_init", AsyncMock()),
+        ):
+            result = await registry.search_providers(session=MagicMock())
+            self.assertTrue(result.is_ok())
+            self.assertEqual(registry.get_recommendation_providers(), [])
 
 
 if __name__ == "__main__":

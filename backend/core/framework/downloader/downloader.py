@@ -331,7 +331,7 @@ class Downloader:
         add_to_playlist: bool,
         playlist_public_id: str | None,
     ) -> AResult[StartDownloadFromUrlResponse]:
-        """Resolve the best song match for a Last.fm discovery suggestion
+        """Resolve the best song match for an external discovery suggestion
         (artist + track) via a single provider search, then queue its download
         in one atomic operation by reusing the same add-and-queue path as
         start_download_from_url_async.

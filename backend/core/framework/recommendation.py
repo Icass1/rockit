@@ -97,11 +97,11 @@ class RecommendationResult(NamedTuple):
 
 
 class Recommendation:
-    """Recommendations = local engine (always) + server-configured Last.fm discovery.
+    """Recommendations = local engine (always) + registered external discovery.
 
     The local engine ranks songs already known to this instance from
     Rockit's own data (see RecommendationRanking) and never touches the
-    network. Last.fm suggestions are enabled instance-wide and purely additive:
+    network. Configured external suggestions are enabled instance-wide and purely additive:
     any provider failure leaves the local songs untouched.
     """
 
@@ -297,7 +297,7 @@ class Recommendation:
         exclude_public_ids: set[str],
         include_external: bool = True,
     ) -> tuple[list[BaseSearchResultsItem], str | None, EExternalStatus]:
-        """Last.fm suggestions from the server-configured provider, matched against the
+        """Suggestions from registered external providers, matched against the
         local library in one batched query. Never fails: every problem
         degrades to an empty list with an explanatory status."""
 
@@ -323,23 +323,30 @@ class Recommendation:
         if result.status != EExternalStatus.OK or not result.provider_name:
             return [], None, result.status
 
-        # Flag, in one batched local query, suggestions the instance already
-        # has downloaded so the UI can play them directly.
-        a_in_library: AResult[dict[int, str]] = (
-            await RecommendationAccess.get_downloaded_discover_song_public_ids_async(
-                session=session,
-                artists_and_tracks=[
-                    (s.artist_name, s.track_name) for s in result.suggestions
-                ],
-            )
+        # Match generic search metadata, then delegate availability to each
+        # media provider instead of recognizing provider names in core.
+        a_matches = await RecommendationAccess.get_discover_song_candidates_async(
+            session=session,
+            artists_and_tracks=[
+                (s.artist_name, s.track_name) for s in result.suggestions
+            ],
         )
-        in_library: dict[int, str] = {}
-        if a_in_library.is_ok():
-            in_library = a_in_library.result()
+        matches: dict[int, list[str]] = {}
+        if a_matches.is_ok():
+            matches = a_matches.result()
         else:
-            logger.warning(
-                f"Could not flag in-library suggestions. {a_in_library.info()}"
-            )
+            logger.error(f"Could not match in-library suggestions. {a_matches.info()}")
+        candidate_ids = list(
+            dict.fromkeys(pid for group in matches.values() for pid in group)
+        )
+        resolved = await Media.resolve_songs_from_public_ids_async(
+            session=session, public_ids=candidate_ids
+        )
+        downloaded = {song.publicId for song in resolved if song.downloaded}
+        in_library = {
+            idx: next((pid for pid in ids if pid in downloaded), None)
+            for idx, ids in matches.items()
+        }
 
         discover: list[BaseSearchResultsItem] = []
         seen_public_ids: set[str] = set()
@@ -440,8 +447,8 @@ class Recommendation:
         Seeds on recent plays and likes, excludes the last five listens, and
         penalizes frequent repeats over the last two weeks. Older familiar
         songs remain eligible when discovery is sparse. Users without history get the cold-start fallback.
-        Last.fm uses the most recent song's artist and title as a generic seed;
-        its API key is shared server configuration, never a user setting.
+        External providers receive the most recent song's artist and title as
+        a generic seed. Their configuration belongs to each integration.
         """
 
         limit = Recommendation.clamp_limit(limit)

@@ -7,7 +7,7 @@ from unittest import mock
 import tests  # noqa: F401  # pyright: ignore[reportUnusedImport]  (test env setup)
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.externalRecommendation.baseExternalRecommendationProvider import (
+from backend.core.framework.provider.baseExternalRecommendationProvider import (
     BaseExternalRecommendationProvider,
 )
 from backend.core.framework.externalRecommendation.externalRecommendations import (
@@ -261,11 +261,31 @@ class ExternalRecommendationsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([s.track_name for s in result.suggestions], ["One"])
         self.assertEqual(provider.calls, 0)
 
-    def test_server_configuration_uses_only_lastfm(self) -> None:
-        configured = ExternalRecommendations.from_config()
-        self.assertEqual(
-            [provider.key for provider in configured.providers], ["lastfm"]
-        )
+    def test_production_uses_the_registry_after_provider_discovery(self) -> None:
+        from backend.core.framework import providers
+
+        configured = ExternalRecommendations()
+        with mock.patch.object(
+            providers, "get_recommendation_providers", return_value=[]
+        ):
+            self.assertEqual(configured.providers, [])
+        discovered = FakeProvider("discovered")
+        with mock.patch.object(
+            providers, "get_recommendation_providers", return_value=[discovered]
+        ):
+            self.assertEqual(configured.providers, [discovered])
+
+    def test_registry_selects_capabilities_without_concrete_provider_names(
+        self,
+    ) -> None:
+        from backend.core.framework.providers.providers import Providers
+        from backend.core.framework.provider.baseProvider import BaseProvider
+
+        registry = Providers()
+        discovered = FakeProvider("new-integration")
+        with mock.patch.object(registry, "_providers", [BaseProvider(), discovered]):
+            self.assertEqual(registry.get_recommendation_providers(), [discovered])
+            self.assertEqual(registry.get_media_providers(), [])
 
 
 if __name__ == "__main__":

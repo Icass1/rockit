@@ -2,11 +2,12 @@ from typing import Any
 
 import httpx
 
-from backend.constants import LASTFM_API_KEY, RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS
+from backend.constants import RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS
+from backend.lastfm.constants import LASTFM_API_KEY
 from backend.utils.logger import getLogger
 
 from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.externalRecommendation.baseExternalRecommendationProvider import (
+from backend.core.framework.provider.baseExternalRecommendationProvider import (
     BaseExternalRecommendationProvider,
 )
 from backend.core.framework.externalRecommendation.httpRequest import (
@@ -192,3 +193,8 @@ class LastfmProvider(BaseExternalRecommendationProvider):
             score=match,
             recording_mbid=raw_mbid if isinstance(raw_mbid, str) and raw_mbid else None,
         )
+
+
+# The ordinary core registry discovers this module by its provider directory.
+provider = LastfmProvider()
+name = LastfmProvider.display_name

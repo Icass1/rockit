@@ -11,7 +11,7 @@ class SongListResponse(BaseModel):
     songs: List[BaseSongWithAlbumResponse]
     # Optional external suggestions (not necessarily in this instance yet).
     # Download one through /downloader/start-from-search. Empty unless the
-    # server has a Last.fm API key and the service returned usable results.
+    # server has a configured provider and it returned usable results.
     discover: List[BaseSearchResultsItem] = []
     # Which external provider produced `discover`, if any.
     discoverProvider: str | None = None

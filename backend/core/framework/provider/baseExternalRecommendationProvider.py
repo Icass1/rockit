@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 
 from backend.core.aResult import AResult
+from backend.core.framework.provider.baseProvider import BaseProvider
 from backend.core.framework.models.recommendation import (
     ExternalRecommendationContext,
     ExternalSuggestion,
 )
 
 
-class BaseExternalRecommendationProvider(ABC):
+class BaseExternalRecommendationProvider(BaseProvider, ABC):
     """A source of track suggestions outside this Rockit instance.
 
     Implementations only turn a context into (artist, track) suggestions;

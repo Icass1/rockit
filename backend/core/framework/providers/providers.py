@@ -16,6 +16,9 @@ from backend.core.access.db.ormModels.provider import ProviderRow
 
 from backend.core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
+from backend.core.framework.provider.baseExternalRecommendationProvider import (
+    BaseExternalRecommendationProvider,
+)
 from backend.core.framework.provider.baseUploadProvider import BaseUploadProvider
 from backend.core.framework.provider.types import AddFromUrlAResult
 from backend.core.framework.provider.baseProvider import BaseProvider
@@ -37,6 +40,14 @@ class Providers:
 
     def get_media_providers(self) -> List[BaseMediaProvider]:
         return [p for p in self._providers if isinstance(p, BaseMediaProvider)]
+
+    def get_recommendation_providers(self) -> list[BaseExternalRecommendationProvider]:
+        """Discover the recommendation capability without knowing integrations."""
+        return [
+            p
+            for p in self._providers
+            if isinstance(p, BaseExternalRecommendationProvider)
+        ]
 
     def get_lyrics_providers(self) -> List[BaseLyricsProvider]:
         return [p for p in self._providers if isinstance(p, BaseLyricsProvider)]

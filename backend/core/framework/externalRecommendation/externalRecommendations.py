@@ -16,11 +16,8 @@ from backend.core.aResult import AResult
 from backend.core.access.externalRecommendationCacheAccess import (
     ExternalRecommendationCacheAccess,
 )
-from backend.core.framework.externalRecommendation.baseExternalRecommendationProvider import (
+from backend.core.framework.provider.baseExternalRecommendationProvider import (
     BaseExternalRecommendationProvider,
-)
-from backend.core.framework.externalRecommendation.lastfmProvider import (
-    LastfmProvider,
 )
 from backend.core.framework.models.recommendation import (
     EExternalStatus,
@@ -68,9 +65,9 @@ class ExternalRecommendations:
     """Runs the configured external providers in order with caching, a hard
     deadline and fallback.
 
-    Production uses Last.fm with the server API key. Providers are injected
-    through the shared interface so caching, resilience and ranking remain
-    independent of the external service. Unconfigured providers are skipped. The first provider that yields
+    Implementations come from the core provider registry, or can be injected
+    for tests. Core only knows the recommendation capability contract.
+    Unconfigured providers are skipped. The first provider that yields
     usable suggestions wins. Any failure — timeout, HTTP error, rate limit,
     invalid or empty data — moves on to the next provider; when none
     succeeds the caller simply gets no external suggestions and keeps its
@@ -79,7 +76,7 @@ class ExternalRecommendations:
 
     def __init__(
         self,
-        providers: list[BaseExternalRecommendationProvider],
+        providers: list[BaseExternalRecommendationProvider] | None = None,
         cache_hours: float = RECOMMENDATION_EXTERNAL_CACHE_HOURS,
         timeout_seconds: float = RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS,
         clock: Callable[[], float] = time.monotonic,
@@ -93,21 +90,20 @@ class ExternalRecommendations:
         self._clock = clock
         self._failed_until: dict[str, float] = {}
 
-    @staticmethod
-    def from_config() -> "ExternalRecommendations":
-        """Last.fm is instance-wide; the server API key is the only setup."""
-        return ExternalRecommendations(providers=[LastfmProvider()])
-
     @property
     def providers(self) -> list[BaseExternalRecommendationProvider]:
         """Providers in the order they are tried."""
 
-        return list(self._providers)
+        if self._providers is not None:
+            return list(self._providers)
+        from backend.core.framework import providers
+
+        return providers.get_recommendation_providers()
 
     def configured_provider_names(self) -> list[str]:
         """Display names of the providers this instance can use."""
 
-        return [p.display_name for p in self._providers if p.is_configured()]
+        return [p.display_name for p in self.providers if p.is_configured()]
 
     def _in_backoff(self, key: str) -> bool:
         until = self._failed_until.get(key)
@@ -207,7 +203,7 @@ class ExternalRecommendations:
         raises; see EExternalStatus for what the status means."""
 
         eligible = [
-            p for p in self._providers if p.is_configured() and p.can_serve(context)
+            p for p in self.providers if p.is_configured() and p.can_serve(context)
         ]
         if not eligible or limit <= 0:
             return ExternalRecommendationResult(status=EExternalStatus.DISABLED)
@@ -238,4 +234,4 @@ class ExternalRecommendations:
         )
 
 
-external_recommendations = ExternalRecommendations.from_config()
+external_recommendations = ExternalRecommendations()

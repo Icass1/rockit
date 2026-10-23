@@ -193,20 +193,22 @@ class WikimediaProvider(BaseMetadataProvider):
             headers={"User-Agent": USER_AGENT},
         ) as client:
             response = await client.get(
-                "https://www.wikidata.org/w/api.php",
-                params={
-                    "action": "wbgetentities",
-                    "ids": external_id,
-                    "props": "claims",
-                    "format": "json",
-                    "maxlag": 5,
-                },
+                # EntityData is the cacheable public entity document. Avoid
+                # asking the Action API to assemble all claims on every miss.
+                f"https://www.wikidata.org/wiki/Special:EntityData/{external_id}.json",
+                follow_redirects=True,
             )
             response.raise_for_status()
-            if "error" in response.json():
-                raise ValueError("Wikidata API error")
-            entities = EntityResponse.model_validate(response.json()).entities
-            entity = entities.get(external_id)
+            document = EntityResponse.model_validate(response.json())
+            if document.error is not None:
+                raise ValueError(
+                    f"Wikidata API error: {document.error.code}: {document.error.info[:400]}"
+                )
+            entity = document.entities.get(external_id)
+            if entity is None:
+                raise ValueError(
+                    f"Wikidata response missing requested entity {external_id}"
+                )
             claims = entity.claims.P18 if entity else []
             candidates = sorted(
                 (
@@ -238,9 +240,12 @@ class WikimediaProvider(BaseMetadataProvider):
                 },
             )
             response.raise_for_status()
-            if "error" in response.json():
-                raise ValueError("Commons API error")
-            pages = CommonsResponse.model_validate(response.json()).query.pages
+            document_image = CommonsResponse.model_validate(response.json())
+            if document_image.error is not None:
+                raise ValueError(
+                    f"Commons API error: {document_image.error.code}: {document_image.error.info[:400]}"
+                )
+            pages = document_image.query.pages
             info = next((page.imageinfo[0] for page in pages if page.imageinfo), None)
             if info is None:
                 return ArtistImage()

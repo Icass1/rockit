@@ -25,8 +25,14 @@ class ImageEntity(BaseModel):
     claims: ImageClaims = Field(default_factory=ImageClaims)
 
 
+class ApiError(BaseModel):
+    code: str = "unknown"
+    info: str = ""
+
+
 class EntityResponse(BaseModel):
     entities: dict[str, ImageEntity] = Field(default_factory=dict[str, ImageEntity])
+    error: ApiError | None = None
 
 
 class ImageInfo(BaseModel):
@@ -47,6 +53,7 @@ class ImageQuery(BaseModel):
 
 class CommonsResponse(BaseModel):
     query: ImageQuery = Field(default_factory=ImageQuery)
+    error: ApiError | None = None
 
 
 class ArtistImage(ArtistImageMetadata):

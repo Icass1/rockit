@@ -2,6 +2,7 @@ import asyncio
 import re
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from typing import cast
 from urllib.parse import urlsplit
 
 import httpx
@@ -118,8 +119,13 @@ class WikimediaProvider(BaseMetadataProvider):
                                 )
                             except ValueError:
                                 try:
-                                    deadline = parsedate_to_datetime(
-                                        error.response.headers.get("Retry-After", "")
+                                    deadline = cast(
+                                        datetime,
+                                        parsedate_to_datetime(
+                                            error.response.headers.get(
+                                                "Retry-After", ""
+                                            )
+                                        ),
                                     )
                                     delay = max(
                                         delay,

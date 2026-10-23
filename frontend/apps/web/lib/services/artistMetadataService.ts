@@ -1,7 +1,9 @@
 import {
+    ArtistImageMetadataSchema,
     ArtistMetadataCandidatesSchema,
     ArtistMetadataCatalogSchema,
     ArtistMetadataProfileSchema,
+    type ArtistImageSource,
     type ArtistMetadataCatalog,
     type ArtistMetadataIdentity,
     type ArtistMetadataItem,
@@ -20,23 +22,26 @@ const requests = new Map<
     string,
     { expires: number; promise: Promise<MetadataResponse> }
 >();
-let unavailableUntil = 0;
-let unavailableMessage = "";
+const unavailable = new Map<string, { until: number; message: string }>();
 
 function requestMetadata(
     key: string,
-    load: () => Promise<HttpResult<MetadataResponse>>
+    load: () => Promise<HttpResult<MetadataResponse>>,
+    provider = "MusicBrainz"
 ): Promise<MetadataResponse> {
     const now = Date.now();
     const cached = requests.get(key);
     if (cached && cached.expires > now) return cached.promise;
-    if (now < unavailableUntil)
-        return Promise.reject(new Error(unavailableMessage));
+    const cooldown = unavailable.get(provider);
+    if (cooldown && now < cooldown.until)
+        return Promise.reject(new Error(cooldown.message));
     const promise = load().then((result) => {
         if (!result.isOk()) {
             if (result.code === 429 || result.code === 503) {
-                unavailableUntil = Date.now() + 60_000;
-                unavailableMessage = result.message;
+                unavailable.set(provider, {
+                    until: Date.now() + 60_000,
+                    message: result.message,
+                });
             }
             throw new Error(result.message);
         }
@@ -71,6 +76,24 @@ export async function getArtistMetadataProfile(
         ...ArtistMetadataProfileSchema.parse(result.data),
         stale: result.stale,
     };
+}
+
+/** Image lookup stays independent so unavailable artwork cannot block the catalogue. */
+export async function getArtistImage(
+    source: ArtistImageSource
+): Promise<string> {
+    // Keep image-provider failures outside the catalogue's shared cooldown.
+    const result = await requestMetadata(
+        `image:${source.provider}:${source.externalId}`,
+        () =>
+            Http.getMetadata(
+                source.provider,
+                "artist-image",
+                source.externalId
+            ),
+        source.provider
+    );
+    return ArtistImageMetadataSchema.parse(result.data).imageUrl;
 }
 
 export async function getArtistMetadataCatalog(

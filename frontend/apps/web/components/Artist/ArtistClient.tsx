@@ -44,6 +44,7 @@ export default function ArtistClient({
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [page, setPage] = useState(initialPage);
+    const [metadataPortrait, setMetadataPortrait] = useState("");
     const [collectionExpanded, setCollectionExpanded] = useState(false);
     const [query, setQuery] = useState("");
     const [downloadedOnly, setDownloadedOnly] = useState(false);
@@ -105,7 +106,11 @@ export default function ArtistClient({
         () => getArtistPortrait(artist.name),
         getServerArtistPortrait
     );
-    const image = artist.imageUrl || searchPortrait;
+    const [failedPortrait, setFailedPortrait] = useState("");
+    const image =
+        metadataPortrait && metadataPortrait !== failedPortrait
+            ? metadataPortrait
+            : artist.imageUrl || searchPortrait;
     const accent = artistAccent(artist.dominantColor, page.albums);
     async function loadMore(reset = false): Promise<void> {
         if (loading) return;
@@ -156,6 +161,7 @@ export default function ArtistClient({
                             priority
                             sizes="(max-width: 720px) 100vw, (min-width: 2000px) 720px, 55vw"
                             className="object-cover"
+                            onError={() => setFailedPortrait(image)}
                         />
                     </div>
                 )}
@@ -183,6 +189,7 @@ export default function ArtistClient({
                 <ArtistMetadataClient
                     key={`${artist.publicId}:${artist.name}`}
                     name={artist.name}
+                    onImageChange={setMetadataPortrait}
                     songs={page.songs}
                     albums={page.albums}
                     summary={

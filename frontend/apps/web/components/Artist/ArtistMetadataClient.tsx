@@ -24,6 +24,7 @@ import {
     artistDiscographyEntries,
     artistSearchUrl,
     findArtistMetadata,
+    getArtistImage,
     getArtistMetadataCatalog,
     getArtistMetadataProfile,
     matchArtistCatalogItem,
@@ -42,6 +43,7 @@ export default function ArtistMetadataClient({
     children,
     localAlbums,
     summary,
+    onImageChange,
 }: {
     name: string;
     songs: ArtistPageResponse["songs"];
@@ -49,6 +51,7 @@ export default function ArtistMetadataClient({
     children: ReactNode;
     localAlbums?: ReactNode;
     summary?: ReactNode;
+    onImageChange: (image: string) => void;
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [candidates, setCandidates] = useState<ArtistMetadataIdentity[]>([]);
@@ -119,6 +122,24 @@ export default function ArtistMetadataClient({
             active = false;
         };
     }, [selected, attempt]);
+
+    useEffect(() => {
+        let active = true;
+        onImageChange("");
+        const source = profile?.imageSources[0];
+        if (source) {
+            void getArtistImage(source)
+                .then((image) => {
+                    if (active) onImageChange(image);
+                })
+                .catch(() => {
+                    // An optional portrait must never hide existing artist data.
+                });
+        }
+        return () => {
+            active = false;
+        };
+    }, [profile, onImageChange]);
 
     const { upcoming, past } = partitionArtistEvents(profile?.events ?? []);
     return (

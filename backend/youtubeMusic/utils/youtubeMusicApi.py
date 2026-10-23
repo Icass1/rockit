@@ -228,7 +228,14 @@ class YoutubeMusicApi:
                     thumbnail = ""
                     thumbnails = entry_dict.get("thumbnails")
                     if thumbnails and len(thumbnails) > 0:
-                        thumb = cast(Dict[str, Any], thumbnails[-1])
+                        thumb = cast(
+                            Dict[str, Any],
+                            max(
+                                thumbnails,
+                                key=lambda image: (image.get("width") or 0)
+                                * (image.get("height") or 0),
+                            ),
+                        )
                         thumb_url = cast(Optional[str], thumb.get("url"))
                         if thumb_url is not None:
                             thumbnail = thumb_url
@@ -734,10 +741,7 @@ class YoutubeMusicApi:
         youtube_id: str,
     ) -> AResult[YoutubeMusicArtist]:
         try:
-            ydl_opts: Dict[str, Any] = {
-                "quiet": True,
-                "no_warnings": True,
-            }
+            from ytmusicapi import YTMusic
 
             loop = None
             import asyncio
@@ -749,11 +753,7 @@ class YoutubeMusicApi:
                 asyncio.set_event_loop(loop)
 
             def _get_info() -> Any:
-                with _create_youtube_dl(ydl_opts) as ydl:
-                    return ydl.extract_info(
-                        f"https://music.youtube.com/channel/{youtube_id}",
-                        download=False,
-                    )
+                return YTMusic().get_artist(youtube_id)
 
             info: Any = await loop.run_in_executor(None, _get_info)
 
@@ -765,7 +765,14 @@ class YoutubeMusicApi:
 
             info_dict: Dict[str, Any] = cast(Dict[str, Any], info)
 
-            thumbnail = str(info_dict.get("thumbnail", ""))
+            thumbnails: List[Dict[str, Any]] = info_dict.get("thumbnails") or []
+            largest = max(
+                thumbnails,
+                key=lambda image: (image.get("width") or 0)
+                * (image.get("height") or 0),
+                default={},
+            )
+            thumbnail = str(largest.get("url") or "")
 
             artist = YoutubeMusicArtist(
                 youtube_id=youtube_id,

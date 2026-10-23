@@ -189,3 +189,30 @@ No claim is made that every provider supplies a professional artist portrait.
 No new labels, no vocabulary edits, no tests/build/type/lint checks for this
 revision. Changed files were formatted and the diff reviewed; visual validation
 on the three target display sizes remains pending.
+
+### Catalog navigation, context and artist color
+
+Provider pages merge by stable ID and advance using the raw source offset/row
+count, not the deduplicated display length. Local-only releases join metadata
+releases before deterministic date/title/ID sorting. Different provider IDs and
+editions are not merged just because titles coincide. Retried pages do not add
+the same ID twice. Search filters title, date and release kind; while a query is
+active, remaining pages load sequentially through the existing cached/rate-limited
+API. Clearing the query stops scheduling new pages. Existing album placeholders
+replace missing artwork, with the decorative initial retained if that also fails.
+
+Ambiguous artist selection lives inside a small keyboard-accessible ellipsis
+menu beside artist context. Counts, description and genres form one block; Play
+Collection sits directly below the artist name. Backdrop and play-button colors
+use the stored artist dominant color, then the newest available local album color,
+then the existing palette. Existing color parsing is reused and button foreground
+chooses black/white using relative luminance contrast. No remote image sampling
+or extra requests are needed for color. The optional recordings section is named
+Recordings rather than More songs and versions.
+
+YouTube artist information now requests the actual YTMusic artist profile and
+selects its largest supplied thumbnail. Stored real artist images take precedence
+over search thumbnails. Existing low-resolution DB images are not bulk-refreshed;
+provider alternatives and access requirements are recorded in docs/research/artist-images.md.
+Two labels were added and one updated in Vocabulary.xlsx. The actual vocabulary
+import was run before committing. No tests/build/type/lint checks were run.

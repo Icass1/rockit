@@ -4,7 +4,10 @@ import {
     ArtistMetadataProfileSchema,
     type ArtistMetadataCatalog,
     type ArtistMetadataIdentity,
+    type ArtistMetadataItem,
     type ArtistMetadataProfile,
+    type BaseAlbumWithoutSongsResponse,
+    type BaseSongWithAlbumResponse,
 } from "@/dto";
 import { Http } from "@/lib/http";
 
@@ -37,5 +40,54 @@ export async function getArtistMetadataCatalog(
     return {
         ...ArtistMetadataCatalogSchema.parse(result.result.data),
         stale: result.result.stale,
+    };
+}
+
+/** Keep punctuation and version names: similar titles alone do not identify an edition. */
+export function normalizeArtistName(value: string): string {
+    return value
+        .normalize("NFC")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLocaleLowerCase();
+}
+
+export function artistSearchUrl(query: string): string {
+    return `/search?q=${encodeURIComponent(query)}`;
+}
+
+export function matchArtistCatalogItem(
+    item: ArtistMetadataItem,
+    collection: (BaseSongWithAlbumResponse | BaseAlbumWithoutSongsResponse)[]
+): BaseSongWithAlbumResponse | BaseAlbumWithoutSongsResponse | undefined {
+    const matches = collection.filter((entry) => {
+        if (normalizeArtistName(entry.name) !== normalizeArtistName(item.title))
+            return false;
+        const date =
+            entry.type === "album"
+                ? entry.releaseDate
+                : entry.album.releaseDate;
+        return (
+            !item.date || !date || item.date.slice(0, 4) === date.slice(0, 4)
+        );
+    });
+    // Ambiguous editions stay in search, rather than playing an arbitrary match.
+    return matches.length === 1 ? matches[0] : undefined;
+}
+
+export function partitionArtistEvents(
+    events: ArtistMetadataProfile["events"]
+): {
+    upcoming: ArtistMetadataProfile["events"];
+    past: ArtistMetadataProfile["events"];
+} {
+    const today = new Date().toISOString().slice(0, 10);
+    return {
+        upcoming: events
+            .filter((event) => event.date && event.date >= today)
+            .sort((a, b) => a.date.localeCompare(b.date)),
+        past: events
+            .filter((event) => event.date && event.date < today)
+            .sort((a, b) => b.date.localeCompare(a.date)),
     };
 }

@@ -155,15 +155,21 @@ class MusicBrainzApi:
                     )
                 delay = gate.result()
                 payload: dict[str, Any] | None = None
-                failure = "MusicBrainz temporarily unavailable"
+                failure = f"MusicBrainz cooldown active; retry in {int(delay) + 1}s"
+                if delay > 5.0:
+                    logger.info(
+                        "MusicBrainz upstream request skipped: cooldown %.1fs", delay
+                    )
                 failure_code = AResultCode.SERVICE_UNAVAILABLE
                 cooldown = INTERVAL_SECONDS
                 if delay <= 5.0:
                     await asyncio.sleep(delay)
+                    failure = "MusicBrainz temporarily unavailable"
                     try:
                         async with httpx.AsyncClient(
                             timeout=12.0, follow_redirects=False
                         ) as client:
+                            logger.info("MusicBrainz upstream GET %s", path)
                             response = await client.get(
                                 f"{BASE_URL}/{path}",
                                 params={**params, "fmt": "json"},

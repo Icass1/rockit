@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ArtistMetadataIdentity(BaseModel):
@@ -12,6 +12,7 @@ class ArtistMetadataItem(BaseModel):
     title: str
     date: str = ""
     kind: str = ""
+    secondaryTypes: list[str] = Field(default_factory=list)
     imageUrl: str = ""
 
 

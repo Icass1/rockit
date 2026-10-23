@@ -8,26 +8,68 @@ import {
     type ArtistMetadataProfile,
     type BaseAlbumWithoutSongsResponse,
     type BaseSongWithAlbumResponse,
+    type MetadataResponse,
 } from "@/dto";
+import type { HttpResult } from "@rockit/shared";
 import type { ArtistDiscographyEntry } from "@/models/artistCatalog";
 import { Http } from "@/lib/http";
+
+// Coalesce remounts and reuse successful responses. Durable caching and the
+// cross-worker rate limit still belong to the provider on the server.
+const requests = new Map<
+    string,
+    { expires: number; promise: Promise<MetadataResponse> }
+>();
+let unavailableUntil = 0;
+let unavailableMessage = "";
+
+function requestMetadata(
+    key: string,
+    load: () => Promise<HttpResult<MetadataResponse>>
+): Promise<MetadataResponse> {
+    const now = Date.now();
+    const cached = requests.get(key);
+    if (cached && cached.expires > now) return cached.promise;
+    if (now < unavailableUntil)
+        return Promise.reject(new Error(unavailableMessage));
+    const promise = load().then((result) => {
+        if (!result.isOk()) {
+            if (result.code === 429 || result.code === 503) {
+                unavailableUntil = Date.now() + 60_000;
+                unavailableMessage = result.message;
+            }
+            throw new Error(result.message);
+        }
+        return result.result;
+    });
+    const entry = { expires: now + 300_000, promise };
+    requests.set(key, entry);
+    if (requests.size > 100) requests.delete(requests.keys().next().value!);
+    void promise.catch(() => {
+        if (requests.get(key) === entry) requests.delete(key);
+    });
+    return promise;
+}
 
 export async function findArtistMetadata(
     name: string
 ): Promise<ArtistMetadataIdentity[]> {
-    const result = await Http.searchArtists("MusicBrainz", name);
-    if (!result.isOk()) throw new Error(result.message);
-    return ArtistMetadataCandidatesSchema.parse(result.result.data).candidates;
+    const normalized = normalizeArtistName(name);
+    const result = await requestMetadata(`search:${normalized}`, () =>
+        Http.searchArtists("MusicBrainz", normalized)
+    );
+    return ArtistMetadataCandidatesSchema.parse(result.data).candidates;
 }
 
 export async function getArtistMetadataProfile(
     id: string
 ): Promise<ArtistMetadataProfile & { stale: boolean }> {
-    const result = await Http.getMetadata("MusicBrainz", "artist-profile", id);
-    if (!result.isOk()) throw new Error(result.message);
+    const result = await requestMetadata(`profile:${id}`, () =>
+        Http.getMetadata("MusicBrainz", "artist-profile", id)
+    );
     return {
-        ...ArtistMetadataProfileSchema.parse(result.result.data),
-        stale: result.result.stale,
+        ...ArtistMetadataProfileSchema.parse(result.data),
+        stale: result.stale,
     };
 }
 
@@ -36,11 +78,12 @@ export async function getArtistMetadataCatalog(
     entity: "artist-discography" | "artist-recordings",
     offset = 0
 ): Promise<ArtistMetadataCatalog & { stale: boolean }> {
-    const result = await Http.getMetadata("MusicBrainz", entity, id, offset);
-    if (!result.isOk()) throw new Error(result.message);
+    const result = await requestMetadata(`${entity}:${id}:${offset}`, () =>
+        Http.getMetadata("MusicBrainz", entity, id, offset)
+    );
     return {
-        ...ArtistMetadataCatalogSchema.parse(result.result.data),
-        stale: result.result.stale,
+        ...ArtistMetadataCatalogSchema.parse(result.data),
+        stale: result.stale,
     };
 }
 
@@ -129,7 +172,8 @@ export function artistDiscographyEntries(
                 id: `local:${album.publicId}`,
                 title: album.name,
                 date: album.releaseDate,
-                kind: "Album",
+                kind: "",
+                secondaryTypes: [],
                 imageUrl: album.imageUrl,
             },
         });

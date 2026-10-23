@@ -8,6 +8,7 @@ export const ArtistMetadataItemSchema = z.object({
     title: z.string(),
     date: z.string().default(""),
     kind: z.string().default(""),
+    secondaryTypes: z.array(z.string()).default([]),
     imageUrl: z.string().default(""),
 });
 

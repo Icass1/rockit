@@ -157,3 +157,35 @@ to a provider. Providers can open their own durable cache transaction without
 every waiting request holding an additional connection from the same pool.
 The request session stays usable for providers and request logging; configured
 expire_on_commit=False preserves the authenticated user attributes.
+
+### Illustrated discography and responsive artist stage
+
+MusicBrainz exposes a neutral `imageUrl` on catalog items, generated inside its
+provider from the release-group ID using Cover Art Archive front-250 thumbnails.
+The new DTO field was generated using the actual backend models command. Raw
+cached MusicBrainz snapshots receive the new presentation without refreshing them.
+Artwork loads lazily/directly in the browser, without additional MusicBrainz
+requests or server-side image proxy work; missing art falls back to a decorative
+title initial. Browser validation against live CAA remains outstanding.
+
+The discography is one grid of all loaded release groups, rather than a local
+album strip above a separate metadata list. It includes unique local matches and
+local albums absent from the metadata; existing source/download actions remain.
+The first page contains up to 100 items and larger catalogs have explicit further
+pagination. Local albums remain available if metadata lookup fails.
+
+The header blends portrait, accent light and title on one stage. Mobile uses a
+portrait fading behind the title and two cover columns, with PWA safe-area gutters.
+Desktop uses an overlapping wide composition and six columns at 1500px+. Ultrawide
+uses seven columns at 2200px+, with a 1920px content cap. Tablet has three columns.
+Reduced-motion overrides remain active and cover controls retain keyboard labels.
+
+Only Search portraits populate the session portrait cache now; Library artwork
+no longer overwrites them. The cache key is versioned to discard old album-art
+hints. YouTube's synthesized playlist artists suppress borrowed track artwork in
+the artist-page response; genuine provider artist images remain available.
+No claim is made that every provider supplies a professional artist portrait.
+
+No new labels, no vocabulary edits, no tests/build/type/lint checks for this
+revision. Changed files were formatted and the diff reviewed; visual validation
+on the three target display sizes remains pending.

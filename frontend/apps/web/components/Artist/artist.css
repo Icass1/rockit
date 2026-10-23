@@ -456,52 +456,74 @@
     }
 }
 
-/* A compact portrait sits in the page, rather than enlarging a thumbnail. */
+/* One stage: the portrait, light and typography share the same space. */
 .artist-stage {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(140px, 232px);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
     align-items: center;
-    gap: clamp(24px, 5vw, 72px);
-    padding: 32px clamp(20px, 4vw, 56px) 24px;
+    width: 100%;
+    max-width: 1920px;
+    margin-inline: auto;
+    min-height: 420px;
+    padding: 48px clamp(20px, 4vw, 72px);
+}
+.artist-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(var(--accent), 0.24),
+        transparent 70%
+    );
 }
 .artist-portrait {
-    grid-column: 2;
-    grid-row: 1;
-    position: relative;
-    width: 100%;
-    aspect-ratio: 1;
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 62%;
+    max-width: 760px;
     overflow: hidden;
-    mask-image: radial-gradient(
-        ellipse 70% 70% at 50% 44%,
-        #000 60%,
-        transparent 100%
-    );
+    z-index: -1;
+    mask-image:
+        linear-gradient(90deg, transparent, #000 32%, #000 85%, transparent),
+        linear-gradient(0deg, transparent, #000 25%, #000 85%, transparent);
+    mask-composite: intersect;
 }
 .artist-portrait img {
     object-fit: cover;
-    object-position: center 30%;
+    object-position: center 35%;
 }
 .artist-intro {
-    grid-column: 1;
-    grid-row: 1;
+    width: 72%;
     min-width: 0;
 }
 .artist-intro h1 {
-    font-size: clamp(2.4rem, 4.5vw, 4.5rem);
+    max-width: 14ch;
+    font-size: clamp(3rem, 6vw, 6.4rem);
     font-weight: 750;
-    letter-spacing: -0.045em;
-    line-height: 1.06;
+    letter-spacing: -0.05em;
+    line-height: 1;
     text-wrap: balance;
     overflow-wrap: anywhere;
     margin: 0 0 24px;
+    text-shadow:
+        0 3px 32px #0b0b0b,
+        0 0 60px #0b0b0b;
 }
 .artist-stage:not(:has(.artist-portrait)) {
-    grid-template-columns: minmax(0, 1fr);
+    min-height: 300px;
+}
+.artist-stage:not(:has(.artist-portrait)) .artist-intro {
+    width: 100%;
 }
 .artist-body {
-    max-width: none;
-    margin: 0;
-    padding: 0 clamp(20px, 4vw, 56px) 64px;
+    max-width: 1920px;
+    margin-inline: auto;
+    padding: 0 clamp(20px, 4vw, 72px) 64px;
 }
 .artist-about {
     margin-bottom: 24px;
@@ -567,21 +589,120 @@
     cursor: default;
     opacity: 0.65;
 }
-@media (max-width: 720px) {
-    .artist-stage {
-        grid-template-columns: minmax(0, 1fr) 112px;
-        gap: 16px;
-        padding-top: 24px;
-    }
-    .artist-intro h1 {
-        font-size: clamp(2rem, 7vw, 3rem);
+/* Narrow web and iOS PWA: two covers, thumb-sized controls, safe gutters. */
+.artist-release-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px 24px;
+    margin-top: 20px;
+}
+.artist-release-grid .artist-metadata-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 24px;
+    gap: 10px 8px;
+    align-items: start;
+    padding: 0;
+}
+.artist-release-art {
+    display: block;
+    grid-column: 1 / -1;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: radial-gradient(
+        ellipse at 20% 20%,
+        rgba(var(--accent-light), 0.3),
+        #24152d 90%
+    );
+}
+.artist-release-art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+.artist-metadata-row:hover .artist-release-art img {
+    transform: scale(1.035);
+}
+.artist-release-initial {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    font-size: clamp(2rem, 5vw, 5rem);
+    font-weight: 750;
+    color: rgba(var(--accent-light), 0.6);
+}
+.artist-release-grid .artist-metadata-row > span:not(.artist-release-art) {
+    line-height: 1.4;
+}
+.artist-release-grid .artist-metadata-row > svg {
+    align-self: center;
+    min-height: 28px;
+}
+.artist-release-grid .artist-sources {
+    padding-left: 0;
+}
+@media (min-width: 1500px) {
+    .artist-release-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 }
-@media (max-width: 380px) {
+@media (min-width: 2200px) {
     .artist-stage {
-        grid-template-columns: minmax(0, 1fr);
+        min-height: 480px;
     }
     .artist-portrait {
-        display: none;
+        right: 3%;
+        max-width: 840px;
+    }
+    .artist-release-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 36px 28px;
+    }
+}
+@media (min-width: 721px) and (max-width: 1099px) {
+    .artist-release-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+@media (max-width: 720px) {
+    .artist-stage {
+        min-height: 440px;
+        align-items: flex-end;
+        padding: 200px max(20px, env(safe-area-inset-left)) 28px;
+    }
+    .artist-portrait {
+        width: 100%;
+        max-width: none;
+        height: 350px;
+        inset: 0 0 auto;
+        mask-image: linear-gradient(0deg, transparent, #000 55%);
+    }
+    .artist-intro {
+        width: 100%;
+    }
+    .artist-intro h1 {
+        font-size: clamp(2.8rem, 11vw, 4.5rem);
+    }
+    .artist-stage:not(:has(.artist-portrait)) {
+        min-height: 220px;
+        padding-top: 48px;
+    }
+    .artist-body {
+        padding-inline: max(20px, env(safe-area-inset-left))
+            max(20px, env(safe-area-inset-right));
+    }
+    .artist-release-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px 16px;
+    }
+    .artist-release-grid .artist-metadata-row strong {
+        font-size: 14px;
+    }
+    .artist-release-grid .artist-metadata-row {
+        min-height: 44px;
     }
 }

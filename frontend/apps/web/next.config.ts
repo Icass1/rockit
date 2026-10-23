@@ -49,6 +49,11 @@ const nextConfig: NextConfig = {
         ],
         remotePatterns: [
             {
+                protocol: "https",
+                hostname: "coverartarchive.org",
+                pathname: "/release-group/**",
+            },
+            {
                 protocol: "http",
                 hostname: "localhost",
                 port: "8000",

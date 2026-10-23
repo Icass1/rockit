@@ -3,11 +3,7 @@
 import { JSX } from "react";
 import Link from "next/link";
 import { BaseArtistResponse } from "@/dto";
-import {
-    artistPageUrl,
-    getArtistPortrait,
-    rememberArtistPortrait,
-} from "@/lib/services/artistService";
+import { artistPageUrl } from "@/lib/services/artistService";
 
 export default function Artists({
     artists,
@@ -33,11 +29,6 @@ export default function Artists({
                             href={artistPageUrl(artist.name, artist.url)}
                             onClick={(event): void => {
                                 event.stopPropagation();
-                                if (!getArtistPortrait(artist.name))
-                                    rememberArtistPortrait(
-                                        artist.name,
-                                        artist.imageUrl
-                                    );
                             }}
                             onTouchStart={(event): void =>
                                 event.stopPropagation()

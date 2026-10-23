@@ -46,7 +46,7 @@ export function artistPageUrl(name: string, url?: string | null): string {
 
 const artistPortraits = new Map<string, string>();
 const portraitListeners = new Set<() => void>();
-const PORTRAITS_KEY = "rockit.artist-portraits";
+const PORTRAITS_KEY = "rockit.artist-portraits.v2";
 
 export function rememberArtistPortrait(name: string, imageUrl: string): void {
     if (!imageUrl) return;

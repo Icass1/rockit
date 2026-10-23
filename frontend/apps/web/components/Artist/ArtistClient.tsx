@@ -103,7 +103,7 @@ export default function ArtistClient({
         () => getArtistPortrait(artist.name),
         getServerArtistPortrait
     );
-    const image = artist.imageUrl || searchPortrait;
+    const image = searchPortrait || artist.imageUrl;
     async function loadMore(reset = false): Promise<void> {
         if (loading) return;
         setLoading(true);
@@ -141,7 +141,7 @@ export default function ArtistClient({
                             alt=""
                             fill
                             priority
-                            sizes="(max-width: 720px) 112px, 232px"
+                            sizes="(max-width: 720px) 100vw, (min-width: 2000px) 720px, 55vw"
                             className="object-cover"
                         />
                     </div>

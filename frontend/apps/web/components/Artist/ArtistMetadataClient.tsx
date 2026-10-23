@@ -27,6 +27,7 @@ import {
 } from "@/lib/services/artistMetadataService";
 import { playArtistSongs } from "@/lib/services/artistService";
 import ArtistSources from "@/components/Artist/ArtistSources";
+import ReleaseArtwork from "@/components/Artist/ReleaseArtwork";
 
 export default function ArtistMetadataClient({
     name,
@@ -204,7 +205,7 @@ export default function ArtistMetadataClient({
                 aria-labelledby="artist-discography-title"
             >
                 <h2 id="artist-discography-title">{v.ARTIST_DISCOGRAPHY}</h2>
-                {localAlbums}
+                {!selected && localAlbums}
                 {selected && (
                     <MetadataCatalog
                         key={`${selected}-albums-${attempt}`}
@@ -213,6 +214,7 @@ export default function ArtistMetadataClient({
                         entity="artist-discography"
                         songs={songs}
                         albums={albums}
+                        fallback={localAlbums}
                     />
                 )}
             </section>
@@ -311,10 +313,12 @@ function MetadataCatalog({
     name,
     songs,
     albums: localAlbums,
+    fallback,
 }: {
     name: string;
     songs: ArtistPageResponse["songs"];
     albums: ArtistPageResponse["albums"];
+    fallback?: ReactNode;
     id: string;
     entity: "artist-discography" | "artist-recordings";
 }): JSX.Element {
@@ -360,7 +364,7 @@ function MetadataCatalog({
                 b.date.localeCompare(a.date) || a.title.localeCompare(b.title)
         );
     const [expanded, setExpanded] = useState(false);
-    const visible = expanded ? items : items.slice(0, albums ? 8 : 5);
+    const visible = albums || expanded ? items : items.slice(0, 5);
     return (
         <section className="artist-metadata-catalog">
             {catalog && (
@@ -374,7 +378,10 @@ function MetadataCatalog({
                     {v.ARTIST_METADATA_STALE}
                 </p>
             )}
-            <div className="artist-release-list">
+            {albums && failed && !catalog && fallback}
+            <div
+                className={`artist-release-list ${albums ? "artist-release-grid" : ""}`}
+            >
                 {visible.map((item) => {
                     const match = matchArtistCatalogItem(
                         item,
@@ -383,6 +390,13 @@ function MetadataCatalog({
                     const song = match?.type === "song" ? match : undefined;
                     const content = (
                         <>
+                            {albums && (
+                                <ReleaseArtwork
+                                    key={match?.imageUrl || item.imageUrl}
+                                    imageUrl={match?.imageUrl || item.imageUrl}
+                                    title={item.title}
+                                />
+                            )}
                             <span>
                                 <strong>{item.title}</strong>
                                 {item.date && (
@@ -438,6 +452,37 @@ function MetadataCatalog({
                         </Link>
                     );
                 })}
+                {albums &&
+                    catalog &&
+                    localAlbums
+                        .filter(
+                            (album) =>
+                                !items.some(
+                                    (item) =>
+                                        matchArtistCatalogItem(item, [
+                                            album,
+                                        ]) !== undefined
+                                )
+                        )
+                        .map((album) => (
+                            <Link
+                                key={album.publicId}
+                                href={`/album/${album.publicId}`}
+                                className="artist-metadata-row"
+                            >
+                                <ReleaseArtwork
+                                    imageUrl={album.imageUrl}
+                                    title={album.name}
+                                />
+                                <span>
+                                    <strong>{album.name}</strong>
+                                    <small>
+                                        {album.releaseDate?.slice(0, 4)}
+                                    </small>
+                                </span>
+                                <ChevronRight size={16} aria-hidden />
+                            </Link>
+                        ))}
             </div>
             {loading && (
                 <p className="artist-notice" role="status">
@@ -462,7 +507,7 @@ function MetadataCatalog({
             {!loading && !failed && !items.length && (
                 <p className="artist-empty">{v.ARTIST_METADATA_EMPTY}</p>
             )}
-            {!expanded && items.length > visible.length && (
+            {!albums && !expanded && items.length > visible.length && (
                 <button
                     className="artist-text-action"
                     onClick={() => setExpanded(true)}
@@ -470,7 +515,7 @@ function MetadataCatalog({
                     {v.ARTIST_MORE}
                 </button>
             )}
-            {expanded && items.length > (albums ? 8 : 5) && (
+            {!albums && expanded && items.length > 5 && (
                 <button
                     className="artist-text-action"
                     onClick={() => setExpanded(false)}
@@ -478,7 +523,7 @@ function MetadataCatalog({
                     {v.ARTIST_LESS}
                 </button>
             )}
-            {expanded && catalog && catalog.hasMore && !failed && (
+            {(albums || expanded) && catalog && catalog.hasMore && !failed && (
                 <button
                     className="artist-more"
                     disabled={loading}

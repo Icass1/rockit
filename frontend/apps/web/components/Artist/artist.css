@@ -1,5 +1,7 @@
 .artist-page {
-    height: 100%;
+    /* Match the app shell's 96px header overlap, including mobile/PWA. */
+    height: calc(100% + 96px);
+    margin-top: -96px;
     overflow-y: auto;
     overflow-x: hidden;
     background: #0b0b0b;
@@ -461,8 +463,8 @@
     width: 100%;
     max-width: 1920px;
     margin-inline: auto;
-    min-height: 420px;
-    padding: 48px clamp(20px, 4vw, 72px);
+    min-height: 516px;
+    padding: 144px clamp(20px, 4vw, 72px) 48px;
 }
 .artist-stage::before {
     content: "";
@@ -485,7 +487,7 @@
     z-index: -1;
     mask-image:
         linear-gradient(90deg, transparent, #000 32%, #000 85%, transparent),
-        linear-gradient(0deg, transparent, #000 25%, #000 85%, transparent);
+        linear-gradient(0deg, transparent, #000 25%);
     mask-composite: intersect;
 }
 .artist-portrait img {
@@ -510,7 +512,7 @@
         0 0 60px #0b0b0b;
 }
 .artist-stage:not(:has(.artist-portrait)) {
-    min-height: 300px;
+    min-height: 396px;
 }
 .artist-stage:not(:has(.artist-portrait)) .artist-intro {
     width: 100%;
@@ -647,7 +649,7 @@
 }
 @media (min-width: 2200px) {
     .artist-stage {
-        min-height: 480px;
+        min-height: 576px;
     }
     .artist-portrait {
         right: 3%;
@@ -665,14 +667,14 @@
 }
 @media (max-width: 720px) {
     .artist-stage {
-        min-height: 440px;
+        min-height: 536px;
         align-items: flex-end;
-        padding: 200px max(20px, env(safe-area-inset-left)) 28px;
+        padding: 296px max(20px, env(safe-area-inset-left)) 28px;
     }
     .artist-portrait {
         width: 100%;
         max-width: none;
-        height: 350px;
+        height: 446px;
         inset: 0 0 auto;
         mask-image: linear-gradient(0deg, transparent, #000 55%);
     }
@@ -683,8 +685,8 @@
         font-size: clamp(2.8rem, 11vw, 4.5rem);
     }
     .artist-stage:not(:has(.artist-portrait)) {
-        min-height: 220px;
-        padding-top: 48px;
+        min-height: 316px;
+        padding-top: 144px;
     }
     .artist-body {
         padding-inline: max(20px, env(safe-area-inset-left))

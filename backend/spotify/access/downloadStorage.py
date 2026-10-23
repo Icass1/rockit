@@ -2,8 +2,9 @@
 
 from typing import Any
 
-from sqlalchemy import literal, select, update
+from sqlalchemy import func, literal, select, update
 from sqlalchemy.sql import Select
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.aResult import AResult, AResultCode
@@ -75,12 +76,51 @@ async def clear_track_files(
     return AResult(code=AResultCode.OK, message="OK", result=paths)
 
 
+def track_audio_tags(media_ids: list[int]) -> Select[Any]:
+    """Project export tags in one batch, independently of remote API activation."""
+    table = shared_metadata.tables["spotify.track"]
+    album = shared_metadata.tables["spotify.album"]
+    artist = shared_metadata.tables["spotify.artist"]
+    track_link = shared_metadata.tables["spotify.track_artist"]
+    album_link = shared_metadata.tables["spotify.album_artist"]
+    artists = (
+        select(func.array_agg(aggregate_order_by(artist.c.name, artist.c.id)))
+        .select_from(track_link.join(artist, artist.c.id == track_link.c.artist_id))
+        .where(track_link.c.track_id == table.c.id)
+        .correlate(table)
+        .scalar_subquery()
+    )
+    album_artists = (
+        select(func.array_agg(aggregate_order_by(artist.c.name, artist.c.id)))
+        .select_from(album_link.join(artist, artist.c.id == album_link.c.artist_id))
+        .where(album_link.c.album_id == album.c.id)
+        .correlate(album)
+        .scalar_subquery()
+    )
+    return (
+        select(
+            table.c.id.label("id"),
+            artists.label("artists"),
+            album.c.name.label("album"),
+            album_artists.label("album_artists"),
+            album.c.release_date.label("date"),
+            table.c.track_number.label("track"),
+            table.c.disc_number.label("disc"),
+            table.c.isrc.label("isrc"),
+            album.c.image_id.label("image_id"),
+        )
+        .select_from(table.outerjoin(album, album.c.id == table.c.album_id))
+        .where(table.c.id.in_(media_ids))
+    )
+
+
 provider_storage.register(
     MediaStorage(key="spotify.album", metadata_statement=album_metadata),
     MediaStorage(key="spotify.playlist", metadata_statement=playlist_metadata),
     MediaStorage(
         key="spotify.track",
         metadata_statement=track_metadata,
+        audio_tags_statement=track_audio_tags,
         files_statement=track_files,
         clear_files_async=clear_track_files,
     ),

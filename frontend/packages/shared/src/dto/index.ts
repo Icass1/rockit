@@ -755,3 +755,13 @@ export { DictSchema, type Dict } from "./dict";
 export { ListSchema, type List } from "./list";
 export { SequenceSchema, type Sequence } from "./sequence";
 export { StrictIntSchema, type StrictInt } from "./strictInt";
+
+export {
+    ArtistPageResponseSchema,
+    type ArtistPageResponse,
+} from "./artistPageResponse";
+
+export {
+    ArtistCatalogResponseSchema,
+    type ArtistCatalogResponse,
+} from "./artistCatalogResponse";

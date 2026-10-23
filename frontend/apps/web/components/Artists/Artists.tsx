@@ -24,7 +24,12 @@ export default function Artists({
                 >
                     {linkable ? (
                         <Link
-                            href={artist.url}
+                            href={
+                                artist.provider.toLowerCase() === "rockit" ||
+                                !artist.publicId
+                                    ? `/artists/${encodeURIComponent(artist.name)}`
+                                    : artist.url
+                            }
                             className="truncate hover:underline"
                         >
                             {artist.name}

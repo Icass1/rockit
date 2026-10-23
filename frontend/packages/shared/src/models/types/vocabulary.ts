@@ -590,4 +590,22 @@ export interface Vocabulary {
     SEARCH_DOWNLOAD_FROM: string;
     SEARCH_DOWNLOAD_AND_ADD_FROM: string;
     SEARCH_PLAY_FROM: string;
+    ARTIST_SONGS: string;
+    ARTIST_ALBUMS: string;
+    ARTIST_PLAY: string;
+    ARTIST_SOURCE: string;
+    ARTIST_COLLECTION: string;
+    ARTIST_DOWNLOADED: string;
+    ARTIST_SEARCH: string;
+    ARTIST_DOWNLOAD: string;
+    ARTIST_DISCOGRAPHY: string;
+    ARTIST_EMPTY: string;
+    ARTIST_NO_MATCHES: string;
+    ARTIST_NO_ALBUMS: string;
+    ARTIST_RELATED: string;
+    ARTIST_PARTIAL: string;
+    ARTIST_LOAD_ERROR: string;
+    ARTIST_LOADING: string;
+    ARTIST_MORE: string;
+    ARTIST_LOCAL_NOTE: string;
 }

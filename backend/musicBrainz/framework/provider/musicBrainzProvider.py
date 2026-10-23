@@ -1,8 +1,8 @@
 import re
 import unicodedata
 from uuid import UUID
-from typing import Any, cast
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import ValidationError
 
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
@@ -12,8 +12,15 @@ from backend.core.responses.artistMetadataResponse import (
     ArtistMetadataCandidates,
     ArtistMetadataProfile,
     ArtistMetadataCatalog,
+    ArtistMetadataIdentity,
+    ArtistMetadataItem,
 )
 from backend.musicBrainz.framework.musicBrainzApi import MusicBrainzApi
+from backend.musicBrainz.framework.models.metadata import (
+    SourceArtist,
+    SourceArtistSearch,
+    SourceCatalog,
+)
 
 logger = getLogger(__name__)
 
@@ -59,31 +66,34 @@ class MusicBrainzProvider(BaseMetadataProvider):
             return result
         response = result.result()
 
-        def relevance(artist: dict[str, Any]) -> float:
-            try:
-                return float(artist.get("score") or 0)
-            except (ValueError, TypeError):
-                return 0
-
-        candidates = [
-            {
-                "id": artist["id"],
-                "name": artist["name"],
-                "note": " · ".join(
-                    filter(
-                        None,
-                        [
-                            artist.get("disambiguation"),
-                            artist.get("country"),
-                            artist.get("type"),
-                        ],
-                    )
-                ),
-            }
-            for artist in sorted(
-                response.data.get("artists", []), key=relevance, reverse=True
+        try:
+            artists = SourceArtistSearch.model_validate(response.data).artists
+        except ValidationError:
+            logger.exception("Invalid MusicBrainz artist search response")
+            return AResult(
+                code=AResultCode.SERVICE_UNAVAILABLE,
+                message="Invalid metadata response",
             )
-        ]
+        candidates = ArtistMetadataCandidates(
+            candidates=[
+                ArtistMetadataIdentity(
+                    id=artist.id,
+                    name=artist.name,
+                    note=" · ".join(
+                        value
+                        for value in [
+                            artist.disambiguation,
+                            artist.country,
+                            artist.type,
+                        ]
+                        if value
+                    ),
+                )
+                for artist in sorted(
+                    artists, key=lambda artist: artist.score, reverse=True
+                )
+            ]
+        )
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -91,9 +101,7 @@ class MusicBrainzProvider(BaseMetadataProvider):
                 update={
                     "data": {
                         **response.data,
-                        **ArtistMetadataCandidates.model_validate(
-                            {"candidates": candidates}
-                        ).model_dump(),
+                        **candidates.model_dump(),
                     }
                 }
             ),
@@ -159,83 +167,93 @@ class MusicBrainzProvider(BaseMetadataProvider):
         if result.is_not_ok() or presentation == entity:
             return result
         response = result.result()
-        data = response.data
-        output: dict[str, Any]
+        try:
+            projected = self._project_artist_metadata(response, presentation, offset)
+        except ValidationError:
+            logger.exception("Invalid MusicBrainz %s response", presentation)
+            return AResult(
+                code=AResultCode.SERVICE_UNAVAILABLE,
+                message="Invalid metadata response",
+            )
+        return AResult(code=AResultCode.OK, message="OK", result=projected)
+
+    @staticmethod
+    def _project_artist_metadata(
+        response: MetadataResponse, presentation: str, offset: int
+    ) -> MetadataResponse:
+        output: ArtistMetadataProfile | ArtistMetadataCatalog
         if presentation == "artist-profile":
-            area: dict[str, Any] = data.get("area") or {}
-            lifespan: dict[str, Any] = data.get("life-span") or {}
-            output = {
-                "name": data.get("name", ""),
-                "description": " · ".join(
-                    filter(
-                        None,
-                        [
-                            data.get("disambiguation"),
-                            area.get("name"),
-                            lifespan.get("begin"),
-                        ],
-                    )
+            artist = SourceArtist.model_validate(response.data)
+            output = ArtistMetadataProfile(
+                name=artist.name,
+                description=" · ".join(
+                    value
+                    for value in [
+                        artist.disambiguation,
+                        artist.area.name if artist.area else None,
+                        artist.lifespan.begin if artist.lifespan else None,
+                    ]
+                    if value
                 ),
-                "genres": [genre["name"] for genre in data.get("genres", [])],
-                "related": [
-                    {
-                        "id": relation["artist"]["id"],
-                        "name": relation["artist"]["name"],
-                        "note": relation.get("type", ""),
-                    }
-                    for relation in data.get("relations", [])
-                    if "artist" in relation
+                genres=[genre.name for genre in artist.genres],
+                related=[
+                    ArtistMetadataIdentity(
+                        id=relation.artist.id,
+                        name=relation.artist.name,
+                        note=relation.type,
+                    )
+                    for relation in artist.relations
+                    if relation.artist is not None
                 ],
-                "events": [
-                    {
-                        "id": relation["event"]["id"],
-                        "title": relation["event"]["name"],
-                        "date": cast(
-                            dict[str, Any], relation["event"].get("life-span") or {}
-                        ).get("begin", "")
-                        or relation.get("begin", "")
+                events=[
+                    ArtistMetadataItem(
+                        id=relation.event.id,
+                        title=relation.event.name,
+                        date=(
+                            relation.event.lifespan.begin
+                            if relation.event.lifespan
+                            else None
+                        )
+                        or relation.begin
                         or "",
-                    }
-                    for relation in data.get("relations", [])
-                    if "event" in relation
+                    )
+                    for relation in artist.relations
+                    if relation.event is not None
                 ],
-            }
+            )
         else:
-            key = "release-group" if entity == "discography" else "recording"
-            items = data.get(f"{key}s", [])
-            output = {
-                "items": [
-                    {
-                        "id": item["id"],
-                        "title": item["title"],
-                        "date": item.get("first-release-date") or "",
-                        "kind": item.get("primary-type") or "",
-                        "secondaryTypes": item.get("secondary-types") or [],
-                        "imageUrl": (
-                            f"https://coverartarchive.org/release-group/{item['id']}/front-250"
-                            if entity == "discography"
+            catalog = SourceCatalog.model_validate(response.data)
+            discography = presentation == "artist-discography"
+            items = catalog.release_groups if discography else catalog.recordings
+            total = (
+                catalog.release_group_count if discography else catalog.recording_count
+            )
+            source_offset = (
+                catalog.release_group_offset
+                if discography
+                else catalog.recording_offset
+            )
+            output = ArtistMetadataCatalog(
+                items=[
+                    ArtistMetadataItem(
+                        id=item.id,
+                        title=item.title,
+                        date=item.date or "",
+                        kind=item.primary_type or "",
+                        secondaryTypes=item.secondary_types or [],
+                        imageUrl=(
+                            f"https://coverartarchive.org/release-group/{item.id}/front-250"
+                            if discography
                             else ""
                         ),
-                    }
+                    )
                     for item in items
                 ],
-                "total": data.get(f"{key}-count", len(items)),
-                "offset": data.get(f"{key}-offset", offset),
-            }
-        schema = (
-            ArtistMetadataProfile
-            if presentation == "artist-profile"
-            else ArtistMetadataCatalog
-        )
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=response.model_copy(
-                update={
-                    "entity": presentation,
-                    "data": schema.model_validate(output).model_dump(),
-                }
-            ),
+                total=total if total is not None else len(items),
+                offset=source_offset if source_offset is not None else offset,
+            )
+        return response.model_copy(
+            update={"entity": presentation, "data": output.model_dump()}
         )
 
 

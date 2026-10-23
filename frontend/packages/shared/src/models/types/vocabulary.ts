@@ -622,4 +622,10 @@ export interface Vocabulary {
     ARTIST_METADATA_ALBUMS: string;
     ARTIST_METADATA_RECORDINGS: string;
     ARTIST_METADATA_NOTE: string;
+    ARTIST_KNOWN_CATALOG: string;
+    ARTIST_NO_UPCOMING_EVENTS: string;
+    ARTIST_EVENT_HISTORY: string;
+    ARTIST_CATALOG_AVAILABLE: string;
+    ARTIST_OPEN_ALBUM: string;
+    ARTIST_FIND_MUSIC: string;
 }

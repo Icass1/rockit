@@ -89,8 +89,10 @@ endpoints remain available. Artist profile lookups now include event relations.
 
 The UI chooses a unique exact name candidate (NFC, whitespace and case normalized)
 for display, and exposes a selector for other matches or ambiguous identities.
-This selection never links or merges local media identities. External catalog
-links open MusicBrainz; they are not Rockit playback/download controls.
+This selection never links or merges local media identities. Catalog entries open internal albums or use existing song playback/download
+actions when a unique local title/year match is available. Other entries and
+related artists open Rockit search; no catalog item links out to MusicBrainz.
+These matches do not persist or merge media identities.
 
 MusicBrainz does not expose popularity rankings. Discography dates order the
 loaded pages only, not the entire artist catalog before pagination completes.

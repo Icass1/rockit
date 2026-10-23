@@ -1,33 +1,60 @@
 "use client";
 
-import { useCallback, useEffect, useState, type JSX } from "react";
-import type { ArtistMetadataCatalog, ArtistMetadataIdentity } from "@/dto";
+import {
+    useCallback,
+    useEffect,
+    useState,
+    type JSX,
+    type ReactNode,
+} from "react";
+import Link from "next/link";
+import type {
+    ArtistMetadataCatalog,
+    ArtistMetadataIdentity,
+    ArtistPageResponse,
+} from "@/dto";
 import { useStore } from "@nanostores/react";
-import { ArrowUpRight, LoaderCircle } from "lucide-react";
+import {
+    ChevronRight,
+    Download,
+    LoaderCircle,
+    Play,
+    Search,
+} from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
+    artistSearchUrl,
     findArtistMetadata,
     getArtistMetadataCatalog,
     getArtistMetadataProfile,
+    matchArtistCatalogItem,
+    normalizeArtistName,
+    partitionArtistEvents,
 } from "@/lib/services/artistMetadataService";
-
-type Profile = Awaited<ReturnType<typeof getArtistMetadataProfile>>;
-type Catalog = ArtistMetadataCatalog & { stale: boolean; hasMore: boolean };
-const normalize = (name: string): string =>
-    name.normalize("NFC").replace(/\s+/g, " ").trim().toLocaleLowerCase();
+import { playArtistSongs } from "@/lib/services/artistService";
 
 export default function ArtistMetadataClient({
     name,
+    songs,
+    albums,
+    children,
+    localAlbums,
 }: {
     name: string;
+    songs: ArtistPageResponse["songs"];
+    albums: ArtistPageResponse["albums"];
+    children: ReactNode;
+    localAlbums?: ReactNode;
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [candidates, setCandidates] = useState<ArtistMetadataIdentity[]>([]);
     const [selected, setSelected] = useState("");
+    const [showRecordings, setShowRecordings] = useState(false);
     const [searching, setSearching] = useState(true);
     const [searchFailed, setSearchFailed] = useState(false);
     const [attempt, setAttempt] = useState(0);
-    const [profile, setProfile] = useState<Profile>();
+    const [profile, setProfile] =
+        useState<Awaited<ReturnType<typeof getArtistMetadataProfile>>>();
     const [profileFailed, setProfileFailed] = useState(false);
     const [profileLoading, setProfileLoading] = useState(false);
 
@@ -51,7 +78,9 @@ export default function ArtistMetadataClient({
                 if (!active) return;
                 setCandidates(items);
                 const exact = items.filter(
-                    (item) => normalize(item.name) === normalize(name)
+                    (item) =>
+                        normalizeArtistName(item.name) ===
+                        normalizeArtistName(name)
                 );
                 if (exact.length === 1) chooseArtist(exact[0].id);
             })
@@ -84,168 +113,217 @@ export default function ArtistMetadataClient({
         };
     }, [selected, attempt]);
 
+    const { upcoming, past } = partitionArtistEvents(profile?.events ?? []);
     return (
-        <section
-            className="artist-explore"
-            aria-labelledby="artist-explore-title"
-        >
-            <div className="artist-section-heading">
-                <h2 id="artist-explore-title">{v.ARTIST_EXPLORE}</h2>
-                <a
-                    className="artist-source"
-                    href="https://musicbrainz.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    MusicBrainz <ArrowUpRight size={16} aria-hidden />
-                </a>
-            </div>
-            {searching && (
-                <p className="artist-notice" role="status">
-                    <LoaderCircle size={16} aria-hidden />{" "}
-                    {v.ARTIST_METADATA_LOADING}
-                </p>
-            )}
-            {searchFailed && (
-                <p className="artist-notice" role="alert">
-                    {v.ARTIST_METADATA_ERROR}{" "}
-                    <button
-                        className="artist-text-action"
-                        onClick={retrySearch}
-                    >
-                        {v.ARTIST_METADATA_RETRY}
-                    </button>
-                </p>
-            )}
-            {!searching && !searchFailed && !candidates.length && (
-                <p className="artist-empty">{v.ARTIST_METADATA_EMPTY}</p>
-            )}
-            {candidates.length > 0 && (
-                <label className="artist-identity">
-                    <span>{v.ARTIST_METADATA_IDENTITY}</span>
-                    <select
-                        value={selected}
-                        onChange={(event) => chooseArtist(event.target.value)}
-                    >
-                        <option value="">{v.ARTIST_METADATA_CHOOSE}</option>
-                        {candidates.map((item) => (
-                            <option key={item.id} value={item.id}>
-                                {item.name}
-                                {item.note ? ` — ${item.note}` : ""}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-            )}
-            {selected && (
-                <>
-                    {profileLoading && (
-                        <p className="artist-notice" role="status">
-                            {v.ARTIST_METADATA_LOADING}
-                        </p>
-                    )}
-                    {profileFailed && (
-                        <p className="artist-notice" role="alert">
-                            {v.ARTIST_METADATA_ERROR}
-                        </p>
-                    )}
-                    {profile && (
-                        <>
-                            {profile.stale && (
-                                <p className="artist-notice" role="status">
-                                    {v.ARTIST_METADATA_STALE}
-                                </p>
-                            )}
-                            <p className="artist-context">
-                                {profile.description}
+        <div className="artist-content">
+            <div className="artist-about">
+                {profile && (
+                    <>
+                        <p className="artist-context">{profile.description}</p>
+                        {!!profile.genres.length && (
+                            <p className="artist-genres">
+                                {profile.genres.join(" · ")}
                             </p>
-                            {!!profile.genres.length && (
-                                <p className="artist-genres">
-                                    {profile.genres.join(" · ")}
-                                </p>
-                            )}
-                        </>
+                        )}
+                    </>
+                )}
+                {searching && (
+                    <p className="artist-notice" role="status">
+                        <LoaderCircle size={16} aria-hidden />{" "}
+                        {v.ARTIST_METADATA_LOADING}
+                    </p>
+                )}
+                {searchFailed && (
+                    <p className="artist-notice" role="alert">
+                        {v.ARTIST_METADATA_ERROR}{" "}
+                        <button
+                            className="artist-text-action"
+                            onClick={retrySearch}
+                        >
+                            {v.ARTIST_METADATA_RETRY}
+                        </button>
+                    </p>
+                )}
+                {!searching && !searchFailed && !candidates.length && (
+                    <p className="artist-empty">{v.ARTIST_METADATA_EMPTY}</p>
+                )}
+                {candidates.length > 0 &&
+                    (!selected ||
+                        candidates.filter(
+                            (item) =>
+                                normalizeArtistName(item.name) ===
+                                normalizeArtistName(name)
+                        ).length !== 1) && (
+                        <label
+                            className="artist-identity"
+                            htmlFor="artist-match"
+                        >
+                            <span>{v.ARTIST_METADATA_IDENTITY}</span>
+                            <select
+                                id="artist-match"
+                                value={selected}
+                                onChange={(event) =>
+                                    chooseArtist(event.target.value)
+                                }
+                            >
+                                <option value="">
+                                    {v.ARTIST_METADATA_CHOOSE}
+                                </option>
+                                {candidates.map((item) => (
+                                    <option key={item.id} value={item.id}>
+                                        {item.name}
+                                        {item.note ? ` — ${item.note}` : ""}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                     )}
+                {profileLoading && (
+                    <p className="artist-notice" role="status">
+                        {v.ARTIST_METADATA_LOADING}
+                    </p>
+                )}
+                {profileFailed && (
+                    <p className="artist-notice" role="alert">
+                        {v.ARTIST_METADATA_ERROR}{" "}
+                        <button
+                            className="artist-text-action"
+                            onClick={retrySearch}
+                        >
+                            {v.ARTIST_METADATA_RETRY}
+                        </button>
+                    </p>
+                )}
+                {profile?.stale && (
+                    <p className="artist-notice" role="status">
+                        {v.ARTIST_METADATA_STALE}
+                    </p>
+                )}
+            </div>
+            {children}
+            <section
+                className="artist-discography"
+                aria-labelledby="artist-discography-title"
+            >
+                <h2 id="artist-discography-title">{v.ARTIST_DISCOGRAPHY}</h2>
+                {localAlbums}
+                {selected && (
                     <MetadataCatalog
                         key={`${selected}-albums-${attempt}`}
                         id={selected}
+                        name={name}
                         entity="artist-discography"
+                        songs={songs}
+                        albums={albums}
                     />
-                    <MetadataCatalog
-                        key={`${selected}-recordings-${attempt}`}
-                        id={selected}
-                        entity="artist-recordings"
-                    />
-                    {profile && (
-                        <>
-                            {!!profile.related.length && (
-                                <section className="artist-metadata-related">
-                                    <h3>{v.ARTIST_RELATED}</h3>
-                                    {profile.related.map((item, index) => (
-                                        <a
-                                            key={`${item.id}-${index}`}
-                                            className="artist-metadata-row"
-                                            href={`https://musicbrainz.org/artist/${item.id}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            <span>
-                                                {item.name}
-                                                <small>{item.note}</small>
-                                            </span>
-                                            <ArrowUpRight
-                                                size={16}
-                                                aria-hidden
-                                            />
-                                        </a>
-                                    ))}
-                                </section>
-                            )}
-                            <section className="artist-events">
-                                <h3>{v.ARTIST_METADATA_EVENTS}</h3>
-                                {profile.events.map((event, index) => (
-                                    <a
-                                        key={`${event.id}-${index}`}
-                                        className="artist-metadata-row"
-                                        href={`https://musicbrainz.org/event/${event.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <span>{event.title}</span>
-                                        <time>{event.date}</time>
-                                        <ArrowUpRight size={16} aria-hidden />
-                                    </a>
-                                ))}
-                                {!profile.events.length && (
-                                    <p className="artist-empty">
-                                        {v.ARTIST_METADATA_NO_EVENTS}
-                                    </p>
-                                )}
-                            </section>
-                        </>
+                )}
+            </section>
+            {selected && (
+                <details
+                    className="artist-recordings-disclosure"
+                    onToggle={(event) =>
+                        setShowRecordings(event.currentTarget.open)
+                    }
+                >
+                    <summary>{v.ARTIST_METADATA_RECORDINGS}</summary>
+                    {showRecordings && (
+                        <MetadataCatalog
+                            key={`${selected}-recordings-${attempt}`}
+                            id={selected}
+                            name={name}
+                            entity="artist-recordings"
+                            songs={songs}
+                            albums={albums}
+                        />
                     )}
-                    <p className="artist-footnote">{v.ARTIST_METADATA_NOTE}</p>
-                    <button
-                        className="artist-text-action"
-                        onClick={retrySearch}
-                    >
-                        {v.ARTIST_METADATA_RETRY}
-                    </button>
-                </>
+                </details>
             )}
-        </section>
+            {profile && (
+                <div className="artist-secondary">
+                    {!!profile.related.length && (
+                        <section className="artist-metadata-related">
+                            <h3>{v.ARTIST_RELATED}</h3>
+                            <div className="artist-related-names">
+                                {profile.related.map((item, index) => (
+                                    <Link
+                                        key={`${item.id}-${index}`}
+                                        href={artistSearchUrl(item.name)}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                    <section className="artist-events">
+                        <h3>{v.ARTIST_METADATA_EVENTS}</h3>
+                        {upcoming.slice(0, 3).map((event) => (
+                            <div key={event.id} className="artist-event-row">
+                                <time>{event.date}</time>
+                                <span>{event.title}</span>
+                            </div>
+                        ))}
+                        {!upcoming.length && (
+                            <p className="artist-empty">
+                                {v.ARTIST_NO_UPCOMING_EVENTS}
+                            </p>
+                        )}
+                        {upcoming.length > 3 && (
+                            <details>
+                                <summary>{v.ARTIST_MORE}</summary>
+                                {upcoming.slice(3).map((event) => (
+                                    <div
+                                        key={event.id}
+                                        className="artist-event-row"
+                                    >
+                                        <time>{event.date}</time>
+                                        <span>{event.title}</span>
+                                    </div>
+                                ))}
+                            </details>
+                        )}
+                        {!!past.length && (
+                            <details className="artist-event-history">
+                                <summary>
+                                    {v.ARTIST_EVENT_HISTORY} · {past.length}
+                                </summary>
+                                <div className="artist-event-scroll">
+                                    {past.map((event) => (
+                                        <div
+                                            key={event.id}
+                                            className="artist-event-row"
+                                        >
+                                            <time>{event.date}</time>
+                                            <span>{event.title}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </details>
+                        )}
+                    </section>
+                </div>
+            )}
+        </div>
     );
 }
 
 function MetadataCatalog({
     id,
     entity,
+    name,
+    songs,
+    albums: localAlbums,
 }: {
+    name: string;
+    songs: ArtistPageResponse["songs"];
+    albums: ArtistPageResponse["albums"];
     id: string;
     entity: "artist-discography" | "artist-recordings";
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [catalog, setCatalog] = useState<Catalog>();
+    const [catalog, setCatalog] = useState<
+        ArtistMetadataCatalog & { stale: boolean; hasMore: boolean }
+    >();
     const [offset, setOffset] = useState(0);
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
@@ -287,38 +365,78 @@ function MetadataCatalog({
     const visible = expanded ? items : items.slice(0, albums ? 8 : 5);
     return (
         <section className="artist-metadata-catalog">
-            <h3>
-                {albums
-                    ? v.ARTIST_METADATA_ALBUMS
-                    : v.ARTIST_METADATA_RECORDINGS}{" "}
+            <p className="artist-catalog-caption">
+                {v.ARTIST_CATALOG_AVAILABLE}{" "}
                 {catalog && (
                     <span className="artist-catalog-count">
                         {catalog.items.length} / {catalog.total}
                     </span>
                 )}
-            </h3>
+            </p>
             {catalog?.stale && (
                 <p className="artist-notice" role="status">
                     {v.ARTIST_METADATA_STALE}
                 </p>
             )}
-            <div className={albums ? "artist-release-list" : ""}>
-                {visible.map((item) => (
-                    <a
-                        key={item.id}
-                        className="artist-metadata-row"
-                        href={`https://musicbrainz.org/${albums ? "release-group" : "recording"}/${item.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <span>
-                            {item.title}
-                            <small>{item.kind}</small>
-                        </span>
-                        {item.date && <time>{item.date}</time>}
-                        <ArrowUpRight size={16} aria-hidden />
-                    </a>
-                ))}
+            <div className="artist-release-list">
+                {visible.map((item) => {
+                    const match = matchArtistCatalogItem(
+                        item,
+                        albums ? localAlbums : songs
+                    );
+                    const song = match?.type === "song" ? match : undefined;
+                    const content = (
+                        <>
+                            <span>
+                                <strong>{item.title}</strong>
+                                {item.date && (
+                                    <small>{item.date.slice(0, 4)}</small>
+                                )}
+                            </span>
+                            {song ? (
+                                song.downloaded ? (
+                                    <Play size={16} aria-hidden />
+                                ) : (
+                                    <Download size={16} aria-hidden />
+                                )
+                            ) : match?.type === "album" ? (
+                                <ChevronRight size={16} aria-hidden />
+                            ) : (
+                                <Search size={16} aria-hidden />
+                            )}
+                        </>
+                    );
+                    return song ? (
+                        <button
+                            key={item.id}
+                            className="artist-metadata-row"
+                            aria-label={`${song.downloaded ? v.ARTIST_PLAY : v.ARTIST_DOWNLOAD}: ${item.title}`}
+                            onClick={() =>
+                                song.downloaded
+                                    ? playArtistSongs(songs, song.publicId)
+                                    : void rockIt.downloaderManager.downloadMediaAsync(
+                                          [song.publicId],
+                                          song.name
+                                      )
+                            }
+                        >
+                            {content}
+                        </button>
+                    ) : (
+                        <Link
+                            key={item.id}
+                            className="artist-metadata-row"
+                            href={
+                                match?.type === "album"
+                                    ? `/album/${match.publicId}`
+                                    : artistSearchUrl(`${name} ${item.title}`)
+                            }
+                            aria-label={`${match ? v.ARTIST_OPEN_ALBUM : v.ARTIST_FIND_MUSIC}: ${item.title}`}
+                        >
+                            {content}
+                        </Link>
+                    );
+                })}
             </div>
             {loading && (
                 <p className="artist-notice" role="status">
@@ -349,6 +467,14 @@ function MetadataCatalog({
                     onClick={() => setExpanded(true)}
                 >
                     {v.ARTIST_MORE}
+                </button>
+            )}
+            {expanded && items.length > (albums ? 8 : 5) && (
+                <button
+                    className="artist-text-action"
+                    onClick={() => setExpanded(false)}
+                >
+                    {v.ARTIST_LESS}
                 </button>
             )}
             {expanded && catalog && catalog.hasMore && !failed && (

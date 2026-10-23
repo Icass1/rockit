@@ -44,3 +44,28 @@ previews. Local album artwork sits in a horizontal strip rather than extending
 the page by many rows. Loading, failed queries, stale data and missing event
 coverage are visible and localized. No MusicBrainz activation, account or API key
 is needed after the normal database initialization and vocabulary import.
+
+## Artist experience
+
+Artist context and genres precede the collection. The collection uses compact
+rows (two columns when space allows), with no repeated provider name. Discography
+follows immediately, combining the local album strip and the paginated catalog.
+Additional recordings load only when their disclosure is opened.
+
+Catalog entries never link to MusicBrainz. A unique local title match (and matching
+year when both are available) opens the internal album or uses existing song
+play/download actions. Unresolved or ambiguous editions open `/search?q=...`,
+where the existing media providers supply playable/downloadable results. This is
+a navigation hint, not a persisted identity link or a guessed streaming URL.
+Related metadata artists also use internal search. Artist choices appear only
+when the name search needs disambiguation, using ordinary localized language.
+
+Header counts describe provider-indexed records, including undownloaded music
+and distinct editions; they are not download counts or a unique works census.
+Concerts show at most three upcoming entries initially; past concerts are folded
+into a bounded scrollable history. Absence means no upcoming entries are listed,
+not confirmation that the artist has no tour. All labels use Vocabulary.xlsx.
+
+For this UX revision no tests were run, at the user's request. Vocabulary was
+regenerated with the real `python -m backend import-vocabulary` command against
+a disposable local database before committing.

@@ -77,7 +77,10 @@ export default function ArtistMetadataClient({
                         normalizeArtistName(item.name) ===
                         normalizeArtistName(name)
                 );
-                if (exact.length === 1) chooseArtist(exact[0].id);
+                // Prefer exact names; provider order reflects search relevance,
+                // not popularity. Keep the chooser available for corrections.
+                const best = exact[0] ?? items[0];
+                if (best) chooseArtist(best.id);
             })
             .catch(() => {
                 if (active) setSearchFailed(true);

@@ -129,6 +129,7 @@ class MusicBrainzApi:
                 delay = gate.result()
                 payload: dict[str, Any] | None = None
                 failure = "MusicBrainz temporarily unavailable"
+                failure_code = AResultCode.SERVICE_UNAVAILABLE
                 cooldown = INTERVAL_SECONDS
                 if delay <= 5.0:
                     await asyncio.sleep(delay)
@@ -146,6 +147,12 @@ class MusicBrainzApi:
                             )
                         if response.status_code in (429, 503):
                             cooldown = retry_delay(response.headers.get("Retry-After"))
+                        if response.status_code == 429:
+                            failure_code = AResultCode.RATE_LIMITED
+                        elif response.status_code == 404:
+                            failure_code = AResultCode.NOT_FOUND
+                        elif 400 <= response.status_code < 500:
+                            failure_code = AResultCode.BAD_REQUEST
                         if response.is_success:
                             raw: Any = response.json()
                             if isinstance(raw, dict):
@@ -200,7 +207,7 @@ class MusicBrainzApi:
                             stale=True,
                         ),
                     )
-                return AResult(code=AResultCode.GENERAL_ERROR, message=failure)
+                return AResult(code=failure_code, message=failure)
         except Exception:
             logger.exception("MusicBrainz metadata request failed")
             return AResult(

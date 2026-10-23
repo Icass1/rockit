@@ -133,3 +133,11 @@ Three labels were added to Vocabulary.xlsx and imported with the real backend im
 against temporary PostgreSQL before committing. No tests/build/type/lint checks were run.
 Runtime verification against the user's database and visual browser verification remain
 outstanding; source-query fixes do not establish the state of that deployment.
+
+MusicBrainz transient failures now return HTTP 503 (429 for explicit throttling),
+with Retry-After, rather than a generic 500. Existing durable cooldown and cached
+fallback remain intact; a first lookup has no snapshot to serve during an outage.
+Artist candidates are ordered by MusicBrainz relevance score. The first exact-name
+match, or first result when none are exact, is selected automatically, with the
+chooser retained for corrections. Relevance is not a popularity measurement.
+No labels changed and no tests were run for this follow-up.

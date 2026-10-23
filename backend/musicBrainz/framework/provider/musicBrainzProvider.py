@@ -58,6 +58,13 @@ class MusicBrainzProvider(BaseMetadataProvider):
         if result.is_not_ok():
             return result
         response = result.result()
+
+        def relevance(artist: dict[str, Any]) -> float:
+            try:
+                return float(artist.get("score") or 0)
+            except (ValueError, TypeError):
+                return 0
+
         candidates = [
             {
                 "id": artist["id"],
@@ -73,7 +80,9 @@ class MusicBrainzProvider(BaseMetadataProvider):
                     )
                 ),
             }
-            for artist in response.data.get("artists", [])
+            for artist in sorted(
+                response.data.get("artists", []), key=relevance, reverse=True
+            )
         ]
         return AResult(
             code=AResultCode.OK,

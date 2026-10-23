@@ -8,20 +8,26 @@ import {
     type ReactNode,
 } from "react";
 import Link from "next/link";
-import type {
-    ArtistMetadataCatalog,
-    ArtistMetadataIdentity,
-    ArtistPageResponse,
-} from "@/dto";
+import type { ArtistMetadataIdentity, ArtistPageResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { ChevronRight, Download, LoaderCircle, Play } from "lucide-react";
+import {
+    ChevronRight,
+    Download,
+    Ellipsis,
+    LoaderCircle,
+    Play,
+    Search,
+} from "lucide-react";
+import type { ArtistCatalogState } from "@/models/artistCatalog";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
+    artistDiscographyEntries,
     artistSearchUrl,
     findArtistMetadata,
     getArtistMetadataCatalog,
     getArtistMetadataProfile,
     matchArtistCatalogItem,
+    mergeArtistCatalogPages,
     normalizeArtistName,
     partitionArtistEvents,
 } from "@/lib/services/artistMetadataService";
@@ -35,12 +41,14 @@ export default function ArtistMetadataClient({
     albums,
     children,
     localAlbums,
+    summary,
 }: {
     name: string;
     songs: ArtistPageResponse["songs"];
     albums: ArtistPageResponse["albums"];
     children: ReactNode;
     localAlbums?: ReactNode;
+    summary?: ReactNode;
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [candidates, setCandidates] = useState<ArtistMetadataIdentity[]>([]);
@@ -116,6 +124,7 @@ export default function ArtistMetadataClient({
     return (
         <div className="artist-content">
             <div className="artist-about">
+                {summary}
                 {profile && (
                     <>
                         <p className="artist-context">{profile.description}</p>
@@ -153,29 +162,40 @@ export default function ArtistMetadataClient({
                                 normalizeArtistName(item.name) ===
                                 normalizeArtistName(name)
                         ).length !== 1) && (
-                        <label
-                            className="artist-identity"
-                            htmlFor="artist-match"
+                        <details
+                            className="artist-options"
+                            onKeyDown={(event) => {
+                                if (event.key === "Escape")
+                                    event.currentTarget.open = false;
+                            }}
                         >
-                            <span>{v.ARTIST_METADATA_IDENTITY}</span>
-                            <select
-                                id="artist-match"
-                                value={selected}
-                                onChange={(event) =>
-                                    chooseArtist(event.target.value)
-                                }
+                            <summary aria-label={v.ARTIST_METADATA_OPTIONS}>
+                                <Ellipsis size={20} aria-hidden />
+                            </summary>
+                            <label
+                                className="artist-identity"
+                                htmlFor="artist-match"
                             >
-                                <option value="">
-                                    {v.ARTIST_METADATA_CHOOSE}
-                                </option>
-                                {candidates.map((item) => (
-                                    <option key={item.id} value={item.id}>
-                                        {item.name}
-                                        {item.note ? ` — ${item.note}` : ""}
+                                <span>{v.ARTIST_METADATA_CHOOSE}</span>
+                                <select
+                                    id="artist-match"
+                                    value={selected}
+                                    onChange={(event) =>
+                                        chooseArtist(event.target.value)
+                                    }
+                                >
+                                    <option value="">
+                                        {v.ARTIST_METADATA_CHOOSE}
                                     </option>
-                                ))}
-                            </select>
-                        </label>
+                                    {candidates.map((item) => (
+                                        <option key={item.id} value={item.id}>
+                                            {item.name}
+                                            {item.note ? ` — ${item.note}` : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </details>
                     )}
                 {profileLoading && (
                     <p className="artist-notice" role="status">
@@ -323,9 +343,8 @@ function MetadataCatalog({
     entity: "artist-discography" | "artist-recordings";
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const [catalog, setCatalog] = useState<
-        ArtistMetadataCatalog & { stale: boolean; hasMore: boolean }
-    >();
+    const [catalog, setCatalog] = useState<ArtistCatalogState>();
+    const [query, setQuery] = useState("");
     const [offset, setOffset] = useState(0);
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
@@ -341,10 +360,8 @@ function MetadataCatalog({
                     hasMore:
                         next.items.length > 0 &&
                         next.offset + next.items.length < next.total,
-                    items:
-                        offset === 0
-                            ? next.items
-                            : [...(current?.items ?? []), ...next.items],
+                    nextOffset: next.offset + next.items.length,
+                    items: mergeArtistCatalogPages(current, next),
                 }));
             })
             .catch(() => {
@@ -357,14 +374,40 @@ function MetadataCatalog({
             active = false;
         };
     }, [id, entity, offset, attempt]);
-    const items = [...(catalog?.items ?? [])];
-    if (albums)
-        items.sort(
-            (a, b) =>
-                b.date.localeCompare(a.date) || a.title.localeCompare(b.title)
-        );
+    const nextOffset = catalog?.nextOffset;
+    const hasMore = catalog?.hasMore;
+    // Search loads remaining pages on demand, sequentially through the existing
+    // provider gate; clearing it stops scheduling further pages.
+    useEffect(() => {
+        if (
+            !albums ||
+            !query.trim() ||
+            loading ||
+            failed ||
+            !hasMore ||
+            nextOffset === undefined
+        )
+            return;
+        const timer = setTimeout(() => {
+            setLoading(true);
+            setOffset(nextOffset);
+        }, 350);
+        return () => clearTimeout(timer);
+    }, [albums, query, loading, failed, hasMore, nextOffset]);
+    const items = catalog?.items ?? [];
     const [expanded, setExpanded] = useState(false);
-    const visible = albums || expanded ? items : items.slice(0, 5);
+    const entries = albums
+        ? artistDiscographyEntries(items, localAlbums)
+        : items.map((item) => ({ item, album: undefined }));
+    const terms = normalizeArtistName(query).split(" ").filter(Boolean);
+    const filtered = entries.filter(({ item }) =>
+        terms.every((term) =>
+            normalizeArtistName(
+                `${item.title} ${item.date} ${item.kind}`
+            ).includes(term)
+        )
+    );
+    const visible = albums || expanded ? filtered : filtered.slice(0, 5);
     return (
         <section className="artist-metadata-catalog">
             {catalog && (
@@ -372,6 +415,21 @@ function MetadataCatalog({
                     {catalog.total}{" "}
                     {albums ? v.ARTIST_RELEASES : v.ARTIST_SONGS}
                 </p>
+            )}
+            {albums && (
+                <label
+                    className="artist-search artist-discography-search"
+                    htmlFor="artist-discography-search"
+                >
+                    <Search size={17} aria-hidden />
+                    <input
+                        id="artist-discography-search"
+                        type="search"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder={v.ARTIST_DISCOGRAPHY_SEARCH}
+                    />
+                </label>
             )}
             {catalog?.stale && (
                 <p className="artist-notice" role="status">
@@ -382,11 +440,13 @@ function MetadataCatalog({
             <div
                 className={`artist-release-list ${albums ? "artist-release-grid" : ""}`}
             >
-                {visible.map((item) => {
-                    const match = matchArtistCatalogItem(
-                        item,
-                        albums ? localAlbums : songs
-                    );
+                {visible.map(({ item, album }) => {
+                    const match =
+                        album ??
+                        matchArtistCatalogItem(
+                            item,
+                            albums ? localAlbums : songs
+                        );
                     const song = match?.type === "song" ? match : undefined;
                     const content = (
                         <>
@@ -452,37 +512,6 @@ function MetadataCatalog({
                         </Link>
                     );
                 })}
-                {albums &&
-                    catalog &&
-                    localAlbums
-                        .filter(
-                            (album) =>
-                                !items.some(
-                                    (item) =>
-                                        matchArtistCatalogItem(item, [
-                                            album,
-                                        ]) !== undefined
-                                )
-                        )
-                        .map((album) => (
-                            <Link
-                                key={album.publicId}
-                                href={`/album/${album.publicId}`}
-                                className="artist-metadata-row"
-                            >
-                                <ReleaseArtwork
-                                    imageUrl={album.imageUrl}
-                                    title={album.name}
-                                />
-                                <span>
-                                    <strong>{album.name}</strong>
-                                    <small>
-                                        {album.releaseDate?.slice(0, 4)}
-                                    </small>
-                                </span>
-                                <ChevronRight size={16} aria-hidden />
-                            </Link>
-                        ))}
             </div>
             {loading && (
                 <p className="artist-notice" role="status">
@@ -504,8 +533,10 @@ function MetadataCatalog({
                     </button>
                 </p>
             )}
-            {!loading && !failed && !items.length && (
-                <p className="artist-empty">{v.ARTIST_METADATA_EMPTY}</p>
+            {!loading && !failed && !catalog?.hasMore && !visible.length && (
+                <p className="artist-empty">
+                    {query ? v.ARTIST_NO_MATCHES : v.ARTIST_METADATA_EMPTY}
+                </p>
             )}
             {!albums && !expanded && items.length > visible.length && (
                 <button
@@ -530,7 +561,7 @@ function MetadataCatalog({
                     onClick={() => {
                         setLoading(true);
                         setFailed(false);
-                        setOffset(catalog.items.length);
+                        setOffset(catalog.nextOffset);
                     }}
                 >
                     {v.ARTIST_MORE}

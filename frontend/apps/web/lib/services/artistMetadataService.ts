@@ -9,6 +9,7 @@ import {
     type BaseAlbumWithoutSongsResponse,
     type BaseSongWithAlbumResponse,
 } from "@/dto";
+import type { ArtistDiscographyEntry } from "@/models/artistCatalog";
 import { Http } from "@/lib/http";
 
 export async function findArtistMetadata(
@@ -90,4 +91,53 @@ export function partitionArtistEvents(
             .filter((event) => event.date && event.date < today)
             .sort((a, b) => b.date.localeCompare(a.date)),
     };
+}
+
+/** Deduplicate provider identities, preserving editions with distinct IDs. */
+export function mergeArtistCatalogPages(
+    current: ArtistMetadataCatalog | undefined,
+    next: ArtistMetadataCatalog
+): ArtistMetadataItem[] {
+    return [
+        ...new Map(
+            [
+                ...(next.offset === 0 ? [] : (current?.items ?? [])),
+                ...next.items,
+            ].map((item) => [item.id, item])
+        ).values(),
+    ];
+}
+
+/** Keep local-only editions in the same chronological order as metadata. */
+export function artistDiscographyEntries(
+    items: ArtistMetadataItem[],
+    albums: BaseAlbumWithoutSongsResponse[]
+): ArtistDiscographyEntry[] {
+    const represented = new Set<string>();
+    const entries: ArtistDiscographyEntry[] = items.map((item) => {
+        const match = matchArtistCatalogItem(item, albums);
+        const album = match?.type === "album" ? match : undefined;
+        if (album) represented.add(album.publicId);
+        return { item, album };
+    });
+    for (const album of albums) {
+        if (represented.has(album.publicId)) continue;
+        represented.add(album.publicId);
+        entries.push({
+            album,
+            item: {
+                id: `local:${album.publicId}`,
+                title: album.name,
+                date: album.releaseDate,
+                kind: "Album",
+                imageUrl: album.imageUrl,
+            },
+        });
+    }
+    return entries.sort(
+        (a, b) =>
+            b.item.date.localeCompare(a.item.date) ||
+            a.item.title.localeCompare(b.item.title) ||
+            a.item.id.localeCompare(b.item.id)
+    );
 }

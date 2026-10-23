@@ -30,7 +30,7 @@
         "ARTIST_METADATA_EVENTS": "Concerts",
         "ARTIST_METADATA_NO_EVENTS": "No events documented here. This is not a complete concert calendar.",
         "ARTIST_METADATA_ALBUMS": "Discography",
-        "ARTIST_METADATA_RECORDINGS": "More songs and versions",
+        "ARTIST_METADATA_RECORDINGS": "Recordings",
         "ARTIST_METADATA_NOTE": "MusicBrainz metadata, including music outside your collection. Links open the source; they do not play or download music. Releases on loaded pages appear newest first. This catalog does not provide popularity rankings.",
         "ARTIST_KNOWN_CATALOG": "Known catalog · includes undownloaded music and different editions",
         "ARTIST_NO_UPCOMING_EVENTS": "No upcoming concerts listed.",
@@ -40,7 +40,9 @@
         "ARTIST_FIND_MUSIC": "Find in Rockit",
         "ARTIST_RELEASES": "releases",
         "ARTIST_SOURCE_CHOOSER": "Choose a source",
-        "ARTIST_COLLECTION_EMPTY": "No music saved yet."
+        "ARTIST_COLLECTION_EMPTY": "No music saved yet.",
+        "ARTIST_DISCOGRAPHY_SEARCH": "Search discography",
+        "ARTIST_METADATA_OPTIONS": "Artist options"
     },
     "es": {
         "ARTIST_SONGS": "canciones",
@@ -73,7 +75,7 @@
         "ARTIST_METADATA_EVENTS": "Conciertos",
         "ARTIST_METADATA_NO_EVENTS": "No hay eventos documentados aquí. No es una agenda completa de conciertos.",
         "ARTIST_METADATA_ALBUMS": "Discografía",
-        "ARTIST_METADATA_RECORDINGS": "Más canciones y versiones",
+        "ARTIST_METADATA_RECORDINGS": "Grabaciones",
         "ARTIST_METADATA_NOTE": "Metadatos de MusicBrainz, también de música fuera de tu colección. Los enlaces abren la fuente; no reproducen ni descargan música. Los lanzamientos de las páginas cargadas se ordenan del más reciente al más antiguo. Este catálogo no ofrece rankings de popularidad.",
         "ARTIST_KNOWN_CATALOG": "Catálogo conocido · incluye música sin descargar y distintas ediciones",
         "ARTIST_NO_UPCOMING_EVENTS": "No hay próximos conciertos registrados.",
@@ -83,7 +85,9 @@
         "ARTIST_FIND_MUSIC": "Buscar en Rockit",
         "ARTIST_RELEASES": "lanzamientos",
         "ARTIST_SOURCE_CHOOSER": "Elige una fuente",
-        "ARTIST_COLLECTION_EMPTY": "Todavía no hay música guardada."
+        "ARTIST_COLLECTION_EMPTY": "Todavía no hay música guardada.",
+        "ARTIST_DISCOGRAPHY_SEARCH": "Buscar en la discografía",
+        "ARTIST_METADATA_OPTIONS": "Opciones del artista"
     },
     "fr": {
         "ARTIST_SONGS": "titres",
@@ -116,7 +120,7 @@
         "ARTIST_METADATA_EVENTS": "Concerts",
         "ARTIST_METADATA_NO_EVENTS": "Aucun événement documenté ici. Ce calendrier de concerts n’est pas exhaustif.",
         "ARTIST_METADATA_ALBUMS": "Discographie",
-        "ARTIST_METADATA_RECORDINGS": "Plus de titres et de versions",
+        "ARTIST_METADATA_RECORDINGS": "Enregistrements",
         "ARTIST_METADATA_NOTE": "Métadonnées MusicBrainz, y compris hors de votre collection. Les liens ouvrent la source, sans lecture ni téléchargement. Les parutions des pages chargées sont triées de la plus récente à la plus ancienne. Ce catalogue ne fournit pas de classement de popularité.",
         "ARTIST_KNOWN_CATALOG": "Catalogue connu · inclut la musique non téléchargée et différentes éditions",
         "ARTIST_NO_UPCOMING_EVENTS": "Aucun concert à venir répertorié.",
@@ -126,6 +130,8 @@
         "ARTIST_FIND_MUSIC": "Rechercher dans Rockit",
         "ARTIST_RELEASES": "sorties",
         "ARTIST_SOURCE_CHOOSER": "Choisir une source",
-        "ARTIST_COLLECTION_EMPTY": "Aucune musique enregistrée pour le moment."
+        "ARTIST_COLLECTION_EMPTY": "Aucune musique enregistrée pour le moment.",
+        "ARTIST_DISCOGRAPHY_SEARCH": "Rechercher dans la discographie",
+        "ARTIST_METADATA_OPTIONS": "Options de l’artiste"
     }
 }

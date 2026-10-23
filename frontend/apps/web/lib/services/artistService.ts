@@ -1,6 +1,9 @@
 import { type ArtistPageResponse, type BaseSongWithAlbumResponse } from "@/dto";
+import type { BaseAlbumWithoutSongsResponse } from "@/dto";
+import type { ArtistAccent } from "@/models/artistCatalog";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 
 export async function getArtistPageAsync(
     publicId?: string,
@@ -122,4 +125,33 @@ export async function resolveArtistPageUrl(
     });
     if (!result.isOk() || result.result.data.type !== "artist") return fallback;
     return artistPageUrl(name, result.result.data.url);
+}
+
+/** Reuse stored dominant colors; never sample cross-origin artwork in the browser. */
+export function artistAccent(
+    color: string,
+    albums: BaseAlbumWithoutSongsResponse[]
+): ArtistAccent | undefined {
+    const candidates = [
+        color,
+        ...[...albums]
+            .sort((a, b) => b.releaseDate.localeCompare(a.releaseDate))
+            .map((album) => album.dominantColor),
+    ];
+    const valid = candidates.find((value) => /^#[0-9a-f]{6}$/i.test(value));
+    if (!valid) return undefined;
+    const { r, g, b } = parseDominantColor(valid);
+    const linear = (value: number): number =>
+        value / 255 <= 0.04045
+            ? value / 255 / 12.92
+            : ((value / 255 + 0.055) / 1.055) ** 2.4;
+    const luminance =
+        0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+    return {
+        rgb: `${r}, ${g}, ${b}`,
+        foreground:
+            (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05)
+                ? "#000000"
+                : "#ffffff",
+    };
 }

@@ -631,4 +631,6 @@ export interface Vocabulary {
     ARTIST_RELEASES: string;
     ARTIST_SOURCE_CHOOSER: string;
     ARTIST_COLLECTION_EMPTY: string;
+    ARTIST_DISCOGRAPHY_SEARCH: string;
+    ARTIST_METADATA_OPTIONS: string;
 }

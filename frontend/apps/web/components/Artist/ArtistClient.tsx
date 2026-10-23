@@ -5,6 +5,7 @@ import {
     useMemo,
     useState,
     useSyncExternalStore,
+    type CSSProperties,
     type JSX,
 } from "react";
 import Image from "next/image";
@@ -23,6 +24,7 @@ import {
 import type { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
+    artistAccent,
     getArtistPageAsync,
     getArtistPortrait,
     getServerArtistPortrait,
@@ -103,7 +105,8 @@ export default function ArtistClient({
         () => getArtistPortrait(artist.name),
         getServerArtistPortrait
     );
-    const image = searchPortrait || artist.imageUrl;
+    const image = artist.imageUrl || searchPortrait;
+    const accent = artistAccent(artist.dominantColor, page.albums);
     async function loadMore(reset = false): Promise<void> {
         if (loading) return;
         setLoading(true);
@@ -132,7 +135,17 @@ export default function ArtistClient({
         }
     }
     return (
-        <div className="artist-page">
+        <div
+            className="artist-page"
+            style={
+                accent
+                    ? ({
+                          "--artist-accent": accent.rgb,
+                          "--artist-accent-foreground": accent.foreground,
+                      } as CSSProperties)
+                    : undefined
+            }
+        >
             <header className="artist-stage">
                 {image && (
                     <div className="artist-portrait">
@@ -148,16 +161,6 @@ export default function ArtistClient({
                 )}
                 <div className="artist-intro">
                     <h1>{artist.name}</h1>
-                    {(page.totalSongs > 0 || page.totalAlbums > 0) && (
-                        <p className="artist-inventory">
-                            <span>
-                                {page.totalSongs} {v.ARTIST_SONGS}
-                            </span>
-                            <span>
-                                {page.totalAlbums} {v.ARTIST_ALBUMS}
-                            </span>
-                        </p>
-                    )}
                     {playable && (
                         <div className="artist-actions">
                             <button
@@ -182,6 +185,20 @@ export default function ArtistClient({
                     name={artist.name}
                     songs={page.songs}
                     albums={page.albums}
+                    summary={
+                        <>
+                            {(page.totalSongs > 0 || page.totalAlbums > 0) && (
+                                <p className="artist-inventory">
+                                    <span>
+                                        {page.totalSongs} {v.ARTIST_SONGS}
+                                    </span>
+                                    <span>
+                                        {page.totalAlbums} {v.ARTIST_ALBUMS}
+                                    </span>
+                                </p>
+                            )}
+                        </>
+                    }
                     localAlbums={
                         page.albums.length > 0 ? (
                             <div className="artist-albums artist-local-albums">

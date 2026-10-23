@@ -706,3 +706,83 @@
         min-height: 44px;
     }
 }
+
+/* Artist identity and library counts read as a single, quiet context block. */
+.artist-about {
+    position: relative;
+    padding-right: 52px;
+}
+.artist-about .artist-inventory {
+    margin: 0 0 10px;
+    color: #f5f5f5;
+    gap: 8px 24px;
+    font-weight: 600;
+}
+.artist-about .artist-context {
+    margin: 0;
+}
+.artist-about .artist-genres {
+    margin: 8px 0 0;
+}
+.artist-options {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 4;
+}
+.artist-options > summary {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    list-style: none;
+}
+.artist-options > summary::-webkit-details-marker {
+    display: none;
+}
+.artist-options .artist-identity {
+    position: absolute;
+    right: 0;
+    top: 44px;
+    width: min(360px, calc(100vw - 48px));
+    padding: 20px;
+    margin: 0;
+    background: #18141d;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px #0009;
+}
+.artist-options .artist-identity select {
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+}
+.artist-discography-search {
+    margin-block: 20px 16px;
+    max-width: 460px;
+}
+.artist-play {
+    background: rgb(var(--artist-accent, var(--accent-light)));
+    color: var(--artist-accent-foreground, #190b2d);
+}
+.artist-stage::before {
+    background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(var(--artist-accent, var(--accent)), 0.26),
+        transparent 70%
+    );
+}
+.artist-genres,
+.artist-text-action,
+.artist-metadata-row svg {
+    color: color-mix(
+        in srgb,
+        rgb(var(--artist-accent, var(--accent-light))) 35%,
+        white
+    );
+}
+.artist-play:hover {
+    background: rgb(var(--artist-accent, var(--accent-light)));
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}

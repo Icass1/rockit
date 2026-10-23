@@ -786,3 +786,31 @@
     text-decoration: underline;
     text-underline-offset: 4px;
 }
+
+.artist-discography-filters {
+    display: flex;
+    gap: 8px 20px;
+    flex-wrap: wrap;
+    margin: 4px 0 24px;
+}
+.artist-discography-filters button {
+    min-height: 44px;
+    background: transparent;
+    border: 0;
+    color: var(--text-secondary, #b8b3be);
+    cursor: pointer;
+    padding: 8px 0;
+}
+.artist-discography-filters button[aria-pressed="true"] {
+    color: color-mix(
+        in srgb,
+        rgb(var(--artist-accent, var(--accent-light))) 35%,
+        white 65%
+    );
+    text-decoration: underline;
+    text-underline-offset: 8px;
+}
+.artist-discography-filters button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}

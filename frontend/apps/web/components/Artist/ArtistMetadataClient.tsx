@@ -345,6 +345,7 @@ function MetadataCatalog({
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [catalog, setCatalog] = useState<ArtistCatalogState>();
     const [query, setQuery] = useState("");
+    const [category, setCategory] = useState("");
     const [offset, setOffset] = useState(0);
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
@@ -374,38 +375,40 @@ function MetadataCatalog({
             active = false;
         };
     }, [id, entity, offset, attempt]);
-    const nextOffset = catalog?.nextOffset;
-    const hasMore = catalog?.hasMore;
-    // Search loads remaining pages on demand, sequentially through the existing
-    // provider gate; clearing it stops scheduling further pages.
-    useEffect(() => {
-        if (
-            !albums ||
-            !query.trim() ||
-            loading ||
-            failed ||
-            !hasMore ||
-            nextOffset === undefined
-        )
-            return;
-        const timer = setTimeout(() => {
-            setLoading(true);
-            setOffset(nextOffset);
-        }, 350);
-        return () => clearTimeout(timer);
-    }, [albums, query, loading, failed, hasMore, nextOffset]);
     const items = catalog?.items ?? [];
     const [expanded, setExpanded] = useState(false);
     const entries = albums
         ? artistDiscographyEntries(items, localAlbums)
         : items.map((item) => ({ item, album: undefined }));
     const terms = normalizeArtistName(query).split(" ").filter(Boolean);
-    const filtered = entries.filter(({ item }) =>
-        terms.every((term) =>
-            normalizeArtistName(
-                `${item.title} ${item.date} ${item.kind}`
-            ).includes(term)
-        )
+    const categories = [
+        ["Album", v.ARTIST_FILTER_ALBUM],
+        ["Single", v.ARTIST_FILTER_SINGLE],
+        ["EP", v.ARTIST_FILTER_EP],
+        ["Live", v.ARTIST_FILTER_LIVE],
+        ["Compilation", v.ARTIST_FILTER_COMPILATION],
+        ["Remix", v.ARTIST_FILTER_REMIX],
+        ["Soundtrack", v.ARTIST_FILTER_SOUNDTRACK],
+        ["Other", v.ARTIST_FILTER_OTHER],
+    ];
+    const knownTypes = new Set(categories.map(([type]) => type));
+    const matchesCategory = (item: (typeof items)[number]): boolean => {
+        if (!category) return true;
+        const types = [item.kind, ...item.secondaryTypes];
+        return category === "Other"
+            ? !item.kind ||
+                  types.includes("Other") ||
+                  !knownTypes.has(item.kind)
+            : types.includes(category);
+    };
+    const filtered = entries.filter(
+        ({ item }) =>
+            matchesCategory(item) &&
+            terms.every((term) =>
+                normalizeArtistName(
+                    `${item.title} ${item.date} ${item.kind} ${item.secondaryTypes.join(" ")}`
+                ).includes(term)
+            )
     );
     const visible = albums || expanded ? filtered : filtered.slice(0, 5);
     return (
@@ -430,6 +433,27 @@ function MetadataCatalog({
                         placeholder={v.ARTIST_DISCOGRAPHY_SEARCH}
                     />
                 </label>
+            )}
+            {albums && (
+                <div
+                    className="artist-discography-filters"
+                    role="group"
+                    aria-label={v.ARTIST_FILTER_TYPES}
+                >
+                    {[["", v.ALL], ...categories].map(([type, label]) => (
+                        <button
+                            key={type}
+                            type="button"
+                            aria-pressed={category === type}
+                            onClick={() => setCategory(type)}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            )}
+            {albums && catalog?.hasMore && (query.trim() || category) && (
+                <p className="artist-notice">{v.ARTIST_FILTER_LOADED}</p>
             )}
             {catalog?.stale && (
                 <p className="artist-notice" role="status">
@@ -533,9 +557,11 @@ function MetadataCatalog({
                     </button>
                 </p>
             )}
-            {!loading && !failed && !catalog?.hasMore && !visible.length && (
+            {!loading && !failed && !visible.length && (
                 <p className="artist-empty">
-                    {query ? v.ARTIST_NO_MATCHES : v.ARTIST_METADATA_EMPTY}
+                    {query || category
+                        ? v.ARTIST_NO_MATCHES
+                        : v.ARTIST_METADATA_EMPTY}
                 </p>
             )}
             {!albums && !expanded && items.length > visible.length && (

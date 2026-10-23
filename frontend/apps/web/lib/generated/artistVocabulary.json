@@ -42,7 +42,17 @@
         "ARTIST_SOURCE_CHOOSER": "Choose a source",
         "ARTIST_COLLECTION_EMPTY": "No music saved yet.",
         "ARTIST_DISCOGRAPHY_SEARCH": "Search discography",
-        "ARTIST_METADATA_OPTIONS": "Artist options"
+        "ARTIST_METADATA_OPTIONS": "Artist options",
+        "ARTIST_FILTER_TYPES": "Release type",
+        "ARTIST_FILTER_ALBUM": "Albums",
+        "ARTIST_FILTER_SINGLE": "Singles",
+        "ARTIST_FILTER_EP": "EPs",
+        "ARTIST_FILTER_LIVE": "Live",
+        "ARTIST_FILTER_COMPILATION": "Compilations",
+        "ARTIST_FILTER_REMIX": "Remixes",
+        "ARTIST_FILTER_SOUNDTRACK": "Soundtracks",
+        "ARTIST_FILTER_OTHER": "Other",
+        "ARTIST_FILTER_LOADED": "Search and filters apply to loaded releases. Load more to include the next page."
     },
     "es": {
         "ARTIST_SONGS": "canciones",
@@ -87,7 +97,17 @@
         "ARTIST_SOURCE_CHOOSER": "Elige una fuente",
         "ARTIST_COLLECTION_EMPTY": "Todavía no hay música guardada.",
         "ARTIST_DISCOGRAPHY_SEARCH": "Buscar en la discografía",
-        "ARTIST_METADATA_OPTIONS": "Opciones del artista"
+        "ARTIST_METADATA_OPTIONS": "Opciones del artista",
+        "ARTIST_FILTER_TYPES": "Tipo de lanzamiento",
+        "ARTIST_FILTER_ALBUM": "Álbumes",
+        "ARTIST_FILTER_SINGLE": "Singles",
+        "ARTIST_FILTER_EP": "EP",
+        "ARTIST_FILTER_LIVE": "En directo",
+        "ARTIST_FILTER_COMPILATION": "Recopilatorios",
+        "ARTIST_FILTER_REMIX": "Remixes",
+        "ARTIST_FILTER_SOUNDTRACK": "Bandas sonoras",
+        "ARTIST_FILTER_OTHER": "Otros",
+        "ARTIST_FILTER_LOADED": "La búsqueda y los filtros se aplican a los lanzamientos cargados. Carga más para incluir la siguiente página."
     },
     "fr": {
         "ARTIST_SONGS": "titres",
@@ -132,6 +152,16 @@
         "ARTIST_SOURCE_CHOOSER": "Choisir une source",
         "ARTIST_COLLECTION_EMPTY": "Aucune musique enregistrée pour le moment.",
         "ARTIST_DISCOGRAPHY_SEARCH": "Rechercher dans la discographie",
-        "ARTIST_METADATA_OPTIONS": "Options de l’artiste"
+        "ARTIST_METADATA_OPTIONS": "Options de l’artiste",
+        "ARTIST_FILTER_TYPES": "Type de sortie",
+        "ARTIST_FILTER_ALBUM": "Albums",
+        "ARTIST_FILTER_SINGLE": "Singles",
+        "ARTIST_FILTER_EP": "EP",
+        "ARTIST_FILTER_LIVE": "En concert",
+        "ARTIST_FILTER_COMPILATION": "Compilations",
+        "ARTIST_FILTER_REMIX": "Remixes",
+        "ARTIST_FILTER_SOUNDTRACK": "Bandes originales",
+        "ARTIST_FILTER_OTHER": "Autres",
+        "ARTIST_FILTER_LOADED": "La recherche et les filtres portent sur les sorties chargées. Chargez la suite pour inclure la page suivante."
     }
 }

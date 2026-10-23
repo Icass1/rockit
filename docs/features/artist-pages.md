@@ -196,10 +196,14 @@ Provider pages merge by stable ID and advance using the raw source offset/row
 count, not the deduplicated display length. Local-only releases join metadata
 releases before deterministic date/title/ID sorting. Different provider IDs and
 editions are not merged just because titles coincide. Retried pages do not add
-the same ID twice. Search filters title, date and release kind; while a query is
-active, remaining pages load sequentially through the existing cached/rate-limited
-API. Clearing the query stops scheduling new pages. Existing album placeholders
-replace missing artwork, with the decorative initial retained if that also fails.
+the same ID twice. Search and category filters operate on loaded releases only. Neither typing nor
+changing a filter schedules more pages; Load more remains explicit. The interface
+explains this scope whenever more pages exist. Primary and secondary MusicBrainz
+types are projected by the provider (`kind`, `secondaryTypes`) from the existing
+persistent raw snapshot, without fetching again. Album, Single, EP, Live,
+Compilation, Remix and Soundtrack can overlap; unknown/local unclassified releases
+are kept under Other rather than guessed. MusicBrainz release groups do not provide
+a reliable music-video category, so no video filter is invented.
 
 Ambiguous artist selection lives inside a small keyboard-accessible ellipsis
 menu beside artist context. Counts, description and genres form one block; Play
@@ -216,3 +220,18 @@ over search thumbnails. Existing low-resolution DB images are not bulk-refreshed
 provider alternatives and access requirements are recorded in docs/research/artist-images.md.
 Two labels were added and one updated in Vocabulary.xlsx. The actual vocabulary
 import was run before committing. No tests/build/type/lint checks were run.
+
+
+### MusicBrainz request pressure
+
+The browser coalesces identical in-flight metadata requests and reuses successful
+responses for five minutes (bounded to 100 entries). A 429/503 pauses new browser
+metadata requests for 60 seconds; already cached successes remain usable. This is
+in addition to the provider's durable PostgreSQL cache, cross-worker 1.1-second
+gate and shared Retry-After cooldown. It does not coordinate separate deployments
+sharing the same outgoing IP. Provider logs now distinguish an outbound GET from
+requests skipped during cooldown. The supplied 14:43 log contains cooldown failures,
+not evidence of outbound requests at those timestamps; it cannot establish why the
+preceding upstream request failed. Automatic catalog crawling during search has
+been removed. No tests were run for these changes. DTOs were regenerated with
+`python -m backend models`; vocabulary was imported with the real backend CLI.

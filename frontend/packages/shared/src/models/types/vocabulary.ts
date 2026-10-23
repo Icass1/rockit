@@ -633,4 +633,14 @@ export interface Vocabulary {
     ARTIST_COLLECTION_EMPTY: string;
     ARTIST_DISCOGRAPHY_SEARCH: string;
     ARTIST_METADATA_OPTIONS: string;
+    ARTIST_FILTER_TYPES: string;
+    ARTIST_FILTER_ALBUM: string;
+    ARTIST_FILTER_SINGLE: string;
+    ARTIST_FILTER_EP: string;
+    ARTIST_FILTER_LIVE: string;
+    ARTIST_FILTER_COMPILATION: string;
+    ARTIST_FILTER_REMIX: string;
+    ARTIST_FILTER_SOUNDTRACK: string;
+    ARTIST_FILTER_OTHER: string;
+    ARTIST_FILTER_LOADED: string;
 }

@@ -87,3 +87,19 @@ The header uses artist artwork only, without substituting song or album covers.
 Portrait and text occupy separate columns on wide screens and stack on narrow
 screens so the title remains unobstructed. No new vocabulary labels were needed.
 No tests were run for this navigation revision at the user's request.
+
+### Encoded names and vocabulary deployment
+
+The name route decodes its segment once before requesting the catalog or metadata.
+Search and Library create URLs with NFC normalization, collapsed whitespace and
+lowercase names. Provider matching keeps its existing case/whitespace handling.
+Malformed escapes do not crash the page.
+
+`python -m backend import-vocabulary` also generates committed web artist vocabulary
+defaults from `Vocabulary.xlsx`. The web manager uses these for missing translations
+in the active language, then English. This prevents raw `ARTIST_*` keys when a
+server database has not yet imported the updated spreadsheet. Run the same import
+command on the deployment (or `scripts/update.sh`) to update its database.
+
+The real vocabulary import completed against temporary local PostgreSQL for this
+fix. No tests, build, lint or type checks were run, as requested.

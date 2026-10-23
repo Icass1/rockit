@@ -608,4 +608,18 @@ export interface Vocabulary {
     ARTIST_LOADING: string;
     ARTIST_MORE: string;
     ARTIST_LOCAL_NOTE: string;
+    ARTIST_LESS: string;
+    ARTIST_EXPLORE: string;
+    ARTIST_METADATA_LOADING: string;
+    ARTIST_METADATA_ERROR: string;
+    ARTIST_METADATA_RETRY: string;
+    ARTIST_METADATA_EMPTY: string;
+    ARTIST_METADATA_IDENTITY: string;
+    ARTIST_METADATA_CHOOSE: string;
+    ARTIST_METADATA_STALE: string;
+    ARTIST_METADATA_EVENTS: string;
+    ARTIST_METADATA_NO_EVENTS: string;
+    ARTIST_METADATA_ALBUMS: string;
+    ARTIST_METADATA_RECORDINGS: string;
+    ARTIST_METADATA_NOTE: string;
 }

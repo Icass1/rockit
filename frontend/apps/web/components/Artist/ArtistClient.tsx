@@ -22,6 +22,7 @@ import {
 } from "@/lib/services/artistService";
 import { getTime } from "@/lib/utils/getTime";
 import "@/components/Artist/artist.css";
+import ArtistMetadataClient from "@/components/Artist/ArtistMetadataClient";
 
 export default function ArtistClient({
     initialPage,
@@ -32,6 +33,7 @@ export default function ArtistClient({
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [page, setPage] = useState(initialPage);
+    const [collectionExpanded, setCollectionExpanded] = useState(false);
     const [query, setQuery] = useState("");
     const [downloadedOnly, setDownloadedOnly] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -198,7 +200,10 @@ export default function ArtistClient({
                         />
                     </label>
                     <ol className="artist-tracklist">
-                        {songs.map((song, index) => (
+                        {(collectionExpanded || query || downloadedOnly
+                            ? songs
+                            : songs.slice(0, 5)
+                        ).map((song, index) => (
                             <li key={song.publicId}>
                                 <button
                                     className="artist-track"
@@ -266,6 +271,16 @@ export default function ArtistClient({
                             </li>
                         ))}
                     </ol>
+                    {songs.length > 5 && !query && !downloadedOnly && (
+                        <button
+                            className="artist-text-action"
+                            onClick={() =>
+                                setCollectionExpanded(!collectionExpanded)
+                            }
+                        >
+                            {collectionExpanded ? v.ARTIST_LESS : v.ARTIST_MORE}
+                        </button>
+                    )}
                     {!songs.length && (
                         <p className="artist-empty">
                             {query || downloadedOnly
@@ -274,12 +289,16 @@ export default function ArtistClient({
                         </p>
                     )}
                 </section>
+                <ArtistMetadataClient
+                    key={`${artist.publicId}:${artist.name}`}
+                    name={artist.name}
+                />
                 <section
                     aria-labelledby="artist-albums-title"
                     className="artist-discography"
                 >
                     <h2 id="artist-albums-title">{v.ARTIST_DISCOGRAPHY}</h2>
-                    <div className="artist-albums">
+                    <div className="artist-albums artist-local-albums">
                         {page.albums.map((album) => (
                             <Link
                                 key={album.publicId}

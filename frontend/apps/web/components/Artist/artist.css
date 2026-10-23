@@ -320,3 +320,98 @@
         transition: none !important;
     }
 }
+.artist-text-action {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: rgb(var(--accent-light));
+    font-size: 14px;
+}
+.artist-explore {
+    margin-top: 52px;
+}
+.artist-explore h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 32px 0 16px;
+}
+.artist-identity {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 20px;
+    color: #a3a3a3;
+    font-size: 14px;
+}
+.artist-identity select {
+    background: #0b0b0b;
+    color: #f5f5f5;
+    max-width: 100%;
+    min-height: 44px;
+}
+.artist-context,
+.artist-genres {
+    color: #bdbdbd;
+    line-height: 1.6;
+    margin-top: 20px;
+    max-width: 65ch;
+}
+.artist-genres {
+    color: rgb(var(--accent-light));
+    margin-top: 8px;
+}
+.artist-release-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 40px;
+}
+.artist-metadata-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 64px;
+    padding-block: 12px;
+    font-size: 15px;
+}
+.artist-metadata-row > span {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.artist-metadata-row small {
+    display: block;
+    color: #a3a3a3;
+    font-size: 12px;
+    margin-top: 4px;
+}
+.artist-metadata-row time,
+.artist-catalog-count {
+    color: #a3a3a3;
+    font-size: 13px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+.artist-metadata-row svg {
+    flex-shrink: 0;
+    color: rgb(var(--accent-light));
+}
+.artist-local-albums {
+    display: flex;
+    overflow-x: auto;
+    padding-block: 6px 16px;
+    scroll-snap-type: x proximity;
+}
+.artist-local-albums .artist-album {
+    flex: 0 0 clamp(150px, 20vw, 220px);
+    scroll-snap-align: start;
+}
+.artist-page select:focus-visible {
+    outline: 2px solid rgb(var(--accent-light));
+    outline-offset: 5px;
+}
+@media (max-width: 720px) {
+    .artist-release-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

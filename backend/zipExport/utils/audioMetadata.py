@@ -3,18 +3,20 @@
 import io
 from typing import BinaryIO
 
+# Mutagen 1.47 dynamically re-exports these documented public ID3 classes.
+# Pyright cannot infer those exports; keep using the supported public module.
 from mutagen.id3 import (
     ID3,
-    ID3NoHeaderError,
-    APIC,
-    TIT2,
-    TPE1,
-    TPE2,
-    TALB,
-    TDRC,
-    TRCK,
-    TPOS,
-    TSRC,
+    ID3NoHeaderError,  # pyright: ignore[reportPrivateImportUsage]
+    APIC,  # pyright: ignore[reportPrivateImportUsage]
+    TIT2,  # pyright: ignore[reportPrivateImportUsage]
+    TPE1,  # pyright: ignore[reportPrivateImportUsage]
+    TPE2,  # pyright: ignore[reportPrivateImportUsage]
+    TALB,  # pyright: ignore[reportPrivateImportUsage]
+    TDRC,  # pyright: ignore[reportPrivateImportUsage]
+    TRCK,  # pyright: ignore[reportPrivateImportUsage]
+    TPOS,  # pyright: ignore[reportPrivateImportUsage]
+    TSRC,  # pyright: ignore[reportPrivateImportUsage]
 )
 from PIL import Image
 

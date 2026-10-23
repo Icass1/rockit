@@ -12,7 +12,10 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from mutagen.id3 import ID3, TIT2, TXXX
+from mutagen.id3 import ID3
+
+# Mutagen dynamically re-exports these public frames without static export hints.
+from mutagen.id3 import TIT2, TXXX  # pyright: ignore[reportPrivateImportUsage]
 from PIL import Image
 
 from backend.core.aResult import AResult, AResultCode

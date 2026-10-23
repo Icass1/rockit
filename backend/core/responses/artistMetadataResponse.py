@@ -12,6 +12,7 @@ class ArtistMetadataItem(BaseModel):
     title: str
     date: str = ""
     kind: str = ""
+    imageUrl: str = ""
 
 
 class ArtistMetadataCandidates(BaseModel):

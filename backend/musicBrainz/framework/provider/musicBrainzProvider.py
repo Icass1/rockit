@@ -205,6 +205,11 @@ class MusicBrainzProvider(BaseMetadataProvider):
                         "title": item["title"],
                         "date": item.get("first-release-date") or "",
                         "kind": item.get("primary-type") or "",
+                        "imageUrl": (
+                            f"https://coverartarchive.org/release-group/{item['id']}/front-250"
+                            if entity == "discography"
+                            else ""
+                        ),
                     }
                     for item in items
                 ],

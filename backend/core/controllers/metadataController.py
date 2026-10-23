@@ -22,8 +22,14 @@ async def search_artists(
     _=Depends(AuthMiddleware.auth_dependency),
 ) -> MetadataResponse:
     """Find external identities without assigning them to a local artist."""
+    session = DBSessionMiddleware.get_session(request=request)
+    # Authentication has completed. Release its read transaction before a
+    # provider waits on external IO or opens an independent cache transaction.
+    # Otherwise concurrent requests can each hold a pool connection while
+    # waiting for a second connection, starving the entire backend.
+    await session.commit()
     result = await Metadata.search_artists_async(
-        session=DBSessionMiddleware.get_session(request=request),
+        session=session,
         provider=provider,
         name=name,
         offset=offset,
@@ -56,8 +62,10 @@ async def get_metadata(
     _=Depends(AuthMiddleware.auth_dependency),
 ) -> MetadataResponse:
     """Read a durable external metadata snapshot; refresh is explicit and rate limited."""
+    session = DBSessionMiddleware.get_session(request=request)
+    await session.commit()
     result = await Metadata.get_async(
-        session=DBSessionMiddleware.get_session(request=request),
+        session=session,
         provider=provider,
         entity=entity,
         external_id=external_id,

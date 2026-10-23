@@ -151,3 +151,9 @@ method/path before dispatch at DEBUG level to distinguish requests arriving at
 the backend from browser-side pending resources. These changes address an
 unbounded wait found in code; the supplied Serwist log alone does not prove it
 caused the reported freeze. No labels changed; no tests were run.
+
+Read-only metadata endpoints end the authentication transaction before dispatching
+to a provider. Providers can open their own durable cache transaction without
+every waiting request holding an additional connection from the same pool.
+The request session stays usable for providers and request logging; configured
+expire_on_commit=False preserves the authenticated user attributes.

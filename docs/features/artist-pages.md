@@ -22,21 +22,17 @@ pipeline, without hydrating album tracks. Endpoints require authentication.
   imply membership or shared artist identity.
 
 New vocabulary is stored as literal English, Spanish and French values in
-`Vocabulary.xlsx`. Run the normal `python3 -m backend import_vocabulary` workflow
+`Vocabulary.xlsx`. Run the normal `python3 -m backend import-vocabulary` workflow
 to import the workbook into a deployment's database.
 
-## External metadata follow-up
+## External metadata
 
-[MusicBrainz](https://musicbrainz.org/doc/MusicBrainz_API) is a candidate for
-public artist, release-group and relationship metadata without end-user login.
-Public read requests do not require an API key. A future dedicated provider
-should use its artist IDs (MBIDs), explicit alias/relationship data, a descriptive
-User-Agent, caching and request throttling (normally no more than one request per
-second). Verify current usage/licensing requirements before deployment; it is a
-metadata source, not an audio or download service. Cover Art Archive can supply
-release artwork; artist portraits need another source with appropriate rights.
+The backend now provides [MusicBrainz metadata](musicbrainz.md) through a dedicated
+metadata provider with persistent PostgreSQL caching and a shared request gate.
+The artist UI and its local catalog endpoint do not fetch or merge this data yet.
 
-Keep this integration outside Core. Name-only matches must remain candidates
-until resolved with stronger evidence or user confirmation. A member's solo
-catalog must stay separate from the band's catalog, with an explicit relationship
-between them.
+MusicBrainz identities and relation data are available through authenticated
+`/metadata/MusicBrainz/...` endpoints. Name search returns candidates; linking
+these external identities to local artists remains a separate step. A member's
+solo catalog stays separate from the band's catalog. MusicBrainz is a metadata
+source, not an audio/download service or a comprehensive concert listings feed.

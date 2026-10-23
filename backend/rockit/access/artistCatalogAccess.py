@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
@@ -18,33 +18,41 @@ class ArtistCatalogAccess:
     async def get_async(
         session: AsyncSession, name: str, public_id: str | None = None
     ) -> AResult[ArtistCatalogResponse]:
-        """Match only case/whitespace variants; reject collisions instead of guessing.
+        """Match case/whitespace variants; use source IDs to resolve name collisions.
 
         Keep punctuation and accents significant. These are catalog candidates,
         not persistent identity merges or evidence of artist relationships.
         """
         key = "".join(name.lower().split())
-        statement = select(Artist.id).where(
+        statement = select(Artist.id, Artist.name).where(
             func.regexp_replace(func.lower(Artist.name), r"\s+", "", "g") == key
         )
-        matches = list((await session.execute(statement.limit(2))).scalars())
-        if len(matches) != 1:
+        matches = list((await session.execute(statement)).all())
+        # Case/spacing variants form a read-only catalog view. Identically named
+        # records with different source identities still need an explicit ID.
+        ambiguous = len({row.name for row in matches}) < len(matches)
+        if not matches or (ambiguous and not public_id):
             return AResult(
                 code=AResultCode.OK,
                 message="OK",
-                result=ArtistCatalogResponse(ambiguous=len(matches) > 1),
+                result=ArtistCatalogResponse(ambiguous=ambiguous),
             )
-        artist_id = matches[0]
+        artist_ids = [row.id for row in matches]
         songs = (
             select(CoreMediaRow.public_id)
             .join(Track, Track.id == CoreMediaRow.id)
-            .where(Track.artists.any(Artist.id == artist_id))
+            .where(Track.artists.any(Artist.id.in_(artist_ids)))
             .order_by(CoreMediaRow.public_id)
         )
         albums = (
             select(CoreMediaRow.public_id)
             .join(Album, Album.id == CoreMediaRow.id)
-            .where(Album.artists.any(Artist.id == artist_id))
+            .where(
+                or_(
+                    Album.artists.any(Artist.id.in_(artist_ids)),
+                    Album.songs.any(Track.artists.any(Artist.id.in_(artist_ids))),
+                )
+            )
             .order_by(CoreMediaRow.public_id)
         )
         return AResult(

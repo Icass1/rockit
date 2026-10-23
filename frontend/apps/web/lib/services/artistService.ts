@@ -39,7 +39,8 @@ export function artistNameFromRoute(segment: string): string {
     }
 }
 
-export function artistPageUrl(name: string): string {
+export function artistPageUrl(name: string, url?: string | null): string {
+    if (url && /^\/artist\/[^/?#]+$/.test(url)) return url;
     return `/artists/${encodeURIComponent(normalizeArtistPageName(name).toLowerCase())}`;
 }
 
@@ -104,4 +105,21 @@ export function subscribeArtistPortrait(listener: () => void): () => void {
 
 export function getServerArtistPortrait(): string {
     return "";
+}
+
+export async function resolveArtistPageUrl(
+    name: string,
+    providerUrl: string,
+    url?: string | null
+): Promise<string> {
+    const fallback = artistPageUrl(name, url);
+    if (fallback.startsWith("/artist/") || !providerUrl) return fallback;
+    const result = await Http.addFromUrlAsync({
+        url: providerUrl,
+        addToLibrary: false,
+        addToPlaylist: false,
+        playlistPublicId: null,
+    });
+    if (!result.isOk() || result.result.data.type !== "artist") return fallback;
+    return artistPageUrl(name, result.result.data.url);
 }

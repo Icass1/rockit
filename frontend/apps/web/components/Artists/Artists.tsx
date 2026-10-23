@@ -24,13 +24,13 @@ export default function Artists({
         >
             {artists.map((artist, index): JSX.Element => (
                 <div
-                    key={artist.publicId}
+                    key={artist.publicId || artist.name}
                     className="flex min-w-0 flex-nowrap overflow-hidden"
                 >
                     {linkable ? (
                         <Link
                             data-artist-link
-                            href={artistPageUrl(artist.name)}
+                            href={artistPageUrl(artist.name, artist.url)}
                             onClick={(event): void => {
                                 event.stopPropagation();
                                 if (!getArtistPortrait(artist.name))

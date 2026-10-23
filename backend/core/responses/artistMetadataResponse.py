@@ -20,12 +20,27 @@ class ArtistMetadataCandidates(BaseModel):
     candidates: list[ArtistMetadataIdentity]
 
 
+class ArtistImageSource(BaseModel):
+    provider: str
+    externalId: str
+
+
+class ArtistImageMetadata(BaseModel):
+    imageUrl: str = ""
+    sourceUrl: str = ""
+    width: int = 0
+    height: int = 0
+
+
 class ArtistMetadataProfile(BaseModel):
     name: str
     description: str
     genres: list[str]
     related: list[ArtistMetadataIdentity]
     events: list[ArtistMetadataItem]
+    imageSources: list[ArtistImageSource] = Field(
+        default_factory=list[ArtistImageSource]
+    )
 
 
 class ArtistMetadataCatalog(BaseModel):

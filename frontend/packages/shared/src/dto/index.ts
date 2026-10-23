@@ -46,6 +46,14 @@ export {
     type ArtistCatalogResponse,
 } from "./artistCatalogResponse";
 export {
+    ArtistImageMetadataSchema,
+    type ArtistImageMetadata,
+} from "./artistImageMetadata";
+export {
+    ArtistImageSourceSchema,
+    type ArtistImageSource,
+} from "./artistImageSource";
+export {
     ArtistMetadataCandidatesSchema,
     type ArtistMetadataCandidates,
 } from "./artistMetadataCandidates";

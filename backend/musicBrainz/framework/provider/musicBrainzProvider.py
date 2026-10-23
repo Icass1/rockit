@@ -14,6 +14,7 @@ from backend.core.responses.artistMetadataResponse import (
     ArtistMetadataCatalog,
     ArtistMetadataIdentity,
     ArtistMetadataItem,
+    ArtistImageSource,
 )
 from backend.musicBrainz.framework.musicBrainzApi import MusicBrainzApi
 from backend.musicBrainz.framework.models.metadata import (
@@ -196,6 +197,18 @@ class MusicBrainzProvider(BaseMetadataProvider):
                     if value
                 ),
                 genres=[genre.name for genre in artist.genres],
+                imageSources=[
+                    ArtistImageSource(provider="Wikimedia", externalId=match.group(1))
+                    for relation in artist.relations
+                    if relation.type == "wikidata" and relation.url is not None
+                    if (
+                        match := re.fullmatch(
+                            r"https?://(?:www\.)?wikidata\.org/(?:wiki/)?(Q[1-9][0-9]*)/?",
+                            relation.url.resource,
+                        )
+                    )
+                    is not None
+                ],
                 related=[
                     ArtistMetadataIdentity(
                         id=relation.artist.id,

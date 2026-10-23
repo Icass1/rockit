@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, Field
 
+__generate_frontend__ = False
+
 
 class SourceIdentity(BaseModel):
     id: str = ""
@@ -24,11 +26,16 @@ class SourceEvent(SourceIdentity):
     lifespan: SourceLifespan | None = Field(default=None, alias="life-span")
 
 
+class SourceUrl(BaseModel):
+    resource: str = ""
+
+
 class SourceRelation(BaseModel):
     type: str = ""
     begin: str | None = None
     artist: SourceIdentity | None = None
     event: SourceEvent | None = None
+    url: SourceUrl | None = None
 
 
 class SourceArtist(SourceIdentity):

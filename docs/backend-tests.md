@@ -1,6 +1,22 @@
 # Backend tests
 
-Run commands from the repository root with Python 3.12:
+Run commands from the repository root with Python 3.12. For a development
+checkout, install both runtime and development dependencies into the repository
+virtual environment (this command does not run tests or start the backend):
+
+```sh
+bash scripts/setup-backend-dev.sh
+venv/bin/python -m pyright
+```
+
+VS Code defaults to `venv/bin/python`. If the workspace already has an interpreter
+selected, choose **Python: Select Interpreter** and select that path, then restart
+the language server. Pylance's `Import "pytest" could not be resolved` and unknown
+`MonkeyPatch`/`pytest.mark` diagnostics mean the selected interpreter lacks the
+development dependencies; installing runtime requirements via `scripts/update.sh`
+alone does not install pytest. Do not hide these errors with ignores or fake stubs.
+
+To run the tests separately:
 
 ```sh
 python -m pip install -r backend/requirements-dev.txt

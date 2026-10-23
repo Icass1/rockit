@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
@@ -12,6 +12,8 @@ import {
     Play,
     Search,
 } from "lucide-react";
+import { EEvent } from "@rockit/shared";
+import type { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
 import type { ArtistPageResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
@@ -34,6 +36,44 @@ export default function ArtistClient({
     const [downloadedOnly, setDownloadedOnly] = useState(false);
     const [loading, setLoading] = useState(false);
     const [failed, setFailed] = useState(false);
+    useEffect(() => {
+        let active = true;
+        const handleDownloaded = (event: IMediaDownloadedEvent): void => {
+            if (!page.songs.some((song) => song.publicId === event.publicId))
+                return;
+            void rockIt.mediaManager
+                .getMedia(event.publicId)
+                .then((result) => {
+                    if (
+                        !active ||
+                        !result.isOk() ||
+                        result.result.media.type !== "song"
+                    )
+                        return;
+                    const updated = result.result.media;
+                    setPage((current) => ({
+                        ...current,
+                        songs: current.songs.map((song) =>
+                            song.publicId === updated.publicId ? updated : song
+                        ),
+                    }));
+                })
+                .catch(() => {
+                    /* A later reload can recover a missed download update. */
+                });
+        };
+        rockIt.eventManager.addEventListener(
+            EEvent.MediaDownloaded,
+            handleDownloaded
+        );
+        return () => {
+            active = false;
+            rockIt.eventManager.removeEventListener(
+                EEvent.MediaDownloaded,
+                handleDownloaded
+            );
+        };
+    }, [page.songs]);
     const { artist } = page;
     const songs = useMemo(
         () =>

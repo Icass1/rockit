@@ -143,6 +143,11 @@ class MusicBrainzProvider(BaseMetadataProvider):
         elif entity in browses:
             path, parent, includes = browses[entity]
             params = {parent: mbid, "inc": includes, "offset": offset, "limit": limit}
+            if entity == "discography":
+                # Use MusicBrainz's own catalogue view: exclude groups containing
+                # only bootlegs, promotions or pseudo-releases. Official live
+                # albums remain Album + Live, independent of cover availability.
+                params["release-group-status"] = "website-default"
         else:
             logger.warning("Unsupported metadata entity: %s", entity)
             return AResult(

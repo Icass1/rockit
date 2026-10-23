@@ -188,14 +188,14 @@ export default function ArtistClient({
                     summary={
                         <>
                             {(page.totalSongs > 0 || page.totalAlbums > 0) && (
-                                <p className="artist-inventory">
+                                <span className="artist-inventory">
                                     <span>
                                         {page.totalSongs} {v.ARTIST_SONGS}
                                     </span>
                                     <span>
                                         {page.totalAlbums} {v.ARTIST_ALBUMS}
                                     </span>
-                                </p>
+                                </span>
                             )}
                         </>
                     }

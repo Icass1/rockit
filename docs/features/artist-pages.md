@@ -235,3 +235,30 @@ not evidence of outbound requests at those timestamps; it cannot establish why t
 preceding upstream request failed. Automatic catalog crawling during search has
 been removed. No tests were run for these changes. DTOs were regenerated with
 `python -m backend models`; vocabulary was imported with the real backend CLI.
+
+### Compact artist context and source catalogue scope
+
+Collection counts and the source's country/year description now share one
+wrapping facts row, with genres directly below. Discography title, total, category
+filters and rounded Library-style search form one toolbar at desktop/ultrawide
+widths. Compact layouts stack them and allow horizontal scrolling through the
+categories; search remains full width with a visible focus indicator. No new
+labels were introduced for this refinement.
+
+The MusicBrainz provider now requests `release-group-status=website-default`
+when browsing discography. MusicBrainz documents this as excluding groups with
+only promotional, bootleg or pseudo-releases. This is the source's classification,
+not a guess based on artwork or date-shaped titles. A sanctioned live album can
+still legitimately appear under both Album and Live. The changed query has a
+separate durable cache key; old raw snapshots are retained, while the new scope
+is fetched once per page through the same rate gate. Local-only editions remain
+visible even when absent from this metadata view.
+
+Reference: https://musicbrainz.org/doc/MusicBrainz_API#Release_(Group)_Type_and_Status
+Audience-source capabilities are documented in docs/research/artist-images.md;
+no new external audience provider or mock figures have been added.
+
+The prior CI job reported one Pyright error in YouTube artist image selection:
+`max(..., default={})` inferred an unknown dictionary type. Using `default=None`
+and handling the empty case preserves behavior and resolves that inference.
+No local tests were run; validation is delegated to the PR CI.

@@ -124,10 +124,16 @@ export default function ArtistMetadataClient({
     return (
         <div className="artist-content">
             <div className="artist-about">
-                {summary}
+                <div className="artist-facts">
+                    {summary}
+                    {profile?.description && (
+                        <span className="artist-context">
+                            {profile.description}
+                        </span>
+                    )}
+                </div>
                 {profile && (
                     <>
-                        <p className="artist-context">{profile.description}</p>
                         {!!profile.genres.length && (
                             <p className="artist-genres">
                                 {profile.genres.slice(0, 4).join(" · ")}
@@ -224,8 +230,14 @@ export default function ArtistMetadataClient({
                 className="artist-discography"
                 aria-labelledby="artist-discography-title"
             >
-                <h2 id="artist-discography-title">{v.ARTIST_DISCOGRAPHY}</h2>
-                {!selected && localAlbums}
+                {!selected && (
+                    <>
+                        <h2 id="artist-discography-title">
+                            {v.ARTIST_DISCOGRAPHY}
+                        </h2>
+                        {localAlbums}
+                    </>
+                )}
                 {selected && (
                     <MetadataCatalog
                         key={`${selected}-albums-${attempt}`}
@@ -413,44 +425,55 @@ function MetadataCatalog({
     const visible = albums || expanded ? filtered : filtered.slice(0, 5);
     return (
         <section className="artist-metadata-catalog">
-            {catalog && (
-                <p className="artist-catalog-count">
-                    {catalog.total}{" "}
-                    {albums ? v.ARTIST_RELEASES : v.ARTIST_SONGS}
-                </p>
-            )}
-            {albums && (
-                <label
-                    className="artist-search artist-discography-search"
-                    htmlFor="artist-discography-search"
-                >
-                    <Search size={17} aria-hidden />
-                    <input
-                        id="artist-discography-search"
-                        type="search"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder={v.ARTIST_DISCOGRAPHY_SEARCH}
-                    />
-                </label>
-            )}
-            {albums && (
-                <div
-                    className="artist-discography-filters"
-                    role="group"
-                    aria-label={v.ARTIST_FILTER_TYPES}
-                >
-                    {[["", v.ALL], ...categories].map(([type, label]) => (
-                        <button
-                            key={type}
-                            type="button"
-                            aria-pressed={category === type}
-                            onClick={() => setCategory(type)}
-                        >
-                            {label}
-                        </button>
-                    ))}
+            {albums ? (
+                <div className="artist-discography-toolbar">
+                    <div className="artist-discography-heading">
+                        <h2 id="artist-discography-title">
+                            {v.ARTIST_DISCOGRAPHY}
+                        </h2>
+                        {catalog && (
+                            <span className="artist-catalog-count">
+                                {catalog.total} {v.ARTIST_RELEASES}
+                            </span>
+                        )}
+                    </div>
+                    <div
+                        className="artist-discography-filters"
+                        role="group"
+                        aria-label={v.ARTIST_FILTER_TYPES}
+                    >
+                        {[["", v.ALL], ...categories].map(([type, label]) => (
+                            <button
+                                key={type}
+                                type="button"
+                                aria-pressed={category === type}
+                                onClick={() => setCategory(type)}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                    <label
+                        className="artist-search artist-discography-search"
+                        htmlFor="artist-discography-search"
+                    >
+                        <Search size={15} aria-hidden />
+                        <input
+                            id="artist-discography-search"
+                            type="search"
+                            value={query}
+                            aria-label={v.ARTIST_DISCOGRAPHY_SEARCH}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder={v.ARTIST_DISCOGRAPHY_SEARCH}
+                        />
+                    </label>
                 </div>
+            ) : (
+                catalog && (
+                    <p className="artist-catalog-count">
+                        {catalog.total} {v.ARTIST_SONGS}
+                    </p>
+                )
             )}
             {albums && catalog?.hasMore && (query.trim() || category) && (
                 <p className="artist-notice">{v.ARTIST_FILTER_LOADED}</p>

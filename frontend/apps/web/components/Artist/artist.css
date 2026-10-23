@@ -366,11 +366,6 @@
 .artist-about .artist-context {
     margin-top: 0;
 }
-.artist-inventory > span:first-child {
-    flex-basis: 100%;
-    color: #a3a3a3;
-    font-size: 12px;
-}
 .artist-metadata-row {
     width: 100%;
     text-align: left;
@@ -813,4 +808,98 @@
 .artist-discography-filters button:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 4px;
+}
+
+/* Keep the artist facts together; wrap naturally on compact screens. */
+.artist-facts {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 14px;
+    color: #d4d4d4;
+}
+.artist-about .artist-inventory {
+    display: inline-flex;
+    margin: 0;
+    gap: 6px 16px;
+    color: inherit;
+    font-size: inherit;
+    font-weight: 400;
+}
+.artist-inventory > span + span::before,
+.artist-facts > .artist-context::before {
+    content: "·";
+    margin-right: 16px;
+    color: #85808b;
+}
+.artist-facts > .artist-context:first-child::before {
+    content: none;
+}
+.artist-facts:empty {
+    display: none;
+}
+.artist-discography-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 12px 24px;
+    margin-bottom: 24px;
+}
+.artist-discography-heading {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+.artist-discography-heading .artist-catalog-count {
+    margin: 0;
+    white-space: nowrap;
+    font-size: 12px;
+    color: #a3a3a3;
+}
+.artist-discography-toolbar .artist-discography-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    min-width: 0;
+    margin: 0;
+    gap: 16px;
+    padding: 4px 2px 8px;
+}
+.artist-discography-filters button {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 13px;
+}
+.artist-discography-toolbar .artist-discography-search {
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    gap: 8px;
+    padding: 0 14px;
+    background: #171717;
+    border-radius: 999px;
+    box-shadow: 0 1px 3px #0003;
+}
+.artist-discography-search svg {
+    flex-shrink: 0;
+}
+.artist-discography-search input {
+    min-width: 0;
+    font-weight: 500;
+}
+.artist-discography-search:focus-within {
+    outline: 2px solid rgb(var(--artist-accent, var(--accent-light)));
+    outline-offset: 3px;
+}
+.artist-discography-search input:focus-visible {
+    outline: none;
+}
+@media (min-width: 1200px) {
+    .artist-discography-toolbar {
+        grid-template-columns: auto minmax(0, 1fr) 224px;
+    }
 }

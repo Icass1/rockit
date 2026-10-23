@@ -24,3 +24,21 @@ YouTube artist information now uses YTMusic.get_artist rather than extracting a
 channel video listing; portrait selection uses the largest dimensions supplied
 by the source. This does not manufacture a higher-resolution file or assert that
 all artists have one. Documentation: https://ytmusicapi.readthedocs.io/en/latest/reference/browsing.html
+
+## Audience figures (2026-10-23)
+
+MusicBrainz's artist model describes identity, area, lifespan, relationships,
+ratings and tags; it does not provide monthly listeners, stream counts or
+subscriber counts. No audience figures are fabricated in the UI.
+
+Last.fm `artist.getInfo` accepts an MBID and exposes artist listeners and plays.
+It requires an API key, although the read method needs no end-user login. These
+are Last.fm audience totals, not Spotify monthly listeners, and must be labelled
+with their source and period if integrated. No Last.fm provider is connected yet.
+Spotify's artist endpoint requires authorization, documents follower totals as
+deprecated, and has no monthly-listener field. It is not a keyless substitute.
+
+Sources:
+- https://musicbrainz.org/doc/Artist
+- https://www.last.fm/api/show/artist.getInfo
+- https://developer.spotify.com/documentation/web-api/reference/get-an-artist

@@ -5,7 +5,7 @@ provider. Core selects registered providers and forwards calls. Source URLs,
 queries, MBID validation, JSON parsing, caching and request coordination all live
 under `backend/musicBrainz`. Providers and the `musicbrainz` database schema are
 picked up by existing discovery; normal database initialization creates the two
-new tables. No frontend changes or local/external identity merges are included.
+new tables. The artist page consumes normalized presentations of this metadata. Local and external catalogs remain separate; external identities never become playback IDs.
 
 ## Authenticated backend API
 
@@ -70,3 +70,29 @@ separate licensing, and the hosted API has commercial-use terms. See the officia
 [API](https://musicbrainz.org/doc/MusicBrainz_API),
 [rate limits](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting) and
 [data licenses](https://musicbrainz.org/doc/About/Data_License).
+
+## Artist page presentations
+
+The same generic Core dispatcher exposes provider-owned presentations:
+
+- Artist searches also include typed `candidates` (ID, name and disambiguation).
+- `GET /metadata/MusicBrainz/artist-profile/{mbid}` projects artist context,
+  genres, related artists and documented event relationships.
+- `GET /metadata/MusicBrainz/artist-discography/{mbid}?offset=0&limit=100`
+  projects release groups as items, total and source offset.
+- `GET /metadata/MusicBrainz/artist-recordings/{mbid}?offset=0&limit=100`
+  projects recordings with the same pagination contract.
+
+These presentations reuse the raw source cache and request gate. They do not
+create a second source cache or request artist catalogs recursively. The raw
+endpoints remain available. Artist profile lookups now include event relations.
+
+The UI chooses a unique exact name candidate (NFC, whitespace and case normalized)
+for display, and exposes a selector for other matches or ambiguous identities.
+This selection never links or merges local media identities. External catalog
+links open MusicBrainz; they are not Rockit playback/download controls.
+
+MusicBrainz does not expose popularity rankings. Discography dates order the
+loaded pages only, not the entire artist catalog before pagination completes.
+Documented events are historical or forthcoming source entries, not a guaranteed
+concert calendar. No separate provider is enabled implicitly for missing data.

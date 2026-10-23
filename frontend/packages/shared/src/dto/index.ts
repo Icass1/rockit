@@ -46,6 +46,26 @@ export {
     type ArtistCatalogResponse,
 } from "./artistCatalogResponse";
 export {
+    ArtistMetadataCandidatesSchema,
+    type ArtistMetadataCandidates,
+} from "./artistMetadataCandidates";
+export {
+    ArtistMetadataCatalogSchema,
+    type ArtistMetadataCatalog,
+} from "./artistMetadataCatalog";
+export {
+    ArtistMetadataIdentitySchema,
+    type ArtistMetadataIdentity,
+} from "./artistMetadataIdentity";
+export {
+    ArtistMetadataItemSchema,
+    type ArtistMetadataItem,
+} from "./artistMetadataItem";
+export {
+    ArtistMetadataProfileSchema,
+    type ArtistMetadataProfile,
+} from "./artistMetadataProfile";
+export {
     ArtistPageResponseSchema,
     type ArtistPageResponse,
 } from "./artistPageResponse";

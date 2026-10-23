@@ -24,3 +24,70 @@ export function playArtistSongs(
     rockIt.queueManager.moveToMedia(selected ?? playable[0].publicId);
     rockIt.mediaPlayerManager.play();
 }
+
+export function artistPageUrl(name: string): string {
+    return `/artists/${encodeURIComponent(name)}`;
+}
+
+const artistPortraits = new Map<string, string>();
+const portraitListeners = new Set<() => void>();
+const PORTRAITS_KEY = "rockit.artist-portraits";
+
+export function rememberArtistPortrait(name: string, imageUrl: string): void {
+    if (!imageUrl) return;
+    const key = name
+        .normalize("NFC")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLocaleLowerCase();
+    artistPortraits.delete(key);
+    artistPortraits.set(key, imageUrl);
+    if (artistPortraits.size > 50)
+        artistPortraits.delete(artistPortraits.keys().next().value!);
+    if (typeof window !== "undefined") {
+        try {
+            window.sessionStorage.setItem(
+                PORTRAITS_KEY,
+                JSON.stringify(Object.fromEntries(artistPortraits))
+            );
+        } catch {
+            /* Navigation still works when browser storage is unavailable. */
+        }
+    }
+    portraitListeners.forEach((listener) => listener());
+}
+
+export function getArtistPortrait(name: string): string {
+    const key = name
+        .normalize("NFC")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLocaleLowerCase();
+    const portrait = artistPortraits.get(key);
+    if (portrait) return portrait;
+    if (typeof window !== "undefined") {
+        try {
+            const stored: unknown = JSON.parse(
+                window.sessionStorage.getItem(PORTRAITS_KEY) ?? "{}"
+            );
+            if (stored && typeof stored === "object" && key in stored) {
+                const image: unknown = (stored as Record<string, unknown>)[key];
+                if (typeof image === "string") return image;
+            }
+        } catch {
+            /* No saved portrait is required to open an artist. */
+        }
+    }
+    return "";
+}
+
+export function subscribeArtistPortrait(listener: () => void): () => void {
+    portraitListeners.add(listener);
+    return (): void => {
+        portraitListeners.delete(listener);
+    };
+}
+
+export function getServerArtistPortrait(): string {
+    return "";
+}

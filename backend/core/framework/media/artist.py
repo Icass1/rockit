@@ -54,7 +54,6 @@ class Artist:
             offset=offset,
         )
         song_position = album_position = 0
-        found = False
         album_page_ids: list[str] = []
         for provider in providers.get_media_providers():
             result = await provider.get_artist_catalog_async(
@@ -72,7 +71,6 @@ class Artist:
                 continue
             catalog = result.result()
             page.partial |= catalog.ambiguous
-            found |= bool(catalog.songIds or catalog.albumIds)
             song_ids = catalog.songIds[
                 max(0, offset - song_position) : max(0, offset + limit - song_position)
             ]
@@ -107,9 +105,8 @@ class Artist:
                     )
                     for record in albums.result()
                 ]
-        if not anchor and not found:
-            logger.warning("No unambiguous local artist catalog found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
+        # Name-based discovery can have metadata without locally indexed music.
+        # Provider-backed IDs still require the successful anchor lookup above.
         page.totalSongs = song_position
         page.totalAlbums = album_position
         page.hasMore = max(song_position, album_position) > offset + limit

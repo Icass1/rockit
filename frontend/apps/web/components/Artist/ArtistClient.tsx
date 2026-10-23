@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, type JSX } from "react";
+import {
+    useEffect,
+    useMemo,
+    useState,
+    useSyncExternalStore,
+    type JSX,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ArtistPageResponse } from "@/dto";
@@ -18,7 +24,10 @@ import type { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDown
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     getArtistPageAsync,
+    getArtistPortrait,
+    getServerArtistPortrait,
     playArtistSongs,
+    subscribeArtistPortrait,
 } from "@/lib/services/artistService";
 import { getTime } from "@/lib/utils/getTime";
 import "@/components/Artist/artist.css";
@@ -89,8 +98,12 @@ export default function ArtistClient({
         [page.songs, downloadedOnly, query]
     );
     const playable = songs.some((song) => song.downloaded && song.audioUrl);
-    const image =
-        artist.imageUrl || page.songs[0]?.imageUrl || page.albums[0]?.imageUrl;
+    const searchPortrait = useSyncExternalStore(
+        subscribeArtistPortrait,
+        () => getArtistPortrait(artist.name),
+        getServerArtistPortrait
+    );
+    const image = searchPortrait || artist.imageUrl;
     async function loadMore(): Promise<void> {
         if (loading) return;
         setLoading(true);
@@ -126,8 +139,8 @@ export default function ArtistClient({
                             alt=""
                             fill
                             priority
-                            sizes="(max-width: 720px) 100vw, 65vw"
-                            className="object-cover"
+                            sizes="(max-width: 720px) 260px, 380px"
+                            className="object-contain"
                         />
                     </div>
                 )}

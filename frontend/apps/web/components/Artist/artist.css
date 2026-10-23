@@ -522,3 +522,66 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Portrait and title share a stage without overlapping or borrowing album art. */
+.artist-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(180px, 30vw, 380px);
+    align-items: center;
+    gap: 32px;
+    min-height: 0;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding: 48px 6% 40px;
+}
+.artist-stage::after {
+    display: none;
+}
+.artist-portrait {
+    position: relative;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 1;
+    z-index: auto;
+    width: 100%;
+    aspect-ratio: 1;
+}
+.artist-portrait img {
+    object-fit: contain;
+    object-position: center;
+}
+.artist-intro {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+}
+.artist-intro h1 {
+    max-width: none;
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+}
+.artist-stage:not(:has(.artist-portrait)) {
+    grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 720px) {
+    .artist-stage {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+        padding-top: 28px;
+    }
+    .artist-portrait {
+        grid-column: 1;
+        grid-row: 1;
+        width: min(70vw, 260px);
+        margin-inline: auto;
+    }
+    .artist-intro {
+        grid-column: 1;
+        grid-row: 2;
+        padding: 0;
+    }
+    .artist-stage:not(:has(.artist-portrait)) .artist-intro {
+        grid-row: 1;
+    }
+}

@@ -2,11 +2,15 @@
 
 import { JSX } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { BaseSearchResultsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import {
+    artistPageUrl,
+    rememberArtistPortrait,
+} from "@/lib/services/artistService";
 import SearchRail from "@/components/Search/SearchRail";
-import SearchResultCard from "@/components/Search/SearchResultCard";
 
 export default function ArtistsSection({
     artists,
@@ -24,9 +28,13 @@ export default function ArtistsSection({
             </h2>
             <SearchRail kind="artist">
                 {artists.map((artist): JSX.Element => (
-                    <SearchResultCard
+                    <Link
                         key={rockIt.searchManager.getResultKey(artist)}
-                        media={artist}
+                        href={artistPageUrl(artist.name)}
+                        onClick={() =>
+                            rememberArtistPortrait(artist.name, artist.imageUrl)
+                        }
+                        className="block shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                     >
                         <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
                             <Image
@@ -41,7 +49,7 @@ export default function ArtistsSection({
                                 {artist.name}
                             </span>
                         </div>
-                    </SearchResultCard>
+                    </Link>
                 ))}
             </SearchRail>
         </section>

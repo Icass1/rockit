@@ -770,9 +770,9 @@ class YoutubeMusicApi:
                 thumbnails,
                 key=lambda image: (image.get("width") or 0)
                 * (image.get("height") or 0),
-                default={},
+                default=None,
             )
-            thumbnail = str(largest.get("url") or "")
+            thumbnail = str(largest.get("url") or "") if largest else ""
 
             artist = YoutubeMusicArtist(
                 youtube_id=youtube_id,

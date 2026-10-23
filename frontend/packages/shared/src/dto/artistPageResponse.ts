@@ -2,9 +2,9 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
+import { BaseAlbumWithoutSongsResponseSchema } from "./baseAlbumWithoutSongsResponse";
 import { BaseArtistResponseSchema } from "./baseArtistResponse";
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
-import { BaseAlbumWithoutSongsResponseSchema } from "./baseAlbumWithoutSongsResponse";
 
 export const ArtistPageResponseSchema = z.object({
     artist: z.lazy(() => BaseArtistResponseSchema),

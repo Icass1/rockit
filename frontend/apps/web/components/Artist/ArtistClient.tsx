@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { ArtistPageResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EEvent } from "@rockit/shared";
 import {
     ArrowUpRight,
     Check,
@@ -12,9 +14,7 @@ import {
     Play,
     Search,
 } from "lucide-react";
-import { EEvent } from "@rockit/shared";
 import type { IMediaDownloadedEvent } from "@/models/interfaces/events/mediaDownloaded";
-import type { ArtistPageResponse } from "@/dto";
 import { rockIt } from "@/lib/rockit/rockIt";
 import {
     getArtistPageAsync,

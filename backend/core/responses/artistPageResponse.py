@@ -16,9 +16,15 @@ class ArtistCatalogResponse(BaseModel):
 
 class ArtistPageResponse(BaseModel):
     artist: BaseArtistResponse
-    songs: list[BaseSongWithAlbumResponse] = Field(default_factory=list)
-    albums: list[BaseAlbumWithoutSongsResponse] = Field(default_factory=list)
-    relatedArtists: list[BaseArtistResponse] = Field(default_factory=list)
+    songs: list[BaseSongWithAlbumResponse] = Field(
+        default_factory=lambda: list[BaseSongWithAlbumResponse]()
+    )
+    albums: list[BaseAlbumWithoutSongsResponse] = Field(
+        default_factory=lambda: list[BaseAlbumWithoutSongsResponse]()
+    )
+    relatedArtists: list[BaseArtistResponse] = Field(
+        default_factory=lambda: list[BaseArtistResponse]()
+    )
     totalSongs: int = 0
     totalAlbums: int = 0
     offset: int = 0

@@ -69,3 +69,21 @@ not confirmation that the artist has no tour. All labels use Vocabulary.xlsx.
 For this UX revision no tests were run, at the user's request. Vocabulary was
 regenerated with the real `python -m backend import-vocabulary` command against
 a disposable local database before committing.
+
+## Artist navigation
+
+Search artist results link directly to the name-based artist page, without a
+media context menu or source picker. Names under library songs, videos and albums
+use the same route. Artist links stop click and touch propagation so they do not
+play the parent media, alter the queue, or open its context menu. Album covers
+and titles retain their own links; artist links are siblings, never nested links.
+This applies to library grids and rows, including selection mode.
+
+Name-based pages may have an empty local collection and still show metadata;
+provider-ID routes continue to validate the requested artist. No media is imported
+just by navigating. Search portraits are handed off through a bounded browser
+session cache (50 entries) and rendered with an SSR-safe external-store snapshot.
+The header uses artist artwork only, without substituting song or album covers.
+Portrait and text occupy separate columns on wide screens and stack on narrow
+screens so the title remains unobstructed. No new vocabulary labels were needed.
+No tests were run for this navigation revision at the user's request.

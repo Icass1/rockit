@@ -29,6 +29,9 @@ from backend.core.responses.basePlaylistWithoutMediasResponse import (
 # Youtube Music framework.
 from backend.youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music
 
+from backend.core.responses.artistPageResponse import ArtistCatalogResponse
+from backend.youtubeMusic.access.artistCatalogAccess import ArtistCatalogAccess
+
 logger: Logger = getLogger(__name__)
 
 
@@ -77,6 +80,14 @@ YOUTUBE_MUSIC_URL_PATTERNS: List[UrlPattern] = [
 
 
 class YoutubeMusicProvider(BaseMediaProvider):
+    async def get_artist_catalog_async(
+        self, session: AsyncSession, name: str, public_id: str | None = None
+    ) -> AResult[ArtistCatalogResponse]:
+        """Expose this provider's indexed artist catalog to Core."""
+        return await ArtistCatalogAccess.get_async(
+            session=session, name=name, public_id=public_id
+        )
+
     def download_concurrency_limit(self) -> int:
         return 1
 

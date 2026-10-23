@@ -18,6 +18,7 @@ from backend.core.responses.baseVideoResponse import BaseVideoResponse
 from backend.core.responses.baseStationResponse import BaseStationResponse
 from backend.core.responses.searchResponse import BaseSearchResultsItem
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
+from backend.core.responses.artistPageResponse import ArtistCatalogResponse
 from backend.core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
@@ -32,6 +33,14 @@ logger: Logger = getLogger(__name__)
 
 class BaseMediaProvider(BaseProvider):
     """Shared contract for media providers."""
+
+    async def get_artist_catalog_async(
+        self, session: AsyncSession, name: str, public_id: str | None = None
+    ) -> AResult[ArtistCatalogResponse]:
+        """Return locally indexed references. Unsupported sources contribute nothing."""
+        return AResult(
+            code=AResultCode.OK, message="OK", result=ArtistCatalogResponse()
+        )
 
     def start_download(self, publicId: str) -> AResult[BaseDownload]:
         logger.warning(

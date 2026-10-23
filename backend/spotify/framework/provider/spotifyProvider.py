@@ -43,6 +43,9 @@ from backend.spotify.responses.albumResponse import SpotifyAlbumResponse
 from backend.constants import MEDIA_PATH
 from backend.spotify.access.trackAccess import TrackAccess
 
+from backend.core.responses.artistPageResponse import ArtistCatalogResponse
+from backend.spotify.access.artistCatalogAccess import ArtistCatalogAccess
+
 logger: Logger = getLogger(__name__)
 
 SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
@@ -66,6 +69,14 @@ SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyProvider(BaseMediaProvider):
+    async def get_artist_catalog_async(
+        self, session: AsyncSession, name: str, public_id: str | None = None
+    ) -> AResult[ArtistCatalogResponse]:
+        """Expose this provider's indexed artist catalog to Core."""
+        return await ArtistCatalogAccess.get_async(
+            session=session, name=name, public_id=public_id
+        )
+
     def download_cooldown_remaining(self) -> float:
         from backend.youtube.framework.youtubeGate import youtube_gate
 

@@ -33,10 +33,21 @@ from backend.rockit.access.db.ormModels.video import RockitVideoRow
 
 from backend.rockit.framework.rockit import Rockit
 
+from backend.core.responses.artistPageResponse import ArtistCatalogResponse
+from backend.rockit.access.artistCatalogAccess import ArtistCatalogAccess
+
 logger: Logger = getLogger(__name__)
 
 
 class RockItProvider(BaseMediaProvider, BaseUploadProvider):
+    async def get_artist_catalog_async(
+        self, session: AsyncSession, name: str, public_id: str | None = None
+    ) -> AResult[ArtistCatalogResponse]:
+        """Expose this provider's indexed artist catalog to Core."""
+        return await ArtistCatalogAccess.get_async(
+            session=session, name=name, public_id=public_id
+        )
+
     def download_concurrency_limit(self) -> int:
         return 3
 

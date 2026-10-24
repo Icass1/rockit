@@ -154,7 +154,7 @@ export default function PlayerUIContent(): JSX.Element {
     const gridClass = isLandscape
         ? "transition-all ease-in-out duration-500"
         : isPortrait
-          ? "grid-rows-[1fr_1fr]"
+          ? "grid-rows-[minmax(0,1fr)_minmax(0,1fr)]"
           : "grid-cols-[3fr_1fr]";
 
     // Keep mainComponent at the same child index across all layouts so React

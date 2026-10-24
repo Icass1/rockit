@@ -24,6 +24,7 @@ export default function PlayerUIMain({
         rockIt.playerUIManager.initializeArtworkMode();
     }, []);
     const videoContainerRef = useRef<HTMLDivElement | null>(null);
+    const videoListenerCleanupRef = useRef<(() => void) | null>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
     const [offlineCover, setOfflineCover] = useState<{
         publicId: string;
@@ -59,6 +60,8 @@ export default function PlayerUIMain({
     // video through a ref makes its presence deterministic when the player opens.
     const attachVideoRef = useCallback(
         (container: HTMLDivElement | null): void => {
+            videoListenerCleanupRef.current?.();
+            videoListenerCleanupRef.current = null;
             const previous = videoContainerRef.current;
             if (previous) {
                 rockIt.mediaPlayerManager.detachVideoFromContainer(previous);
@@ -69,14 +72,21 @@ export default function PlayerUIMain({
                 const video = rockIt.mediaPlayerManager.videoElement;
                 const updateAspectRatio = (): void => {
                     if (!video?.videoWidth || !video.videoHeight) return;
-                    container.style.setProperty(
-                        "--player-video-aspect",
-                        `${video.videoWidth} / ${video.videoHeight}`
+                    container.parentElement?.style.setProperty(
+                        "--player-video-ratio",
+                        String(video.videoWidth / video.videoHeight)
                     );
                 };
                 updateAspectRatio();
                 video?.addEventListener("loadedmetadata", updateAspectRatio);
                 video?.addEventListener("resize", updateAspectRatio);
+                videoListenerCleanupRef.current = (): void => {
+                    video?.removeEventListener(
+                        "loadedmetadata",
+                        updateAspectRatio
+                    );
+                    video?.removeEventListener("resize", updateAspectRatio);
+                };
             }
         },
         [currentMedia, $audioOnly]
@@ -121,16 +131,18 @@ export default function PlayerUIMain({
     );
 
     if (isVideo(currentMedia)) {
+        // Query both cell dimensions instead of falling back to viewport height.
+        // Fit the native ratio within them; wide videos can still use full width.
         return (
             <div
-                className="relative flex h-full w-full items-center justify-center"
+                className="[container-type:size] relative flex h-full w-full items-center justify-center"
                 onMouseEnter={handleVideoMouseEnter}
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className="relative h-[90%] max-h-[90%] w-full max-w-full cursor-pointer overflow-hidden rounded-xl"
+                    className="relative w-[min(100cqw,calc(90cqh*var(--player-video-ratio,1.777777778)))] cursor-pointer overflow-hidden rounded-xl"
                     style={{
-                        aspectRatio: "var(--player-video-aspect, 16 / 9)",
+                        aspectRatio: "var(--player-video-ratio, 16 / 9)",
                     }}
                     onClick={handleClick}
                 >
@@ -201,7 +213,7 @@ export default function PlayerUIMain({
     } else if (isSong(currentMedia)) {
         return (
             <div
-                className="group ignore-click-player-ui @container relative flex h-full w-full items-center justify-center"
+                className="group ignore-click-player-ui [container-type:size] relative flex h-full w-full items-center justify-center"
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
@@ -287,7 +299,7 @@ export default function PlayerUIMain({
     } else if (isStation(currentMedia)) {
         return (
             <div
-                className="@container relative flex h-full w-full items-center justify-center"
+                className="[container-type:size] relative flex h-full w-full items-center justify-center"
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >

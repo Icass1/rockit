@@ -63,9 +63,11 @@ function getConfig(width: number): {
 function CoverflowCardComponent({
     card,
     delta,
+    cardSize,
 }: {
     card: CoverflowCard;
     delta: number;
+    cardSize: number;
 }): JSX.Element {
     const song = useMedia(card.song);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
@@ -88,7 +90,7 @@ function CoverflowCardComponent({
                 src={song.imageUrl}
                 alt=""
                 fill
-                sizes="250px"
+                sizes={`${Math.ceil(cardSize)}px`}
                 className={`object-cover transition-opacity duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                 draggable={false}
                 aria-hidden="true"
@@ -353,6 +355,7 @@ export default function HomeHeroCoverflow({
                                 <CoverflowCardComponent
                                     card={card}
                                     delta={delta}
+                                    cardSize={config.cardSize}
                                 />
                             </div>
                         );

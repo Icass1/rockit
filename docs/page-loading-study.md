@@ -48,8 +48,10 @@ de Library: el contenido y DOM de Home no cambiaron entre ambas ejecuciones.
 
 ## Cambios acotados
 
-- Home/Library usan el snapshot de Serwist mientras revalidan. IndexedDB se lee desde
-  el inicio en Library; una respuesta de red nueva prevalece sobre la copia local.
+- Home/Library muestran un snapshot de IndexedDB por cuenta mientras consultan la
+  red. La respuesta real actualiza la pantalla y prevalece sobre una lectura local
+  tardía. La medición original usaba la estrategia de Serwist, sustituida tras la
+  revisión para evitar que una revalidación solo actualizase la caché del worker.
 - «Todo» dibuja inicialmente hasta 100 elementos por categoría; «cargar más» amplía
   el límite en 100. Buscar, filtrar y reproducir siguen usando el conjunto completo.
   No es paginación del backend ni virtualización: el cuerpo completo sigue llegando.
@@ -212,3 +214,28 @@ Se añadieron casos para saltos consecutivos, dirección inversa, radio, cola si
 descargas, precarga y cadenas de archivos fallidos. No se ejecutaron localmente;
 la validación se deja a CI. No se ha medido el ahorro exacto en producción: se elimina
 una espera explícita del código, no la latencia de cargar el siguiente audio.
+
+## Correcciones de la revisión completa
+
+- `LibraryPlaybackManager` concentra la carga progresiva y su estado de actividad;
+  el botón queda limitado a representar y solicitar play/pause. No se marca el
+  arranque por la existencia de metadatos: se conservan las entradas pendientes
+  hasta encontrar una descargada, incluso si llega en una tanda posterior.
+- `useAccountCachedData` comparte la carga de Home y Library. Lee el snapshot por
+  cuenta y aplica la respuesta HTTP real al estado de la misma pantalla. Esas dos
+  rutas usan NetworkOnly en el service worker; el fallback offline pertenece al
+  hook, evitando dos capas que revalidaban sin comunicarse. Home tiene su propio
+  store de metadatos en la versión 4 de IndexedDB; no almacena audio adicional.
+- Las modificaciones de la cola web solicitan actualizar la precarga si hay
+  reproducción activa. El reproductor deduplica por ID y URL, de modo que reutilizar
+  un ID en otra cola tampoco conserva una fuente equivocada. Se mantiene la política
+  existente de precargar una siguiente canción.
+- Las actividades locales se identifican por su clave para evitar repetir el toast
+  al recibirlas del servidor. Una escritura invalida las respuestas anteriores sin
+  silenciar eventos nuevos que procedan de otras acciones o dispositivos.
+
+Los casos de regresión incluyen el manager y la cola reales para el arranque tras
+entradas sin descargar, la actualización de precarga, datos cacheados seguidos de
+datos frescos, cambios de cuenta y actividad local durante un refresco pendiente.
+No se ejecutaron localmente por indicación del usuario; se delega la validación en
+CI. No se repitieron las mediciones de tiempos de carga tras estos ajustes.

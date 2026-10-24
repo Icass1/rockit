@@ -20,6 +20,7 @@ export class NotificationManager {
     private _generation = 0;
     private _revision = 0;
     private _loaded = false;
+    private _localActivityKeys = new Set<string>();
     private _migration?: Promise<void>;
     private _refresh?: Promise<void>;
     private _refreshAgain = false;
@@ -35,6 +36,7 @@ export class NotificationManager {
         this._generation++;
         this._revision++;
         this._loaded = false;
+        this._localActivityKeys.clear();
         this._migration = undefined;
         this._refresh = undefined;
         this._refreshAgain = false;
@@ -98,13 +100,17 @@ export class NotificationManager {
                 if (
                     !item.read &&
                     item.category !== "release" &&
-                    !previous.has(item.id)
+                    !previous.has(item.id) &&
+                    !(item.key && this._localActivityKeys.has(item.key))
                 )
                     this._showToast(item.type, item.message, item.id);
             }
         }
         this._loaded = true;
         this._notificationsAtom.set(parsed.data);
+        for (const item of parsed.data) {
+            if (item.key) this._localActivityKeys.delete(item.key);
+        }
     }
 
     private async _migrateLegacyAsync(generation: number): Promise<void> {
@@ -212,6 +218,7 @@ export class NotificationManager {
         }
         const generation = this._generation;
         const key = options.key ?? crypto.randomUUID();
+        this._localActivityKeys.add(key);
         this._writeQueue = this._writeQueue
             .then(async (): Promise<void> => {
                 if (generation !== this._generation) return;
@@ -223,14 +230,18 @@ export class NotificationManager {
                 });
                 if (generation !== this._generation) return;
                 if (result.isNotOk()) {
+                    this._localActivityKeys.delete(key);
                     console.error("Cannot save notification", result.message);
                     return;
                 }
-                // The immediate toast above already showed this activity.
-                this._loaded = false;
+                // Invalidate an inbox captured before this write. Suppress only
+                // our own activity key, leaving unrelated server events visible.
+                this._revision++;
                 await this.refreshAsync();
             })
             .catch((error: unknown): void => {
+                if (generation === this._generation)
+                    this._localActivityKeys.delete(key);
                 console.error("Notification update failed", error);
             });
     }

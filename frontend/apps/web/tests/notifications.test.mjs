@@ -164,7 +164,9 @@ test("refresh bursts share one request and run one final refresh for newer event
         new Promise((resolve) => requests.push(resolve));
     const pending = manager.refreshAsync();
     await flush();
-    const overlapping = Array.from({ length: 20 }, () => manager.refreshAsync());
+    const overlapping = Array.from({ length: 20 }, () =>
+        manager.refreshAsync()
+    );
     await flush();
     assert.equal(requests.length, 1);
     requests[0](ok({ items: [entry("old")] }));
@@ -283,4 +285,43 @@ test("mark all sends the displayed unread ids and retains all entries", async ()
     assert.deepEqual(Array.from(writes[0].ids), ["one", "unread"]);
     assert.equal(manager.notificationsAtom.get().length, 3);
     assert.ok(manager.notificationsAtom.get().every((n) => n.read));
+});
+
+test("local activities do not toast twice when they finish during an older inbox refresh", async () => {
+    const { NotificationManager, http, inbox, toasts } = setup();
+    const manager = new NotificationManager();
+    manager.setUser("alice");
+    await manager.refreshAsync();
+    const oldItems = structuredClone(inbox.get("alice"));
+    let finishOld;
+    const originalGet = http.getNotifications;
+    http.getNotifications = () =>
+        new Promise((resolve) => {
+            finishOld = resolve;
+        });
+    const pending = manager.refreshAsync();
+    await flush();
+    http.createNotificationActivity = async (payload) => {
+        inbox
+            .get("alice")
+            .unshift(
+                entry("local", { category: "activity", key: payload.key })
+            );
+        inbox.get("alice").unshift(entry("external"));
+        return ok({});
+    };
+    manager.notify(3, "Saved", { key: "local-action" });
+    await flush();
+    assert.equal(toasts.length, 1);
+    http.getNotifications = originalGet;
+    finishOld(ok({ items: oldItems }));
+    await pending;
+    await flush();
+    // One immediate local toast and one unrelated server event, each once.
+    assert.equal(toasts.length, 2);
+    assert.equal(
+        manager.notificationsAtom.get().filter((item) => item.id === "local")
+            .length,
+        1
+    );
 });

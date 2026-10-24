@@ -6,6 +6,7 @@ import { EMediaContextLocation } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import { QueueMedia } from "@/components/PlayerUI/QueueMedia";
+import AutoplayRecommendations from "@/components/Recommendations/AutoplayRecommendations";
 
 export default function PlayerUIQueue({
     visible,
@@ -144,6 +145,8 @@ export default function PlayerUIQueue({
                     </MediaContextMenu>
                 </div>
             ))}
+
+            <AutoplayRecommendations />
         </div>
     );
 }

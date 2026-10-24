@@ -34,6 +34,10 @@ from backend.core.responses.startDownloadResponse import StartDownloadResponse
 from backend.core.responses.startDownloadFromUrlResponse import (
     StartDownloadFromUrlResponse,
 )
+from backend.core.responses.searchResponse import (
+    BaseSearchResultsItem,
+    SearchResultsResponse,
+)
 from backend.core.responses.downloadsResponse import (
     DownloadsResponse,
     DownloadGroupResponse,
@@ -313,6 +317,110 @@ class Downloader:
                 data=media,
                 downloadGroupId=a_result_download.result().downloadGroupId,
             ),
+        )
+
+    @staticmethod
+    async def start_download_from_search_async(
+        session: AsyncSession,
+        user_id: int,
+        artist_name: str,
+        track_name: str,
+        add_to_library: bool,
+        add_to_playlist: bool,
+        playlist_public_id: str | None,
+    ) -> AResult[StartDownloadFromUrlResponse]:
+        """Resolve the best song match for an external discovery suggestion
+        (artist + track) via a single provider search, then queue its download
+        in one atomic operation by reusing the same add-and-queue path as
+        start_download_from_url_async.
+
+        Explicit selections share the same resolver used by the bounded
+        playback preparation window. Reading suggestions never searches.
+        """
+
+        found = await Downloader.resolve_search_song_async(
+            session=session, artist_name=artist_name, track_name=track_name
+        )
+        if found.is_not_ok():
+            logger.error(f"Could not resolve discovery suggestion. {found.info()}")
+            return AResult(code=found.code(), message=found.message())
+        match = found.result()
+
+        return await Downloader.start_download_from_url_async(
+            session=session,
+            user_id=user_id,
+            url=match.providerUrl,
+            add_to_library=add_to_library,
+            add_to_playlist=add_to_playlist,
+            playlist_public_id=playlist_public_id,
+        )
+
+    @staticmethod
+    async def resolve_search_song_async(
+        session: AsyncSession, artist_name: str, track_name: str
+    ) -> AResult[BaseSearchResultsItem]:
+        """Resolve a conservative artist/title match through registered providers."""
+        a_search: AResult[SearchResultsResponse] = await Media.search_async(
+            session=session, query=f"{artist_name} {track_name}"
+        )
+        if a_search.is_not_ok():
+            logger.error(
+                f"Error searching for '{artist_name} {track_name}'. {a_search.info()}"
+            )
+            return AResult(code=a_search.code(), message=a_search.message())
+
+        items: List[BaseSearchResultsItem] = a_search.result().results
+        from difflib import SequenceMatcher
+        from backend.core.framework.recommendationRanking import RecommendationRanking
+
+        def similarity(left: str, right: str) -> float:
+            return SequenceMatcher(
+                None,
+                RecommendationRanking.normalize_text(left),
+                RecommendationRanking.normalize_text(right),
+            ).ratio()
+
+        matches = [
+            item
+            for item in items
+            if item.type == "song"
+            and item.providerUrl
+            and similarity(item.name, track_name) >= 0.65
+            and any(
+                similarity(artist.name, artist_name) >= 0.65 for artist in item.artists
+            )
+        ]
+        match = max(
+            matches,
+            key=lambda item: similarity(item.name, track_name)
+            + max(similarity(artist.name, artist_name) for artist in item.artists),
+            default=None,
+        )
+
+        if match is None:
+            logger.warning(
+                f"No downloadable song match for '{artist_name} {track_name}'."
+            )
+            return AResult(
+                code=AResultCode.NOT_FOUND,
+                message=f"No song found for {artist_name} - {track_name}",
+            )
+
+        return AResult(code=AResultCode.OK, message="OK", result=match)
+
+    @staticmethod
+    async def add_search_song_async(
+        session: AsyncSession, match: BaseSearchResultsItem
+    ) -> AResult[str]:
+        """Import provider metadata without downloading or modifying a library."""
+        added = await providers.add_from_url_async(
+            session=session, url=match.providerUrl
+        )
+        if added.is_not_ok():
+            logger.error(f"Could not add search match. {added.info()}")
+            return AResult(code=added.code(), message=added.message())
+        return AResult(
+            code=AResultCode.OK, message="OK", result=added.result().publicId
         )
 
     @staticmethod

@@ -56,7 +56,9 @@ function SelectableRow({
             {children}
             {selectable && (
                 <div className="pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded bg-black/60">
-                    {"publicId" in media && isSelected(media.publicId) ? (
+                    {"publicId" in media &&
+                    media.publicId !== null &&
+                    isSelected(media.publicId) ? (
                         <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
                     ) : (
                         <SquareDashed className="h-5 w-5 text-white/80" />

@@ -19,6 +19,7 @@ import {
     Pencil,
     Play,
     PlayCircle,
+    Radio,
     RefreshCw,
     Shuffle,
     Trash2,
@@ -314,6 +315,14 @@ const ACTION_REGISTRY: ActionDef[] = [
         mediaTypes: [EMediaType.Album, EMediaType.Playlist],
         condition: (m) => !isSearchResult(m),
     },
+    {
+        id: EMediaContextAction.SimilarToSong,
+        type: "action",
+        icon: Radio,
+        labelKey: "SIMILAR_TO_SONG",
+        mediaTypes: [EMediaType.Song],
+        condition: (m) => !isSearchResult(m),
+    },
 ];
 
 const ACTION_MAP = new Map<EMediaContextAction, ActionDef>(
@@ -327,6 +336,7 @@ function findAction(id: EMediaContextAction): ActionDef | undefined {
 const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
     [EMediaType.Song]: [
         EMediaContextAction.Play,
+        EMediaContextAction.SimilarToSong,
         EMediaContextAction.AddToPlaylist,
         EMediaContextAction.AddToPlaylistAndDownload,
         "---",

@@ -229,6 +229,10 @@ class BaseMediaProvider(BaseProvider):
     # Return None if the provider has no contribution for that CTE.
     # ------------------------------------------------------------------
 
+    def get_recommendation_playlist_edges_cte_fragment(self) -> str | None:
+        """SELECT playlist_id, media_id for playlist co-occurrence ranking."""
+        return None
+
     def get_stats_media_info_cte_fragment(self) -> str | None:
         """SELECT fragment for media_info (media_id, duration_ms, public_id, media_name, image_url, media_type_key)."""
         return None
@@ -239,6 +243,14 @@ class BaseMediaProvider(BaseProvider):
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
         """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url)."""
+        return None
+
+    def get_stats_genre_info_cte_fragment(self) -> str | None:
+        """SELECT fragment for genre_info (media_id, genre_name).
+
+        A media item may produce multiple rows (multiple artists, each with
+        multiple genres). Return None if the provider has no genre data.
+        """
         return None
 
     def get_collection_provider_url(

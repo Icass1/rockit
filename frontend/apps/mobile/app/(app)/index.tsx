@@ -11,13 +11,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useHomeData } from "@/hooks/useHomeData";
-import { usePlayer } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { useVocabulary } from "@/lib/vocabulary";
 import FeaturedCarousel from "@/components/Home/FeaturedCarousel";
 import HomeHeader from "@/components/Home/HomeHeader";
 import HorizontalSongRow from "@/components/Home/HorizontalSongRow";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
 import Header, { HEADER_HEIGHT } from "@/components/layout/Header";
+import AutoplayDiscovery from "@/components/Recommendations/AutoplayDiscovery";
 
 function useFadeIn(delay: number = 0) {
     const [opacity] = useState(() => new Animated.Value(0));
@@ -73,13 +74,11 @@ export default function HomeScreen() {
     const section4 = useFadeIn(320);
     const section5 = useFadeIn(400);
 
-    const { playMedia } = usePlayer();
-
     const handleSongPress = (
         song: BaseSongWithAlbumResponse,
         allSongs: BaseSongWithAlbumResponse[]
     ) => {
-        playMedia(song, allSongs);
+        void rockIt.queueManager.playRecommendedSongAsync(song, allSongs);
     };
 
     if (loading || isLoading) {
@@ -106,7 +105,11 @@ export default function HomeScreen() {
         );
     }
 
-    if (data.isEmpty) {
+    if (
+        data.isEmpty &&
+        !data.recommendations?.songs.length &&
+        !data.recommendations?.discover.length
+    ) {
         return (
             <SafeAreaView style={styles.container} edges={["top"]}>
                 <Header />
@@ -131,21 +134,27 @@ export default function HomeScreen() {
                     <HomeHeader />
                 </Animated.View>
 
-                {data.songsByTimePlayed.length > 0 && (
+                {(data.songsByTimePlayed.length > 0 ||
+                    (data.recommendations?.songs.length ?? 0) > 0) && (
                     <Animated.View style={section1}>
                         <FeaturedCarousel
-                            songs={data.songsByTimePlayed}
-                            title={vocabulary.YOUR_MIX}
+                            songs={
+                                data.recommendations?.songs.length
+                                    ? data.recommendations.songs
+                                    : data.songsByTimePlayed
+                            }
+                            title={vocabulary.FOR_YOU}
                             onSongPress={handleSongPress}
                         />
                     </Animated.View>
                 )}
 
-                {data.randomSongsLastMonth.length > 0 && (
+                {(data.randomSongsLastMonth.length > 0 ||
+                    (data.recommendations?.songs.length ?? 0) > 0) && (
                     <Animated.View style={section2}>
                         <QuickSelectionsGrid
                             title={vocabulary.QUICK_SELECTIONS}
-                            items={data.randomSongsLastMonth}
+                            items={data.quickSelections}
                             onMediaPress={handleSongPress}
                         />
                     </Animated.View>
@@ -182,6 +191,20 @@ export default function HomeScreen() {
                             onSongPress={handleSongPress}
                         />
                     </Animated.View>
+                )}
+
+                {data.recommendations && (
+                    <>
+                        <HorizontalSongRow
+                            title={vocabulary.FOR_YOU}
+                            songs={data.recommendations.songs}
+                            listKey="for-you"
+                            onSongPress={handleSongPress}
+                        />
+                        <AutoplayDiscovery
+                            items={data.recommendations.discover}
+                        />
+                    </>
                 )}
 
                 <View style={{ height: 120 }} />

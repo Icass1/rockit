@@ -87,12 +87,14 @@ export default function VirtualCollectionList({
     showMediaImage,
     substractArtists,
     header,
+    footer,
 }: {
     pager: CollectionPager;
     showMediaIndex: boolean;
     showMediaImage: boolean;
     substractArtists: string[];
     header: ReactNode;
+    footer?: ReactNode;
 }) {
     const tree = useMemo(
         () => new CollectionTree(pager, { showMediaIndex, showMediaImage }),
@@ -143,6 +145,7 @@ export default function VirtualCollectionList({
             extraData={visible}
             keyExtractor={(row) => row.key}
             ListHeaderComponent={<>{header}</>}
+            ListFooterComponent={footer ? <>{footer}</> : null}
             renderItem={({ item }) => (
                 <View
                     style={{

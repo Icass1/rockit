@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { isSongWithAlbum } from "@/models/types/media";
+import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import PlayButton from "@/components/Home/PlayButton";
@@ -17,7 +17,7 @@ interface BentoSectionProps {
 // ─── Single Bento Card ──────────────────────────────────
 
 function BentoCard({
-    song,
+    song: initialSong,
     queue,
     size,
     positionClass,
@@ -27,6 +27,7 @@ function BentoCard({
     size: "lg" | "s";
     positionClass: string;
 }): JSX.Element {
+    const song = useMedia(initialSong);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -37,12 +38,7 @@ function BentoCard({
 
     function handlePlay(e: React.MouseEvent): void {
         e.stopPropagation();
-        const playableSongs = queue.filter(isSongWithAlbum);
-        if (playableSongs.length > 0) {
-            rockIt.queueManager.setMedia(playableSongs, "bento");
-            rockIt.queueManager.moveToMedia(song.publicId);
-            rockIt.mediaPlayerManager.play();
-        }
+        void rockIt.queueManager.playRecommendedSongAsync(song, queue);
     }
 
     return (
@@ -112,18 +108,21 @@ function BentoCard({
                 >
                     <PlayButton
                         isPlaying={!!isThisPlaying}
+                        download={!song.downloaded}
                         onClick={handlePlay}
                         size={size === "lg" ? 40 : 32}
                         label={
-                            isThisPlaying
-                                ? $vocabulary.PAUSE_SONG_NAME.replace(
-                                      "{name}",
-                                      song.name
-                                  )
-                                : $vocabulary.PLAY_SONG_NAME.replace(
-                                      "{name}",
-                                      song.name
-                                  )
+                            !song.downloaded
+                                ? $vocabulary.CLICK_TO_DOWNLOAD
+                                : isThisPlaying
+                                  ? $vocabulary.PAUSE_SONG_NAME.replace(
+                                        "{name}",
+                                        song.name
+                                    )
+                                  : $vocabulary.PLAY_SONG_NAME.replace(
+                                        "{name}",
+                                        song.name
+                                    )
                         }
                     />
                 </div>

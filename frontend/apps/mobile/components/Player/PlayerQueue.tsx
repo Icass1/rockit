@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import { EQueueType, type TQueueMedia } from "@rockit/shared";
+import { useStore } from "@nanostores/react";
+import { EQueueType, ERepeatMode, type TQueueMedia } from "@rockit/shared";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { usePlayer } from "@/lib/PlayerContext";
+import { rockIt } from "@/lib/rockit/rockIt";
 import QueueItem from "@/components/Player/QueueItem";
+import { RecommendationRow } from "@/components/Recommendations/AutoplayDiscovery";
 
 /** Fixed height of a QueueItem row (46px image + 2×10 vertical padding). */
 const ITEM_HEIGHT = 66;
@@ -24,9 +27,17 @@ export default function PlayerQueue() {
         originalQueue,
     } = usePlayer();
 
+    const $autoplay = useStore(rockIt.queueManager.autoplayRecommendationsAtom);
+    const repeat = useStore(rockIt.userManager.repeatModeAtom);
+    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+
     const listRef = useRef<FlatList<TQueueMedia>>(null);
     const currentIndex =
         queue?.findIndex((m) => m.publicId === currentMedia?.publicId) ?? -1;
+
+    useEffect(() => {
+        void rockIt.queueManager.loadAutoplaySuggestionsAsync();
+    }, [currentMedia?.publicId]);
 
     // On open (the panel remounts this component each time the queue tab shows),
     // center the currently-playing item so the user lands on it.
@@ -93,6 +104,27 @@ export default function PlayerQueue() {
                 )}
                 contentContainerStyle={styles.list}
                 showsVerticalScrollIndicator={false}
+                ListFooterComponent={
+                    $autoplay.length > 0 ? (
+                        <View>
+                            <Text style={styles.autoplayHeader}>
+                                {repeat === ERepeatMode.OFF
+                                    ? $vocabulary.AUTOPLAY_ON
+                                    : $vocabulary.RECOMMENDED_SONGS}
+                            </Text>
+                            {$autoplay.map((entry, index) => (
+                                <RecommendationRow
+                                    key={
+                                        entry.kind === "song"
+                                            ? entry.song.publicId
+                                            : `discover-${index}`
+                                    }
+                                    entry={entry}
+                                />
+                            ))}
+                        </View>
+                    ) : null
+                }
             />
         </View>
     );
@@ -122,6 +154,17 @@ const styles = StyleSheet.create({
     },
     list: {
         paddingBottom: 40,
+    },
+    autoplayHeader: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: COLORS.gray400,
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 8,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: "rgba(255,255,255,0.1)",
+        marginTop: 8,
     },
     empty: {
         flex: 1,

@@ -34,7 +34,9 @@ export default function AlbumsSection({
                                 width={350}
                                 height={350}
                                 className="aspect-square w-full rounded-lg object-cover select-none"
-                                src={album.imageUrl || "/logo-banner.png"}
+                                src={
+                                    album.imageUrl?.trim() || "/logo-banner.png"
+                                }
                                 alt={$vocabulary.COVER_OF.replace(
                                     "{name}",
                                     album.name

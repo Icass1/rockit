@@ -9,6 +9,7 @@ import {
     type IMediaRemovedFromPlaylistEvent,
 } from "@rockit/shared";
 import { View } from "react-native";
+import RecommendationsList from "@/components/Recommendations/RecommendationsList";
 import CollectionControls from "@/components/RenderList/CollectionControls";
 import CollectionFooter from "@/components/RenderList/CollectionFooter";
 import RenderList from "@/components/RenderList/RenderList";
@@ -44,6 +45,7 @@ export default function CollectionScreen({ publicId }: { publicId: string }) {
             </View>
         );
     const album = collection.type === "album";
+    const seedSongPublicId = state.media[0]?.publicId;
     return (
         <RenderList
             title={collection.name}
@@ -57,6 +59,11 @@ export default function CollectionScreen({ publicId }: { publicId: string }) {
             pager={pager}
             total={state.total}
             offset={state.offset}
+            footer={
+                seedSongPublicId ? (
+                    <RecommendationsList seedSongPublicId={seedSongPublicId} />
+                ) : undefined
+            }
         />
     );
 }

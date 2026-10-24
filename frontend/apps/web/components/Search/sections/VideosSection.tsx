@@ -33,7 +33,9 @@ export default function VideosSection({
                                 width={350}
                                 height={197}
                                 className="aspect-video w-full rounded-lg object-cover select-none"
-                                src={video.imageUrl || "/logo-banner.png"}
+                                src={
+                                    video.imageUrl?.trim() || "/logo-banner.png"
+                                }
                                 alt={video.name}
                             />
                             <span className="mt-2 block truncate text-left font-semibold">

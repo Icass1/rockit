@@ -451,6 +451,10 @@ export {
     PlaylistResponseItemSchema,
     type PlaylistResponseItem,
 } from "./playlistResponseItem";
+export {
+    PrepareRecommendationsRequestSchema,
+    type PrepareRecommendationsRequest,
+} from "./prepareRecommendationsRequest";
 export { QueueItemSchema, type QueueItem } from "./queueItem";
 export { QueueResponseSchema, type QueueResponse } from "./queueResponse";
 export {
@@ -469,6 +473,10 @@ export {
     RadioBrowserStationResponseSchema,
     type RadioBrowserStationResponse,
 } from "./radioBrowserStationResponse";
+export {
+    RecommendationTrackRequestSchema,
+    type RecommendationTrackRequest,
+} from "./recommendationTrackRequest";
 export { RegisterRequestSchema, type RegisterRequest } from "./registerRequest";
 export {
     RegisterResponseSchema,
@@ -579,6 +587,10 @@ export {
     type SkipClickedMessageRequest,
 } from "./skipClickedMessageRequest";
 export {
+    SongListResponseSchema,
+    type SongListResponse,
+} from "./songListResponse";
+export {
     SpotifyAlbumResponseSchema,
     type SpotifyAlbumResponse,
 } from "./spotifyAlbumResponse";
@@ -630,6 +642,10 @@ export {
     StartDownloadResponseSchema,
     type StartDownloadResponse,
 } from "./startDownloadResponse";
+export {
+    StartFromSearchRequestSchema,
+    type StartFromSearchRequest,
+} from "./startFromSearchRequest";
 export {
     StartUploadResponseSchema,
     type StartUploadResponse,

@@ -53,6 +53,7 @@ import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/Remo
 import SaveOfflineAction from "@/components/MediaContextMenu/actions/SaveOfflineAction";
 import SaveOfflineListAction from "@/components/MediaContextMenu/actions/SaveOfflineListAction";
 import ShareAction from "@/components/MediaContextMenu/actions/ShareAction";
+import SimilarSongsAction from "@/components/MediaContextMenu/actions/SimilarSongsAction";
 import {
     AddSongQueueRandomAction,
     AddSongToQueueBottomAction,
@@ -93,6 +94,7 @@ const actionComponents: Partial<
     [EMediaContextAction.Redownload]: RedownloadAction,
     [EMediaContextAction.EditMetadata]: EditMetadataAction,
     [EMediaContextAction.SaveOffline]: SaveOfflineAction,
+    [EMediaContextAction.SimilarToSong]: SimilarSongsAction,
     [EMediaContextAction.DownloadOfflineList]: SaveOfflineListAction,
 };
 

@@ -1,13 +1,14 @@
 "use client";
 
 import { useId, type JSX } from "react";
-import { Play } from "lucide-react";
+import { Download, Play } from "lucide-react";
 
 interface PlayButtonProps {
     isPlaying: boolean;
     onClick: (e: React.MouseEvent) => void;
     size?: number;
     label: string;
+    download?: boolean;
 }
 
 export default function PlayButton({
@@ -15,6 +16,7 @@ export default function PlayButton({
     onClick,
     size = 48,
     label,
+    download = false,
 }: PlayButtonProps): JSX.Element {
     const uid = useId().replace(/:/g, "");
 
@@ -22,12 +24,17 @@ export default function PlayButton({
         <button
             type="button"
             aria-label={label}
-            aria-pressed={isPlaying}
+            aria-pressed={download ? undefined : isPlaying}
             onClick={onClick}
             className="flex items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95"
             style={{ width: size, height: size }}
         >
-            {isPlaying ? (
+            {download ? (
+                <Download
+                    style={{ width: size * 0.4, height: size * 0.4 }}
+                    aria-hidden="true"
+                />
+            ) : isPlaying ? (
                 <span
                     className="flex items-end gap-[3px]"
                     style={{ height: size * 0.4 }}

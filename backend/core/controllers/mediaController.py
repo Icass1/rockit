@@ -23,6 +23,7 @@ from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.framework import providers
 from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
+from backend.core.framework.recommendation import Recommendation, RecommendationResult
 from backend.core.framework.media.collection import Collection
 from backend.core.framework.provider.types import AddFromUrlAResult
 
@@ -37,6 +38,7 @@ from backend.core.responses.searchResponse import SearchResultsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.songListResponse import SongListResponse
 from backend.core.responses.addFromUrlResponse import AddFromUrlResponse
 from backend.core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
@@ -71,6 +73,43 @@ async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumRespons
         )
 
     return a_result.result()
+
+
+@router.get("/song/{public_id}/related")
+async def get_related_songs(
+    request: Request,
+    public_id: str,
+    limit: int = 20,
+    external: bool = True,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> SongListResponse:
+    """Songs similar to this one (local engine), plus optional external
+    suggestions for songs not downloaded here yet."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    a_result: AResult[RecommendationResult] = (
+        await Recommendation.get_related_songs_async(
+            session=session,
+            user_id=a_result_user.result().id,
+            public_id=public_id,
+            limit=limit,
+            include_external=external,
+        )
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error getting related songs for {public_id}. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return Recommendation.to_song_list_response(result=a_result.result())
 
 
 @router.get("/album/{public_id}")

@@ -34,6 +34,14 @@ owning provider, so one source's cooldown does not delay unrelated sources.
 `BaseMediaProvider.can_manage_downloads()` controls group actions. Keep it aligned
 with the provider's metadata `manageable` projection, which supplies the same capability
 to SQL queries.
+
+Recommendation playlist co-occurrence uses the optional
+`get_recommendation_playlist_edges_cte_fragment` capability. Providers own the
+membership projection in their access layer; Core combines the projections and
+scores shared playlists without naming provider schemas. An empty registry
+contributes no playlist signal and leaves the other recommendation signals intact.
+Recommendation and metadata capabilities share the provider registry and remain
+separate from playable media capabilities.
 Collection URLs accept the neutral `external_id` key; providers may also accept
 their native metadata keys for existing collection callers.
 

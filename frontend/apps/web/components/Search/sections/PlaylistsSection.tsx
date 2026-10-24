@@ -34,7 +34,10 @@ export default function PlaylistsSection({
                                 width={350}
                                 height={350}
                                 className="aspect-square w-full rounded-lg object-cover select-none"
-                                src={playlist.imageUrl || "/logo-banner.png"}
+                                src={
+                                    playlist.imageUrl?.trim() ||
+                                    "/logo-banner.png"
+                                }
                                 alt={$vocabulary.COVER_OF.replace(
                                     "{name}",
                                     playlist.name

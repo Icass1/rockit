@@ -643,4 +643,17 @@ export interface Vocabulary {
     ARTIST_FILTER_SOUNDTRACK: string;
     ARTIST_FILTER_OTHER: string;
     ARTIST_FILTER_LOADED: string;
+    PLAYER_RELATED_TITLE: string;
+    PLAYER_RELATED_EMPTY: string;
+    PLAYER_DISCOVER_TITLE: string;
+    FOR_YOU: string;
+    RECOMMENDED_FOR_THIS_PLAYLIST: string;
+    NO_SIMILAR_SONGS_FOUND: string;
+    SIMILAR_TO_SONG_PLAYLIST_PREFIX: string;
+    SIMILAR_SONGS_PLAYLIST_CREATED: string;
+    SIMILAR_TO_SONG: string;
+    AUTOPLAY_ON: string;
+    RECOMMENDED_SONGS: string;
+    RECOMMENDATIONS: string;
+    DISCOVER_UNAVAILABLE: string;
 }

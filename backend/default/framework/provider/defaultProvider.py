@@ -28,6 +28,7 @@ from backend.core.responses.basePlaylistWithoutMediasResponse import (
 from backend.core.types.playlistContributor import PlaylistContributor
 
 from backend.default.framework.default import Default
+from backend.default.access.recommendationAccess import RecommendationAccess
 from backend.default.framework.playlist import Playlist
 from backend.default.framework.models.playlist import PlaylistWithDetailsModel
 
@@ -246,6 +247,9 @@ class DefaultProvider(BaseMediaProvider):
     ) -> AResult[int]:
         """Get the duration of a default playlist in milliseconds."""
         return AResult(code=AResultCode.OK, message="OK", result=0)
+
+    def get_recommendation_playlist_edges_cte_fragment(self) -> str | None:
+        return RecommendationAccess.playlist_edges_cte_fragment()
 
     def get_search_index_cte_fragment(self) -> str | None:
         return f"""    SELECT cm.id                          AS internal_id,

@@ -866,6 +866,32 @@ export abstract class BaseMediaPlayerManager {
         } else if (action === EQueueAction.PLAY && nextId !== null) {
             getRockIt().queueManager.setQueueMediaId(nextId);
             this.play();
+        } else if (action === EQueueAction.AUTOPLAY) {
+            const identity = getRockIt().queueManager.queueIdentity;
+            void getRockIt()
+                .queueManager.startAutoplayAsync()
+                .then((started): void => {
+                    if (
+                        getRockIt().queueManager.queueIdentity !== identity ||
+                        (currentId !==
+                            getRockIt().queueManager.currentQueueMediaId &&
+                            !started)
+                    )
+                        return;
+                    if (started) {
+                        this.play();
+                        return;
+                    }
+                    this._playingAtom.set(false);
+                })
+                .catch((): void => {
+                    if (
+                        getRockIt().queueManager.queueIdentity === identity &&
+                        currentId ===
+                            getRockIt().queueManager.currentQueueMediaId
+                    )
+                        this._playingAtom.set(false);
+                });
         } else {
             this._playingAtom.set(false);
         }

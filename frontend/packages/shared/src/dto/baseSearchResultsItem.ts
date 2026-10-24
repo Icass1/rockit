@@ -21,6 +21,7 @@ export const BaseSearchResultsItemSchema = z.object({
     provider: z.string(),
     downloaded: z.boolean().nullable(),
     url: z.string().nullable(),
+    publicId: z.string().nullable(),
 });
 
 export type BaseSearchResultsItem = z.infer<typeof BaseSearchResultsItemSchema>;

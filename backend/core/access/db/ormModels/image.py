@@ -20,15 +20,21 @@ class ImageRow(
 
     url: Mapped[str | None] = mapped_column(String, nullable=True)
     path: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    dominant_color: Mapped[str] = mapped_column(String, nullable=False)
+    dominant_color: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=""
+    )
 
     def __init__(
-        self, public_id: str, path: str, dominant_color: str, url: str | None = None
+        self,
+        public_id: str,
+        path: str,
+        url: str | None = None,
+        dominant_color: str = "",
     ):
         kwargs: Dict[str, None | str] = {}
         kwargs["public_id"] = public_id
         kwargs["path"] = path
-        kwargs["dominant_color"] = dominant_color
         kwargs["url"] = url
+        kwargs["dominant_color"] = dominant_color
         for k, v in kwargs.items():
             setattr(self, k, v)

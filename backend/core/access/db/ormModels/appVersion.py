@@ -1,6 +1,6 @@
 from typing import Dict
 
-from sqlalchemy import Integer, String
+from sqlalchemy import Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.core.access.db.base import CoreBase
@@ -16,7 +16,10 @@ class AppVersionRow(
     CoreBase, TableAutoincrementId, TablePublicId, TableDateAdded, TableDateUpdated
 ):
     __tablename__ = "app_version"
-    __table_args__ = ({"schema": "core", "extend_existing": True},)
+    __table_args__ = (
+        Index("ix_app_version_public_id", "public_id"),
+        {"schema": "core", "extend_existing": True},
+    )
 
     version: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     apk_filename: Mapped[str] = mapped_column(String, nullable=False, unique=True)

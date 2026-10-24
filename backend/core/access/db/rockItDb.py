@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -309,6 +310,73 @@ class RockItDB:
                             f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table '{table.schema}.{table.name}'"
                         )
 
+                    orm_nullable = orm_columns[col].nullable
+                    db_nullable = db_columns[col]["nullable"]
+                    if orm_nullable != db_nullable:
+                        logger.error(
+                            f"Nullability mismatch on {col}: ORM={orm_nullable}, DB={db_nullable} in table '{table.schema}.{table.name}'"
+                        )
+
+                    orm_default = orm_columns[col].server_default
+                    db_default = db_columns[col].get("default")
+
+                    def normalize_default(value: Any) -> str | None:
+                        if value is None:
+                            return None
+                        normalized = str(value).strip().lower()
+                        normalized = re.sub(
+                            r"::[a-zA-Z_][\w ]*(?:\[\])?$", "", normalized
+                        )
+                        normalized = normalized.strip("() '")
+                        try:
+                            return str(float(normalized))
+                        except ValueError:
+                            return normalized
+
+                    orm_default_text = normalize_default(
+                        orm_default.arg if orm_default is not None else None
+                    )
+                    db_default_text = normalize_default(db_default)
+
+                    # PostgreSQL SERIAL/IDENTITY defaults are implied by an
+                    # autoincrementing ORM primary key, even if the ORM does
+                    # not declare an explicit server_default. Sequence names
+                    # can be customized (for example user_id_seq), so compare
+                    # against the sequence owned by this exact column instead
+                    # of guessing its name from the table and column names.
+                    column = orm_columns[col]
+                    owned_sequence = sync_conn.execute(
+                        text(
+                            "SELECT pg_get_serial_sequence(:table_name, :column_name)"
+                        ),
+                        {
+                            "table_name": f'"{schema}"."{table_name}"',
+                            "column_name": col,
+                        },
+                    ).scalar_one_or_none()
+                    is_implicit_sequence_default = (
+                        orm_default is None
+                        and db_default is not None
+                        and column.primary_key
+                        and column.autoincrement is not False
+                        and owned_sequence is not None
+                        and bool(
+                            re.fullmatch(
+                                r"nextval\('(?:[^']+)'::regclass\)",
+                                str(db_default).strip(),
+                                flags=re.IGNORECASE,
+                            )
+                        )
+                    )
+                    if is_implicit_sequence_default:
+                        continue
+
+                    if orm_default_text != db_default_text:
+                        if orm_default is not None or db_default is not None:
+                            logger.error(
+                                f"Server default mismatch on {col}: ORM={orm_default_text}, DB={db_default_text} in table '{table.schema}.{table.name}'"
+                            )
+
                 # Foreign keys
                 orm_fks: set[str] = set()
                 for col in table.columns:
@@ -368,6 +436,51 @@ class RockItDB:
                 for uq in db_uqs - orm_uqs:
                     logger.error(
                         f"Unique constraint in DB but missing in ORM: {sorted(uq)} in table '{table.schema}.{table.name}'"
+                    )
+
+                # Indexes (unique indexes are also compared separately from
+                # unique constraints because PostgreSQL reports them through
+                # distinct inspector methods).
+                def index_signature(
+                    columns: list[str | None], unique: bool
+                ) -> tuple[tuple[str, ...], bool]:
+                    return (
+                        tuple(column for column in columns if column is not None),
+                        unique,
+                    )
+
+                orm_indexes = {
+                    index_signature(
+                        [column.name for column in index.columns], index.unique
+                    )
+                    for index in table.indexes
+                }
+                db_indexes: set[tuple[tuple[str, ...], bool]] = set()
+                try:
+                    for index in inspector.get_indexes(table_name, schema=schema):
+                        signature = index_signature(
+                            index.get("column_names", []), index.get("unique", False)
+                        )
+                        # PostgreSQL also reports the backing index for a
+                        # UNIQUE constraint. The constraint comparison above
+                        # already checks that schema object.
+                        if signature[1] and frozenset(signature[0]) in (
+                            db_uqs | orm_uqs
+                        ):
+                            continue
+                        db_indexes.add(signature)
+                except Exception as e:
+                    logger.error(
+                        f"Could not read indexes for table '{schema}.{table_name}' ({e})"
+                    )
+
+                for index in orm_indexes - db_indexes:
+                    logger.error(
+                        f"Index in ORM but missing in DB: columns={index[0]}, unique={index[1]} in table '{table.schema}.{table.name}'"
+                    )
+                for index in db_indexes - orm_indexes:
+                    logger.error(
+                        f"Index in DB but missing in ORM: columns={index[0]}, unique={index[1]} in table '{table.schema}.{table.name}'"
                     )
 
             # Run sync inspection inside async connection

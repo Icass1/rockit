@@ -39,7 +39,9 @@ class DownloadGroupRow(
     )
     success: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fail: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    seen: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    seen: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
 
     downloads: Mapped[List["DownloadRow"]] = relationship(
         "DownloadRow", back_populates="download_group"

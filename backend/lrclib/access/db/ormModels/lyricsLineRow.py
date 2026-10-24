@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict
 
-from sqlalchemy import ForeignKey, Integer, Text
+from sqlalchemy import ForeignKey, Index, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.lrclib.access.db.base import LrclibBase
@@ -14,7 +14,10 @@ if TYPE_CHECKING:
 
 class LyricsLineRow(LrclibBase, TableAutoincrementId):
     __tablename__ = "lyrics_line"
-    __table_args__ = ({"schema": "lrclib", "extend_existing": True},)
+    __table_args__ = (
+        Index("ix_lyrics_line_text", "text"),
+        {"schema": "lrclib", "extend_existing": True},
+    )
 
     lyrics_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("lrclib.lyrics.id"), nullable=False

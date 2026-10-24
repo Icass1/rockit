@@ -189,3 +189,26 @@ de páginas o descargas externas atribuible a este cambio.
 Se actualizaron los casos de regresión correspondientes, incluidos aislamiento de
 cuentas, errores parciales y mezcla de tandas. Por indicación del usuario no se
 ejecutaron tests locales para estas correcciones; su validación se delega en CI.
+
+## Colas con canciones disponibles y sin descargar
+
+La recuperación de errores del reproductor esperaba un segundo antes de avanzar.
+Además, la selección publicaba el ID solicitado antes de comprobar su descarga y
+la precarga miraba únicamente la posición contigua de la cola.
+
+Ahora la selección busca la siguiente entrada disponible antes de publicar su ID,
+respetando dirección, orden actual y estaciones de radio. El clic sobre una canción
+usa esa misma selección. La precarga y las transiciones también miran más allá de
+las canciones sin descargar. Si ninguna entrada está disponible, se pausa sin
+intentar cargar una canción conocida como ausente.
+
+Un error real de archivo avanza a la siguiente candidata sin el temporizador de un
+segundo. Se recuerdan los fallos durante esa cadena de errores y se pausa si no
+queda otra candidata; el registro se reinicia al empezar a reproducir correctamente
+o cambiar de cola. Repeat-one conserva la espera entre reintentos, con protección
+contra reintentos antiguos tras una pausa o un cambio de canción.
+
+Se añadieron casos para saltos consecutivos, dirección inversa, radio, cola sin
+descargas, precarga y cadenas de archivos fallidos. No se ejecutaron localmente;
+la validación se deja a CI. No se ha medido el ahorro exacto en producción: se elimina
+una espera explícita del código, no la latencia de cargar el siguiente audio.

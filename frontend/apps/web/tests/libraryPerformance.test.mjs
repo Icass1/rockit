@@ -372,15 +372,25 @@ const selectionCode = await transform(
     { loader: "ts" }
 );
 const user = { queueType: "RANDOM" };
+const selectionFeedback = { warnings: 0, pauses: 0 };
+const selectorRockIt = {
+    userManager: user,
+    notificationManager: {
+        notifyWarn: () => selectionFeedback.warnings++,
+        notifyError: (message) => assert.fail(message),
+    },
+    vocabularyManager: { vocabulary: { MEDIA_NOT_DOWNLOADED: "unavailable" } },
+    mediaPlayerManager: { pause: () => selectionFeedback.pauses++ },
+};
 const Selector = new Function(
     "getRockIt",
     "EQueueType",
     "isStation",
     selectionCode.code
 )(
-    () => ({ userManager: user }),
+    () => selectorRockIt,
     { RANDOM: "RANDOM", SORTED: "SORTED" },
-    () => false
+    (media) => media.type === "station"
 );
 test("random start can select different songs; sorted start selects the first", () => {
     const selector = new Selector();
@@ -413,4 +423,78 @@ test("random start can select different songs; sorted start selects the first", 
     } finally {
         Math.random = originalRandom;
     }
+});
+
+function selectionFixture(media) {
+    const selector = new Selector();
+    const items = media.map((item, queueMediaId) => ({
+        queueMediaId,
+        media: item,
+    }));
+    const selected = [];
+    let current;
+    selector.queue = items;
+    selector._queueAtom = { get: () => items };
+    selector._currentQueueMediaIdAtom = { set: (id) => selected.push(id) };
+    selector._currentMediaAtom = {
+        set: (media) => {
+            current = media;
+        },
+    };
+    selector._currentListAtom = { set: () => {} };
+    return { selector, selected, current: () => current };
+}
+test("selection skips consecutive unavailable entries without publishing intermediate ids", () => {
+    const fixture = selectionFixture([
+        { type: "song", downloaded: true },
+        { type: "song", downloaded: false },
+        { type: "song", downloaded: false },
+        { type: "song", downloaded: true },
+    ]);
+    fixture.selector.setQueueMediaId(1);
+    assert.deepEqual(fixture.selected, [3]);
+    fixture.selector.setQueueMediaId(2, -1);
+    assert.deepEqual(fixture.selected, [3, 0]);
+    fixture.selector.setQueueMediaId(2);
+    assert.deepEqual(fixture.selected, [3, 0, 3]);
+});
+test("unavailable-only queues stop without attempting an item, while stations remain playable", () => {
+    const fixture = selectionFixture([
+        { type: "song", downloaded: false },
+        { type: "video", downloaded: false },
+    ]);
+    const before = selectionFeedback.pauses;
+    fixture.selector.setQueueMediaId(0);
+    assert.deepEqual(fixture.selected, [null]);
+    assert.equal(fixture.current(), undefined);
+    assert.equal(selectionFeedback.pauses, before + 1);
+    const radio = selectionFixture([
+        { type: "song", downloaded: false },
+        { type: "station" },
+    ]);
+    radio.selector.setQueueMediaId(0);
+    assert.deepEqual(radio.selected, [1]);
+    assert.equal(radio.current().type, "station");
+});
+const peekCode = await transform(
+    `class Queue { ${source.slice(source.indexOf("    peekNextQueueItem():"), source.indexOf("    // #endregion: Methods", source.indexOf("    peekNextQueueItem():")))} }; return Queue;`,
+    { loader: "ts" }
+);
+const PeekQueue = new Function("isStation", peekCode.code)(
+    (media) => media.type === "station"
+);
+test("preloading looks past unavailable songs and reports no candidate when all are unavailable", () => {
+    const queue = new PeekQueue();
+    queue.queue = [true, false, false, true].map(
+        (downloaded, queueMediaId) => ({
+            queueMediaId,
+            media: { type: "song", downloaded },
+        })
+    );
+    queue.currentQueueMediaId = 0;
+    assert.equal(queue.peekNextQueueItem().queueMediaId, 3);
+    queue.queue.forEach((entry) => {
+        entry.media.downloaded = false;
+    });
+    assert.equal(queue.peekNextQueueItem(), undefined);
 });

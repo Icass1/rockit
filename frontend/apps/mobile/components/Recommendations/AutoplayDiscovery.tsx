@@ -1,12 +1,13 @@
 import { PLACEHOLDER } from "@/constants/assets";
 import { COLORS } from "@/constants/theme";
 import { useStore } from "@nanostores/react";
-import type {
-    AutoplayRecommendation,
-    BaseSearchResultsItem,
+import {
+    getMediaArtistsString,
+    type AutoplayRecommendation,
+    type BaseSearchResultsItem,
 } from "@rockit/shared";
 import { Image } from "expo-image";
-import { Download, Play } from "lucide-react-native";
+import { Download, ListPlus } from "lucide-react-native";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -20,7 +21,7 @@ export function RecommendationRow({
     return (
         <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`${media.name}, ${media.artists.map((artist) => artist.name).join(", ")}, ${media.downloaded ? vocabulary.PLAY : vocabulary.CLICK_TO_DOWNLOAD}`}
+            accessibilityLabel={`${media.name}, ${getMediaArtistsString(media) || vocabulary.UNKNOWN}, ${media.downloaded ? vocabulary.PLAY_NEXT : vocabulary.CLICK_TO_DOWNLOAD}`}
             onPress={() => {
                 void rockIt.queueManager.playAutoplayRecommendationAsync(entry);
             }}
@@ -36,11 +37,11 @@ export function RecommendationRow({
                     {media.name}
                 </Text>
                 <Text numberOfLines={1} style={styles.artist}>
-                    {media.artists.map((artist) => artist.name).join(", ")}
+                    {getMediaArtistsString(media) || vocabulary.UNKNOWN}
                 </Text>
             </View>
             {media.downloaded ? (
-                <Play size={18} color={COLORS.accent} />
+                <ListPlus size={18} color={COLORS.accent} />
             ) : (
                 <Download size={18} color={COLORS.gray400} />
             )}

@@ -958,19 +958,43 @@ export class BaseQueueManager {
     async playAutoplayRecommendationAsync(
         item: AutoplayRecommendation
     ): Promise<void> {
-        if (item.kind === "song") {
-            await this.playRecommendedSongAsync(item.song);
-            return;
-        }
-        if (item.item.publicId && item.item.downloaded) {
-            const song = await getRockIt().http.getSong(item.item.publicId);
-            if (song.isOk()) await this.playRecommendedSongAsync(song.result);
-            else getRockIt().notificationManager.notifyError(song.message);
+        const media = item.kind === "song" ? item.song : item.item;
+        if (media.publicId && (item.kind === "song" || media.downloaded)) {
+            const identity = this.queueIdentity;
+            const fresh = await getRockIt().http.getSong(media.publicId);
+            if (this.queueIdentity !== identity) return;
+            if (!fresh.isOk()) {
+                getRockIt().notificationManager.notifyError(fresh.message);
+                return;
+            }
+            if (!fresh.result.downloaded) {
+                const started = await getRockIt().http.startDownload({
+                    ids: [media.publicId],
+                    title: media.name,
+                });
+                if (started.isOk())
+                    getRockIt().notificationManager.notifyInfo(
+                        getRockIt().vocabularyManager.vocabulary
+                            .DOWNLOAD_STARTED
+                    );
+                else
+                    getRockIt().notificationManager.notifyError(
+                        started.message
+                    );
+                return;
+            }
+            if (
+                !this.queue.some(
+                    (entry) => entry.media.publicId === fresh.result.publicId
+                )
+            )
+                this.addMediaNext(fresh.result);
+            this._setRecommendations(this._autoplayRecommendationsAtom.get());
             return;
         }
         const started = await getRockIt().http.startDownloadFromSearch({
-            artistName: item.item.artists[0]?.name ?? "",
-            trackName: item.item.name,
+            artistName: media.artists[0]?.name ?? "",
+            trackName: media.name,
             addToLibrary: true,
             addToPlaylist: false,
             playlistPublicId: null,

@@ -869,7 +869,7 @@ class Rockit:
                 publicId=public_id,
                 providerUrl="",
                 name=song.name,
-                artists=song_artists,
+                artists=song_artists or album_response.artists,
                 audioUrl=(
                     f"{BACKEND_URL}/rockit/audio/{public_id}"
                     if song.file_path

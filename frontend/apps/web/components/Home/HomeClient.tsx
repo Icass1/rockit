@@ -29,10 +29,10 @@ export default function HomeClient(): JSX.Element {
         if (!data) return [];
         const cards: CoverflowCard[] = [];
         const picks = data.recommendations?.songs ?? [];
-        if (picks.length > 0)
+        for (const song of picks.slice(0, 3))
             cards.push({
                 eyebrow: $vocabulary.FOR_YOU,
-                song: picks[0],
+                song,
                 queue: picks,
             });
 
@@ -72,7 +72,12 @@ export default function HomeClient(): JSX.Element {
             });
         }
 
-        return cards;
+        const seen = new Set<string>();
+        return cards.filter((card) => {
+            if (seen.has(card.song.publicId)) return false;
+            seen.add(card.song.publicId);
+            return true;
+        });
     }, [data, $vocabulary]);
 
     // ── Docked bar: show when hero scrolls out and a card is playing ──
@@ -163,28 +168,6 @@ export default function HomeClient(): JSX.Element {
                 )}
             </div>
 
-            {/* Bento sections — each section gets its own grid layout */}
-            {data.songsByTimePlayed.length > 0 && (
-                <BentoSection
-                    title={$vocabulary.RECENTLY_PLAYED}
-                    songs={data.songsByTimePlayed}
-                />
-            )}
-
-            {data.hiddenGems.length > 0 && (
-                <BentoSection
-                    title={$vocabulary.HIDDEN_GEMS}
-                    songs={data.hiddenGems}
-                />
-            )}
-
-            {data.communityTop.length > 0 && (
-                <BentoSection
-                    title={$vocabulary.COMMUNITY_TOP}
-                    songs={data.communityTop}
-                />
-            )}
-
             {data.recommendations ? (
                 <>
                     <BentoSection
@@ -212,6 +195,28 @@ export default function HomeClient(): JSX.Element {
                     </div>
                 </div>
             ) : null}
+
+            {/* Bento sections — each section gets its own grid layout */}
+            {data.songsByTimePlayed.length > 0 && (
+                <BentoSection
+                    title={$vocabulary.RECENTLY_PLAYED}
+                    songs={data.songsByTimePlayed}
+                />
+            )}
+
+            {data.hiddenGems.length > 0 && (
+                <BentoSection
+                    title={$vocabulary.HIDDEN_GEMS}
+                    songs={data.hiddenGems}
+                />
+            )}
+
+            {data.communityTop.length > 0 && (
+                <BentoSection
+                    title={$vocabulary.COMMUNITY_TOP}
+                    songs={data.communityTop}
+                />
+            )}
 
             {data.monthlyTop.length > 0 && (
                 <BentoSection

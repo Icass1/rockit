@@ -3,8 +3,8 @@
 import { useEffect, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { ERepeatMode } from "@rockit/shared";
-import { Download, Play } from "lucide-react";
+import { ERepeatMode, getMediaArtistsString } from "@rockit/shared";
+import { Download, ListPlus } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 /** Shared by the desktop player and the compact PWA player. */
@@ -68,7 +68,7 @@ export default function AutoplayRecommendations(): JSX.Element {
                         className="flex min-h-16 w-full items-center gap-3 rounded px-4 py-2 text-left transition hover:bg-(--color-surface) focus-visible:outline-2 focus-visible:outline-(--color-rockit-pink)"
                         title={
                             ready
-                                ? vocabulary.PLAY
+                                ? vocabulary.PLAY_NEXT
                                 : vocabulary.CLICK_TO_DOWNLOAD
                         }
                     >
@@ -87,13 +87,12 @@ export default function AutoplayRecommendations(): JSX.Element {
                                 {media.name}
                             </span>
                             <span className="block truncate text-xs text-(--color-muted)">
-                                {media.artists
-                                    .map((artist) => artist.name)
-                                    .join(", ")}
+                                {getMediaArtistsString(media) ||
+                                    vocabulary.UNKNOWN}
                             </span>
                         </span>
                         {ready ? (
-                            <Play
+                            <ListPlus
                                 className="h-4 w-4 shrink-0 text-(--color-rockit-pink)"
                                 aria-hidden="true"
                             />

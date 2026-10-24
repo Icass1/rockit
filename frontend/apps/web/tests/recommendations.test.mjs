@@ -6,7 +6,7 @@ import { build } from "esbuild";
 
 const { outputFiles } = await build({
     stdin: {
-        contents: `export {EQueueAction} from './src/models/enums/queueAction'; export {BaseQueueManager} from './src/managers/baseQueueManager'; export {setRockIt} from './src/rockit/rockitRef'; export {buildRecommendationQueue, recommendationWindowSize} from './src/audio/recommendationQueue'; export {resolveNextOnEnd} from './src/audio/queueLogic';`,
+        contents: `export {getMediaArtistsString} from './src/models/types/media'; export {EQueueAction} from './src/models/enums/queueAction'; export {BaseQueueManager} from './src/managers/baseQueueManager'; export {setRockIt} from './src/rockit/rockitRef'; export {buildRecommendationQueue, recommendationWindowSize} from './src/audio/recommendationQueue'; export {resolveNextOnEnd} from './src/audio/queueLogic';`,
         resolveDir: new URL("../../../packages/shared/", import.meta.url)
             .pathname,
     },
@@ -206,6 +206,89 @@ test("stale recommendation response cannot replace a newly selected queue", asyn
     resolve(ok(result([song("stale")])));
     await loading;
     assert.equal(manager.autoplay.length, 0);
+});
+
+test("selecting an autoplay song queues it next without replacing or interrupting the current list", async () => {
+    const { manager, seed, http, container } = setup();
+    seed(["current", "album-last"]);
+    const identity = manager.queueIdentity;
+    let played = false;
+    container.mediaPlayerManager.play = () => {
+        played = true;
+    };
+    http.getSong = async () => ok(song("chosen"));
+    manager._setRecommendations([{ kind: "song", song: song("chosen") }]);
+    await manager.playAutoplayRecommendationAsync({
+        kind: "song",
+        song: song("chosen"),
+    });
+    assert.equal(manager.queueIdentity, identity);
+    assert.equal(manager.currentMedia.publicId, "current");
+    assert.deepEqual(
+        Array.from(manager.queue, (entry) => entry.media.publicId),
+        ["current", "chosen", "album-last"]
+    );
+    assert.equal(played, false);
+    assert.equal(manager.autoplay.length, 0);
+    await manager.playAutoplayRecommendationAsync({
+        kind: "song",
+        song: song("chosen"),
+    });
+    assert.equal(manager.queue.length, 3);
+});
+
+test("an available discovery uses the same next-in-queue action", async () => {
+    const { manager, seed, http } = setup();
+    seed(["current", "album-last"]);
+    http.getSong = async () => ok(song("discovery"));
+    await manager.playAutoplayRecommendationAsync({
+        kind: "discover",
+        item: {
+            ...song("discovery"),
+            searchResult: true,
+        },
+    });
+    assert.deepEqual(
+        Array.from(manager.queue, (entry) => entry.media.publicId),
+        ["current", "discovery", "album-last"]
+    );
+    assert.equal(manager.currentMedia.publicId, "current");
+});
+
+test("a selected recommendation cannot be added to a replacement queue after its lookup", async () => {
+    const { manager, seed, http } = setup();
+    let resolve;
+    http.getSong = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const pending = manager.playAutoplayRecommendationAsync({
+        kind: "song",
+        song: song("chosen"),
+    });
+    seed(["new-list"]);
+    resolve(ok(song("chosen")));
+    await pending;
+    assert.equal(manager.queue.length, 1);
+    assert.equal(manager.currentMedia.publicId, "new-list");
+});
+
+test("artist labels use album credits when track credits are absent or blank", () => {
+    const { getMediaArtistsString } = setup();
+    const album = { artists: [{ name: "Album Artist" }] };
+    assert.equal(
+        getMediaArtistsString({ ...song("track"), artists: [], album }),
+        "Album Artist"
+    );
+    assert.equal(
+        getMediaArtistsString({
+            ...song("track"),
+            artists: [{ name: " " }],
+            album,
+        }),
+        "Album Artist"
+    );
+    assert.equal(getMediaArtistsString({ ...song("track"), album }), "Artist");
 });
 
 test("pending autoplay cannot take over a replacement queue with reused ids and seed", async () => {

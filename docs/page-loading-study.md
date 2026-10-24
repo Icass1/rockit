@@ -97,3 +97,37 @@ un problema de rendimiento ni se convierten en respuestas exitosas.
 Referencias: [Serwist](https://serwist.pages.dev/docs/serwist/runtime-caching/caching-strategies),
 [SQLAlchemy AsyncSession](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html#using-asyncsession-with-concurrent-tasks),
 [Next.js fetching](https://nextjs.org/docs/app/getting-started/fetching-data).
+
+## Reproducción: siguientes mejoras propuestas
+
+Revisión de código, sin nuevas mediciones de primer sonido. Orden provisional por
+impacto esperado en los casos afectados; no son mejoras implementadas en este PR:
+
+1. **Audio de vídeos, primera reproducción:** `MediaStream._encode_audio_async`
+   espera a que ffmpeg termine el MP3 completo antes de servirlo. Preparar esa
+   representación al descargar el vídeo, conservando la caché y sus byte ranges,
+   trasladaría el trabajo fuera del clic de reproducción. Medir por separado caché
+   fría y caliente; afecta al modo audio de vídeos, no a toda canción de YouTube.
+2. **Spotify, entrega del archivo:** `Spotify.get_audio_with_range_async` hace
+   `open/read` síncrono del rango completo antes de devolver los bytes. Un rango
+   abierto puede abarcar todo el archivo. Servir desde archivo por streaming con
+   soporte de Range evitaría esa lectura completa previa y reduciría memoria y
+   bloqueo del event loop. Validar seeks, rangos inválidos y clientes concurrentes.
+3. **Siguiente canción:** `preloadNextTrack` utiliza `metadata` salvo cuando están
+   activadas las transiciones y el mezclador está funcionando. Evaluar precarga de
+   audio de la siguiente canción con política de consumo de datos; `auto` puede
+   descargar todo el archivo y es una sugerencia que el navegador puede ignorar.
+   Además, el camino ordinario vuelve a asignar la URL al reproductor principal;
+   verificar reutilización efectiva del buffer antes de cambiarlo.
+4. **Cambios rápidos:** `BaseMediaPlayerManager.setMedia` espera la promesa de carga
+   anterior antes de iniciar la siguiente. Medir pulsaciones consecutivas de Next
+   y resolución offline; evaluar cancelación o descarte temprano sin introducir
+   carreras entre fuentes ni romper sincronización remota.
+
+Para comparar: clic → evento `playing` como aproximación de arranque (no prueba de
+sonido físicamente audible), TTFB de audio, pausas entre pistas y p50/p95; usar
+archivos reales de cada proveedor, descargas frías/calientes y una cola grande.
+También registrar bytes, CPU/RAM y pruebas de Range antes/después.
+
+Se contrastó el significado de `metadata`/`auto` y su carácter orientativo con
+[MDN: audio/preload](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/audio#preload).

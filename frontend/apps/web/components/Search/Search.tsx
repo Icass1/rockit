@@ -58,7 +58,7 @@ function SearchResults(): JSX.Element {
                     <div key={section} aria-hidden="true">
                         <div className="mb-4 h-7 w-36 rounded bg-neutral-800 motion-safe:animate-pulse" />
                         <div className="flex gap-4 overflow-hidden">
-                            {[0, 1, 2, 3, 4].map((card) => (
+                            {Array.from({ length: 20 }, (_, card) => (
                                 <div
                                     key={card}
                                     className="aspect-square w-36 shrink-0 rounded-lg bg-neutral-800 motion-safe:animate-pulse md:w-48"

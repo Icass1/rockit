@@ -1,9 +1,13 @@
 import {
     BaseSongWithAlbumResponse,
     HomeStatsResponseSchema,
+    mixHomeRecommendations,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import useFetch from "@/lib/useFetch";
+
+const fetchLocalRecommendations = () =>
+    Http.getRecommendationsForYou(20, false);
 
 export interface HomeData {
     songsByTimePlayed: BaseSongWithAlbumResponse[];
@@ -46,6 +50,11 @@ function transformStats(
 
 export function useHomeData() {
     const { data, loading, error } = useFetch(Http.getHomeStats);
+    const { data: localRecommendations } = useFetch(fetchLocalRecommendations);
+    const { data: externalRecommendations } = useFetch(
+        Http.getRecommendationsForYou
+    );
+    const recommendations = externalRecommendations ?? localRecommendations;
 
     if (!data || loading || error) {
         return {
@@ -56,7 +65,14 @@ export function useHomeData() {
     }
 
     return {
-        data: transformStats(data),
+        data: {
+            ...transformStats(data),
+            recommendations,
+            quickSelections: mixHomeRecommendations(
+                recommendations?.songs ?? [],
+                data.randomSongsLastMonth
+            ),
+        },
         loading,
         error,
     };

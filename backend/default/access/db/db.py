@@ -16,3 +16,7 @@ from backend.default.access.db.ormModels.user_playlist_media_expanded import (
 
 schemas = ["default_schema"]
 base = DefaultBase
+
+# Register local storage independently of remote provider activation.
+from backend.default.access import downloadStorage as downloadStorage
+from backend.default.access import collectionSource as collectionSource

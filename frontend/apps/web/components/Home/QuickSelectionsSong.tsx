@@ -5,7 +5,7 @@ import Image from "next/image";
 import { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation } from "@rockit/shared";
-import { isSongWithAlbum } from "@/models/types/media";
+import { Download } from "lucide-react";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
@@ -22,14 +22,8 @@ export default function QuickSelectionsSong({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
     const handleClick = useCallback((): void => {
-        // Set the queue with all songs
-        const playableSongs = songs.filter(isSongWithAlbum);
-        if (playableSongs.length > 0) {
-            rockIt.queueManager.setMedia(playableSongs, "");
-            rockIt.queueManager.moveToMedia($song.publicId);
-            rockIt.mediaPlayerManager.play();
-        }
-    }, [$song.publicId, songs]);
+        void rockIt.queueManager.playRecommendedSongAsync($song, songs);
+    }, [$song, songs]);
 
     return (
         <MediaContextMenu media={$song} location={EMediaContextLocation.HOME}>
@@ -49,6 +43,12 @@ export default function QuickSelectionsSong({
                         <span className="w-full min-w-0 truncate text-sm font-semibold text-white">
                             {$song.name}
                         </span>
+                        {!$song.downloaded && (
+                            <Download
+                                className="h-4 w-4 shrink-0 text-(--color-rockit-pink)"
+                                aria-label={$vocabulary.CLICK_TO_DOWNLOAD}
+                            />
+                        )}
                         <OfflineIndicator
                             publicId={$song.publicId}
                             className="h-5 w-5"

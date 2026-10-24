@@ -1,5 +1,4 @@
 import os
-import black
 from typing import List, Set
 from dataclasses import dataclass
 
@@ -24,13 +23,21 @@ class Parameter:
 
 
 def add_init_to_orm():
+    try:
+        import black
+    except ImportError:
+        logger.error(
+            "black is not installed, skipping ORM __init__ generation. "
+            "Install it with: pip install black"
+        )
+        return
 
     for dirpath, _, filenames in os.walk("."):
         dirpath = dirpath.replace("./", "")
 
         dirpaths = dirpath.split("/")
 
-        if dirpaths[-1] != "ormModels" and dirpaths[-1] != "ormEnums":
+        if "ormModels" not in dirpaths and "ormEnums" not in dirpaths:
             continue
 
         for filename in filenames:

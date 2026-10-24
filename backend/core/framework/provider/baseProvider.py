@@ -31,3 +31,13 @@ class BaseProvider:
 
     def get_name(self):
         return self._name
+
+    async def check_health_async(self) -> AResultCode:
+        """Check optional provider prerequisites without preventing API startup."""
+        return AResultCode(code=AResultCode.OK, message="OK")
+
+    def download_concurrency_limit(self) -> int:
+        return 2
+
+    def download_cooldown_remaining(self) -> float:
+        return 0.0

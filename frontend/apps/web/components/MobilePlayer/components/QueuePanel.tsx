@@ -8,6 +8,7 @@ import { usePlayer } from "@/lib/PlayerContext";
 import DurationToggle from "@/components/DurationToggle";
 import QueueRow from "@/components/MobilePlayer/components/QueueRow";
 import { useDragReorder } from "@/components/MobilePlayer/hooks/useDragReorder";
+import AutoplayRecommendations from "@/components/Recommendations/AutoplayRecommendations";
 
 function getPlayableMedia(item: QueueItem): TPlayableMedia {
     return item.media;
@@ -86,6 +87,7 @@ export default function QueuePanel(): JSX.Element {
                         />
                     );
                 })}
+                <AutoplayRecommendations />
             </div>
         </div>
     );

@@ -3,13 +3,14 @@
 import type { JSX } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Library, Radio, Search, Settings } from "lucide-react";
+import { Home, Library, Radio, Search, Settings, Users } from "lucide-react";
 
 const navItems = [
     { href: "/", icon: Home },
     { href: "/library", icon: Library },
     { href: "/search", icon: Search },
     { href: "/radio", icon: Radio },
+    { href: "/friends", icon: Users },
     { href: "/settings", icon: Settings },
 ];
 

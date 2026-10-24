@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
 import { COLORS } from "@/constants/theme";
-import { Radio } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useSheet } from "@/lib/SheetContext";
 import { logSheetDebug } from "@/lib/sheetDebug";
@@ -8,6 +7,7 @@ import BookmarkPopup from "@/components/Player/BookmarkPopup";
 import type { PlayerTab } from "@/components/Player/FullPlayer";
 import PlayerLyrics from "@/components/Player/PlayerLyrics";
 import PlayerQueue from "@/components/Player/PlayerQueue";
+import PlayerRelated from "@/components/Player/PlayerRelated";
 import CrossfadeSettings from "@/components/Settings/CrossfadeSettings";
 
 interface PlayerTabsPanelProps {
@@ -33,7 +33,7 @@ export default function PlayerTabsPanel({
                 </View>
             );
         }
-        if (activeTab === "related") return <RelatedMock />;
+        if (activeTab === "related") return <PlayerRelated />;
         return null;
     }, [activeTab, close]);
 
@@ -65,16 +65,6 @@ export default function PlayerTabsPanel({
     return null;
 }
 
-function RelatedMock() {
-    return (
-        <View style={styles.mockContainer}>
-            <Radio size={40} color={COLORS.gray400} />
-            <Text style={styles.mockTitle}>Related songs</Text>
-            <Text style={styles.mockSubtitle}>Coming soon</Text>
-        </View>
-    );
-}
-
 const styles = StyleSheet.create({
     crossfadeWrapper: { paddingHorizontal: 20, paddingTop: 8 },
     crossfadeTitle: {
@@ -83,12 +73,4 @@ const styles = StyleSheet.create({
         color: COLORS.white,
         marginBottom: 12,
     },
-    mockContainer: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-    },
-    mockTitle: { fontSize: 18, fontWeight: "700", color: COLORS.white },
-    mockSubtitle: { fontSize: 14, color: COLORS.gray400 },
 });

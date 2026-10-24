@@ -1,13 +1,25 @@
 import {
     BaseMediaPlayerManager,
+    createAtom,
+    getMediaAlbum,
     getMediaAudioUrl,
     getMediaVideoUrl,
     getRockIt,
     isSong,
     isVideo,
+    type ReadonlyAtom,
     type TMediaKind,
     type TPlayableMedia,
 } from "@rockit/shared";
+import type {
+    TransitionEnergySample,
+    WebTransitionSettings,
+} from "@/models/types/transitions";
+import {
+    DEFAULT_TRANSITIONS,
+    transitionDuration,
+    TransitionMixer,
+} from "@/lib/audio/transitionMixer";
 import { resolveOfflineAudioUrl } from "@/lib/offline/store";
 
 let _visibilityBound = false;
@@ -38,74 +50,28 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _endedPollTimer?: ReturnType<typeof setInterval>;
     private _lastEndedTime = 0;
 
+    private _transitionSettings = createAtom<WebTransitionSettings>({
+        ...DEFAULT_TRANSITIONS,
+    });
+    private _mixer = new TransitionMixer();
+    private _energy: TransitionEnergySample[] = [];
+    private _outgoing?: HTMLAudioElement;
+    private _promotionQueueId?: number;
+    private _promotionUri?: string;
+    private _preserveTailPause = false;
+    private _blendStarted = false;
+    private _transitionTimer?: ReturnType<typeof setInterval>;
+    private _blendTimer?: ReturnType<typeof setTimeout>;
+    private _preloadGeneration = 0;
+    private _settingsInitialized = false;
+
     constructor() {
         super();
 
         if (typeof window === "undefined") return;
         if (MediaPlayerManager.#instance) return MediaPlayerManager.#instance;
 
-        this._audio = new Audio();
-        this._audio.preload = "metadata";
-
-        this._audio.onplaying = (): void => {
-            if (
-                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                "audio"
-            )
-                this.onNativePlaying();
-            this._syncVideoPicture();
-        };
-        this._audio.onpause = (): void => {
-            if (
-                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                "audio"
-            )
-                this.onNativePaused();
-            if (this._usesAudioForVideo()) this._video?.pause();
-        };
-        this._audio.onplay = (): void => {
-            if (
-                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                "audio"
-            )
-                this.onNativePlaying();
-        };
-        this._audio.onloadstart = (): void => {
-            if (
-                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                "audio"
-            )
-                this.onNativeLoadStart();
-        };
-        this._audio.onloadeddata = (): void => {
-            if (
-                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                "audio"
-            )
-                this.onNativeLoaded();
-        };
-        this._audio.ontimeupdate = (): void => {
-            if (
-                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
-                "audio"
-            )
-                return;
-            this.onNativeTimeUpdate(this._audio?.currentTime ?? 0);
-            this._syncVideoPicture();
-        };
-        this._audio.onended = (): void => {
-            if (
-                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
-                "audio"
-            )
-                return;
-            const now = Date.now();
-            if (now - this._lastEndedTime < 500) return;
-            this._lastEndedTime = now;
-            this._stopEndedPoll();
-            this.onNativeEnded();
-        };
-        this._audio.onerror = (e): void => this.onNativeError(e);
+        this._audio = this._createAudio();
 
         this._video = document.createElement("video");
         this._video.preload = "metadata";
@@ -161,7 +127,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             if (!this._usesAudioForVideo()) this.onNativeError(e);
         };
 
-        this._preloadAudio = new Audio();
+        this._preloadAudio = this._createAudio();
         this._preloadAudio.preload = "metadata";
         this._preloadAudio.muted = true;
         this._preloadAudio.volume = 0;
@@ -174,6 +140,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     else this._restoreForegroundVideo();
                 }
                 if (!document.hidden) {
+                    this.activateTransitionsOnGesture();
                     void this.preloadNextTrack();
                     this._stopEndedPoll();
                 } else if (MediaPlayerManager._isiOS()) {
@@ -185,6 +152,348 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         MediaPlayerManager.#instance = this;
 
         return MediaPlayerManager.#instance;
+    }
+
+    private _createAudio(): HTMLAudioElement {
+        const el = new Audio();
+        el.preload = "metadata";
+        el.onplaying = (): void => {
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            this.onNativePlaying();
+            if (!el.paused && this._playingAtom.get()) this._startBlend();
+        };
+        el.onpause = (): void => {
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            this.onNativePaused();
+            if (!this._preserveTailPause) this._cancelTransition();
+            if (this._usesAudioForVideo()) this._video?.pause();
+        };
+        el.onloadstart = (): void => {
+            if (
+                el === this._audio &&
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                    "audio"
+            )
+                this.onNativeLoadStart();
+        };
+        el.onloadeddata = (): void => {
+            if (
+                el === this._audio &&
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                    "audio"
+            )
+                this.onNativeLoaded();
+        };
+        el.ontimeupdate = (): void => {
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            this.onNativeTimeUpdate(el.currentTime);
+            this._transitionTick();
+        };
+        el.onended = (): void => {
+            if (el === this._outgoing) {
+                this._cancelTransition();
+                return;
+            }
+            if (
+                el !== this._audio ||
+                this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                    "audio"
+            )
+                return;
+            const now = Date.now();
+            if (now - this._lastEndedTime < 500) return;
+            this._lastEndedTime = now;
+            this._stopEndedPoll();
+            this.onNativeEnded();
+        };
+        el.onerror = (error): void => {
+            if (el === this._audio) {
+                this._cancelTransition();
+                if (this._mixer.has(el)) {
+                    // A stream may support native playback but reject CORS or
+                    // Web Audio routing. Retry once on a fresh native element;
+                    // disconnecting a MediaElementSource cannot undo routing.
+                    const uri = el.src,
+                        position = el.currentTime;
+                    el.pause();
+                    this._mixer.reset(el, false);
+                    el.removeAttribute("src");
+                    el.load();
+                    const native = this._createAudio();
+                    const playbackId = this._playbackId;
+                    this._audio = native;
+                    native.volume = this._volumeAtom.get();
+                    native.onloadedmetadata = (): void => {
+                        if (
+                            this._audio !== native ||
+                            this._playbackId !== playbackId
+                        )
+                            return;
+                        native.currentTime = position;
+                        if (this._playRequested) this.play();
+                    };
+                    native.src = uri;
+                    return;
+                }
+                this.onNativeError(error);
+            }
+        };
+        el.onwaiting = (): void => {
+            // An initial seek/play can emit waiting before the prepared deck
+            // starts. Retain the tail until playing; abort only an audible mix.
+            if (el === this._audio && this._blendStarted)
+                this._cancelTransition();
+        };
+        return el;
+    }
+
+    initializeTransitionSettings(): void {
+        if (this._settingsInitialized || typeof window === "undefined") return;
+        this._settingsInitialized = true;
+        try {
+            const raw: unknown = JSON.parse(
+                window.localStorage.getItem("rockit-web-transitions-v1") ??
+                    "null"
+            );
+            if (raw && typeof raw === "object") {
+                const value = raw as Partial<WebTransitionSettings>;
+                this.configureTransitions({
+                    enabled: value.enabled === true,
+                    maxSeconds:
+                        typeof value.maxSeconds === "number"
+                            ? value.maxSeconds
+                            : 3.5,
+                    preserveAlbum: value.preserveAlbum !== false,
+                });
+            }
+        } catch {
+            /* Storage is optional. */
+        }
+    }
+
+    configureTransitions(settings: Partial<WebTransitionSettings>): void {
+        const current = this._transitionSettings.get();
+        const next = { ...current, ...settings };
+        next.maxSeconds = Number.isFinite(next.maxSeconds)
+            ? Math.max(0.8, Math.min(3.5, next.maxSeconds))
+            : 3.5;
+        this._transitionSettings.set(next);
+        this._cancelTransition();
+        if (next.enabled) this.activateTransitionsOnGesture();
+        if (typeof window !== "undefined") {
+            try {
+                window.localStorage.setItem(
+                    "rockit-web-transitions-v1",
+                    JSON.stringify(next)
+                );
+            } catch {
+                /* Storage is optional. */
+            }
+        }
+    }
+
+    activateTransitionsOnGesture(): void {
+        if (this._transitionSettings.get().enabled) this._mixer.activate();
+    }
+
+    get transitionSettingsAtom(): ReadonlyAtom<WebTransitionSettings> {
+        return this._transitionSettings.getReadonlyAtom();
+    }
+
+    protected override pauseForMediaChange(): void {
+        this._preserveTailPause =
+            this._promotionQueueId !== undefined &&
+            this._promotionQueueId ===
+                getRockIt().queueManager.currentQueueMediaId;
+        try {
+            super.pauseForMediaChange();
+        } finally {
+            this._preserveTailPause = false;
+        }
+    }
+
+    override async setMedia(
+        useSavedCurrentTime = false,
+        remotePlaybackId?: string,
+        remoteTimeMs = 0,
+        isPlaybackOwner = false
+    ): Promise<void> {
+        if (
+            this._outgoing &&
+            (this._promotionQueueId !==
+                getRockIt().queueManager.currentQueueMediaId ||
+                (remotePlaybackId !== undefined &&
+                    remotePlaybackId !== this._playbackId))
+        )
+            this._cancelTransition();
+        await super.setMedia(
+            useSavedCurrentTime,
+            remotePlaybackId,
+            remoteTimeMs,
+            isPlaybackOwner
+        );
+    }
+
+    override pause(): void {
+        if (!this._preserveTailPause) this._cancelTransition();
+        super.pause();
+        if (this._transitionTimer) {
+            clearInterval(this._transitionTimer);
+            this._transitionTimer = undefined;
+        }
+    }
+
+    override beginSeek(): void {
+        this._cancelTransition();
+        this._energy = [];
+        super.beginSeek();
+    }
+
+    override setCurrentTime(time: number, sendMessage = true): void {
+        this._cancelTransition();
+        super.setCurrentTime(time, sendMessage);
+    }
+
+    override endSeek(time: number): void {
+        this._cancelTransition();
+        super.endSeek(time);
+    }
+
+    private _cancelTransition(): void {
+        const old = this._outgoing;
+        this._outgoing = undefined;
+        this._promotionQueueId = undefined;
+        this._promotionUri = undefined;
+        this._blendStarted = false;
+        if (this._blendTimer) clearTimeout(this._blendTimer);
+        this._blendTimer = undefined;
+        if (old) {
+            old.pause();
+            this._mixer.reset(old, false);
+            old.removeAttribute("src");
+            old.load();
+        }
+        if (this._audio) this._mixer.reset(this._audio, true);
+        if (old && this._transitionSettings.get().enabled)
+            void this.preloadNextTrack();
+    }
+
+    private _startBlend(): void {
+        const old = this._outgoing,
+            current = this._audio;
+        if (!old || !current || this._blendStarted) return;
+        this._blendStarted = true;
+        const remaining = old.duration - old.currentTime;
+        if (!this._mixer.blend(old, current, remaining)) {
+            this._cancelTransition();
+            return;
+        }
+        this._blendTimer = setTimeout(
+            (): void => {
+                this._cancelTransition();
+            },
+            remaining * 1000 + 50
+        );
+    }
+
+    private _transitionTick(): void {
+        const audio = this._audio,
+            settings = this._transitionSettings.get();
+        if (
+            !audio ||
+            audio.paused ||
+            !settings.enabled ||
+            !this._syncOwner ||
+            !this._playRequested ||
+            this._isSeeking ||
+            this._loadingPlayback ||
+            !this._mixer.running
+        )
+            return;
+        const media = getRockIt().queueManager.currentMedia;
+        if (!media || !isSong(media) || !this._mixer.has(audio)) return;
+        const time = audio.currentTime,
+            duration = audio.duration;
+        if (!Number.isFinite(duration) || duration < 20) return;
+        const last = this._energy[this._energy.length - 1];
+        if (!last || time - last.time >= 0.2) {
+            this._energy.push({ time, rms: this._mixer.rms(audio) });
+            this._energy = this._energy
+                .filter((sample): boolean => sample.time >= time - 24)
+                .slice(-128);
+        }
+        if (this._outgoing) {
+            if (this._outgoing.ended) this._cancelTransition();
+            return;
+        }
+        const remaining = duration - time;
+        if (remaining > settings.maxSeconds || remaining < 0.15) return;
+        const queue = getRockIt().queueManager;
+        const next = queue.peekNextQueueItem();
+        if (
+            !next ||
+            next.queueMediaId === queue.currentQueueMediaId ||
+            !isSong(next.media) ||
+            !next.media.downloaded ||
+            getRockIt().userManager.repeatModeAtom.get() === "ONE"
+        )
+            return;
+        if (settings.preserveAlbum) {
+            const a = getMediaAlbum(media),
+                b = getMediaAlbum(next.media);
+            if (a && b && a.publicId === b.publicId) return;
+        }
+        const seconds = transitionDuration(
+            this._energy,
+            duration,
+            time,
+            settings.maxSeconds
+        );
+        const incoming = this._preloadAudio;
+        if (
+            remaining > seconds ||
+            !incoming ||
+            this._preloadedForQueueMediaId !== next.queueMediaId ||
+            !this._preloadedUri ||
+            incoming.readyState < 3 ||
+            !this._mixer.has(incoming)
+        )
+            return;
+        // Do not promote an element that would immediately stall on its intro.
+        if (
+            !incoming.buffered.length ||
+            incoming.buffered.start(0) > 0.05 ||
+            incoming.buffered.end(0) < Math.min(4, incoming.duration)
+        )
+            return;
+        this._outgoing = audio;
+        this._promotionQueueId = next.queueMediaId;
+        this._promotionUri = this._preloadedUri;
+        this._audio = incoming;
+        this._preloadAudio = audio;
+        incoming.muted = false;
+        this._preloadedUri = undefined;
+        this._preloadedForQueueMediaId = undefined;
+        this._energy = [];
+        this._lastEndedTime = Date.now();
+        // The normal base handoff owns queue identity, media-ended and the
+        // server grant. Incoming remains silent/paused until that grant arrives.
+        this.onNativeEnded();
     }
 
     // ===== Offline URI resolution =====
@@ -211,8 +520,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     protected override async afterMediaLoadedAsync(
-        media: TPlayableMedia,
-        kind: TMediaKind
+        media: TPlayableMedia
     ): Promise<void> {
         if (!this._usesAudioForVideo(media) || this._audioOnlyAtom.get())
             return;
@@ -224,6 +532,28 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _syncVideoPicture(): void {
         // The video element is the foreground clock. Avoid starting it from
         // timeupdate, which is asynchronous and rejected by iOS autoplay rules.
+    }
+
+    private _connectForTransitions(
+        element: HTMLAudioElement,
+        audible: boolean
+    ): HTMLAudioElement {
+        try {
+            element.crossOrigin = "use-credentials";
+            this._mixer.connect(element, audible);
+            return element;
+        } catch (error) {
+            console.error(
+                "Transition routing unavailable; using native playback",
+                error
+            );
+            element.pause();
+            element.removeAttribute("src");
+            element.load();
+            const native = this._createAudio();
+            native.muted = !audible;
+            return native;
+        }
     }
 
     private _switchToBackgroundAudio(): void {
@@ -277,6 +607,30 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     protected override loadNativeSource(kind: TMediaKind, uri: string): void {
+        if (kind === "audio") {
+            const media = getRockIt().queueManager.currentMedia;
+            const eligible =
+                this._transitionSettings.get().enabled &&
+                !!media &&
+                isSong(media);
+            const promotion =
+                this._promotionQueueId ===
+                    getRockIt().queueManager.currentQueueMediaId &&
+                uri === this._promotionUri;
+            if (promotion) return;
+            this._cancelTransition();
+            this._energy = [];
+            if (this._audio && this._mixer.has(this._audio) && !eligible) {
+                this._audio.pause();
+                this._mixer.reset(this._audio, false);
+                this._audio.removeAttribute("src");
+                this._audio.load();
+                this._audio = this._createAudio();
+            }
+            if (this._audio && eligible && this._mixer.running) {
+                this._audio = this._connectForTransitions(this._audio, true);
+            }
+        }
         const el = this._el(kind);
         if (!el) return;
 
@@ -310,7 +664,11 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         const el = this._el(kind);
         if (!el) return;
 
-        if (kind === "audio") this._stopEndedPoll();
+        if (kind === "audio") {
+            this._stopEndedPoll();
+            this._cancelTransition();
+            this._energy = [];
+        }
 
         el.pause();
         el.currentTime = 0;
@@ -323,6 +681,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     protected override playNative(kind: TMediaKind): void {
         const el = this._el(kind);
         if (!el) return;
+
+        if (kind === "audio" && this._audio && this._mixer.has(this._audio))
+            this._mixer.activate();
 
         el.play()
             .then((): void => {
@@ -348,12 +709,29 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     protected override pauseNative(kind: TMediaKind): void {
         this._el(kind)?.pause();
+        if (!this._preserveTailPause) this._cancelTransition();
         if (kind === "audio" && this._usesAudioForVideo()) this._video?.pause();
     }
 
     protected override seekNative(kind: TMediaKind, sec: number): void {
         const el = this._el(kind);
         if (!el) return;
+        if (
+            kind === "audio" &&
+            this._promotionQueueId ===
+                getRockIt().queueManager.currentQueueMediaId &&
+            sec === 0 &&
+            el.currentTime < 0.05
+        )
+            return;
+        if (
+            kind === "audio" &&
+            !this._preserveTailPause &&
+            this._promotionQueueId !==
+                getRockIt().queueManager.currentQueueMediaId
+        )
+            this._cancelTransition();
+        this._energy = [];
         el.currentTime = sec;
         if (kind === "audio") this._syncVideoPicture();
     }
@@ -365,11 +743,16 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     protected override setNativeVolume(kind: TMediaKind, vol: number): void {
         const el = this._el(kind);
         if (!el) return;
-        el.volume = vol;
+        if (kind === "audio" && this._audio && this._mixer.has(this._audio)) {
+            el.volume = 1;
+            this._mixer.volume(vol);
+        } else el.volume = vol;
     }
 
     protected override getNativeVolume(kind: TMediaKind): number {
-        return this._el(kind)?.volume ?? 1;
+        return kind === "audio" && this._audio && this._mixer.has(this._audio)
+            ? this._volumeAtom.get()
+            : (this._el(kind)?.volume ?? 1);
     }
 
     protected override isNativePaused(kind: TMediaKind): boolean {
@@ -377,16 +760,28 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     protected override _onPlayingStarted(): void {
-        if (typeof document !== "undefined" && document.hidden) return;
+        if (this._transitionSettings.get().enabled && !this._transitionTimer) {
+            this._transitionTimer = setInterval(
+                (): void => this._transitionTick(),
+                250
+            );
+        }
+        if (
+            typeof document !== "undefined" &&
+            document.hidden &&
+            !this._transitionSettings.get().enabled
+        )
+            return;
         void this.preloadNextTrack();
     }
 
     async preloadNextTrack(): Promise<void> {
+        if (this._outgoing) return;
+        const generation = ++this._preloadGeneration;
         const next = getRockIt().queueManager.peekNextQueueItem();
+        const playbackId = this._playbackId;
         if (!next || !this._preloadAudio) return;
         if (!isSong(next.media) && !isVideo(next.media)) return;
-
-        if (this._preloadedForQueueMediaId === next.queueMediaId) return;
 
         let uri: string | undefined;
         if (isSong(next.media)) {
@@ -395,7 +790,34 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
         if (!uri) uri = getMediaAudioUrl(next.media);
         if (!uri) return;
+        if (
+            this._preloadedForQueueMediaId === next.queueMediaId &&
+            this._preloadedUri === uri
+        )
+            return;
 
+        if (
+            generation !== this._preloadGeneration ||
+            playbackId !== this._playbackId ||
+            next.queueMediaId !==
+                getRockIt().queueManager.peekNextQueueItem()?.queueMediaId ||
+            this._outgoing
+        )
+            return;
+        if (
+            this._transitionSettings.get().enabled &&
+            this._mixer.running &&
+            isSong(next.media)
+        ) {
+            this._preloadAudio = this._connectForTransitions(
+                this._preloadAudio,
+                false
+            );
+            this._preloadAudio.muted = false;
+            this._preloadAudio.preload = "auto";
+        } else {
+            this._preloadAudio.preload = "metadata";
+        }
         this._preloadAudio.src = uri;
         this._preloadAudio.load();
         this._preloadedUri = uri;

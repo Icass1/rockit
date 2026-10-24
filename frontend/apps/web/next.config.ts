@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import path from "path";
 import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
@@ -5,6 +6,13 @@ import { withSerwist } from "@serwist/turbopack";
 const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
+    env: {
+        NEXT_PUBLIC_APP_VERSION: execFileSync(
+            process.execPath,
+            [path.join(__dirname, "../../scripts/version.cjs")],
+            { encoding: "utf8" }
+        ).trim(),
+    },
     output: "standalone",
     outputFileTracingRoot: path.join(__dirname, "../.."),
     transpilePackages: ["@rockit/shared"],
@@ -40,6 +48,21 @@ const nextConfig: NextConfig = {
             1920, 2048, 3840,
         ],
         remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "commons.wikimedia.org",
+                pathname: "/w/thumb.php",
+            },
+            {
+                protocol: "https",
+                hostname: "upload.wikimedia.org",
+                pathname: "/wikipedia/**",
+            },
+            {
+                protocol: "https",
+                hostname: "coverartarchive.org",
+                pathname: "/release-group/**",
+            },
             {
                 protocol: "http",
                 hostname: "localhost",

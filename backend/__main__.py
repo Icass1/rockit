@@ -131,6 +131,23 @@ async def import_vocabulary() -> None:
     types_content.append("")
     types_path.write_text("\n".join(types_content))
 
+    # Ship feature defaults with the web bundle too: pulling code does not
+    # import translations into an existing deployment's database.
+    artist_defaults_path = Path("frontend/apps/web/lib/generated/artistVocabulary.json")
+    artist_defaults_path.parent.mkdir(parents=True, exist_ok=True)
+    artist_defaults = {
+        lang: {
+            key: value
+            for key, value in translations.items()
+            if key.startswith("ARTIST_")
+        }
+        for lang, translations in vocabulary_data.items()
+    }
+    artist_defaults_path.write_text(
+        json.dumps(artist_defaults, ensure_ascii=False, indent=4) + "\n",
+        encoding="utf-8",
+    )
+
     logger.info(f"Found {len(all_keys)} vocabulary keys")
 
     async with rockit_db.session_scope_async() as session:

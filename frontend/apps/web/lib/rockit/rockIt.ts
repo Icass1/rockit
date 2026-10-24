@@ -4,7 +4,10 @@ import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
 import { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
+import { FriendManager } from "@/lib/managers/friendManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
+import { LibraryPlaybackManager } from "@/lib/managers/libraryPlaybackManager";
+import { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
@@ -14,6 +17,7 @@ import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { PlaylistManager } from "@/lib/managers/playlistManager";
 import { QueueManager } from "@/lib/managers/queueManager";
 import { SearchManager } from "@/lib/managers/searchManager";
+import { SharingManager } from "@/lib/managers/sharingManager";
 import { StationManager } from "@/lib/managers/stationManager";
 import { UserManager } from "@/lib/managers/userManager";
 import { VocabularyManager } from "@/lib/managers/vocabularyManager";
@@ -27,8 +31,7 @@ export class RockIt {
 
     public readonly PLAYLIST_PLACEHOLDER_IMAGE_URL =
         "/playlist-placeholder.png";
-    public readonly ALBUM_PLACEHOLDER_IMAGE_URL =
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/image/album-placeholder.png";
+    public readonly ALBUM_PLACEHOLDER_IMAGE_URL = "/song-placeholder.png";
     public readonly MEDIA_PLACEHOLDER_IMAGE_URL =
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/song-placeholder.png";
     public readonly SONG_PLACEHOLDER_IMAGE_URL =
@@ -55,6 +58,10 @@ export class RockIt {
     playerUIManager = new PlayerUIManager();
     eventManager = new EventManager();
     libraryManager = new LibraryManager();
+    libraryPlaybackManager = new LibraryPlaybackManager();
+    friendManager = new FriendManager();
+    listenTogetherManager = new ListenTogetherManager();
+    sharingManager = new SharingManager();
     offlineManager = new OfflineManager();
     mediaSessionManager = new MediaSessionManager();
     http = Http;
@@ -75,6 +82,7 @@ export class RockIt {
         // the authenticated state and all message handlers are registered.
         await this.init();
         await this.userManager.updateAsync();
+        await this.notificationManager.refreshAsync();
         await this.webSocketManager.reconnectAsync();
         await this.queueManager.refreshAsync();
         await Promise.all([
@@ -84,8 +92,12 @@ export class RockIt {
     }
 
     private async initializeAsync(): Promise<void> {
+        rockIt.vocabularyManager.langAtom.listen(() => {
+            void rockIt.notificationManager.refreshAsync();
+        });
         rockIt.mediaPlayerManager.init();
         await rockIt.userManager.init();
+        await rockIt.notificationManager.refreshAsync();
         await rockIt.queueManager.init();
         await Promise.all([
             rockIt.downloaderManager.init(),
@@ -93,6 +105,9 @@ export class RockIt {
             rockIt.playlistManager.init(),
         ]);
         rockIt.libraryManager.init();
+        rockIt.friendManager.init();
+        rockIt.sharingManager.init();
+        rockIt.listenTogetherManager.init();
         rockIt.mediaSessionManager.init();
 
         cleanupLegacyIndexedDB();

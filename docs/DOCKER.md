@@ -61,6 +61,16 @@ Set in .env.production:
 | DB_PORT            | Port                 | 5432                  |
 | DB_NAME            | DB name              | rockit                |
 
+Optional — external recommendation suggestions (local recommendations need
+none of these; see [RECOMMENDATIONS.md](RECOMMENDATIONS.md)):
+
+| Var                                     | Desc                                     | Default                       |
+| --------------------------------------- | ---------------------------------------- | ----------------------------- |
+| LASTFM_API_KEY                          | Last.fm API key (enables Last.fm)        | - (Last.fm disabled)          |
+| RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS | Per-request timeout                      | 5                             |
+| RECOMMENDATION_EXTERNAL_CACHE_HOURS     | Reuse successful external results for    | 24                            |
+| RECOMMENDATION_PREFETCH_MAX_PENDING     | Shared automatic download budget; 0 disables prefetch | 2                   |
+
 Generate `SESSION_TOKEN_SECRET` with `python3 -c 'import secrets; print(secrets.token_urlsafe(48))'`
 and keep the same secret across backend replicas and restarts. Rotating it invalidates
 existing JWT sessions. Never commit it to the repository.

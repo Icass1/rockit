@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { isSongWithAlbum } from "@/models/types/media";
+import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useCoverflow } from "@/components/Home/hooks/useCoverflow";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
@@ -63,36 +63,34 @@ function getConfig(width: number): {
 function CoverflowCardComponent({
     card,
     delta,
+    cardSize,
 }: {
     card: CoverflowCard;
     delta: number;
+    cardSize: number;
 }): JSX.Element {
+    const song = useMedia(card.song);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const isCenter = delta === 0;
     const [imgLoaded, setImgLoaded] = useState(false);
     const isThisPlaying =
-        isCenter && $currentMedia?.publicId === card.song.publicId && $playing;
+        isCenter && $currentMedia?.publicId === song.publicId && $playing;
 
     function handlePlay(e: React.MouseEvent): void {
         e.stopPropagation();
-        const playableSongs = card.queue.filter(isSongWithAlbum);
-        if (playableSongs.length > 0) {
-            rockIt.queueManager.setMedia(playableSongs, "home");
-            rockIt.queueManager.moveToMedia(card.song.publicId);
-            rockIt.mediaPlayerManager.play();
-        }
+        void rockIt.queueManager.playRecommendedSongAsync(song, card.queue);
     }
 
     return (
         <>
             {/* Album art background — full card */}
             <Image
-                src={card.song.imageUrl}
+                src={song.imageUrl}
                 alt=""
                 fill
-                sizes="250px"
+                sizes={`${Math.ceil(cardSize)}px`}
                 className={`object-cover transition-opacity duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                 draggable={false}
                 aria-hidden="true"
@@ -117,27 +115,30 @@ function CoverflowCardComponent({
                             {card.eyebrow}
                         </span>
                         <span className="mt-0.5 block max-w-40 truncate text-sm font-bold text-white">
-                            {card.song.name}
+                            {song.name}
                         </span>
                         <span className="mt-0.5 block max-w-35 truncate text-xs text-white/55">
-                            {card.song.artists[0]?.name}
+                            {song.artists[0]?.name}
                         </span>
                     </div>
 
                     <PlayButton
                         isPlaying={!!isThisPlaying}
+                        download={!song.downloaded}
                         onClick={handlePlay}
                         size={42}
                         label={
-                            isThisPlaying
-                                ? $vocabulary.PAUSE_SONG_NAME.replace(
-                                      "{name}",
-                                      card.song.name
-                                  )
-                                : $vocabulary.PLAY_SONG_NAME.replace(
-                                      "{name}",
-                                      card.song.name
-                                  )
+                            !song.downloaded
+                                ? $vocabulary.CLICK_TO_DOWNLOAD
+                                : isThisPlaying
+                                  ? $vocabulary.PAUSE_SONG_NAME.replace(
+                                        "{name}",
+                                        song.name
+                                    )
+                                  : $vocabulary.PLAY_SONG_NAME.replace(
+                                        "{name}",
+                                        song.name
+                                    )
                         }
                     />
                 </div>
@@ -354,6 +355,7 @@ export default function HomeHeroCoverflow({
                                 <CoverflowCardComponent
                                     card={card}
                                     delta={delta}
+                                    cardSize={config.cardSize}
                                 />
                             </div>
                         );

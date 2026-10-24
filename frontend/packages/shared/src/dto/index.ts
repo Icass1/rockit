@@ -2,6 +2,10 @@
 // Do not modify this file manually.
 
 export {
+    ActionFriendRequestSchema,
+    type ActionFriendRequest,
+} from "./actionFriendRequest";
+export {
     AddContributorRequestSchema,
     type AddContributorRequest,
 } from "./addContributorRequest";
@@ -37,6 +41,42 @@ export {
     AllBuildsResponseSchema,
     type AllBuildsResponse,
 } from "./allBuildsResponse";
+export {
+    ArtistCatalogResponseSchema,
+    type ArtistCatalogResponse,
+} from "./artistCatalogResponse";
+export {
+    ArtistImageMetadataSchema,
+    type ArtistImageMetadata,
+} from "./artistImageMetadata";
+export {
+    ArtistImageSourceSchema,
+    type ArtistImageSource,
+} from "./artistImageSource";
+export {
+    ArtistMetadataCandidatesSchema,
+    type ArtistMetadataCandidates,
+} from "./artistMetadataCandidates";
+export {
+    ArtistMetadataCatalogSchema,
+    type ArtistMetadataCatalog,
+} from "./artistMetadataCatalog";
+export {
+    ArtistMetadataIdentitySchema,
+    type ArtistMetadataIdentity,
+} from "./artistMetadataIdentity";
+export {
+    ArtistMetadataItemSchema,
+    type ArtistMetadataItem,
+} from "./artistMetadataItem";
+export {
+    ArtistMetadataProfileSchema,
+    type ArtistMetadataProfile,
+} from "./artistMetadataProfile";
+export {
+    ArtistPageResponseSchema,
+    type ArtistPageResponse,
+} from "./artistPageResponse";
 export {
     ArtistSearchResultsItemSchema,
     type ArtistSearchResultsItem,
@@ -115,6 +155,10 @@ export {
     type CollectionQueueRequest,
 } from "./collectionQueueRequest";
 export {
+    CompareStatsResponseSchema,
+    type CompareStatsResponse,
+} from "./compareStatsResponse";
+export {
     CompleteChunkedUploadRequestSchema,
     type CompleteChunkedUploadRequest,
 } from "./completeChunkedUploadRequest";
@@ -163,6 +207,14 @@ export {
     type CurrentTimeMessageRequest,
 } from "./currentTimeMessageRequest";
 export {
+    DownloadBrowseGroupResponseSchema,
+    type DownloadBrowseGroupResponse,
+} from "./downloadBrowseGroupResponse";
+export {
+    DownloadBrowseResponseSchema,
+    type DownloadBrowseResponse,
+} from "./downloadBrowseResponse";
+export {
     DownloadGroupResponseSchema,
     type DownloadGroupResponse,
 } from "./downloadGroupResponse";
@@ -171,9 +223,21 @@ export {
     type DownloadItemResponse,
 } from "./downloadItemResponse";
 export {
+    DownloadItemsPageResponseSchema,
+    type DownloadItemsPageResponse,
+} from "./downloadItemsPageResponse";
+export {
     DownloadProgressMessageSchema,
     type DownloadProgressMessage,
 } from "./downloadProgressMessage";
+export {
+    DownloadSettingsResponseSchema,
+    type DownloadSettingsResponse,
+} from "./downloadSettingsResponse";
+export {
+    DownloadTotalsResponseSchema,
+    type DownloadTotalsResponse,
+} from "./downloadTotalsResponse";
 export {
     DownloadZipRequestSchema,
     type DownloadZipRequest,
@@ -186,6 +250,43 @@ export {
     DynamicLyricsItemSchema,
     type DynamicLyricsItem,
 } from "./dynamicLyricsItem";
+export {
+    FriendActivityItemSchema,
+    type FriendActivityItem,
+} from "./friendActivityItem";
+export {
+    FriendActivityResponseSchema,
+    type FriendActivityResponse,
+} from "./friendActivityResponse";
+export {
+    FriendListResponseSchema,
+    type FriendListResponse,
+} from "./friendListResponse";
+export {
+    FriendRequestListResponseSchema,
+    type FriendRequestListResponse,
+} from "./friendRequestListResponse";
+export {
+    FriendRequestResponseSchema,
+    type FriendRequestResponse,
+} from "./friendRequestResponse";
+export { FriendResponseSchema, type FriendResponse } from "./friendResponse";
+export {
+    FriendSearchResponseSchema,
+    type FriendSearchResponse,
+} from "./friendSearchResponse";
+export {
+    FriendStatsRequestSchema,
+    type FriendStatsRequest,
+} from "./friendStatsRequest";
+export {
+    FriendStatsResponseSchema,
+    type FriendStatsResponse,
+} from "./friendStatsResponse";
+export {
+    FriendStreakResponseSchema,
+    type FriendStreakResponse,
+} from "./friendStreakResponse";
 export {
     GetAllRequestsRequestSchema,
     type GetAllRequestsRequest,
@@ -220,6 +321,19 @@ export {
     type LatestVersionResponse,
 } from "./latestVersionResponse";
 export {
+    LeaderboardResponseSchema,
+    type LeaderboardResponse,
+} from "./leaderboardResponse";
+export {
+    LegacyNotificationRequestSchema,
+    type LegacyNotificationRequest,
+} from "./legacyNotificationRequest";
+export {
+    LegacyNotificationsRequestSchema,
+    type LegacyNotificationsRequest,
+} from "./legacyNotificationsRequest";
+export { LevelConfigSchema, type LevelConfig } from "./levelConfig";
+export {
     LibraryMediaAddedMessageSchema,
     type LibraryMediaAddedMessage,
 } from "./libraryMediaAddedMessage";
@@ -243,6 +357,30 @@ export {
     LikedMediaResponseSchema,
     type LikedMediaResponse,
 } from "./likedMediaResponse";
+export {
+    ListenTogetherInviteRequestSchema,
+    type ListenTogetherInviteRequest,
+} from "./listenTogetherInviteRequest";
+export {
+    ListenTogetherJoinRequestSchema,
+    type ListenTogetherJoinRequest,
+} from "./listenTogetherJoinRequest";
+export {
+    ListenTogetherLeaveRequestSchema,
+    type ListenTogetherLeaveRequest,
+} from "./listenTogetherLeaveRequest";
+export {
+    ListenTogetherListResponseSchema,
+    type ListenTogetherListResponse,
+} from "./listenTogetherListResponse";
+export {
+    ListenTogetherSessionResponseSchema,
+    type ListenTogetherSessionResponse,
+} from "./listenTogetherSessionResponse";
+export {
+    ListenTogetherSyncRequestSchema,
+    type ListenTogetherSyncRequest,
+} from "./listenTogetherSyncRequest";
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
@@ -272,6 +410,26 @@ export {
     type MediaRemovedFromPlaylistMessage,
 } from "./mediaRemovedFromPlaylistMessage";
 export { MediaResponseSchema, type MediaResponse } from "./mediaResponse";
+export {
+    MetadataResponseSchema,
+    type MetadataResponse,
+} from "./metadataResponse";
+export {
+    NotificationActivityRequestSchema,
+    type NotificationActivityRequest,
+} from "./notificationActivityRequest";
+export {
+    NotificationResponseSchema,
+    type NotificationResponse,
+} from "./notificationResponse";
+export {
+    NotificationsReadRequestSchema,
+    type NotificationsReadRequest,
+} from "./notificationsReadRequest";
+export {
+    NotificationsResponseSchema,
+    type NotificationsResponse,
+} from "./notificationsResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {
     PlaylistContributorSchema,
@@ -293,6 +451,10 @@ export {
     PlaylistResponseItemSchema,
     type PlaylistResponseItem,
 } from "./playlistResponseItem";
+export {
+    PrepareRecommendationsRequestSchema,
+    type PrepareRecommendationsRequest,
+} from "./prepareRecommendationsRequest";
 export { QueueItemSchema, type QueueItem } from "./queueItem";
 export { QueueResponseSchema, type QueueResponse } from "./queueResponse";
 export {
@@ -311,6 +473,10 @@ export {
     RadioBrowserStationResponseSchema,
     type RadioBrowserStationResponse,
 } from "./radioBrowserStationResponse";
+export {
+    RecommendationTrackRequestSchema,
+    type RecommendationTrackRequest,
+} from "./recommendationTrackRequest";
 export { RegisterRequestSchema, type RegisterRequest } from "./registerRequest";
 export {
     RegisterResponseSchema,
@@ -361,6 +527,22 @@ export {
     ReviewUserRequestRequestSchema,
     type ReviewUserRequestRequest,
 } from "./reviewUserRequestRequest";
+export {
+    SearchProviderInfoSchema,
+    type SearchProviderInfo,
+} from "./searchProviderInfo";
+export {
+    SearchProviderRequestSchema,
+    type SearchProviderRequest,
+} from "./searchProviderRequest";
+export {
+    SearchProviderResponseSchema,
+    type SearchProviderResponse,
+} from "./searchProviderResponse";
+export {
+    SearchProvidersResponseSchema,
+    type SearchProvidersResponse,
+} from "./searchProvidersResponse";
 export { SearchRequestSchema, type SearchRequest } from "./searchRequest";
 export {
     SearchResultsResponseSchema,
@@ -371,6 +553,10 @@ export {
     type SeekMessageRequest,
 } from "./seekMessageRequest";
 export {
+    SendFriendRequestSchema,
+    type SendFriendRequest,
+} from "./sendFriendRequest";
+export {
     SessionIdResponseSchema,
     type SessionIdResponse,
 } from "./sessionIdResponse";
@@ -380,9 +566,30 @@ export {
     type SessionTokenClaims,
 } from "./sessionTokenClaims";
 export {
+    ShareActionRequestSchema,
+    type ShareActionRequest,
+} from "./shareActionRequest";
+export {
+    ShareMediaRequestSchema,
+    type ShareMediaRequest,
+} from "./shareMediaRequest";
+export {
+    SharedMediaInboxResponseSchema,
+    type SharedMediaInboxResponse,
+} from "./sharedMediaInboxResponse";
+export { SharedMediaItemSchema, type SharedMediaItem } from "./sharedMediaItem";
+export {
+    SharedMediaSentResponseSchema,
+    type SharedMediaSentResponse,
+} from "./sharedMediaSentResponse";
+export {
     SkipClickedMessageRequestSchema,
     type SkipClickedMessageRequest,
 } from "./skipClickedMessageRequest";
+export {
+    SongListResponseSchema,
+    type SongListResponse,
+} from "./songListResponse";
 export {
     SpotifyAlbumResponseSchema,
     type SpotifyAlbumResponse,
@@ -436,6 +643,10 @@ export {
     type StartDownloadResponse,
 } from "./startDownloadResponse";
 export {
+    StartFromSearchRequestSchema,
+    type StartFromSearchRequest,
+} from "./startFromSearchRequest";
+export {
     StartUploadResponseSchema,
     type StartUploadResponse,
 } from "./startUploadResponse";
@@ -464,6 +675,10 @@ export {
     StatsV2SummaryResponseSchema,
     type StatsV2SummaryResponse,
 } from "./statsV2SummaryResponse";
+export {
+    StreakBattleChallengeRequestSchema,
+    type StreakBattleChallengeRequest,
+} from "./streakBattleChallengeRequest";
 export { StreakResponseSchema, type StreakResponse } from "./streakResponse";
 export {
     UpdateBookmarkRequestSchema,
@@ -527,6 +742,10 @@ export {
     type UrlMatchResponse,
 } from "./urlMatchResponse";
 export {
+    UserLevelResponseSchema,
+    type UserLevelResponse,
+} from "./userLevelResponse";
+export {
     UserPlaylistsResponseSchema,
     type UserPlaylistsResponse,
 } from "./userPlaylistsResponse";
@@ -538,6 +757,10 @@ export {
     UserRequestResponseSchema,
     type UserRequestResponse,
 } from "./userRequestResponse";
+export {
+    UserSearchResultSchema,
+    type UserSearchResult,
+} from "./userSearchResult";
 export {
     UserSettingsResponseSchema,
     type UserSettingsResponse,
@@ -554,6 +777,11 @@ export {
     UserStatsV2ResponseSchema,
     type UserStatsV2Response,
 } from "./userStatsV2Response";
+export { VibeResultSchema, type VibeResult } from "./vibeResult";
+export {
+    VibeScoreResponseSchema,
+    type VibeScoreResponse,
+} from "./vibeScoreResponse";
 export {
     VocabularyResponseSchema,
     type VocabularyResponse,

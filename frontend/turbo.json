@@ -4,6 +4,11 @@
     "tasks": {
         "build": {
             "dependsOn": ["^build"],
+            "env": [
+                "ROCKIT_VERSION",
+                "NEXT_PUBLIC_APP_VERSION",
+                "NEXT_PUBLIC_BACKEND_URL"
+            ],
             "outputs": [".next/**", "!.next/cache/**", "dist/**"]
         },
         "dev": {

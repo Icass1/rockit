@@ -35,7 +35,7 @@ export function isZippable(media: TMediaWithSearch): boolean {
 }
 
 function getPublicId(media: TMediaWithSearch): string | undefined {
-    return "publicId" in media ? media.publicId : undefined;
+    return "publicId" in media ? (media.publicId ?? undefined) : undefined;
 }
 
 export function LibrarySelectionProvider({

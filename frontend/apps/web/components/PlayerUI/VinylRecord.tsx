@@ -1,9 +1,8 @@
 "use client";
 
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef } from "react";
 import Image from "next/image";
 import { BaseArtistResponse } from "@/dto";
-import { resolveOfflineCoverUrl } from "@/lib/offline/store";
 
 const TARGET_SPEED = 0.75;
 const ACCEL = TARGET_SPEED / 120; // 2s to full speed at 60fps
@@ -13,13 +12,11 @@ export default function VinylRecord({
     name,
     artists,
     isPlaying,
-    publicId,
 }: {
     imageUrl: string;
     name: string;
     artists: BaseArtistResponse[];
     isPlaying: boolean;
-    publicId: string;
 }): JSX.Element {
     const artistText = artists.map((a) => a.name).join(", ");
     const discRef = useRef<HTMLDivElement>(null);
@@ -27,19 +24,6 @@ export default function VinylRecord({
     const speedRef = useRef(0);
     const isPlayingRef = useRef(isPlaying);
     const rafIdRef = useRef<number>(0);
-    const [offlineCoverUrl, setOfflineCoverUrl] = useState<string | null>(null);
-
-    useEffect((): (() => void) => {
-        let cancelled = false;
-        resolveOfflineCoverUrl(publicId).then((url) => {
-            if (!cancelled && url) setOfflineCoverUrl(url);
-        });
-        return () => {
-            cancelled = true;
-        };
-    }, [publicId]);
-
-    const coverSrc = offlineCoverUrl ?? imageUrl;
 
     // Keep ref in sync with prop outside of render
     useEffect(() => {
@@ -86,7 +70,7 @@ export default function VinylRecord({
             <div ref={discRef} className="vinyl-disc">
                 <div className="vinyl-cover-circle">
                     <Image
-                        src={coverSrc}
+                        src={imageUrl}
                         fill
                         alt={name}
                         className="object-cover"

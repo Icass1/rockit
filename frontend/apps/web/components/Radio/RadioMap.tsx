@@ -1,17 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import L from "leaflet";
-import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
+import {
+    GeoJSON,
+    MapContainer,
+    Marker,
+    Popup,
+    Tooltip,
+    useMap,
+    ZoomControl,
+} from "react-leaflet";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldData from "world-atlas/countries-110m.json";
 import "leaflet/dist/leaflet.css";
+import { useStore } from "@nanostores/react";
+import type { BaseStationResponse } from "@rockit/shared";
+import { Play } from "lucide-react";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 interface RadioMapProps {
     onCountryClick: (countryName: string) => void;
     selectedCountry: string | null;
+    savedStations?: BaseStationResponse[];
 }
 
 interface CountryProperties {
@@ -19,9 +32,17 @@ interface CountryProperties {
     [key: string]: unknown;
 }
 
-const WORLD_BOUNDS = L.latLngBounds([-90, -180], [90, 180]);
+const WORLD_BOUNDS = L.latLngBounds([-85, -Infinity], [85, Infinity]);
 
-function MapBounds(): null {
+function MapBounds({
+    selectedCountry,
+    countries,
+    onWorldRadiusChange,
+}: {
+    selectedCountry: string | null;
+    countries: FeatureCollection | null;
+    onWorldRadiusChange: (radius: number) => void;
+}): null {
     const map = useMap();
     const initialized = useRef(false);
 
@@ -31,6 +52,43 @@ function MapBounds(): null {
             initialized.current = true;
         }
     }, [map]);
+
+    useEffect(() => {
+        const updateWorlds = (): void => {
+            const worldWidth = map
+                .getPixelWorldBounds(map.getMinZoom())
+                .getSize().x;
+            onWorldRadiusChange(
+                Math.ceil(map.getSize().x / (2 * worldWidth)) + 1
+            );
+        };
+        const observer = new ResizeObserver(() => {
+            map.invalidateSize();
+            updateWorlds();
+        });
+        updateWorlds();
+        observer.observe(map.getContainer());
+        return (): void => {
+            observer.disconnect();
+        };
+    }, [map, onWorldRadiusChange]);
+
+    useEffect(() => {
+        if (!selectedCountry || !countries) return;
+        const selected = countries.features.filter(
+            (country) => country.properties?.name === selectedCountry
+        );
+        const bounds = L.geoJSON(selected).getBounds();
+        if (!bounds.isValid()) return;
+        const size = map.getSize();
+        map.fitBounds(bounds, {
+            maxZoom: 4,
+            animate: false,
+            paddingTopLeft:
+                size.x >= 768 && size.y >= 404 ? [420, 128] : [24, 180],
+            paddingBottomRight: size.x >= 768 ? [32, 32] : [24, size.y * 0.45],
+        });
+    }, [map, selectedCountry, countries]);
 
     return null;
 }
@@ -177,8 +235,9 @@ function getCountryStyle(
         const isSelected = props?.name === selected;
 
         return {
-            fillColor: isSelected ? "#ee1086" : "transparent",
-            fillOpacity: isSelected ? 0.3 : 0,
+            className: "radio-country",
+            fillColor: isSelected ? "#ee1086" : "#27272a",
+            fillOpacity: isSelected ? 0.6 : 1,
             color: isSelected ? "#ee1086" : "rgba(255, 255, 255, 0.15)",
             weight: isSelected ? 2 : 0.5,
             opacity: 1,
@@ -187,7 +246,8 @@ function getCountryStyle(
 }
 
 function onEachCountryFeature(
-    onCountryClick: (name: string) => void
+    onCountryClick: (name: string) => void,
+    selectedCountry: string | null
 ): (f: GeoJSON.Feature, layer: L.GeoJSON) => void {
     return (f: GeoJSON.Feature, layer: L.GeoJSON): void => {
         const name = (f.properties as CountryProperties | undefined)?.name;
@@ -215,10 +275,7 @@ function onEachCountryFeature(
             mouseout: (e: L.LeafletMouseEvent) => {
                 const target = e.target as L.Path;
                 target.setStyle({
-                    fillOpacity: 0,
-                    weight: 0.5,
-                    color: "rgba(255, 255, 255, 0.15)",
-                    fillColor: "transparent",
+                    ...getCountryStyle(selectedCountry)(f),
                 });
                 target.closeTooltip();
             },
@@ -226,12 +283,83 @@ function onEachCountryFeature(
     };
 }
 
+function MapHoverReset({
+    selectedCountry,
+}: {
+    selectedCountry: string | null;
+}): null {
+    const map = useMap();
+
+    useEffect(() => {
+        const reset = (): void => {
+            map.eachLayer((layer) => {
+                if (!(layer instanceof L.GeoJSON)) return;
+                layer.eachLayer((child) => {
+                    const path = child as L.Path & {
+                        feature?: GeoJSON.Feature;
+                    };
+                    if (typeof path.setStyle !== "function") return;
+                    path.closeTooltip();
+                    path.setStyle(
+                        getCountryStyle(selectedCountry)(path.feature)
+                    );
+                });
+            });
+        };
+        map.on("dragstart", reset);
+        return (): void => {
+            map.off("dragstart", reset);
+        };
+    }, [map, selectedCountry]);
+
+    return null;
+}
+
 /* ── Component ─────────────────────────────────────────── */
 
 export default function RadioMap({
     onCountryClick,
     selectedCountry,
+    savedStations = [],
 }: RadioMapProps): JSX.Element {
+    const [worldRadius, setWorldRadius] = useState(2);
+    const worlds = Array.from(
+        { length: worldRadius * 2 + 1 },
+        (_, index) => index - worldRadius
+    );
+    const renderer = useMemo(() => L.svg({ padding: 1 }), []);
+    const stationIcons = useMemo(() => {
+        const icons = new Map<string, L.DivIcon>();
+        if (typeof document === "undefined") return icons;
+        for (let world = -worldRadius; world <= worldRadius; world++) {
+            for (const station of savedStations) {
+                const image = document.createElement("img");
+                image.src =
+                    station.imageUrl?.trim() || "/radio-placeholder.png";
+                image.alt = "";
+                image.width = 44;
+                image.height = 44;
+                image.style.cssText =
+                    "width:44px;height:44px;object-fit:cover;border:2px solid #ee1086;border-radius:8px;background:#171717;box-shadow:0 2px 8px #0008";
+                image.onerror = (): void => {
+                    image.onerror = null;
+                    image.src = "/radio-placeholder.png";
+                };
+                icons.set(
+                    `${station.publicId}:${world}`,
+                    L.divIcon({
+                        html: image,
+                        className: "radio-station-marker",
+                        iconSize: [44, 44],
+                        iconAnchor: [22, 22],
+                        popupAnchor: [0, -22],
+                    })
+                );
+            }
+        }
+        return icons;
+    }, [savedStations, worldRadius]);
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const countries: FeatureCollection | null = useMemo(() => {
         try {
             const topology = worldData as unknown as Topology;
@@ -248,9 +376,47 @@ export default function RadioMap({
         return null;
     }, []);
 
+    const locatedStations = useMemo(() => {
+        const countryCenters = new Map<
+            string,
+            { center: L.LatLng; area: number }
+        >();
+        for (const country of countries?.features ?? []) {
+            const bounds = L.geoJSON(country).getBounds();
+            if (!bounds.isValid()) continue;
+            const area =
+                (bounds.getEast() - bounds.getWest()) *
+                (bounds.getNorth() - bounds.getSouth());
+            const name = String(country.properties?.name).toLowerCase();
+            if (area > (countryCenters.get(name)?.area ?? -1)) {
+                countryCenters.set(name, { center: bounds.getCenter(), area });
+            }
+        }
+        return savedStations.flatMap((station) => {
+            if (
+                station.geoLat !== null &&
+                station.geoLong !== null &&
+                Number.isFinite(station.geoLat) &&
+                Number.isFinite(station.geoLong)
+            )
+                return [station];
+            const name =
+                station.country === "United States"
+                    ? "United States of America"
+                    : station.country;
+            const location = countryCenters.get(
+                name?.toLowerCase() ?? ""
+            )?.center;
+            return location
+                ? [{ ...station, geoLat: location.lat, geoLong: location.lng }]
+                : [];
+        });
+    }, [countries, savedStations]);
+
     return (
-        <div className="radio-map-container w-full overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.08)]">
+        <div className="radio-map-container h-full w-full overflow-hidden [&_.leaflet-control-zoom_a]:h-11 [&_.leaflet-control-zoom_a]:w-11 [&_.leaflet-control-zoom_a]:leading-11">
             <MapContainer
+                renderer={renderer}
                 center={[20, 0]}
                 zoom={2}
                 minZoom={2}
@@ -258,23 +424,82 @@ export default function RadioMap({
                 zoomControl={false}
                 attributionControl={false}
                 dragging={true}
+                worldCopyJump={true}
                 scrollWheelZoom={true}
-                doubleClickZoom={false}
-                className="h-75 w-full md:h-100"
+                doubleClickZoom={true}
+                className="h-full w-full"
             >
-                <MapBounds />
-                <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    tileSize={512}
-                    zoomOffset={-1}
+                <MapBounds
+                    selectedCountry={selectedCountry}
+                    countries={countries}
+                    onWorldRadiusChange={setWorldRadius}
                 />
-                {countries && (
-                    <GeoJSON
-                        key={selectedCountry ?? "default"}
-                        data={countries}
-                        style={getCountryStyle(selectedCountry)}
-                        onEachFeature={onEachCountryFeature(onCountryClick)}
-                    />
+                <MapHoverReset selectedCountry={selectedCountry} />
+                <ZoomControl position="topright" />
+                {countries &&
+                    worlds.map((world) => (
+                        <GeoJSON
+                            key={`${selectedCountry ?? "default"}:${world}`}
+                            data={countries}
+                            coordsToLatLng={(coordinates): L.LatLng =>
+                                L.latLng(
+                                    coordinates[1],
+                                    coordinates[0] + world * 360,
+                                    coordinates[2]
+                                )
+                            }
+                            style={getCountryStyle(selectedCountry)}
+                            onEachFeature={onEachCountryFeature(
+                                onCountryClick,
+                                selectedCountry
+                            )}
+                        />
+                    ))}
+                {worlds.flatMap((world) =>
+                    locatedStations
+                        .filter(
+                            (station) =>
+                                station.geoLat !== null &&
+                                station.geoLong !== null &&
+                                Number.isFinite(station.geoLat) &&
+                                Number.isFinite(station.geoLong)
+                        )
+                        .map((station) => (
+                            <Marker
+                                key={`${station.publicId}:${world}`}
+                                position={[
+                                    station.geoLat!,
+                                    station.geoLong! + world * 360,
+                                ]}
+                                icon={stationIcons.get(
+                                    `${station.publicId}:${world}`
+                                )}
+                                title={station.name}
+                                alt={station.name}
+                            >
+                                <Tooltip>{station.name}</Tooltip>
+                                <Popup>
+                                    <div className="flex items-center gap-2">
+                                        <p className="m-0 font-semibold">
+                                            {station.name}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            aria-label={`${vocabulary.PLAY}: ${station.name}`}
+                                            title={vocabulary.PLAY}
+                                            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-pink-500 text-white transition-colors hover:bg-pink-600"
+                                            onClick={(): void => {
+                                                void rockIt.stationManager.setAndPlayStation(
+                                                    station
+                                                );
+                                            }}
+                                        >
+                                            <Play className="h-4 w-4 fill-current" />
+                                        </button>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        ))
                 )}
             </MapContainer>
         </div>

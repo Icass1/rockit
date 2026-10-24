@@ -19,6 +19,7 @@ import {
     Pencil,
     Play,
     PlayCircle,
+    Radio,
     RefreshCw,
     Shuffle,
     Trash2,
@@ -304,6 +305,7 @@ const ACTION_REGISTRY: ActionDef[] = [
         icon: CloudDownload,
         labelKey: "SAVE_OFFLINE",
         mediaTypes: [EMediaType.Song],
+        condition: (m) => !isSearchResult(m),
     },
     {
         id: EMediaContextAction.DownloadOfflineList,
@@ -311,6 +313,14 @@ const ACTION_REGISTRY: ActionDef[] = [
         icon: CloudDownload,
         labelKey: "DOWNLOAD_LIST_TO_DEVICE",
         mediaTypes: [EMediaType.Album, EMediaType.Playlist],
+        condition: (m) => !isSearchResult(m),
+    },
+    {
+        id: EMediaContextAction.SimilarToSong,
+        type: "action",
+        icon: Radio,
+        labelKey: "SIMILAR_TO_SONG",
+        mediaTypes: [EMediaType.Song],
         condition: (m) => !isSearchResult(m),
     },
 ];
@@ -326,6 +336,7 @@ function findAction(id: EMediaContextAction): ActionDef | undefined {
 const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
     [EMediaType.Song]: [
         EMediaContextAction.Play,
+        EMediaContextAction.SimilarToSong,
         EMediaContextAction.AddToPlaylist,
         EMediaContextAction.AddToPlaylistAndDownload,
         "---",

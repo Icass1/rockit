@@ -1,7 +1,8 @@
-from typing import Dict
-from dotenv import load_dotenv
-from typing import List
 import os
+import sys
+from typing import Dict
+from typing import List
+from dotenv import load_dotenv
 
 env_file = os.environ.get("ROCKIT_ENV_FILE")
 if env_file:
@@ -39,6 +40,30 @@ def get_env_str(name: str, possible_values: List[str] | None = None) -> str:
     env_vars[name] = var
 
     return var
+
+
+def get_optional_env_str(name: str, default: str) -> str:
+    """Read an optional environment variable. Unlike get_env_str, a missing
+    value never aborts startup — the default is used instead."""
+
+    var = os.getenv(name)
+    if var is None or var.strip() == "":
+        return default
+    return var.strip()
+
+
+def get_optional_env_float(name: str, default: float) -> float:
+    """Read an optional numeric environment variable, falling back to the
+    default when it is missing or not a number."""
+
+    var = get_optional_env_str(name, default="")
+    if var == "":
+        return default
+    try:
+        return float(var)
+    except ValueError:
+        print(f"Environment variable '{name}' must be a number, using {default}")
+        return default
 
 
 def get_env_int(name: str) -> int:
@@ -136,6 +161,23 @@ CLIENT_ID = get_env_str("CLIENT_ID")
 CLIENT_SECRET = get_env_str("CLIENT_SECRET")
 YOUTUBE_API_KEY = get_env_str("YOUTUBE_API_KEY")
 
+# --- Recommendations ---------------------------------------------------------
+# Local recommendations need no configuration. Everything below is optional and
+# controls generic external recommendation resilience and preparation.
+# Shared admission budget, including queued and retrying automatic downloads.
+# Set to zero to disable automatic preparation without disabling recommendations.
+RECOMMENDATION_PREFETCH_MAX_PENDING = max(
+    0, get_env_int_optional("RECOMMENDATION_PREFETCH_MAX_PENDING", 2)
+)
+# Per-request timeout for external providers, in seconds.
+RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS = get_optional_env_float(
+    "RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS", default=5.0
+)
+# How long successful external suggestions are reused before re-fetching.
+RECOMMENDATION_EXTERNAL_CACHE_HOURS = get_optional_env_float(
+    "RECOMMENDATION_EXTERNAL_CACHE_HOURS", default=24.0
+)
+
 
 # --- YouTube download reliability -------------------------------------------
 # All of these are optional: with none of them set the downloader still works,
@@ -190,4 +232,4 @@ for key, value in env_vars.items():
     print(f"{key}: {displayed_value}")
 
 if error:
-    exit()
+    sys.exit()

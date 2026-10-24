@@ -20,6 +20,11 @@ export default function PlayerCoverArt({
     uri,
     mediaType,
 }: PlayerCoverArtProps): JSX.Element {
+    const coverUri =
+        uri ||
+        (mediaType === "station" || mediaType === "radio"
+            ? "/radio-placeholder.png"
+            : undefined);
     const audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
     const { width, height } = useWindowSize();
     const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -50,10 +55,10 @@ export default function PlayerCoverArt({
         >
             {showVideo ? (
                 <div ref={attachVideoRef} className="absolute inset-0" />
-            ) : uri ? (
+            ) : coverUri ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                    src={uri}
+                    src={coverUri}
                     alt=""
                     className="h-full w-full object-cover"
                     loading="eager"

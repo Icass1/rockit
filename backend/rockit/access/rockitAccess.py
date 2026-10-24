@@ -306,6 +306,7 @@ class RockitAccess:
                 select(RockitSongRow)
                 .where(RockitSongRow.album_id == album_id)
                 .order_by(RockitSongRow.disc_number, RockitSongRow.track_number)
+                .options(selectinload(RockitSongRow.artists))
             )
             result: Result[Tuple[RockitSongRow]] = await session.execute(stmt)
             rows: List[RockitSongRow] = cast(

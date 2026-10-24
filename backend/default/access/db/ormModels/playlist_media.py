@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict
 
-from sqlalchemy import ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, Integer, UniqueConstraint
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from backend.default.access.db.base import DefaultBase
@@ -20,6 +20,7 @@ class PlaylistMediaRow(
     __tablename__ = "playlist_media"
     __table_args__ = (
         UniqueConstraint("playlist_id", "position", name="uq_playlist_media_position"),
+        Index("ix_playlist_media_media_id", "media_id"),
         {"schema": "default_schema", "extend_existing": True},
     )
 

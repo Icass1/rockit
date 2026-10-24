@@ -1,0 +1,88 @@
+# Artist portrait sources
+
+Reviewed 2026-10-23 against provider documentation. No new portrait provider is
+connected by this revision. Existing Spotify/YouTube provider image selection is
+improved independently; existing stored low-resolution images are not bulk-refreshed.
+
+| Source | Identity and artwork | Access | Fit |
+| --- | --- | --- | --- |
+| Fanart.tv | Artist thumbs keyed by MusicBrainz ID; 1000×1000 quality-controlled group/artist photographs, explicitly excluding album covers | Project API key; obtaining it requires login | Best fit for deliberately curated portraits; needs project credentials |
+| TheAudioDB | Artist artwork; some identity lookup/search features are premium | Public free key 123, 30 requests/minute; free tier is for development and restricts app-store publication | Not a universal unrestricted substitute for this project |
+| Wikidata / Wikimedia Commons | P18 identifies a main image for a known entity; can be joined using verified MusicBrainz Wikidata links | Public linked entity data; image-specific reuse requirements must be respected | Keyless fallback worth evaluating; not guaranteed to be a professional promotional portrait |
+
+Sources:
+- https://api.fanart.tv/
+- https://fanart.tv/get-an-api-key/
+- https://wiki.fanart.tv/ImageTypes/Music/artistthumb/
+- https://www.theaudiodb.com/free_music_api
+- https://www.theaudiodb.com/docs_terms_of_use.php
+- https://www.theaudiodb.com/pricing
+- https://www.wikidata.org/wiki/Wikidata:Data_access/en
+- https://enterprise.wikimedia.com/project-data/wikidata-api/ (P18 description)
+
+YouTube artist information now uses YTMusic.get_artist rather than extracting a
+channel video listing; portrait selection uses the largest dimensions supplied
+by the source. This does not manufacture a higher-resolution file or assert that
+all artists have one. Documentation: https://ytmusicapi.readthedocs.io/en/latest/reference/browsing.html
+
+## Audience figures (2026-10-23)
+
+MusicBrainz's artist model describes identity, area, lifespan, relationships,
+ratings and tags; it does not provide monthly listeners, stream counts or
+subscriber counts. No audience figures are fabricated in the UI.
+
+Last.fm `artist.getInfo` accepts an MBID and exposes artist listeners and plays.
+It requires an API key, although the read method needs no end-user login. These
+are Last.fm audience totals, not Spotify monthly listeners, and must be labelled
+with their source and period if integrated. No Last.fm provider is connected yet.
+Spotify's artist endpoint requires authorization, documents follower totals as
+deprecated, and has no monthly-listener field. It is not a keyless substitute.
+
+Sources:
+- https://musicbrainz.org/doc/Artist
+- https://www.last.fm/api/show/artist.getInfo
+- https://developer.spotify.com/documentation/web-api/reference/get-an-artist
+
+## Implemented: Wikidata and Commons portraits
+
+The MusicBrainz profile projection now exposes neutral `imageSources` references
+from its existing Wikidata URL relation. It does not perform another MusicBrainz
+request or import the image provider. Core contains only the generic image DTOs
+and continues to discover providers dynamically.
+
+The `Wikimedia` metadata provider accepts `artist-image` and an exact Wikidata
+Q identifier. It retrieves the cacheable public `Special:EntityData/{QID}.json`
+document and reads P18 (preferred claims first, excluding deprecated claims),
+then asks Commons for an image up to 1600 pixels wide without upscaling smaller
+originals. Only HTTPS images under `upload.wikimedia.org/wikipedia/commons/` and the
+Commons `commons.wikimedia.org/w/thumb.php` thumbnail endpoint are accepted.
+A rejected thumbnail falls back to the original URL. URL rejection is not
+cached as a missing image; earlier empty snapshots are retried once under
+lookup version 2, while existing successful images are reused.
+There is no name search, scraping, API key, login, or album-cover substitution.
+
+The provider owns the `wikimedia.metadata_cache` table. Successful images and
+successful missing-image results are persisted without automatic expiry;
+`refresh=true` explicitly replaces a snapshot. Transient HTTP/API errors are not
+cached as missing images. A process queue, per-entity PostgreSQL advisory lock,
+and cooldown (at least 60 seconds, respecting a longer Retry-After) reduce
+repeated upstream work. The cooldown is per process; the durable cache and
+entity locks are shared across workers.
+
+The artist page loads artwork independently of its catalogue, prefers the
+Commons portrait, and retains the existing portrait if lookup or image loading
+fails. Frontend request reuse and cooldowns are separated by metadata provider,
+so Wikimedia failures do not pause MusicBrainz requests. Original dimensions and
+the Commons description URL are retained with the cached image.
+
+Deployment must initialize the new schema through the usual backend `init-db`
+step and restart the backend so provider discovery registers Wikimedia. No new
+configuration or vocabulary labels are required. Provider-only validation
+modules opt out of frontend schema generation with `__generate_frontend__ = False`;
+public image DTOs are generated by the normal `python -m backend models` command.
+
+Artist album placeholders use the existing web `/song-placeholder.png` asset;
+the repository does not include an `album-placeholder.png`. Provider API JSON
+errors retain their source code and message in logs instead of being replaced
+by a generic parsing error. Missing requested entities are treated as failed
+lookups rather than persisted as missing portraits.

@@ -51,6 +51,9 @@ from backend.spotifyScrapper.responses.albumResponse import (
 from backend.constants import MEDIA_PATH
 from backend.spotifyScrapper.access.trackAccess import TrackAccess
 
+from backend.core.responses.artistPageResponse import ArtistCatalogResponse
+from backend.spotifyScrapper.access.artistCatalogAccess import ArtistCatalogAccess
+
 logger: Logger = getLogger(__name__)
 
 SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
@@ -74,6 +77,32 @@ SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyScrapperProvider(BaseMediaProvider):
+    async def get_artist_catalog_async(
+        self, session: AsyncSession, name: str, public_id: str | None = None
+    ) -> AResult[ArtistCatalogResponse]:
+        """Expose this provider's indexed artist catalog to Core."""
+        return await ArtistCatalogAccess.get_async(
+            session=session, name=name, public_id=public_id
+        )
+
+    def download_concurrency_limit(self) -> int:
+        return 2
+
+    def download_cooldown_remaining(self) -> float:
+        from backend.youtube.framework.youtubeGate import youtube_gate
+
+        return youtube_gate.cooldown_remaining()
+
+    async def check_health_async(self) -> AResultCode:
+        """Check the downloader used by this provider even if its source is disabled."""
+        from backend.youtube.framework.potProvider import PotProvider
+
+        health = await PotProvider.check_health_async(max_age_seconds=30.0)
+        return AResultCode(code=health.code(), message=health.message())
+
+    def can_manage_downloads(self) -> bool:
+        return True
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -91,6 +120,18 @@ class SpotifyScrapperProvider(BaseMediaProvider):
         await EnumAccess.check_enum_contents_async(
             session=session, enum_class=CopyrightTypeEnum, table=CopyrightTypeEnumRow
         )
+
+    async def search_page_async(
+        self,
+        session: AsyncSession,
+        query: str,
+        limit: int = 15,
+        media_type: str | None = None,
+    ) -> AResult[List[BaseSearchResultsItem]]:
+        return await SpotifyScrapper.search_async(query, limit=limit)
+
+    def search_page_size(self) -> int:
+        return 100
 
     @time_it
     async def search_media_async(
@@ -559,7 +600,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
         self, metadata: dict[str, Any], media_type_key: int
     ) -> str:
         """Build a source link without loading collection contents."""
-        external_id = metadata.get("spotify_id")
+        external_id = metadata.get("external_id") or metadata.get("spotify_id")
         kind = "album" if media_type_key == 2 else "playlist"
         return f"https://open.spotify.com/{kind}/{external_id}" if external_id else ""
 

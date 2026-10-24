@@ -6,6 +6,7 @@ import {
     saveSessionOffline,
 } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
 /**
  * Web user manager. Queue-type / repeat / profile state lives in the shared
@@ -13,36 +14,49 @@ import { rockIt } from "@/lib/rockit/rockIt";
  * touch the web vocabulary and search managers.
  */
 export class UserManager extends BaseUserManager {
+    private _sessionReady = createAtom(false);
+
+    get sessionReadyAtom(): ReadonlyAtom<boolean> {
+        return this._sessionReady.getReadonlyAtom();
+    }
+
     async updateAsync(): Promise<void> {
-        const res = await rockIt.http.getSession();
+        try {
+            const res = await rockIt.http.getSession();
 
-        if (res.isOk()) {
-            this._queueTypeAtom.set(EQueueType[res.result.queueType]);
-            this._repeatModeAtom.set(ERepeatMode[res.result.repeatMode]);
-            this._image.set(res.result.image);
-            this._admin.set(res.result.admin);
-            this._username.set(res.result.username);
-            this._currentTimeMs.set(res.result.currentTimeMs);
-            this._loggedIn.set(true);
-
-            saveSessionOffline(res.result).catch(() => {});
-        } else if (res.code !== 401) {
-            const cached = await loadSessionOffline();
-            if (cached) {
-                this._queueTypeAtom.set(EQueueType[cached.queueType]);
-                this._repeatModeAtom.set(ERepeatMode[cached.repeatMode]);
-                this._image.set(cached.image);
-                this._admin.set(cached.admin);
-                this._username.set(cached.username);
-                this._currentTimeMs.set(cached.currentTimeMs);
+            if (res.isOk()) {
+                this._queueTypeAtom.set(EQueueType[res.result.queueType]);
+                this._repeatModeAtom.set(ERepeatMode[res.result.repeatMode]);
+                this._image.set(res.result.image);
+                this._admin.set(res.result.admin);
+                this._username.set(res.result.username);
+                this._currentTimeMs.set(res.result.currentTimeMs);
+                rockIt.notificationManager.setUser(res.result.username);
                 this._loggedIn.set(true);
+                saveSessionOffline(res.result).catch(() => {});
+            } else if (res.code !== 401) {
+                const cached = await loadSessionOffline();
+                if (cached) {
+                    this._queueTypeAtom.set(EQueueType[cached.queueType]);
+                    this._repeatModeAtom.set(ERepeatMode[cached.repeatMode]);
+                    this._image.set(cached.image);
+                    this._admin.set(cached.admin);
+                    this._username.set(cached.username);
+                    this._currentTimeMs.set(cached.currentTimeMs);
+                    rockIt.notificationManager.setUser(cached.username);
+                    this._loggedIn.set(true);
+                } else {
+                    this._loggedIn.set(false);
+                    rockIt.notificationManager.setUser();
+                }
             } else {
                 this._loggedIn.set(false);
+                rockIt.notificationManager.setUser();
+                clearSessionOffline().catch(() => {});
+                console.error(res.detail);
             }
-        } else {
-            this._loggedIn.set(false);
-            clearSessionOffline().catch(() => {});
-            console.error(res.detail);
+        } finally {
+            this._sessionReady.set(true);
         }
     }
 
@@ -68,8 +82,10 @@ export class UserManager extends BaseUserManager {
         const response = await Http.logoutUser();
         if (response.isOk()) {
             rockIt.searchManager.clearResults();
+            rockIt.downloaderManager.reset();
             await clearSessionOffline().catch(() => {});
             this._loggedIn.set(false);
+            rockIt.notificationManager.setUser();
         } else {
             console.error(
                 "Error logging out",

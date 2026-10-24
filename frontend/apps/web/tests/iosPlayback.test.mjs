@@ -226,3 +226,29 @@ test("other browsers retain the ordinary audible video engine", async () => {
     assert.equal(player.videoElement.muted, false);
     assert.equal(player.videoElement.paused, false);
 });
+
+test("radio plays native live audio, pauses, resumes, and switches stations", async () => {
+    const { player, queue } = setup();
+    queue.currentMedia = {
+        type: "station",
+        publicId: "a",
+        streamUrl: "https://test/live-a",
+    };
+    await start(player);
+    assert.equal(player.audioElement.src, "https://test/live-a");
+    assert.equal(player.audioElement.paused, false);
+    assert.equal(player.videoElement.paused, true);
+    player.pause();
+    assert.equal(player.audioElement.paused, true);
+    player.play();
+    for (let i = 0; i < 12; i++) await Promise.resolve();
+    assert.equal(player.audioElement.paused, false);
+    queue.currentMedia = {
+        type: "station",
+        publicId: "b",
+        streamUrl: "https://test/live-b",
+    };
+    await start(player);
+    assert.equal(player.audioElement.src, "https://test/live-b");
+    assert.equal(player.audioElement.paused, false);
+});

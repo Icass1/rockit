@@ -61,6 +61,8 @@ export abstract class BaseMediaPlayerManager {
     protected _loadingPlayback = false;
     private _mediaLoadPromise?: Promise<void>;
     private _init = false;
+    private _failedQueueItems = new Set<number>();
+    private _failedQueueIdentity?: object;
 
     // Tracks what is currently loaded per kind so we can dedup reloads without
     // reading a platform-specific `.src`.
@@ -134,6 +136,7 @@ export abstract class BaseMediaPlayerManager {
             this.pause();
             return;
         }
+        this._failedQueueItems.clear();
         this._playingAtom.set(true);
         this._onPlayingStarted();
     };
@@ -149,6 +152,11 @@ export abstract class BaseMediaPlayerManager {
     };
 
     protected _onPlayingStarted(): void {}
+
+    /** Platforms may retain an outgoing deck during an automatic handoff. */
+    protected pauseForMediaChange(): void {
+        this.pause();
+    }
 
     // ===== Kind resolution =====
 
@@ -534,7 +542,7 @@ export abstract class BaseMediaPlayerManager {
         this._loadingPlayback = true;
         const requested = this._playRequested;
         const pending = this._pendingPlaybackId;
-        this.pause();
+        this.pauseForMediaChange();
         this._playRequested = remotePlaybackId === undefined && requested;
         this._pendingPlaybackId = pending;
         this._playbackMediaId = currentMedia.publicId;
@@ -761,30 +769,61 @@ export abstract class BaseMediaPlayerManager {
             getRockIt().vocabularyManager.vocabulary.ERROR_LOADING_MEDIA_FILE
         );
 
-        const queueItems = queue.map(
-            (item): { publicId: string; queueMediaId: number } => ({
+        const identity = getRockIt().queueManager.queueIdentity;
+        if (identity !== this._failedQueueIdentity) {
+            this._failedQueueItems.clear();
+            this._failedQueueIdentity = identity;
+        }
+        if (currentId !== null) this._failedQueueItems.add(currentId);
+        // Keep the failed current item as the traversal anchor. Exclude previous
+        // failures and known unavailable entries so an error cascade is bounded.
+        const queueItems = queue
+            .filter(
+                (item) =>
+                    item.queueMediaId === currentId ||
+                    (!this._failedQueueItems.has(item.queueMediaId) &&
+                        (isStation(item.media) ||
+                            item.media.downloaded !== false))
+            )
+            .map((item) => ({
                 publicId: item.media.publicId,
                 queueMediaId: item.queueMediaId,
-            })
+            }));
+        const hasAlternative = queueItems.some(
+            (item) => item.queueMediaId !== currentId
         );
-
+        if (!hasAlternative && repeat !== ERepeatMode.ONE) {
+            this.pause();
+            return;
+        }
         const { action, nextId } = resolveOnMediaError(
             queueItems,
             currentId,
             repeat,
             direction
         );
-
-        setTimeout(() => {
-            if (action === EQueueAction.REPLAY) {
-                void this.setMedia().then((): void => this.play());
-            } else if (action === EQueueAction.PLAY && nextId !== null) {
-                getRockIt().queueManager.setQueueMediaId(nextId, direction);
-                void this.setMedia().then((): void => this.play());
-            } else {
-                this._playingAtom.set(false);
-            }
-        }, 1000);
+        if (action === EQueueAction.REPLAY) {
+            // Retain backoff for repeat-one retries, and never revive an old
+            // request after the user pauses or selects another track.
+            const playbackId = this._playbackId;
+            setTimeout((): void => {
+                if (
+                    this._playbackId !== playbackId ||
+                    getRockIt().queueManager.queueIdentity !== identity ||
+                    !this._playRequested
+                )
+                    return;
+                void this.setMedia().then((): void => {
+                    if (this._playbackId === playbackId && this._playRequested)
+                        this.play();
+                });
+            }, 1000);
+        } else if (action === EQueueAction.PLAY && nextId !== null) {
+            getRockIt().queueManager.setQueueMediaId(nextId, direction);
+            this.play();
+        } else {
+            this.pause();
+        }
     }
 
     protected _handleEnded(): void {
@@ -827,6 +866,32 @@ export abstract class BaseMediaPlayerManager {
         } else if (action === EQueueAction.PLAY && nextId !== null) {
             getRockIt().queueManager.setQueueMediaId(nextId);
             this.play();
+        } else if (action === EQueueAction.AUTOPLAY) {
+            const identity = getRockIt().queueManager.queueIdentity;
+            void getRockIt()
+                .queueManager.startAutoplayAsync()
+                .then((started): void => {
+                    if (
+                        getRockIt().queueManager.queueIdentity !== identity ||
+                        (currentId !==
+                            getRockIt().queueManager.currentQueueMediaId &&
+                            !started)
+                    )
+                        return;
+                    if (started) {
+                        this.play();
+                        return;
+                    }
+                    this._playingAtom.set(false);
+                })
+                .catch((): void => {
+                    if (
+                        getRockIt().queueManager.queueIdentity === identity &&
+                        currentId ===
+                            getRockIt().queueManager.currentQueueMediaId
+                    )
+                        this._playingAtom.set(false);
+                });
         } else {
             this._playingAtom.set(false);
         }
@@ -849,6 +914,10 @@ export abstract class BaseMediaPlayerManager {
 
     get currentTime(): number {
         return this._currentTimeAtom.get();
+    }
+
+    get isPlaybackOwner(): boolean {
+        return this._syncOwner && this._playbackConfirmed;
     }
 
     get playingAtom(): ReadonlyAtom<boolean> {

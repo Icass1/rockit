@@ -815,11 +815,11 @@ class Rockit:
         song_artists = [
             BaseArtistResponse(
                 provider=Rockit.provider_name,
-                publicId=public_ids.get(artist.id, ""),
-                url=f"/artist/{public_ids.get(artist.id, '')}",
+                publicId="",
+                url="",
                 providerUrl="",
                 name=artist.name,
-                imageUrl=image_url,
+                imageUrl="",
                 dominantColor=image.dominant_color,
             )
             for artist in song.artists
@@ -851,11 +851,11 @@ class Rockit:
                 artists=[
                     BaseArtistResponse(
                         provider=Rockit.provider_name,
-                        publicId=public_ids.get(artist.id, ""),
-                        url=f"/artist/{public_ids.get(artist.id, '')}",
+                        publicId="",
+                        url="",
                         providerUrl="",
                         name=artist.name,
-                        imageUrl=Image.get_internal_image_url(image=album_image),
+                        imageUrl="",
                         dominantColor=album_image.dominant_color if album_image else "",
                     )
                     for artist in album.artists
@@ -869,7 +869,7 @@ class Rockit:
                 publicId=public_id,
                 providerUrl="",
                 name=song.name,
-                artists=song_artists,
+                artists=song_artists or album_response.artists,
                 audioUrl=(
                     f"{BACKEND_URL}/rockit/audio/{public_id}"
                     if song.file_path
@@ -911,11 +911,11 @@ class Rockit:
             album_artists: List[BaseArtistResponse] = [
                 BaseArtistResponse(
                     provider=Rockit.provider_name,
-                    publicId=public_id,
-                    url=f"/rockit/artist/{public_id}",
+                    publicId="",
+                    url="",
                     providerUrl="",
                     name=artist.name,
-                    imageUrl=image_url,
+                    imageUrl="",
                     dominantColor=dominant_color,
                 )
                 for artist in album.artists
@@ -960,11 +960,11 @@ class Rockit:
                     song_artists: List[BaseArtistResponse] = [
                         BaseArtistResponse(
                             provider=Rockit.provider_name,
-                            publicId=song_pid,
-                            url=f"/rockit/artist/{song_pid}",
+                            publicId="",
+                            url="",
                             providerUrl="",
                             name=artist.name,
-                            imageUrl=song_image_url,
+                            imageUrl="",
                             dominantColor=song_dominant_color,
                         )
                         for artist in song.artists
@@ -1055,11 +1055,11 @@ class Rockit:
                 artists=[
                     BaseArtistResponse(
                         provider=Rockit.provider_name,
-                        publicId=public_ids.get(artist.id, ""),
-                        url=f"/artist/{public_ids.get(artist.id, '')}",
+                        publicId="",
+                        url="",
                         providerUrl="",
                         name=artist.name,
-                        imageUrl=image_url,
+                        imageUrl="",
                         dominantColor=image.dominant_color,
                     )
                     for artist in video.artists

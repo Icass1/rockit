@@ -166,22 +166,28 @@ function LibraryCard({
         </div>
     );
 
+    const titleBlock = (
+        <div className="mt-1 flex min-w-0 items-center justify-center gap-1">
+            <p className="truncate font-semibold">{name}</p>
+            {titleSuffix}
+        </div>
+    );
+    const subtitleBlock =
+        subtitle !== undefined ? (
+            typeof subtitle === "string" ? (
+                <p className="truncate text-center text-sm text-gray-400">
+                    {subtitle}
+                </p>
+            ) : (
+                <div className="text-center text-sm text-gray-400">
+                    {subtitle}
+                </div>
+            )
+        ) : undefined;
     const textBlock = (
         <>
-            <div className="mt-1 flex min-w-0 items-center justify-center gap-1">
-                <p className="truncate font-semibold">{name}</p>
-                {titleSuffix}
-            </div>
-            {subtitle !== undefined &&
-                (typeof subtitle === "string" ? (
-                    <p className="truncate text-center text-sm text-gray-400">
-                        {subtitle}
-                    </p>
-                ) : (
-                    <div className="text-center text-sm text-gray-400">
-                        {subtitle}
-                    </div>
-                ))}
+            {titleBlock}
+            {subtitleBlock}
         </>
     );
 
@@ -200,14 +206,20 @@ function LibraryCard({
     const selectionOverlay = selectable ? (
         <div
             role="checkbox"
-            aria-checked={"publicId" in media && isSelected(media.publicId)}
+            aria-checked={
+                "publicId" in media &&
+                media.publicId !== null &&
+                isSelected(media.publicId)
+            }
             aria-label={name}
             tabIndex={0}
             onClick={handleSelectionClick}
             onKeyDown={handleSelectionKeyDown}
             className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded bg-black/60"
         >
-            {"publicId" in media && isSelected(media.publicId) ? (
+            {"publicId" in media &&
+            media.publicId !== null &&
+            isSelected(media.publicId) ? (
                 <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
             ) : (
                 <SquareDashed className="h-5 w-5 text-white/80" />
@@ -219,18 +231,15 @@ function LibraryCard({
         <CardShell>
             <MediaContextMenu media={media} location={location}>
                 {href ? (
-                    <>
-                        <Link
-                            href={href}
-                            className={linkClass}
-                            onClick={handleSelectionClick}
-                        >
+                    <div className={linkClass}>
+                        <Link href={href} onClick={handleSelectionClick}>
                             {imageBlock}
-                            {textBlock}
-                            {selectionOverlay}
+                            {titleBlock}
                         </Link>
+                        {subtitleBlock}
+                        {selectionOverlay}
                         {children}
-                    </>
+                    </div>
                 ) : (
                     <div
                         className={`${linkClass} cursor-pointer`}
@@ -288,7 +297,6 @@ export function AlbumCard({
                 <Artists
                     artists={album.artists}
                     className="text-sm text-gray-400"
-                    linkable={false}
                 />
             }
             href={album.url}
@@ -379,7 +387,7 @@ export function SongCard({
             <DownloadStatusIcon
                 stroke={0.8}
                 publicId={$song.publicId}
-                className="absolute h-full w-full"
+                className="pointer-events-none absolute h-full w-full"
             />
         </LibraryCard>
     );

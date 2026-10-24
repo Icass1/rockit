@@ -42,6 +42,18 @@ class RadioBrowserProvider(BaseMediaProvider):
         Radio.provider = self
         Radio.provider_name = provider_name
 
+    async def search_page_async(
+        self,
+        session: AsyncSession,
+        query: str,
+        limit: int = 15,
+        media_type: str | None = None,
+    ) -> AResult[List[BaseSearchResultsItem]]:
+        return await Radio.search_media_async(session=session, query=query, limit=limit)
+
+    def search_page_size(self) -> int:
+        return 100
+
     async def search_media_async(
         self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:

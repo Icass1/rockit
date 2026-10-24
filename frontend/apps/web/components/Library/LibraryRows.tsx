@@ -15,6 +15,8 @@ import { CircleCheck, SquareCheck, SquareDashed } from "lucide-react";
 import type { TMediaWithSearch } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { artistPageUrl } from "@/lib/services/artistService";
+import Artists from "@/components/Artists/Artists";
 import {
     isZippable,
     useLibrarySelection,
@@ -40,7 +42,12 @@ function SelectableRow({
         <div
             className="relative"
             onClickCapture={(event): void => {
-                if (!selectable) return;
+                if (
+                    !selectable ||
+                    (event.target instanceof Element &&
+                        event.target.closest("[data-artist-link]"))
+                )
+                    return;
                 event.preventDefault();
                 event.stopPropagation();
                 toggleSelection(media);
@@ -49,7 +56,9 @@ function SelectableRow({
             {children}
             {selectable && (
                 <div className="pointer-events-none absolute top-1/2 right-4 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded bg-black/60">
-                    {"publicId" in media && isSelected(media.publicId) ? (
+                    {"publicId" in media &&
+                    media.publicId !== null &&
+                    isSelected(media.publicId) ? (
                         <SquareCheck className="h-5 w-5 text-(--color-rockit-pink)" />
                     ) : (
                         <SquareDashed className="h-5 w-5 text-white/80" />
@@ -126,33 +135,35 @@ export function AlbumRow({
             location={EMediaContextLocation.LIBRARY}
         >
             <SelectableRow media={album}>
-                <Link
-                    prefetch={false}
-                    href={album.url}
-                    className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none [-webkit-touch-callout:none] hover:bg-neutral-800"
-                >
-                    <SquareCover
-                        src={
-                            album.imageUrl ?? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
-                        }
-                        alt={album.name}
-                    />
+                <div className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors select-none hover:bg-neutral-800">
+                    <Link prefetch={false} href={album.url}>
+                        <SquareCover
+                            src={
+                                album.imageUrl ??
+                                rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
+                            }
+                            alt={album.name}
+                        />
+                    </Link>
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
+                        <Link
+                            prefetch={false}
+                            href={album.url}
+                            className="flex items-center gap-1.5"
+                        >
                             <p className="truncate font-medium text-white">
                                 {album.name}
                             </p>
                             {album.undownloadedCount === 0 && (
                                 <CircleCheck className="h-5 w-5 shrink-0 text-(--color-rockit-pink)" />
                             )}
-                        </div>
-                        <p className="truncate text-sm text-neutral-400">
-                            {album.artists
-                                .map((a): string => a.name)
-                                .join(", ")}
-                        </p>
+                        </Link>
+                        <Artists
+                            artists={album.artists}
+                            className="justify-start text-sm text-neutral-400"
+                        />
                     </div>
-                </Link>
+                </div>
             </SelectableRow>
         </MediaContextMenu>
     );
@@ -228,11 +239,10 @@ export function VideoRow({
                         <p className="truncate font-medium text-white">
                             {$video.name}
                         </p>
-                        <p className="truncate text-sm text-neutral-400">
-                            {$video.artists
-                                ?.map((a): string => a.name)
-                                .join(", ") ?? ""}
-                        </p>
+                        <Artists
+                            artists={$video.artists ?? []}
+                            className="justify-start text-sm text-neutral-400"
+                        />
                     </div>
                 </div>
             </SelectableRow>
@@ -279,11 +289,10 @@ export function SongRow({
                                 className="h-5 w-5"
                             />
                         </div>
-                        <p className="truncate text-sm text-neutral-400">
-                            {$song.artists
-                                ?.map((a): string => a.name)
-                                .join(", ") ?? "Unknown Artist"}
-                        </p>
+                        <Artists
+                            artists={$song.artists ?? []}
+                            className="justify-start text-sm text-neutral-400"
+                        />
                     </div>
                 </div>
             </SelectableRow>
@@ -336,7 +345,7 @@ export function StationRow({
 function ArtistGroupHeader({ name }: { name: string }): JSX.Element {
     return (
         <h3 className="mt-6 mb-1 px-1 text-xs font-semibold tracking-widest text-neutral-400 uppercase">
-            {name}
+            <Link href={artistPageUrl(name)}>{name}</Link>
         </h3>
     );
 }

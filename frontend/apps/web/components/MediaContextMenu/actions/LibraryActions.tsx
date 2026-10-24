@@ -20,7 +20,12 @@ export function AddToLibraryAction({
     return (
         <ContextMenuOption onClick={addToLibrary} disable={loading}>
             <Library className="h-5 w-5" />
-            {vocabulary.ADD_TO_LIBRARY}
+            {isSearchResult(media)
+                ? vocabulary.SEARCH_ADD_TO_LIBRARY_FROM.replace(
+                      "{provider}",
+                      media.provider
+                  )
+                : vocabulary.ADD_TO_LIBRARY}
         </ContextMenuOption>
     );
 }

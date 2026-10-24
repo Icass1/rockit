@@ -204,3 +204,23 @@ test("media destinations and arbitrary Range requests precede default caches; me
         assert.equal(route.handler.cacheName, "rockit-details");
     }
 });
+
+test("Home and Library refreshes bypass stale worker caches; other statistics still prefer network", () => {
+    const { routes } = createWorker(() => {
+        throw new Error("Unexpected fetch");
+    });
+    for (const [path, strategy] of [
+        ["/stats/home", "NetworkOnly"],
+        ["/user/library/medias", "NetworkOnly"],
+        ["/stats/user", "NetworkFirst"],
+    ]) {
+        const url = new URL(path, "https://api.rockit.test");
+        const request = new Request(url);
+        const route = routes.find(
+            ({ matcher }) =>
+                typeof matcher === "function" &&
+                matcher({ url, request, sameOrigin: false })
+        );
+        assert.equal(route.handler.constructor.name, strategy);
+    }
+});

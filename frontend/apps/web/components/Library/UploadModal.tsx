@@ -376,11 +376,13 @@ export default function UploadModal({
             } else {
                 await uploadVideoAsync();
             }
+            await rockIt.notificationManager.refreshAsync();
             reset();
             onClose();
         } catch (err) {
             console.error("Upload error:", err);
             setUploadError($vocabulary.UPLOAD_ERROR);
+            await rockIt.notificationManager.refreshAsync();
         } finally {
             setUploading(false);
         }

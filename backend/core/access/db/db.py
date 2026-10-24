@@ -14,6 +14,9 @@ from backend.core.access.db.ormModels.user_library_media import (
 from backend.core.access.db.ormModels.user_media_listened import (
     UserMediaListenedRow as UserMediaListenedRow,
 )
+from backend.core.access.db.ormModels.user_media_listen_interval import (
+    UserMediaListenIntervalRow as UserMediaListenIntervalRow,
+)
 from backend.core.access.db.ormModels.user_liked_media import (
     UserLikedMediaRow as UserLikedMediaRow,
 )
@@ -43,6 +46,30 @@ from backend.core.access.db.ormModels.pendingUpload import (
 )
 from backend.core.access.db.ormModels.user import UserRow as UserRow
 from backend.core.access.db.ormModels.bookmark import BookmarkRow as BookmarkRow
+from backend.core.access.db.ormModels.externalRecommendationCache import (
+    ExternalRecommendationCacheRow as ExternalRecommendationCacheRow,
+)
+
+# FRIEND MODELS
+from backend.core.access.db.ormModels.friend.friend import FriendRow as FriendRow
+from backend.core.access.db.ormModels.friend.friendRequest import (
+    FriendRequestRow as FriendRequestRow,
+)
+from backend.core.access.db.ormModels.friend.sharedMedia import (
+    SharedMediaRow as SharedMediaRow,
+)
+from backend.core.access.db.ormModels.friend.listenTogether import (
+    ListenTogetherSessionRow as ListenTogetherSessionRow,
+)
+from backend.core.access.db.ormModels.friend.userLevel import (
+    UserLevelRow as UserLevelRow,
+)
+from backend.core.access.db.ormModels.friend.levelConfig import (
+    LevelConfigRow as LevelConfigRow,
+)
+from backend.core.access.db.ormModels.friend.streakBattle import (
+    StreakBattleRow as StreakBattleRow,
+)
 
 # ENUMS
 from backend.core.access.db.ormEnums.playlistContributorRoleEnum import (
@@ -66,6 +93,25 @@ from backend.core.access.db.ormEnums.queueTypeEnum import (
 from backend.core.access.db.ormEnums.bookmarkModeEnum import (
     BookmarkModeEnumRow as BookmarkModeEnumRow,
 )
+from backend.core.access.db.ormEnums.requestTypeEnum import (
+    RequestTypeEnumRow as RequestTypeEnumRow,
+)
+from backend.core.access.db.ormEnums.requestStatusEnum import (
+    RequestStatusEnumRow as RequestStatusEnumRow,
+)
+from backend.core.access.db.ormEnums.platformEnum import (
+    PlatformEnumRow as PlatformEnumRow,
+)
+from backend.core.access.db.ormEnums.friendStatusEnum import (
+    FriendStatusEnumRow as FriendStatusEnumRow,
+)
+from backend.core.access.db.ormEnums.listenTogetherStatusEnum import (
+    ListenTogetherStatusEnumRow as ListenTogetherStatusEnumRow,
+)
 
 schemas = ["core"]
 base = CoreBase
+
+from backend.core.access.db.ormModels.notification import (
+    NotificationRow as NotificationRow,
+)

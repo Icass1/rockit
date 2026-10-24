@@ -1,3 +1,5 @@
+from backend.core.framework.media.artist import Artist
+from backend.core.responses.artistPageResponse import ArtistPageResponse
 import os
 import io
 import cv2
@@ -21,6 +23,7 @@ from backend.core.access.db.ormModels.image import ImageRow
 from backend.core.framework import providers
 from backend.core.framework.user.user import User
 from backend.core.framework.media.media import Media
+from backend.core.framework.recommendation import Recommendation, RecommendationResult
 from backend.core.framework.media.collection import Collection
 from backend.core.framework.provider.types import AddFromUrlAResult
 
@@ -35,11 +38,19 @@ from backend.core.responses.searchResponse import SearchResultsResponse
 from backend.core.responses.baseArtistResponse import BaseArtistResponse
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from backend.core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from backend.core.responses.songListResponse import SongListResponse
 from backend.core.responses.addFromUrlResponse import AddFromUrlResponse
 from backend.core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
 )
 from backend.core.requests import searchRequest
+
+from backend.core.framework.media.search import provider_search
+from backend.core.requests.searchProviderRequest import SearchProviderRequest
+from backend.core.responses.searchProviderResponse import (
+    SearchProviderResponse,
+    SearchProvidersResponse,
+)
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -62,6 +73,43 @@ async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumRespons
         )
 
     return a_result.result()
+
+
+@router.get("/song/{public_id}/related")
+async def get_related_songs(
+    request: Request,
+    public_id: str,
+    limit: int = 20,
+    external: bool = True,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> SongListResponse:
+    """Songs similar to this one (local engine), plus optional external
+    suggestions for songs not downloaded here yet."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    a_result: AResult[RecommendationResult] = (
+        await Recommendation.get_related_songs_async(
+            session=session,
+            user_id=a_result_user.result().id,
+            public_id=public_id,
+            limit=limit,
+            include_external=external,
+        )
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error getting related songs for {public_id}. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(), detail=a_result.message()
+        )
+
+    return Recommendation.to_song_list_response(result=a_result.result())
 
 
 @router.get("/album/{public_id}")
@@ -215,6 +263,30 @@ async def get_station_async(request: Request, public_id: str) -> BaseStationResp
         )
 
     return a_result.result()
+
+
+@router.get("/search/providers")
+async def search_providers_async(
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> SearchProvidersResponse:
+    return provider_search.catalog()
+
+
+@router.post("/search/provider")
+async def search_provider_async(
+    payload: SearchProviderRequest,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> SearchProviderResponse:
+    result = await provider_search.search_async(
+        provider_id=payload.providerId,
+        query=payload.query,
+        limit=payload.limit,
+        media_type=payload.mediaType,
+    )
+    if result.is_not_ok():
+        logger.error(f"Provider search error. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.post("/search")
@@ -425,9 +497,7 @@ async def add_from_url_async(
     user: UserRow = a_result_user.result()
 
     if payload.addToPlaylist and payload.playlistPublicId:
-        from backend.default.framework.playlist import Playlist
-
-        a_result_add_to_playlist = await Playlist.add_media_to_playlist_async(
+        a_result_add_to_playlist = await providers.add_media_to_playlist_async(
             session=session,
             playlist_public_id=payload.playlistPublicId,
             user_id=user.id,
@@ -448,3 +518,55 @@ async def add_from_url_async(
             logger.error("Error adding media to library.")
 
     return AddFromUrlResponse(data=media)
+
+
+@router.get("/artist/{public_id}/page")
+async def get_artist_catalog_page(
+    request: Request,
+    public_id: str,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    _=Depends(AuthMiddleware.auth_dependency),
+) -> ArtistPageResponse:
+    """Read the local artist catalog across registered providers."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Artist authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Artist.page_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        public_id=public_id,
+        offset=offset,
+        limit=limit,
+    )
+    if result.is_not_ok():
+        logger.error(f"Artist page failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
+
+
+@router.get("/artists/profile")
+async def get_artist_page_by_name(
+    request: Request,
+    name: str = Query(min_length=1, max_length=200),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    _=Depends(AuthMiddleware.auth_dependency),
+) -> ArtistPageResponse:
+    """Resolve an uploaded artist without inventing a Core media identifier."""
+    user = AuthMiddleware.get_current_user(request=request)
+    if user.is_not_ok():
+        logger.error(f"Artist authentication failed: {user.info()}")
+        raise HTTPException(status_code=user.get_http_code(), detail=user.message())
+    result = await Artist.page_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=user.result().id,
+        name=name,
+        offset=offset,
+        limit=limit,
+    )
+    if result.is_not_ok():
+        logger.error(f"Artist page failed: {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()

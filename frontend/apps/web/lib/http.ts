@@ -1,6 +1,18 @@
+import { ArtistPageResponseSchema, type ArtistPageResponse } from "@/dto";
 import { BACKEND_URL, BaseHttp, IApiFetchOptions } from "@rockit/shared";
 
 export class Http extends BaseHttp {
+    static async getArtistPage(
+        path: string
+    ): Promise<ArtistPageResponse | undefined> {
+        const response = await this.baseApiFetchAsync(path);
+        if (!response.ok) return undefined;
+        const parsed = ArtistPageResponseSchema.safeParse(
+            await response.json()
+        );
+        return parsed.success ? parsed.data : undefined;
+    }
+
     protected static override async baseApiFetchAsync(
         path: string,
         options: IApiFetchOptions = {}
@@ -26,12 +38,16 @@ export class Http extends BaseHttp {
                 ...(session ? { Cookie: `session_id=${session}` } : {}),
             };
 
-            return fetch(`${BACKEND_URL}${path}`, {
-                method,
-                headers: requestHeaders,
-                body,
-                cache: "no-store",
-            });
+            return fetch(
+                `${process.env.BACKEND_INTERNAL_URL || BACKEND_URL}${path}`,
+                {
+                    signal,
+                    method,
+                    headers: requestHeaders,
+                    body,
+                    cache: "no-store",
+                }
+            );
         }
 
         return fetch(`${BACKEND_URL}${path}`, {

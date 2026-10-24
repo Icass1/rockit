@@ -262,7 +262,11 @@ export function getMediaArtists(
 ): BaseArtistResponse[] {
     if (!media) return [];
     if (isSong(media) || isVideo(media)) {
-        return media.artists;
+        const artists = media.artists.filter((artist) => artist.name.trim());
+        if (artists.length > 0) return artists;
+        return isSongWithAlbum(media)
+            ? media.album.artists.filter((artist) => artist.name.trim())
+            : [];
     } else if (isAlbum(media)) {
         return media.artists;
     }
@@ -274,7 +278,10 @@ export function getMediaArtistsString(
 ): string {
     if (!media) return "";
     if (isSearchResult(media))
-        return media.artists.map((a) => a.name).join(", ");
+        return media.artists
+            .map((a) => a.name.trim())
+            .filter(Boolean)
+            .join(", ");
     return getMediaArtists(media)
         .map((artist) => artist.name)
         .join(", ");

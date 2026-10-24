@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { useStore } from "@nanostores/react";
 import {
     BaseAlbumWithoutSongsResponse,
@@ -14,10 +14,12 @@ import {
 } from "@rockit/shared";
 import { EFilterMode } from "@/models/enums/filterMode";
 import {
+    ILibraryDataSnapshot,
     IUseLibraryDataProps,
     IUseLibraryDataReturn,
     TFilteredLibrary,
 } from "@/models/interfaces/useLibraryData";
+import useAccountCachedData from "@/hooks/useAccountCachedData";
 import { Http } from "@/lib/http";
 import { loadLibraryOffline, saveLibraryOffline } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -103,12 +105,12 @@ type Action =
       };
 
 function libraryReducer(
-    state: TFilteredLibrary | undefined,
+    state: ILibraryDataSnapshot | undefined,
     action: Action
-): TFilteredLibrary | undefined {
+): ILibraryDataSnapshot | undefined {
     switch (action.type) {
         case "INIT":
-            return extractItems(action.data);
+            return { ...extractItems(action.data), source: action.data };
         case "REMOVE": {
             if (!state) return state;
             const filter = <T extends { publicId: string }>(
@@ -117,6 +119,7 @@ function libraryReducer(
             ): T[] =>
                 list.filter((item): boolean => item.publicId !== publicId);
             return {
+                ...state,
                 songs: filter(state.songs, action.publicId),
                 videos: filter(state.videos, action.publicId),
                 albums: filter(state.albums, action.publicId),
@@ -166,50 +169,21 @@ export function useLibraryData({
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
     const username = useStore(rockIt.userManager.usernameAtom);
     const loggedIn = useStore(rockIt.userManager.loggedInAtom);
-    const request = useMemo(
-        () => ({ username, loggedIn }),
-        [username, loggedIn]
+    const { data, loading } = useAccountCachedData(
+        Http.getUserLibraryMedias,
+        loadLibraryOffline,
+        saveLibraryOffline
     );
-    const [snapshotOwner, setSnapshotOwner] = useState<typeof request>();
-    const [completedRequest, setCompletedRequest] = useState<typeof request>();
     const [snapshot, dispatch] = useReducer(libraryReducer, undefined);
-    // Hide the previous account's state before the new effect runs.
-    const libraryData =
-        loggedIn && snapshotOwner === request ? snapshot : undefined;
-    const loading = loggedIn && completedRequest !== request;
-
-    useEffect((): (() => void) | undefined => {
-        const { username, loggedIn } = request;
-        let cancelled = false;
-        let receivedNetwork = false;
-        if (!loggedIn || !username) return;
-        loadLibraryOffline(username)
-            .then((cached): void => {
-                if (!cancelled && !receivedNetwork && cached) {
-                    dispatch({ type: "INIT", data: cached });
-                    setSnapshotOwner(request);
-                }
-            })
-            .catch(() => {});
-        // Bind both responses to this account and ignore work after a switch.
-        void Http.getUserLibraryMedias()
-            .then((response): void => {
-                if (cancelled || !response.isOk()) return;
-                receivedNetwork = true;
-                dispatch({ type: "INIT", data: response.result });
-                setSnapshotOwner(request);
-                saveLibraryOffline(username, response.result).catch(() => {});
-            })
-            .catch((error: unknown): void => {
-                if (!cancelled) console.error("Error loading library", error);
-            })
-            .finally((): void => {
-                if (!cancelled) setCompletedRequest(request);
-            });
-        return (): void => {
-            cancelled = true;
-        };
-    }, [request]);
+    // An account/data change must never expose the previous reducer snapshot.
+    const libraryData = data
+        ? snapshot?.source === data
+            ? snapshot
+            : extractItems(data)
+        : undefined;
+    useEffect((): void => {
+        if (data) dispatch({ type: "INIT", data });
+    }, [data]);
 
     useEffect((): (() => void) => {
         const handler = (e: IMediaRemovedFromLibraryEvent): void => {

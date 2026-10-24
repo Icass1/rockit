@@ -1,4 +1,5 @@
 import type {
+    HomeStatsResponse,
     LibraryMediasResponse,
     SessionResponse,
     VocabularyResponse,
@@ -38,6 +39,10 @@ interface RockItOfflineDB extends DBSchema {
         key: string;
         value: { data: VocabularyResponse; savedAt: number };
     };
+    home: {
+        key: string;
+        value: { data: HomeStatsResponse; savedAt: number };
+    };
     library: {
         key: string;
         value: { data: LibraryMediasResponse; savedAt: number };
@@ -45,7 +50,7 @@ interface RockItOfflineDB extends DBSchema {
 }
 
 const DB_NAME = "rockit-offline-media";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 let dbPromise: Promise<IDBPDatabase<RockItOfflineDB>> | null = null;
 
 function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
@@ -60,6 +65,9 @@ function getDB(): Promise<IDBPDatabase<RockItOfflineDB>> {
                 }
                 if (!db.objectStoreNames.contains("vocabulary")) {
                     db.createObjectStore("vocabulary");
+                }
+                if (!db.objectStoreNames.contains("home")) {
+                    db.createObjectStore("home");
                 }
                 if (!db.objectStoreNames.contains("library")) {
                     db.createObjectStore("library");
@@ -292,4 +300,21 @@ export async function loadLibraryOffline(
     const db = await getDB();
     const record = await db.get("library", `user:${username}`);
     return record?.data ?? null;
+}
+
+export async function saveHomeOffline(
+    username: string,
+    data: HomeStatsResponse
+): Promise<void> {
+    if (!username) return;
+    const db = await getDB();
+    await db.put("home", { data, savedAt: Date.now() }, `user:${username}`);
+}
+
+export async function loadHomeOffline(
+    username: string
+): Promise<HomeStatsResponse | null> {
+    if (!username) return null;
+    const db = await getDB();
+    return (await db.get("home", `user:${username}`))?.data ?? null;
 }

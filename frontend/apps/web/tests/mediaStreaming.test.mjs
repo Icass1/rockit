@@ -205,13 +205,13 @@ test("media destinations and arbitrary Range requests precede default caches; me
     }
 });
 
-test("Home and Library use saved snapshots immediately, other statistics still prefer network", () => {
+test("Home and Library refreshes bypass stale worker caches; other statistics still prefer network", () => {
     const { routes } = createWorker(() => {
         throw new Error("Unexpected fetch");
     });
     for (const [path, strategy] of [
-        ["/stats/home", "StaleWhileRevalidate"],
-        ["/user/library/medias", "StaleWhileRevalidate"],
+        ["/stats/home", "NetworkOnly"],
+        ["/user/library/medias", "NetworkOnly"],
         ["/stats/user", "NetworkFirst"],
     ]) {
         const url = new URL(path, "https://api.rockit.test");

@@ -53,6 +53,7 @@ export class BaseQueueManager {
     /** Song the current suggestions were built from, so they are only
      * refetched when the queue actually moves on to something else. */
     protected _autoplaySeedPublicId: string | undefined;
+    protected _autoplayQueueIdentity: object | undefined;
     protected _autoplayRecommendationsAtom =
         createArrayAtom<AutoplayRecommendation>([]);
     protected _autoplayPreparing = false;
@@ -1012,11 +1013,16 @@ export class BaseQueueManager {
             return;
         }
         const seed = this.queue.at(-1)?.media ?? current;
-        if (this._autoplaySeedPublicId === seed.publicId) {
+        const identity = this.queueIdentity;
+        if (
+            this._autoplaySeedPublicId === seed.publicId &&
+            this._autoplayQueueIdentity === identity
+        ) {
             if (this._autoplayLoading) await this._autoplayLoading;
             return;
         }
         this._autoplaySeedPublicId = seed.publicId;
+        this._autoplayQueueIdentity = identity;
         this._autoplayLoadingAtom.set(true);
         this._setRecommendations([]);
         const loading = (async (): Promise<void> => {
@@ -1026,6 +1032,7 @@ export class BaseQueueManager {
                 false
             );
             if (
+                this.queueIdentity !== identity ||
                 this._autoplaySeedPublicId !== seed.publicId ||
                 this.queue.at(-1)?.media.publicId !== seed.publicId
             )
@@ -1046,6 +1053,7 @@ export class BaseQueueManager {
                 .then((external) => {
                     if (
                         !external.isOk() ||
+                        this.queueIdentity !== identity ||
                         this._autoplaySeedPublicId !== seed.publicId ||
                         this.queue.at(-1)?.media.publicId !== seed.publicId
                     )
@@ -1118,10 +1126,12 @@ export class BaseQueueManager {
         if (!this._canPrepareAutoplay() || this._autoplayPreparing) return;
         this._autoplayPreparing = true;
         const currentId = this.currentQueueMediaId;
+        const identity = this.queueIdentity;
         try {
             await this.loadAutoplaySuggestionsAsync();
             if (
                 !this._canPrepareAutoplay() ||
+                this.queueIdentity !== identity ||
                 currentId !== this.currentQueueMediaId
             )
                 return;
@@ -1150,7 +1160,11 @@ export class BaseQueueManager {
                         : []
                 ),
             });
-            if (!response.isOk() || currentId !== this.currentQueueMediaId)
+            if (
+                !response.isOk() ||
+                this.queueIdentity !== identity ||
+                currentId !== this.currentQueueMediaId
+            )
                 return;
             this._setRecommendations(
                 this._autoplayRecommendationsAtom.get().map((item) => {
@@ -1189,9 +1203,11 @@ export class BaseQueueManager {
         if (getRockIt().userManager.repeatModeAtom.get() !== ERepeatMode.OFF)
             return false;
         const currentId = this.currentQueueMediaId;
+        const identity = this.queueIdentity;
         const wasPlaying = getRockIt().mediaPlayerManager.playingAtom.get();
         await this.loadAutoplaySuggestionsAsync();
         if (
+            this.queueIdentity !== identity ||
             currentId !== this.currentQueueMediaId ||
             (wasPlaying && !getRockIt().mediaPlayerManager.playingAtom.get()) ||
             getRockIt().userManager.repeatModeAtom.get() !== ERepeatMode.OFF

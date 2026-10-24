@@ -170,6 +170,7 @@ test("only one recommendation is prepared in the penultimate song", async () => 
 test("autoplay skips pending downloads and appends one available fallback", async () => {
     const { manager } = setup();
     manager._autoplaySeedPublicId = "current";
+    manager._autoplayQueueIdentity = manager.queueIdentity;
     manager._setRecommendations([
         { kind: "song", song: song("pending", false) },
         { kind: "song", song: song("ready") },
@@ -183,6 +184,7 @@ test("autoplay skips pending downloads and appends one available fallback", asyn
 test("no playable fallback does not loop or change the current queue", async () => {
     const { manager } = setup();
     manager._autoplaySeedPublicId = "current";
+    manager._autoplayQueueIdentity = manager.queueIdentity;
     manager._setRecommendations([
         { kind: "song", song: song("pending", false) },
     ]);
@@ -204,4 +206,211 @@ test("stale recommendation response cannot replace a newly selected queue", asyn
     resolve(ok(result([song("stale")])));
     await loading;
     assert.equal(manager.autoplay.length, 0);
+});
+
+test("pending autoplay cannot take over a replacement queue with reused ids and seed", async () => {
+    const { manager, http, seed } = setup();
+    let resolve;
+    http.getRelatedSongs = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const pending = manager.startAutoplayAsync();
+    seed(["new-user-choice", "current"]);
+    resolve(ok(result([song("stale")])));
+    assert.equal(await pending, false);
+    assert.equal(manager.currentMedia.publicId, "new-user-choice");
+    assert.equal(manager.queue.length, 2);
+    assert.equal(manager.autoplay.length, 0);
+
+    // The same seed in the replacement queue must still be able to load.
+    http.getRelatedSongs = async () => ok(result([song("fresh")]));
+    await manager.loadAutoplaySuggestionsAsync();
+    assert.equal(manager.autoplay[0].publicId, "fresh");
+});
+
+test("late external suggestions cannot populate a replacement queue with the same seed", async () => {
+    const { manager, http, seed } = setup();
+    let resolveExternal;
+    http.getRelatedSongs = async (_seed, _limit, external) =>
+        external
+            ? new Promise((done) => {
+                  resolveExternal = done;
+              })
+            : ok(result([song("local")]));
+    await manager.loadAutoplaySuggestionsAsync();
+    seed(["new-user-choice", "current"]);
+    resolveExternal(
+        ok(result([], [{ name: "stale-discovery", publicId: null }]))
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(
+        manager.autoplayRecommendationsAtom
+            .get()
+            .some((item) => item.kind === "discover"),
+        false
+    );
+});
+
+test("preparation does not start for a queue replaced during recommendation loading", async () => {
+    const { manager, http, seed, calls } = setup();
+    let resolve;
+    http.getRelatedSongs = () =>
+        new Promise((done) => {
+            resolve = done;
+        });
+    const pending = manager.prepareAutoplayAsync();
+    seed(["new-user-choice", "current"]);
+    resolve(ok(result([song("stale")])));
+    await pending;
+    assert.equal(calls.filter(([name]) => name === "prepare").length, 0);
+});
+
+const actionBundle = await build({
+    entryPoints: [
+        new URL(
+            "../components/MediaContextMenu/actions/SimilarSongsAction.tsx",
+            import.meta.url
+        ).pathname,
+    ],
+    tsconfig: new URL("../tsconfig.json", import.meta.url).pathname,
+    bundle: true,
+    write: false,
+    format: "iife",
+    globalName: "actionModule",
+    jsx: "automatic",
+    plugins: [
+        {
+            name: "action-dependencies",
+            setup(b) {
+                const stubs = {
+                    "next/navigation":
+                        "export const useRouter = () => globalThis.action.router;",
+                    "@rockit/shared":
+                        "export const isSearchResult = () => false;",
+                    "lucide-react": "export const Radio = () => null;",
+                    "@/lib/http": "export const Http = globalThis.action.http;",
+                    "@/lib/rockit/rockIt":
+                        "export const rockIt = globalThis.action;",
+                    "@/components/ContextMenu/Option":
+                        "export default () => null;",
+                    "react/jsx-runtime":
+                        "export const jsx = (type, props) => ({type, props}); export const jsxs = jsx;",
+                };
+                b.onResolve({ filter: /.*/ }, ({ path }) =>
+                    path in stubs
+                        ? { path, namespace: "action-stub" }
+                        : undefined
+                );
+                b.onLoad(
+                    { filter: /.*/, namespace: "action-stub" },
+                    ({ path }) => ({
+                        contents: stubs[path],
+                    })
+                );
+            },
+        },
+    ],
+});
+
+function playlistAction(add) {
+    const events = [];
+    const action = {
+        http: {
+            getRelatedSongs: async () =>
+                ok(result([song("a"), song("b"), song("c")])),
+            createPlaylistAsync: async () => ok({ publicId: "new-playlist" }),
+            addMediaToPlaylistAsync: async (_id, { mediaPublicId }) => {
+                events.push(["add", mediaPublicId]);
+                return add(mediaPublicId);
+            },
+        },
+        router: { push: (url) => events.push(["navigate", url]) },
+        notificationManager: {
+            notifyError: (message) => events.push(["error", message]),
+            notifySuccess: (message) => events.push(["success", message]),
+        },
+    };
+    const context = vm.createContext({ action });
+    vm.runInContext(actionBundle.outputFiles[0].text, context);
+    const option = context.actionModule.default({
+        media: song("seed"),
+        vocabulary: {
+            ERROR_CREATING_PLAYLIST: "creation failed",
+            SIMILAR_SONGS_PLAYLIST_CREATED: "created",
+        },
+        loading: false,
+        setLoading: (value) => events.push(["loading", value]),
+    });
+    return { events, run: option.props.onClick };
+}
+
+test("similar-song playlists insert in order, awaiting each result before the next", async () => {
+    let finish;
+    const { events, run } = playlistAction((id) =>
+        id === "a"
+            ? new Promise((resolve) => {
+                  finish = resolve;
+              })
+            : ok({})
+    );
+    const pending = run();
+    while (!finish) await Promise.resolve();
+    assert.deepEqual(
+        events.filter(([name]) => name === "add"),
+        [["add", "a"]]
+    );
+    finish(ok({}));
+    await pending;
+    assert.deepEqual(
+        events.filter(([name]) => name === "add"),
+        [
+            ["add", "a"],
+            ["add", "b"],
+            ["add", "c"],
+        ]
+    );
+    assert.deepEqual(events.slice(-3), [
+        ["success", "created"],
+        ["navigate", "/playlist/new-playlist"],
+        ["loading", false],
+    ]);
+});
+
+test("a failed playlist insertion stops the batch without announcing success", async () => {
+    const { events, run } = playlistAction((id) =>
+        id === "b" ? { isOk: () => false, message: "write failed" } : ok({})
+    );
+    await run();
+    assert.deepEqual(
+        events.filter(([name]) => name === "add"),
+        [
+            ["add", "a"],
+            ["add", "b"],
+        ]
+    );
+    assert.deepEqual(events.slice(-2), [
+        ["error", "write failed"],
+        ["loading", false],
+    ]);
+    assert.equal(
+        events.some(([name]) => name === "success" || name === "navigate"),
+        false
+    );
+});
+
+test("a rejected playlist insertion reports failure and releases the loading state", async () => {
+    const { events, run } = playlistAction(() =>
+        Promise.reject(new Error("offline"))
+    );
+    await run();
+    assert.deepEqual(events.slice(-2), [
+        ["error", "creation failed"],
+        ["loading", false],
+    ]);
+    assert.equal(
+        events.some(([name]) => name === "success"),
+        false
+    );
 });

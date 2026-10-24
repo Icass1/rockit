@@ -867,13 +867,15 @@ export abstract class BaseMediaPlayerManager {
             getRockIt().queueManager.setQueueMediaId(nextId);
             this.play();
         } else if (action === EQueueAction.AUTOPLAY) {
+            const identity = getRockIt().queueManager.queueIdentity;
             void getRockIt()
                 .queueManager.startAutoplayAsync()
                 .then((started): void => {
                     if (
-                        currentId !==
+                        getRockIt().queueManager.queueIdentity !== identity ||
+                        (currentId !==
                             getRockIt().queueManager.currentQueueMediaId &&
-                        !started
+                            !started)
                     )
                         return;
                     if (started) {
@@ -883,7 +885,12 @@ export abstract class BaseMediaPlayerManager {
                     this._playingAtom.set(false);
                 })
                 .catch((): void => {
-                    this._playingAtom.set(false);
+                    if (
+                        getRockIt().queueManager.queueIdentity === identity &&
+                        currentId ===
+                            getRockIt().queueManager.currentQueueMediaId
+                    )
+                        this._playingAtom.set(false);
                 });
         } else {
             this._playingAtom.set(false);

@@ -56,18 +56,29 @@ export default function SimilarSongsAction({
             }
 
             const playlistPublicId = playlistRes.result.publicId;
-            await Promise.all(
-                relatedRes.result.songs.map((song) =>
-                    Http.addMediaToPlaylistAsync(playlistPublicId, {
-                        mediaPublicId: song.publicId,
-                    })
-                )
-            );
+            // Each insertion allocates the next position on the server.
+            // Wait for it to finish before adding the following song.
+            for (const song of relatedRes.result.songs) {
+                const added = await Http.addMediaToPlaylistAsync(
+                    playlistPublicId,
+                    { mediaPublicId: song.publicId }
+                );
+                if (!added.isOk()) {
+                    rockIt.notificationManager.notifyError(
+                        added.message || vocabulary.ERROR_CREATING_PLAYLIST
+                    );
+                    return;
+                }
+            }
 
             rockIt.notificationManager.notifySuccess(
                 vocabulary.SIMILAR_SONGS_PLAYLIST_CREATED
             );
             router.push(`/playlist/${playlistPublicId}`);
+        } catch {
+            rockIt.notificationManager.notifyError(
+                vocabulary.ERROR_CREATING_PLAYLIST
+            );
         } finally {
             setLoading(false);
         }

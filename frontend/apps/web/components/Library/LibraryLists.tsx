@@ -453,6 +453,18 @@ export function LibraryLists({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
 
+    // Keep the All view bounded too; the playback/search source remains complete.
+    const listKey = `${filterMode}:${searchQuery}`;
+    const [allPage, setAllPage] = useState({ key: listKey, limit: 100 });
+    const allLimit = allPage.key === listKey ? allPage.limit : 100;
+    const allHasMore = [
+        filtered.albums,
+        filtered.playlists,
+        filtered.videos,
+        filtered.songs,
+        filtered.stations,
+    ].some((items) => items.length > allLimit);
+
     const isOffline = activeType === EContentType.Offline;
     const offline = useOfflineLibrary({
         enabled: isOffline,
@@ -717,28 +729,42 @@ export function LibraryLists({
 
                     {viewMode === EViewMode.List ? (
                         <SectionedAllList
-                            albums={filtered.albums}
-                            playlists={filtered.playlists}
-                            videos={filtered.videos}
-                            songs={filtered.songs}
-                            stations={filtered.stations}
+                            albums={filtered.albums.slice(0, allLimit)}
+                            playlists={filtered.playlists.slice(0, allLimit)}
+                            videos={filtered.videos.slice(0, allLimit)}
+                            songs={filtered.songs.slice(0, allLimit)}
+                            stations={filtered.stations.slice(0, allLimit)}
                         />
                     ) : viewMode === EViewMode.Masonry ? (
                         <SectionedAllMasonry
-                            albums={filtered.albums}
-                            playlists={filtered.playlists}
-                            videos={filtered.videos}
-                            songs={filtered.songs}
-                            stations={filtered.stations}
+                            albums={filtered.albums.slice(0, allLimit)}
+                            playlists={filtered.playlists.slice(0, allLimit)}
+                            videos={filtered.videos.slice(0, allLimit)}
+                            songs={filtered.songs.slice(0, allLimit)}
+                            stations={filtered.stations.slice(0, allLimit)}
                         />
                     ) : (
                         <SectionedAllGrid
-                            albums={filtered.albums}
-                            playlists={filtered.playlists}
-                            videos={filtered.videos}
-                            songs={filtered.songs}
-                            stations={filtered.stations}
+                            albums={filtered.albums.slice(0, allLimit)}
+                            playlists={filtered.playlists.slice(0, allLimit)}
+                            videos={filtered.videos.slice(0, allLimit)}
+                            songs={filtered.songs.slice(0, allLimit)}
+                            stations={filtered.stations.slice(0, allLimit)}
                         />
+                    )}
+                    {allHasMore && (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setAllPage({
+                                    key: listKey,
+                                    limit: allLimit + 100,
+                                })
+                            }
+                            className="mx-auto my-4 block rounded-lg px-4 py-2 text-sm"
+                        >
+                            {$vocabulary.SEARCH_LOAD_MORE}
+                        </button>
                     )}
                 </>
             )}

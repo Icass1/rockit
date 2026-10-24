@@ -237,6 +237,7 @@ export class BaseQueueManager {
             });
         const currentQueueMediaId = this.currentQueueMediaId;
         const queue = this.queue;
+        if (!queue.length) return;
 
         const currentIndex = queue.findIndex(
             (item): boolean => item.queueMediaId === currentQueueMediaId
@@ -259,6 +260,7 @@ export class BaseQueueManager {
             });
         const currentQueueMediaId = this.currentQueueMediaId;
         const queue = this.queue;
+        if (!queue.length) return;
 
         const currentIndex = queue.findIndex(
             (item): boolean => item.queueMediaId === currentQueueMediaId
@@ -287,7 +289,10 @@ export class BaseQueueManager {
         });
 
         const shuffleInPlace = (array: QueueMediaItem[]): void => {
-            array.sort((): number => Math.random() - 0.5);
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
         };
 
         shuffleInPlace(this.randomQueue);
@@ -320,20 +325,16 @@ export class BaseQueueManager {
         getRockIt().webSocketManager.sendMediaClicked({
             mediaPublicId: publicId,
         });
-        this._currentQueueMediaIdAtom.set(media.queueMediaId);
-        this._currentMediaAtom.set(media.media);
-        this._currentListAtom.set(media.listPublicId ?? undefined);
+        this.setQueueMediaId(media.queueMediaId);
     }
 
     setQueueMediaId(): void;
     setQueueMediaId(queueMediaId: number, direction?: 1 | -1): void;
     setQueueMediaId(queueMediaId?: number, direction: 1 | -1 = 1): void {
         if (typeof queueMediaId === "number") {
-            this._currentQueueMediaIdAtom.set(queueMediaId);
-
             const queue = this._queueAtom.get();
 
-            const media = queue.find(
+            let media = queue.find(
                 (media): boolean => media.queueMediaId === queueMediaId
             );
 
@@ -350,23 +351,30 @@ export class BaseQueueManager {
                         .MEDIA_NOT_DOWNLOADED
                 );
                 const index = queue.indexOf(media);
+                media = undefined;
                 for (let i = 1; i < queue.length; i++) {
                     const nextIndex =
                         (index + direction * i + queue.length) % queue.length;
-                    const nextMedia = queue[nextIndex].media;
+                    const candidate = queue[nextIndex];
                     if (
-                        isStation(nextMedia) ||
-                        ("downloaded" in nextMedia && nextMedia.downloaded)
+                        isStation(candidate.media) ||
+                        candidate.media.downloaded
                     ) {
-                        this.setQueueMediaId(
-                            queue[nextIndex].queueMediaId,
-                            direction
-                        );
-                        return;
+                        media = candidate;
+                        break;
                     }
+                }
+                if (!media) {
+                    getRockIt().mediaPlayerManager.pause();
+                    this._currentQueueMediaIdAtom.set(null);
+                    this._currentMediaAtom.set(undefined);
+                    this._currentListAtom.set(undefined);
+                    return;
                 }
             }
 
+            // Publish only the final playable item, never an unavailable stopover.
+            this._currentQueueMediaIdAtom.set(media.queueMediaId);
             this._currentMediaAtom.set(media.media);
             this._currentListAtom.set(media.listPublicId ?? undefined);
         } else {
@@ -684,6 +692,43 @@ export class BaseQueueManager {
         this.updateQueue();
     }
 
+    /** Changes when the queue is replaced, allowing pending loads to stop. */
+    get queueIdentity(): object {
+        return this.sortedQueue;
+    }
+
+    /** Append a batch with one state update and one WebSocket synchronization. */
+    appendMedias(medias: TPlayableMedia[], listPublicId: string): void {
+        let nextId =
+            this.sortedQueue.reduce(
+                (max, item) => Math.max(max, item.queueMediaId),
+                -1
+            ) + 1;
+        const items = medias.filter(isQueueable).map((media) => ({
+            media,
+            listPublicId,
+            queueMediaId: nextId++,
+        }));
+        if (!items.length) return;
+        this.sortedQueue.push(...items);
+        // Keep the played prefix and current song stable; mix only what is next.
+        const currentIndex = this.randomQueue.findIndex(
+            (item) => item.queueMediaId === this.currentQueueMediaId
+        );
+        const pendingStart = currentIndex + 1;
+        const pending = [...this.randomQueue.slice(pendingStart), ...items];
+        for (let i = pending.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pending[i], pending[j]] = [pending[j], pending[i]];
+        }
+        this.randomQueue.splice(
+            pendingStart,
+            this.randomQueue.length - pendingStart,
+            ...pending
+        );
+        this.updateQueue();
+    }
+
     addMediaToEnd(media: TPlayableMedia): void {
         if (!isQueueable(media)) return;
 
@@ -760,10 +805,14 @@ export class BaseQueueManager {
         const currentIndex = queue.findIndex(
             (item): boolean => item.queueMediaId === currentQueueMediaId
         );
-        if (currentIndex === -1) return queue[0];
-
-        const nextIndex = (currentIndex + 1) % queue.length;
-        return queue[nextIndex];
+        for (let offset = 1; offset <= queue.length; offset++) {
+            const nextIndex =
+                (currentIndex + offset + queue.length) % queue.length;
+            const candidate = queue[nextIndex];
+            if (isStation(candidate.media) || candidate.media.downloaded)
+                return candidate;
+        }
+        return undefined;
     }
 
     // #endregion: Methods

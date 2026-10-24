@@ -20,7 +20,10 @@ export class NotificationManager {
     private _generation = 0;
     private _revision = 0;
     private _loaded = false;
+    private _localActivityKeys = new Set<string>();
     private _migration?: Promise<void>;
+    private _refresh?: Promise<void>;
+    private _refreshAgain = false;
     private _timer?: ReturnType<typeof setInterval>;
     private _refreshListener = (): void => {
         void this.refreshAsync();
@@ -33,7 +36,10 @@ export class NotificationManager {
         this._generation++;
         this._revision++;
         this._loaded = false;
+        this._localActivityKeys.clear();
         this._migration = undefined;
+        this._refresh = undefined;
+        this._refreshAgain = false;
         this._writeQueue = Promise.resolve();
         toast.dismiss();
         this._notificationsAtom.set([]);
@@ -50,7 +56,29 @@ export class NotificationManager {
 
     async refreshAsync(): Promise<void> {
         if (!this._username || typeof window === "undefined") return;
+        if (this._refresh) {
+            this._refreshAgain = true;
+            return this._refresh;
+        }
         const generation = this._generation;
+        const request = (async (): Promise<void> => {
+            do {
+                this._refreshAgain = false;
+                await this._refreshInboxAsync(generation);
+            } while (generation === this._generation && this._refreshAgain);
+        })();
+        this._refresh = request;
+        try {
+            await request;
+        } finally {
+            if (this._refresh === request) {
+                this._refresh = undefined;
+                this._refreshAgain = false;
+            }
+        }
+    }
+
+    private async _refreshInboxAsync(generation: number): Promise<void> {
         this._migration ??= this._migrateLegacyAsync(generation);
         await this._migration;
         if (generation !== this._generation) return;
@@ -72,13 +100,17 @@ export class NotificationManager {
                 if (
                     !item.read &&
                     item.category !== "release" &&
-                    !previous.has(item.id)
+                    !previous.has(item.id) &&
+                    !(item.key && this._localActivityKeys.has(item.key))
                 )
                     this._showToast(item.type, item.message, item.id);
             }
         }
         this._loaded = true;
         this._notificationsAtom.set(parsed.data);
+        for (const item of parsed.data) {
+            if (item.key) this._localActivityKeys.delete(item.key);
+        }
     }
 
     private async _migrateLegacyAsync(generation: number): Promise<void> {
@@ -186,6 +218,7 @@ export class NotificationManager {
         }
         const generation = this._generation;
         const key = options.key ?? crypto.randomUUID();
+        this._localActivityKeys.add(key);
         this._writeQueue = this._writeQueue
             .then(async (): Promise<void> => {
                 if (generation !== this._generation) return;
@@ -197,14 +230,18 @@ export class NotificationManager {
                 });
                 if (generation !== this._generation) return;
                 if (result.isNotOk()) {
+                    this._localActivityKeys.delete(key);
                     console.error("Cannot save notification", result.message);
                     return;
                 }
-                // The immediate toast above already showed this activity.
-                this._loaded = false;
+                // Invalidate an inbox captured before this write. Suppress only
+                // our own activity key, leaving unrelated server events visible.
+                this._revision++;
                 await this.refreshAsync();
             })
             .catch((error: unknown): void => {
+                if (generation === this._generation)
+                    this._localActivityKeys.delete(key);
                 console.error("Notification update failed", error);
             });
     }

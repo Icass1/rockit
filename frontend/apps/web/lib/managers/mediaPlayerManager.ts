@@ -783,8 +783,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (!next || !this._preloadAudio) return;
         if (!isSong(next.media) && !isVideo(next.media)) return;
 
-        if (this._preloadedForQueueMediaId === next.queueMediaId) return;
-
         let uri: string | undefined;
         if (isSong(next.media)) {
             const offline = await resolveOfflineAudioUrl(next.media.publicId);
@@ -792,6 +790,11 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
         if (!uri) uri = getMediaAudioUrl(next.media);
         if (!uri) return;
+        if (
+            this._preloadedForQueueMediaId === next.queueMediaId &&
+            this._preloadedUri === uri
+        )
+            return;
 
         if (
             generation !== this._preloadGeneration ||

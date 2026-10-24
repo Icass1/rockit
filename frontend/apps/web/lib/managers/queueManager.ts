@@ -10,6 +10,14 @@ import { rockIt } from "@/lib/rockit/rockIt";
  * Shared queue orchestration with browser caching for offline collection playback.
  */
 export class QueueManager extends BaseQueueManager {
+    override updateQueue(shuffleRandom?: boolean): void {
+        super.updateQueue(shuffleRandom);
+        // Appends can change the next random item while the current one plays.
+        // The player deduplicates requests for an already prepared source.
+        if (rockIt.mediaPlayerManager.playingAtom.get())
+            void rockIt.mediaPlayerManager.preloadNextTrack();
+    }
+
     captureListeningQueue(): ListenTogetherQueueSnapshot {
         return {
             sorted: [...this.sortedQueue],

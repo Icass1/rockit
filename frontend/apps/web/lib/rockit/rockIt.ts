@@ -6,6 +6,7 @@ import { BookmarkManager } from "@/lib/managers/bookmarkManager";
 import { DownloaderManager } from "@/lib/managers/downloaderManager";
 import { FriendManager } from "@/lib/managers/friendManager";
 import { LibraryManager } from "@/lib/managers/libraryManager";
+import { LibraryPlaybackManager } from "@/lib/managers/libraryPlaybackManager";
 import { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
@@ -57,6 +58,7 @@ export class RockIt {
     playerUIManager = new PlayerUIManager();
     eventManager = new EventManager();
     libraryManager = new LibraryManager();
+    libraryPlaybackManager = new LibraryPlaybackManager();
     friendManager = new FriendManager();
     listenTogetherManager = new ListenTogetherManager();
     sharingManager = new SharingManager();

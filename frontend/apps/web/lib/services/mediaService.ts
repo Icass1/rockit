@@ -3,7 +3,6 @@ import {
     BaseAlbumWithSongsResponse,
     BaseArtistResponse,
     BasePlaylistWithMediasResponse,
-    BasePlaylistWithoutMediasResponse,
     BaseSongWithAlbumResponse,
 } from "@/dto";
 import { isQueueable, type TPlayableMedia } from "@rockit/shared";
@@ -73,29 +72,59 @@ export async function getArtistAsync(
     return undefined;
 }
 
-export async function expandAlbumsToPlayable(
-    albums: BaseAlbumWithoutSongsResponse[]
+// Resolve collection contents on the server, including nested collections. Limit
+// concurrency so a large library does not flood the API with hundreds of fetches.
+async function resolveCollections(
+    publicIds: string[],
+    onFailure?: (publicId: string) => void
 ): Promise<TPlayableMedia[]> {
-    const promises = albums.map(async (album) => {
-        const full = await getAlbumAsync(album.publicId);
-        return full?.songs ?? [];
-    });
-    const results = await Promise.all(promises);
+    const results: TPlayableMedia[][] = new Array(publicIds.length);
+    let cursor = 0;
+    await Promise.all(
+        Array.from({ length: Math.min(4, publicIds.length) }, async () => {
+            while (cursor < publicIds.length) {
+                const index = cursor++;
+                try {
+                    const response = await Http.resolveCollectionQueue(
+                        publicIds[index]
+                    );
+                    if (!response.isOk()) throw new Error(response.message);
+                    results[index] = response.result.queue
+                        .map((entry) => entry.media)
+                        .filter(isQueueable);
+                } catch (error) {
+                    results[index] = [];
+                    console.error(
+                        "Error resolving collection",
+                        publicIds[index],
+                        error
+                    );
+                    onFailure?.(publicIds[index]);
+                }
+            }
+        })
+    );
     return results.flat();
 }
 
-export async function expandPlaylistsToPlayable(
-    playlists: BasePlaylistWithoutMediasResponse[]
+export async function expandAlbumsToPlayable(
+    albums: BaseAlbumWithoutSongsResponse[],
+    onFailure?: (publicId: string) => void
 ): Promise<TPlayableMedia[]> {
-    const promises = playlists.map(async (playlist) => {
-        const full = await getPlaylistAsync(playlist.publicId);
-        if (!full) return [];
-        return full.medias
-            .filter((m) => isQueueable(m.item))
-            .map((m) => m.item) as TPlayableMedia[];
-    });
-    const results = await Promise.all(promises);
-    return results.flat();
+    return resolveCollections(
+        albums.map((album) => album.publicId),
+        onFailure
+    );
+}
+
+export async function expandPlaylistsToPlayable(
+    playlists: Array<{ publicId: string }>,
+    onFailure?: (publicId: string) => void
+): Promise<TPlayableMedia[]> {
+    return resolveCollections(
+        playlists.map((playlist) => playlist.publicId),
+        onFailure
+    );
 }
 
 export async function getFeaturedListAsync(

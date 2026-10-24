@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useReducer } from "react";
+import { useStore } from "@nanostores/react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -13,11 +14,12 @@ import {
 } from "@rockit/shared";
 import { EFilterMode } from "@/models/enums/filterMode";
 import {
+    ILibraryDataSnapshot,
     IUseLibraryDataProps,
     IUseLibraryDataReturn,
     TFilteredLibrary,
 } from "@/models/interfaces/useLibraryData";
-import useFetch from "@/hooks/useFetch";
+import useAccountCachedData from "@/hooks/useAccountCachedData";
 import { Http } from "@/lib/http";
 import { loadLibraryOffline, saveLibraryOffline } from "@/lib/offline/db";
 import { rockIt } from "@/lib/rockit/rockIt";
@@ -103,12 +105,12 @@ type Action =
       };
 
 function libraryReducer(
-    state: TFilteredLibrary | undefined,
+    state: ILibraryDataSnapshot | undefined,
     action: Action
-): TFilteredLibrary | undefined {
+): ILibraryDataSnapshot | undefined {
     switch (action.type) {
         case "INIT":
-            return extractItems(action.data);
+            return { ...extractItems(action.data), source: action.data };
         case "REMOVE": {
             if (!state) return state;
             const filter = <T extends { publicId: string }>(
@@ -117,6 +119,7 @@ function libraryReducer(
             ): T[] =>
                 list.filter((item): boolean => item.publicId !== publicId);
             return {
+                ...state,
                 songs: filter(state.songs, action.publicId),
                 videos: filter(state.videos, action.publicId),
                 albums: filter(state.albums, action.publicId),
@@ -164,37 +167,23 @@ export function useLibraryData({
     filterMode,
     searchQuery,
 }: IUseLibraryDataProps): IUseLibraryDataReturn {
-    const {
-        data: _libraryData,
-        loading,
-        error,
-    } = useFetch(Http.getUserLibraryMedias);
-
-    const initialData = _libraryData ? extractItems(_libraryData) : undefined;
-
-    const [libraryData, dispatch] = useReducer(libraryReducer, initialData);
-
+    const username = useStore(rockIt.userManager.usernameAtom);
+    const loggedIn = useStore(rockIt.userManager.loggedInAtom);
+    const { data, loading } = useAccountCachedData(
+        Http.getUserLibraryMedias,
+        loadLibraryOffline,
+        saveLibraryOffline
+    );
+    const [snapshot, dispatch] = useReducer(libraryReducer, undefined);
+    // An account/data change must never expose the previous reducer snapshot.
+    const libraryData = data
+        ? snapshot?.source === data
+            ? snapshot
+            : extractItems(data)
+        : undefined;
     useEffect((): void => {
-        if (_libraryData) {
-            dispatch({ type: "INIT", data: _libraryData });
-            saveLibraryOffline(_libraryData).catch(() => {});
-        }
-    }, [_libraryData]);
-
-    useEffect((): (() => void) | undefined => {
-        if (error === undefined || _libraryData !== undefined) return;
-        let cancelled = false;
-        loadLibraryOffline()
-            .then((cached): void => {
-                if (!cancelled && cached) {
-                    dispatch({ type: "INIT", data: cached });
-                }
-            })
-            .catch(() => {});
-        return (): void => {
-            cancelled = true;
-        };
-    }, [error, _libraryData]);
+        if (data) dispatch({ type: "INIT", data });
+    }, [data]);
 
     useEffect((): (() => void) => {
         const handler = (e: IMediaRemovedFromLibraryEvent): void => {
@@ -213,8 +202,10 @@ export function useLibraryData({
     }, []);
 
     useEffect((): (() => void) => {
+        let cancelled = false;
         const handler = (e: IMediaAddedToLibraryEvent): void => {
             rockIt.mediaManager.getMedia(e.publicId).then((data): void => {
+                if (cancelled) return;
                 if (data.isOk()) {
                     dispatch({
                         type: "ADD",
@@ -236,12 +227,14 @@ export function useLibraryData({
             EEvent.MediaAddedToLibrary,
             handler
         );
-        return (): void =>
+        return (): void => {
+            cancelled = true;
             rockIt.eventManager.removeEventListener(
                 EEvent.MediaAddedToLibrary,
                 handler
             );
-    }, []);
+        };
+    }, [username, loggedIn]);
 
     const filtered = useMemo((): TFilteredLibrary => {
         if (!libraryData) return EMPTY;
@@ -261,7 +254,7 @@ export function useLibraryData({
 
     const result: IUseLibraryDataReturn = {
         ...filtered,
-        loading,
+        loading: loading && !libraryData,
         filtered,
     };
 

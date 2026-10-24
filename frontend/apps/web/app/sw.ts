@@ -103,6 +103,14 @@ const runtimeCaching = [
             ],
         }),
     },
+    // Screen hooks own account-scoped snapshots and apply the live response.
+    // Never turn their refresh request into a stale service worker response.
+    {
+        matcher: ({ url }: { url: URL }) =>
+            url.pathname === "/stats/home" ||
+            url.pathname === "/user/library/medias",
+        handler: new NetworkOnly(),
+    },
     // Changing lists — NetworkFirst with a short timeout so a slow or flaky
     // network falls back to the cached snapshot instead of hanging forever.
     {

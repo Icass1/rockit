@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
-import useFetch from "@/hooks/useFetch";
+import useAccountCachedData from "@/hooks/useAccountCachedData";
 import { Http } from "@/lib/http";
+import { loadHomeOffline, saveHomeOffline } from "@/lib/offline/db";
 
 export interface HomeData {
     songsByTimePlayed: BaseSongWithAlbumResponse[];
@@ -62,7 +64,13 @@ function transformStats(dataResponse: HomeStatsResponse): HomeData {
 }
 
 export function useHomeData(): HomeData | null {
-    const { data: dataResponse } = useFetch(Http.getHomeStats);
-    if (!dataResponse) return null;
-    return transformStats(dataResponse);
+    const { data: dataResponse } = useAccountCachedData(
+        Http.getHomeStats,
+        loadHomeOffline,
+        saveHomeOffline
+    );
+    return useMemo(
+        () => (dataResponse ? transformStats(dataResponse) : null),
+        [dataResponse]
+    );
 }

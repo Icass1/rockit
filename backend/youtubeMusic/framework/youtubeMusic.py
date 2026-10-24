@@ -1,9 +1,9 @@
 import os
-import re
 import asyncio
 from typing import Dict, List, TYPE_CHECKING
 
 from fastapi import Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
@@ -11,6 +11,7 @@ from backend.utils.backendUtils import time_it
 from backend.constants import BACKEND_URL, MEDIA_PATH
 
 from backend.core.aResult import AResult, AResultCode
+from backend.core.framework.media.stream import MediaStream
 
 from backend.core.access.db.ormModels.image import ImageRow
 
@@ -1982,11 +1983,8 @@ class YoutubeMusic:
     @staticmethod
     async def get_audio_with_range_async(
         session: AsyncSession, public_id: str, request: Request
-    ) -> AResult[tuple[bytes, int, str]]:
-        """Get audio file bytes with HTTP range support for HTML audio element seeking.
-
-        Returns: tuple of (content_bytes, status_code, content_range_header)
-        """
+    ) -> AResult[StreamingResponse]:
+        """Stream the existing audio file with exact HTTP byte ranges."""
         a_result_track = await YoutubeMusicAccess.get_track_by_public_id_async(
             session=session, public_id=public_id
         )
@@ -2003,40 +2001,8 @@ class YoutubeMusic:
             )
 
         full_path: str = os.path.join(MEDIA_PATH, track_row.path)
-        if not os.path.exists(full_path):
-            logger.error(f"Audio file not found at {full_path}")
-            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")
-
-        file_size: int = os.path.getsize(full_path)
-        range_header: str | None = request.headers.get("Range")
-
-        if range_header:
-            range_match = re.match(r"bytes=(\d+)-(\d*)", range_header)
-            if range_match:
-                start: int = int(range_match.group(1))
-                end_str: str | None = range_match.group(2)
-                end: int = int(end_str) if end_str else file_size - 1
-            else:
-                start = 0
-                end = file_size - 1
-        else:
-            start = 0
-            end = file_size - 1
-
-        end = min(end, file_size - 1)
-        content_length: int = end - start + 1
-
-        with open(full_path, "rb") as f:
-            f.seek(start)
-            content: bytes = f.read(content_length)
-
-        content_range: str = f"bytes {start}-{end}/{file_size}"
-        status_code: int = 206 if range_header else 200
-
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=(content, status_code, content_range),
+        return await MediaStream.stream_audio_file_async(
+            audio_path=full_path, range_header=request.headers.get("Range")
         )
 
 

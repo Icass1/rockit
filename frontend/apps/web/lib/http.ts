@@ -38,12 +38,16 @@ export class Http extends BaseHttp {
                 ...(session ? { Cookie: `session_id=${session}` } : {}),
             };
 
-            return fetch(`${BACKEND_URL}${path}`, {
-                method,
-                headers: requestHeaders,
-                body,
-                cache: "no-store",
-            });
+            return fetch(
+                `${process.env.BACKEND_INTERNAL_URL || BACKEND_URL}${path}`,
+                {
+                    signal,
+                    method,
+                    headers: requestHeaders,
+                    body,
+                    cache: "no-store",
+                }
+            );
         }
 
         return fetch(`${BACKEND_URL}${path}`, {

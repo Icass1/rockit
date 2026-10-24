@@ -6,6 +6,25 @@ Se mantiene la composición existente: tres columnas en horizontal y ultrawide,
 portada/vídeo arriba y lyrics/cola abajo en vertical, y panel con pestañas en las
 proporciones intermedias. El player móvil tiene sus propios componentes.
 
+### Ajuste posterior: ancho completo en vertical
+
+En vertical, la primera fila toma la altura natural de la portada cuadrada o del
+vídeo. Se retiran el padding lateral y las esquinas redondeadas de esa superficie:
+la portada y un vídeo 16:9 llegan a los dos extremos del área del player. Lyrics
+y cola conservan su padding y ocupan la altura restante. La navegación lateral
+continúa fuera de ese área. Las composiciones horizontales no cambian.
+
+Los vídeos muy altos conservan un límite de altura para que los paneles inferiores
+sigan accesibles; llenar todo el ancho con un vídeo 9:16 no siempre es compatible
+con ese requisito y con mantener su proporción.
+
+Se revisaron 19 tamaños, desde 769×1200 hasta 5120×1440, incluyendo 4K horizontal
+y vertical. Portada, vinilo, radio y un MP4 real 1280×720 sumaron 76 casos sin
+desbordamientos ni errores JavaScript. Las portadas mantuvieron 1:1 y el vídeo
+16:9 siguió reproduciéndose al cambiar de composición, sin desmontarse. Se
+generaron 77 capturas para revisión visual, incluyendo un caso adicional 9:16.
+Son previsualizaciones con datos y barras de prueba, no capturas de producción.
+
 La corrección afecta únicamente a `PlayerUI/Content.tsx` y `PlayerUI/Main.tsx`.
 No modifica reproducción, peticiones, cola, descargas ni almacenamiento de audio.
 

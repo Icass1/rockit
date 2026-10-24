@@ -114,7 +114,7 @@ export default function PlayerUIContent(): JSX.Element {
     // pt-30 / pb-6 = the header/footer padding (24) plus half of it (12),
     // so the player content never visually collides with either bar.
     const defaultStyles =
-        "relative grid h-full w-full gap-4 bg-black px-2 text-white pt-30 pb-6";
+        "relative grid h-full w-full gap-4 bg-black text-white pt-30 pb-6";
 
     const isLandscape = aspectRatio > 1.5;
     const isPortrait = aspectRatio < 1 / 1.5;
@@ -152,10 +152,10 @@ export default function PlayerUIContent(): JSX.Element {
         : undefined;
 
     const gridClass = isLandscape
-        ? "transition-all ease-in-out duration-500"
+        ? "px-2 transition-all ease-in-out duration-500"
         : isPortrait
-          ? "grid-rows-[minmax(0,1fr)_minmax(0,1fr)]"
-          : "grid-cols-[3fr_1fr]";
+          ? "grid-rows-[auto_minmax(0,1fr)]"
+          : "grid-cols-[3fr_1fr] px-2";
 
     // Keep mainComponent at the same child index across all layouts so React
     // never unmounts PlayerUIMain (which would detach and pause the video).
@@ -178,13 +178,16 @@ export default function PlayerUIContent(): JSX.Element {
 
             <div
                 className={
-                    "h-full max-h-full min-h-0 min-w-0" +
+                    (isPortrait
+                        ? "min-h-0 min-w-0"
+                        : "h-full max-h-full min-h-0 min-w-0") +
                     (isLandscape ? " order-2" : "")
                 }
             >
                 <PlayerUIMain
                     key={isVideoMedia ? $currentMedia.publicId : "audio"}
                     currentMedia={$currentMedia}
+                    edgeToEdge={isPortrait}
                 />
             </div>
 
@@ -201,7 +204,7 @@ export default function PlayerUIContent(): JSX.Element {
                     </div>
                 </>
             ) : isPortrait ? (
-                <div className="grid min-h-0 grid-cols-[1fr_1fr] gap-4">
+                <div className="grid min-h-0 grid-cols-[1fr_1fr] gap-4 px-2">
                     <div className="z-10 h-full max-h-full min-h-0 w-full max-w-full min-w-0">
                         <PlayerUILyrics />
                     </div>

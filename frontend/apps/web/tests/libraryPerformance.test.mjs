@@ -195,6 +195,10 @@ test("offline library snapshots are account-scoped and never read the legacy sha
             "alice-late"
         );
         assert.equal((await db.loadLibraryOffline("bob")).marker, "bob");
+        await db.saveHomeOffline("alice", { marker: "home-alice" });
+        await db.saveHomeOffline("bob", { marker: "home-bob" });
+        assert.equal((await db.loadHomeOffline("alice")).marker, "home-alice");
+        assert.equal((await db.loadHomeOffline("bob")).marker, "home-bob");
         await db.clearSessionOffline();
         assert.equal(records.has("library:current"), false);
         assert.equal((await db.loadLibraryOffline("bob")).marker, "bob");
@@ -203,42 +207,48 @@ test("offline library snapshots are account-scoped and never read the legacy sha
     }
 });
 
-const componentBuild = await build({
-    entryPoints: ["components/Library/PlayLibraryButton.tsx"],
+const playbackBuild = await build({
+    stdin: {
+        contents: `export {LibraryPlaybackManager} from './lib/managers/libraryPlaybackManager';
+export {QueueManager} from './lib/managers/queueManager';
+export {setRockIt} from '../../packages/shared/src/rockit/rockitRef';`,
+        resolveDir: new URL("../", import.meta.url).pathname,
+    },
     bundle: true,
     write: false,
     format: "iife",
-    globalName: "component",
-    jsx: "transform",
-    jsxFactory: "h",
-    tsconfigRaw: { compilerOptions: { jsx: "react" } },
+    globalName: "playback",
+    tsconfig: "tsconfig.json",
     plugins: [
         {
-            name: "playback-stubs",
-            setup(build) {
-                build.onResolve({ filter: /^(react|@|lucide)/ }, (args) => ({
-                    path: args.path,
-                    namespace: "stub",
-                }));
-                build.onLoad({ filter: /.*/, namespace: "stub" }, (args) => {
-                    const contents =
-                        args.path === "react"
-                            ? "export const useRef = value => ({current: value}); export const useState = value => [value, () => {}];"
-                            : args.path === "@nanostores/react"
-                              ? "export const useStore = atom => atom.get();"
-                              : args.path === "lucide-react"
-                                ? 'export const Play = "play"; export const Pause = "pause";'
-                                : args.path === "@/lib/http"
-                                  ? "export const Http = globalThis.playbackHttp;"
-                                  : args.path === "@/lib/rockit/rockIt"
-                                    ? "export const rockIt = globalThis.playbackRockIt;"
-                                    : "export const expandPlaylistsToPlayable = (batch, onFailure) => globalThis.resolveBatch(batch, onFailure);";
-                    return { contents, loader: "js" };
-                });
+            name: "playback-transport",
+            setup(builder) {
+                builder.onResolve(
+                    {
+                        filter: /^@\/lib\/(http|rockit\/rockIt|services\/mediaService)$/,
+                    },
+                    ({ path }) => ({ path, namespace: "mock" })
+                );
+                builder.onLoad(
+                    { filter: /.*/, namespace: "mock" },
+                    ({ path }) => ({
+                        contents:
+                            path === "@/lib/http"
+                                ? "export const Http = globalThis.playbackHttp;"
+                                : path === "@/lib/rockit/rockIt"
+                                  ? "export const rockIt = globalThis.playbackRockIt;"
+                                  : "export const expandPlaylistsToPlayable = (batch, onFailure) => globalThis.resolveBatch(batch, onFailure);",
+                    })
+                );
             },
         },
     ],
 });
+function playbackRuntime() {
+    return new Function(
+        `${playbackBuild.outputFiles[0].text}; return playback;`
+    )();
+}
 test("library starts before collections resolve and abandons a replaced queue", async () => {
     let finish;
     let played = 0,
@@ -265,7 +275,15 @@ test("library starts before collections resolve and abandons a replaced queue", 
         getUserLibraryMedias: async () => ({
             isOk: () => true,
             result: {
-                songs: [{ item: { type: "song", publicId: "first" } }],
+                songs: [
+                    {
+                        item: {
+                            type: "song",
+                            publicId: "first",
+                            downloaded: true,
+                        },
+                    },
+                ],
                 videos: [],
                 albums: [{ item: { publicId: "album" } }],
                 playlists: [],
@@ -276,12 +294,8 @@ test("library starts before collections resolve and abandons a replaced queue", 
         new Promise((resolve) => {
             finish = resolve;
         });
-    const Component = new Function(
-        "h",
-        `${componentBuild.outputFiles[0].text}; return component.default;`
-    )((tag, props) => props);
-    const button = Component();
-    const pending = button.onClick();
+    const manager = new (playbackRuntime().LibraryPlaybackManager)();
+    const pending = manager.playAsync();
     await new Promise((resolve) => setImmediate(resolve));
     assert.equal(played, 1);
     queue.queueIdentity = {}; // The user selected another collection while loading.
@@ -327,7 +341,15 @@ test("library keeps successful collections and later batches after a failure and
         getUserLibraryMedias: async () => ({
             isOk: () => true,
             result: {
-                songs: [{ item: { type: "song", publicId: "first" } }],
+                songs: [
+                    {
+                        item: {
+                            type: "song",
+                            publicId: "first",
+                            downloaded: true,
+                        },
+                    },
+                ],
                 videos: [],
                 playlists: [],
                 albums: Array.from({ length: 5 }, (_, i) => ({
@@ -343,19 +365,103 @@ test("library keeps successful collections and later batches after a failure and
                 onFailure(item.publicId);
                 return [];
             }
-            return [{ type: "song", publicId: item.publicId }];
+            return [
+                { type: "song", publicId: item.publicId, downloaded: true },
+            ];
         });
     };
     try {
-        const Component = new Function(
-            "h",
-            `${componentBuild.outputFiles[0].text}; return component.default;`
-        )((tag, props) => props);
-        await Component().onClick();
+        await new (playbackRuntime().LibraryPlaybackManager)().playAsync();
         assert.equal(played, 1);
         assert.equal(batches, 2);
         assert.deepEqual(appended, ["a1", "a2", "a3", "a4"]);
         assert.equal(warnings, 1);
+    } finally {
+        delete globalThis.playbackRockIt;
+        delete globalThis.playbackHttp;
+        delete globalThis.resolveBatch;
+    }
+});
+
+test("real queue starts downloaded album tracks after unavailable initial songs and refreshes changed preloads", async () => {
+    let complete;
+    let playing = false,
+        played = 0,
+        preloads = 0;
+    const feedback = [];
+    const container = {
+        userManager: {
+            queueType: "SORTED",
+            queueTypeAtom: { get: () => "SORTED" },
+        },
+        webSocketManager: { sendCurrentQueue() {} },
+        mediaPlayerManager: {
+            playingAtom: { get: () => playing },
+            play: () => {
+                playing = true;
+                played++;
+            },
+            pause: () => {
+                playing = false;
+            },
+            preloadNextTrack: async () => {
+                preloads++;
+            },
+        },
+        notificationManager: {
+            notifyError: (message) => assert.fail(message),
+            notifyWarn: (message) => feedback.push(message),
+        },
+        vocabularyManager: {
+            vocabulary: { MEDIA_NOT_DOWNLOADED: "unavailable" },
+        },
+    };
+    globalThis.playbackRockIt = container;
+    globalThis.playbackHttp = {
+        getUserLibraryMedias: async () => ({
+            isOk: () => true,
+            result: {
+                songs: [
+                    {
+                        item: {
+                            type: "song",
+                            publicId: "missing",
+                            downloaded: false,
+                        },
+                    },
+                ],
+                videos: [],
+                albums: [{ item: { publicId: "album" } }],
+                playlists: [],
+            },
+        }),
+    };
+    globalThis.resolveBatch = () =>
+        new Promise((resolve) => {
+            complete = resolve;
+        });
+    try {
+        const runtime = playbackRuntime();
+        const queue = new runtime.QueueManager();
+        container.queueManager = queue;
+        runtime.setRockIt(container);
+        const manager = new runtime.LibraryPlaybackManager();
+        const pending = manager.playAsync();
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.equal(played, 0);
+        assert.equal(manager.loadingAtom.get(), true);
+        complete([{ type: "song", publicId: "available", downloaded: true }]);
+        await pending;
+        assert.equal(played, 1);
+        assert.equal(queue.currentMedia.publicId, "available");
+        assert.equal(manager.loadingAtom.get(), false);
+        const currentId = queue.currentQueueMediaId;
+        queue.appendMedias(
+            [{ type: "song", publicId: "next", downloaded: true }],
+            "library"
+        );
+        assert.equal(queue.currentQueueMediaId, currentId);
+        assert.equal(preloads, 1);
     } finally {
         delete globalThis.playbackRockIt;
         delete globalThis.playbackHttp;

@@ -1,14 +1,10 @@
-import { useRef, useState, type JSX } from "react";
+import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
-import type { TPlayableMedia } from "@rockit/shared";
 import { Pause, Play } from "lucide-react";
-import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { expandPlaylistsToPlayable } from "@/lib/services/mediaService";
 
 export default function PlayLibraryButton(): JSX.Element {
-    const busy = useRef(false);
-    const [loading, setLoading] = useState(false);
+    const loading = useStore(rockIt.libraryPlaybackManager.loadingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
@@ -23,71 +19,10 @@ export default function PlayLibraryButton(): JSX.Element {
         ? true
         : false;
 
-    const handleClick = async (): Promise<void> => {
-        if (playingLibrary && $playing) {
-            rockIt.mediaPlayerManager.pause();
-        } else if (playingLibrary) {
-            rockIt.mediaPlayerManager.play();
-        } else {
-            if (busy.current) return;
-            busy.current = true;
-            setLoading(true);
-            try {
-                const previousQueue = rockIt.queueManager.queueIdentity;
-                const res = await Http.getUserLibraryMedias();
-                if (rockIt.queueManager.queueIdentity !== previousQueue) return;
-                if (!res.isOk()) throw new Error(res.message);
-                const initial = [
-                    ...res.result.songs.map((s) => s.item),
-                    ...res.result.videos.map((v) => v.item),
-                ];
-                let ownedQueue = rockIt.queueManager.queueIdentity;
-                const start = (media: TPlayableMedia[]): void => {
-                    rockIt.queueManager.setMedia(media, "library");
-                    ownedQueue = rockIt.queueManager.queueIdentity;
-                    // Respect the selected sorted/random playback mode.
-                    rockIt.queueManager.setQueueMediaId();
-                    rockIt.mediaPlayerManager.play();
-                };
-                let started = initial.length > 0;
-                let hadFailures = false;
-                if (started) start(initial);
-                const collections = [
-                    ...res.result.albums.map((a) => a.item),
-                    ...res.result.playlists.map((p) => p.item),
-                ];
-                // Resolve small batches; start even an album-only library before
-                // waiting for all collections. Never replace a new user queue.
-                for (let offset = 0; offset < collections.length; offset += 4) {
-                    if (rockIt.queueManager.queueIdentity !== ownedQueue)
-                        return;
-                    const batch = collections.slice(offset, offset + 4);
-                    const media = await expandPlaylistsToPlayable(batch, () => {
-                        hadFailures = true;
-                    });
-                    if (rockIt.queueManager.queueIdentity !== ownedQueue)
-                        return;
-                    if (!started && media.length) {
-                        start(media);
-                        started = true;
-                    } else if (started) {
-                        rockIt.queueManager.appendMedias(media, "library");
-                    }
-                }
-                if (hadFailures) {
-                    rockIt.notificationManager.notifyWarn(
-                        rockIt.vocabularyManager.vocabulary.ERROR_GETTING_QUEUE
-                    );
-                }
-            } catch (error) {
-                rockIt.notificationManager.notifyError(
-                    error instanceof Error ? error.message : String(error)
-                );
-            } finally {
-                busy.current = false;
-                setLoading(false);
-            }
-        }
+    const handleClick = (): void => {
+        if (playingLibrary && $playing) rockIt.mediaPlayerManager.pause();
+        else if (playingLibrary) rockIt.mediaPlayerManager.play();
+        else void rockIt.libraryPlaybackManager.playAsync();
     };
 
     return (

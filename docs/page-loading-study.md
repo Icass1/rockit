@@ -98,36 +98,60 @@ Referencias: [Serwist](https://serwist.pages.dev/docs/serwist/runtime-caching/ca
 [SQLAlchemy AsyncSession](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html#using-asyncsession-with-concurrent-tasks),
 [Next.js fetching](https://nextjs.org/docs/app/getting-started/fetching-data).
 
-## Reproducción: siguientes mejoras propuestas
+## Reproducción: mejora sin almacenamiento adicional
 
-Revisión de código, sin nuevas mediciones de primer sonido. Orden provisional por
-impacto esperado en los casos afectados; no son mejoras implementadas en este PR:
+Spotify, Spotify Scrapper y YouTube Music leían el rango solicitado completo con
+`open/read` síncrono antes de construir la respuesta. Un rango abierto podía cargar
+la canción entera en RAM y bloquear el event loop durante la lectura.
 
-1. **Audio de vídeos, primera reproducción:** `MediaStream._encode_audio_async`
-   espera a que ffmpeg termine el MP3 completo antes de servirlo. Preparar esa
-   representación al descargar el vídeo, conservando la caché y sus byte ranges,
-   trasladaría el trabajo fuera del clic de reproducción. Medir por separado caché
-   fría y caliente; afecta al modo audio de vídeos, no a toda canción de YouTube.
-2. **Spotify, entrega del archivo:** `Spotify.get_audio_with_range_async` hace
-   `open/read` síncrono del rango completo antes de devolver los bytes. Un rango
-   abierto puede abarcar todo el archivo. Servir desde archivo por streaming con
-   soporte de Range evitaría esa lectura completa previa y reduciría memoria y
-   bloqueo del event loop. Validar seeks, rangos inválidos y clientes concurrentes.
-3. **Siguiente canción:** `preloadNextTrack` utiliza `metadata` salvo cuando están
-   activadas las transiciones y el mezclador está funcionando. Evaluar precarga de
-   audio de la siguiente canción con política de consumo de datos; `auto` puede
-   descargar todo el archivo y es una sugerencia que el navegador puede ignorar.
-   Además, el camino ordinario vuelve a asignar la URL al reproductor principal;
-   verificar reutilización efectiva del buffer antes de cambiarlo.
-4. **Cambios rápidos:** `BaseMediaPlayerManager.setMedia` espera la promesa de carga
-   anterior antes de iniciar la siguiente. Medir pulsaciones consecutivas de Next
-   y resolución offline; evaluar cancelación o descarte temprano sin introducir
-   carreras entre fuentes ni romper sincronización remota.
+Ahora los tres delegan en `MediaStream.stream_audio_file_async`: envían el archivo
+existente con lecturas asíncronas de hasta 64 KiB, bajo demanda. No se crea ninguna
+copia ni se descargan más canciones. Se reutiliza el manejo de rangos que ya usaba
+el modo audio de vídeos; se mantienen el MIME y la ruta pública de cada proveedor.
+Los rangos abiertos, cerrados y sufijos producen bytes exactos; los rangos inválidos,
+fuera del archivo o múltiples reciben 416. Una respuesta completa devuelve 200 sin
+Content-Range, y una parcial 206 con Content-Range y Content-Length correctos.
+El navegador conserva soporte para su sonda inicial y los saltos dentro del audio.
+
+La función común consulta los metadatos del archivo fuera del event loop y devuelve
+404 si el archivo no existe. Cada petición tiene su propio descriptor; el contexto
+asíncrono cierra el archivo al terminar o al cerrar el generador. La memoria de los
+bloques queda acotada, aunque el servidor/proxy puede añadir sus propios buffers.
+La conversión bajo demanda de vídeos ya existente sigue usando esta entrega común;
+no se añade conversión anticipada ni se modifica su política de almacenamiento.
+
+Pruebas: peticiones HTTP a los tres controladores con la consulta de DB sustituida;
+sondas de dos bytes, saltos, sufijos, límites, rangos inválidos y archivos ausentes.
+Además se comprueba lectura perezosa por bloques, cierre anticipado y rangos
+concurrentes independientes. Las pruebas existentes de conversión de vídeo también
+cubren esta función común. Son pruebas de transporte con datos binarios, no una
+medición de primer sonido real ni una prueba física en Safari. Las 180 pruebas
+unitarias del backend pasan, además de Black y Pyright sin errores.
+
+Validación adicional en Chromium headless: reproducción mediante HTMLAudioElement y
+seek al segundo 3 de un MP3 real de cinco segundos, generado temporalmente con ffmpeg.
+Los tres controladores reprodujeron y completaron el seek sin error de decodificación;
+solo la consulta de DB estaba simulada. Se eliminó el archivo de prueba al terminar.
+No se comprobó salida física por altavoces ni un dispositivo Safari.
+
+Se contrastó la solución con la documentación de
+[StreamingResponse de Starlette 0.27.0](https://github.com/encode/starlette/blob/0.27.0/docs/responses.md#streamingresponse),
+la versión fijada por el proyecto. Su FileResponse todavía no implementa Range;
+por eso se conserva el manejo explícito de rangos.
+
+### Pendientes de medir
+
+- `BaseMediaPlayerManager.setMedia` espera la promesa de carga anterior antes de
+  iniciar la siguiente. Evaluar cancelación o descarte temprano tras medir Next
+  repetido, resolución offline y sincronización entre dispositivos.
+- La precarga habitual usa `metadata`. No se amplía a `auto`: puede descargar la
+  siguiente canción completa. Tampoco se prepara audio adicional al descargar vídeos,
+  conforme a la preferencia de limitar almacenamiento y descargas.
 
 Para comparar: clic → evento `playing` como aproximación de arranque (no prueba de
-sonido físicamente audible), TTFB de audio, pausas entre pistas y p50/p95; usar
-archivos reales de cada proveedor, descargas frías/calientes y una cola grande.
-También registrar bytes, CPU/RAM y pruebas de Range antes/después.
+sonido físicamente audible), TTFB, pausas entre pistas y p50/p95; usar audio real de
+cada proveedor, caché fría/caliente y colas grandes. Registrar también bytes y CPU/RAM.
+No se atribuye todavía una reducción medida de latencia a este cambio.
 
-Se contrastó el significado de `metadata`/`auto` y su carácter orientativo con
+Referencia de precarga:
 [MDN: audio/preload](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/audio#preload).

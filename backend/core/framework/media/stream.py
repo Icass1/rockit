@@ -1,4 +1,5 @@
 import os
+import stat
 import hashlib
 import asyncio
 import tempfile
@@ -13,7 +14,7 @@ from backend.utils.logger import getLogger
 from backend.core.aResult import AResult, AResultCode
 
 logger = getLogger(name=__name__)
-CHUNK_SIZE = 1024 * 1024
+CHUNK_SIZE = 64 * 1024
 _audio_locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
 
@@ -33,8 +34,27 @@ class MediaStream:
             logger.error(f"Error preparing video audio. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
-        audio_path = a_result.result()
-        size = os.path.getsize(audio_path)
+        return await MediaStream.stream_audio_file_async(
+            audio_path=a_result.result(), range_header=range_header
+        )
+
+    @staticmethod
+    async def stream_audio_file_async(
+        audio_path: str, range_header: str | None
+    ) -> AResult[StreamingResponse]:
+        """Stream an existing audio file in bounded chunks without making a copy."""
+        try:
+            file_stat = await asyncio.to_thread(os.stat, audio_path)
+        except FileNotFoundError:
+            logger.error("Audio file not found")
+            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")
+        except OSError:
+            logger.error("Could not inspect audio file", exc_info=True)
+            return AResult(code=AResultCode.GENERAL_ERROR, message="Audio unavailable")
+        if not stat.S_ISREG(file_stat.st_mode):
+            logger.error("Audio path is not a regular file")
+            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")
+        size = file_stat.st_size
         start, end = 0, size - 1
         status = 200
         headers = {"Accept-Ranges": "bytes"}

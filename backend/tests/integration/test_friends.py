@@ -5,6 +5,7 @@ from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.access.collectionAccess import shared_metadata
 from backend.core.access.friend.friendAccess import FriendAccess
+from backend.core.access.notificationAccess import NotificationAccess
 from backend.core.access.friend.listenTogetherAccess import ListenTogetherAccess
 from backend.core.enums.friend.friendStatusEnum import FriendStatusEnum
 from backend.core.enums.friend.listenTogetherStatusEnum import ListenTogetherStatusEnum
@@ -56,6 +57,13 @@ async def test_pending_duplicates_and_request_ownership(social: AsyncSession) ->
     )
     assert accepted.is_ok(), accepted.info()
     assert (await Friend.require_friend_async(social, 1, 2)).is_ok()
+    recipient_notifications = await NotificationAccess.list_async(social, 2)
+    sender_notifications = await NotificationAccess.list_async(social, 1)
+    assert recipient_notifications.is_ok() and len(recipient_notifications.result()) == 1
+    assert recipient_notifications.result()[0].event_key == (
+        f"friend_request:{first.result().public_id}"
+    )
+    assert sender_notifications.is_ok() and sender_notifications.result() == []
 
 
 async def test_remove_deletes_both_directions(social: AsyncSession) -> None:
@@ -131,6 +139,14 @@ async def test_share_checks_private_collection_access(
         session, 1, 2, "song-1000", "Listen to this"
     )
     assert shared.is_ok(), shared.info()
+    recipient_notifications = await NotificationAccess.list_async(session, 2)
+    sender_notifications = await NotificationAccess.list_async(session, 1)
+    assert recipient_notifications.is_ok()
+    assert len(recipient_notifications.result()) == 1
+    assert recipient_notifications.result()[0].event_key == (
+        f"media_share:{shared.result().public_id}"
+    )
+    assert sender_notifications.is_ok() and sender_notifications.result() == []
     public_id = shared.result().public_id
     assert (await Sharing.mark_as_seen_async(session, 1, public_id)).is_not_ok()
     assert (await Sharing.mark_as_seen_async(session, 2, public_id)).is_ok()

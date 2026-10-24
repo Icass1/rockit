@@ -32,10 +32,15 @@ export interface SocialChangedMessage {
     type: "social_changed";
 }
 
+export interface NotificationsChangedMessage {
+    type: "notifications_changed";
+}
+
 export enum EWebSocketMessage {
     DownloadProgress = "download_progress",
     FriendActivity = "friend_activity",
     SocialChanged = "social_changed",
+    NotificationsChanged = "notifications_changed",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
     ListenTogetherSync = "listen_together_sync",
@@ -53,6 +58,7 @@ export enum EWebSocketMessage {
 
 export interface IWebSocketMessagePayloadMap {
     [EWebSocketMessage.SocialChanged]: SocialChangedMessage;
+    [EWebSocketMessage.NotificationsChanged]: NotificationsChangedMessage;
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
     [EWebSocketMessage.FriendActivity]: FriendActivityMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
@@ -74,6 +80,7 @@ export type TWebSocketIncomingMessage =
     | DownloadProgressMessage
     | FriendActivityMessage
     | SocialChangedMessage
+    | NotificationsChangedMessage
     | LibraryMediaAddedMessage
     | LibraryMediaRemovedMessage
     | ListenTogetherSyncMessage

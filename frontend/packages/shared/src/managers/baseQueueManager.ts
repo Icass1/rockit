@@ -287,7 +287,10 @@ export class BaseQueueManager {
         });
 
         const shuffleInPlace = (array: QueueMediaItem[]): void => {
-            array.sort((): number => Math.random() - 0.5);
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
         };
 
         shuffleInPlace(this.randomQueue);
@@ -681,6 +684,29 @@ export class BaseQueueManager {
                 : this.randomQueue.length;
         this.randomQueue.splice(randomInsertIndex, 0, { ...newItem });
 
+        this.updateQueue();
+    }
+
+    /** Changes when the queue is replaced, allowing pending loads to stop. */
+    get queueIdentity(): object {
+        return this.sortedQueue;
+    }
+
+    /** Append a batch with one state update and one WebSocket synchronization. */
+    appendMedias(medias: TPlayableMedia[], listPublicId: string): void {
+        let nextId =
+            this.sortedQueue.reduce(
+                (max, item) => Math.max(max, item.queueMediaId),
+                -1
+            ) + 1;
+        const items = medias.filter(isQueueable).map((media) => ({
+            media,
+            listPublicId,
+            queueMediaId: nextId++,
+        }));
+        if (!items.length) return;
+        this.sortedQueue.push(...items);
+        this.randomQueue.push(...items);
         this.updateQueue();
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 import {
     BaseAlbumWithoutSongsResponse,
     BasePlaylistWithoutMediasResponse,
@@ -167,26 +167,26 @@ export function useLibraryData({
     const {
         data: _libraryData,
         loading,
-        error,
     } = useFetch(Http.getUserLibraryMedias);
 
+    const receivedNetwork = useRef(false);
     const initialData = _libraryData ? extractItems(_libraryData) : undefined;
 
     const [libraryData, dispatch] = useReducer(libraryReducer, initialData);
 
     useEffect((): void => {
         if (_libraryData) {
+            receivedNetwork.current = true;
             dispatch({ type: "INIT", data: _libraryData });
             saveLibraryOffline(_libraryData).catch(() => {});
         }
     }, [_libraryData]);
 
     useEffect((): (() => void) | undefined => {
-        if (error === undefined || _libraryData !== undefined) return;
         let cancelled = false;
         loadLibraryOffline()
             .then((cached): void => {
-                if (!cancelled && cached) {
+                if (!cancelled && !receivedNetwork.current && cached) {
                     dispatch({ type: "INIT", data: cached });
                 }
             })
@@ -194,7 +194,7 @@ export function useLibraryData({
         return (): void => {
             cancelled = true;
         };
-    }, [error, _libraryData]);
+    }, []);
 
     useEffect((): (() => void) => {
         const handler = (e: IMediaRemovedFromLibraryEvent): void => {
@@ -261,7 +261,7 @@ export function useLibraryData({
 
     const result: IUseLibraryDataReturn = {
         ...filtered,
-        loading,
+        loading: loading && !libraryData,
         filtered,
     };
 

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
@@ -63,6 +64,8 @@ function transformStats(dataResponse: HomeStatsResponse): HomeData {
 
 export function useHomeData(): HomeData | null {
     const { data: dataResponse } = useFetch(Http.getHomeStats);
-    if (!dataResponse) return null;
-    return transformStats(dataResponse);
+    return useMemo(
+        () => (dataResponse ? transformStats(dataResponse) : null),
+        [dataResponse]
+    );
 }

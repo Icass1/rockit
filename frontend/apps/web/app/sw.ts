@@ -103,6 +103,23 @@ const runtimeCaching = [
             ],
         }),
     },
+    // Frequently visited screens can display their saved snapshot immediately.
+    // Session logout clears rockit-lists along with other private caches.
+    {
+        matcher: ({ url }: { url: URL }) =>
+            url.pathname === "/stats/home" ||
+            url.pathname === "/user/library/medias",
+        handler: new StaleWhileRevalidate({
+            cacheName: "rockit-lists",
+            plugins: [
+                new ExpirationPlugin({
+                    maxEntries: 50,
+                    maxAgeSeconds: 24 * 60 * 60,
+                    purgeOnQuotaError: true,
+                }),
+            ],
+        }),
+    },
     // Changing lists — NetworkFirst with a short timeout so a slow or flaky
     // network falls back to the cached snapshot instead of hanging forever.
     {

@@ -89,7 +89,8 @@ un problema de rendimiento ni se convierten en respuestas exitosas.
 2. Virtualizar vistas extensas: «cargar más» acota el inicio, pero el DOM crece con el uso.
 3. Medir Home con historial representativo antes de cambiar sus consultas; el navegador
    también observó peticiones de notificaciones repetidas y carga de datos sociales.
-   Determinar qué componentes las disparan antes de modificar los managers globales.
+   Las consultas simultáneas de notificaciones ahora se agrupan como se detalla abajo;
+   sigue pendiente estudiar la carga social.
 4. Medir colas pobladas, proveedores externos, imágenes y primer sonido con audio real.
 5. Instrumentar proxy/ASGI: el logging actual espera un commit fuera de su propio
    cronómetro y no mide la transferencia completa. Se documenta, sin reescribirlo aquí.
@@ -155,3 +156,18 @@ No se atribuye todavía una reducción medida de latencia a este cambio.
 
 Referencia de precarga:
 [MDN: audio/preload](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/audio#preload).
+
+## Menos competencia de peticiones en segundo plano
+
+`NotificationManager.refreshAsync` podía lanzar consultas simultáneas desde el inicio
+de sesión, foco/conexión y eventos de descargas. Ahora comparte la consulta activa.
+Si llega otra solicitud durante la espera, realiza una consulta final para recoger
+los cambios posteriores. No añade un temporizador de espera ni modifica los toasts
+inmediatos, los intervalos de actualización o el contrato del backend.
+
+Una prueba con 21 llamadas solapadas verifica dos consultas HTTP secuenciales en vez
+de 21 concurrentes y que se muestran los datos de la última consulta. También se
+comprueba que cambiar de cuenta no espera a la anterior y que una excepción de
+transporte permite reintentar. Las nueve pruebas de notificaciones pasan. Esto
+reduce tráfico redundante durante ráfagas; no se ha medido una reducción de latencia
+de páginas o descargas externas atribuible a este cambio.

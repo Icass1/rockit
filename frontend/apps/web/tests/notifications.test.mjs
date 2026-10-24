@@ -154,6 +154,70 @@ test("late inbox responses cannot restore a signed-out account", async () => {
     assert.equal(manager.notificationsAtom.get().length, 0);
 });
 
+test("refresh bursts share one request and run one final refresh for newer events", async () => {
+    const { NotificationManager, http } = setup();
+    const manager = new NotificationManager();
+    manager.setUser("alice");
+    await manager.refreshAsync();
+    const requests = [];
+    http.getNotifications = () =>
+        new Promise((resolve) => requests.push(resolve));
+    const pending = manager.refreshAsync();
+    await flush();
+    const overlapping = Array.from({ length: 20 }, () => manager.refreshAsync());
+    await flush();
+    assert.equal(requests.length, 1);
+    requests[0](ok({ items: [entry("old")] }));
+    await flush();
+    assert.equal(requests.length, 2);
+    requests[1](ok({ items: [entry("latest")] }));
+    await Promise.all([pending, ...overlapping]);
+    assert.equal(requests.length, 2);
+    assert.equal(manager.notificationsAtom.get()[0].id, "latest");
+    const next = manager.refreshAsync();
+    await flush();
+    assert.equal(requests.length, 3);
+    requests[2](ok({ items: [] }));
+    await next;
+});
+
+test("a pending refresh does not block another account or publish its final refresh", async () => {
+    const { NotificationManager, http, account } = setup();
+    const manager = new NotificationManager();
+    manager.setUser("alice");
+    await manager.refreshAsync();
+    const requests = [];
+    http.getNotifications = () =>
+        new Promise((resolve) => requests.push(resolve));
+    const old = manager.refreshAsync();
+    await flush();
+    const oldAgain = manager.refreshAsync();
+    account("bob");
+    manager.setUser("bob");
+    await flush();
+    assert.equal(requests.length, 2);
+    requests[1](ok({ items: [entry("bob")] }));
+    await flush();
+    requests[0](ok({ items: [entry("alice")] }));
+    await Promise.all([old, oldAgain]);
+    assert.equal(requests.length, 2);
+    assert.equal(manager.notificationsAtom.get()[0].id, "bob");
+});
+
+test("a transport failure releases the shared refresh for retry", async () => {
+    const { NotificationManager, http } = setup();
+    const manager = new NotificationManager();
+    manager.setUser("alice");
+    await manager.refreshAsync();
+    http.getNotifications = async () => {
+        throw new Error("offline");
+    };
+    await assert.rejects(manager.refreshAsync(), /offline/);
+    http.getNotifications = async () => ok({ items: [entry("recovered")] });
+    await manager.refreshAsync();
+    assert.equal(manager.notificationsAtom.get()[0].id, "recovered");
+});
+
 test("accounts are isolated and failed read requests keep the entry unread", async () => {
     const { NotificationManager, http, account } = setup();
     const manager = new NotificationManager();

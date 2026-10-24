@@ -21,6 +21,8 @@ export class NotificationManager {
     private _revision = 0;
     private _loaded = false;
     private _migration?: Promise<void>;
+    private _refresh?: Promise<void>;
+    private _refreshAgain = false;
     private _timer?: ReturnType<typeof setInterval>;
     private _refreshListener = (): void => {
         void this.refreshAsync();
@@ -34,6 +36,8 @@ export class NotificationManager {
         this._revision++;
         this._loaded = false;
         this._migration = undefined;
+        this._refresh = undefined;
+        this._refreshAgain = false;
         this._writeQueue = Promise.resolve();
         toast.dismiss();
         this._notificationsAtom.set([]);
@@ -50,7 +54,29 @@ export class NotificationManager {
 
     async refreshAsync(): Promise<void> {
         if (!this._username || typeof window === "undefined") return;
+        if (this._refresh) {
+            this._refreshAgain = true;
+            return this._refresh;
+        }
         const generation = this._generation;
+        const request = (async (): Promise<void> => {
+            do {
+                this._refreshAgain = false;
+                await this._refreshInboxAsync(generation);
+            } while (generation === this._generation && this._refreshAgain);
+        })();
+        this._refresh = request;
+        try {
+            await request;
+        } finally {
+            if (this._refresh === request) {
+                this._refresh = undefined;
+                this._refreshAgain = false;
+            }
+        }
+    }
+
+    private async _refreshInboxAsync(generation: number): Promise<void> {
         this._migration ??= this._migrateLegacyAsync(generation);
         await this._migration;
         if (generation !== this._generation) return;

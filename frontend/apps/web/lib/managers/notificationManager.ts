@@ -30,6 +30,14 @@ export class NotificationManager {
     };
     private _writeQueue: Promise<void> = Promise.resolve();
 
+    init(): void {
+        if (typeof window === "undefined") return;
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.NotificationsChanged,
+            () => void this.refreshAsync()
+        );
+    }
+
     setUser(username?: string): void {
         if (username === this._username) return;
         this._username = username;

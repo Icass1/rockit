@@ -1,4 +1,3 @@
-import asyncio
 from collections import defaultdict
 from datetime import datetime
 from typing import Any, List, Union
@@ -231,11 +230,14 @@ class User:
                     f"Unsupported media type {MediaTypeEnum(media_type_key)} in user library. Skipping."
                 )
 
-        # Run all provider calls in parallel
+        # Provider calls share one transaction: AsyncSession is not concurrency safe.
         if tasks:
-            results: List[Union[AResult[Any], BaseException]] = await asyncio.gather(
-                *(task.coroutine for task in tasks), return_exceptions=True
-            )
+            results: List[Union[AResult[Any], BaseException]] = []
+            for task in tasks:
+                try:
+                    results.append(await task.coroutine)
+                except Exception as error:
+                    results.append(error)
             for task, result in zip(tasks, results):
                 if isinstance(result, BaseException):
                     logger.error(

@@ -11,8 +11,10 @@ import VinylTransition from "@/components/PlayerUI/VinylTransition";
 
 export default function PlayerUIMain({
     currentMedia,
+    edgeToEdge = false,
 }: {
     currentMedia: TPlayableMedia;
+    edgeToEdge?: boolean;
 }): JSX.Element | undefined {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
@@ -24,6 +26,7 @@ export default function PlayerUIMain({
         rockIt.playerUIManager.initializeArtworkMode();
     }, []);
     const videoContainerRef = useRef<HTMLDivElement | null>(null);
+    const videoListenerCleanupRef = useRef<(() => void) | null>(null);
     const hideTitleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
     const [offlineCover, setOfflineCover] = useState<{
         publicId: string;
@@ -59,6 +62,8 @@ export default function PlayerUIMain({
     // video through a ref makes its presence deterministic when the player opens.
     const attachVideoRef = useCallback(
         (container: HTMLDivElement | null): void => {
+            videoListenerCleanupRef.current?.();
+            videoListenerCleanupRef.current = null;
             const previous = videoContainerRef.current;
             if (previous) {
                 rockIt.mediaPlayerManager.detachVideoFromContainer(previous);
@@ -69,14 +74,21 @@ export default function PlayerUIMain({
                 const video = rockIt.mediaPlayerManager.videoElement;
                 const updateAspectRatio = (): void => {
                     if (!video?.videoWidth || !video.videoHeight) return;
-                    container.style.setProperty(
-                        "--player-video-aspect",
-                        `${video.videoWidth} / ${video.videoHeight}`
+                    container.parentElement?.style.setProperty(
+                        "--player-video-ratio",
+                        String(video.videoWidth / video.videoHeight)
                     );
                 };
                 updateAspectRatio();
                 video?.addEventListener("loadedmetadata", updateAspectRatio);
                 video?.addEventListener("resize", updateAspectRatio);
+                videoListenerCleanupRef.current = (): void => {
+                    video?.removeEventListener(
+                        "loadedmetadata",
+                        updateAspectRatio
+                    );
+                    video?.removeEventListener("resize", updateAspectRatio);
+                };
             }
         },
         [currentMedia, $audioOnly]
@@ -120,17 +132,36 @@ export default function PlayerUIMain({
         </div>
     );
 
+    // Portrait artwork determines the first row's height from its full width.
+    // Other layouts keep fitting within their existing, fixed-height grid cell.
+    const surfaceClass = edgeToEdge
+        ? "relative flex w-full items-center justify-center"
+        : "[container-type:size] relative flex h-full w-full items-center justify-center";
+    const artworkClass = edgeToEdge
+        ? "relative aspect-square w-full cursor-pointer overflow-hidden"
+        : "relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl";
+
     if (isVideo(currentMedia)) {
+        // Query both cell dimensions instead of falling back to viewport height.
+        // Fit the native ratio within them; wide videos can still use full width.
         return (
             <div
-                className="relative flex h-full w-full items-center justify-center"
+                className={surfaceClass}
                 onMouseEnter={handleVideoMouseEnter}
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className="relative h-[90%] max-h-[90%] w-full max-w-full cursor-pointer overflow-hidden rounded-xl"
+                    className={
+                        edgeToEdge
+                            ? "relative w-full cursor-pointer overflow-hidden"
+                            : "relative w-[min(100cqw,calc(90cqh*var(--player-video-ratio,1.777777778)))] cursor-pointer overflow-hidden rounded-xl"
+                    }
                     style={{
-                        aspectRatio: "var(--player-video-aspect, 16 / 9)",
+                        aspectRatio: "var(--player-video-ratio, 16 / 9)",
+                        // Very tall videos still leave room for the lower panels.
+                        maxWidth: edgeToEdge
+                            ? "calc((100dvh - 24rem) * var(--player-video-ratio, 1.777777778))"
+                            : undefined,
                     }}
                     onClick={handleClick}
                 >
@@ -201,14 +232,11 @@ export default function PlayerUIMain({
     } else if (isSong(currentMedia)) {
         return (
             <div
-                className="group ignore-click-player-ui @container relative flex h-full w-full items-center justify-center"
+                className={`group ignore-click-player-ui ${surfaceClass}`}
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
-                <div
-                    className="relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl"
-                    onClick={handleClick}
-                >
+                <div className={artworkClass} onClick={handleClick}>
                     {!vinylMode && (
                         <div
                             className={`absolute top-0 right-0 left-0 z-30 flex flex-row items-start bg-linear-to-b from-black/60 to-transparent pt-4 pr-5 pb-12 pl-4 transition-opacity duration-300 ${
@@ -287,14 +315,11 @@ export default function PlayerUIMain({
     } else if (isStation(currentMedia)) {
         return (
             <div
-                className="@container relative flex h-full w-full items-center justify-center"
+                className={surfaceClass}
                 onMouseEnter={(): void => setSongHover(true)}
                 onMouseLeave={(): void => setSongHover(false)}
             >
-                <div
-                    className="relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl"
-                    onClick={handleClick}
-                >
+                <div className={artworkClass} onClick={handleClick}>
                     <Image
                         src={currentMedia.imageUrl || "/radio-placeholder.png"}
                         fill

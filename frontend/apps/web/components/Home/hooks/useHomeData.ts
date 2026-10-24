@@ -1,10 +1,13 @@
+import { useMemo } from "react";
 import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
 import type { SongListResponse } from "@/dto";
 import { mixHomeRecommendations } from "@rockit/shared";
 import type { HttpResult } from "@rockit/shared";
 import type { HomeData } from "@/models/interfaces/homeData";
+import useAccountCachedData from "@/hooks/useAccountCachedData";
 import useFetch from "@/hooks/useFetch";
 import { Http } from "@/lib/http";
+import { loadHomeOffline, saveHomeOffline } from "@/lib/offline/db";
 
 const fetchLocalRecommendations = (): Promise<HttpResult<SongListResponse>> =>
     Http.getRecommendationsForYou(20, false);
@@ -61,21 +64,30 @@ function transformStats(
 }
 
 export function useHomeData(): HomeData | null {
-    const { data: dataResponse } = useFetch(Http.getHomeStats);
+    const { data: dataResponse } = useAccountCachedData(
+        Http.getHomeStats,
+        loadHomeOffline,
+        saveHomeOffline
+    );
     const { data: localRecommendations, loading: localLoading } = useFetch(
         fetchLocalRecommendations
     );
     const { data: externalRecommendations, loading: externalLoading } =
         useFetch(Http.getRecommendationsForYou);
     const recommendations = externalRecommendations ?? localRecommendations;
-    if (!dataResponse) return null;
-    return {
-        ...transformStats(dataResponse),
-        recommendations,
-        recommendationsLoading: localLoading || externalLoading,
-        quickSelections: mixHomeRecommendations(
-            recommendations?.songs ?? [],
-            dataResponse.randomSongsLastMonth
-        ),
-    };
+    return useMemo(
+        () =>
+            dataResponse
+                ? {
+                      ...transformStats(dataResponse),
+                      recommendations,
+                      recommendationsLoading: localLoading || externalLoading,
+                      quickSelections: mixHomeRecommendations(
+                          recommendations?.songs ?? [],
+                          dataResponse.randomSongsLastMonth
+                      ),
+                  }
+                : null,
+        [dataResponse, recommendations, localLoading, externalLoading]
+    );
 }

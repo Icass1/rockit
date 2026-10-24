@@ -4,6 +4,7 @@ import {
     BaseSongWithAlbumResponse,
     BaseStationResponse,
     BaseVideoResponse,
+    LibraryMediasResponse,
 } from "@/dto";
 import { EFilterMode } from "@/models/enums/filterMode";
 
@@ -24,4 +25,8 @@ export type TFilteredLibrary = {
 export interface IUseLibraryDataReturn extends TFilteredLibrary {
     loading: boolean;
     filtered: TFilteredLibrary;
+}
+
+export interface ILibraryDataSnapshot extends TFilteredLibrary {
+    source: LibraryMediasResponse;
 }

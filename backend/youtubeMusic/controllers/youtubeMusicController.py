@@ -1,5 +1,3 @@
-from typing import Dict
-
 from fastapi import APIRouter, Request, Response, HTTPException
 
 from backend.utils.logger import getLogger
@@ -28,19 +26,4 @@ async def get_youtube_music_audio_async(request: Request, public_id: str) -> Res
             detail=a_result_audio.message(),
         )
 
-    content: bytes
-    status_code: int
-    content_range: str
-    content, status_code, content_range = a_result_audio.result()
-
-    headers: Dict[str, str] = {
-        "Accept-Ranges": "bytes",
-        "Content-Range": content_range,
-    }
-
-    return Response(
-        content=content,
-        media_type="audio/mpeg",
-        status_code=status_code,
-        headers=headers,
-    )
+    return a_result_audio.result()

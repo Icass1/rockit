@@ -47,6 +47,8 @@ services:
         container_name: rockit-beta-frontend
         env_file:
             - .env.production
+        environment:
+            BACKEND_INTERNAL_URL: http://backend:8000
         build:
             context: .
             dockerfile: Dockerfile.frontend

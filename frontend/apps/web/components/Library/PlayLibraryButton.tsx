@@ -1,14 +1,10 @@
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { Pause, Play } from "lucide-react";
-import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import {
-    expandAlbumsToPlayable,
-    expandPlaylistsToPlayable,
-} from "@/lib/services/mediaService";
 
 export default function PlayLibraryButton(): JSX.Element {
+    const loading = useStore(rockIt.libraryPlaybackManager.loadingAtom);
     const $queue = useStore(rockIt.queueManager.queueAtom);
     const $currentQueueMediaId = useStore(
         rockIt.queueManager.currentQueueMediaIdAtom
@@ -23,38 +19,16 @@ export default function PlayLibraryButton(): JSX.Element {
         ? true
         : false;
 
-    const handleClick = async (): Promise<void> => {
-        if (playingLibrary && $playing) {
-            rockIt.mediaPlayerManager.pause();
-        } else if (playingLibrary) {
-            rockIt.mediaPlayerManager.play();
-        } else {
-            const res = await Http.getUserLibraryMedias();
-            if (res.isOk()) {
-                const songs = (res.result.songs ?? []).map((s) => s.item);
-                const videos = (res.result.videos ?? []).map((v) => v.item);
-                const albumSongs = await expandAlbumsToPlayable(
-                    (res.result.albums ?? []).map((a) => a.item)
-                );
-                const playlistSongs = await expandPlaylistsToPlayable(
-                    (res.result.playlists ?? []).map((p) => p.item)
-                );
-                const allMedia = [
-                    ...songs,
-                    ...videos,
-                    ...albumSongs,
-                    ...playlistSongs,
-                ];
-                if (allMedia.length === 0) return;
-                rockIt.queueManager.setMedia(allMedia, "library");
-                rockIt.queueManager.setQueueMediaId(0);
-                rockIt.mediaPlayerManager.play();
-            }
-        }
+    const handleClick = (): void => {
+        if (playingLibrary && $playing) rockIt.mediaPlayerManager.pause();
+        else if (playingLibrary) rockIt.mediaPlayerManager.play();
+        else void rockIt.libraryPlaybackManager.playAsync();
     };
 
     return (
-        <div
+        <button
+            type="button"
+            aria-busy={loading}
             onClick={handleClick}
             title="Play library"
             className="h-8 w-8 cursor-pointer rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light) shadow-[0px_0px_20px_3px_#0e0e0e] transition-transform md:hover:scale-105"
@@ -70,6 +44,6 @@ export default function PlayLibraryButton(): JSX.Element {
                     fill="white"
                 />
             )}
-        </div>
+        </button>
     );
 }

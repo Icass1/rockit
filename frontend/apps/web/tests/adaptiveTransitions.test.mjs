@@ -194,11 +194,16 @@ function setup({ connected = false, sameAlbum = false } = {}) {
             repeatModeAtom: { get: () => repeat },
         },
         bookmarkManager: { currentMediaBookmarksAtom: { get: () => [] } },
+        notificationManager: { notifyError() {} },
+        vocabularyManager: {
+            vocabulary: { ERROR_LOADING_MEDIA_FILE: "file unavailable" },
+        },
     });
     player.init();
     return {
         player,
         queue,
+        timers,
         handlers,
         messages,
         transitionDuration,
@@ -405,4 +410,33 @@ test("videos retain native background audio when transitions are enabled", async
     assert.equal(e.player.audioElement.crossOrigin, undefined);
     assert.equal(e.player.audioElement.src, "https://test/audio");
     e.player.pause();
+});
+
+test("file errors advance without a timer, skip unavailable songs, and stop a failed-file loop", () => {
+    const e = setup();
+    e.queue.queueIdentity = {};
+    e.queue.lastNavigationDirection = 1;
+    e.queue.queue[1].media.downloaded = false;
+    const played = [];
+    let pauses = 0;
+    e.player.play = () => played.push(e.queue.currentQueueMediaId);
+    e.player.pause = () => pauses++;
+    const timerCount = e.timers.size;
+    e.player._handleMediaError();
+    assert.deepEqual(played, [3]);
+    assert.equal(e.timers.size, timerCount);
+    e.player._handleMediaError();
+    assert.deepEqual(played, [3]);
+    assert.equal(pauses, 1);
+});
+test("backward error navigation skips unavailable songs in the correct direction", () => {
+    const e = setup();
+    e.queue.queueIdentity = {};
+    e.queue.lastNavigationDirection = -1;
+    e.queue.setQueueMediaId(3);
+    e.queue.queue[1].media.downloaded = false;
+    const played = [];
+    e.player.play = () => played.push(e.queue.currentQueueMediaId);
+    e.player._handleMediaError();
+    assert.deepEqual(played, [1]);
 });

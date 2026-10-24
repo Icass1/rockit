@@ -75,7 +75,8 @@ export async function getArtistAsync(
 // Resolve collection contents on the server, including nested collections. Limit
 // concurrency so a large library does not flood the API with hundreds of fetches.
 async function resolveCollections(
-    publicIds: string[]
+    publicIds: string[],
+    onFailure?: (publicId: string) => void
 ): Promise<TPlayableMedia[]> {
     const results: TPlayableMedia[][] = new Array(publicIds.length);
     let cursor = 0;
@@ -83,13 +84,23 @@ async function resolveCollections(
         Array.from({ length: Math.min(4, publicIds.length) }, async () => {
             while (cursor < publicIds.length) {
                 const index = cursor++;
-                const response = await Http.resolveCollectionQueue(
-                    publicIds[index]
-                );
-                if (!response.isOk()) throw new Error(response.message);
-                results[index] = response.result.queue
-                    .map((entry) => entry.media)
-                    .filter(isQueueable);
+                try {
+                    const response = await Http.resolveCollectionQueue(
+                        publicIds[index]
+                    );
+                    if (!response.isOk()) throw new Error(response.message);
+                    results[index] = response.result.queue
+                        .map((entry) => entry.media)
+                        .filter(isQueueable);
+                } catch (error) {
+                    results[index] = [];
+                    console.error(
+                        "Error resolving collection",
+                        publicIds[index],
+                        error
+                    );
+                    onFailure?.(publicIds[index]);
+                }
             }
         })
     );
@@ -97,15 +108,23 @@ async function resolveCollections(
 }
 
 export async function expandAlbumsToPlayable(
-    albums: BaseAlbumWithoutSongsResponse[]
+    albums: BaseAlbumWithoutSongsResponse[],
+    onFailure?: (publicId: string) => void
 ): Promise<TPlayableMedia[]> {
-    return resolveCollections(albums.map((album) => album.publicId));
+    return resolveCollections(
+        albums.map((album) => album.publicId),
+        onFailure
+    );
 }
 
 export async function expandPlaylistsToPlayable(
-    playlists: Array<{ publicId: string }>
+    playlists: Array<{ publicId: string }>,
+    onFailure?: (publicId: string) => void
 ): Promise<TPlayableMedia[]> {
-    return resolveCollections(playlists.map((playlist) => playlist.publicId));
+    return resolveCollections(
+        playlists.map((playlist) => playlist.publicId),
+        onFailure
+    );
 }
 
 export async function getFeaturedListAsync(

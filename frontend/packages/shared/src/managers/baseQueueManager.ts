@@ -706,7 +706,21 @@ export class BaseQueueManager {
         }));
         if (!items.length) return;
         this.sortedQueue.push(...items);
-        this.randomQueue.push(...items);
+        // Keep the played prefix and current song stable; mix only what is next.
+        const currentIndex = this.randomQueue.findIndex(
+            (item) => item.queueMediaId === this.currentQueueMediaId
+        );
+        const pendingStart = currentIndex + 1;
+        const pending = [...this.randomQueue.slice(pendingStart), ...items];
+        for (let i = pending.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pending[i], pending[j]] = [pending[j], pending[i]];
+        }
+        this.randomQueue.splice(
+            pendingStart,
+            this.randomQueue.length - pendingStart,
+            ...pending
+        );
         this.updateQueue();
     }
 

@@ -552,7 +552,14 @@ export function LibraryLists({
 
     const handlePlayAlbums = async (): Promise<void> => {
         if (filtered.albums.length === 0) return;
-        const albumSongs = await expandAlbumsToPlayable(filtered.albums);
+        let hadFailures = false;
+        const albumSongs = await expandAlbumsToPlayable(filtered.albums, () => {
+            hadFailures = true;
+        });
+        if (hadFailures)
+            rockIt.notificationManager.notifyWarn(
+                $vocabulary.ERROR_GETTING_QUEUE
+            );
         if (albumSongs.length === 0) return;
         rockIt.queueManager.setMedia(albumSongs, "library-albums");
         rockIt.queueManager.setQueueMediaId(0);
@@ -561,9 +568,17 @@ export function LibraryLists({
 
     const handlePlayPlaylists = async (): Promise<void> => {
         if (filtered.playlists.length === 0) return;
+        let hadFailures = false;
         const playlistSongs = await expandPlaylistsToPlayable(
-            filtered.playlists
+            filtered.playlists,
+            () => {
+                hadFailures = true;
+            }
         );
+        if (hadFailures)
+            rockIt.notificationManager.notifyWarn(
+                $vocabulary.ERROR_GETTING_QUEUE
+            );
         if (playlistSongs.length === 0) return;
         rockIt.queueManager.setMedia(playlistSongs, "library-playlists");
         rockIt.queueManager.setQueueMediaId(0);

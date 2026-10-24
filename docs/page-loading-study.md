@@ -171,3 +171,21 @@ comprueba que cambiar de cuenta no espera a la anterior y que una excepción de
 transporte permite reintentar. Las nueve pruebas de notificaciones pasan. Esto
 reduce tráfico redundante durante ráfagas; no se ha medido una reducción de latencia
 de páginas o descargas externas atribuible a este cambio.
+
+## Correcciones tras revisar el PR
+
+- El snapshot de Library en IndexedDB utiliza una clave por usuario. No se lee la
+  antigua clave compartida y se elimina durante las transiciones de autenticación.
+  El hook vincula cada carga a la cuenta y al estado de sesión; oculta el snapshot
+  anterior e ignora respuestas pendientes tras un cambio de cuenta. La respuesta de
+  red sigue prevaleciendo sobre una lectura offline que termine más tarde.
+- La expansión de colecciones conserva los resultados válidos cuando otra colección
+  falla y continúa con las siguientes. Play Library y los botones por categoría
+  muestran un aviso al terminar, sin convertir los errores del proveedor en éxitos.
+- Las tandas nuevas se mezclan con la parte pendiente de la cola aleatoria. Se
+  conservan el prefijo ya recorrido, la canción actual, los IDs y el orden normal;
+  continúa habiendo una única sincronización por tanda.
+
+Se actualizaron los casos de regresión correspondientes, incluidos aislamiento de
+cuentas, errores parciales y mezcla de tandas. Por indicación del usuario no se
+ejecutaron tests locales para estas correcciones; su validación se delega en CI.

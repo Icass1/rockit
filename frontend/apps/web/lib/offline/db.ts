@@ -236,6 +236,8 @@ export async function loadSessionOffline(): Promise<SessionResponse | null> {
 export async function clearSessionOffline(): Promise<void> {
     const db = await getDB();
     await db.delete("session", OFFLINE_CACHE_KEY);
+    // Discard legacy snapshots that did not identify their owner.
+    await db.delete("library", OFFLINE_CACHE_KEY);
 
     // Service worker caches hold user-scoped API data keyed by URL only.
     // Purge them on auth transitions so another account on this device
@@ -271,18 +273,23 @@ export async function loadVocabularyOffline(): Promise<VocabularyResponse | null
 }
 
 export async function saveLibraryOffline(
+    username: string,
     library: LibraryMediasResponse
 ): Promise<void> {
+    if (!username) return;
     const db = await getDB();
     await db.put(
         "library",
         { data: library, savedAt: Date.now() },
-        OFFLINE_CACHE_KEY
+        `user:${username}`
     );
 }
 
-export async function loadLibraryOffline(): Promise<LibraryMediasResponse | null> {
+export async function loadLibraryOffline(
+    username: string
+): Promise<LibraryMediasResponse | null> {
+    if (!username) return null;
     const db = await getDB();
-    const record = await db.get("library", OFFLINE_CACHE_KEY);
+    const record = await db.get("library", `user:${username}`);
     return record?.data ?? null;
 }

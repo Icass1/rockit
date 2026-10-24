@@ -50,6 +50,7 @@ export default function PlayLibraryButton(): JSX.Element {
                     rockIt.mediaPlayerManager.play();
                 };
                 let started = initial.length > 0;
+                let hadFailures = false;
                 if (started) start(initial);
                 const collections = [
                     ...res.result.albums.map((a) => a.item),
@@ -61,7 +62,9 @@ export default function PlayLibraryButton(): JSX.Element {
                     if (rockIt.queueManager.queueIdentity !== ownedQueue)
                         return;
                     const batch = collections.slice(offset, offset + 4);
-                    const media = await expandPlaylistsToPlayable(batch);
+                    const media = await expandPlaylistsToPlayable(batch, () => {
+                        hadFailures = true;
+                    });
                     if (rockIt.queueManager.queueIdentity !== ownedQueue)
                         return;
                     if (!started && media.length) {
@@ -70,6 +73,11 @@ export default function PlayLibraryButton(): JSX.Element {
                     } else if (started) {
                         rockIt.queueManager.appendMedias(media, "library");
                     }
+                }
+                if (hadFailures) {
+                    rockIt.notificationManager.notifyWarn(
+                        rockIt.vocabularyManager.vocabulary.ERROR_GETTING_QUEUE
+                    );
                 }
             } catch (error) {
                 rockIt.notificationManager.notifyError(

@@ -61,11 +61,13 @@
 
 ### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
 
-- tags: [frontend, transitions, player, audio]
+- tags: [frontend, transitions, player, audio, kb-13]
 - priority: medium
 - workload: Hard
     ```md
     Quitar el silencio final/inicial de las canciones cuando las transiciones están activadas. Cuidado con esto.
+
+    Pendiente: detectar límites de audio con FFmpeg y guardar posiciones de entrada/salida sin modificar el archivo ni el reloj original de lyrics. El crossfade configurable no elimina silencios por sí solo.
     ```
 
 ### [PLAYER] Añadir modo vinilo en web móvil

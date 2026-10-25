@@ -256,7 +256,7 @@
 - priority: medium
 - workload: Normal
     ```md
-    Implementado: layouts adaptativos, textos largos truncados, controles y menú dentro del viewport, vídeo desde videoUrl y modo vinilo. Verificados 85 casos en 17 tamaños con componentes reales y estado de prueba, además de apertura/cierre de Document PiP real. Pruebas repetibles: pnpm test:pip. Detalles y límites en docs/pip-responsive-review.md. Pendiente de revisión integrada.
+    Implementado: layouts adaptativos, textos largos truncados, controles y menú dentro del viewport, vídeo desde videoUrl y modo vinilo. Verificados 118 casos únicos en 28 tamaños con componentes reales y estado de prueba (incluidos 11 minis altos/alargados), además de apertura/cierre de Document PiP real. Pruebas repetibles: pnpm test:pip. Detalles y límites en docs/pip-responsive-review.md. Pendiente de revisión integrada.
 
     Mejorar el picture-in-picture para tener distintos tamaños como hace Spotify y añadir también el modo vinilo ahí.
     ```

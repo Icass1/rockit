@@ -2,7 +2,7 @@
 
 ## Implemented behavior
 
-- Four content layouts: compact artwork overlay, vertical stack, horizontal
+- Five content layouts: compact artwork overlay, narrow/tall stack, vertical stack, horizontal
   media/details split, and larger artwork stack. Measure the viewport instead of
   letting oversized body content determine the layout.
 - Media and text cannot expand their grid tracks. Artwork and horizontal/vertical
@@ -24,7 +24,7 @@
 
 ## Verification performed
 
-Chromium: 85 passing viewport/content combinations, using real React components
+Chromium: 118 passing unique viewport/content combinations across 28 sizes, using real React components
 with isolated state adapters, a local photo, and generated local WebM videos.
 No JavaScript errors or primary controls outside the viewport were observed.
 
@@ -33,9 +33,14 @@ Viewport sizes:
 - 160×120, 220×220, 259×320, 260×219, 260×220, 299×160, 300×160.
 - 320×240, 320×420, 360×640, 480×160, 640×180.
 - 480×320, 480×480, 640×360, 800×450, 1200×300.
+- Narrow/tall: 160×320, 160×480, 180×640, 200×800, 220×600, 240×720.
+- Long bars: 640×120, 800×120, 800×140, 960×160, 1200×160.
 
-Every size was tested with a photo, horizontal video, vertical video, radio,
-and no current media. Titles and artist names include long phrases and long
+All 28 sizes were tested with a photo, horizontal video, and vertical video.
+Radio and no-current-media cases cover the original 17 sizes. The 300×160 and
+480×160 cases were rechecked with all five content states after updating the
+bar layout. The default command now includes all five states for all 28 sizes;
+that full 140-case expansion has not been run. Titles and artist names include long phrases and long
 unbroken strings. Checks exercise play/pause, previous/next, menu actions,
 shuffle, all repeat modes, favorites, lyrics navigation, vinyl, keyboard seek,
 pointer cancellation, and menu Escape behavior.

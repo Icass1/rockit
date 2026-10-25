@@ -64,6 +64,18 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-slider::-moz-range-thumb { width: 10px; height: 10px; border: 0; border-radius: 50%; background: white; }
 .rockit-pip-document .pip-layout--pill { grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); grid-template-rows: minmax(0,1fr); }
 .rockit-pip-document .pip-layout--pill .pip-panel { align-self: center; }
+.rockit-pip-document .pip-layout--narrow { padding: 8px; gap: 8px; }
+.rockit-pip-document .pip-layout--narrow .pip-info-song-name { font-size: 12px; line-height: 18px; }
+.rockit-pip-document .pip-layout--narrow .pip-info-artist-name { font-size: 11px; line-height: 16px; }
+@media (max-height: 179px) {
+    .rockit-pip-document .pip-layout--pill { grid-template-columns: minmax(0,min(28vw,calc(100dvh - 20px))) minmax(0,1fr); }
+}
+@media (max-height: 139px) {
+    .rockit-pip-document .pip-layout--pill .pip-info-artist-name { display: none; }
+}
+@media (max-height: 119px) {
+    .rockit-pip-document .pip-layout--pill .pip-progress-bar { display: none; }
+}
 .rockit-pip-document .pip-layout--full { padding: 14px; gap: 12px; }
 .rockit-pip-document .pip-layout--full .pip-info-song-name { font-size: 16px; line-height: 22px; }
 .rockit-pip-document .pip-layout--cover-only { padding: 0; gap: 0; grid-template-rows: minmax(0,1fr); }

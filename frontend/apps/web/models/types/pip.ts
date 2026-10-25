@@ -1,4 +1,4 @@
-export type PiPLayout = "cover-only" | "sidebar" | "pill" | "full";
+export type PiPLayout = "cover-only" | "narrow" | "sidebar" | "pill" | "full";
 
 export interface DocumentPiP {
     requestWindow: (options: {

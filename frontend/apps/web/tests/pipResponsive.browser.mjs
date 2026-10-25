@@ -34,6 +34,17 @@ const defaultSizes = [
     [640, 360],
     [800, 450],
     [1200, 300],
+    [160, 320],
+    [160, 480],
+    [180, 640],
+    [200, 800],
+    [220, 600],
+    [240, 720],
+    [640, 120],
+    [800, 120],
+    [800, 140],
+    [960, 160],
+    [1200, 160],
 ];
 const sizes = process.env.PIP_TEST_SIZES
     ? JSON.parse(process.env.PIP_TEST_SIZES)

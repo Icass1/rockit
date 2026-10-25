@@ -106,14 +106,6 @@
     Actualizar el estado de friends, el contador de gente online y el estado de cada persona por WebSocket para que se actualice en tiempo real.
     ```
 
-### [LIBRARY] Fixear cover de la radio
-
-- tags: [frontend, library, radio, bug, ui]
-- priority: medium
-- workload: Easy
-    ```md
-    Fixear la cover de la radio en la library.
-    ```
 
 ### [PWA] Masonry móvil desalineado en iOS
 
@@ -249,6 +241,17 @@
     Implementado en canciones recientes; las selecciones rápidas ya lo tenían. Pendiente de revisión visual en web/PWA.
 
     Añadir un context menu a las canciones del home.
+    ```
+
+### [LIBRARY] Fixear cover de la radio
+
+- tags: [frontend, library, radio, bug, ui, kb-18]
+- priority: medium
+- workload: Easy
+    ```md
+    Implementado: la cover sigue los cambios de imagen y las radios usan su fallback local tanto en tarjetas como en filas. Los fallbacks de otras tarjetas respetan su tipo. Pendiente de revisión visual con radios reales.
+
+    Fixear la cover de la radio en la library.
     ```
 
 ## Done

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type JSX, type ReactNode } from "react";
+import { useMemo, useState, type JSX, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -91,14 +91,25 @@ export function groupByArtist<T extends { artists?: { name: string }[] }>(
 /* ------------------------------------------------------- */
 
 /** Small square cover thumbnail used in every row. */
-function SquareCover({ src, alt }: { src: string; alt: string }): JSX.Element {
+function SquareCover({
+    src,
+    alt,
+    fallback = "/song-placeholder.png",
+}: {
+    src: string;
+    alt: string;
+    fallback?: string;
+}): JSX.Element {
+    const [failedImage, setFailedImage] = useState<string | null>(null);
+    const source = src || fallback;
     return (
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
             <Image
-                src={src}
+                src={source === failedImage ? fallback : source}
                 alt={alt}
                 fill
                 sizes="48px"
+                onError={(): void => setFailedImage(source)}
                 className="object-cover select-none"
             />
         </div>
@@ -323,7 +334,11 @@ export function StationRow({
                     className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
                     onClick={handlePlay}
                 >
-                    <SquareCover src={$station.imageUrl} alt={$station.name} />
+                    <SquareCover
+                        src={$station.imageUrl}
+                        alt={$station.name}
+                        fallback="/radio-placeholder.png"
+                    />
                     <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-white">
                             {$station.name}

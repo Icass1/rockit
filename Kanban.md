@@ -120,11 +120,13 @@
 
 ### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
 
-- tags: [frontend, transitions, player, audio]
+- tags: [frontend, transitions, player, audio, kb-13]
 - priority: medium
 - workload: Hard
     ```md
     Quitar el silencio final/inicial de las canciones cuando las transiciones están activadas. Cuidado con esto.
+
+    KB-13: implementación aparcada en la rama independiente feat/audio-silence-analysis. Diseño y criterios de rendimiento en docs/audio-silence-analysis.md. Este borrador solo prepara el trabajo; no implementa el salto de silencios.
     ```
 
 ### [PLAYER] Añadir modo vinilo en web móvil

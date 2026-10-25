@@ -106,3 +106,18 @@ Targeted follow-up: 18 cases across six content viewports (400×100, 180×640,
 orientations. The earlier 118 cases describe the previous iteration, not a fresh
 complete run of this revision. Isolated adapters and native-window limitations
 listed above still apply.
+
+## Cover-derived palette and rounded media (KB-24)
+
+PiP reuses the existing dominantColor metadata and Home's parseDominantColor
+helper, without additional image analysis or requests. A lightened cover accent
+colors active lyrics, playback, seeking, hover and keyboard focus; the background
+has a subtle cover tint. Missing color uses the existing neutral fallback. The
+image/video element itself has rounded corners, including letterboxed media.
+
+Verified 15 fixture cases across 400×100, 180×640, 320×420, 640×360 and 160×120
+(song and landscape/portrait video), plus native Document PiP opening and closing.
+Checked live palette updates for gold, teal, purple, black, white and missing
+color, matching lyrics/play/slider colors and preserved image aspect ratio.
+TypeScript, targeted ESLint and Prettier checks passed. These are isolated fixture
+checks; integrated production playback and real cover metadata remain for review.

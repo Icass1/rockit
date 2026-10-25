@@ -6,10 +6,13 @@ html.rockit-pip-document, .rockit-pip-document body {
 }
 .rockit-pip-document .pip-root, .rockit-pip-document .pip-root * { box-sizing: border-box; }
 .rockit-pip-document .pip-root {
+    --pip-cover-color: #787882;
+    --pip-accent: color-mix(in srgb, var(--pip-cover-color) 40%, white);
+    --pip-hover: color-mix(in srgb, var(--pip-accent) 16%, transparent);
     position: fixed; inset: 0; display: grid; grid-template-columns: minmax(0,1fr);
     grid-template-rows: minmax(0,1fr) auto; gap: 10px; padding: 10px;
     width: 100%; height: 100dvh; min-width: 0; min-height: 0; overflow: hidden;
-    background: radial-gradient(ellipse at top, #2a2730, #121214 80%);
+    background: radial-gradient(ellipse at top, color-mix(in srgb, var(--pip-cover-color) 30%, #121214), #121214 85%);
     color: white; font: 14px/1.3 system-ui, -apple-system, sans-serif; isolation: isolate;
 }
 .rockit-pip-document .pip-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: grid; }
@@ -19,7 +22,7 @@ html.rockit-pip-document, .rockit-pip-document body {
     border-radius: 10px; background: transparent; container-type: size;
 }
 .rockit-pip-document .pip-cover > img, .rockit-pip-document .pip-cover > video {
-    position: absolute; inset: 0; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain;
+    position: relative; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px;
 }
 .rockit-pip-document .pip-vinyl { position: relative; width: min(100cqw,100cqh); aspect-ratio: 1; flex: none; }
 .rockit-pip-document .pip-panel { min-width: 0; min-height: 0; display: grid; gap: 6px; align-content: center; }
@@ -34,10 +37,10 @@ html.rockit-pip-document, .rockit-pip-document body {
     border-radius: 50%; background: transparent; color: #eee; cursor: pointer; list-style: none;
 }
 .rockit-pip-document summary::-webkit-details-marker { display: none; }
-.rockit-pip-document .pip-controls-icon-btn:hover { background: #ffffff18; }
-.rockit-pip-document .pip-controls-icon-btn[aria-pressed=true], .rockit-pip-document .pip-menu button[aria-pressed=true] { color: #ff8cbe; }
-.rockit-pip-document .pip-play-button { width: 36px; min-width: 36px; height: 36px; flex-basis: 36px; background: #fff; color: #17141b; }
-.rockit-pip-document .pip-play-button:hover { background: #ffcee2; }
+.rockit-pip-document .pip-controls-icon-btn:hover { background: var(--pip-hover); color: var(--pip-accent); }
+.rockit-pip-document .pip-controls-icon-btn[aria-pressed=true], .rockit-pip-document .pip-menu button[aria-pressed=true] { color: var(--pip-accent); }
+.rockit-pip-document .pip-play-button { width: 36px; min-width: 36px; height: 36px; flex-basis: 36px; background: var(--pip-accent); color: #17141b; }
+.rockit-pip-document .pip-play-button:hover { background: color-mix(in srgb, var(--pip-accent) 70%, white); color: #17141b; }
 .rockit-pip-document .pip-icon { width: 18px; height: 18px; flex: none; }
 .rockit-pip-document .pip-play-icon { width: 20px; height: 20px; flex: none; }
 .rockit-pip-document .pip-options { flex: 0 0 32px; }
@@ -52,17 +55,17 @@ html.rockit-pip-document, .rockit-pip-document body {
     display: flex; align-items: center; gap: 10px; min-height: 32px; width: 100%; margin: 0; padding: 6px 8px;
     border: 0; border-radius: 5px; background: transparent; color: #fff; font: 12px/1.4 system-ui,sans-serif; text-align: left; cursor: pointer;
 }
-.rockit-pip-document .pip-menu button:hover { background: #ffffff15; }
+.rockit-pip-document .pip-menu button:hover { background: var(--pip-hover); color: var(--pip-accent); }
 .rockit-pip-document .pip-menu svg { width: 16px; height: 16px; flex: none; }
-.rockit-pip-document .pip-root :is(button,summary,input):focus-visible { outline: 2px solid #ff8cbe; outline-offset: -2px; }
+.rockit-pip-document .pip-root :is(button,summary,input):focus-visible { outline: 2px solid var(--pip-accent); outline-offset: -2px; }
 .rockit-pip-document .pip-progress-bar { display: flex; align-items: center; gap: 6px; min-width: 0; height: 20px; }
 .rockit-pip-document .pip-time-label { flex: none; color: #c0bdc6; font-size: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rockit-pip-document .pip-slider { appearance: none; -webkit-appearance: none; flex: 1; min-width: 0; width: 0; height: 4px; padding: 0; margin: 0; border: 0; border-radius: 4px; cursor: pointer; }
 .rockit-pip-document .pip-slider:disabled { opacity: .4; cursor: default; }
 .rockit-pip-document .pip-slider::-webkit-slider-runnable-track { height: 4px; background: transparent; border-radius: 4px; }
-.rockit-pip-document .pip-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 10px; height: 10px; margin-top: -3px; border: 0; border-radius: 50%; background: white; }
+.rockit-pip-document .pip-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 10px; height: 10px; margin-top: -3px; border: 0; border-radius: 50%; background: var(--pip-accent); }
 .rockit-pip-document .pip-slider::-moz-range-track { height: 4px; background: transparent; }
-.rockit-pip-document .pip-slider::-moz-range-thumb { width: 10px; height: 10px; border: 0; border-radius: 50%; background: white; }
+.rockit-pip-document .pip-slider::-moz-range-thumb { width: 10px; height: 10px; border: 0; border-radius: 50%; background: var(--pip-accent); }
 .rockit-pip-document .pip-layout--pill { grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); grid-template-rows: minmax(0,1fr); }
 .rockit-pip-document .pip-layout--pill .pip-panel { align-self: center; }
 .rockit-pip-document .pip-layout--narrow { padding: 8px; gap: 8px; }
@@ -80,7 +83,7 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-layout--full { padding: 14px; gap: 12px; }
 .rockit-pip-document .pip-layout--full .pip-info-song-name { font-size: 16px; line-height: 22px; }
 .rockit-pip-document .pip-layout--cover-only { padding: 0; gap: 0; grid-template-rows: minmax(0,1fr); }
-.rockit-pip-document .pip-layout--cover-only .pip-cover { border-radius: 0; }
+.rockit-pip-document .pip-layout--cover-only .pip-cover { border-radius: 10px; }
 .rockit-pip-document .pip-layout--cover-only .pip-panel {
     position: absolute; z-index: 3; bottom: 0; left: 0; right: 0; padding: 24px 8px 8px; gap: 4px;
     background: linear-gradient(transparent,#000d 35%); opacity: 0; pointer-events: none; transition: opacity .15s;
@@ -91,13 +94,14 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-layout--cover-only .pip-progress-bar { display: none; }
 .rockit-pip-document .pip-has-lyrics .pip-stage { grid-template-rows: minmax(0,.8fr) minmax(0,1.2fr); gap: 8px; }
 .rockit-pip-document .pip-panel .pip-lyric-glance { display: none; }
-.rockit-pip-document .pip-lyric-glance { color: #ffb5d3; font-size: 12px; line-height: 18px; }
+.rockit-pip-document .pip-lyric-glance { color: var(--pip-accent); font-size: 12px; line-height: 18px; }
 .rockit-pip-document .pip-lyrics-close { position: absolute; top: 6px; right: 6px; z-index: 21; background: #ffffff18; font-size: 24px; }
 .rockit-pip-document .pip-lyrics-overlay { position: relative; min-width: 0; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; }
 .rockit-pip-document .pip-lyrics-scroll { position: relative; width: 100%; height: 100%; overflow: auto; padding: 8px 0; }
 .rockit-pip-document .pip-lyrics-line { display: block; margin: 0; width: 100%; min-height: 32px; padding: 8px; text-align: center; overflow-wrap: anywhere; cursor: pointer; }
 .rockit-pip-document .pip-lyrics-line--past, .rockit-pip-document .pip-lyrics-line--future { color: #a4a0ab; font-size: 12px; }
-.rockit-pip-document .pip-lyrics-line--current { color: white; font-size: 16px; font-weight: 700; }
+.rockit-pip-document .pip-lyrics-line--current { color: var(--pip-accent); font-size: 16px; font-weight: 700; }
+.rockit-pip-document .pip-lyrics-line:hover { color: var(--pip-accent); background: var(--pip-hover); border-radius: 8px; }
 @media (max-height: 179px) { .rockit-pip-document .pip-layout--cover-only .pip-info { display: none; } }
 @media (hover: none) { .rockit-pip-document .pip-layout--cover-only .pip-panel { opacity: 1; pointer-events: auto; } }
 @media (min-width: 560px) and (min-height: 220px) {

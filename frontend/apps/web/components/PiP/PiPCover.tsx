@@ -82,7 +82,8 @@ export function PiPCover(): JSX.Element {
                 <Image
                     src={cover}
                     alt={media?.name ?? "Cover"}
-                    fill
+                    width={1200}
+                    height={1200}
                     draggable={false}
                     onError={(): void => setFailedImage(imageUrl)}
                     data-testid="pip-image"

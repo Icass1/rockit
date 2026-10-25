@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useState, type CSSProperties, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { usePiPLyrics } from "@/hooks/usePiPLyrics";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getPiPLayout } from "@/lib/utils/pipLayout";
+import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import { PiPControls } from "@/components/PiP/PiPControls";
 import { PiPCover } from "@/components/PiP/PiPCover";
 import { PiPInfo } from "@/components/PiP/PiPInfo";
@@ -23,6 +24,10 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
         height: pipWindow?.innerHeight ?? 420,
     }));
     const media = useStore(rockIt.queueManager.currentMediaAtom);
+    const { hex: coverColor } = parseDominantColor(
+        media && "dominantColor" in media ? media.dominantColor : undefined
+    );
+    const theme = { "--pip-cover-color": coverColor } as CSSProperties;
     const lyrics = usePiPLyrics(
         media?.type === "song" ? media.publicId : undefined,
         showLyrics
@@ -67,6 +72,7 @@ export function PiPRoot({ pipWindow }: PiPRootProps): JSX.Element {
                         ?.focus();
                 }
             }}
+            style={theme}
             data-pip-layout={layout}
         >
             <div className="pip-stage">

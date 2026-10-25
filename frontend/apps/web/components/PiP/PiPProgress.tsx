@@ -41,7 +41,7 @@ export function PiPProgress(): JSX.Element {
                 step={0.1}
                 disabled={duration <= 0}
                 style={{
-                    background: `linear-gradient(to right, #f53a76 ${duration > 0 ? (position / duration) * 100 : 0}%, #ffffff30 0%)`,
+                    background: `linear-gradient(to right, var(--pip-accent) ${duration > 0 ? (position / duration) * 100 : 0}%, #ffffff30 0%)`,
                 }}
                 onChange={(event): void =>
                     rockIt.mediaPlayerManager.setCurrentTime(

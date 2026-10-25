@@ -18,6 +18,7 @@ export default function FriendsClient(): JSX.Element {
     const activity = useStore(rockIt.friendManager.activityAtom);
     const error = useStore(rockIt.friendManager.errorAtom);
     const requests = useStore(rockIt.friendManager.incomingRequestsAtom);
+    const onlineCount = friends.filter((friend) => friend.isOnline).length;
 
     useEffect(() => {
         void rockIt.friendManager.fetchFriends();
@@ -39,6 +40,16 @@ export default function FriendsClient(): JSX.Element {
                     {v.SOCIAL_PEOPLE} <span>{friends.length}</span>{" "}
                     <ArrowUpRight size={16} aria-hidden="true" />
                 </a>
+                <p
+                    className="mt-2 flex items-center gap-2 text-sm text-neutral-400"
+                    role="status"
+                >
+                    <span
+                        className="h-2 w-2 rounded-full bg-emerald-400"
+                        aria-hidden
+                    />
+                    {onlineCount} {v.FRIENDS_ONLINE}
+                </p>
             </header>
             <FriendLeaderboard />
             {requests.length > 0 && <FriendRequests />}

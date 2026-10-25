@@ -149,17 +149,6 @@
     ```
 
 
-### [FRIENDS] Arreglar contador de personas online
-
-- tags: [frontend, friends, bug, kb-08]
-- priority: medium
-- workload: Easy
-    ```md
-    Avance: el banner cuenta todos los amigos online, aunque solo muestre hasta 10 avatares. Falta verificar su integración en la página de friends y la actualización en tiempo real.
-
-    Poner bien el contador de personas online en la página de friends.
-    ```
-
 ### [LIBRARY] Centrar botón library y arreglar random
 
 - tags: [frontend, library, queue, bug, ui, kb-06]
@@ -256,6 +245,17 @@
     Implementado: selector táctil carátula/vinilo para canciones, preferencia compartida con desktop y giro según reproducción. Respeta movimiento reducido. Cambio y retorno a carátula comprobados en Chromium a 390×844. Pendiente de validación en iPhone.
 
     Añadir el modo vinilo a la versión web móvil.
+    ```
+
+### [FRIENDS] Arreglar contador de personas online
+
+- tags: [frontend, friends, bug, kb-08]
+- priority: medium
+- workload: Easy
+    ```md
+    Implementado: la página de friends muestra el total de amigos online calculado desde friendsAtom, sin limitarlo al número de avatares del banner. La actualización por WebSocket se mantiene como tarea independiente.
+
+    Poner bien el contador de personas online en la página de friends.
     ```
 
 ## Done

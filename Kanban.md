@@ -170,6 +170,17 @@
 
 ## To Review
 
+### [SEARCH] Reproducir canciones ya descargadas
+
+- tags: [frontend, search, playback, ui, kb-25]
+- priority: medium
+- workload: Easy
+    ```md
+    Añadir play en Search cuando una canción ya está descargada.
+
+    Implementado: botón accesible sobre la carátula (play/pause para la canción actual) y acción Reproducir en el menú. Se carga la canción existente por publicId sin iniciar otra descarga; errores con feedback y bloqueo durante la carga. Pendiente de revisión integrada.
+    ```
+
 ### [PLAYER] Pantalla vertical: dividir el PlayerUI por la mitad
 
 - tags: [frontend, player, mobile, layout, kb-03]

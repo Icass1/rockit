@@ -24,15 +24,6 @@
     ```
 
 
-### [TRANSITIONS] Tiempo de transición personalizado
-
-- tags: [frontend, transitions, settings, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Permitir configurar las transiciones con un tiempo custom en lugar de usar presets de una lista desplegable.
-    ```
-
 ### [PWA] Revisar transiciones en PWA iOS (iPhone)
 
 - tags: [frontend, pwa, ios, transitions]
@@ -283,6 +274,7 @@
 
 ### [UI] Mejorar blur del header y hacerlo más curvo
 
+<<<<<<< HEAD
 - tags: [frontend, ui, header, blur, kb-28]
 - priority: medium
 - workload: Easy
@@ -373,17 +365,24 @@
     Fixear la cover de la radio en la library.
     ```
 
+=======
+>>>>>>> d877f20d2 (feat(settings): allow custom transition duration [KB-04])
 ### [TRANSITIONS] Tiempo de transición personalizado
 
 - tags: [frontend, transitions, settings, ui, kb-04]
 - priority: medium
 - workload: Normal
     ```md
+<<<<<<< HEAD
     Implementado: campo numérico desde 0.1 s, sin el límite anterior de 3.5 s; admite, por ejemplo, 5 o 6 segundos. El motor respeta la duración configurada sin sustituirla por presets adaptativos. El cruce se limita a la mitad de cada pista y requiere audio precargado suficiente. Pendiente de revisión visual y de audio.
+=======
+    Implementado: campo numérico con guardado al salir o pulsar Enter, dentro del rango actual del motor (0.8–3.5 s). TypeScript y 16 pruebas de transiciones correctos. Pendiente de revisión visual.
+>>>>>>> d877f20d2 (feat(settings): allow custom transition duration [KB-04])
 
     Permitir configurar las transiciones con un tiempo custom en lugar de usar presets de una lista desplegable.
     ```
 
+<<<<<<< HEAD
 ### [PLAYER] Pantalla vertical: dividir el PlayerUI por la mitad
 
 - tags: [frontend, player, mobile, layout, kb-03]
@@ -430,3 +429,6 @@
 
     Al avanzar, el siguiente vinilo entra desde abajo y el anterior sale hacia arriba. Al retroceder, el anterior entra desde arriba y el actual sale hacia abajo. Aplicar en PlayerUI, móvil y PiP; contemplar saltos directos, cola aleatoria y vuelta al inicio/final. Respetar movimiento reducido y la conservación del disco para el mismo álbum/carátula.
     ```
+=======
+## Done
+>>>>>>> d877f20d2 (feat(settings): allow custom transition duration [KB-04])

@@ -228,9 +228,9 @@
 - priority: medium
 - workload: Easy
     ```md
-    Implementado: la página de friends muestra el total de amigos online calculado desde friendsAtom, sin limitarlo al número de avatares del banner. La actualización por WebSocket se mantiene como tarea independiente.
+    Alcance aclarado: el header muestra el total global de usuarios conectados; Friends muestra el estado online de los amigos en tiempo real (KB-30).
 
-    Poner bien el contador de personas online en la página de friends.
+    Implementado: sustituido el 1263 fijo del header por el recuento de usuarios únicos recibido por WebSocket. Varias pestañas/dispositivos de la misma persona cuentan una vez; se descuenta al cerrar la última conexión. Al perder conexión, el header muestra un guion en vez de un número obsoleto. Los contadores de Friends siguen friendsAtom. Pendiente de revisión integrada, sin tests locales.
     ```
 
 ## Done

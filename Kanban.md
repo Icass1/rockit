@@ -103,14 +103,6 @@
     Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
     ```
 
-### [FRIENDS] Estado online de la gente en tiempo real por WebSocket
-
-- tags: [frontend, backend, friends, websocket, realtime]
-- priority: high
-- workload: Normal
-    ```md
-    Actualizar el estado de friends, el contador de gente online y el estado de cada persona por WebSocket para que se actualice en tiempo real.
-    ```
 
 ## Idle
 
@@ -126,6 +118,19 @@
     ```
 
 ## To Review
+
+### [FRIENDS] Estado online de la gente en tiempo real por WebSocket
+
+- tags: [frontend, backend, friends, websocket, realtime, kb-30]
+- priority: high
+- workload: Normal
+    ```md
+    Implementado: el servidor avisa por WebSocket a los amigos aceptados al conectar la primera sesión o desconectar la última. Friends refresca su lista ante el aviso y al reconectar; las respuestas obsoletas no reemplazan el estado actual. Sin polling periódico. Pendiente de validación integrada, sin tests locales por indicación del usuario.
+
+    Actualizar el estado de friends, el contador de gente online y el estado de cada persona por WebSocket para que se actualice en tiempo real.
+    ```
+
+
 
 ### [PWA] Mejorar UI de radios en PWA iOS
 

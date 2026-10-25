@@ -6,6 +6,7 @@ import {
     CurrentTimeMessageRequest,
     CurrentTimeMessageSchema,
     EWebSocketMessage,
+    FriendsPresenceChangedMessageSchema,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
@@ -47,6 +48,8 @@ export class WebSocketManager {
                 if (!Number.isInteger(data.count) || data.count < 0)
                     throw new Error("Invalid online user count");
                 this._onlineUsers.set(data.count);
+            } else if (data.type === EWebSocketMessage.FriendsPresenceChanged) {
+                data = FriendsPresenceChangedMessageSchema.parse(data);
             } else if (data.type === EWebSocketMessage.CurrentMedia) {
                 data = CurrentMediaMessageSchema.parse(data);
                 if (this._outgoingPlayback?.playbackId !== data.playbackId) {

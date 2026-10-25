@@ -20,6 +20,9 @@ from backend.core.framework.websocket.listenInterval import (
 
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
 from backend.core.responses.onlineUsersMessage import OnlineUsersMessage
+from backend.core.responses.friendsPresenceChangedMessage import (
+    FriendsPresenceChangedMessage,
+)
 
 logger = getLogger(__name__)
 
@@ -43,11 +46,14 @@ class WebSocketManager:
         logger.info(f"WebSocket connected for user: {user_id}")
         if not was_online:
             await self.broadcast_online_users_async()
+            await self.notify_friends_presence_async(user_id)
         else:
             async with self._presence_lock:
                 await self.send_to_socket_async(
                     websocket, OnlineUsersMessage(count=len(self.active_connections))
                 )
+        # Refresh the reconnecting tab even if another device kept this user online.
+        await self.send_to_socket_async(websocket, FriendsPresenceChangedMessage())
 
     async def disconnect_async(self, user_id: int, websocket: WebSocket) -> None:
         if websocket in self.active_connections.get(user_id, set()):
@@ -57,6 +63,7 @@ class WebSocketManager:
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
                 await self.broadcast_online_users_async()
+                await self.notify_friends_presence_async(user_id)
                 await close_listen_interval_on_disconnect_async(
                     user_id=user_id,
                     user_playback_states=self.user_playback_states,
@@ -77,6 +84,26 @@ class WebSocketManager:
         # Cleanup can broadcast another snapshot; never do it while holding the lock.
         for user_id, socket in disconnected:
             await self.disconnect_async(user_id, socket)
+
+    async def notify_friends_presence_async(self, user_id: int) -> None:
+        from backend.core.framework.friend.friend import Friend
+
+        try:
+            async with rockit_db.session_scope_async() as session:
+                friends = await Friend.get_friend_ids_async(session, user_id)
+                if friends.is_not_ok():
+                    logger.error(
+                        "Cannot resolve presence recipients: %s", friends.info()
+                    )
+                    return
+                friend_ids = friends.result()
+            # Only accepted mutual friends receive an invalidation, without user IDs.
+            for friend_id in friend_ids:
+                await self.send_to_user_async(
+                    friend_id, FriendsPresenceChangedMessage()
+                )
+        except Exception:
+            logger.exception("Cannot notify friends of presence change")
 
     async def send_to_user_async(
         self, user_id: int, message: Any, exclude_websocket: WebSocket | None = None

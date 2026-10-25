@@ -288,6 +288,10 @@ export {
     type FriendStreakResponse,
 } from "./friendStreakResponse";
 export {
+    FriendsPresenceChangedMessageSchema,
+    type FriendsPresenceChangedMessage,
+} from "./friendsPresenceChangedMessage";
+export {
     GetAllRequestsRequestSchema,
     type GetAllRequestsRequest,
 } from "./getAllRequestsRequest";

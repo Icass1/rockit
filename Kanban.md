@@ -23,15 +23,6 @@
     ```
 
 
-### [PWA] Mejorar UI de radios en PWA iOS
-
-- tags: [frontend, pwa, ios, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Mejorar el aspecto de los inputs radio en la PWA de iOS.
-    ```
-
 ### [PLAYER] Tiempos reales de la barra de reproducción
 
 - tags: [frontend, player, playback, bug]
@@ -150,6 +141,18 @@
     ```
 
 ## To Review
+
+### [PWA] Mejorar UI de radios en PWA iOS
+
+- tags: [frontend, pwa, ios, ui, kb-29]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en el buscador de emisoras: texto de 16 px para evitar zoom de foco en iPhone, apariencia consistente, foco visible y botón de borrar propio sin duplicado nativo de Safari. Teclado de búsqueda sin autocorrección ni mayúsculas automáticas. Pendiente de revisión en PWA iPhone, sin tests locales.
+
+    Mejorar el aspecto de los inputs radio en la PWA de iOS.
+    ```
+
 
 ### [UI] Mejorar blur del header y hacerlo más curvo
 

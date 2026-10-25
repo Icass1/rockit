@@ -653,3 +653,10 @@ img {
         mask-image: none;
     }
 }
+
+/* Use the accessible app clear button instead of a second native Safari control. */
+.radio-search-input::-webkit-search-cancel-button,
+.radio-search-input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}

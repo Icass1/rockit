@@ -19,12 +19,14 @@ from backend.core.framework.websocket.listenInterval import (
 )
 
 from backend.core.responses.downloadProgressMessage import DownloadProgressMessage
+from backend.core.responses.onlineUsersMessage import OnlineUsersMessage
 
 logger = getLogger(__name__)
 
 
 class WebSocketManager:
     def __init__(self) -> None:
+        self._presence_lock = asyncio.Lock()
         self.user_message_locks: Dict[int, asyncio.Lock] = {}
         self.playback_owners: Dict[int, WebSocket] = {}
         self.active_connections: Dict[int, Set[WebSocket]] = {}
@@ -32,25 +34,49 @@ class WebSocketManager:
 
     async def connect(self, user_id: int, websocket: WebSocket) -> None:
         await websocket.accept()
+        was_online = bool(self.active_connections.get(user_id))
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
             self.user_playback_states.pop(user_id, None)
             self.playback_owners.pop(user_id, None)
         self.active_connections[user_id].add(websocket)
         logger.info(f"WebSocket connected for user: {user_id}")
+        if not was_online:
+            await self.broadcast_online_users_async()
+        else:
+            async with self._presence_lock:
+                await self.send_to_socket_async(
+                    websocket, OnlineUsersMessage(count=len(self.active_connections))
+                )
 
     async def disconnect_async(self, user_id: int, websocket: WebSocket) -> None:
-        if user_id in self.active_connections:
+        if websocket in self.active_connections.get(user_id, set()):
             self.active_connections[user_id].discard(websocket)
             if self.playback_owners.get(user_id) is websocket:
                 self.playback_owners.pop(user_id, None)
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
+                await self.broadcast_online_users_async()
                 await close_listen_interval_on_disconnect_async(
                     user_id=user_id,
                     user_playback_states=self.user_playback_states,
                 )
             logger.info(f"WebSocket disconnected for user: {user_id}")
+
+    async def broadcast_online_users_async(self) -> None:
+        # Serialize snapshots so a slower send cannot restore an older count.
+        disconnected: list[tuple[int, WebSocket]] = []
+        async with self._presence_lock:
+            message = OnlineUsersMessage(count=len(self.active_connections))
+            for user_id, sockets in tuple(self.active_connections.items()):
+                for socket in tuple(sockets):
+                    try:
+                        await socket.send_text(message.model_dump_json())
+                    except Exception:
+                        disconnected.append((user_id, socket))
+        # Cleanup can broadcast another snapshot; never do it while holding the lock.
+        for user_id, socket in disconnected:
+            await self.disconnect_async(user_id, socket)
 
     async def send_to_user_async(
         self, user_id: int, message: Any, exclude_websocket: WebSocket | None = None

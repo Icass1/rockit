@@ -8,6 +8,7 @@ import type {
     MediaAddedToPlaylistMessage,
     MediaListenedMessage,
     MediaRemovedFromPlaylistMessage,
+    OnlineUsersMessage,
     PlaylistCreatedMessage,
     PlaylistDeletedMessage,
     PlaylistRenamedMessage,
@@ -36,6 +37,7 @@ export enum EWebSocketMessage {
     DownloadProgress = "download_progress",
     FriendActivity = "friend_activity",
     SocialChanged = "social_changed",
+    OnlineUsers = "online_users",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
     ListenTogetherSync = "listen_together_sync",
@@ -52,6 +54,7 @@ export enum EWebSocketMessage {
 }
 
 export interface IWebSocketMessagePayloadMap {
+    [EWebSocketMessage.OnlineUsers]: OnlineUsersMessage;
     [EWebSocketMessage.SocialChanged]: SocialChangedMessage;
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
     [EWebSocketMessage.FriendActivity]: FriendActivityMessage;
@@ -71,6 +74,7 @@ export interface IWebSocketMessagePayloadMap {
 }
 
 export type TWebSocketIncomingMessage =
+    | OnlineUsersMessage
     | DownloadProgressMessage
     | FriendActivityMessage
     | SocialChangedMessage

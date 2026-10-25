@@ -432,6 +432,10 @@ export {
 } from "./notificationsResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {
+    OnlineUsersMessageSchema,
+    type OnlineUsersMessage,
+} from "./onlineUsersMessage";
+export {
     PlaylistContributorSchema,
     type PlaylistContributor,
 } from "./playlistContributor";

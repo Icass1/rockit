@@ -134,14 +134,6 @@
     En el masonry móvil de dos columnas, la segunda columna empieza un poco desplazada hacia abajo y queda desalineada con la columna de la izquierda en la web móvil PWA de iOS.
     ```
 
-### [HOME] Añadir context menu a las canciones del home
-
-- tags: [frontend, home, songs, context-menu, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Añadir un context menu a las canciones del home.
-    ```
 
 ### [SETTINGS] Popup de confirmación al guardar ajustes
 
@@ -242,6 +234,17 @@
     Implementado: campo numérico con guardado al salir o pulsar Enter, dentro del rango actual del motor (0.8–3.5 s). TypeScript y 16 pruebas de transiciones correctos. Pendiente de revisión visual.
 
     Permitir configurar las transiciones con un tiempo custom en lugar de usar presets de una lista desplegable.
+    ```
+
+### [HOME] Añadir context menu a las canciones del home
+
+- tags: [frontend, home, songs, context-menu, ui, kb-20]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en canciones recientes; las selecciones rápidas ya lo tenían. Pendiente de revisión visual en web/PWA.
+
+    Añadir un context menu a las canciones del home.
     ```
 
 ## Done

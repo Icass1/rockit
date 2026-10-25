@@ -69,13 +69,13 @@ export class UserManager extends BaseUserManager {
             );
             await rockIt.vocabularyManager.init();
         } else {
-            rockIt.notificationManager.notifySuccess(
+            rockIt.notificationManager.notifyError(
                 rockIt.vocabularyManager.vocabulary.ERROR_CHANGING_LANGUAGE
             );
             console.error("Error changing language", res.message, res.detail);
         }
 
-        return true;
+        return res.isOk();
     }
 
     async signOut(): Promise<void> {

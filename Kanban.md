@@ -2,7 +2,6 @@
 
 ## To Do
 
-
 ### [FRIENDS] Mejorar UI/UX de la página de friends
 
 - tags: [frontend, friends, ui, ux]
@@ -11,17 +10,6 @@
     ```md
     Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
     ```
-
-
-### [PWA] Revisar transiciones en PWA iOS (iPhone)
-
-- tags: [frontend, pwa, ios, transitions]
-- priority: high
-- workload: Normal
-    ```md
-    Revisar y corregir las transiciones de la PWA en iOS/iPhone.
-    ```
-
 
 ### [PLAYER] Tiempos reales de la barra de reproducción
 
@@ -61,35 +49,6 @@
     Pendiente: detectar límites de audio con FFmpeg y guardar posiciones de entrada/salida sin modificar el archivo ni el reloj original de lyrics. El crossfade configurable no elimina silencios por sí solo.
     ```
 
-
-### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
-
-- tags: [frontend, player, ios, transitions, bug]
-- priority: high
-- workload: Easy
-    ```md
-    Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
-    ```
-
-### [FEATURED] Mostrar artista en featured lists de álbumes
-
-- tags: [frontend, featured, albums, ui]
-- priority: medium
-- workload: Easy
-    ```md
-    Fixear en las featured lists: en los álbumes, poner también el artista.
-    ```
-
-### [FRIENDS] Estado online de la gente en tiempo real por WebSocket
-
-- tags: [frontend, backend, friends, websocket, realtime]
-- priority: high
-- workload: Normal
-    ```md
-    Actualizar el estado de friends, el contador de gente online y el estado de cada persona por WebSocket para que se actualice en tiempo real.
-    ```
-
-
 ### [LIBRARY] Drag & drop de canciones a listas
 
 - tags: [frontend, library, playlists, drag-drop, ui]
@@ -112,6 +71,14 @@
     Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
     ```
 
+### [FEATURED] Mostrar artista en featured lists de álbumes
+
+- tags: [frontend, featured, albums, ui]
+- priority: medium
+- workload: Easy
+    ```md
+    Fixear en las featured lists: en los álbumes, poner también el artista.
+    ```
 
 ### [LIBRARY] Centrar botón library y arreglar random
 
@@ -125,6 +92,24 @@
     Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. La revisión de random sigue pendiente.
 
     Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
+    ```
+
+### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
+
+- tags: [frontend, player, ios, transitions, bug]
+- priority: high
+- workload: Easy
+    ```md
+    Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
+    ```
+
+### [FRIENDS] Estado online de la gente en tiempo real por WebSocket
+
+- tags: [frontend, backend, friends, websocket, realtime]
+- priority: high
+- workload: Normal
+    ```md
+    Actualizar el estado de friends, el contador de gente online y el estado de cada persona por WebSocket para que se actualice en tiempo real.
     ```
 
 ## Idle
@@ -153,7 +138,6 @@
     Mejorar el aspecto de los inputs radio en la PWA de iOS.
     ```
 
-
 ### [UI] Mejorar blur del header y hacerlo más curvo
 
 - tags: [frontend, ui, header, blur, kb-28]
@@ -164,8 +148,6 @@
 
     Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
     ```
-
-
 
 ### [PLAYER] Animar el vinilo en la dirección de la cola
 
@@ -178,7 +160,6 @@
     Al avanzar, el siguiente vinilo entra desde abajo y el anterior sale hacia arriba. Al retroceder, el anterior entra desde arriba y el actual sale hacia abajo. Aplicar en PlayerUI, móvil y PiP; contemplar saltos directos, cola aleatoria y vuelta al inicio/final. Respetar movimiento reducido y la conservación del disco para el mismo álbum/carátula.
     ```
 
-
 ### [SETTINGS] Popup de confirmación al guardar ajustes
 
 - tags: [frontend, settings, feedback, ui, kb-26]
@@ -189,7 +170,6 @@
 
     Hacer un popup cada vez que se hayan guardado los settings, con un check, para dar feedback al usuario.
     ```
-
 
 ### [SEARCH] Reproducir canciones ya descargadas
 

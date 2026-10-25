@@ -38,8 +38,7 @@ export class RockIt {
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/song-placeholder.png";
     public readonly STATION_PLACEHOLDER_IMAGE_URL =
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/radio-placeholder.png";
-    public readonly USER_PLACEHOLDER_IMAGE_URL =
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/image/user-placeholder.png";
+    public readonly USER_PLACEHOLDER_IMAGE_URL = "/user-placeholder.png";
 
     bookmarkManager = new BookmarkManager();
     notificationManager = new NotificationManager();

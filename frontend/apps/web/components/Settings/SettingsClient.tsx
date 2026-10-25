@@ -32,13 +32,13 @@ function SettingsSection({
 }
 
 function ProfileSidebar(): JSX.Element {
-    const { username } = useSettingsUser();
+    const { username, image } = useSettingsUser();
 
     return (
         <div className="flex flex-col items-center gap-4">
             <div className="group relative">
                 <Image
-                    src={rockIt.USER_PLACEHOLDER_IMAGE_URL}
+                    src={image || rockIt.USER_PLACEHOLDER_IMAGE_URL}
                     alt="Profile picture"
                     width={200}
                     height={200}

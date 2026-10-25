@@ -2,14 +2,6 @@
 
 ## To Do
 
-### [SETTINGS] Subida de imagen de perfil y avatar por defecto
-
-- tags: [frontend, settings, profile, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
-    ```
 
 ### [FRIENDS] Mejorar UI/UX de la página de friends
 
@@ -227,6 +219,17 @@
     ```
 
 ## In Progress
+
+### [SETTINGS] Subida de imagen de perfil y avatar por defecto
+
+- tags: [frontend, settings, profile, bug, kb-01]
+- priority: high
+- workload: Normal
+    ```md
+    Avance: el avatar de sesión ya se muestra y el fallback utiliza el recurso local. La subida sigue pendiente: falta implementar la ruta de backend para persistirla.
+
+    Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
+    ```
 
 ## Idle
 

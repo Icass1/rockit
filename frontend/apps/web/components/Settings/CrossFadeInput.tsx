@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX } from "react";
+import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -9,6 +9,22 @@ export default function CrossFadeInput(): JSX.Element {
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const lang = useStore(rockIt.vocabularyManager.langAtom);
     const es = lang.startsWith("es");
+    const [duration, setDuration] = useState<string | null>(null);
+    const saveDuration = (): void => {
+        if (duration === null) return;
+        const seconds = Number(duration);
+        if (
+            duration.trim() !== "" &&
+            Number.isFinite(seconds) &&
+            seconds >= 0.8 &&
+            seconds <= 3.5
+        ) {
+            rockIt.mediaPlayerManager.configureTransitions({
+                maxSeconds: seconds,
+            });
+        }
+        setDuration(null);
+    };
     const text = (key: string, english: string, spanish: string): string => {
         const translated = (vocabulary as unknown as Record<string, string>)[
             key
@@ -53,21 +69,29 @@ export default function CrossFadeInput(): JSX.Element {
                         "Superposición máxima"
                     )}
                 </label>
-                <select
-                    id="transition-duration"
-                    value={settings.maxSeconds}
-                    disabled={!settings.enabled}
-                    onChange={(event): void =>
-                        rockIt.mediaPlayerManager.configureTransitions({
-                            maxSeconds: Number(event.currentTarget.value),
-                        })
-                    }
-                    className="rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-white disabled:opacity-50"
-                >
-                    <option value={0.8}>0.8 s</option>
-                    <option value={2}>2 s</option>
-                    <option value={3.5}>3.5 s</option>
-                </select>
+                <div className="flex items-center gap-2">
+                    <input
+                        id="transition-duration"
+                        type="number"
+                        min={0.8}
+                        max={3.5}
+                        step={0.1}
+                        value={duration ?? settings.maxSeconds}
+                        disabled={!settings.enabled}
+                        onChange={(event): void =>
+                            setDuration(event.currentTarget.value)
+                        }
+                        onBlur={saveDuration}
+                        onKeyDown={(event): void => {
+                            if (event.key === "Enter")
+                                event.currentTarget.blur();
+                            if (event.key === "Escape") setDuration(null);
+                        }}
+                        aria-describedby="transition-duration-unit"
+                        className="w-24 rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-white disabled:opacity-50"
+                    />
+                    <span id="transition-duration-unit">s</span>
+                </div>
             </div>
             <label
                 htmlFor="transition-preserve-album"

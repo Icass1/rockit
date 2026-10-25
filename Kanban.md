@@ -13,15 +13,6 @@
     ```
 
 
-### [TRANSITIONS] Tiempo de transición personalizado
-
-- tags: [frontend, transitions, settings, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Permitir configurar las transiciones con un tiempo custom en lugar de usar presets de una lista desplegable.
-    ```
-
 ### [PWA] Revisar transiciones en PWA iOS (iPhone)
 
 - tags: [frontend, pwa, ios, transitions]
@@ -236,6 +227,17 @@
     Validado: en pantalla vertical (p. ej. 1080×1920), dividir el área disponible en dos mitades iguales. Arriba, vídeo o carátula ajustados a la celda manteniendo su proporción; abajo, lyrics y queue.
 
     Implementado. Pendiente de revisión visual en pantalla vertical.
+    ```
+
+### [TRANSITIONS] Tiempo de transición personalizado
+
+- tags: [frontend, transitions, settings, ui, kb-04]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado: campo numérico con guardado al salir o pulsar Enter, dentro del rango actual del motor (0.8–3.5 s). TypeScript y 16 pruebas de transiciones correctos. Pendiente de revisión visual.
+
+    Permitir configurar las transiciones con un tiempo custom en lugar de usar presets de una lista desplegable.
     ```
 
 ## Done

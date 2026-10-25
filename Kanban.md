@@ -174,17 +174,6 @@
     Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
     ```
 
-### [LIBRARY] Centrar botón library y arreglar random
-
-- tags: [frontend, library, queue, bug, ui, kb-06]
-- priority: high
-- workload: Normal
-- steps:
-    - [x] Centrar verticalmente el botón de library
-    - [ ] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
-    ```md
-    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
-    ```
 
 ### [FRIENDS] Arreglar contador de personas online
 
@@ -195,6 +184,20 @@
     Avance: el banner cuenta todos los amigos online, aunque solo muestre hasta 10 avatares. Falta verificar su integración en la página de friends y la actualización en tiempo real.
 
     Poner bien el contador de personas online en la página de friends.
+    ```
+
+### [LIBRARY] Centrar botón library y arreglar random
+
+- tags: [frontend, library, queue, bug, ui, kb-06]
+- priority: high
+- workload: Normal
+- steps:
+    - [x] Centrar verticalmente el botón de library
+    - [ ] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
+    ```md
+    Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. La revisión de random sigue pendiente.
+
+    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
     ```
 
 ## Idle

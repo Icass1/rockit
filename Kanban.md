@@ -108,16 +108,6 @@
     Al pinchar y arrastrar canciones en la library hacia las listas, mostrar un "+" y permitir añadirlas.
     ```
 
-### [UI] Mejorar blur del header y hacerlo más curvo
-
-- tags: [frontend, ui, header, blur]
-- priority: medium
-- workload: Easy
-    ```md
-    Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
-    ```
-
-
 ## In Progress
 
 ### [SETTINGS] Subida de imagen de perfil y avatar por defecto
@@ -160,6 +150,19 @@
     ```
 
 ## To Review
+
+### [UI] Mejorar blur del header y hacerlo más curvo
+
+- tags: [frontend, ui, header, blur, kb-28]
+- priority: medium
+- workload: Easy
+    ```md
+    Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
+
+    Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
+    ```
+
+
 
 ### [PLAYER] Animar el vinilo en la dirección de la cola
 

@@ -13,16 +13,7 @@ export default function Header(): JSX.Element {
 
     return (
         <header className="relative z-50 grid w-full grid-cols-[33%_33%_32%] items-center justify-between px-4 py-4 text-white">
-            {/* Blur overlay — fades out downward so content below stays visible */}
-            <div
-                className="absolute inset-0 -z-10 backdrop-blur-[20px]"
-                style={{
-                    WebkitMaskImage:
-                        "linear-gradient(to bottom, black 33%, transparent 100%)",
-                    maskImage:
-                        "linear-gradient(to bottom, black 33%, transparent 100%)",
-                }}
-            />
+            <div aria-hidden="true" className="app-header-backdrop" />
 
             <Link href="/" className="flex items-center select-none">
                 <Image

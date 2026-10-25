@@ -85,7 +85,6 @@ class WebSocketManager:
         for user_id, socket in disconnected:
             await self.disconnect_async(user_id, socket)
 
-<<<<<<< HEAD
     async def notify_friends_presence_async(self, user_id: int) -> None:
         from backend.core.framework.friend.friend import Friend
 
@@ -106,8 +105,6 @@ class WebSocketManager:
         except Exception:
             logger.exception("Cannot notify friends of presence change")
 
-=======
->>>>>>> d01a7d220 (fix(header): show unique online users from websocket [KB-08])
     async def send_to_user_async(
         self, user_id: int, message: Any, exclude_websocket: WebSocket | None = None
     ) -> None:

@@ -12,17 +12,6 @@
     Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
     ```
 
-### [PLAYER] Pantalla vertical: dividir el PlayerUI por la mitad
-
-- tags: [frontend, player, mobile, layout]
-- priority: medium
-- workload: Normal
-- steps:
-    - [ ] Validar la implementación actual con Ignacio
-    - [ ] Dividir el PlayerUI por la mitad en pantalla vertical
-    ```md
-    Pantalla vertical: dividir por la mitad el PlayerUI. Pendiente de que Ignacio valide la versión actual antes de implementar.
-    ```
 
 ### [TRANSITIONS] Tiempo de transición personalizado
 
@@ -234,5 +223,19 @@
 ## Idle
 
 ## To Review
+
+### [PLAYER] Pantalla vertical: dividir el PlayerUI por la mitad
+
+- tags: [frontend, player, mobile, layout, kb-03]
+- priority: medium
+- workload: Normal
+- steps:
+    - [x] Validar la implementación actual con Ignacio
+    - [x] Dividir el PlayerUI por la mitad en pantalla vertical
+    ```md
+    Validado: en pantalla vertical (p. ej. 1080×1920), dividir el área disponible en dos mitades iguales. Arriba, vídeo o carátula ajustados a la celda manteniendo su proporción; abajo, lyrics y queue.
+
+    Implementado. Pendiente de revisión visual en pantalla vertical.
+    ```
 
 ## Done

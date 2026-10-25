@@ -11,10 +11,8 @@ import VinylTransition from "@/components/PlayerUI/VinylTransition";
 
 export default function PlayerUIMain({
     currentMedia,
-    edgeToEdge = false,
 }: {
     currentMedia: TPlayableMedia;
-    edgeToEdge?: boolean;
 }): JSX.Element | undefined {
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $audioOnly = useStore(rockIt.mediaPlayerManager.audioOnlyAtom);
@@ -132,14 +130,11 @@ export default function PlayerUIMain({
         </div>
     );
 
-    // Portrait artwork determines the first row's height from its full width.
-    // Other layouts keep fitting within their existing, fixed-height grid cell.
-    const surfaceClass = edgeToEdge
-        ? "relative flex w-full items-center justify-center"
-        : "[container-type:size] relative flex h-full w-full items-center justify-center";
-    const artworkClass = edgeToEdge
-        ? "relative aspect-square w-full cursor-pointer overflow-hidden"
-        : "relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl";
+    // Fit media within its grid cell, including the portrait layout's top half.
+    const surfaceClass =
+        "[container-type:size] relative flex h-full w-full items-center justify-center";
+    const artworkClass =
+        "relative aspect-square w-[min(100cqw,96cqh,calc(100vh_-_15rem))] cursor-pointer overflow-hidden rounded-xl";
 
     if (isVideo(currentMedia)) {
         // Query both cell dimensions instead of falling back to viewport height.
@@ -151,17 +146,9 @@ export default function PlayerUIMain({
                 onMouseLeave={handleVideoMouseLeave}
             >
                 <div
-                    className={
-                        edgeToEdge
-                            ? "relative w-full cursor-pointer overflow-hidden"
-                            : "relative w-[min(100cqw,calc(90cqh*var(--player-video-ratio,1.777777778)))] cursor-pointer overflow-hidden rounded-xl"
-                    }
+                    className="relative w-[min(100cqw,calc(90cqh*var(--player-video-ratio,1.777777778)))] cursor-pointer overflow-hidden rounded-xl"
                     style={{
                         aspectRatio: "var(--player-video-ratio, 16 / 9)",
-                        // Very tall videos still leave room for the lower panels.
-                        maxWidth: edgeToEdge
-                            ? "calc((100dvh - 24rem) * var(--player-video-ratio, 1.777777778))"
-                            : undefined,
                     }}
                     onClick={handleClick}
                 >

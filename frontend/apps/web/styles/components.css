@@ -262,6 +262,10 @@ img {
 }
 
 .masonry-grid > * {
+    display: inline-block;
+    width: 100%;
+    vertical-align: top;
+    -webkit-column-break-inside: avoid;
     break-inside: avoid;
     margin-bottom: 16px;
 }

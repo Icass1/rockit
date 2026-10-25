@@ -107,16 +107,6 @@
     ```
 
 
-### [PWA] Masonry móvil desalineado en iOS
-
-- tags: [frontend, pwa, ios, mobile, layout, bug]
-- priority: medium
-- workload: Easy
-    ```md
-    En el masonry móvil de dos columnas, la segunda columna empieza un poco desplazada hacia abajo y queda desalineada con la columna de la izquierda en la web móvil PWA de iOS.
-    ```
-
-
 ### [SETTINGS] Popup de confirmación al guardar ajustes
 
 - tags: [frontend, settings, feedback, ui]
@@ -252,6 +242,17 @@
     Implementado: la cover sigue los cambios de imagen y las radios usan su fallback local tanto en tarjetas como en filas. Los fallbacks de otras tarjetas respetan su tipo. Pendiente de revisión visual con radios reales.
 
     Fixear la cover de la radio en la library.
+    ```
+
+### [PWA] Masonry móvil desalineado en iOS
+
+- tags: [frontend, pwa, ios, mobile, layout, bug, kb-19]
+- priority: medium
+- workload: Easy
+    ```md
+    Implementado: tarjetas inline-block de ancho completo, alineadas arriba y sin fragmentación entre columnas. Pendiente de validación en Safari/PWA iPhone.
+
+    En el masonry móvil de dos columnas, la segunda columna empieza un poco desplazada hacia abajo y queda desalineada con la columna de la izquierda en la web móvil PWA de iOS.
     ```
 
 ## Done

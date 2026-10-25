@@ -99,15 +99,6 @@
     ```
 
 
-### [SETTINGS] Popup de confirmación al guardar ajustes
-
-- tags: [frontend, settings, feedback, ui]
-- priority: medium
-- workload: Easy
-    ```md
-    Hacer un popup cada vez que se hayan guardado los settings, con un check, para dar feedback al usuario.
-    ```
-
 ### [LIBRARY] Drag & drop de canciones a listas
 
 - tags: [frontend, library, playlists, drag-drop, ui]
@@ -169,6 +160,18 @@
     ```
 
 ## To Review
+
+### [SETTINGS] Popup de confirmación al guardar ajustes
+
+- tags: [frontend, settings, feedback, ui, kb-26]
+- priority: medium
+- workload: Easy
+    ```md
+    Implementado: confirmación de éxito con check en los ajustes de descargas y transiciones. El idioma conserva su aviso existente. Las transiciones solo confirman guardado si localStorage lo permite; si falla, se avisa de que el cambio solo se aplica a esta sesión. Sin avisos al montar ni con duración inválida o sin cambios. Los campos de perfil/contraseña sin persistencia siguen pendientes, sin confirmar guardados ficticios.
+
+    Hacer un popup cada vez que se hayan guardado los settings, con un check, para dar feedback al usuario.
+    ```
+
 
 ### [SEARCH] Reproducir canciones ya descargadas
 

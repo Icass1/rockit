@@ -2,9 +2,11 @@
 
 import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function CrossFadeInput(): JSX.Element {
+    const notifySaved = useSettingsFeedback();
     const settings = useStore(rockIt.mediaPlayerManager.transitionSettingsAtom);
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const lang = useStore(rockIt.vocabularyManager.langAtom);
@@ -16,11 +18,14 @@ export default function CrossFadeInput(): JSX.Element {
         if (
             duration.trim() !== "" &&
             Number.isFinite(seconds) &&
-            seconds >= 0.1
+            seconds >= 0.1 &&
+            seconds !== settings.maxSeconds
         ) {
-            rockIt.mediaPlayerManager.configureTransitions({
-                maxSeconds: seconds,
-            });
+            notifySaved(
+                rockIt.mediaPlayerManager.configureTransitions({
+                    maxSeconds: seconds,
+                })
+            );
         }
         setDuration(null);
     };
@@ -53,9 +58,11 @@ export default function CrossFadeInput(): JSX.Element {
                     type="checkbox"
                     checked={settings.enabled}
                     onChange={(event): void =>
-                        rockIt.mediaPlayerManager.configureTransitions({
-                            enabled: event.currentTarget.checked,
-                        })
+                        notifySaved(
+                            rockIt.mediaPlayerManager.configureTransitions({
+                                enabled: event.currentTarget.checked,
+                            })
+                        )
                     }
                     className="h-4 w-4 accent-(--color-rockit-pink)"
                 />
@@ -108,9 +115,11 @@ export default function CrossFadeInput(): JSX.Element {
                     checked={settings.preserveAlbum}
                     disabled={!settings.enabled}
                     onChange={(event): void =>
-                        rockIt.mediaPlayerManager.configureTransitions({
-                            preserveAlbum: event.currentTarget.checked,
-                        })
+                        notifySaved(
+                            rockIt.mediaPlayerManager.configureTransitions({
+                                preserveAlbum: event.currentTarget.checked,
+                            })
+                        )
                     }
                     className="h-4 w-4 accent-(--color-rockit-pink)"
                 />

@@ -282,7 +282,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
     }
 
-    configureTransitions(settings: Partial<WebTransitionSettings>): void {
+    configureTransitions(settings: Partial<WebTransitionSettings>): boolean {
         const current = this._transitionSettings.get();
         const next = { ...current, ...settings };
         next.maxSeconds = Number.isFinite(next.maxSeconds)
@@ -297,10 +297,12 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     "rockit-web-transitions-v1",
                     JSON.stringify(next)
                 );
+                return true;
             } catch {
-                /* Storage is optional. */
+                /* Settings remain active for this session if storage is unavailable. */
             }
         }
+        return false;
     }
 
     activateTransitionsOnGesture(): void {

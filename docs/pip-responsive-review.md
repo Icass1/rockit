@@ -54,11 +54,10 @@ Chromium reported a 1280×720 native PiP viewport despite the requested initial
 size. The size matrix therefore validates the content renderer in browser
 viewports, not operating-system window resizing.
 
-TypeScript and ESLint pass. Cold installation of the entire monorepo was not
-verified: offline package metadata was incomplete, and automatic approval review
-for the online metadata check failed due to a usage limit. The lockfile change
-is limited to Playwright and its core package; application dependencies are
-unchanged.
+TypeScript and ESLint pass. Clean root and frontend installations have been
+verified with pnpm 11.0.8 and --frozen-lockfile. The Playwright lock entries
+include the optional Darwin dependency fsevents@2.3.2; all snapshot dependency
+references resolve.
 
 ## Repeat the browser checks
 

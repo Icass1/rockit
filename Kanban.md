@@ -23,18 +23,6 @@
     ```
 
 
-### [LIBRARY] Investigar tiempo de carga
-
-- tags: [frontend, library, performance]
-- priority: medium
-- workload: Easy
-- steps:
-    - [ ] Confirmar con Ignacio si la library tarda un segundo en cargar
-    ```md
-    La library tarda un segundo en cargar? Confirmar con Ignacio antes de tocar nada.
-    ```
-
-
 ### [PWA] Mejorar UI de radios en PWA iOS
 
 - tags: [frontend, pwa, ios, ui]
@@ -208,6 +196,17 @@
     ```
 
 ## Idle
+
+### [LIBRARY] Investigar tiempo de carga
+
+- tags: [frontend, library, performance, kb-07]
+- priority: medium
+- workload: Easy
+- steps:
+    - [ ] Confirmar con Ignacio si la library tarda un segundo en cargar
+    ```md
+    Aparcada por indicación de Ignacio. No investigar ni modificar por ahora.
+    ```
 
 ## To Review
 

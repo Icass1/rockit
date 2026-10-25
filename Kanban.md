@@ -126,14 +126,6 @@
     Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
     ```
 
-### [PIP] Distintos tamaños de picture-in-picture y modo vinilo
-
-- tags: [frontend, pip, player, vinyl, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Mejorar el picture-in-picture para tener distintos tamaños como hace Spotify y añadir también el modo vinilo ahí.
-    ```
 
 ## In Progress
 
@@ -256,6 +248,17 @@
     Implementado: la página de friends muestra el total de amigos online calculado desde friendsAtom, sin limitarlo al número de avatares del banner. La actualización por WebSocket se mantiene como tarea independiente.
 
     Poner bien el contador de personas online en la página de friends.
+    ```
+
+### [PIP] Distintos tamaños de picture-in-picture y modo vinilo
+
+- tags: [frontend, pip, player, vinyl, ui, kb-24]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado: layouts adaptativos, textos largos truncados, controles y menú dentro del viewport, vídeo desde videoUrl y modo vinilo. Verificados 85 casos en 17 tamaños con componentes reales y estado de prueba, además de apertura/cierre de Document PiP real. Pruebas repetibles: pnpm test:pip. Detalles y límites en docs/pip-responsive-review.md. Pendiente de revisión integrada.
+
+    Mejorar el picture-in-picture para tener distintos tamaños como hace Spotify y añadir también el modo vinilo ahí.
     ```
 
 ## Done

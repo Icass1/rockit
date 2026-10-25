@@ -1,72 +1,70 @@
 "use client";
 
-import type { JSX } from "react";
+import { useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { getMediaDuration } from "@/models/types/media";
+import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
-import type { PiPLayout } from "@/components/PiP/PiPRoot";
 
-interface PiPProgressProps {
-    show: boolean;
-    layout: PiPLayout;
-}
-
-export function PiPProgress({
-    show,
-    layout,
-}: PiPProgressProps): JSX.Element | null {
-    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
-
-    const duration = getMediaDuration($currentSong) ?? 0;
-
-    if (!show) return null;
-
-    const isCoverOnly = layout === "cover-only";
-    const progressPct =
-        duration > 0
-            ? Math.min(100, Math.max(0, (($currentTime ?? 0) / duration) * 100))
-            : 0;
-    const sliderStyle: React.CSSProperties = {
-        flexGrow: 1,
-        background: `linear-gradient(to right, #f53a76 ${progressPct}%, rgba(255,255,255,0.15) ${progressPct}%)`,
+export function PiPProgress(): JSX.Element {
+    const text = usePiPText();
+    const time = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const media = useStore(rockIt.queueManager.currentMediaAtom);
+    const rawDuration = getMediaDuration(media) ?? 0;
+    const duration = Number.isFinite(rawDuration)
+        ? Math.max(0, rawDuration)
+        : 0;
+    const position = Number.isFinite(time)
+        ? Math.max(0, Math.min(time ?? 0, duration))
+        : 0;
+    const seeking = useRef(false);
+    const finishSeek = (value: number): void => {
+        if (!seeking.current) return;
+        seeking.current = false;
+        rockIt.mediaPlayerManager.endSeek(value);
     };
-
     return (
-        <div
-            className="pip-progress-bar"
-            style={{
-                height: isCoverOnly ? "1rem" : "1.5rem",
-                gap: isCoverOnly ? "4px" : "8px",
-            }}
-        >
-            <span className="pip-time-label">{getTime($currentTime ?? 0)}</span>
-
+        <div className="pip-progress-bar">
+            <span className="pip-time-label">{getTime(position)}</span>
             <input
                 type="range"
                 className="pip-slider"
-                value={$currentTime ?? 0}
+                aria-label={text(
+                    "PIP_POSITION",
+                    "Playback position",
+                    "Posición de reproducción"
+                )}
+                value={position}
                 min={0}
-                max={duration}
-                step={0.001}
-                style={sliderStyle}
-                onChange={(e): void => {
+                max={duration || 1}
+                step={0.1}
+                disabled={duration <= 0}
+                style={{
+                    background: `linear-gradient(to right, #f53a76 ${duration > 0 ? (position / duration) * 100 : 0}%, #ffffff30 0%)`,
+                }}
+                onChange={(event): void =>
                     rockIt.mediaPlayerManager.setCurrentTime(
-                        Number(e.target.value),
-                        false
-                    );
-                }}
+                        Number(event.currentTarget.value),
+                        !seeking.current
+                    )
+                }
                 onPointerDown={(): void => {
-                    rockIt.mediaPlayerManager.beginSeek();
+                    if (duration > 0) {
+                        seeking.current = true;
+                        rockIt.mediaPlayerManager.beginSeek();
+                    }
                 }}
-                onPointerUp={(e): void => {
-                    rockIt.mediaPlayerManager.endSeek(
-                        Number(e.currentTarget.value)
-                    );
-                }}
+                onPointerUp={(event): void =>
+                    finishSeek(Number(event.currentTarget.value))
+                }
+                onPointerCancel={(event): void =>
+                    finishSeek(Number(event.currentTarget.value))
+                }
+                onBlur={(event): void =>
+                    finishSeek(Number(event.currentTarget.value))
+                }
             />
-
             <span className="pip-time-label">{getTime(duration)}</span>
         </div>
     );

@@ -1,14 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState, type JSX } from "react";
+import { useCallback, useEffect, useRef, useState, type JSX } from "react";
 import { PictureInPicture2 } from "lucide-react";
 import { createPortal } from "react-dom";
+import type { DocumentPiP } from "@/models/types/pip";
 import PiPContent from "@/components/PiP/PiPRoot";
-import { PIP_STYLES } from "@/components/PiP/PiPStyles";
-
-type DocumentPiP = {
-    requestWindow: (opts: { width: number; height: number }) => Promise<Window>;
-};
 
 function getDocumentPiP(): DocumentPiP | null {
     if (typeof window === "undefined") return null;
@@ -23,12 +19,6 @@ function getDocumentPiP(): DocumentPiP | null {
 
 function copyStylesToPiPWindow(pipWin: Window): void {
     const pipDoc = pipWin.document;
-
-    const linkEl = pipDoc.createElement("link");
-    linkEl.rel = "stylesheet";
-    linkEl.href =
-        "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
-    pipDoc.head.appendChild(linkEl);
 
     [...document.styleSheets].forEach((sheet): void => {
         try {
@@ -48,23 +38,22 @@ function copyStylesToPiPWindow(pipWin: Window): void {
         }
     });
 
-    const pipBase = pipDoc.createElement("style");
-    pipBase.textContent = PIP_STYLES;
-    pipDoc.head.appendChild(pipBase);
+    pipDoc.title = "RockIt · Miniplayer";
 }
 
 export default function PictureInPicture(): JSX.Element | null {
+    const openingRef = useRef(false);
     const [pipWindow, setPipWindow] = useState<Window | null>(null);
     const [isSupported, setIsSupported] = useState<boolean | null>(null);
 
     useEffect((): void => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSupported(!!getDocumentPiP());
     }, []);
 
     const openPiP = useCallback(async (): Promise<void> => {
         const pip = getDocumentPiP();
-        if (!pip) return;
+        if (!pip || openingRef.current) return;
+        openingRef.current = true;
 
         try {
             const newWin = await pip.requestWindow({
@@ -76,6 +65,8 @@ export default function PictureInPicture(): JSX.Element | null {
             setPipWindow(newWin);
         } catch (err) {
             console.error("PiP failed to open:", err);
+        } finally {
+            openingRef.current = false;
         }
     }, []);
 

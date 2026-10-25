@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { GetLyricsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { usePiPText } from "@/hooks/usePiPText";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export function PiPLyrics(): JSX.Element | null {
+    const text = usePiPText();
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const [lyrics, setLyrics] = useState<GetLyricsResponse | undefined>();
@@ -20,13 +22,19 @@ export function PiPLyrics(): JSX.Element | null {
         setLoading(true);
         let cancelled = false;
 
-        Http.getLrclibLyricsAsync($currentMedia.publicId).then((response) => {
-            if (cancelled) return;
-            if (response.isOk()) {
-                setLyrics(response.result);
-            }
-            setLoading(false);
-        });
+        Http.getLrclibLyricsAsync($currentMedia.publicId)
+            .then((response) => {
+                if (cancelled) return;
+                if (response.isOk()) {
+                    setLyrics(response.result);
+                }
+                setLoading(false);
+            })
+            .catch((error: unknown): void => {
+                if (cancelled) return;
+                console.error("PiP lyrics unavailable", error);
+                setLoading(false);
+            });
         return (): void => {
             cancelled = true;
         };
@@ -65,22 +73,13 @@ export function PiPLyrics(): JSX.Element | null {
         const containerHeight = container.clientHeight;
         const targetY = elTop + elHeight / 2 - containerHeight / 2;
 
-        const startY = container.scrollTop;
-        const diff = targetY - startY;
-        if (Math.abs(diff) < 1) return;
-
-        const startTime = performance.now();
-        const duration = 400;
-        const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-
-        const animate = (now: number): void => {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            container.scrollTop = startY + diff * easeOutCubic(progress);
-            if (progress < 1) requestAnimationFrame(animate);
-        };
-
-        requestAnimationFrame(animate);
+        const reducedMotion = container.ownerDocument.defaultView?.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+        ).matches;
+        container.scrollTo({
+            top: Math.max(0, targetY),
+            behavior: reducedMotion ? "auto" : "smooth",
+        });
     }, [currentLineIndex]);
 
     const goToLine = (index: number): void => {
@@ -110,7 +109,13 @@ export function PiPLyrics(): JSX.Element | null {
     if (syncedLines.length === 0) {
         return (
             <div className="pip-lyrics-overlay" data-testid="pip-lyrics-empty">
-                <p className="text-xs text-neutral-400">No synced lyrics</p>
+                <p className="text-xs text-neutral-400">
+                    {text(
+                        "PIP_NO_LYRICS",
+                        "No synced lyrics",
+                        "No hay letra sincronizada"
+                    )}
+                </p>
             </div>
         );
     }
@@ -134,8 +139,10 @@ export function PiPLyrics(): JSX.Element | null {
                             role="button"
                             tabIndex={0}
                             onKeyDown={(e): void => {
-                                if (e.key === "Enter" || e.key === " ")
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
                                     goToLine(i);
+                                }
                             }}
                         >
                             {line.text}

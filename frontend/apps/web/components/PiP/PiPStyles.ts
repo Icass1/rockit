@@ -101,6 +101,7 @@ html.rockit-pip-document, .rockit-pip-document body {
 @media (max-height: 179px) { .rockit-pip-document .pip-layout--cover-only .pip-info { display: none; } }
 @media (hover: none) { .rockit-pip-document .pip-layout--cover-only .pip-panel { opacity: 1; pointer-events: auto; } }
 @media (min-width: 560px) and (min-height: 220px) {
+ .rockit-pip-document .pip-layout--pill.pip-has-lyrics { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr) auto; }
  .rockit-pip-document .pip-has-lyrics .pip-stage { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-rows: minmax(0,1fr); }
 }
 @media (max-width: 399px) { .rockit-pip-document .pip-controls-bar { gap: 0; } }

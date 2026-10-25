@@ -15,7 +15,7 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-cover {
     position: relative; min-width: 0; min-height: 0; width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
-    border-radius: 10px; background: #0b0b0d; container-type: size;
+    border-radius: 10px; background: transparent; container-type: size;
 }
 .rockit-pip-document .pip-cover > img, .rockit-pip-document .pip-cover > video {
     position: absolute; inset: 0; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain;

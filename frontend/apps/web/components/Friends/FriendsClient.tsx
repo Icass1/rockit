@@ -44,6 +44,18 @@ export default function FriendsClient(): JSX.Element {
                     <h1 className={styles.title}>{v.FRIENDS}</h1>
                     <p className={styles.subtitle}>{v.FRIENDS_SOCIAL_INTRO}</p>
                 </div>
+                <div>
+                <p
+                    className="mt-2 flex items-center gap-2 text-sm text-neutral-400"
+                    role="status"
+                >
+                    <span
+                        className="h-2 w-2 rounded-full bg-emerald-400"
+                        aria-hidden
+                    />
+                    {onlineCount} {v.FRIENDS_ONLINE}
+                </p>
+                </div>
             </header>
             <nav className={styles.navigation} aria-label={v.FRIENDS}>
                 {[

@@ -222,6 +222,17 @@
     Mejorar el aspecto de los inputs radio en la PWA de iOS.
     ```
 
+### [FRIENDS] Arreglar contador de personas online
+
+- tags: [frontend, friends, bug, kb-08]
+- priority: medium
+- workload: Easy
+    ```md
+    Implementado: la página de friends muestra el total de amigos online calculado desde friendsAtom, sin limitarlo al número de avatares del banner. La actualización por WebSocket se mantiene como tarea independiente.
+
+    Poner bien el contador de personas online en la página de friends.
+    ```
+
 ## Done
 
 ### [SOCIAL] Emblemas Rockit y comparación entre amigos

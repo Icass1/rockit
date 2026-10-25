@@ -22,17 +22,6 @@
     Revisar y corregir las transiciones de la PWA en iOS/iPhone.
     ```
 
-### [LIBRARY] Centrar botón library y arreglar random
-
-- tags: [frontend, library, queue, bug, ui]
-- priority: high
-- workload: Normal
-- steps:
-    - [ ] Centrar verticalmente el botón de library
-    - [ ] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
-    ```md
-    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
-    ```
 
 ### [LIBRARY] Investigar tiempo de carga
 
@@ -209,6 +198,18 @@
     Avance: el avatar de sesión ya se muestra y el fallback utiliza el recurso local. La subida sigue pendiente: falta implementar la ruta de backend para persistirla.
 
     Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
+    ```
+
+### [LIBRARY] Centrar botón library y arreglar random
+
+- tags: [frontend, library, queue, bug, ui, kb-06]
+- priority: high
+- workload: Normal
+- steps:
+    - [x] Centrar verticalmente el botón de library
+    - [ ] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
+    ```md
+    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
     ```
 
 ## Idle

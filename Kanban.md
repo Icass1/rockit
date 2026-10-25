@@ -34,14 +34,6 @@
     La library tarda un segundo en cargar? Confirmar con Ignacio antes de tocar nada.
     ```
 
-### [FRIENDS] Arreglar contador de personas online
-
-- tags: [frontend, friends, bug]
-- priority: medium
-- workload: Easy
-    ```md
-    Poner bien el contador de personas online en la página de friends.
-    ```
 
 ### [PWA] Mejorar UI de radios en PWA iOS
 
@@ -210,6 +202,17 @@
     - [ ] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
     ```md
     Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
+    ```
+
+### [FRIENDS] Arreglar contador de personas online
+
+- tags: [frontend, friends, bug, kb-08]
+- priority: medium
+- workload: Easy
+    ```md
+    Avance: el banner cuenta todos los amigos online, aunque solo muestre hasta 10 avatares. Falta verificar su integración en la página de friends y la actualización en tiempo real.
+
+    Poner bien el contador de personas online en la página de friends.
     ```
 
 ## Idle

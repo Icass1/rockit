@@ -70,14 +70,6 @@
     Pendiente: detectar límites de audio con FFmpeg y guardar posiciones de entrada/salida sin modificar el archivo ni el reloj original de lyrics. El crossfade configurable no elimina silencios por sí solo.
     ```
 
-### [PLAYER] Añadir modo vinilo en web móvil
-
-- tags: [frontend, player, mobile, ui]
-- priority: medium
-- workload: Normal
-    ```md
-    Añadir el modo vinilo a la versión web móvil.
-    ```
 
 ### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
 
@@ -253,6 +245,17 @@
     Implementado: tarjetas inline-block de ancho completo, alineadas arriba y sin fragmentación entre columnas. Pendiente de validación en Safari/PWA iPhone.
 
     En el masonry móvil de dos columnas, la segunda columna empieza un poco desplazada hacia abajo y queda desalineada con la columna de la izquierda en la web móvil PWA de iOS.
+    ```
+
+### [PLAYER] Añadir modo vinilo en web móvil
+
+- tags: [frontend, player, mobile, ui, kb-14]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado: selector táctil carátula/vinilo para canciones, preferencia compartida con desktop y giro según reproducción. Respeta movimiento reducido. Cambio y retorno a carátula comprobados en Chromium a 390×844. Pendiente de validación en iPhone.
+
+    Añadir el modo vinilo a la versión web móvil.
     ```
 
 ## Done

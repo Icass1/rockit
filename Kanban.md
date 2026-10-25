@@ -4,7 +4,7 @@
 
 ### [SETTINGS] Subida de imagen de perfil y avatar por defecto
 
-- tags: [settings, profile, bug]
+- tags: [frontend, settings, profile, bug]
 - priority: high
 - workload: Normal
     ```md
@@ -13,7 +13,7 @@
 
 ### [FRIENDS] Mejorar UI/UX de la página de friends
 
-- tags: [friends, ui, ux]
+- tags: [frontend, friends, ui, ux]
 - priority: high
 - workload: Normal
     ```md
@@ -22,7 +22,7 @@
 
 ### [PLAYER] Pantalla vertical: dividir el PlayerUI por la mitad
 
-- tags: [player, mobile, layout]
+- tags: [frontend, player, mobile, layout]
 - priority: medium
 - workload: Normal
 - steps:
@@ -34,7 +34,7 @@
 
 ### [TRANSITIONS] Tiempo de transición personalizado
 
-- tags: [transitions, settings, ui]
+- tags: [frontend, transitions, settings, ui]
 - priority: medium
 - workload: Normal
     ```md
@@ -43,7 +43,7 @@
 
 ### [PWA] Revisar transiciones en PWA iOS (iPhone)
 
-- tags: [pwa, ios, transitions]
+- tags: [frontend, pwa, ios, transitions]
 - priority: high
 - workload: Normal
     ```md
@@ -52,7 +52,7 @@
 
 ### [LIBRARY] Centrar botón library y arreglar random
 
-- tags: [library, queue, bug, ui]
+- tags: [frontend, library, queue, bug, ui]
 - priority: high
 - workload: Normal
 - steps:
@@ -64,7 +64,7 @@
 
 ### [LIBRARY] Investigar tiempo de carga
 
-- tags: [library, performance]
+- tags: [frontend, library, performance]
 - priority: medium
 - workload: Easy
 - steps:
@@ -75,7 +75,7 @@
 
 ### [FRIENDS] Arreglar contador de personas online
 
-- tags: [friends, bug]
+- tags: [frontend, friends, bug]
 - priority: medium
 - workload: Easy
     ```md
@@ -84,7 +84,7 @@
 
 ### [PWA] Mejorar UI de radios en PWA iOS
 
-- tags: [pwa, ios, ui]
+- tags: [frontend, pwa, ios, ui]
 - priority: medium
 - workload: Normal
     ```md
@@ -93,7 +93,7 @@
 
 ### [PLAYER] Tiempos reales de la barra de reproducción
 
-- tags: [player, playback, bug]
+- tags: [frontend, player, playback, bug]
 - priority: high
 - workload: Normal
     ```md
@@ -102,7 +102,7 @@
 
 ### [LYRICS] Mejorar detección y asignación de lyrics
 
-- tags: [lyrics, matching]
+- tags: [frontend, backend, lyrics, matching]
 - priority: high
 - workload: Normal
     ```md
@@ -111,7 +111,7 @@
 
 ### [DOWNLOADS] Descargar solo música y no videoclips
 
-- tags: [downloads, spotdl, ytdlp]
+- tags: [backend, downloads, spotdl, ytdlp]
 - priority: medium
 - workload: Normal
     ```md
@@ -120,7 +120,7 @@
 
 ### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
 
-- tags: [transitions, player, audio]
+- tags: [frontend, transitions, player, audio]
 - priority: medium
 - workload: Hard
     ```md
@@ -129,7 +129,7 @@
 
 ### [PLAYER] Añadir modo vinilo en web móvil
 
-- tags: [player, mobile, ui]
+- tags: [frontend, player, mobile, ui]
 - priority: medium
 - workload: Normal
     ```md
@@ -138,11 +138,92 @@
 
 ### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
 
-- tags: [player, ios, transitions, bug]
+- tags: [frontend, player, ios, transitions, bug]
 - priority: high
 - workload: Easy
     ```md
     Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
+    ```
+
+### [FEATURED] Mostrar artista en featured lists de álbumes
+
+- tags: [frontend, featured, albums, ui]
+- priority: medium
+- workload: Easy
+    ```md
+    Fixear en las featured lists: en los álbumes, poner también el artista.
+    ```
+
+### [FRIENDS] Estado online de la gente en tiempo real por WebSocket
+
+- tags: [frontend, backend, friends, websocket, realtime]
+- priority: high
+- workload: Normal
+    ```md
+    Actualizar el estado de friends, el contador de gente online y el estado de cada persona por WebSocket para que se actualice en tiempo real.
+    ```
+
+### [LIBRARY] Fixear cover de la radio
+
+- tags: [frontend, library, radio, bug, ui]
+- priority: medium
+- workload: Easy
+    ```md
+    Fixear la cover de la radio en la library.
+    ```
+
+### [PWA] Masonry móvil desalineado en iOS
+
+- tags: [frontend, pwa, ios, mobile, layout, bug]
+- priority: medium
+- workload: Easy
+    ```md
+    En el masonry móvil de dos columnas, la segunda columna empieza un poco desplazada hacia abajo y queda desalineada con la columna de la izquierda en la web móvil PWA de iOS.
+    ```
+
+### [HOME] Añadir context menu a las canciones del home
+
+- tags: [frontend, home, songs, context-menu, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Añadir un context menu a las canciones del home.
+    ```
+
+### [SETTINGS] Popup de confirmación al guardar ajustes
+
+- tags: [frontend, settings, feedback, ui]
+- priority: medium
+- workload: Easy
+    ```md
+    Hacer un popup cada vez que se hayan guardado los settings, con un check, para dar feedback al usuario.
+    ```
+
+### [LIBRARY] Drag & drop de canciones a listas
+
+- tags: [frontend, library, playlists, drag-drop, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Al pinchar y arrastrar canciones en la library hacia las listas, mostrar un "+" y permitir añadirlas.
+    ```
+
+### [UI] Mejorar blur del header y hacerlo más curvo
+
+- tags: [frontend, ui, header, blur]
+- priority: medium
+- workload: Easy
+    ```md
+    Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
+    ```
+
+### [PIP] Distintos tamaños de picture-in-picture y modo vinilo
+
+- tags: [frontend, pip, player, vinyl, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Mejorar el picture-in-picture para tener distintos tamaños como hace Spotify y añadir también el modo vinilo ahí.
     ```
 
 ## In Progress

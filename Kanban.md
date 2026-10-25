@@ -91,6 +91,60 @@
     Mejorar el aspecto de los inputs radio en la PWA de iOS.
     ```
 
+### [PLAYER] Tiempos reales de la barra de reproducción
+
+- tags: [player, playback, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Fixear los tiempos de la barra de reproducción para que sean los reales. Revisar si vienen de videoclips. Cuidado con no romper las lyrics.
+    ```
+
+### [LYRICS] Mejorar detección y asignación de lyrics
+
+- tags: [lyrics, matching]
+- priority: high
+- workload: Normal
+    ```md
+    Mejorar la detección o assignment de las lyrics a las canciones para que se detecte mejor la canción que se está reproduciendo.
+    ```
+
+### [DOWNLOADS] Descargar solo música y no videoclips
+
+- tags: [downloads, spotdl, ytdlp]
+- priority: medium
+- workload: Normal
+    ```md
+    Intentar que spotdl o yt-dlp descargue solo música que no sean videoclips. Ajustar la búsqueda.
+    ```
+
+### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
+
+- tags: [transitions, player, audio]
+- priority: medium
+- workload: Hard
+    ```md
+    Quitar el silencio final/inicial de las canciones cuando las transiciones están activadas. Cuidado con esto.
+    ```
+
+### [PLAYER] Añadir modo vinilo en web móvil
+
+- tags: [player, mobile, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Añadir el modo vinilo a la versión web móvil.
+    ```
+
+### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
+
+- tags: [player, ios, transitions, bug]
+- priority: high
+- workload: Easy
+    ```md
+    Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
+    ```
+
 ## In Progress
 
 ## Idle

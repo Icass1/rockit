@@ -14,6 +14,16 @@
     Pantalla vertical: dividir por la mitad el PlayerUI. Pendiente de que Ignacio valide la versión actual antes de implementar.
     ```
 
+### [FRIENDS] Mejorar UI/UX de la página de friends
+
+- tags: [frontend, friends, ui, ux]
+- priority: high
+- workload: Normal
+    ```md
+    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
+    ```
+
+
 ### [TRANSITIONS] Tiempo de transición personalizado
 
 - tags: [frontend, transitions, settings, ui]

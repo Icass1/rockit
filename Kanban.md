@@ -230,7 +230,7 @@
 - priority: medium
 - workload: Normal
     ```md
-    Implementado: campo numérico con guardado al salir o pulsar Enter, dentro del rango actual del motor (0.8–3.5 s). TypeScript y 16 pruebas de transiciones correctos. Pendiente de revisión visual.
+    Implementado: campo numérico desde 0.1 s, sin el límite anterior de 3.5 s; admite, por ejemplo, 5 o 6 segundos. El motor respeta la duración configurada sin sustituirla por presets adaptativos. El cruce se limita a la mitad de cada pista y requiere audio precargado suficiente. Pendiente de revisión visual y de audio.
 
     Permitir configurar las transiciones con un tiempo custom en lugar de usar presets de una lista desplegable.
     ```

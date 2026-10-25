@@ -16,8 +16,7 @@ export default function CrossFadeInput(): JSX.Element {
         if (
             duration.trim() !== "" &&
             Number.isFinite(seconds) &&
-            seconds >= 0.8 &&
-            seconds <= 3.5
+            seconds >= 0.1
         ) {
             rockIt.mediaPlayerManager.configureTransitions({
                 maxSeconds: seconds,
@@ -64,17 +63,16 @@ export default function CrossFadeInput(): JSX.Element {
             <div className="flex items-center justify-between gap-3">
                 <label htmlFor="transition-duration">
                     {text(
-                        "SETTINGS_TRANSITION_MAXIMUM",
-                        "Maximum overlap",
-                        "Superposición máxima"
+                        "SETTINGS_TRANSITION_DURATION",
+                        "Transition duration",
+                        "Duración de la transición"
                     )}
                 </label>
                 <div className="flex items-center gap-2">
                     <input
                         id="transition-duration"
                         type="number"
-                        min={0.8}
-                        max={3.5}
+                        min={0.1}
                         step={0.1}
                         value={duration ?? settings.maxSeconds}
                         disabled={!settings.enabled}
@@ -119,9 +117,9 @@ export default function CrossFadeInput(): JSX.Element {
             </label>
             <p className="text-xs text-neutral-500">
                 {text(
-                    "SETTINGS_TRANSITION_HELP",
-                    "Shorter blends for stronger endings. Audio songs only. Changes apply from the next song and are saved on this device.",
-                    "Cruces más cortos si el final mantiene mucha energía. Solo canciones de audio. Los cambios se aplican desde la siguiente canción y se guardan en este dispositivo."
+                    "SETTINGS_TRANSITION_DURATION_HELP",
+                    "Choose any duration from 0.1 seconds, for example 5 or 6. Overlap is limited to half of either track. Audio songs only; silence is not skipped. Changes are saved on this device.",
+                    "Elige una duración desde 0,1 segundos, por ejemplo 5 o 6. El cruce se limita a la mitad de cada canción. Solo audio; no se saltan silencios. Los cambios se guardan en este dispositivo."
                 )}
             </p>
         </div>

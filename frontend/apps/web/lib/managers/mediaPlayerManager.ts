@@ -11,10 +11,7 @@ import {
     type TMediaKind,
     type TPlayableMedia,
 } from "@rockit/shared";
-import type {
-    TransitionEnergySample,
-    WebTransitionSettings,
-} from "@/models/types/transitions";
+import type { WebTransitionSettings } from "@/models/types/transitions";
 import {
     DEFAULT_TRANSITIONS,
     transitionDuration,
@@ -54,7 +51,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         ...DEFAULT_TRANSITIONS,
     });
     private _mixer = new TransitionMixer();
-    private _energy: TransitionEnergySample[] = [];
     private _outgoing?: HTMLAudioElement;
     private _promotionQueueId?: number;
     private _promotionUri?: string;
@@ -290,7 +286,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         const current = this._transitionSettings.get();
         const next = { ...current, ...settings };
         next.maxSeconds = Number.isFinite(next.maxSeconds)
-            ? Math.max(0.8, Math.min(3.5, next.maxSeconds))
+            ? Math.max(0.1, next.maxSeconds)
             : 3.5;
         this._transitionSettings.set(next);
         this._cancelTransition();
@@ -360,7 +356,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
     override beginSeek(): void {
         this._cancelTransition();
-        this._energy = [];
         super.beginSeek();
     }
 
@@ -430,13 +425,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         const time = audio.currentTime,
             duration = audio.duration;
         if (!Number.isFinite(duration) || duration < 20) return;
-        const last = this._energy[this._energy.length - 1];
-        if (!last || time - last.time >= 0.2) {
-            this._energy.push({ time, rms: this._mixer.rms(audio) });
-            this._energy = this._energy
-                .filter((sample): boolean => sample.time >= time - 24)
-                .slice(-128);
-        }
         if (this._outgoing) {
             if (this._outgoing.ended) this._cancelTransition();
             return;
@@ -458,16 +446,15 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 b = getMediaAlbum(next.media);
             if (a && b && a.publicId === b.publicId) return;
         }
+        const incoming = this._preloadAudio;
+        if (!incoming || !Number.isFinite(incoming.duration)) return;
         const seconds = transitionDuration(
-            this._energy,
             duration,
-            time,
+            incoming.duration,
             settings.maxSeconds
         );
-        const incoming = this._preloadAudio;
         if (
             remaining > seconds ||
-            !incoming ||
             this._preloadedForQueueMediaId !== next.queueMediaId ||
             !this._preloadedUri ||
             incoming.readyState < 3 ||
@@ -478,7 +465,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (
             !incoming.buffered.length ||
             incoming.buffered.start(0) > 0.05 ||
-            incoming.buffered.end(0) < Math.min(4, incoming.duration)
+            incoming.buffered.end(0) <
+                Math.min(Math.max(4, seconds), incoming.duration)
         )
             return;
         this._outgoing = audio;
@@ -489,7 +477,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         incoming.muted = false;
         this._preloadedUri = undefined;
         this._preloadedForQueueMediaId = undefined;
-        this._energy = [];
         this._lastEndedTime = Date.now();
         // The normal base handoff owns queue identity, media-ended and the
         // server grant. Incoming remains silent/paused until that grant arrives.
@@ -619,7 +606,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 uri === this._promotionUri;
             if (promotion) return;
             this._cancelTransition();
-            this._energy = [];
             if (this._audio && this._mixer.has(this._audio) && !eligible) {
                 this._audio.pause();
                 this._mixer.reset(this._audio, false);
@@ -667,7 +653,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (kind === "audio") {
             this._stopEndedPoll();
             this._cancelTransition();
-            this._energy = [];
         }
 
         el.pause();
@@ -731,7 +716,6 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 getRockIt().queueManager.currentQueueMediaId
         )
             this._cancelTransition();
-        this._energy = [];
         el.currentTime = sec;
         if (kind === "audio") this._syncVideoPicture();
     }

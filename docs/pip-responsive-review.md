@@ -90,3 +90,19 @@ window resizing, and the browser's native PiP minimum dimensions. These fixture
 checks do not validate backend operations, production audio synchronization, or
 browser/OS combinations outside the tested Chromium environment. Keep KB-24 in
 To Review until that integrated review is complete.
+
+## Integrated lyrics follow-up (KB-24)
+
+Low-height bars now place metadata and playback controls on one row. A dedicated
+lyrics button is visible beside playback controls. Expanded windows share the
+media area between artwork and lyrics, with playback and seek controls available;
+wide windows show them side by side. Compact bars and cover-only minis show the
+current line instead. Escape exits lyrics and returns focus to the lyrics button.
+The current track result survives view toggling and resizing. Static lyrics are
+shown when synchronized lyrics are unavailable. Transparent letterboxing remains.
+
+Targeted follow-up: 18 cases across six content viewports (400×100, 180×640,
+320×420, 640×360, 260×220 and 160×120), with song artwork and both video
+orientations. The earlier 118 cases describe the previous iteration, not a fresh
+complete run of this revision. Isolated adapters and native-window limitations
+listed above still apply.

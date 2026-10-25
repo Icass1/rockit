@@ -149,6 +149,20 @@ export function PiPControls({
                     )}
                 </button>
             )}
+            {media?.type === "song" && (
+                <button
+                    type="button"
+                    className="pip-controls-icon-btn pip-lyrics-toggle"
+                    aria-label={
+                        showLyrics ? labels.hideLyrics : labels.showLyrics
+                    }
+                    title={showLyrics ? labels.hideLyrics : labels.showLyrics}
+                    aria-pressed={showLyrics}
+                    onClick={onToggleLyrics}
+                >
+                    <Subtitles className="pip-icon" />
+                </button>
+            )}
             <details
                 className="pip-options"
                 ref={menuRef}

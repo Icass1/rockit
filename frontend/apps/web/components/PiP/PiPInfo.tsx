@@ -1,12 +1,12 @@
 "use client";
 
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { getMediaArtists } from "@/models/types/media";
 import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export function PiPInfo(): JSX.Element {
+export function PiPInfo({ children }: { children?: ReactNode }): JSX.Element {
     const text = usePiPText();
     const media = useStore(rockIt.queueManager.currentMediaAtom);
     const artists =
@@ -26,6 +26,7 @@ export function PiPInfo(): JSX.Element {
             <p className="pip-info-artist-name" title={artists}>
                 {artists}
             </p>
+            {children}
         </div>
     );
 }

@@ -231,21 +231,52 @@ const mediaCases = process.env.PIP_MEDIA_CASES?.split(",") ?? [
                     await page.locator('[data-testid="pip-vinyl"]').waitFor();
                     await menuAction("Show cover");
                     await page.locator('[data-testid="pip-image"]').waitFor();
-                    await menuAction("Show lyrics");
-                    await page.locator('[data-testid="pip-lyrics"]').waitFor();
-                    await page.locator('[data-lyric-index="1"]').click();
-                    assert.equal(
+                    // The dedicated button stays visible; compact bars show one line.
+                    await page.locator(".pip-lyrics-toggle").click();
+                    const compactLyrics =
+                        (height < 180 && width >= 360) ||
+                        layout === "cover-only";
+                    if (compactLyrics) {
+                        await page.locator(".pip-lyric-glance").waitFor();
                         await page.evaluate(() =>
-                            window.pipTest.position.get()
-                        ),
-                        20
+                            window.pipTest.position.set(20)
+                        );
+                        assert.match(
+                            await page.locator(".pip-lyric-glance").innerText(),
+                            /especialmente larga/
+                        );
+                    } else {
+                        await page
+                            .locator('[data-testid="pip-lyrics"]')
+                            .waitFor();
+                        await page.locator('[data-lyric-index="1"]').click();
+                        assert.equal(
+                            await page.evaluate(() =>
+                                window.pipTest.position.get()
+                            ),
+                            20
+                        );
+                        assert.equal(
+                            await page.locator(".pip-play-button").isVisible(),
+                            true
+                        );
+                    }
+                    await page.screenshot({
+                        path:
+                            outputDir +
+                            "/shots/lyrics-" +
+                            width +
+                            "x" +
+                            height +
+                            ".png",
+                    });
+                    await page.keyboard.press("Escape");
+                    assert.equal(
+                        await page
+                            .locator(".pip-lyrics-toggle")
+                            .getAttribute("aria-pressed"),
+                        "false"
                     );
-                    await page
-                        .getByRole("button", {
-                            name: "Close lyrics",
-                            exact: true,
-                        })
-                        .click();
                 }
                 const slider = page.getByRole("slider");
                 if (await slider.isVisible()) {

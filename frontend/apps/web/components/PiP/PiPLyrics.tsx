@@ -1,45 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type JSX } from "react";
-import type { GetLyricsResponse } from "@/dto";
+import { useEffect, useMemo, useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import type { PiPLyricsState } from "@/models/types/pip";
 import { usePiPText } from "@/hooks/usePiPText";
-import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export function PiPLyrics(): JSX.Element | null {
+export function PiPLyrics({
+    data: lyrics,
+    loading,
+    glance = false,
+}: PiPLyricsState & { glance?: boolean }): JSX.Element | null {
     const text = usePiPText();
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const [lyrics, setLyrics] = useState<GetLyricsResponse | undefined>();
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLyrics(undefined);
-        setLoading(false);
-        if ($currentMedia?.type !== "song") return;
-        setLoading(true);
-        let cancelled = false;
-
-        Http.getLrclibLyricsAsync($currentMedia.publicId)
-            .then((response) => {
-                if (cancelled) return;
-                if (response.isOk()) {
-                    setLyrics(response.result);
-                }
-                setLoading(false);
-            })
-            .catch((error: unknown): void => {
-                if (cancelled) return;
-                console.error("PiP lyrics unavailable", error);
-                setLoading(false);
-            });
-        return (): void => {
-            cancelled = true;
-        };
-    }, [$currentMedia]);
-
     const syncedLines = useMemo(() => {
         return lyrics?.dynamicLyrics ?? [];
     }, [lyrics]);
@@ -60,7 +33,7 @@ export function PiPLyrics(): JSX.Element | null {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!scrollRef.current || currentLineIndex < 0) return;
+        if (glance || !scrollRef.current || currentLineIndex < 0) return;
 
         const el = scrollRef.current.querySelector(
             `[data-lyric-index="${currentLineIndex}"]`
@@ -80,7 +53,7 @@ export function PiPLyrics(): JSX.Element | null {
             top: Math.max(0, targetY),
             behavior: reducedMotion ? "auto" : "smooth",
         });
-    }, [currentLineIndex]);
+    }, [currentLineIndex, glance]);
 
     const goToLine = (index: number): void => {
         const ts = syncedLines[index]?.timestamp_s;
@@ -89,7 +62,24 @@ export function PiPLyrics(): JSX.Element | null {
         }
     };
 
-    if ($currentMedia?.type === "video") return null;
+    if (glance) {
+        const line =
+            syncedLines[Math.max(0, currentLineIndex)]?.text ??
+            lyrics?.lyrics?.[0]?.text;
+        const message = loading
+            ? text("PIP_LOADING_LYRICS", "Loading lyrics…", "Cargando letra…")
+            : (line ??
+              text(
+                  "PIP_NO_LYRICS",
+                  "No synced lyrics",
+                  "No hay letra sincronizada"
+              ));
+        return (
+            <p className="pip-lyric-glance" title={message}>
+                {message}
+            </p>
+        );
+    }
 
     if (loading) {
         return (
@@ -101,6 +91,20 @@ export function PiPLyrics(): JSX.Element | null {
                     <div className="skeleton h-3 w-3/4 rounded" />
                     <div className="skeleton h-3 w-1/2 rounded" />
                     <div className="skeleton h-3 w-2/3 rounded" />
+                </div>
+            </div>
+        );
+    }
+
+    if (syncedLines.length === 0 && lyrics?.lyrics?.length) {
+        return (
+            <div className="pip-lyrics-overlay" data-testid="pip-lyrics-static">
+                <div className="pip-lyrics-scroll">
+                    {lyrics.lyrics.map((line, index) => (
+                        <p className="pip-lyrics-line" key={index}>
+                            {line.text}
+                        </p>
+                    ))}
                 </div>
             </div>
         );

@@ -12,6 +12,7 @@ html.rockit-pip-document, .rockit-pip-document body {
     background: radial-gradient(ellipse at top, #2a2730, #121214 80%);
     color: white; font: 14px/1.3 system-ui, -apple-system, sans-serif; isolation: isolate;
 }
+.rockit-pip-document .pip-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: grid; }
 .rockit-pip-document .pip-cover {
     position: relative; min-width: 0; min-height: 0; width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -88,14 +89,43 @@ html.rockit-pip-document, .rockit-pip-document body {
 .rockit-pip-document .pip-layout--cover-only .pip-info-song-name { font-size: 12px; line-height: 16px; }
 .rockit-pip-document .pip-layout--cover-only .pip-info-artist-name { font-size: 11px; line-height: 14px; }
 .rockit-pip-document .pip-layout--cover-only .pip-progress-bar { display: none; }
-.rockit-pip-document .pip-lyrics-region { position: absolute; inset: 0; z-index: 20; background: #111e; }
+.rockit-pip-document .pip-has-lyrics .pip-stage { grid-template-rows: minmax(0,.8fr) minmax(0,1.2fr); gap: 8px; }
+.rockit-pip-document .pip-panel .pip-lyric-glance { display: none; }
+.rockit-pip-document .pip-lyric-glance { color: #ffb5d3; font-size: 12px; line-height: 18px; }
 .rockit-pip-document .pip-lyrics-close { position: absolute; top: 6px; right: 6px; z-index: 21; background: #ffffff18; font-size: 24px; }
-.rockit-pip-document .pip-lyrics-overlay { position: absolute; inset: 44px 8px 8px; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; }
+.rockit-pip-document .pip-lyrics-overlay { position: relative; min-width: 0; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; }
 .rockit-pip-document .pip-lyrics-scroll { position: relative; width: 100%; height: 100%; overflow: auto; padding: 8px 0; }
 .rockit-pip-document .pip-lyrics-line { display: block; margin: 0; width: 100%; min-height: 32px; padding: 8px; text-align: center; overflow-wrap: anywhere; cursor: pointer; }
 .rockit-pip-document .pip-lyrics-line--past, .rockit-pip-document .pip-lyrics-line--future { color: #a4a0ab; font-size: 12px; }
 .rockit-pip-document .pip-lyrics-line--current { color: white; font-size: 16px; font-weight: 700; }
 @media (max-height: 179px) { .rockit-pip-document .pip-layout--cover-only .pip-info { display: none; } }
 @media (hover: none) { .rockit-pip-document .pip-layout--cover-only .pip-panel { opacity: 1; pointer-events: auto; } }
+@media (min-width: 560px) and (min-height: 220px) {
+ .rockit-pip-document .pip-has-lyrics .pip-stage { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-rows: minmax(0,1fr); }
+}
+@media (max-width: 399px) { .rockit-pip-document .pip-controls-bar { gap: 0; } }
+@media (max-width: 259px) {
+ .rockit-pip-document .pip-controls-bar { gap: 0; flex-wrap: wrap; }
+ .rockit-pip-document .pip-controls-icon-btn { width: 28px; min-width: 28px; height: 28px; min-height: 28px; flex-basis: 28px; }
+ .rockit-pip-document .pip-play-button { flex-basis: 32px; width: 32px; min-width: 32px; }
+ .rockit-pip-document .pip-options { flex-basis: 28px; }
+}
+@media (max-height: 179px) and (min-width: 360px) {
+ .rockit-pip-document .pip-layout--pill .pip-panel { grid-template-columns: minmax(0,1fr) auto; gap: 6px; }
+ .rockit-pip-document .pip-layout--pill .pip-info { align-self: center; }
+ .rockit-pip-document .pip-layout--pill .pip-info-artist-name { display: block; }
+ .rockit-pip-document .pip-layout--pill .pip-controls-bar { gap: 0; }
+ .rockit-pip-document .pip-layout--pill .pip-progress-bar { grid-column: 1 / -1; }
+ .rockit-pip-document .pip-layout--pill.pip-has-lyrics .pip-stage { grid-template-rows: minmax(0,1fr); }
+ .rockit-pip-document .pip-layout--pill .pip-stage > .pip-lyrics-overlay { display: none; }
+ .rockit-pip-document .pip-layout--pill .pip-panel .pip-lyric-glance { display: block; }
+ .rockit-pip-document .pip-layout--pill.pip-has-lyrics .pip-info-artist-name { display: none; }
+}
+.rockit-pip-document .pip-layout--cover-only.pip-has-lyrics .pip-stage { grid-template-rows: minmax(0,1fr); }
+.rockit-pip-document .pip-layout--cover-only .pip-stage > .pip-lyrics-overlay { display: none; }
+.rockit-pip-document .pip-layout--cover-only.pip-has-lyrics .pip-info { display: block; }
+.rockit-pip-document .pip-layout--cover-only.pip-has-lyrics .pip-info-song-name,
+.rockit-pip-document .pip-layout--cover-only.pip-has-lyrics .pip-info-artist-name { display: none; }
+.rockit-pip-document .pip-layout--cover-only .pip-panel .pip-lyric-glance { display: block; }
 @media (prefers-reduced-motion: reduce) { .rockit-pip-document .pip-root * { transition: none !important; } }
 `;

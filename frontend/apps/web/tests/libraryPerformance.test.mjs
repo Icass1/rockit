@@ -470,7 +470,7 @@ test("real queue starts downloaded album tracks after unavailable initial songs 
 });
 
 const selectionMethod = source.slice(
-    source.indexOf("    setQueueMediaId(queueMediaId?: number"),
+    source.indexOf("    protected _updateNavigationDirection("),
     source.indexOf("    setCurrentList(")
 );
 const selectionCode = await transform(

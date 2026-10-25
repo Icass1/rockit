@@ -121,6 +121,7 @@ export class BaseQueueManager {
         );
 
         if (item) {
+            this._updateNavigationDirection(queue, data.queueMediaId);
             this._currentQueueMediaIdAtom.set(data.queueMediaId);
             this._currentMediaAtom.set(item.media);
             this._currentListAtom.set(item.listPublicId ?? undefined);
@@ -309,7 +310,7 @@ export class BaseQueueManager {
         );
 
         const nextIndex = (currentIndex + 1) % queue.length;
-        this.setQueueMediaId(queue[nextIndex].queueMediaId);
+        this.setQueueMediaId(queue[nextIndex].queueMediaId, 1);
         getRockIt().mediaPlayerManager.play();
     }
 
@@ -370,9 +371,33 @@ export class BaseQueueManager {
         this.setQueueMediaId(media.queueMediaId);
     }
 
+    protected _updateNavigationDirection(
+        queue: QueueMediaItem[],
+        targetId: number,
+        direction?: 1 | -1
+    ): void {
+        if (direction !== undefined) {
+            this._lastNavigationDirection = direction;
+            return;
+        }
+        const previousIndex = queue.findIndex(
+            (item) => item.queueMediaId === this.currentQueueMediaId
+        );
+        const targetIndex = queue.findIndex(
+            (item) => item.queueMediaId === targetId
+        );
+        if (
+            previousIndex >= 0 &&
+            targetIndex >= 0 &&
+            previousIndex !== targetIndex
+        )
+            this._lastNavigationDirection =
+                targetIndex > previousIndex ? 1 : -1;
+    }
+
     setQueueMediaId(): void;
     setQueueMediaId(queueMediaId: number, direction?: 1 | -1): void;
-    setQueueMediaId(queueMediaId?: number, direction: 1 | -1 = 1): void {
+    setQueueMediaId(queueMediaId?: number, direction?: 1 | -1): void {
         if (typeof queueMediaId === "number") {
             const queue = this._queueAtom.get();
 
@@ -396,7 +421,8 @@ export class BaseQueueManager {
                 media = undefined;
                 for (let i = 1; i < queue.length; i++) {
                     const nextIndex =
-                        (index + direction * i + queue.length) % queue.length;
+                        (index + (direction ?? 1) * i + queue.length) %
+                        queue.length;
                     const candidate = queue[nextIndex];
                     if (
                         isStation(candidate.media) ||
@@ -414,6 +440,14 @@ export class BaseQueueManager {
                     return;
                 }
             }
+
+            // Use visible queue positions, not numeric IDs (random queues reorder IDs).
+            // Explicit next/previous wins at the wrap from either end of the queue.
+            this._updateNavigationDirection(
+                queue,
+                media.queueMediaId,
+                direction
+            );
 
             // Publish only the final playable item, never an unavailable stopover.
             this._currentQueueMediaIdAtom.set(media.queueMediaId);
@@ -1255,7 +1289,7 @@ export class BaseQueueManager {
             this._autoplaySeedPublicId = undefined;
         const appended = this.sortedQueue.at(-1);
         if (!appended) return false;
-        this.setQueueMediaId(appended.queueMediaId);
+        this.setQueueMediaId(appended.queueMediaId, 1);
         this._sendCurrentQueue();
         return true;
     }

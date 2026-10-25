@@ -79,7 +79,10 @@ export default function PlayerCoverArt({
         >
             {showVinyl && media ? (
                 <div className="absolute inset-0">
-                    <VinylTransition media={media}>
+                    <VinylTransition
+                        media={media}
+                        direction={rockIt.queueManager.lastNavigationDirection}
+                    >
                         <VinylRecord
                             imageUrl={coverUri || "/song-placeholder.png"}
                             name={media.name}

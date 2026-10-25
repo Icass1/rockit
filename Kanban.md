@@ -161,6 +161,18 @@
 
 ## To Review
 
+### [PLAYER] Animar el vinilo en la dirección de la cola
+
+- tags: [frontend, player, vinyl, animation, kb-27]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en PlayerUI, móvil y PiP: entrada/salida simultáneas según navegación. Los saltos directos usan posiciones visibles de la cola, con dirección explícita al avanzar/retroceder y al terminar la pista. Se eliminan las líneas decorativas durante el cambio. Verificados en Chromium ambos sentidos, conservación del disco, cambios rápidos y movimiento reducido al abrir. TypeScript web/shared, ESLint y comprobaciones focalizadas de cola, vinilo, transiciones e iOS correctos. Pendiente de revisión integrada.
+
+    Al avanzar, el siguiente vinilo entra desde abajo y el anterior sale hacia arriba. Al retroceder, el anterior entra desde arriba y el actual sale hacia abajo. Aplicar en PlayerUI, móvil y PiP; contemplar saltos directos, cola aleatoria y vuelta al inicio/final. Respetar movimiento reducido y la conservación del disco para el mismo álbum/carátula.
+    ```
+
+
 ### [SETTINGS] Popup de confirmación al guardar ajustes
 
 - tags: [frontend, settings, feedback, ui, kb-26]

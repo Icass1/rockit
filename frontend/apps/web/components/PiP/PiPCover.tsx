@@ -69,7 +69,10 @@ export function PiPCover(): JSX.Element {
                 />
             ) : vinylMode && media?.type === "song" ? (
                 <div className="pip-vinyl" data-testid="pip-vinyl">
-                    <VinylTransition media={media}>
+                    <VinylTransition
+                        media={media}
+                        direction={rockIt.queueManager.lastNavigationDirection}
+                    >
                         <VinylRecord
                             imageUrl={cover}
                             name={media.name}

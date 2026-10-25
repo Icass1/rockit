@@ -247,7 +247,12 @@ export default function PlayerUIMain({
                     )}
                     {vinylMode ? (
                         <div className="relative h-full w-full">
-                            <VinylTransition media={currentMedia}>
+                            <VinylTransition
+                                media={currentMedia}
+                                direction={
+                                    rockIt.queueManager.lastNavigationDirection
+                                }
+                            >
                                 <VinylRecord
                                     imageUrl={coverSrc}
                                     name={currentMedia.name}

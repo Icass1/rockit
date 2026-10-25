@@ -864,7 +864,7 @@ export abstract class BaseMediaPlayerManager {
             this.setCurrentTime(0, false);
             this.play();
         } else if (action === EQueueAction.PLAY && nextId !== null) {
-            getRockIt().queueManager.setQueueMediaId(nextId);
+            getRockIt().queueManager.setQueueMediaId(nextId, 1);
             this.play();
         } else if (action === EQueueAction.AUTOPLAY) {
             const identity = getRockIt().queueManager.queueIdentity;

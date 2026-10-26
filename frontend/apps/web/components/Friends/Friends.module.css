@@ -1402,3 +1402,37 @@
         gap: 1rem 2rem;
     }
 }
+.sessionProgress {
+    margin-top: 1.75rem;
+}
+.sessionProgress h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.sessionProgress p {
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+.sessionProgress progress {
+    width: 100%;
+    height: 5px;
+    accent-color: var(--social-tint);
+    margin-block: 1rem;
+}
+.sessionProgress ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+}
+.sessionProgress li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.5rem;
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+.sessionProgress li[data-reached="true"] {
+    color: var(--social-tint);
+}

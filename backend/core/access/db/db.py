@@ -115,3 +115,10 @@ base = CoreBase
 from backend.core.access.db.ormModels.notification import (
     NotificationRow as NotificationRow,
 )
+
+from backend.core.access.db.ormModels.friend.listeningProgress import (
+    ListeningProgressRow as ListeningProgressRow,
+)
+from backend.core.access.db.ormModels.friend.listeningXpEvent import (
+    ListeningXpEventRow as ListeningXpEventRow,
+)

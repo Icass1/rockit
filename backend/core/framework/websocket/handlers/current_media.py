@@ -11,6 +11,7 @@ from backend.core.framework.user.user import User
 from backend.core.framework.websocket.playbackState import UserPlaybackState
 from backend.core.framework.websocket.listenInterval import close_listen_interval_async
 from backend.core.framework.websocket.webSocketRouter import websocket_router
+from backend.core.framework.friend.listeningRewards import ListeningRewards
 from backend.core.requests.wsMessages import CurrentMediaMessageRequest
 from backend.core.responses.currentMediaMessage import CurrentMediaMessage
 
@@ -84,6 +85,16 @@ async def handle_current_media(
     if time_result.is_not_ok():
         logger.error(f"Error resetting current time. {time_result.info()}")
         return
+
+    reward = await ListeningRewards.observe_async(
+        session=session,
+        user_id=user_id,
+        playback_id=current_media_msg.playbackId,
+        position_ms=current_media_msg.currentTimeMs,
+        baseline=True,
+    )
+    if reward.is_not_ok():
+        logger.error("Listening reward update failed: %s", reward.info())
 
     if sender_websocket is not None:
         relay_message = CurrentMediaMessage(

@@ -2,15 +2,6 @@
 
 ## To Do
 
-### [SOCIAL] XP por tiempo real de escucha y sesiones
-
-- tags: [backend, friends, xp, kb-35]
-- priority: medium
-- workload: Hard
-    ```md
-    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
-    ```
-
 ### [SOCIAL] Emblemas Rockit y comparación entre amigos
 
 - tags: [frontend, backend, friends, badges, kb-36]
@@ -243,6 +234,16 @@
 ## Idle
 
 ## To Review
+
+### [SOCIAL] XP por tiempo real de escucha y sesiones
+
+- tags: [backend, friends, xp, kb-35]
+- priority: medium
+- workload: Hard
+    ```md
+    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
+    ```
+
 
 ### [FRIENDS] Vocabulary desde el Excel
 

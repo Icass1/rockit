@@ -82,7 +82,16 @@
         "FRIENDS_SHOW_ALL": "Show all {count} friends",
         "FRIENDS_SHOW_LESS": "Show fewer",
         "FRIENDS_NAV_SHARED": "Shared",
-        "FRIENDS_NAV_RECENT": "Recent"
+        "FRIENDS_NAV_RECENT": "Recent",
+        "FRIENDS_XP_TIME_RULE": "XP for verified listening time. Previous XP is preserved.",
+        "FRIENDS_SESSION_PROGRESS": "This listening session",
+        "FRIENDS_SESSION_MINUTES": "{minutes} / {target} session minutes",
+        "FRIENDS_LISTENED_MINUTES": "{minutes} minutes listened",
+        "FRIENDS_LISTENING_MINUTES": "Listening minutes",
+        "FRIENDS_XP_MILESTONE": "{minutes} min · +{xp} XP",
+        "FRIENDS_MILESTONE_REACHED": "Earned",
+        "FRIENDS_MILESTONE_PENDING": "Not yet",
+        "FRIENDS_SESSION_RULE": "Only time actually played counts. After 90 seconds without listening, a new session starts."
     },
     "es": {
         "FRIENDS_LIST": "Lista de amigos",
@@ -167,7 +176,16 @@
         "FRIENDS_SHOW_ALL": "Ver los {count} amigos",
         "FRIENDS_SHOW_LESS": "Ver menos",
         "FRIENDS_NAV_SHARED": "Compartidos",
-        "FRIENDS_NAV_RECENT": "Recientes"
+        "FRIENDS_NAV_RECENT": "Recientes",
+        "FRIENDS_XP_TIME_RULE": "XP por tiempo de escucha verificado. Se conserva tu XP anterior.",
+        "FRIENDS_SESSION_PROGRESS": "Esta sesión de escucha",
+        "FRIENDS_SESSION_MINUTES": "{minutes} / {target} min de sesión",
+        "FRIENDS_LISTENED_MINUTES": "{minutes} minutos escuchados",
+        "FRIENDS_LISTENING_MINUTES": "Minutos escuchados",
+        "FRIENDS_XP_MILESTONE": "{minutes} min · +{xp} XP",
+        "FRIENDS_MILESTONE_REACHED": "Conseguido",
+        "FRIENDS_MILESTONE_PENDING": "Pendiente",
+        "FRIENDS_SESSION_RULE": "Solo cuenta el tiempo reproducido. Tras 90 segundos sin escuchar, empieza otra sesión."
     },
     "fr": {
         "FRIENDS_LIST": "Liste d’amis",
@@ -252,6 +270,15 @@
         "FRIENDS_SHOW_ALL": "Voir les {count} amis",
         "FRIENDS_SHOW_LESS": "Voir moins",
         "FRIENDS_NAV_SHARED": "Partagés",
-        "FRIENDS_NAV_RECENT": "Récentes"
+        "FRIENDS_NAV_RECENT": "Récentes",
+        "FRIENDS_XP_TIME_RULE": "XP pour le temps d’écoute vérifié. Votre XP antérieure est conservée.",
+        "FRIENDS_SESSION_PROGRESS": "Cette session d’écoute",
+        "FRIENDS_SESSION_MINUTES": "{minutes} / {target} min de session",
+        "FRIENDS_LISTENED_MINUTES": "{minutes} minutes écoutées",
+        "FRIENDS_LISTENING_MINUTES": "Minutes d’écoute",
+        "FRIENDS_XP_MILESTONE": "{minutes} min · +{xp} XP",
+        "FRIENDS_MILESTONE_REACHED": "Obtenu",
+        "FRIENDS_MILESTONE_PENDING": "À atteindre",
+        "FRIENDS_SESSION_RULE": "Seul le temps réellement lu compte. Après 90 secondes sans écoute, une nouvelle session commence."
     }
 }

@@ -1,3 +1,5 @@
+import type { ListeningMilestoneResponse } from "../../dto/listeningMilestoneResponse";
+
 export interface Friend {
     publicId: string;
     username: string;
@@ -39,6 +41,9 @@ export interface LeaderboardEntry {
     levelStartXp: number;
     title: string;
     streak: number;
+    totalListeningSeconds?: number;
+    sessionListeningSeconds?: number;
+    listeningMilestones?: ListeningMilestoneResponse[];
 }
 
 export interface FriendActivity {

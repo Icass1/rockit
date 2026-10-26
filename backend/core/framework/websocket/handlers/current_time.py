@@ -17,6 +17,7 @@ from backend.core.framework.websocket.listenInterval import (
 )
 from backend.core.framework.websocket.playbackState import UserPlaybackState
 from backend.core.framework.websocket.webSocketRouter import websocket_router
+from backend.core.framework.friend.listeningRewards import ListeningRewards
 from backend.core.requests.wsMessages import CurrentTimeMessageRequest
 from backend.core.responses.currentTimeMessage import CurrentTimeMessage
 
@@ -130,6 +131,16 @@ async def handle_current_time(
     if a_result.is_not_ok():
         logger.error(f"Error updating current time. {a_result.info()}")
         return
+
+    reward = await ListeningRewards.observe_async(
+        session=session,
+        user_id=user_id,
+        playback_id=current_time_msg.playbackId,
+        position_ms=current_time,
+        baseline=False,
+    )
+    if reward.is_not_ok():
+        logger.error("Listening reward update failed: %s", reward.info())
 
     if sender_websocket is not None:
         relay_message = CurrentTimeMessage(

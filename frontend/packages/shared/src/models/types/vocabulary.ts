@@ -667,4 +667,13 @@ export interface Vocabulary {
     FRIENDS_SHOW_LESS: string;
     FRIENDS_NAV_SHARED: string;
     FRIENDS_NAV_RECENT: string;
+    FRIENDS_XP_TIME_RULE: string;
+    FRIENDS_SESSION_PROGRESS: string;
+    FRIENDS_SESSION_MINUTES: string;
+    FRIENDS_LISTENED_MINUTES: string;
+    FRIENDS_LISTENING_MINUTES: string;
+    FRIENDS_XP_MILESTONE: string;
+    FRIENDS_MILESTONE_REACHED: string;
+    FRIENDS_MILESTONE_PENDING: string;
+    FRIENDS_SESSION_RULE: string;
 }

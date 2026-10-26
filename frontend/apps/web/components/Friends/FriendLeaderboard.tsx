@@ -80,6 +80,17 @@ export default function FriendLeaderboard(): JSX.Element {
               )
             : 100
         : 0;
+    const sessionSeconds = self?.sessionListeningSeconds ?? 0;
+    const milestones = self?.listeningMilestones ?? [];
+    const nextMilestone = milestones.find((step) => !step.reached);
+    const sessionLabel = nextMilestone
+        ? text("FRIENDS_SESSION_MINUTES", {
+              minutes: Math.floor(sessionSeconds / 60),
+              target: nextMilestone.minutes,
+          })
+        : text("FRIENDS_LISTENED_MINUTES", {
+              minutes: Math.floor(sessionSeconds / 60),
+          });
     const avatar = (entry: LeaderboardEntry): JSX.Element => (
         <span className={styles.leagueAvatar}>
             {entry.imageUrl ? (
@@ -141,7 +152,46 @@ export default function FriendLeaderboard(): JSX.Element {
                             <span>{v.SOCIAL_STREAK}</span>
                         </div>
                     </div>
-                    <p className={styles.statFootnote}>{v.SOCIAL_XP_RULE}</p>
+                    <p className={styles.statFootnote}>
+                        {v.FRIENDS_XP_TIME_RULE}
+                    </p>
+                    {milestones.length > 0 && (
+                        <section
+                            className={styles.sessionProgress}
+                            aria-label={v.FRIENDS_SESSION_PROGRESS}
+                        >
+                            <h3>{v.FRIENDS_SESSION_PROGRESS}</h3>
+                            <p>{sessionLabel}</p>
+                            <progress
+                                value={sessionSeconds}
+                                max={(nextMilestone?.minutes ?? 60) * 60}
+                                aria-label={sessionLabel}
+                            />
+                            <ul>
+                                {milestones.map((step) => (
+                                    <li
+                                        key={step.minutes}
+                                        data-reached={step.reached}
+                                    >
+                                        <span>
+                                            {text("FRIENDS_XP_MILESTONE", {
+                                                minutes: step.minutes,
+                                                xp: step.xp,
+                                            })}
+                                        </span>
+                                        <span>
+                                            {step.reached
+                                                ? v.FRIENDS_MILESTONE_REACHED
+                                                : v.FRIENDS_MILESTONE_PENDING}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className={styles.statFootnote}>
+                                {v.FRIENDS_SESSION_RULE}
+                            </p>
+                        </section>
+                    )}
                 </section>
             )}
             <details className={styles.leagueDisclosure}>
@@ -233,6 +283,17 @@ export default function FriendLeaderboard(): JSX.Element {
                                         v.SOCIAL_STREAK,
                                         self.streak,
                                         selected.streak,
+                                    ],
+                                    [
+                                        v.FRIENDS_LISTENING_MINUTES,
+                                        Math.floor(
+                                            (self.totalListeningSeconds ?? 0) /
+                                                60
+                                        ),
+                                        Math.floor(
+                                            (selected.totalListeningSeconds ??
+                                                0) / 60
+                                        ),
                                     ],
                                 ].map(([label, a, b]) => (
                                     <tr key={label}>

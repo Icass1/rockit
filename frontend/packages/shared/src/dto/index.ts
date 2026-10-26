@@ -381,6 +381,10 @@ export {
     ListenTogetherSyncRequestSchema,
     type ListenTogetherSyncRequest,
 } from "./listenTogetherSyncRequest";
+export {
+    ListeningMilestoneResponseSchema,
+    type ListeningMilestoneResponse,
+} from "./listeningMilestoneResponse";
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";

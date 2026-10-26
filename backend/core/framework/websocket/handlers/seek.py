@@ -13,6 +13,7 @@ from backend.core.framework.models.media import MediaModel
 from backend.core.framework.user.user import User
 from backend.core.framework.websocket.listenInterval import close_listen_interval_async
 from backend.core.framework.websocket.webSocketRouter import websocket_router
+from backend.core.framework.friend.listeningRewards import ListeningRewards
 from backend.core.responses.currentTimeMessage import CurrentTimeMessage
 from backend.core.requests.wsMessages import SeekMessageRequest
 
@@ -87,6 +88,16 @@ async def handle_seek(
         playback_state.active_interval_db_id = None
         playback_state.active_interval_start_timestamp = time_module.time()
         playback_state.active_interval_last_flush_timestamp = None
+
+    reward = await ListeningRewards.observe_async(
+        session=session,
+        user_id=user_id,
+        playback_id=seek_msg.playbackId,
+        position_ms=int(seek_msg.timeTo * 1000),
+        baseline=True,
+    )
+    if reward.is_not_ok():
+        logger.error("Listening reward update failed: %s", reward.info())
 
     if playback_state:
         playback_state.last_time_ms = int(seek_msg.timeTo * 1000)

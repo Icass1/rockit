@@ -1353,17 +1353,18 @@
 @container friends (min-width: 1000px) {
     .socialLayout {
         grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
-        grid-template-areas: "people shared" "people recent" "progress together";
+        grid-template-areas: "people music" "progress music" "together music";
+        grid-template-rows: min-content min-content 1fr;
         gap: 3rem;
     }
     .peopleRegion {
         grid-area: people;
     }
-    .sharedRegion {
-        grid-area: shared;
-    }
-    .recentRegion {
-        grid-area: recent;
+    .musicRegion {
+        grid-area: music;
+        display: grid;
+        gap: 3rem;
+        min-width: 0;
     }
     .progressRegion {
         grid-area: progress;
@@ -1378,7 +1379,8 @@
                 300px,
                 0.9fr
             );
-        grid-template-areas: "people shared progress" "people recent together";
+        grid-template-areas: "people music progress" "together music progress";
+        grid-template-rows: min-content 1fr;
         gap: 3rem;
     }
     .listeningHistory {
@@ -1547,4 +1549,15 @@
 .emblemCollection[data-compact="true"] .emblemLogo {
     width: 22px;
     height: 22px;
+}
+
+.musicRegion {
+    display: contents;
+}
+@container friends (min-width: 1000px) {
+    .musicRegion {
+        display: grid;
+        gap: 3rem;
+        min-width: 0;
+    }
 }

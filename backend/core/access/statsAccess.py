@@ -420,20 +420,22 @@ class StatsAccess:
             SELECT ai.album_public_id,
                    ai.album_name,
                    ai.album_image_url,
+                   ai.album_artists,
                    COUNT(*) AS play_count
             FROM     core.user_media_listened uml
             JOIN     album_info ai ON ai.media_id = uml.media_id
             WHERE    uml.user_id    = :user_id
               AND    uml.date_added >= :start_date
               AND    uml.date_added <  :end_date
-            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url, ai.album_artists
         )
         SELECT (ARRAY_AGG(ap.album_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
                ap.album_name        AS name,
+               ap.album_artists     AS subtitle,
                (ARRAY_AGG(ap.album_image_url ORDER BY ap.play_count DESC))[1] AS image_url,
                SUM(ap.play_count)   AS play_count
         FROM   album_plays ap
-        GROUP BY ap.album_name
+        GROUP BY ap.album_name, ap.album_artists
         ORDER BY play_count DESC
         LIMIT  :limit
         """)
@@ -458,7 +460,7 @@ class StatsAccess:
                     href=f"/album/{r.public_id}",
                     value=int(r.play_count),
                     imageUrl=r.image_url,
-                    subtitle=None,
+                    subtitle=r.subtitle,
                 )
                 for r in rows
             ],

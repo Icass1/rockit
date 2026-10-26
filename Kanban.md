@@ -71,14 +71,6 @@
     Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
     ```
 
-### [FEATURED] Mostrar artista en featured lists de álbumes
-
-- tags: [frontend, featured, albums, ui]
-- priority: medium
-- workload: Easy
-    ```md
-    Fixear en las featured lists: en los álbumes, poner también el artista.
-    ```
 
 ### [LIBRARY] Centrar botón library y arreglar random
 
@@ -118,6 +110,18 @@
     ```
 
 ## To Review
+
+### [FEATURED] Mostrar artista en featured lists de álbumes
+
+- tags: [frontend, featured, albums, ui, kb-31]
+- priority: medium
+- workload: Easy
+    ```md
+    Implementado: el subtítulo de álbumes destacados incluye los artistas del álbum en los cuatro proveedores, sin peticiones adicionales desde el frontend. Los álbumes homónimos de artistas diferentes no se agrupan juntos. También se corrige el enlace pista/álbum de Rockit en estadísticas. Pendiente de revisión integrada; sin tests locales.
+
+    Fixear en las featured lists: en los álbumes, poner también el artista.
+    ```
+
 
 ### [FRIENDS] Estado online de la gente en tiempo real por WebSocket
 

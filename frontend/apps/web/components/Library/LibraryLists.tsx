@@ -723,7 +723,10 @@ export function LibraryLists({
                         <p className="mt-1 truncate text-center font-semibold">
                             {album.name}
                         </p>
-                        <p className="truncate text-center text-sm text-gray-400">
+                        <p
+                            className="truncate text-center text-sm text-gray-400"
+                            title={album.subtitle ?? undefined}
+                        >
                             {album.subtitle}
                         </p>
                     </Link>

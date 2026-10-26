@@ -138,7 +138,6 @@ class Levels:
                                 summary=rewards.result()[user.id],
                                 streak=streaks.result().get(user.id, 0),
                             ),
-                            difficulty=badge.difficulty,
                             visualVariant=badge.visual_variant,
                             tier=badge.tier,
                             earnedAt=badges.result().get(user.id, {}).get(badge.key),

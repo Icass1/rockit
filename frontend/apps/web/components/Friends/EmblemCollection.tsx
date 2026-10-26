@@ -27,7 +27,6 @@ export default function EmblemCollection({
     const id = useId();
     const [expanded, setExpanded] = useState(false);
     const [family, setFamily] = useState("all");
-    const [difficulty, setDifficulty] = useState("all");
     const [status, setStatus] = useState("all");
     const [query, setQuery] = useState("");
     const count = badges.filter((badge) => badge.earnedAt).length;
@@ -49,7 +48,6 @@ export default function EmblemCollection({
     const filtered = badges.filter(
         (badge) =>
             (family === "all" || badge.scope === family) &&
-            (difficulty === "all" || badge.difficulty === difficulty) &&
             (status === "all" ||
                 Boolean(badge.earnedAt) === (status === "earned")) &&
             searchable(`${v[badge.titleKey]} ${description(badge)}`).includes(
@@ -89,25 +87,6 @@ export default function EmblemCollection({
                                             `FRIENDS_BADGE_FAMILY_${scope.toUpperCase()}`
                                         ]
                                     }
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label htmlFor={`${id}-difficulty`}>
-                        {v.FRIENDS_BADGE_FILTER_DIFFICULTY}
-                        <select
-                            id={`${id}-difficulty`}
-                            value={difficulty}
-                            onChange={(event) =>
-                                setDifficulty(event.target.value)
-                            }
-                        >
-                            <option value="all">
-                                {v.FRIENDS_BADGE_ALL_DIFFICULTIES}
-                            </option>
-                            {["easy", "medium", "hard"].map((value) => (
-                                <option key={value} value={value}>
-                                    {v[`FRIENDS_BADGE_${value.toUpperCase()}`]}
                                 </option>
                             ))}
                         </select>
@@ -153,7 +132,6 @@ export default function EmblemCollection({
                     <button
                         onClick={() => {
                             setFamily("all");
-                            setDifficulty("all");
                             setStatus("all");
                             setQuery("");
                         }}
@@ -172,18 +150,11 @@ export default function EmblemCollection({
                         <RockitEmblem
                             variant={badge.visualVariant}
                             tier={badge.tier}
-                            difficulty={badge.difficulty}
                             earned={Boolean(badge.earnedAt)}
                         />
                         <div>
                             <strong>{v[badge.titleKey]}</strong>
                             <small>
-                                {
-                                    v[
-                                        `FRIENDS_BADGE_${badge.difficulty.toUpperCase()}`
-                                    ]
-                                }{" "}
-                                ·{" "}
                                 {
                                     v[
                                         `FRIENDS_BADGE_FAMILY_${badge.scope.toUpperCase()}`

@@ -48,7 +48,6 @@ ListeningBadgeScope = Literal[
     "videos",
     "mixed",
 ]
-ListeningBadgeDifficulty = Literal["easy", "medium", "hard"]
 
 
 @dataclass(frozen=True)
@@ -65,6 +64,5 @@ class ListeningBadgeDefinition:
     target: int
     title_key: str
     description_key: str
-    difficulty: ListeningBadgeDifficulty
     visual_variant: str
     tier: int

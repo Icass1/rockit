@@ -32,10 +32,10 @@ by hand. Friends UI keeps personal progress after social content on mobile.
 ## Rockit emblems — KB-36
 
 The catalogue contains 115 named emblems: 20 session, 25 accumulated-time,
-20 recorded-listen, 15 discovery, 10 streak, 10 sharing, 5 friendship, 5 video and 5 combined discovery/sharing achievements. Difficulty
-is distributed across 42 easy, 39 medium and 34 hard milestones. Six vector motif
-families use the existing Rockit logo, a visible tier number and difficulty metal
-colours; names and requirements are translated in Vocabulary.xlsx.
+20 recorded-listen, 15 discovery, 10 streak, 10 sharing, 5 friendship, 5 video and 5 combined discovery/sharing achievements. Six vector motif
+families use the existing Rockit logo and a visible tier number. There are no
+difficulty labels, filters or colour categories. Names and concise requirements
+are translated in Vocabulary.xlsx.
 
 Discovery counts distinct recorded media. Sharing counts distinct recipient/media
 pairs, so repeatedly sending the same recording to the same friend adds no credit.
@@ -55,6 +55,19 @@ Unlocks persist once per user/key with an earned timestamp. Emblems do not grant
 extra XP. Profile and comparison projections batch statistics and earned state;
 new awards use one JSON recordset insert rather than per-badge queries. The initial
 collection shows one representative per family, with an expandable, scrollable
-catalogue filtered by family, difficulty, earned state and text. Locked requirements
+catalogue filtered by family, earned state and text. Locked requirements
 and numeric progress remain explicit. Accepted-friend comparisons show collections
 and their earned intersection; friendship and blocking access checks remain intact.
+
+## Provider boundary and vocabulary review
+
+Rewards use shared playback positions, recorded core media types, mutually accepted
+friendships and recorded shares. Reward framework/access modules do not import
+concrete providers or branch on provider names. Provider-specific playback,
+metadata and integration behavior belongs in each provider; the common reward
+policy intentionally remains in core so all providers share the same rules.
+
+All 115 badge names and concise requirements, family labels and catalogue controls
+come from Vocabulary.xlsx in English, Spanish and French. Generated vocabulary and
+response schemas are regenerated from their canonical sources. Difficulty is
+removed from the response schema as well as labels, filters and emblem colours.

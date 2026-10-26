@@ -2,7 +2,6 @@ from typing import List
 from datetime import datetime
 from backend.core.framework.models.listeningRewards import (
     ListeningBadgeScope,
-    ListeningBadgeDifficulty,
 )
 
 from pydantic import BaseModel, Field
@@ -28,7 +27,6 @@ class ListeningBadgeResponse(BaseModel):
     targetMinutes: int = 0
     target: int
     current: int = 0
-    difficulty: ListeningBadgeDifficulty
     visualVariant: str
     tier: int
     earnedAt: datetime | None = None

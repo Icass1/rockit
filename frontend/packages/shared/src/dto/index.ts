@@ -818,10 +818,6 @@ export { CoroutineSchema, type Coroutine } from "./coroutine";
 export { DictSchema, type Dict } from "./dict";
 export { ListSchema, type List } from "./list";
 export {
-    ListeningBadgeDifficultySchema,
-    type ListeningBadgeDifficulty,
-} from "./listeningBadgeDifficulty";
-export {
     ListeningBadgeScopeSchema,
     type ListeningBadgeScope,
 } from "./listeningBadgeScope";

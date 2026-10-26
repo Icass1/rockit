@@ -1620,9 +1620,3 @@
     background: var(--social-base);
     border-radius: 50%;
 }
-.emblem[data-difficulty="medium"][data-earned="true"] {
-    --emblem-ink: #edc38a;
-}
-.emblem[data-difficulty="hard"][data-earned="true"] {
-    --emblem-ink: #ebafef;
-}

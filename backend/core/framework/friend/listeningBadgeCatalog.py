@@ -3,7 +3,6 @@
 from backend.core.framework.models.listeningRewards import (
     ListeningBadgeDefinition,
     ListeningBadgeFamily,
-    ListeningBadgeDifficulty,
 )
 
 BADGE_FAMILIES = (
@@ -109,7 +108,6 @@ _LEGACY_KEYS = {
     ("total", 300): "atlas",
     ("total", 1440): "voyager",
 }
-_DIFFICULTIES: tuple[ListeningBadgeDifficulty, ...] = ("easy", "medium", "hard")
 
 
 def _family_badges(
@@ -131,7 +129,6 @@ def _family_badges(
                 ),
                 description_key=f"FRIENDS_BADGE_{family.scope.upper()}_DESCRIPTION"
                 + ("_ONE" if target == 1 else ""),
-                difficulty=_DIFFICULTIES[index * 3 // len(family.targets)],
                 visual_variant=legacy or family.visual_variant,
                 tier=index + 1,
             )

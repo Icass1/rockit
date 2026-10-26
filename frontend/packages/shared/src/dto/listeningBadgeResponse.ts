@@ -21,11 +21,6 @@ export const ListeningBadgeResponseSchema = z.object({
     targetMinutes: z.number().default(0),
     target: z.number(),
     current: z.number().default(0),
-    difficulty: z.union([
-        z.literal("easy"),
-        z.literal("medium"),
-        z.literal("hard"),
-    ]),
     visualVariant: z.string(),
     tier: z.number(),
     earnedAt: z.iso.datetime().nullable(),

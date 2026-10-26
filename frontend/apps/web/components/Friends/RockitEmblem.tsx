@@ -1,9 +1,13 @@
 "use client";
 
-import type { JSX } from "react";
+import { useId, type JSX } from "react";
 import Image from "next/image";
 import { LockKeyhole } from "lucide-react";
 import styles from "@/components/Friends/Friends.module.css";
+
+// Rounded corners and a shared die keep the collection recognisable at 40px.
+const medal =
+    "M36 4Q40 2 44 4L65 16Q69 18 69 23V49Q69 54 65 56L44 68Q40 70 36 68L15 56Q11 54 11 49V23Q11 18 15 16Z";
 
 export default function RockitEmblem({
     variant,
@@ -14,15 +18,9 @@ export default function RockitEmblem({
     earned: boolean;
     tier?: number;
 }): JSX.Element {
-    const contours: Record<string, string> = {
-        ignition:
-            "M32 3 43 10 55 10 55 23 62 32 55 41 55 54 42 54 32 61 22 54 9 54 9 41 2 32 9 23 9 10 22 10Z",
-        orbit: "M32 3A29 29 0 1 1 32 61A29 29 0 1 1 32 3Z",
-        groove: "M32 4A28 28 0 1 1 32 60A28 28 0 1 1 32 4Z",
-        longplay: "M13 4H51V15A8 8 0 0 0 51 31V59H13V31A8 8 0 0 0 13 15Z",
-        atlas: "M20 3H44L61 20V44L44 61H20L3 44V20Z",
-        voyager: "M32 2 58 17 58 47 32 62 6 47 6 17Z",
-    };
+    const id = useId().replace(/:/g, "");
+    const metalId = `${id}-metal`;
+    const enamelId = `${id}-enamel`;
     return (
         <span
             className={styles.emblem}
@@ -30,77 +28,138 @@ export default function RockitEmblem({
             data-earned={earned}
             aria-hidden="true"
         >
-            <svg viewBox="0 0 64 64" fill="none">
+            <svg viewBox="0 0 80 80" fill="none" focusable="false">
+                <defs>
+                    <linearGradient
+                        id={metalId}
+                        x1="15"
+                        y1="4"
+                        x2="64"
+                        y2="68"
+                        gradientUnits="userSpaceOnUse"
+                    >
+                        <stop stopColor="var(--medal-highlight)" />
+                        <stop offset="0.28" stopColor="var(--medal-metal)" />
+                        <stop
+                            offset="0.52"
+                            stopColor="var(--medal-highlight)"
+                        />
+                        <stop offset="1" stopColor="var(--medal-shadow)" />
+                    </linearGradient>
+                    <linearGradient
+                        id={enamelId}
+                        x1="24"
+                        y1="12"
+                        x2="55"
+                        y2="62"
+                        gradientUnits="userSpaceOnUse"
+                    >
+                        <stop stopColor="currentColor" stopOpacity="0.36" />
+                        <stop
+                            offset="1"
+                            stopColor="currentColor"
+                            stopOpacity="0.07"
+                        />
+                    </linearGradient>
+                </defs>
                 <path
-                    d={contours[variant] ?? contours.orbit}
-                    fill="currentColor"
-                    fillOpacity="0.08"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
+                    d={medal}
+                    transform="translate(0 3)"
+                    fill="var(--medal-shadow)"
                 />
-                {variant === "orbit" && (
-                    <ellipse
-                        cx="32"
-                        cy="32"
-                        rx="30"
-                        ry="12"
-                        transform="rotate(-35 32 32)"
-                        stroke="currentColor"
-                    />
-                )}
-                {variant === "groove" && (
-                    <>
-                        <circle
-                            cx="32"
-                            cy="32"
-                            r="24"
-                            stroke="currentColor"
-                            opacity="0.5"
+                <path d={medal} fill={`url(#${metalId})`} />
+                <path
+                    d={medal}
+                    transform="translate(4.8 4.32) scale(.88)"
+                    fill="var(--medal-face)"
+                    stroke="var(--medal-shadow)"
+                    strokeWidth="0.8"
+                />
+                <path
+                    d={medal}
+                    transform="translate(6.4 5.76) scale(.84)"
+                    fill={`url(#${enamelId})`}
+                    stroke="currentColor"
+                    strokeOpacity="0.55"
+                    strokeWidth="0.7"
+                />
+                <g stroke="currentColor" strokeLinecap="round">
+                    {variant === "orbit" && (
+                        <ellipse
+                            cx="40"
+                            cy="35"
+                            rx="25"
+                            ry="15"
+                            transform="rotate(-32 40 35)"
+                            strokeDasharray="38 7"
                         />
-                        <circle
-                            cx="32"
-                            cy="32"
-                            r="21"
-                            stroke="currentColor"
-                            opacity="0.3"
-                        />
-                    </>
-                )}
-                {variant === "atlas" && (
-                    <path
-                        d="M7 23 57 41M23 7 41 57M7 41 57 23"
-                        stroke="currentColor"
-                        strokeDasharray="2 4"
-                        opacity="0.5"
-                    />
-                )}
-                {variant === "voyager" && (
-                    <>
+                    )}
+                    {variant === "groove" && (
+                        <>
+                            <circle
+                                cx="40"
+                                cy="35"
+                                r="23"
+                                strokeOpacity="0.6"
+                            />
+                            <circle
+                                cx="40"
+                                cy="35"
+                                r="20"
+                                strokeOpacity="0.35"
+                            />
+                        </>
+                    )}
+                    {variant === "ignition" && (
                         <path
-                            d="m32 8 20 12v24L32 56 12 44V20Z"
-                            stroke="currentColor"
-                            opacity="0.5"
+                            d="m29 18 4-6m14 6-4-6M20 30l-4-2m44 2 4-2"
+                            strokeWidth="1.5"
                         />
-                        <circle cx="32" cy="8" r="2" fill="currentColor" />
-                        <circle cx="32" cy="56" r="2" fill="currentColor" />
-                    </>
-                )}
-                {variant === "longplay" && (
-                    <path
-                        d="M20 10h24M20 53h24"
-                        stroke="currentColor"
-                        strokeDasharray="3 3"
-                    />
-                )}
+                    )}
+                    {variant === "longplay" && (
+                        <path
+                            d="M19 28v14m4-19v24m34-24v24m4-19v14"
+                            strokeWidth="1.5"
+                        />
+                    )}
+                    {variant === "atlas" && (
+                        <>
+                            <path d="m40 11 3 5-3 5-3-5ZM18 39l4-4-4-4m44 8-4-4 4-4" />
+                            <path
+                                d="M25 18Q40 10 55 18"
+                                strokeDasharray="1 4"
+                            />
+                        </>
+                    )}
+                    {variant === "voyager" && (
+                        <>
+                            <path d="m24 20 2-5 2 5 5 2-5 2-2 5-2-5-5-2Zm31 21 1-3 1 3 3 1-3 1-1 3-1-3-3-1Z" />
+                            <path d="m47 14 9 6" strokeDasharray="1 3" />
+                        </>
+                    )}
+                </g>
+                <path
+                    d="M21 48q-6-7-4-16m42 16q6-7 4-16"
+                    stroke="var(--medal-highlight)"
+                    strokeOpacity="0.55"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                />
+                <path
+                    d="m28 58 12 7 12-7"
+                    stroke="var(--medal-highlight)"
+                    strokeOpacity="0.6"
+                    strokeLinecap="round"
+                />
             </svg>
-            <span className={styles.emblemTier}>{tier}</span>
             <Image
                 className={styles.emblemLogo}
                 src="/logo-192.png"
                 alt=""
-                width={36}
-                height={36}
+                width={32}
+                height={32}
             />
+            <span className={styles.emblemTier}>{tier}</span>
             {!earned && <LockKeyhole className={styles.emblemLock} size={13} />}
         </span>
     );

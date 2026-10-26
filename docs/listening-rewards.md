@@ -33,7 +33,9 @@ by hand. Friends UI keeps personal progress after social content on mobile.
 
 The catalogue contains 115 named emblems: 20 session, 25 accumulated-time,
 20 recorded-listen, 15 discovery, 10 streak, 10 sharing, 5 friendship, 5 video and 5 combined discovery/sharing achievements. Six vector motif
-families use the existing Rockit logo and a visible tier number. There are no
+families share a rounded hexagonal medal die, warm metallic bevel, family-coloured
+enamel, the existing Rockit logo and an engraved tier number. Locked medals use
+a matte neutral finish and a lock icon; the design remains legible at 40px. There are no
 difficulty labels, filters or colour categories. Names and concise requirements
 are translated in Vocabulary.xlsx.
 

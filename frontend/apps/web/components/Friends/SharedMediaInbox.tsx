@@ -125,8 +125,14 @@ export default function SharedMediaInbox(): JSX.Element {
                                 </p>
                                 <p className="truncate text-xs text-neutral-500">
                                     {view === "inbox"
-                                        ? `from ${item.senderUsername}`
-                                        : `to ${item.recipientUsername}`}
+                                        ? v.FRIENDS_SHARED_FROM.replace(
+                                              "{name}",
+                                              item.senderUsername
+                                          )
+                                        : v.FRIENDS_SHARED_TO.replace(
+                                              "{name}",
+                                              item.recipientUsername
+                                          )}
                                 </p>
                                 {item.message && (
                                     <p className="mt-0.5 truncate text-xs text-neutral-600 italic">

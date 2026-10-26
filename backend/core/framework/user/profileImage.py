@@ -23,6 +23,8 @@ def _encode_profile_image(data: bytes) -> bytes:
         if source.width * source.height > 16_000_000:
             raise ValueError("Image dimensions are too large")
         oriented = ImageOps.exif_transpose(source)
+        if oriented is None:
+            raise ValueError("Image orientation could not be resolved")
         image = ImageOps.fit(
             oriented.convert("RGBA"),
             (512, 512),

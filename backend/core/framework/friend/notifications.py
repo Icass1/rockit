@@ -17,6 +17,29 @@ def notify_after_commit(
     events.update((user_id, kind) for user_id in user_ids)
 
 
+def notify_notifications_after_commit(session: AsyncSession, user_id: int) -> None:
+    """Refresh only the recipient's notification inbox after commit."""
+    if "notification_events" not in session.info:
+        session.info["notification_events"] = set()
+        after_commit(session, lambda: deliver_notification_events(session))
+    session.info["notification_events"].add(user_id)
+
+
+async def deliver_notification_events(session: AsyncSession) -> None:
+    from backend.core.framework.websocket.webSocketManager import ws_manager
+
+    user_ids: set[int] = session.info.pop("notification_events", set())
+    for user_id in user_ids:
+        try:
+            await ws_manager.send_to_user_async(
+                user_id=user_id, message={"type": "notifications_changed"}
+            )
+        except Exception:
+            logger.exception(
+                "Unable to deliver notification update for user %s", user_id
+            )
+
+
 async def deliver_notifications(session: AsyncSession) -> None:
     from backend.core.framework.websocket.webSocketManager import ws_manager
 

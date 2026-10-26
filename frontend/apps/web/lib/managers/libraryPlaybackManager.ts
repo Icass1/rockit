@@ -1,4 +1,9 @@
-import { EQueueType, isStation, type TPlayableMedia } from "@rockit/shared";
+import {
+    EQueueType,
+    isStation,
+    shuffle,
+    type TPlayableMedia,
+} from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { expandPlaylistsToPlayable } from "@/lib/services/mediaService";
@@ -40,9 +45,22 @@ export class LibraryPlaybackManager {
                 // Metadata alone is not a successful playback selection.
                 if (!pending.some((item) => isStation(item) || item.downloaded))
                     return;
-                queue.setMedia(pending, "library");
+                // Shuffle the complete playable library before creating the queue.
+                // Start at its visible head, rather than drawing a second random index.
+                const selection = randomStart
+                    ? shuffle(
+                          pending.filter(
+                              (item) => isStation(item) || item.downloaded
+                          )
+                      )
+                    : pending;
+                queue.setMedia(selection, "library");
                 ownedQueue = queue.queueIdentity;
-                queue.setQueueMediaId();
+                if (randomStart) {
+                    const first = queue.queue[0];
+                    if (!first) return;
+                    queue.setQueueMediaId(first.queueMediaId);
+                } else queue.setQueueMediaId();
                 started = true;
                 pending.length = 0;
                 rockIt.mediaPlayerManager.play();

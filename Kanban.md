@@ -60,22 +60,6 @@
 
 ## In Progress
 
-### [LIBRARY] Centrar botón library y arreglar random
-
-- tags: [frontend, library, queue, bug, ui, kb-06]
-- priority: high
-- workload: Normal
-- defaultExpanded: false
-- steps:
-    - [x] Centrar verticalmente el botón de library
-    - [x] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
-    - [ ] Random sigue siendo raro empeza muy abajo en la cola en vez de empezar en el principio, i que aparece ezclado pero random en la cola, deberis ser que la cola se ordene de una manera distinta cada vez que s ele de al play y empezar por la primera cancion
-    ```md
-    Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. Random implementado: se resuelven álbumes y playlists antes de seleccionar la primera canción aleatoria, para que no salga siempre del grupo de canciones sueltas. La reproducción ordenada conserva el arranque progresivo. Las acciones sobre otra cola cancelan la carga pendiente. Pendiente de revisión integrada; sin tests locales.
-
-    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
-    ```
-
 ### [UI] Mejorar blur del header y hacerlo más curvo
 
 - tags: [frontend, ui, header, blur, kb-28]
@@ -129,6 +113,24 @@
     ```
 
 ## To Review
+
+### [LIBRARY] Centrar botón library y arreglar random
+
+- tags: [frontend, library, queue, bug, ui, kb-06]
+- priority: high
+- workload: Normal
+- defaultExpanded: false
+- steps:
+    - [x] Centrar verticalmente el botón de library
+    - [x] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
+    - [x] Random sigue siendo raro empeza muy abajo en la cola en vez de empezar en el principio, i que aparece ezclado pero random en la cola, deberis ser que la cola se ordene de una manera distinta cada vez que s ele de al play y empezar por la primera cancion
+    ```md
+    Revisión: Random resuelve toda la biblioteca, mezcla las pistas reproducibles y arranca en la primera posición visible de la cola; elimina la segunda selección aleatoria que saltaba a mitad de lista. Cada nueva reproducción reconstruye la mezcla. Reproducción ordenada progresiva conservada. Pendiente de revisión; sin tests locales.
+
+    Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. Random implementado: se resuelven álbumes y playlists antes de seleccionar la primera canción aleatoria, para que no salga siempre del grupo de canciones sueltas. La reproducción ordenada conserva el arranque progresivo. Las acciones sobre otra cola cancelan la carga pendiente. Pendiente de revisión integrada; sin tests locales.
+
+    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
+    ```
 
 ### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
 

@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Literal
+from datetime import datetime
 
 from pydantic import BaseModel, Field
 
@@ -15,6 +16,15 @@ class ListeningMilestoneResponse(BaseModel):
     reached: bool
 
 
+class ListeningBadgeResponse(BaseModel):
+    key: str
+    titleKey: str
+    descriptionKey: str
+    scope: Literal["session", "total"]
+    targetMinutes: int
+    earnedAt: datetime | None = None
+
+
 class UserLevelResponse(BaseModel):
     userId: str
     username: str
@@ -28,6 +38,7 @@ class UserLevelResponse(BaseModel):
     levelStartXp: int = 0
     totalListeningSeconds: int = 0
     sessionListeningSeconds: int = 0
+    listeningBadges: list[ListeningBadgeResponse] = Field(default_factory=list)
     listeningMilestones: list[ListeningMilestoneResponse] = Field(default_factory=list)
 
 

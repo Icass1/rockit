@@ -382,6 +382,10 @@ export {
     type ListenTogetherSyncRequest,
 } from "./listenTogetherSyncRequest";
 export {
+    ListeningBadgeResponseSchema,
+    type ListeningBadgeResponse,
+} from "./listeningBadgeResponse";
+export {
     ListeningMilestoneResponseSchema,
     type ListeningMilestoneResponse,
 } from "./listeningMilestoneResponse";

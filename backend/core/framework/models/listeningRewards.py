@@ -30,3 +30,12 @@ class ListeningRewardSummary:
     total_ms: int = 0
     session_ms: int = 0
     recorded_listens: int = 0
+
+
+@dataclass(frozen=True)
+class ListeningBadgeDefinition:
+    key: str
+    scope: str
+    target_minutes: int
+    title_key: str
+    description_key: str

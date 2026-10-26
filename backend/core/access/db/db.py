@@ -122,3 +122,7 @@ from backend.core.access.db.ormModels.friend.listeningProgress import (
 from backend.core.access.db.ormModels.friend.listeningXpEvent import (
     ListeningXpEventRow as ListeningXpEventRow,
 )
+
+from backend.core.access.db.ormModels.friend.listeningBadge import (
+    ListeningBadgeRow as ListeningBadgeRow,
+)

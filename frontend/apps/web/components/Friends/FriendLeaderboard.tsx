@@ -6,6 +6,7 @@ import { useStore } from "@nanostores/react";
 import { ArrowUpRight, ChevronDown, Flame, Headphones } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
+import EmblemCollection from "@/components/Friends/EmblemCollection";
 import styles from "@/components/Friends/Friends.module.css";
 
 export default function FriendLeaderboard(): JSX.Element {
@@ -80,6 +81,13 @@ export default function FriendLeaderboard(): JSX.Element {
               )
             : 100
         : 0;
+    const commonBadges = (self?.listeningBadges ?? []).filter(
+        (badge) =>
+            badge.earnedAt &&
+            selected?.listeningBadges?.some(
+                (other) => other.key === badge.key && other.earnedAt
+            )
+    ).length;
     const sessionSeconds = self?.sessionListeningSeconds ?? 0;
     const milestones = self?.listeningMilestones ?? [];
     const nextMilestone = milestones.find((step) => !step.reached);
@@ -163,6 +171,7 @@ export default function FriendLeaderboard(): JSX.Element {
                             <h3>{v.FRIENDS_SESSION_PROGRESS}</h3>
                             <p>{sessionLabel}</p>
                             <progress
+                                className={styles.levelProgress}
                                 value={sessionSeconds}
                                 max={(nextMilestone?.minutes ?? 60) * 60}
                                 aria-label={sessionLabel}
@@ -192,11 +201,20 @@ export default function FriendLeaderboard(): JSX.Element {
                             </p>
                         </section>
                     )}
+                    {self.listeningBadges && (
+                        <section
+                            className={styles.personalEmblems}
+                            aria-label={v.FRIENDS_BADGES}
+                        >
+                            <h3>{v.FRIENDS_BADGES}</h3>
+                            <EmblemCollection badges={self.listeningBadges} />
+                        </section>
+                    )}
                 </section>
             )}
             <details className={styles.leagueDisclosure}>
                 <summary>
-                    {v.SOCIAL_RACE}
+                    {v.FRIENDS_COMPARE_PROGRESS}
                     <ChevronDown size={18} aria-hidden="true" />
                 </summary>
                 <p className={styles.statFootnote}>
@@ -304,6 +322,33 @@ export default function FriendLeaderboard(): JSX.Element {
                                 ))}
                             </tbody>
                         </table>
+                        <section
+                            className={styles.emblemComparison}
+                            aria-label={v.FRIENDS_BADGE_COMPARE}
+                        >
+                            <h3>{v.FRIENDS_BADGE_COMPARE}</h3>
+                            <p className={styles.statFootnote}>
+                                {text("FRIENDS_BADGE_COMMON", {
+                                    count: commonBadges,
+                                })}
+                            </p>
+                            <div>
+                                <section aria-label={v.SOCIAL_YOU}>
+                                    <h4>{v.SOCIAL_YOU}</h4>
+                                    <EmblemCollection
+                                        badges={self.listeningBadges ?? []}
+                                        compact
+                                    />
+                                </section>
+                                <section aria-label={selected.username}>
+                                    <h4>{selected.username}</h4>
+                                    <EmblemCollection
+                                        badges={selected.listeningBadges ?? []}
+                                        compact
+                                    />
+                                </section>
+                            </div>
+                        </section>
                     </div>
                 )}
                 {!others.length && (

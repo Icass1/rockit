@@ -1,3 +1,4 @@
+import type { ListeningBadgeResponse } from "../../dto/listeningBadgeResponse";
 import type { ListeningMilestoneResponse } from "../../dto/listeningMilestoneResponse";
 
 export interface Friend {
@@ -44,6 +45,7 @@ export interface LeaderboardEntry {
     totalListeningSeconds?: number;
     sessionListeningSeconds?: number;
     listeningMilestones?: ListeningMilestoneResponse[];
+    listeningBadges?: ListeningBadgeResponse[];
 }
 
 export interface FriendActivity {

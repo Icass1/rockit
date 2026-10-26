@@ -3,6 +3,8 @@ from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.aResult import AResult
 from backend.core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
+from backend.core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
+from backend.core.framework.friend.listeningPolicy import LISTENING_BADGES
 from backend.core.framework.friend.listeningPolicy import (
     MAX_OBSERVATION_GAP_MS,
     POSITION_TOLERANCE_MS,
@@ -62,6 +64,7 @@ class ListeningRewards:
             for step in SESSION_MILESTONES
             if previous_ms < step.minutes * 60000 <= session_ms
         ]
+        previous_total = row.total_ms
         progress = ListeningProgressUpdate(
             session_id=session_id,
             session_ms=session_ms,
@@ -76,11 +79,29 @@ class ListeningRewards:
         )
         if saved.is_not_ok():
             logger.error("Cannot persist listening rewards: %s", saved.info())
+        unlocked_any = False
+        if saved.is_ok() and credited_ms > 0:
+            badge_keys = [
+                badge.key
+                for badge in LISTENING_BADGES
+                if (previous_ms if badge.scope == "session" else previous_total)
+                < badge.target_minutes * 60000
+                <= (session_ms if badge.scope == "session" else progress.total_ms)
+            ]
+            unlocked = await ListeningBadgesAccess.award_async(
+                session=session, user_id=user_id, badge_keys=badge_keys
+            )
+            if unlocked.is_not_ok():
+                logger.error("Cannot persist listening emblems: %s", unlocked.info())
+                return AResult(code=unlocked.code(), message=unlocked.message())
+            unlocked_any = unlocked.result()
         if saved.is_ok() and (
-            saved.result() or progress.session_ms // 30000 != previous_ms // 30000
+            saved.result()
+            or unlocked_any
+            or progress.session_ms // 30000 != previous_ms // 30000
         ):
             recipients = [user_id]
-            if saved.result():
+            if saved.result() or unlocked_any:
                 friends = await Friend.get_friend_ids_async(
                     session=session, user_id=user_id
                 )

@@ -2,6 +2,7 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
+import { ListeningBadgeResponseSchema } from "./listeningBadgeResponse";
 import { ListeningMilestoneResponseSchema } from "./listeningMilestoneResponse";
 
 export const UserLevelResponseSchema = z.object({
@@ -17,6 +18,9 @@ export const UserLevelResponseSchema = z.object({
     levelStartXp: z.number().default(0),
     totalListeningSeconds: z.number().default(0),
     sessionListeningSeconds: z.number().default(0),
+    listeningBadges: z
+        .array(z.lazy(() => ListeningBadgeResponseSchema))
+        .default([]),
     listeningMilestones: z
         .array(z.lazy(() => ListeningMilestoneResponseSchema))
         .default([]),

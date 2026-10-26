@@ -2,15 +2,6 @@
 
 ## To Do
 
-### [SOCIAL] Emblemas Rockit y comparación entre amigos
-
-- tags: [frontend, backend, friends, badges, kb-36]
-- priority: medium
-- workload: Normal
-    ```md
-    Medallas originales basadas en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
-    ```
-
 
 ### [SETTINGS] Subida de imagen de perfil y avatar por defecto
 
@@ -234,6 +225,17 @@
 ## Idle
 
 ## To Review
+
+### [SOCIAL] Emblemas Rockit y comparación entre amigos
+
+- tags: [frontend, backend, friends, badges, kb-36]
+- priority: medium
+- workload: Normal
+    ```md
+    Medallas originales basadas en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
+    ```
+
+
 
 ### [SOCIAL] XP por tiempo real de escucha y sesiones
 

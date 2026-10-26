@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Inbox, Play, Send, Trash2 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import styles from "@/components/Friends/Friends.module.css";
 
 export default function SharedMediaInbox(): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -14,17 +15,13 @@ export default function SharedMediaInbox(): JSX.Element {
     const $sent = useStore(rockIt.sharingManager.sentAtom);
     const items = view === "inbox" ? $inbox : $sent;
 
-    useEffect(() => {
-        rockIt.sharingManager.fetchInbox();
-        rockIt.sharingManager.fetchSent();
-    }, []);
-
     const unreadCount = $inbox.filter((i) => !i.seen).length;
 
     return (
         <div className="flex flex-col gap-3">
-            <div className="flex gap-2">
+            <div className={styles.inboxNavigation}>
                 <button
+                    aria-pressed={view === "inbox"}
                     onClick={() => setView("inbox")}
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
@@ -42,6 +39,7 @@ export default function SharedMediaInbox(): JSX.Element {
                     )}
                 </button>
                 <button
+                    aria-pressed={view === "sent"}
                     onClick={() => setView("sent")}
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
@@ -65,19 +63,8 @@ export default function SharedMediaInbox(): JSX.Element {
                     {items.map((item) => (
                         <div
                             key={item.publicId}
-                            className={
-                                "flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-neutral-900/50 " +
-                                (!item.seen && view === "inbox"
-                                    ? "border-l-2 border-[#ee1086] bg-neutral-900/30"
-                                    : "bg-neutral-900/10")
-                            }
-                            onClick={() => {
-                                if (!item.seen && view === "inbox") {
-                                    rockIt.sharingManager.markAsSeen(
-                                        item.publicId
-                                    );
-                                }
-                            }}
+                            className={styles.sharedRow}
+                            data-unread={!item.seen && view === "inbox"}
                         >
                             <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
                                 {item.mediaImageUrl ? (
@@ -101,6 +88,12 @@ export default function SharedMediaInbox(): JSX.Element {
                                 ) ? (
                                     <Link
                                         href={`/${item.mediaType}/${item.mediaPublicId}`}
+                                        onClick={() => {
+                                            if (!item.seen && view === "inbox")
+                                                void rockIt.sharingManager.markAsSeen(
+                                                    item.publicId
+                                                );
+                                        }}
                                         className="text-sm text-[#ee1086]"
                                     >
                                         {
@@ -111,6 +104,10 @@ export default function SharedMediaInbox(): JSX.Element {
                                 ) : (
                                     <button
                                         onClick={() => {
+                                            if (!item.seen && view === "inbox")
+                                                void rockIt.sharingManager.markAsSeen(
+                                                    item.publicId
+                                                );
                                             void rockIt.sharingManager.playSharedMedia(
                                                 item.mediaPublicId
                                             );

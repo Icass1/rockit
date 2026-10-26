@@ -1,5 +1,8 @@
 # RockIt! Friends — social dashboard
 
+Historical design. The proposed replacement is documented in
+[friends-listening-space-review.md](friends-listening-space-review.md).
+
 The screen brings your music identity, friends' progress and shared listening
 into one continuous space. Five destination tabs hid the context needed to
 compare friends; the dashboard now puts that context together.

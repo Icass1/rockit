@@ -11,14 +11,6 @@
     Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
     ```
 
-### [FRIENDS] Mejorar UI/UX de la página de friends
-
-- tags: [frontend, friends, ui, ux]
-- priority: high
-- workload: Normal
-    ```md
-    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
-    ```
 
 ### [PLAYER] Pantalla vertical: dividir el PlayerUI por la mitad
 
@@ -228,8 +220,21 @@
 
 ## In Progress
 
+
 ## Idle
 
 ## To Review
+
+### [FRIENDS] Mejorar UI/UX de la página de friends
+
+- tags: [frontend, friends, ui, ux, kb-33]
+- priority: high
+- workload: Normal
+    ```md
+    Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Diseño pendiente de revisión de Ignacio. Sin tests locales.
+
+    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
+    ```
+
 
 ## Done

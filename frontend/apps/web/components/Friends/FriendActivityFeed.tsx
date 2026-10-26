@@ -1,239 +1,191 @@
 "use client";
 
-import { type JSX } from "react";
+import { useState, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { Heart, ListPlus, Music2, Share2 } from "lucide-react";
+import { Heart, ListPlus, Music2, Play, Share2 } from "lucide-react";
 import type { FriendActivity } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
+import styles from "@/components/Friends/Friends.module.css";
 
-type Activity = FriendActivity & {
-    mediaArtist?: string;
-    currentProgressMs?: number;
-    durationMs?: number;
-    isLiveNow?: boolean;
-};
-
-function timeAgo(
-    dateStr: string,
-    justNowText: string,
-    units: string[]
-): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const m = Math.floor(diff / 60_000);
-    if (m < 1) return justNowText;
-    if (m < 60) return units[0].replace("{count}", String(m));
-    const h = Math.floor(m / 60);
-    if (h < 24) return units[1].replace("{count}", String(h));
-    return units[2].replace("{count}", String(Math.floor(h / 24)));
+function timeAgo(date: string, now: string, units: string[]): string {
+    const minutes = Math.max(
+        0,
+        Math.floor((Date.now() - new Date(date).getTime()) / 60000)
+    );
+    if (!Number.isFinite(minutes) || minutes < 1) return now;
+    const index = minutes < 60 ? 0 : minutes < 1440 ? 1 : 2;
+    const count =
+        index === 0
+            ? minutes
+            : index === 1
+              ? Math.floor(minutes / 60)
+              : Math.floor(minutes / 1440);
+    return units[index].replace("{count}", String(count));
 }
 
-function formatMs(ms: number): string {
-    const s = Math.floor(ms / 1000);
-    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
-
-function ActivityCard({
+function ActivitySleeve({
     item,
-    justNowText,
+    featured = false,
 }: {
-    item: Activity;
-    justNowText: string;
+    item: FriendActivity;
+    featured?: boolean;
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const progress =
-        item.currentProgressMs && item.durationMs
-            ? Math.min(100, (item.currentProgressMs / item.durationMs) * 100)
-            : null;
-
+    const [busy, setBusy] = useState(false);
+    const [failedImage, setFailedImage] = useState<string | null>(null);
+    const [failedAvatar, setFailedAvatar] = useState<string | null>(null);
+    const play = async (): Promise<void> => {
+        setBusy(true);
+        try {
+            await rockIt.sharingManager.playSharedMedia(item.mediaPublicId);
+        } finally {
+            setBusy(false);
+        }
+    };
     return (
-        <div className="social-card">
-            <div className="mb-3 flex items-center gap-2">
-                <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-neutral-800">
-                    {item.userImageUrl ? (
-                        <Image
-                            src={item.userImageUrl}
-                            alt={item.username}
-                            width={24}
-                            height={24}
-                            className="h-full w-full object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-neutral-500">
-                            {item.username[0]?.toUpperCase()}
-                        </div>
-                    )}
-                </div>
-                <span className="text-xs font-medium text-neutral-400">
-                    {item.username}
-                </span>
-                {item.isLiveNow && (
-                    <span className="flex items-center gap-1 text-[10px] font-semibold tracking-wider text-green-400 uppercase">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
-                        live
-                    </span>
+        <article
+            className={featured ? styles.featuredListen : styles.listenRow}
+        >
+            <div className={styles.sleeve}>
+                {item.mediaImageUrl && failedImage !== item.mediaImageUrl ? (
+                    <Image
+                        src={item.mediaImageUrl}
+                        alt=""
+                        width={featured ? 640 : 104}
+                        height={featured ? 640 : 104}
+                        className={styles.sleeveImage}
+                        onError={() => setFailedImage(item.mediaImageUrl)}
+                    />
+                ) : (
+                    <Music2
+                        size={featured ? 72 : 28}
+                        strokeWidth={1}
+                        aria-hidden="true"
+                    />
                 )}
-                <span className="ml-auto text-[10px] text-neutral-700">
-                    {timeAgo(item.listenedAt, justNowText, [
-                        v.SOCIAL_MINUTES_AGO,
-                        v.SOCIAL_HOURS_AGO,
-                        v.SOCIAL_DAYS_AGO,
-                    ])}
-                </span>
+                <button
+                    className={styles.sleevePlay}
+                    disabled={busy}
+                    aria-label={`${v.PLAY}: ${item.mediaName}`}
+                    onClick={() => {
+                        void play();
+                    }}
+                >
+                    <Play
+                        size={featured ? 24 : 18}
+                        fill="currentColor"
+                        aria-hidden="true"
+                    />
+                </button>
             </div>
-
-            <div className="flex items-center gap-3">
-                <div className="h-[60px] w-[60px] shrink-0 overflow-hidden rounded-xl bg-neutral-800">
-                    {item.mediaImageUrl ? (
-                        <Image
-                            src={item.mediaImageUrl}
-                            alt={item.mediaName}
-                            width={60}
-                            height={60}
-                            className="h-full w-full object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center text-neutral-700">
-                            <Music2 size={22} />
-                        </div>
-                    )}
+            <div className={styles.listenCopy}>
+                <div className={styles.attribution}>
+                    <span className={styles.listenerAvatar} aria-hidden="true">
+                        {item.userImageUrl &&
+                        failedAvatar !== item.userImageUrl ? (
+                            <Image
+                                src={item.userImageUrl}
+                                alt=""
+                                width={24}
+                                height={24}
+                                onError={() =>
+                                    setFailedAvatar(item.userImageUrl)
+                                }
+                            />
+                        ) : (
+                            item.username.slice(0, 1).toUpperCase()
+                        )}
+                    </span>
+                    <span>{item.username}</span>
+                    <time dateTime={item.listenedAt}>
+                        {timeAgo(item.listenedAt, v.JUST_NOW, [
+                            v.SOCIAL_MINUTES_AGO,
+                            v.SOCIAL_HOURS_AGO,
+                            v.SOCIAL_DAYS_AGO,
+                        ])}
+                    </time>
                 </div>
-
-                <div className="min-w-0 flex-1">
-                    <p className="truncate leading-snug font-semibold text-white">
-                        {item.mediaName}
-                    </p>
-                    {item.mediaArtist && (
-                        <p className="mt-0.5 truncate text-sm text-neutral-500">
-                            {item.mediaArtist}
-                        </p>
-                    )}
-
-                    <div className="mt-2.5 flex items-center gap-2">
-                        <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/[0.08]">
-                            {progress !== null && (
-                                <div
-                                    className="h-full rounded-full bg-gradient-to-r from-[#ee1086] to-[#fb6467]"
-                                    style={{ width: `${progress}%` }}
-                                />
-                            )}
-                        </div>
-                        {item.currentProgressMs !== null &&
-                            item.currentProgressMs !== undefined && (
-                                <span className="shrink-0 text-[10px] text-neutral-700 tabular-nums">
-                                    {formatMs(item.currentProgressMs)}
-                                </span>
-                            )}
-                    </div>
-                </div>
-            </div>
-
-            <div className="mt-3 flex items-center justify-end gap-0.5">
-                {(
-                    [
-                        { icon: Heart, label: v.LIKE, action: "like" },
+                <h3 className={styles.trackTitle}>{item.mediaName}</h3>
+                <div className={styles.trackActions}>
+                    {[
+                        {
+                            icon: Heart,
+                            label: v.LIKE,
+                            action: () =>
+                                rockIt.mediaManager.toggleLikeMedia(
+                                    item.mediaPublicId
+                                ),
+                        },
                         {
                             icon: ListPlus,
                             label: v.ADD_TO_QUEUE,
-                            action: "queue",
+                            action: () =>
+                                rockIt.sharingManager.queueSharedMedia(
+                                    item.mediaPublicId
+                                ),
                         },
                         {
                             icon: Share2,
                             label: v.FRIENDS_SHARE,
-                            action: "share",
-                        },
-                    ] as const
-                ).map(({ icon: Icon, label, action }) => (
-                    <button
-                        key={action}
-                        onClick={() => {
-                            if (action === "like")
-                                void rockIt.mediaManager.toggleLikeMedia(
-                                    item.mediaPublicId
-                                );
-                            else if (action === "queue")
-                                void rockIt.sharingManager.queueSharedMedia(
-                                    item.mediaPublicId
-                                );
-                            else
+                            action: () =>
                                 rockIt.sharingManager.compose(
                                     item.mediaPublicId
-                                );
-                        }}
-                        className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs text-neutral-600 transition-colors hover:bg-white/[0.06] hover:text-white"
-                    >
-                        <Icon size={13} />
-                        {label}
-                    </button>
-                ))}
+                                ),
+                        },
+                    ].map(({ icon: Icon, label, action }) => (
+                        <button
+                            key={label}
+                            aria-label={`${label}: ${item.mediaName}`}
+                            title={label}
+                            onClick={() => {
+                                void action();
+                            }}
+                        >
+                            <Icon size={18} aria-hidden="true" />
+                            <span>{label}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
-        </div>
+        </article>
     );
 }
 
 export default function FriendActivityFeed({
     activities,
 }: {
-    activities: Activity[];
+    activities: FriendActivity[];
 }): JSX.Element {
-    const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const v = $vocabulary as unknown as Record<string, string>;
-    const justNowText = v.JUST_NOW;
-
-    if (activities.length === 0) {
+    const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    if (activities.length === 0)
         return (
-            <div className="flex flex-col items-center gap-3 py-16 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.04]">
-                    <Music2 className="h-5 w-5 text-neutral-600" />
-                </div>
-                <div>
-                    <p className="text-sm font-medium text-neutral-400">
-                        {v.NOTHING_PLAYING_YET}
-                    </p>
-                    <p className="mt-1 text-xs text-neutral-600">
-                        {v.FRIENDS_ACTIVITY_WILL_APPEAR}
-                    </p>
-                </div>
+            <div className={styles.activityEmpty}>
+                <Music2 size={40} strokeWidth={1.25} aria-hidden="true" />
+                <h2>{v.NOTHING_PLAYING_YET}</h2>
+                <p>{v.FRIENDS_ACTIVITY_WILL_APPEAR}</p>
+                <a className={styles.circleLink} href="#social-circle">
+                    {v.SOCIAL_MANAGE}
+                </a>
             </div>
         );
-    }
-
-    const liveNow = activities.filter((a) => a.isLiveNow);
-    const recent = activities.filter((a) => !a.isLiveNow);
-
     return (
-        <div className="flex flex-col gap-6">
-            {liveNow.length > 0 && (
-                <section>
-                    <p className="mb-3 text-[11px] font-semibold tracking-widest text-neutral-600 uppercase">
-                        {v.NOW_PLAYING}
-                    </p>
-                    <div className="flex flex-col gap-2">
-                        {liveNow.map((item, i) => (
-                            <ActivityCard
-                                key={`live-${item.userPublicId}-${item.mediaPublicId}-${i}`}
-                                item={item}
-                                justNowText={justNowText}
-                            />
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {recent.length > 0 && (
-                <section>
-                    <p className="mb-3 text-[11px] font-semibold tracking-widest text-neutral-600 uppercase">
-                        {v.RECENT}
-                    </p>
-                    <div className="flex flex-col gap-2">
-                        {recent.map((item, i) => (
-                            <ActivityCard
-                                key={`recent-${item.userPublicId}-${item.mediaPublicId}-${i}`}
-                                item={item}
-                                justNowText={justNowText}
-                            />
-                        ))}
-                    </div>
+        <div className={styles.activityFeed}>
+            <h2 className={styles.sectionTitle}>{v.SOCIAL_DISCOVER}</h2>
+            <ActivitySleeve
+                key={`${activities[0].userPublicId}-${activities[0].mediaPublicId}`}
+                item={activities[0]}
+                featured
+            />
+            {activities.length > 1 && (
+                <section className={styles.recentList} aria-label={v.RECENT}>
+                    <h2 className={styles.sectionTitle}>{v.RECENT}</h2>
+                    {activities.slice(1).map((item, i) => (
+                        <ActivitySleeve
+                            key={`${item.userPublicId}-${item.mediaPublicId}-${i}`}
+                            item={item}
+                        />
+                    ))}
                 </section>
             )}
         </div>

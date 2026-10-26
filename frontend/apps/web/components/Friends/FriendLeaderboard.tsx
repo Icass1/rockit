@@ -97,9 +97,9 @@ export default function FriendLeaderboard(): JSX.Element {
                     className={styles.passport}
                     aria-labelledby="music-identity"
                 >
-                    <p id="music-identity" className={styles.eyebrow}>
+                    <h2 id="music-identity" className={styles.sectionTitle}>
                         {v.SOCIAL_PASSPORT}
-                    </p>
+                    </h2>
                     <div className={styles.identity}>
                         <div className={styles.levelDisc}>
                             <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -120,7 +120,7 @@ export default function FriendLeaderboard(): JSX.Element {
                             </span>
                         </div>
                         <div className={styles.identityName}>
-                            <h2>{self.username}</h2>
+                            <h3>{self.username}</h3>
                             <p>{v[self.title] || self.title}</p>
                             <span>
                                 {text("SOCIAL_XP_TOTAL", {
@@ -165,9 +165,6 @@ export default function FriendLeaderboard(): JSX.Element {
             >
                 <div className={styles.leagueHeading}>
                     <div>
-                        <p className={styles.eyebrow}>
-                            RockIt! · {v.SOCIAL_XP}
-                        </p>
                         <h2 id="listening-league">{v.SOCIAL_RACE}</h2>
                     </div>
                     <ArrowUpRight aria-hidden="true" />
@@ -234,26 +231,38 @@ export default function FriendLeaderboard(): JSX.Element {
                                   ? v.SOCIAL_TIED
                                   : v.SOCIAL_LEAD}
                         </p>
-                        <div className={styles.compareNames}>
-                            <span>{v.SOCIAL_YOU}</span>
-                            <span>{selected.username}</span>
-                        </div>
-                        <dl>
-                            {[
-                                [
-                                    v.SOCIAL_LISTENS,
-                                    self.songsListened,
-                                    selected.songsListened,
-                                ],
-                                [v.SOCIAL_STREAK, self.streak, selected.streak],
-                            ].map(([label, a, b]) => (
-                                <div key={label}>
-                                    <dd>{Number(a).toLocaleString()}</dd>
-                                    <dt>{label}</dt>
-                                    <dd>{Number(b).toLocaleString()}</dd>
-                                </div>
-                            ))}
-                        </dl>
+                        <table className={styles.comparisonTable}>
+                            <caption className="sr-only">
+                                {v.SOCIAL_COMPARE}
+                            </caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">{v.FRIENDS_STATS}</th>
+                                    <th scope="col">{v.SOCIAL_YOU}</th>
+                                    <th scope="col">{selected.username}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[
+                                    [
+                                        v.SOCIAL_LISTENS,
+                                        self.songsListened,
+                                        selected.songsListened,
+                                    ],
+                                    [
+                                        v.SOCIAL_STREAK,
+                                        self.streak,
+                                        selected.streak,
+                                    ],
+                                ].map(([label, a, b]) => (
+                                    <tr key={label}>
+                                        <th scope="row">{label}</th>
+                                        <td>{Number(a).toLocaleString()}</td>
+                                        <td>{Number(b).toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 )}
                 {!others.length && (

@@ -72,19 +72,6 @@
     ```
 
 
-### [LIBRARY] Centrar botón library y arreglar random
-
-- tags: [frontend, library, queue, bug, ui, kb-06]
-- priority: high
-- workload: Normal
-- steps:
-    - [x] Centrar verticalmente el botón de library
-    - [ ] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
-    ```md
-    Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. La revisión de random sigue pendiente.
-
-    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
-    ```
 
 ### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
 
@@ -110,6 +97,21 @@
     ```
 
 ## To Review
+
+### [LIBRARY] Centrar botón library y arreglar random
+
+- tags: [frontend, library, queue, bug, ui, kb-06]
+- priority: high
+- workload: Normal
+- steps:
+    - [x] Centrar verticalmente el botón de library
+    - [x] Revisar el random de la library: solo coge canciones sueltas y las coloca en una posición random de la queue
+    ```md
+    Centrado reforzado con grid y sin padding ni baseline de texto. Verificado en Chromium: iconos play y pause con desplazamiento vertical de 0 px dentro del círculo. Random implementado: se resuelven álbumes y playlists antes de seleccionar la primera canción aleatoria, para que no salga siempre del grupo de canciones sueltas. La reproducción ordenada conserva el arranque progresivo. Las acciones sobre otra cola cancelan la carga pendiente. Pendiente de revisión integrada; sin tests locales.
+
+    Arreglar el botón de library centrándolo verticalmente y revisar el comportamiento del random de la library. Actualmente solo pilla canciones sueltas y las pone en una posición random de la queue.
+    ```
+
 
 ### [FEATURED] Mostrar artista en featured lists de álbumes
 

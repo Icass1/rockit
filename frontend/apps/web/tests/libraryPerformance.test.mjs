@@ -264,6 +264,7 @@ test("library starts before collections resolve and abandons a replaced queue", 
         appendMedias: () => appended++,
     };
     globalThis.playbackRockIt = {
+        userManager: { queueTypeAtom: { get: () => "SORTED" } },
         queueManager: queue,
         mediaPlayerManager: {
             playingAtom: { get: () => false },
@@ -324,6 +325,7 @@ test("library keeps successful collections and later batches after a failure and
             appended.push(...media.map((item) => item.publicId)),
     };
     globalThis.playbackRockIt = {
+        userManager: { queueTypeAtom: { get: () => "SORTED" } },
         queueManager: queue,
         mediaPlayerManager: {
             playingAtom: { get: () => false },

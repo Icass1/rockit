@@ -35,6 +35,18 @@ logger: Logger = getLogger(__name__)
 
 class UserAccess:
     @staticmethod
+    @safe_async
+    async def update_user_image_async(
+        session: AsyncSession, user_id: int, image_id: int
+    ) -> AResult[bool]:
+        user: UserRow | None = await session.get(UserRow, user_id)
+        if user is None:
+            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
+        user.image_id = image_id
+        await session.flush()
+        return AResult(code=AResultCode.OK, message="OK", result=True)
+
+    @staticmethod
     async def get_user_from_id(session: AsyncSession, user_id: int) -> AResult[UserRow]:
         try:
             result: UserRow | None = await session.get(entity=UserRow, ident=user_id)

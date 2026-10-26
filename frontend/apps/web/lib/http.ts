@@ -1,7 +1,22 @@
-import { ArtistPageResponseSchema, type ArtistPageResponse } from "@/dto";
+import {
+    ArtistPageResponseSchema,
+    OkResponseSchema,
+    type ArtistPageResponse,
+} from "@/dto";
 import { BACKEND_URL, BaseHttp, IApiFetchOptions } from "@rockit/shared";
 
 export class Http extends BaseHttp {
+    static async uploadProfileImage(file: File): Promise<boolean> {
+        const body = new FormData();
+        body.append("file", file);
+        const response = await this.baseApiFetchAsync("/user/image", {
+            method: "POST",
+            body,
+        });
+        if (!response.ok) return false;
+        return OkResponseSchema.safeParse(await response.json()).success;
+    }
+
     static async getArtistPage(
         path: string
     ): Promise<ArtistPageResponse | undefined> {

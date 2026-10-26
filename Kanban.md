@@ -60,19 +60,6 @@
 
 ## In Progress
 
-### [SETTINGS] Subida de imagen de perfil y avatar por defecto
-
-- tags: [frontend, settings, profile, bug, kb-01]
-- priority: high
-- workload: Normal
-    ```md
-    Avance: el avatar de sesión ya se muestra y el fallback utiliza el recurso local. La subida sigue pendiente: falta implementar la ruta de backend para persistirla.
-
-    Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
-    ```
-
-
-
 
 ## Idle
 
@@ -88,6 +75,21 @@
     ```
 
 ## To Review
+
+### [SETTINGS] Subida de imagen de perfil y avatar por defecto
+
+- tags: [frontend, settings, profile, bug, kb-01]
+- priority: high
+- workload: Normal
+    ```md
+    Implementado: selector accesible en móvil/teclado, subida autenticada de JPG/PNG/WebP de hasta 5 MB, validación del contenido y dimensiones en servidor, orientación EXIF y conversión a avatar WebP de 512×512 sin metadatos originales. Se guarda la imagen del usuario y se actualiza el avatar de sesión con feedback de guardado/error. Fallback local para imágenes fallidas. Pendiente de revisión integrada, sin tests locales.
+
+    Hacer funcional la subida de imagen de perfil y corregir el avatar default, que ahora mismo no se ve bien en la página de settings (parece que apunta mal).
+    ```
+
+
+
+
 
 ### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
 

@@ -60,6 +60,33 @@ export class UserManager extends BaseUserManager {
         }
     }
 
+    async uploadProfileImageAsync(file: File): Promise<boolean> {
+        const username = this._username.get();
+        if (
+            !this._loggedIn.get() ||
+            !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+            file.size === 0 ||
+            file.size > 5 * 1024 * 1024
+        )
+            return false;
+        try {
+            if (!(await Http.uploadProfileImage(file))) return false;
+            const session = await Http.getSession();
+            if (
+                !session.isOk() ||
+                !this._loggedIn.get() ||
+                this._username.get() !== username
+            )
+                return false;
+            this._image.set(session.result.image);
+            void saveSessionOffline(session.result).catch(() => {});
+            return true;
+        } catch (error) {
+            console.error("Cannot upload profile image", error);
+            return false;
+        }
+    }
+
     async setLangAsync(langCode: string): Promise<boolean> {
         const res = await Http.updateLang({ lang: langCode });
 

@@ -267,8 +267,15 @@
         "FRIENDS_BADGE_FAMILY_VIDEOS": "Videos",
         "FRIENDS_BADGE_FAMILY_MIXED": "Discover and share",
         "FRIENDS_BADGE_FRIENDS_DESCRIPTION": "Reach {target} mutually accepted friends.",
-        "FRIENDS_BADGE_VIDEOS_DESCRIPTION": "Complete {target} registered video plays. Audio-only playback is not proof of watching the screen.",
-        "FRIENDS_BADGE_MIXED_DESCRIPTION": "Reach {target} different recordings listened to and {target} distinct recommendations shared."
+        "FRIENDS_BADGE_VIDEOS_DESCRIPTION": "Complete {target} registered video plays.",
+        "FRIENDS_BADGE_MIXED_DESCRIPTION": "Reach {target} different recordings listened to and {target} distinct recommendations shared.",
+        "FRIENDS_BADGE_SESSION_DESCRIPTION_ONE": "Listen for one minute in one session.",
+        "FRIENDS_BADGE_PLAYS_DESCRIPTION_ONE": "Complete your first registered listen.",
+        "FRIENDS_BADGE_DISCOVERY_DESCRIPTION_ONE": "Listen to your first recording.",
+        "FRIENDS_BADGE_SHARING_DESCRIPTION_ONE": "Share your first recommendation.",
+        "FRIENDS_BADGE_FRIENDS_DESCRIPTION_ONE": "Make your first mutually accepted friend.",
+        "FRIENDS_BADGE_VIDEOS_DESCRIPTION_ONE": "Complete your first registered video play.",
+        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "Listen to one recording and share one recommendation."
     },
     "es": {
         "ADD_TO_QUEUE": "Añadir a la cola",
@@ -538,8 +545,15 @@
         "FRIENDS_BADGE_FAMILY_VIDEOS": "Vídeos",
         "FRIENDS_BADGE_FAMILY_MIXED": "Descubre y comparte",
         "FRIENDS_BADGE_FRIENDS_DESCRIPTION": "Alcanza {target} amistades aceptadas por ambas personas.",
-        "FRIENDS_BADGE_VIDEOS_DESCRIPTION": "Completa {target} reproducciones registradas de vídeos. No requiere mirar la pantalla.",
-        "FRIENDS_BADGE_MIXED_DESCRIPTION": "Alcanza {target} grabaciones distintas escuchadas y {target} recomendaciones distintas compartidas."
+        "FRIENDS_BADGE_VIDEOS_DESCRIPTION": "Completa {target} reproducciones registradas de vídeos.",
+        "FRIENDS_BADGE_MIXED_DESCRIPTION": "Alcanza {target} grabaciones distintas escuchadas y {target} recomendaciones distintas compartidas.",
+        "FRIENDS_BADGE_SESSION_DESCRIPTION_ONE": "Escucha un minuto en una sesión.",
+        "FRIENDS_BADGE_PLAYS_DESCRIPTION_ONE": "Completa tu primera escucha registrada.",
+        "FRIENDS_BADGE_DISCOVERY_DESCRIPTION_ONE": "Escucha tu primera grabación.",
+        "FRIENDS_BADGE_SHARING_DESCRIPTION_ONE": "Comparte tu primera recomendación.",
+        "FRIENDS_BADGE_FRIENDS_DESCRIPTION_ONE": "Consigue tu primera amistad aceptada por ambas personas.",
+        "FRIENDS_BADGE_VIDEOS_DESCRIPTION_ONE": "Completa tu primera reproducción registrada de un vídeo.",
+        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "Escucha una grabación y comparte una recomendación."
     },
     "fr": {
         "ADD_TO_QUEUE": "Ajouter à la file",
@@ -809,7 +823,14 @@
         "FRIENDS_BADGE_FAMILY_VIDEOS": "Vidéos",
         "FRIENDS_BADGE_FAMILY_MIXED": "Découvrez et partagez",
         "FRIENDS_BADGE_FRIENDS_DESCRIPTION": "Atteignez {target} amitiés acceptées des deux côtés.",
-        "FRIENDS_BADGE_VIDEOS_DESCRIPTION": "Terminez {target} lectures de vidéos enregistrées, sans obligation de regarder l’écran.",
-        "FRIENDS_BADGE_MIXED_DESCRIPTION": "Atteignez {target} enregistrements différents écoutés et {target} recommandations distinctes partagées."
+        "FRIENDS_BADGE_VIDEOS_DESCRIPTION": "Terminez {target} lectures de vidéos enregistrées.",
+        "FRIENDS_BADGE_MIXED_DESCRIPTION": "Atteignez {target} enregistrements différents écoutés et {target} recommandations distinctes partagées.",
+        "FRIENDS_BADGE_SESSION_DESCRIPTION_ONE": "Écoutez une minute en une session.",
+        "FRIENDS_BADGE_PLAYS_DESCRIPTION_ONE": "Terminez votre première écoute enregistrée.",
+        "FRIENDS_BADGE_DISCOVERY_DESCRIPTION_ONE": "Écoutez votre premier enregistrement.",
+        "FRIENDS_BADGE_SHARING_DESCRIPTION_ONE": "Partagez votre première recommandation.",
+        "FRIENDS_BADGE_FRIENDS_DESCRIPTION_ONE": "Obtenez votre première amitié acceptée des deux côtés.",
+        "FRIENDS_BADGE_VIDEOS_DESCRIPTION_ONE": "Terminez votre première lecture de vidéo enregistrée.",
+        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "Écoutez un enregistrement et partagez une recommandation."
     }
 }

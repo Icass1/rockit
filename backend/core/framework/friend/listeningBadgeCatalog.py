@@ -129,7 +129,8 @@ def _family_badges(
                     if legacy
                     else f"FRIENDS_BADGE_{family.scope.upper()}_{index+1:02d}"
                 ),
-                description_key=f"FRIENDS_BADGE_{family.scope.upper()}_DESCRIPTION",
+                description_key=f"FRIENDS_BADGE_{family.scope.upper()}_DESCRIPTION"
+                + ("_ONE" if target == 1 else ""),
                 difficulty=_DIFFICULTIES[index * 3 // len(family.targets)],
                 visual_variant=legacy or family.visual_variant,
                 tier=index + 1,

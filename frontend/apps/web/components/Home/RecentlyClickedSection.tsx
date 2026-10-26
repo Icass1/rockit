@@ -4,12 +4,7 @@ import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { MediaResponse } from "@/dto";
-import {
-    getMediaSubtitle,
-    isList,
-    isPlayable,
-    type TMedia,
-} from "@rockit/shared";
+import { getMediaSubtitle } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function RecentlyClickedSection({
@@ -18,7 +13,12 @@ export default function RecentlyClickedSection({
     items: MediaResponse["media"][];
 }): JSX.Element | null {
     const mediaItems = items.filter(
-        (item): item is TMedia =>
+        (
+            item
+        ): item is Extract<
+            MediaResponse["media"],
+            { type: "album" | "playlist" | "song" | "video" }
+        > =>
             item.type === "album" ||
             item.type === "playlist" ||
             item.type === "song" ||
@@ -51,7 +51,7 @@ export default function RecentlyClickedSection({
                         </>
                     );
 
-                    if (isList(media)) {
+                    if (media.type === "album" || media.type === "playlist") {
                         return (
                             <Link
                                 key={media.publicId}
@@ -77,7 +77,11 @@ export default function RecentlyClickedSection({
                                 rockIt.webSocketManager.sendMediaClicked({
                                     mediaPublicId: media.publicId,
                                 });
-                                if (!isPlayable(media)) return;
+                                if (
+                                    media.type !== "song" &&
+                                    media.type !== "video"
+                                )
+                                    return;
                                 rockIt.queueManager.setMedia([media], "");
                                 rockIt.queueManager.moveToMedia(media.publicId);
                                 rockIt.mediaPlayerManager.play();

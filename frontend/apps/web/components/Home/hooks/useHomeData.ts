@@ -1,9 +1,5 @@
 import { useMemo } from "react";
-import {
-    BaseSongWithAlbumResponse,
-    HomeStatsResponse,
-    MediaResponse,
-} from "@/dto";
+import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
 import type { SongListResponse } from "@/dto";
 import { mixHomeRecommendations } from "@rockit/shared";
 import type { HttpResult } from "@rockit/shared";

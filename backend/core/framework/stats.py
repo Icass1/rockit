@@ -16,6 +16,7 @@ from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from backend.core.framework.media.media import Media
 
 from backend.core.responses.homeStatsResponse import HomeStatsResponse
+from backend.core.responses.mediaResponse import MediaResponse
 from backend.core.responses.userStatsResponse import UserStatsResponse
 from backend.core.responses.statsSummaryResponse import StatsSummaryResponse
 from backend.core.responses.statsRankedItemResponse import StatsRankedItemResponse
@@ -251,7 +252,7 @@ class Stats:
         clicked_ids = a_clicked.result() if a_clicked.is_ok() else []
         if a_clicked.is_not_ok():
             logger.error(f"Error getting recently clicked media. {a_clicked.info()}")
-        recently_clicked = []
+        recently_clicked: List[MediaResponse] = []
         for public_id in clicked_ids:
             clicked_result = await Media.get_media_async(
                 session=session, public_id=public_id, user_id=user_id

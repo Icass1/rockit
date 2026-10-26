@@ -60,17 +60,6 @@
 
 ## In Progress
 
-### [UI] Mejorar blur del header y hacerlo más curvo
-
-- tags: [frontend, ui, header, blur, kb-28]
-- priority: medium
-- workload: Easy
-    ```md
-    Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
-
-    Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
-    ```
-
 ### [HOME] Añadir context menu a las canciones del home
 
 - tags: [frontend, home, songs, context-menu, ui, kb-20]
@@ -113,6 +102,19 @@
     ```
 
 ## To Review
+
+### [UI] Mejorar blur del header y hacerlo más curvo
+
+- tags: [frontend, ui, header, blur, kb-28]
+- priority: medium
+- workload: Easy
+    ```md
+    Aclaración aplicada: recuperado el blur original de 20 px, rectangular y sin tinte añadido. Solo cambia la máscara vertical: opacidad α = 1 − t² (100, 99, 96, 91, 84, 75, 64, 51, 36, 19, 0 %). Empieza casi plana y cae progresivamente; idéntica en todo el ancho, sin elipse ni esquinas curvas. Pendiente de revisión visual; sin tests locales.
+
+    Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
+
+    Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
+    ```
 
 ### [LIBRARY] Centrar botón library y arreglar random
 

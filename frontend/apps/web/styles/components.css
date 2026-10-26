@@ -621,26 +621,31 @@ img {
     }
 }
 
-/* Curved fade keeps the header legible without a hard lower edge. */
+/* Preserve the original flat header and 20px blur. Only opacity is curved:
+   alpha = 1 - t², sampled every 10% (not a radial/curved silhouette). */
 .app-header-backdrop {
     position: absolute;
-    inset: 0 0 -24px;
+    inset: 0;
     z-index: -1;
     pointer-events: none;
-    border-radius: 0 0 2rem 2rem;
-    background: rgb(10 10 12 / 30%);
-    -webkit-backdrop-filter: blur(20px) saturate(110%);
-    backdrop-filter: blur(20px) saturate(110%);
-    -webkit-mask-image: radial-gradient(
-        ellipse 90% 100% at 50% 0%,
-        #000 55%,
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    --header-fade: linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 100%) 0%,
+        rgb(0 0 0 / 99%) 10%,
+        rgb(0 0 0 / 96%) 20%,
+        rgb(0 0 0 / 91%) 30%,
+        rgb(0 0 0 / 84%) 40%,
+        rgb(0 0 0 / 75%) 50%,
+        rgb(0 0 0 / 64%) 60%,
+        rgb(0 0 0 / 51%) 70%,
+        rgb(0 0 0 / 36%) 80%,
+        rgb(0 0 0 / 19%) 90%,
         transparent 100%
     );
-    mask-image: radial-gradient(
-        ellipse 90% 100% at 50% 0%,
-        #000 55%,
-        transparent 100%
-    );
+    -webkit-mask-image: var(--header-fade);
+    mask-image: var(--header-fade);
 }
 
 @media (prefers-reduced-transparency: reduce) {

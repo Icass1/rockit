@@ -183,6 +183,15 @@ class Friend:
         )
         if a_add2.is_not_ok():
             return AResult(code=a_add2.code(), message=a_add2.message())
+        from backend.core.framework.friend.listeningBadges import ListeningBadges
+
+        for owner_id in (request_row.from_user_id, user_id):
+            rewards = await ListeningBadges.refresh_user_async(
+                session=session, user_id=owner_id
+            )
+            if rewards.is_not_ok():
+                logger.error("Error awarding friendship emblems: %s", rewards.info())
+                return AResult(code=rewards.code(), message=rewards.message())
         notify_after_commit(session, [request_row.from_user_id, user_id])
         return AResult(code=AResultCode.OK, message="OK", result=a_add.result())
 

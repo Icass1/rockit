@@ -84,8 +84,9 @@ class ListeningRewards:
             badge_keys = [
                 badge.key
                 for badge in LISTENING_BADGES
-                if (previous_ms if badge.scope == "session" else previous_total)
-                < badge.target_minutes * 60000
+                if badge.scope in {"session", "total"}
+                and (previous_ms if badge.scope == "session" else previous_total)
+                < badge.target * 60000
                 <= (session_ms if badge.scope == "session" else progress.total_ms)
             ]
             unlocked = await ListeningBadgesAccess.award_async(

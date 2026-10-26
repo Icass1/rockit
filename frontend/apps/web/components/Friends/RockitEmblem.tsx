@@ -8,9 +8,13 @@ import styles from "@/components/Friends/Friends.module.css";
 export default function RockitEmblem({
     variant,
     earned,
+    tier = 1,
+    difficulty = "easy",
 }: {
     variant: string;
     earned: boolean;
+    tier?: number;
+    difficulty?: string;
 }): JSX.Element {
     const contours: Record<string, string> = {
         ignition:
@@ -26,6 +30,7 @@ export default function RockitEmblem({
             className={styles.emblem}
             data-variant={variant}
             data-earned={earned}
+            data-difficulty={difficulty}
             aria-hidden="true"
         >
             <svg viewBox="0 0 64 64" fill="none">
@@ -91,6 +96,7 @@ export default function RockitEmblem({
                     />
                 )}
             </svg>
+            <span className={styles.emblemTier}>{tier}</span>
             <Image
                 className={styles.emblemLogo}
                 src="/logo-192.png"

@@ -1,6 +1,11 @@
 from datetime import datetime
 from uuid import uuid4
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, update, tuple_, case
+from sqlalchemy.orm import aliased
+from backend.core.access.db.ormModels.media import CoreMediaRow
+from backend.core.access.db.ormModels.friend.friend import FriendRow
+from backend.core.enums.friend.friendStatusEnum import FriendStatusEnum
+from backend.core.enums.mediaTypeEnum import MediaTypeEnum
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.core.aResult import AResult, AResultCode
@@ -9,6 +14,7 @@ from backend.core.access.db.ormModels.friend.listeningProgress import (
 )
 from backend.core.access.db.ormModels.friend.listeningXpEvent import ListeningXpEventRow
 from backend.core.access.db.ormModels.friend.userLevel import UserLevelRow
+from backend.core.access.db.ormModels.friend.sharedMedia import SharedMediaRow
 from backend.core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from backend.core.access.db.ormModels.user_media_listened import UserMediaListenedRow
 from backend.core.framework.models.listeningRewards import (
@@ -157,7 +163,7 @@ class ListeningRewardsAccess:
     async def get_summaries_async(
         session: AsyncSession, user_ids: list[int], active_after: datetime
     ) -> AResult[dict[int, ListeningRewardSummary]]:
-        """Fetch verified duration and real play counts in two batch queries."""
+        """Fetch verified duration and real play counts in four batch queries."""
         if not user_ids:
             return AResult(code=AResultCode.OK, message="OK", result={})
         cursors = (
@@ -168,11 +174,59 @@ class ListeningRewardsAccess:
             )
         ).all()
         counts = await session.execute(
-            select(UserMediaListenedRow.user_id, func.count())
+            select(
+                UserMediaListenedRow.user_id,
+                func.count(),
+                func.count(func.distinct(UserMediaListenedRow.media_id)),
+                func.sum(
+                    case(
+                        (CoreMediaRow.media_type_key == MediaTypeEnum.VIDEO.value, 1),
+                        else_=0,
+                    )
+                ),
+            )
+            .join(CoreMediaRow, CoreMediaRow.id == UserMediaListenedRow.media_id)
             .where(UserMediaListenedRow.user_id.in_(user_ids))
             .group_by(UserMediaListenedRow.user_id)
         )
-        plays = {user_id: int(count) for user_id, count in counts}
+        plays = {
+            user_id: (int(count), int(unique), int(videos))
+            for user_id, count, unique, videos in counts
+        }
+        shares = await session.execute(
+            select(
+                SharedMediaRow.sender_user_id,
+                func.count(
+                    func.distinct(
+                        tuple_(
+                            SharedMediaRow.recipient_user_id, SharedMediaRow.media_id
+                        )
+                    )
+                ),
+            )
+            .where(SharedMediaRow.sender_user_id.in_(user_ids))
+            .group_by(SharedMediaRow.sender_user_id)
+        )
+        recommendations = {user_id: int(count) for user_id, count in shares}
+        reverse = aliased(FriendRow)
+        friend_counts = await session.execute(
+            select(
+                FriendRow.user_id, func.count(func.distinct(FriendRow.friend_user_id))
+            )
+            .where(
+                FriendRow.user_id.in_(user_ids),
+                FriendRow.status_key == FriendStatusEnum.ACCEPTED.value,
+                select(reverse.id)
+                .where(
+                    reverse.user_id == FriendRow.friend_user_id,
+                    reverse.friend_user_id == FriendRow.user_id,
+                    reverse.status_key == FriendStatusEnum.ACCEPTED.value,
+                )
+                .exists(),
+            )
+            .group_by(FriendRow.user_id)
+        )
+        friends = {user_id: int(count) for user_id, count in friend_counts}
         by_user = {row.user_id: row for row in cursors}
         result: dict[int, ListeningRewardSummary] = {}
         for user_id in user_ids:
@@ -182,6 +236,10 @@ class ListeningRewardsAccess:
                 session_ms=(
                     row.session_ms if row and row.active_at >= active_after else 0
                 ),
-                recorded_listens=plays.get(user_id, 0),
+                recorded_listens=plays.get(user_id, (0, 0))[0],
+                unique_recordings=plays.get(user_id, (0, 0))[1],
+                recommendations=recommendations.get(user_id, 0),
+                friends=friends.get(user_id, 0),
+                videos=plays.get(user_id, (0, 0, 0))[2],
             )
         return AResult(code=AResultCode.OK, message="OK", result=result)

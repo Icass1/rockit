@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime, timedelta, timezone
 from backend.core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
-from backend.core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
+from backend.core.framework.friend.listeningBadges import ListeningBadges, badge_current
 from backend.core.framework.friend.listeningPolicy import LISTENING_BADGES
 from backend.core.responses.friend.userLevelResponse import ListeningBadgeResponse
 from backend.core.framework.friend.listeningPolicy import (
@@ -88,13 +88,19 @@ class Levels:
             active_after=datetime.now(timezone.utc)
             - timedelta(seconds=SESSION_BREAK_SECONDS),
         )
-        badges = await ListeningBadgesAccess.get_for_users_async(
-            session=session, user_ids=user_ids
-        )
-        for result in (users, levels, configs, streaks, rewards, badges):
+        for result in (users, levels, configs, streaks, rewards):
             if result.is_not_ok():
                 logger.error(f"Error getting social profiles. {result.info()}")
                 return AResult(code=result.code(), message=result.message())
+        badges = await ListeningBadges.synchronize_async(
+            session=session,
+            user_ids=user_ids,
+            summaries=rewards.result(),
+            streaks=streaks.result(),
+        )
+        if badges.is_not_ok():
+            logger.error("Error projecting emblem profiles: %s", badges.info())
+            return AResult(code=badges.code(), message=badges.message())
         by_user = {row.user_id: row for row in levels.result()}
         responses: list[UserLevelResponse] = []
         for user in users.result():
@@ -120,8 +126,21 @@ class Levels:
                             key=badge.key,
                             titleKey=badge.title_key,
                             descriptionKey=badge.description_key,
-                            scope="session" if badge.scope == "session" else "total",
-                            targetMinutes=badge.target_minutes,
+                            scope=badge.scope,
+                            targetMinutes=(
+                                badge.target
+                                if badge.scope in {"session", "total"}
+                                else 0
+                            ),
+                            target=badge.target,
+                            current=badge_current(
+                                badge=badge,
+                                summary=rewards.result()[user.id],
+                                streak=streaks.result().get(user.id, 0),
+                            ),
+                            difficulty=badge.difficulty,
+                            visualVariant=badge.visual_variant,
+                            tier=badge.tier,
                             earnedAt=badges.result().get(user.id, {}).get(badge.key),
                         )
                         for badge in LISTENING_BADGES

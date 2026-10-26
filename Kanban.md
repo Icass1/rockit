@@ -232,7 +232,7 @@
 - priority: medium
 - workload: Normal
     ```md
-    Medallas originales basadas en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
+    115 medallas (42 fáciles, 39 medias, 34 difíciles), nueve familias (incluyen amigos, vídeos y descubrimiento + recomendaciones), filtros y búsqueda; diseños basados en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
     ```
 
 

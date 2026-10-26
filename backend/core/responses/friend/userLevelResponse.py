@@ -1,5 +1,9 @@
-from typing import List, Literal
+from typing import List
 from datetime import datetime
+from backend.core.framework.models.listeningRewards import (
+    ListeningBadgeScope,
+    ListeningBadgeDifficulty,
+)
 
 from pydantic import BaseModel, Field
 
@@ -20,8 +24,13 @@ class ListeningBadgeResponse(BaseModel):
     key: str
     titleKey: str
     descriptionKey: str
-    scope: Literal["session", "total"]
-    targetMinutes: int
+    scope: ListeningBadgeScope
+    targetMinutes: int = 0
+    target: int
+    current: int = 0
+    difficulty: ListeningBadgeDifficulty
+    visualVariant: str
+    tier: int
     earnedAt: datetime | None = None
 
 

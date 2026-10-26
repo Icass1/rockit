@@ -28,7 +28,7 @@ async def test_timed_xp_is_not_recomputed_or_replayed(
         )
         assert result.is_ok(), result.info()
     assert (
-        await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 1
+        await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 6
     )
     profiles = await UserLevelAccess.get_user_levels_async(database, [1])
     assert profiles.is_ok() and profiles.result()[0].xp == 20
@@ -44,7 +44,7 @@ async def test_timed_xp_is_not_recomputed_or_replayed(
         == 1
     )
     assert (
-        await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 1
+        await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 6
     )
     profiles = await UserLevelAccess.get_user_levels_async(database, [1])
     assert profiles.is_ok() and profiles.result()[0].xp == 20
@@ -70,7 +70,7 @@ async def test_reward_and_cursor_rollback_together(
     replay = await ListeningRewards.observe_async(database, 1, "occurrence", 600000)
     assert replay.is_ok() and replay.result()
     assert (
-        await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 1
+        await database.scalar(select(func.count()).select_from(ListeningBadgeRow)) == 6
     )
     profiles = await UserLevelAccess.get_user_levels_async(database, [1])
     assert profiles.is_ok() and profiles.result()[0].xp == 20
@@ -78,3 +78,38 @@ async def test_reward_and_cursor_rollback_together(
         await database.scalar(select(func.count()).select_from(ListeningXpEventRow))
         == 1
     )
+
+
+async def test_catalogue_backfill_is_batched_and_idempotent(
+    database: AsyncSession,
+) -> None:
+    from backend.core.framework.friend.listeningBadgeCatalog import LISTENING_BADGES
+    from backend.core.framework.friend.listeningBadges import (
+        ListeningBadges,
+        badge_current,
+    )
+    from backend.core.framework.models.listeningRewards import ListeningRewardSummary
+
+    assert (
+        len(LISTENING_BADGES) == len({badge.key for badge in LISTENING_BADGES}) == 115
+    )
+    summary = ListeningRewardSummary(
+        total_ms=900000,
+        session_ms=120000,
+        recorded_listens=10,
+        unique_recordings=5,
+        recommendations=3,
+    )
+    expected = {
+        badge.key
+        for badge in LISTENING_BADGES
+        if badge_current(badge, summary, 3) >= badge.target
+    }
+    first = await ListeningBadges.synchronize_async(database, [1], {1: summary}, {1: 3})
+    assert first.is_ok(), first.info()
+    assert set(first.result()[1]) == expected
+    second = await ListeningBadges.synchronize_async(
+        database, [1], {1: summary}, {1: 3}
+    )
+    assert second.is_ok(), second.info()
+    assert second.result() == first.result()

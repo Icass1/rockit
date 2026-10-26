@@ -31,13 +31,30 @@ by hand. Friends UI keeps personal progress after social content on mobile.
 
 ## Rockit emblems — KB-36
 
-Six logo-based vector treatments carry distinct silhouettes, orbit/groove details
-and muted metal colours: Ignition (10-minute session), Orbit (20), Deep groove
-(30), Side B (60), Sound cartographer (300 accumulated minutes) and Interstellar
-(1440). Labels and requirements are translated in the workbook. The collection
-shows locked requirements explicitly; colour is not the only status signal.
+The catalogue contains 115 named emblems: 20 session, 25 accumulated-time,
+20 recorded-listen, 15 discovery, 10 streak, 10 sharing, 5 friendship, 5 video and 5 combined discovery/sharing achievements. Difficulty
+is distributed across 42 easy, 39 medium and 34 hard milestones. Six vector motif
+families use the existing Rockit logo, a visible tier number and difficulty metal
+colours; names and requirements are translated in Vocabulary.xlsx.
+
+Discovery counts distinct recorded media. Sharing counts distinct recipient/media
+pairs, so repeatedly sending the same recording to the same friend adds no credit.
+Mutually accepted friendships count only while both relationship rows are accepted;
+friendship awards persist after later removal. Video milestones count registered
+completed plays of the generic VIDEO media type, not screen visibility. Combined
+achievements require both distinct recordings and distinct recommendations to
+reach the target. Radio and video-specific listening-time counters are not yet
+recorded reliably and are excluded rather than inferred from duration metadata.
+Valid recorded listens, accepted friendships and successful shares evaluate achievements immediately;
+profile projection also backfills existing history. Duration badges are evaluated
+alongside verified playback. Existing six badge IDs and earned timestamps survive.
+Owned session badges prove eligibility for lower session tiers during backfill.
+Historical uninterrupted sessions are not guessed from play counts.
 
 Unlocks persist once per user/key with an earned timestamp. Emblems do not grant
-extra XP, avoiding double rewards. Profiles project the entire catalog and earned
-state in a batch query. Accepted-friend comparisons show both collections and
-their earned intersection; blocking and friendship access checks remain intact.
+extra XP. Profile and comparison projections batch statistics and earned state;
+new awards use one JSON recordset insert rather than per-badge queries. The initial
+collection shows one representative per family, with an expandable, scrollable
+catalogue filtered by family, difficulty, earned state and text. Locked requirements
+and numeric progress remain explicit. Accepted-friend comparisons show collections
+and their earned intersection; friendship and blocking access checks remain intact.

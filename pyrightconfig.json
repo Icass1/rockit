@@ -2,7 +2,7 @@
     "typeCheckingMode": "strict",
     "pythonVersion": "3.12",
     "venvPath": ".",
-    "venv": "venv",
+    "venv": ".venv",
     "analyzeUnannotatedFunctions": true,
     "stubPath": "typings"
 }

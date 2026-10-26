@@ -245,6 +245,24 @@ class Stats:
             s.publicId: s for s in resolved_songs
         }
 
+        a_clicked = await StatsAccess.get_recently_clicked_media_public_ids_async(
+            session=session, user_id=user_id, limit=12
+        )
+        clicked_ids = a_clicked.result() if a_clicked.is_ok() else []
+        if a_clicked.is_not_ok():
+            logger.error(f"Error getting recently clicked media. {a_clicked.info()}")
+        recently_clicked = []
+        for public_id in clicked_ids:
+            clicked_result = await Media.get_media_async(
+                session=session, public_id=public_id, user_id=user_id
+            )
+            if clicked_result.is_ok():
+                recently_clicked.append(clicked_result.result())
+            else:
+                logger.error(
+                    f"Error resolving clicked media {public_id}. {clicked_result.info()}"
+                )
+
         def lookup(ids: List[str]) -> List[BaseSongWithAlbumResponse]:
             return [resolved[pid] for pid in ids if pid in resolved]
 
@@ -261,6 +279,7 @@ class Stats:
                 moodSongs=lookup(mood_ids),
                 currentStreak=current_streak,
                 minutesListenedThisWeek=minutes_this_week,
+                recentlyClickedMedia=recently_clicked,
             ),
         )
 

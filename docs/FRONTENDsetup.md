@@ -7,11 +7,11 @@ git clone https://github.com/Icass1/rockit.git
 cd rockit
 ```
 
-## Setup venv
+## Set up `.venv`
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r backend/requirements.txt
 ```
 

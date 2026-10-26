@@ -33,7 +33,6 @@ cache/
 # ============================
 # Python / Backend artifacts
 # ============================
-venv/
 env/
 .venv/
 __pycache__/

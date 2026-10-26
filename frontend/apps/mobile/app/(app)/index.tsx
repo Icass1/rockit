@@ -17,8 +17,10 @@ import FeaturedCarousel from "@/components/Home/FeaturedCarousel";
 import HomeHeader from "@/components/Home/HomeHeader";
 import HorizontalSongRow from "@/components/Home/HorizontalSongRow";
 import QuickSelectionsGrid from "@/components/Home/QuickSelectionsGrid";
-import Header, { HEADER_HEIGHT } from "@/components/layout/Header";
 import AutoplayDiscovery from "@/components/Recommendations/AutoplayDiscovery";
+import MediaCard from "@/components/Media/MediaCard";
+import HorizontalScrollList from "@/components/Media/HorizontalScrollList";
+import Header, { HEADER_HEIGHT } from "@/components/layout/Header";
 
 function useFadeIn(delay: number = 0) {
     const [opacity] = useState(() => new Animated.Value(0));
@@ -73,6 +75,7 @@ export default function HomeScreen() {
     const section3 = useFadeIn(240);
     const section4 = useFadeIn(320);
     const section5 = useFadeIn(400);
+    const section6 = useFadeIn(480);
 
     const handleSongPress = (
         song: BaseSongWithAlbumResponse,
@@ -146,6 +149,32 @@ export default function HomeScreen() {
                             title={vocabulary.FOR_YOU}
                             onSongPress={handleSongPress}
                         />
+                    </Animated.View>
+                )}
+
+                {data.recentlyClickedMedia.length > 0 && (
+                    <Animated.View style={section6}>
+                        <HorizontalScrollList title="Recently opened">
+                            {data.recentlyClickedMedia
+                                .filter(
+                                    (media) =>
+                                        media.type === "album" ||
+                                        media.type === "playlist" ||
+                                        media.type === "song" ||
+                                        media.type === "video"
+                                )
+                                .map((media) => (
+                                    <View
+                                        key={media.publicId}
+                                        style={{ width: 140 }}
+                                    >
+                                        <MediaCard
+                                            media={media}
+                                            aspectRatio={1}
+                                        />
+                                    </View>
+                                ))}
+                        </HorizontalScrollList>
                     </Animated.View>
                 )}
 

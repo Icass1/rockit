@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
+import {
+    BaseSongWithAlbumResponse,
+    HomeStatsResponse,
+    MediaResponse,
+} from "@/dto";
 import type { SongListResponse } from "@/dto";
 import { mixHomeRecommendations } from "@rockit/shared";
 import type { HttpResult } from "@rockit/shared";
@@ -39,6 +43,9 @@ function transformStats(
     const moodSongs = dataResponse.moodSongs.map(
         (song): BaseSongWithAlbumResponse => song
     );
+    const recentlyClickedMedia = dataResponse.recentlyClickedMedia.map(
+        (item) => item.media
+    );
 
     const isEmpty =
         songsByTimePlayed.length === 0 &&
@@ -47,7 +54,8 @@ function transformStats(
         hiddenGems.length === 0 &&
         communityTop.length === 0 &&
         monthlyTop.length === 0 &&
-        moodSongs.length === 0;
+        moodSongs.length === 0 &&
+        recentlyClickedMedia.length === 0;
 
     return {
         songsByTimePlayed,
@@ -57,6 +65,7 @@ function transformStats(
         communityTop,
         monthlyTop,
         moodSongs,
+        recentlyClickedMedia,
         currentStreak: dataResponse.currentStreak,
         minutesListenedThisWeek: dataResponse.minutesListenedThisWeek,
         isEmpty,

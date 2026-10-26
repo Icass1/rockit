@@ -40,6 +40,41 @@ def _utc(dt: datetime) -> datetime:
 
 class StatsAccess:
     @staticmethod
+    async def get_recently_clicked_media_public_ids_async(
+        session: AsyncSession, user_id: int, limit: int = 12
+    ) -> AResult[list[str]]:
+        """Rank recently clicked media, with a small boost for repeat interest."""
+        try:
+            result = await session.execute(
+                text("""
+                    SELECT m.public_id
+                    FROM core.user_media_clicked c
+                    JOIN core.media m ON m.id = c.media_id
+                    WHERE c.user_id = :user_id
+                      AND c.date_added >= NOW() - INTERVAL '30 days'
+                      AND m.media_type_key IN (2, 3, 4, 5)
+                    GROUP BY m.public_id
+                    ORDER BY
+                      (COUNT(*) FILTER (WHERE c.date_added >= NOW() - INTERVAL '30 days'))
+                        + 3 * (COUNT(*) FILTER (WHERE c.date_added >= NOW() - INTERVAL '2 days')) DESC,
+                      MAX(c.date_added) DESC
+                    LIMIT :limit
+                """),
+                {"user_id": user_id, "limit": limit},
+            )
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=[row[0] for row in result.all()],
+            )
+        except Exception as e:
+            logger.error(f"Error getting recently clicked media: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Failed to get recently clicked media",
+            )
+
+    @staticmethod
     async def get_summary_async(
         session: AsyncSession,
         user_id: int,

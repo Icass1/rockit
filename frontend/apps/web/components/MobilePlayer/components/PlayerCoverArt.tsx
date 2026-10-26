@@ -75,7 +75,7 @@ export default function PlayerCoverArt({
 
     return (
         <div
-            className={`relative mx-auto w-full max-w-85 overflow-hidden bg-(--color-surface) shadow-xl ${aspectClass(mediaType)}`}
+            className={`relative mx-auto w-full max-w-85 overflow-hidden ${showVinyl ? "bg-transparent" : "bg-(--color-surface) shadow-xl"} ${aspectClass(mediaType)}`}
         >
             {showVinyl && media ? (
                 <div className="absolute inset-0">

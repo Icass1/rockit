@@ -263,7 +263,7 @@
 - priority: medium
 - workload: Normal
     ```md
-    Implementado: selector táctil carátula/vinilo para canciones, preferencia compartida con desktop y giro según reproducción. Respeta movimiento reducido. Cambio y retorno a carátula comprobados en Chromium a 390×844. Pendiente de validación en iPhone.
+    Implementado: selector táctil carátula/vinilo para canciones, preferencia compartida con desktop y giro según reproducción. Respeta movimiento reducido. Cambio y retorno a carátula comprobados en Chromium a 390×844. Ajuste de revisión: el modo vinilo elimina el fondo y la sombra rectangular del contenedor móvil. Pendiente de validación en iPhone.
 
     Añadir el modo vinilo a la versión web móvil.
     ```

@@ -76,7 +76,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
         this._video.onplaying = (): void => {
             if (
-                !this._video.paused &&
+                this._video?.paused === false &&
                 this._effectiveKind(getRockIt().queueManager.currentMedia) ===
                     "video"
             )
@@ -84,7 +84,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         };
         this._video.onpause = (): void => {
             if (
-                this._video.paused &&
+                this._video?.paused &&
                 this._effectiveKind(getRockIt().queueManager.currentMedia) ===
                     "video"
             )

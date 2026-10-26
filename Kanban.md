@@ -60,20 +60,6 @@
 
 ## In Progress
 
-### [HOME] Añadir context menu a las canciones del home
-
-- tags: [frontend, home, songs, context-menu, ui, kb-20]
-- priority: medium
-- workload: Normal
-- defaultExpanded: false
-- steps:
-    - [ ] Flata las del carrousel y las de froyou player discover recently played hiddeg gems y asi solo estan las de quick selections hechas
-    ```md
-    Implementado en canciones recientes; las selecciones rápidas ya lo tenían. Pendiente de revisión visual en web/PWA.
-
-    Añadir un context menu a las canciones del home.
-    ```
-
 
 ## Idle
 
@@ -89,6 +75,22 @@
     ```
 
 ## To Review
+
+### [HOME] Añadir context menu a las canciones del home
+
+- tags: [frontend, home, songs, context-menu, ui, kb-20]
+- priority: medium
+- workload: Normal
+- defaultExpanded: false
+- steps:
+    - [x] Flata las del carrousel y las de froyou player discover recently played hiddeg gems y asi solo estan las de quick selections hechas
+    ```md
+    Revisión: menú contextual añadido al carrusel y a todas las tarjetas Bento (Para ti, recientes, joyas ocultas y demás listas del Home). Descubrimientos mantienen acciones con URL resuelta y ofrecen búsqueda/descarga bajo demanda cuando todavía no hay URL. Clic derecho o pulsación larga; el carrusel pausa el avance automático mientras su menú está abierto y conserva la distribución móvil/desktop. Alt de portadas desde vocabulary. Pendiente de revisión visual; sin tests locales.
+
+    Implementado en canciones recientes; las selecciones rápidas ya lo tenían. Pendiente de revisión visual en web/PWA.
+
+    Añadir un context menu a las canciones del home.
+    ```
 
 ### [SEARCH] Reproducir canciones ya descargadas
 

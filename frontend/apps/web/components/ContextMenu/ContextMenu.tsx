@@ -13,10 +13,12 @@ export default function ContextMenu({
     children,
     closeRef,
     onOpen,
+    onOpenChange,
 }: {
     children: ReactNode[];
     closeRef?: { current?: () => void };
     onOpen?: () => void;
+    onOpenChange?: (open: boolean) => void;
 }): JSX.Element {
     const [_contextMenuOpen, _setContextMenuOpen] = useState<boolean>(false);
     const [_contextMenuPos, _setContextMenuPos] = useState<[number, number]>([
@@ -36,6 +38,10 @@ export default function ContextMenu({
             onOpen();
         }
     }, [onOpen, _contextMenuOpen]);
+
+    useEffect((): void => {
+        onOpenChange?.(_contextMenuOpen);
+    }, [onOpenChange, _contextMenuOpen]);
 
     const _contextMenuDivRef = useRef<HTMLDivElement>(
         null

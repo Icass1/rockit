@@ -1,5 +1,5 @@
-import type { ListeningBadgeResponse } from "../../dto/listeningBadgeResponse";
-import type { ListeningMilestoneResponse } from "../../dto/listeningMilestoneResponse";
+import type { ListeningBadgeResponse } from "@/dto/listeningBadgeResponse";
+import type { ListeningMilestoneResponse } from "@/dto/listeningMilestoneResponse";
 
 export interface Friend {
     publicId: string;

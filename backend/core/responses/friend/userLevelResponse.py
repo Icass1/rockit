@@ -38,8 +38,12 @@ class UserLevelResponse(BaseModel):
     levelStartXp: int = 0
     totalListeningSeconds: int = 0
     sessionListeningSeconds: int = 0
-    listeningBadges: list[ListeningBadgeResponse] = Field(default_factory=list)
-    listeningMilestones: list[ListeningMilestoneResponse] = Field(default_factory=list)
+    listeningBadges: list[ListeningBadgeResponse] = Field(
+        default_factory=list[ListeningBadgeResponse]
+    )
+    listeningMilestones: list[ListeningMilestoneResponse] = Field(
+        default_factory=list[ListeningMilestoneResponse]
+    )
 
 
 class LeaderboardResponse(BaseModel):

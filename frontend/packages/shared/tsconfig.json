@@ -27,7 +27,8 @@
             "@/models/*": ["./src/models/*"],
             "@/rockit/*": ["./src/rockit/*"],
             "@/types/*": ["./src/types/*"],
-            "@/utils/*": ["./src/utils/*"]
+            "@/utils/*": ["./src/utils/*"],
+            "@rockit/shared/dto/*": ["./src/dto/*"]
         }
     },
     "include": ["**/*.ts", "**/*.tsx"],

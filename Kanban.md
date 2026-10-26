@@ -73,15 +73,6 @@
 
 
 
-### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
-
-- tags: [frontend, player, ios, transitions, bug]
-- priority: high
-- workload: Easy
-    ```md
-    Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
-    ```
-
 
 ## Idle
 
@@ -97,6 +88,19 @@
     ```
 
 ## To Review
+
+### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
+
+- tags: [frontend, player, ios, transitions, bug, kb-32]
+- priority: high
+- workload: Easy
+    ```md
+    Implementado: los eventos pause/playing se contrastan con el estado actual del elemento, para ignorar eventos retrasados durante el cambio de pistas. La resolución de play() reconcilia el icono solo para el elemento y playbackId activos, manteniendo las comprobaciones de propiedad de reproducción. Pendiente de validación en iPhone con transiciones; sin tests locales.
+
+    Cuando las transiciones están activas en iOS y pasa a la siguiente canción, la canción suena pero el botón muestra play en vez de pause, como si tuviese que reproducirse pero ya está sonando. Cuidado con no romper lo que ya funciona.
+    ```
+
+
 
 ### [LIBRARY] Centrar botón library y arreglar random
 

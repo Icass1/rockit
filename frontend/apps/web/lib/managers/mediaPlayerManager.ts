@@ -76,15 +76,17 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
 
         this._video.onplaying = (): void => {
             if (
+                !this._video.paused &&
                 this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                "video"
+                    "video"
             )
                 this.onNativePlaying();
         };
         this._video.onpause = (): void => {
             if (
+                this._video.paused &&
                 this._effectiveKind(getRockIt().queueManager.currentMedia) ===
-                "video"
+                    "video"
             )
                 this.onNativePaused();
         };
@@ -155,6 +157,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         el.preload = "metadata";
         el.onplaying = (): void => {
             if (
+                el.paused ||
                 el !== this._audio ||
                 this._effectiveKind(getRockIt().queueManager.currentMedia) !==
                     "audio"
@@ -165,6 +168,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         };
         el.onpause = (): void => {
             if (
+                !el.paused ||
                 el !== this._audio ||
                 this._effectiveKind(getRockIt().queueManager.currentMedia) !==
                     "audio"
@@ -672,8 +676,25 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (kind === "audio" && this._audio && this._mixer.has(this._audio))
             this._mixer.activate();
 
+        const playbackId = this._playbackId;
         el.play()
             .then((): void => {
+                // Safari can deliver an older pause after the incoming deck starts,
+                // or omit a fresh playing event when reusing a preloaded element.
+                // Reconcile only the active element and playback occurrence.
+                if (
+                    playbackId === this._playbackId &&
+                    el === this._el(kind) &&
+                    this._effectiveKind(
+                        getRockIt().queueManager.currentMedia
+                    ) === kind &&
+                    !el.paused &&
+                    !el.ended
+                ) {
+                    this.onNativePlaying();
+                    if (kind === "audio" && this._playingAtom.get())
+                        this._startBlend();
+                }
                 if (
                     kind === "audio" &&
                     document.hidden &&

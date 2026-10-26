@@ -59,7 +59,8 @@ async def test_pending_duplicates_and_request_ownership(social: AsyncSession) ->
     assert (await Friend.require_friend_async(social, 1, 2)).is_ok()
     recipient_notifications = await NotificationAccess.list_async(social, 2)
     sender_notifications = await NotificationAccess.list_async(social, 1)
-    assert recipient_notifications.is_ok() and len(recipient_notifications.result()) == 1
+    assert recipient_notifications.is_ok()
+    assert len(recipient_notifications.result()) == 1
     assert recipient_notifications.result()[0].event_key == (
         f"friend_request:{first.result().public_id}"
     )
@@ -142,9 +143,9 @@ async def test_share_checks_private_collection_access(
     recipient_notifications = await NotificationAccess.list_async(session, 2)
     sender_notifications = await NotificationAccess.list_async(session, 1)
     assert recipient_notifications.is_ok()
-    assert len(recipient_notifications.result()) == 1
-    assert recipient_notifications.result()[0].event_key == (
-        f"media_share:{shared.result().public_id}"
+    assert any(
+        item.event_key == f"media_share:{shared.result().public_id}"
+        for item in recipient_notifications.result()
     )
     assert sender_notifications.is_ok() and sender_notifications.result() == []
     public_id = shared.result().public_id

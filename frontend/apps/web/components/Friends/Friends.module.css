@@ -55,12 +55,6 @@
     min-width: 0;
     text-align: center;
 }
-.eyebrow {
-    color: var(--social-secondary);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-}
 .sessionTitle {
     font-size: clamp(1.75rem, 4vw, 2.5rem);
     font-weight: 650;
@@ -140,7 +134,6 @@
     .root {
         --social-secondary: #dedee3;
     }
-    .tabs,
     .session,
     .person {
         border-color: #ffffff80;
@@ -247,44 +240,6 @@
     gap: 1.25rem;
     margin-block: 1.5rem;
 }
-.levelDisc {
-    position: relative;
-    flex: 0 0 120px;
-    height: 120px;
-    border-radius: 50%;
-    background:
-        repeating-radial-gradient(circle, #ffffff06 0 1px, transparent 2px 7px),
-        #141416;
-}
-.levelDisc svg {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-    fill: none;
-    stroke: #ffffff12;
-    stroke-width: 3;
-}
-.levelDisc circle:last-child {
-    stroke: var(--social-tint);
-    stroke-linecap: round;
-}
-.levelDisc > span {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-.levelDisc small {
-    font-size: 0.7rem;
-    color: var(--social-secondary);
-}
-.levelDisc strong {
-    font-size: 2.5rem;
-    line-height: 1.1;
-    letter-spacing: -0.06em;
-}
 .identityName {
     min-width: 0;
 }
@@ -351,21 +306,10 @@
     font-size: 0.75rem;
     color: var(--social-secondary);
 }
-.leagueHeading {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-.leagueHeading h2,
 .sectionTitle {
     font-size: 1.3rem;
     font-weight: 650;
     letter-spacing: -0.035em;
-}
-.leagueHeading > svg {
-    color: var(--social-tint);
 }
 .rankings {
     padding: 0;
@@ -449,19 +393,8 @@
     font-size: 0.85rem;
     margin-bottom: 1rem;
 }
-.activitySection,
-.socialRail {
-    min-width: 0;
-}
-.socialRail .session {
-    grid-template-columns: 1fr;
-}
-.socialRail .artwork {
-    max-width: 160px;
-}
 @media (max-width: 800px) {
-    .competition,
-    .dashboardGrid {
+    .competition {
         grid-template-columns: 1fr;
     }
 }
@@ -469,10 +402,6 @@
     .passport,
     .league {
         padding: 1rem;
-    }
-    .levelDisc {
-        flex-basis: 96px;
-        height: 96px;
     }
     .identity {
         gap: 0.75rem;
@@ -566,27 +495,6 @@
 
 .navigation > button:focus-visible {
     outline-offset: -3px;
-}
-
-.count {
-    padding-inline: 0.4rem;
-    background: var(--social-raised);
-    border-radius: 0.3rem;
-    font-size: 0.8125rem;
-}
-
-.dashboardGrid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
-    gap: 4rem;
-    align-items: start;
-    animation: none;
-}
-
-.circleSection {
-    margin-top: 0;
-    scroll-margin-top: 6rem;
-    min-width: 0;
 }
 
 .directoryHeading {
@@ -847,17 +755,6 @@
     color: var(--social-secondary);
 }
 
-.activityFeed {
-    display: grid;
-    gap: 0;
-}
-
-.featuredListen {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-}
-
 .sleeve {
     position: relative;
     display: grid;
@@ -955,10 +852,6 @@
     color: var(--social-tint);
 }
 
-.recentList {
-    margin-top: 2.5rem;
-}
-
 .listenRow {
     display: grid;
     grid-template-columns: 80px minmax(0, 1fr);
@@ -1023,34 +916,6 @@
 
 .activityEmpty a {
     margin-top: 1rem;
-}
-
-.rankingSection {
-    margin-top: 3rem;
-    border-top: 1px solid #ffffff1f;
-}
-
-.rankingToggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    width: 100%;
-    text-align: start;
-    padding-block: 1.5rem;
-    font-weight: 600;
-}
-
-.rankingToggle small {
-    display: block;
-    color: var(--social-secondary);
-    font-weight: 400;
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
-}
-
-.rankingToggle:hover {
-    color: var(--social-tint);
 }
 
 .passport,
@@ -1150,29 +1015,7 @@
     padding: 0.875rem 0.5rem;
 }
 
-@media (min-width: 1100px) {
-    .featuredListen {
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr);
-        align-items: end;
-        gap: 1.75rem;
-    }
-    .featuredListen .attribution time {
-        width: 100%;
-        margin: 0.5rem 0 0;
-    }
-    .featuredListen .trackActions span {
-        display: none;
-    }
-    .featuredListen .trackActions button {
-        justify-content: center;
-    }
-}
-
 @media (max-width: 900px) {
-    .dashboardGrid {
-        gap: 2rem;
-        grid-template-columns: minmax(0, 1fr) minmax(250px, 280px);
-    }
     .header {
         align-items: start;
     }
@@ -1203,14 +1046,6 @@
     .navigation > button > svg {
         display: none;
     }
-    .dashboardGrid {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-    }
-    .circleSection {
-        border-top: 1px solid #ffffff1f;
-        padding-top: 1.75rem;
-    }
     .competition {
         grid-template-columns: 1fr;
         gap: 1rem;
@@ -1239,9 +1074,7 @@
     .root {
         --social-secondary: #dedee3;
     }
-    .navigation,
-    .rankingSection,
-    .circleSection {
+    .navigation {
         border-color: #ffffff80;
     }
 }
@@ -1338,25 +1171,6 @@
     object-fit: cover;
 }
 
-.activitySkeleton {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.activitySkeleton div:first-child {
-    aspect-ratio: 1;
-    max-width: 28rem;
-    background: var(--social-raised);
-    border-radius: 0.875rem;
-}
-
-.activitySkeleton div:last-child {
-    height: 5rem;
-    width: 70%;
-    background: var(--social-raised);
-    border-radius: 0.5rem;
-}
-
 .sessionStatus {
     color: var(--social-secondary);
     font-size: 0.875rem;
@@ -1403,44 +1217,7 @@
 
 /* Spend additional width on more visible content, rather than outer margins.
    Container queries follow the available app pane, including its sidebar. */
-.contextRail {
-    display: none;
-    min-width: 0;
-}
 @container friends (min-width: 1280px) {
-    .dashboardGrid {
-        grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
-        gap: 3rem;
-    }
-    .activityFeed {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        column-gap: 3rem;
-        align-items: start;
-    }
-    .activityFeed > .sectionTitle {
-        grid-column: 1;
-    }
-    .featuredListen {
-        grid-column: 1;
-        grid-row: 2;
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-    .featuredListen .attribution time {
-        width: auto;
-        margin: 0 0 0 auto;
-    }
-    .featuredListen .trackActions span {
-        display: inline;
-    }
-    .recentList {
-        grid-column: 2;
-        grid-row: 1 / span 2;
-        margin-top: 0;
-    }
-    .recentList .listenRow:first-of-type {
-        padding-top: 0;
-    }
     .listenRow {
         grid-template-columns: 96px minmax(0, 1fr);
         align-items: start;
@@ -1450,101 +1227,178 @@
         font-size: 1.125rem;
     }
 }
-@container friends (min-width: 1900px) {
-    .dashboardGrid[data-view="activity"] {
-        grid-template-columns: minmax(0, 1fr) minmax(320px, 400px) minmax(
-                320px,
-                420px
-            );
-        gap: 3rem;
-    }
-    .contextRail {
-        display: grid;
-        gap: 3rem;
-    }
-    .contextRail .empty {
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-    .contextRail .empty h2 {
-        font-size: 1rem;
-    }
-    .contextRail .emptyIcon {
-        display: none;
-    }
-    .contextRail .session {
-        gap: 1.25rem;
-    }
-    .contextRail .artwork {
-        width: min(100%, 240px);
-    }
-    .activityFeed {
-        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
-    }
-}
-@container friends (min-width: 2600px) {
-    .dashboardGrid[data-view="activity"] {
-        grid-template-columns: minmax(0, 1fr) minmax(360px, 440px) minmax(
-                360px,
-                460px
-            );
-        gap: 4rem;
-    }
-    .activityFeed {
-        grid-template-columns: minmax(0, 640px) minmax(0, 1fr);
-        column-gap: 4rem;
-    }
-    .recentList {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1.5rem 2rem;
-    }
-    .recentList > .sectionTitle {
-        grid-column: 1 / -1;
-        margin: 0;
-    }
-    .recentList .listenRow {
-        padding-block: 0;
-    }
-    .recentList .attribution time {
-        margin-left: 0;
-        width: 100%;
-    }
-}
-@container friends (min-width: 1280px) {
-    .featuredListen .sleeve,
-    .featuredListen .listenCopy {
-        width: min(100%, 50dvh, 640px);
-    }
-}
-@container friends (min-width: 1280px) {
-    .activityFeed {
-        grid-template-rows: min-content 1fr;
-    }
-    .featuredListen {
-        align-content: start;
-    }
-}
 .sharedItems {
     display: grid;
     gap: 0.5rem;
 }
-@container friends (min-width: 1280px) {
-    .activitySection .people {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1rem;
+/* People first in reading and keyboard order; personal progress stays last on mobile. */
+.socialLayout {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+}
+.peopleRegion,
+.sharedRegion,
+.recentRegion,
+.togetherRegion,
+.progressRegion {
+    min-width: 0;
+    scroll-margin-top: 6rem;
+}
+.navigation {
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 0.25rem 1.5rem;
+}
+.navigation a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+    color: var(--social-secondary);
+    font-size: 0.875rem;
+}
+.navigation a:hover {
+    color: var(--social-tint);
+}
+.listeningHistory {
+    display: grid;
+    gap: 0.5rem;
+}
+.listeningHistory .listenRow {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.75rem;
+}
+.listeningHistory .sleevePlay {
+    width: 44px;
+    height: 44px;
+    right: 0;
+    bottom: 0;
+}
+.listeningHistory .trackTitle {
+    font-size: 1rem;
+}
+.activityEmpty {
+    padding-block: 1rem;
+}
+.activityEmpty h2 {
+    font-size: 1.125rem;
+}
+.activityEmpty > svg {
+    display: none;
+}
+.competition {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+.passport {
+    padding: 0;
+    background: transparent;
+}
+.identity {
+    gap: 1rem;
+    margin-block: 1.25rem;
+    align-items: start;
+    flex-wrap: wrap;
+}
+.levelLabel {
+    font-size: 0.875rem;
+    color: var(--social-tint);
+    padding-block: 0.2rem;
+}
+.identityName h3 {
+    font-size: 1rem;
+    letter-spacing: 0;
+}
+.personalStats strong {
+    font-size: 1.5rem;
+}
+.personalStats {
+    padding-bottom: 0.5rem;
+}
+.leagueDisclosure {
+    border-top: 1px solid #ffffff1f;
+    padding-top: 0.5rem;
+}
+.leagueDisclosure > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 44px;
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.leagueDisclosure > summary::-webkit-details-marker {
+    display: none;
+}
+.leagueDisclosure[open] > summary svg {
+    transform: rotate(180deg);
+}
+.directoryExpand {
+    margin-top: 0.5rem;
+    color: var(--social-tint);
+    font-size: 0.875rem;
+}
+.sharedItems {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+}
+@container friends (min-width: 1000px) {
+    .socialLayout {
+        grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+        grid-template-areas: "people shared" "people recent" "progress together";
+        gap: 3rem;
     }
-    .activitySection .sharedItems {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem 2rem;
+    .peopleRegion {
+        grid-area: people;
     }
-    .activitySection > .session {
-        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
-        align-items: center;
+    .sharedRegion {
+        grid-area: shared;
+    }
+    .recentRegion {
+        grid-area: recent;
+    }
+    .progressRegion {
+        grid-area: progress;
+    }
+    .togetherRegion {
+        grid-area: together;
     }
 }
-@container friends (min-width: 2600px) {
-    .activitySection .sharedItems {
+@container friends (min-width: 1400px) {
+    .socialLayout {
+        grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.6fr) minmax(
+                300px,
+                0.9fr
+            );
+        grid-template-areas: "people shared progress" "people recent together";
+        gap: 3rem;
+    }
+    .listeningHistory {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem 1.5rem;
+    }
+}
+@container friends (min-width: 2400px) {
+    .socialLayout {
+        grid-template-columns: minmax(360px, 480px) minmax(0, 1fr) minmax(
+                360px,
+                480px
+            );
+        gap: 4rem;
+    }
+    .listeningHistory {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .sharedItems {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem 2rem;
     }
 }

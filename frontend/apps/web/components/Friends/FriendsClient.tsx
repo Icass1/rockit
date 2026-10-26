@@ -2,14 +2,7 @@
 
 import { useEffect, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
-import {
-    ArrowDown,
-    ChevronDown,
-    Headphones,
-    Music2,
-    Send,
-    Users,
-} from "lucide-react";
+import { Headphones, Music2, Send, Users } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import FriendActivityFeed from "@/components/Friends/FriendActivityFeed";
 import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
@@ -26,13 +19,8 @@ export default function FriendsClient(): JSX.Element {
     const error = useStore(rockIt.friendManager.errorAtom);
     const loading = useStore(rockIt.friendManager.loadingAtom);
     const requests = useStore(rockIt.friendManager.incomingRequestsAtom);
-    const inbox = useStore(rockIt.sharingManager.inboxAtom);
-    const [view, setView] = useState("activity");
-    const [ranking, setRanking] = useState(false);
     const [ready, setReady] = useState(false);
     const onlineCount = friends.filter((friend) => friend.isOnline).length;
-    const unread = inbox.filter((item) => !item.seen).length;
-
     useEffect(() => {
         let current = true;
         void Promise.allSettled([
@@ -49,40 +37,41 @@ export default function FriendsClient(): JSX.Element {
             current = false;
         };
     }, []);
-
     return (
         <div className={styles.root}>
             <header className={styles.header}>
                 <div>
                     <h1 className={styles.title}>{v.FRIENDS}</h1>
-                    <p className={styles.subtitle}>{v.SOCIAL_INTRO}</p>
+                    <p className={styles.subtitle}>{v.FRIENDS_SOCIAL_INTRO}</p>
                 </div>
-                <a className={styles.circleLink} href="#social-circle">
-                    <Users size={18} aria-hidden="true" />
-                    {v.SOCIAL_PEOPLE} <ArrowDown size={16} aria-hidden="true" />
-                </a>
             </header>
             <nav className={styles.navigation} aria-label={v.FRIENDS}>
                 {[
-                    { id: "activity", label: v.SOCIAL_DISCOVER, icon: Music2 },
                     {
-                        id: "together",
+                        id: "social-circle",
+                        label: v.SOCIAL_PEOPLE,
+                        icon: Users,
+                    },
+                    {
+                        id: "social-shared",
+                        label: v.FRIENDS_NAV_SHARED,
+                        icon: Send,
+                    },
+                    {
+                        id: "social-recent",
+                        label: v.FRIENDS_NAV_RECENT,
+                        icon: Music2,
+                    },
+                    {
+                        id: "social-together",
                         label: v.FRIENDS_PARTY,
                         icon: Headphones,
                     },
-                    { id: "shared", label: v.FRIENDS_SHARE, icon: Send },
                 ].map(({ id, label, icon: Icon }) => (
-                    <button
-                        key={id}
-                        aria-pressed={view === id}
-                        onClick={() => setView(id)}
-                    >
+                    <a key={id} href={`#${id}`}>
                         <Icon size={17} aria-hidden="true" />
                         <span>{label}</span>
-                        {id === "shared" && unread > 0 && (
-                            <span className={styles.count}>{unread}</span>
-                        )}
-                    </button>
+                    </a>
                 ))}
             </nav>
             {error && (
@@ -98,36 +87,10 @@ export default function FriendsClient(): JSX.Element {
                 </div>
             )}
             {requests.length > 0 && <FriendRequests />}
-            <div className={styles.dashboardGrid} data-view={view}>
+            <div className={styles.socialLayout}>
                 <section
-                    className={styles.activitySection}
-                    aria-label={
-                        view === "activity"
-                            ? v.SOCIAL_DISCOVER
-                            : view === "together"
-                              ? v.FRIENDS_PARTY
-                              : v.FRIENDS_SHARE
-                    }
-                >
-                    {view === "activity" &&
-                        (!ready && activity.length === 0 ? (
-                            <div
-                                className={styles.activitySkeleton}
-                                aria-busy="true"
-                                aria-label={v.SEARCH_LOADING}
-                            >
-                                <div />
-                                <div />
-                            </div>
-                        ) : (
-                            <FriendActivityFeed activities={activity} />
-                        ))}
-                    {view === "together" && <ListenTogetherPanel />}
-                    {view === "shared" && <SharedMediaInbox />}
-                </section>
-                <aside
                     id="social-circle"
-                    className={styles.circleSection}
+                    className={styles.peopleRegion}
                     aria-labelledby="social-people"
                 >
                     <div className={styles.directoryHeading}>
@@ -135,7 +98,10 @@ export default function FriendsClient(): JSX.Element {
                             {v.SOCIAL_PEOPLE}
                         </h2>
                         <span className={styles.presence} role="status">
-                            {onlineCount} {v.FRIENDS_ONLINE}
+                            {v.FRIENDS_ONLINE_COUNT.replace(
+                                "{count}",
+                                String(onlineCount)
+                            )}
                         </span>
                     </div>
                     {loading && friends.length === 0 ? (
@@ -151,47 +117,58 @@ export default function FriendsClient(): JSX.Element {
                     ) : (
                         <FriendsList friends={friends} />
                     )}
-                </aside>
-                {view === "activity" && (
-                    <aside
-                        className={styles.contextRail}
-                        aria-label={v.FRIENDS_PARTY}
-                    >
-                        <section aria-label={v.FRIENDS_PARTY}>
-                            <ListenTogetherPanel compact />
-                        </section>
-                        <section aria-label={v.FRIENDS_SHARE}>
-                            <h2 className={styles.sectionTitle}>
-                                {v.FRIENDS_SHARE}
-                            </h2>
-                            <SharedMediaInbox />
-                        </section>
-                    </aside>
-                )}
-            </div>
-            <section className={styles.rankingSection}>
-                <button
-                    className={styles.rankingToggle}
-                    aria-expanded={ranking}
-                    aria-controls="social-rankings"
-                    onClick={() => setRanking(!ranking)}
+                </section>
+                <section
+                    id="social-shared"
+                    className={styles.sharedRegion}
+                    aria-labelledby="social-shared-title"
                 >
-                    <span>
-                        {v.SOCIAL_RACE}
-                        <small>{v.SOCIAL_PASSPORT}</small>
-                    </span>
-                    <ChevronDown
-                        size={20}
-                        aria-hidden="true"
-                        style={{
-                            transform: ranking ? "rotate(180deg)" : undefined,
-                        }}
-                    />
-                </button>
-                <div id="social-rankings" hidden={!ranking}>
-                    {ranking && <FriendLeaderboard />}
-                </div>
-            </section>
+                    <h2
+                        id="social-shared-title"
+                        className={styles.sectionTitle}
+                    >
+                        {v.FRIENDS_SHARED_MUSIC}
+                    </h2>
+                    <SharedMediaInbox />
+                </section>
+                <section
+                    id="social-recent"
+                    className={styles.recentRegion}
+                    aria-labelledby="social-recent-title"
+                >
+                    <h2
+                        id="social-recent-title"
+                        className={styles.sectionTitle}
+                    >
+                        {v.FRIENDS_RECENT_LISTENS}
+                    </h2>
+                    {!ready && activity.length === 0 ? (
+                        <div
+                            className={styles.directorySkeleton}
+                            aria-busy="true"
+                            aria-label={v.SEARCH_LOADING}
+                        >
+                            <div />
+                            <div />
+                        </div>
+                    ) : (
+                        <FriendActivityFeed activities={activity} />
+                    )}
+                </section>
+                <section
+                    id="social-together"
+                    className={styles.togetherRegion}
+                    aria-label={v.FRIENDS_PARTY}
+                >
+                    <ListenTogetherPanel compact />
+                </section>
+                <aside
+                    className={styles.progressRegion}
+                    aria-label={v.FRIENDS_PERSONAL_PROGRESS}
+                >
+                    <FriendLeaderboard />
+                </aside>
+            </div>
         </div>
     );
 }

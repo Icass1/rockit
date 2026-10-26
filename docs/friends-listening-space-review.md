@@ -51,3 +51,18 @@ New captures include 1920x1080 and 3440x1440, using nine sample activities to sh
 normal populated behavior. The displayed people, tracks and covers remain example
 data outside production code. Mobile, tablet and prior interaction-state captures
 were refreshed. No local test suites were run.
+
+## Revision: social priority
+
+User review replaced the large featured sleeve with a people-first flow. Mobile
+reads friends/current listening, shared music, recent circle activity, listening
+sessions and personal progress. Recent listens all have small covers. A six-person
+initial directory has an explicit expand control. Desktop uses columns without
+changing that mobile reading order. Personal progress uses a bar; comparison is
+inside a collapsed disclosure.
+
+All 67 currently referenced Friends labels were found in Vocabulary.xlsx. Shared
+sender/recipient text is now translated there too. `generate-vocabulary` generates
+the shared type and Excel-backed Friends defaults without database writes, keeping
+new labels available before an operator imports vocabulary into an existing DB.
+XP policy and medals are a separate follow-up; this PR does not change scoring.

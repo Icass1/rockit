@@ -2,6 +2,25 @@
 
 ## To Do
 
+### [SOCIAL] XP por tiempo real de escucha y sesiones
+
+- tags: [backend, friends, xp, kb-35]
+- priority: medium
+- workload: Hard
+    ```md
+    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
+    ```
+
+### [SOCIAL] Emblemas Rockit y comparación entre amigos
+
+- tags: [frontend, backend, friends, badges, kb-36]
+- priority: medium
+- workload: Normal
+    ```md
+    Medallas originales basadas en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
+    ```
+
+
 ### [SETTINGS] Subida de imagen de perfil y avatar por defecto
 
 - tags: [frontend, settings, profile, bug]
@@ -224,6 +243,16 @@
 ## Idle
 
 ## To Review
+
+### [FRIENDS] Vocabulary desde el Excel
+
+- tags: [frontend, i18n, vocabulary, kb-34]
+- priority: medium
+- workload: Easy
+    ```md
+    Etiquetas de Friends y De/Para localizados en Vocabulary.xlsx (en/es/fr), tipos y fallback generados desde el Excel; generación sin escrituras de BD. Auditadas las referencias de vocabulario de Friends. Pendiente de revisión de Ignacio. Sin tests locales.
+    ```
+
 
 ### [FRIENDS] Mejorar UI/UX de la página de friends
 

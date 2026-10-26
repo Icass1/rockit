@@ -24,13 +24,7 @@ function timeAgo(date: string, now: string, units: string[]): string {
     return units[index].replace("{count}", String(count));
 }
 
-function ActivitySleeve({
-    item,
-    featured = false,
-}: {
-    item: FriendActivity;
-    featured?: boolean;
-}): JSX.Element {
+function ActivitySleeve({ item }: { item: FriendActivity }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [busy, setBusy] = useState(false);
     const [failedImage, setFailedImage] = useState<string | null>(null);
@@ -44,25 +38,19 @@ function ActivitySleeve({
         }
     };
     return (
-        <article
-            className={featured ? styles.featuredListen : styles.listenRow}
-        >
+        <article className={styles.listenRow}>
             <div className={styles.sleeve}>
                 {item.mediaImageUrl && failedImage !== item.mediaImageUrl ? (
                     <Image
                         src={item.mediaImageUrl}
                         alt=""
-                        width={featured ? 640 : 104}
-                        height={featured ? 640 : 104}
+                        width={104}
+                        height={104}
                         className={styles.sleeveImage}
                         onError={() => setFailedImage(item.mediaImageUrl)}
                     />
                 ) : (
-                    <Music2
-                        size={featured ? 72 : 28}
-                        strokeWidth={1}
-                        aria-hidden="true"
-                    />
+                    <Music2 size={28} strokeWidth={1} aria-hidden="true" />
                 )}
                 <button
                     className={styles.sleevePlay}
@@ -72,11 +60,7 @@ function ActivitySleeve({
                         void play();
                     }}
                 >
-                    <Play
-                        size={featured ? 24 : 18}
-                        fill="currentColor"
-                        aria-hidden="true"
-                    />
+                    <Play size={18} fill="currentColor" aria-hidden="true" />
                 </button>
             </div>
             <div className={styles.listenCopy}>
@@ -170,24 +154,13 @@ export default function FriendActivityFeed({
             </div>
         );
     return (
-        <div className={styles.activityFeed}>
-            <h2 className={styles.sectionTitle}>{v.SOCIAL_DISCOVER}</h2>
-            <ActivitySleeve
-                key={`${activities[0].userPublicId}-${activities[0].mediaPublicId}`}
-                item={activities[0]}
-                featured
-            />
-            {activities.length > 1 && (
-                <section className={styles.recentList} aria-label={v.RECENT}>
-                    <h2 className={styles.sectionTitle}>{v.RECENT}</h2>
-                    {activities.slice(1).map((item, i) => (
-                        <ActivitySleeve
-                            key={`${item.userPublicId}-${item.mediaPublicId}-${i}`}
-                            item={item}
-                        />
-                    ))}
-                </section>
-            )}
+        <div className={styles.listeningHistory}>
+            {activities.map((item, i) => (
+                <ActivitySleeve
+                    key={`${item.userPublicId}-${item.mediaPublicId}-${i}`}
+                    item={item}
+                />
+            ))}
         </div>
     );
 }

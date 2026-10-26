@@ -48,6 +48,7 @@ export default function FriendsList({
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const results = useStore(rockIt.friendManager.searchResultsAtom);
     const [query, setQuery] = useState("");
+    const [expanded, setExpanded] = useState(false);
     const [searching, setSearching] = useState(false);
     const [settledQuery, setSettledQuery] = useState("");
     const [busy, setBusy] = useState<string | null>(null);
@@ -174,7 +175,7 @@ export default function FriendsList({
                 </div>
             ) : (
                 <ul className={styles.directoryList}>
-                    {sorted.map((friend) => (
+                    {(expanded ? sorted : sorted.slice(0, 6)).map((friend) => (
                         <li key={friend.publicId}>
                             <div className={styles.directoryRow}>
                                 <Avatar
@@ -190,7 +191,8 @@ export default function FriendsList({
                                         {friend.isOnline
                                             ? v.FRIENDS_ONLINE
                                             : v.FRIENDS_OFFLINE}
-                                        {friend.nowPlaying &&
+                                        {friend.isOnline &&
+                                            friend.nowPlaying &&
                                             ` · ${friend.nowPlaying}`}
                                     </span>
                                 </div>
@@ -303,6 +305,20 @@ export default function FriendsList({
                         </li>
                     ))}
                 </ul>
+            )}
+            {!showResults && friends.length > 6 && (
+                <button
+                    className={styles.directoryExpand}
+                    aria-expanded={expanded}
+                    onClick={() => setExpanded(!expanded)}
+                >
+                    {expanded
+                        ? v.FRIENDS_SHOW_LESS
+                        : v.FRIENDS_SHOW_ALL.replace(
+                              "{count}",
+                              String(friends.length)
+                          )}
+                </button>
             )}
             {blocked.length > 0 && (
                 <details className={styles.blocked}>

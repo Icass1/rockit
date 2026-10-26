@@ -3,7 +3,7 @@
 import { useEffect, useState, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
-import { ArrowUpRight, Flame, Headphones } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Flame, Headphones } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
@@ -98,27 +98,12 @@ export default function FriendLeaderboard(): JSX.Element {
                     aria-labelledby="music-identity"
                 >
                     <h2 id="music-identity" className={styles.sectionTitle}>
-                        {v.SOCIAL_PASSPORT}
+                        {v.FRIENDS_PERSONAL_PROGRESS}
                     </h2>
                     <div className={styles.identity}>
-                        <div className={styles.levelDisc}>
-                            <svg viewBox="0 0 120 120" aria-hidden="true">
-                                <circle cx="60" cy="60" r="54" />
-                                <circle
-                                    cx="60"
-                                    cy="60"
-                                    r="54"
-                                    pathLength="100"
-                                    strokeDasharray={`${progress} 100`}
-                                />
-                            </svg>
-                            <span>
-                                <small>
-                                    {v.SOCIAL_LEVEL?.replace("{level}", "")}
-                                </small>
-                                <strong>{self.level}</strong>
-                            </span>
-                        </div>
+                        <span className={styles.levelLabel}>
+                            {text("SOCIAL_LEVEL", { level: self.level })}
+                        </span>
                         <div className={styles.identityName}>
                             <h3>{self.username}</h3>
                             <p>{v[self.title] || self.title}</p>
@@ -159,16 +144,11 @@ export default function FriendLeaderboard(): JSX.Element {
                     <p className={styles.statFootnote}>{v.SOCIAL_XP_RULE}</p>
                 </section>
             )}
-            <section
-                className={styles.league}
-                aria-labelledby="listening-league"
-            >
-                <div className={styles.leagueHeading}>
-                    <div>
-                        <h2 id="listening-league">{v.SOCIAL_RACE}</h2>
-                    </div>
-                    <ArrowUpRight aria-hidden="true" />
-                </div>
+            <details className={styles.leagueDisclosure}>
+                <summary>
+                    {v.SOCIAL_RACE}
+                    <ChevronDown size={18} aria-hidden="true" />
+                </summary>
                 <p className={styles.statFootnote}>
                     {others.length ? v.SOCIAL_COMPARE : v.SOCIAL_EMPTY}
                 </p>
@@ -271,7 +251,7 @@ export default function FriendLeaderboard(): JSX.Element {
                         <ArrowUpRight size={16} aria-hidden="true" />
                     </a>
                 )}
-            </section>
+            </details>
         </div>
     );
 }

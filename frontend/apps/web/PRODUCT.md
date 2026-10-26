@@ -23,5 +23,6 @@ boxes, informed by Apple Design and Impeccable. Preserve Rockit's surrounding ap
 
 ## Open Decisions
 
-The proposed priority is people and music before competition. This is a design
-assumption awaiting user feedback, not a confirmed product-wide policy.
+The user confirmed the mobile order: friends/current listening, shared music,
+then recent circle activity. Personal progress and comparison are secondary.
+They also requested listening-time XP milestones and branded comparable emblems.

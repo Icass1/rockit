@@ -1,36 +1,30 @@
 # Friends surface brief
 
-Mode: Operate. Scope: /friends only, keeping the surrounding Rockit shell.
-Build: code first; no generated visual assets or mock data in production.
+Mode: Operate. Scope: /friends, within Rockit's existing shell.
+Code first; screenshots use sample manager state, never production dummy data.
 
 ## Direction contract
 
-People leave a musical trail. A large record sleeve anchors the most recent
-listen; quieter rows continue that trail. Human attribution sits next to each
-track. A compact directory remains beside the music, below it on narrow screens.
-A three-view navigation separates discovery, listening together, and shared music.
-Competition is disclosed on demand instead of occupying the first viewport.
+The user explicitly prioritizes friends and their current listening, then shared
+music, then recent listening history on mobile. Keep that order in the DOM and
+keyboard navigation. Remove the oversized cover entirely; recent activity uses
+small, equally weighted artwork. The directory shows six friends initially with
+an explicit expansion action, keeping later sections within reach.
 
-Dark appearance inherits the listening app, not a new product-wide rebrand.
-Use the existing system font for a working UI. Avoid decorative framing,
-repeated cards, gradients, metric heroes and permanent animation. The artwork
-is the colour. Pink identifies actions and selection; green indicates presence.
+Desktop distributes these jobs across the available pane. Personal progress uses
+one bar and real profile data in a secondary column; on mobile it follows the
+social content. Friend comparisons are collapsed until requested. Listening
+sessions remain accessible without duplicating the directory.
 
-Provisional structure pending user feedback; do not interpret it as approval of
-product-wide changes. Alternative structures considered: directory-first,
-activity with persistent directory, and session-first. No user choice is recorded.
-Seed reference: seed:d4924c6c7477bf14 (degraded service; no catalog challengers).
+Preserve search, requests, blocking, sharing, playback, queue actions and sessions.
+Do not invent live metadata absent from the API. Use the existing dark surfaces,
+system typography and semantic colour. No repeated framed cards, decorative
+kickers, metric heroes or ambient motion. Every control has visible focus and
+44px targets. Source every translated label in Vocabulary.xlsx.
 
-Preserve search, requests, blocking, sharing, playback, queue actions, sessions,
-rankings and levels. Do not invent live activity/progress absent from the API.
-Touch targets >=44px, visible keyboard focus, search font 16px, reduced motion.
+## Experience follow-up
 
-## Wide-screen revision
-
-User feedback rejected the fixed 1240px centered wrapper on 16:9 and ultrawide.
-Use the full app pane with proportional outer padding. At 1280px of available
-content width, place recent listens beside the featured sleeve; constrain artwork
-by viewport height so song title and actions fit in 1080px. At 1900px show a
-compact listening-session and shared-music rail beside the people directory.
-At 2600px recent listens use two columns. These are container queries, allowing
-for Rockit's navigation sidebar. Mobile retains its single-column flow.
+A separate implementation will replace play-count XP with verified listening-time
+milestones and Rockit emblems. The user approved session milestones at 10, 20, 30
+and 60 minutes and requested comparable medals. Amounts are provisional policy
+values, not part of this UI revision. Preserve existing earned XP.

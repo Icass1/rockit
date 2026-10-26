@@ -59,7 +59,7 @@ export default function SharedMediaInbox(): JSX.Element {
                     <p className="text-sm">{v.FRIENDS_NO_SHARED}</p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-2">
+                <div className={styles.sharedItems}>
                     {items.map((item) => (
                         <div
                             key={item.publicId}

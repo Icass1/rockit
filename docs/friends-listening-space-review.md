@@ -37,3 +37,17 @@ updates or Safari/iPhone behavior. No local test suites were run.
 Widths inspected: 1440, 768, 390 and 320 CSS pixels. Additional captures cover
 requests, search, empty/error/loading states, long names/titles, shared music,
 listening sessions and rankings. CI runs separately on GitHub.
+
+## Revision: use wide screens
+
+The fixed 1240px content wrapper was rejected during visual review. The page now
+uses the available app pane. Recent activity moves alongside the featured listen
+at 1280px of container width; at 1900px a contextual rail exposes listening
+sessions and shared music. At 2600px the recent-listen region gains a second
+column. Artwork is capped at 50dvh / 640px so it does not push track actions below
+a 1080px viewport. Shared media and invitations also use the additional width.
+
+New captures include 1920x1080 and 3440x1440, using nine sample activities to show
+normal populated behavior. The displayed people, tracks and covers remain example
+data outside production code. Mobile, tablet and prior interaction-state captures
+were refreshed. No local test suites were run.

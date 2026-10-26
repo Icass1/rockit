@@ -98,7 +98,7 @@ export default function FriendsClient(): JSX.Element {
                 </div>
             )}
             {requests.length > 0 && <FriendRequests />}
-            <div className={styles.dashboardGrid}>
+            <div className={styles.dashboardGrid} data-view={view}>
                 <section
                     className={styles.activitySection}
                     aria-label={
@@ -152,6 +152,22 @@ export default function FriendsClient(): JSX.Element {
                         <FriendsList friends={friends} />
                     )}
                 </aside>
+                {view === "activity" && (
+                    <aside
+                        className={styles.contextRail}
+                        aria-label={v.FRIENDS_PARTY}
+                    >
+                        <section aria-label={v.FRIENDS_PARTY}>
+                            <ListenTogetherPanel compact />
+                        </section>
+                        <section aria-label={v.FRIENDS_SHARE}>
+                            <h2 className={styles.sectionTitle}>
+                                {v.FRIENDS_SHARE}
+                            </h2>
+                            <SharedMediaInbox />
+                        </section>
+                    </aside>
+                )}
             </div>
             <section className={styles.rankingSection}>
                 <button

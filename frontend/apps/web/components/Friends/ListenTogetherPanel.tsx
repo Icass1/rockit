@@ -7,7 +7,11 @@ import { Headphones, LogOut, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
 
-export default function ListenTogetherPanel(): JSX.Element {
+export default function ListenTogetherPanel({
+    compact = false,
+}: {
+    compact?: boolean;
+}): JSX.Element {
     const sessions = useStore(rockIt.listenTogetherManager.sessionsAtom);
     const active = useStore(rockIt.listenTogetherManager.activeSessionAtom);
     const loading = useStore(rockIt.listenTogetherManager.loadingAtom);
@@ -121,7 +125,12 @@ export default function ListenTogetherPanel(): JSX.Element {
                     <p className={styles.subtitle}>{v.INVITE_FRIEND_LISTEN}</p>
                 </div>
             )}
-            {friends.length > 0 && (
+            {compact && friends.length > 0 && (
+                <a className={styles.circleLink} href="#social-circle">
+                    {v.FRIENDS_INVITE}
+                </a>
+            )}
+            {!compact && friends.length > 0 && (
                 <>
                     <p className="text-sm text-neutral-400">
                         {v.FRIENDS_INVITE}

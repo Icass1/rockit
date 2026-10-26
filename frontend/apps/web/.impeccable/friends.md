@@ -24,3 +24,13 @@ Seed reference: seed:d4924c6c7477bf14 (degraded service; no catalog challengers)
 Preserve search, requests, blocking, sharing, playback, queue actions, sessions,
 rankings and levels. Do not invent live activity/progress absent from the API.
 Touch targets >=44px, visible keyboard focus, search font 16px, reduced motion.
+
+## Wide-screen revision
+
+User feedback rejected the fixed 1240px centered wrapper on 16:9 and ultrawide.
+Use the full app pane with proportional outer padding. At 1280px of available
+content width, place recent listens beside the featured sleeve; constrain artwork
+by viewport height so song title and actions fit in 1080px. At 1900px show a
+compact listening-session and shared-music rail beside the people directory.
+At 2600px recent listens use two columns. These are container queries, allowing
+for Rockit's navigation sidebar. Mobile retains its single-column flow.

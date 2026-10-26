@@ -496,8 +496,10 @@
     --social-text: var(--color-text, #e0e0e0);
     --social-secondary: #b0b0b8;
     --social-tint: #ff85b7;
-    max-width: 1240px;
-    padding: 2.5rem 1.5rem 6rem;
+    width: 100%;
+    max-width: none;
+    container: friends / inline-size;
+    padding: 2.5rem clamp(1.5rem, 3vw, 6rem) 6rem;
     color-scheme: dark;
     caret-color: var(--social-tint);
 }
@@ -1396,5 +1398,153 @@
     }
     .navigation > button {
         padding-block: 0.625rem;
+    }
+}
+
+/* Spend additional width on more visible content, rather than outer margins.
+   Container queries follow the available app pane, including its sidebar. */
+.contextRail {
+    display: none;
+    min-width: 0;
+}
+@container friends (min-width: 1280px) {
+    .dashboardGrid {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+        gap: 3rem;
+    }
+    .activityFeed {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 3rem;
+        align-items: start;
+    }
+    .activityFeed > .sectionTitle {
+        grid-column: 1;
+    }
+    .featuredListen {
+        grid-column: 1;
+        grid-row: 2;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .featuredListen .attribution time {
+        width: auto;
+        margin: 0 0 0 auto;
+    }
+    .featuredListen .trackActions span {
+        display: inline;
+    }
+    .recentList {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        margin-top: 0;
+    }
+    .recentList .listenRow:first-of-type {
+        padding-top: 0;
+    }
+    .listenRow {
+        grid-template-columns: 96px minmax(0, 1fr);
+        align-items: start;
+        padding-block: 1.25rem;
+    }
+    .listenRow .trackTitle {
+        font-size: 1.125rem;
+    }
+}
+@container friends (min-width: 1900px) {
+    .dashboardGrid[data-view="activity"] {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 400px) minmax(
+                320px,
+                420px
+            );
+        gap: 3rem;
+    }
+    .contextRail {
+        display: grid;
+        gap: 3rem;
+    }
+    .contextRail .empty {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .contextRail .empty h2 {
+        font-size: 1rem;
+    }
+    .contextRail .emptyIcon {
+        display: none;
+    }
+    .contextRail .session {
+        gap: 1.25rem;
+    }
+    .contextRail .artwork {
+        width: min(100%, 240px);
+    }
+    .activityFeed {
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+    }
+}
+@container friends (min-width: 2600px) {
+    .dashboardGrid[data-view="activity"] {
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 440px) minmax(
+                360px,
+                460px
+            );
+        gap: 4rem;
+    }
+    .activityFeed {
+        grid-template-columns: minmax(0, 640px) minmax(0, 1fr);
+        column-gap: 4rem;
+    }
+    .recentList {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.5rem 2rem;
+    }
+    .recentList > .sectionTitle {
+        grid-column: 1 / -1;
+        margin: 0;
+    }
+    .recentList .listenRow {
+        padding-block: 0;
+    }
+    .recentList .attribution time {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+@container friends (min-width: 1280px) {
+    .featuredListen .sleeve,
+    .featuredListen .listenCopy {
+        width: min(100%, 50dvh, 640px);
+    }
+}
+@container friends (min-width: 1280px) {
+    .activityFeed {
+        grid-template-rows: min-content 1fr;
+    }
+    .featuredListen {
+        align-content: start;
+    }
+}
+.sharedItems {
+    display: grid;
+    gap: 0.5rem;
+}
+@container friends (min-width: 1280px) {
+    .activitySection .people {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+    .activitySection .sharedItems {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem 2rem;
+    }
+    .activitySection > .session {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+        align-items: center;
+    }
+}
+@container friends (min-width: 2600px) {
+    .activitySection .sharedItems {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }

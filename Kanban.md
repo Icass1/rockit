@@ -74,19 +74,6 @@
     Añadir un context menu a las canciones del home.
     ```
 
-### [SEARCH] Reproducir canciones ya descargadas
-
-- tags: [frontend, search, playback, ui, kb-25]
-- priority: medium
-- workload: Easy
-- defaultExpanded: false
-- steps:
-    - [ ] Se me abre el context menu para una cancion qe ya tengo descargada y en mi library
-    ```md
-    Añadir play en Search cuando una canción ya está descargada.
-
-    Implementado: botón accesible sobre la carátula (play/pause para la canción actual) y acción Reproducir en el menú. Se carga la canción existente por publicId sin iniciar otra descarga; errores con feedback y bloqueo durante la carga. Pendiente de revisión integrada.
-    ```
 
 ## Idle
 
@@ -102,6 +89,22 @@
     ```
 
 ## To Review
+
+### [SEARCH] Reproducir canciones ya descargadas
+
+- tags: [frontend, search, playback, ui, kb-25]
+- priority: medium
+- workload: Easy
+- defaultExpanded: false
+- steps:
+    - [x] Se me abre el context menu para una cancion qe ya tengo descargada y en mi library
+    ```md
+    Revisión: un clic o toque sobre la tarjeta de una canción descargada reproduce directamente (o alterna pausa si es la actual), sin abrir el menú. El menú permanece en clic derecho y pulsación larga; los resultados pendientes de descargar conservan su selector de acciones. El botón accesible play/pause y la carga por publicId siguen disponibles. Pendiente de revisión integrada; sin tests locales.
+
+    Añadir play en Search cuando una canción ya está descargada.
+
+    Implementado: botón accesible sobre la carátula (play/pause para la canción actual) y acción Reproducir en el menú. Se carga la canción existente por publicId sin iniciar otra descarga; errores con feedback y bloqueo durante la carga. Pendiente de revisión integrada.
+    ```
 
 ### [UI] Mejorar blur del header y hacerlo más curvo
 

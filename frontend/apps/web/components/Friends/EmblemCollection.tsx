@@ -60,7 +60,12 @@ export default function EmblemCollection({
         const entry = earned.at(-1) ?? group[0];
         return entry ? [entry] : [];
     });
-    const shown = expanded ? filtered : summary;
+    // A small collection preview keeps personal progress secondary to friends.
+    // The full catalogue and every family remain available behind Explore all.
+    const preview = [...summary]
+        .sort((a, b) => (b.earnedAt ?? "").localeCompare(a.earnedAt ?? ""))
+        .slice(0, 3);
+    const shown = expanded ? filtered : preview;
     return (
         <div
             className={styles.emblemCollection}

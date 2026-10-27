@@ -176,29 +176,34 @@ export default function FriendLeaderboard(): JSX.Element {
                                 max={(nextMilestone?.minutes ?? 60) * 60}
                                 aria-label={sessionLabel}
                             />
-                            <ul>
-                                {milestones.map((step) => (
-                                    <li
-                                        key={step.minutes}
-                                        data-reached={step.reached}
-                                    >
-                                        <span>
-                                            {text("FRIENDS_XP_MILESTONE", {
-                                                minutes: step.minutes,
-                                                xp: step.xp,
-                                            })}
-                                        </span>
-                                        <span>
-                                            {step.reached
-                                                ? v.FRIENDS_MILESTONE_REACHED
-                                                : v.FRIENDS_MILESTONE_PENDING}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <p className={styles.statFootnote}>
-                                {v.FRIENDS_SESSION_RULE}
-                            </p>
+                            <details className={styles.sessionDetails}>
+                                <summary>
+                                    {v.FRIENDS_SESSION_MILESTONES}
+                                </summary>
+                                <ul>
+                                    {milestones.map((step) => (
+                                        <li
+                                            key={step.minutes}
+                                            data-reached={step.reached}
+                                        >
+                                            <span>
+                                                {text("FRIENDS_XP_MILESTONE", {
+                                                    minutes: step.minutes,
+                                                    xp: step.xp,
+                                                })}
+                                            </span>
+                                            <span>
+                                                {step.reached
+                                                    ? v.FRIENDS_MILESTONE_REACHED
+                                                    : v.FRIENDS_MILESTONE_PENDING}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className={styles.statFootnote}>
+                                    {v.FRIENDS_SESSION_RULE}
+                                </p>
+                            </details>
                         </section>
                     )}
                     {self.listeningBadges && (

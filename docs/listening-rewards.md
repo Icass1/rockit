@@ -56,7 +56,7 @@ Historical uninterrupted sessions are not guessed from play counts.
 Unlocks persist once per user/key with an earned timestamp. Emblems do not grant
 extra XP. Profile and comparison projections batch statistics and earned state;
 new awards use one JSON recordset insert rather than per-badge queries. The initial
-collection shows one representative per family, with an expandable, scrollable
+collection shows up to three recent family representatives, with an expandable, scrollable
 catalogue filtered by family, earned state and text. Locked requirements
 and numeric progress remain explicit. Accepted-friend comparisons show collections
 and their earned intersection; friendship and blocking access checks remain intact.
@@ -73,3 +73,8 @@ All 115 badge names and concise requirements, family labels and catalogue contro
 come from Vocabulary.xlsx in English, Spanish and French. Generated vocabulary and
 response schemas are regenerated from their canonical sources. Difficulty is
 removed from the response schema as well as labels, filters and emblem colours.
+
+The personal progress section keeps current session progress visible and places
+its milestone breakdown inside a native disclosure. The complete 115-emblem
+catalogue and all family filters remain available through Explore all. This keeps
+the default rewards view secondary to the three equally weighted social columns.

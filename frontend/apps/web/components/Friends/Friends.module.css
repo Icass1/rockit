@@ -1602,3 +1602,18 @@
 .emblemCollection[data-compact="true"] .emblemTier {
     font-size: 0.45rem;
 }
+
+.sessionDetails {
+    margin-top: 0.5rem;
+}
+.sessionDetails > summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--social-tint);
+    font-size: 0.875rem;
+}
+.emblemCollection[data-expanded="false"][data-compact="false"] > ul {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
+}

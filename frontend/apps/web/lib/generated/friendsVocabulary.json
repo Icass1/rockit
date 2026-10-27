@@ -272,7 +272,8 @@
         "FRIENDS_BADGE_SHARING_DESCRIPTION_ONE": "{target} distinct recommendation",
         "FRIENDS_BADGE_FRIENDS_DESCRIPTION_ONE": "{target} mutual friend",
         "FRIENDS_BADGE_VIDEOS_DESCRIPTION_ONE": "{target} completed video play",
-        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "{target} recording and {target} recommendation"
+        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "{target} recording and {target} recommendation",
+        "FRIENDS_SESSION_MILESTONES": "Session milestones"
     },
     "es": {
         "ADD_TO_QUEUE": "Añadir a la cola",
@@ -547,7 +548,8 @@
         "FRIENDS_BADGE_SHARING_DESCRIPTION_ONE": "{target} recomendación distinta",
         "FRIENDS_BADGE_FRIENDS_DESCRIPTION_ONE": "{target} amigo",
         "FRIENDS_BADGE_VIDEOS_DESCRIPTION_ONE": "{target} vídeo reproducido",
-        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "{target} grabación y {target} recomendación"
+        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "{target} grabación y {target} recomendación",
+        "FRIENDS_SESSION_MILESTONES": "Hitos de la sesión"
     },
     "fr": {
         "ADD_TO_QUEUE": "Ajouter à la file",
@@ -822,6 +824,7 @@
         "FRIENDS_BADGE_SHARING_DESCRIPTION_ONE": "{target} recommandation distincte",
         "FRIENDS_BADGE_FRIENDS_DESCRIPTION_ONE": "{target} ami",
         "FRIENDS_BADGE_VIDEOS_DESCRIPTION_ONE": "{target} vidéo lue",
-        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "{target} enregistrement et {target} recommandation"
+        "FRIENDS_BADGE_MIXED_DESCRIPTION_ONE": "{target} enregistrement et {target} recommandation",
+        "FRIENDS_SESSION_MILESTONES": "Étapes de la session"
     }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { EQueueType, ERepeatMode, getMediaDuration } from "@rockit/shared";
+import { EQueueType, ERepeatMode } from "@rockit/shared";
 import type { QueueItem } from "@/models/interfaces/queue";
 import { rockIt } from "@/lib/rockit/rockIt";
 
@@ -124,8 +124,7 @@ export function usePlayerTime(): {
     duration: number;
 } {
     const currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
-    const duration = getMediaDuration(currentMedia) ?? 0;
+    const duration = useStore(rockIt.mediaPlayerManager.durationAtom);
 
     return { currentTime, duration };
 }

@@ -34,8 +34,23 @@ logger: Logger = getLogger(__name__)
 from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
 
 
+from backend.core.framework.models.localSong import LocalSong
+
+
 class BaseMediaProvider(BaseProvider):
     """Shared contract for media providers."""
+
+    async def find_local_songs_async(
+        self, session: AsyncSession, titles: list[str]
+    ) -> AResult[list[LocalSong]]:
+        """Read downloaded song metadata without consulting any remote service."""
+        return AResult(code=AResultCode.OK, message="OK", result=[])
+
+    async def get_local_songs_async(
+        self, session: AsyncSession, public_ids: list[str]
+    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+        """Local playback capability, including when remote integration is disabled."""
+        return AResult(code=AResultCode.OK, message="OK", result=[])
 
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int

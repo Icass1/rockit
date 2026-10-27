@@ -60,7 +60,7 @@ export class SearchManager {
             );
             this.publish();
             this._searchingAtom.set(false);
-            return;
+            return version;
         }
         return version;
     }
@@ -345,7 +345,11 @@ export class SearchManager {
                     );
                 }
                 results.push(
-                    sources.find((source) => source.downloaded) ?? sources[0]
+                    sources.find(
+                        (source) => source.downloaded && source.publicId
+                    ) ??
+                        sources.find((source) => source.downloaded) ??
+                        sources[0]
                 );
             }
         }

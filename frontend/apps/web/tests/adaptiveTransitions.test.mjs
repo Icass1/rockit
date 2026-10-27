@@ -469,3 +469,19 @@ test("backward error navigation skips unavailable songs in the correct direction
     e.player._handleMediaError();
     assert.deepEqual(played, [1]);
 });
+
+test("native resource duration keeps the playback clock moving beyond catalog length", async () => {
+    const e = setup();
+    await start(e);
+    const audio = e.player.audioElement;
+    audio.duration = 315;
+    audio.onloadedmetadata();
+    assert.equal(e.player.durationAtom.get(), 315);
+    audio.currentTime = 305;
+    audio.ontimeupdate();
+    assert.equal(e.player.currentTime, 305);
+    audio.duration = 320;
+    audio.ondurationchange();
+    assert.equal(e.player.durationAtom.get(), 320);
+    e.player.pause();
+});

@@ -1,3 +1,4 @@
+from backend.core.framework.models.localSong import LocalSong
 import os
 import re
 from logging import Logger
@@ -57,6 +58,8 @@ from backend.spotifyScrapper.access.artistCatalogAccess import ArtistCatalogAcce
 from backend.core.framework.audio.silence import request_bounds
 from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
 
+from backend.spotifyScrapper.access.spotifyScrapperAccess import SpotifyScrapperAccess
+
 logger: Logger = getLogger(__name__)
 
 SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
@@ -80,6 +83,43 @@ SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyScrapperProvider(BaseMediaProvider):
+    async def find_local_songs_async(
+        self, session: AsyncSession, titles: list[str]
+    ) -> AResult[list[LocalSong]]:
+        """Resolve local recordings regardless of this provider's remote health."""
+        return await SpotifyScrapperAccess.find_local_songs_async(
+            session=session, titles=titles
+        )
+
+    async def get_local_songs_async(
+        self, session: AsyncSession, public_ids: list[str]
+    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+        """Build playback metadata using only the local database, never the API."""
+        mapping = (
+            await SpotifyScrapperAccess.get_tracks_spotify_id_from_public_ids_async(
+                session=session, public_ids=public_ids
+            )
+        )
+        if mapping.is_not_ok():
+            logger.error(f"Local identity lookup failed. {mapping.info()}")
+            return AResult(code=mapping.code(), message=mapping.message())
+        tracks = await SpotifyScrapper.get_tracks_from_db(
+            session=session, spotify_ids=list(mapping.result().values())
+        )
+        if tracks.is_not_ok():
+            logger.error(f"Local song lookup failed. {tracks.info()}")
+            return AResult(code=tracks.code(), message=tracks.message())
+        converted = await get_tracks_responses_async(
+            session=session,
+            provider_name=self.get_name(),
+            track_rows=[track for track in tracks.result() if track.path],
+        )
+        if converted.is_not_ok():
+            logger.error(f"Local metadata conversion failed. {converted.info()}")
+            return AResult(code=converted.code(), message=converted.message())
+        songs: List[BaseSongWithAlbumResponse] = [song for song in converted.result()]
+        return AResult(code=AResultCode.OK, message="OK", result=songs)
+
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
     ) -> AResult[AudioBoundsResponse]:
@@ -147,7 +187,26 @@ class SpotifyScrapperProvider(BaseMediaProvider):
         limit: int = 15,
         media_type: str | None = None,
     ) -> AResult[List[BaseSearchResultsItem]]:
-        return await SpotifyScrapper.search_async(query, limit=limit)
+        result = await SpotifyScrapper.search_async(query=query, limit=limit)
+        if result.is_not_ok():
+            logger.error(f"Search unavailable. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        items = result.result()
+        ids = [
+            item.providerUrl.rsplit("/", 1)[-1] for item in items if item.type == "song"
+        ]
+        local = await SpotifyScrapperAccess.get_downloaded_search_ids_async(
+            session=session, spotify_ids=ids
+        )
+        if local.is_not_ok():
+            logger.error(f"Local search availability unavailable. {local.info()}")
+            return result
+        identities = local.result()
+        for item in items:
+            if item.type == "song":
+                item.publicId = identities.get(item.providerUrl.rsplit("/", 1)[-1])
+                item.downloaded = item.publicId is not None
+        return AResult(code=AResultCode.OK, message="OK", result=items)
 
     def search_page_size(self) -> int:
         return 100
@@ -156,14 +215,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
     async def search_media_async(
         self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
-        a_result: AResult[List[BaseSearchResultsItem]] = (
-            await SpotifyScrapper.search_async(query)
-        )
-        if a_result.is_not_ok():
-            logger.error(f"Error searching Spotify scrapper. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
-
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return await self.search_page_async(session=session, query=query)
 
     @time_it
     async def get_songs_async(

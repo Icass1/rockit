@@ -172,15 +172,23 @@ test("clearing invalidates in-flight results", async () => {
     assert.equal(manager.resultsAtom.get(), undefined);
     assert.equal(manager.searchingAtom.get(), false);
 });
-test("completed queries reuse results without provider requests", async () => {
+test("completed queries refresh local availability after a download", async () => {
     const { manager, calls } = setup();
     const pending = manager.search("Daft Punk");
     await flush();
     respond(calls[0], [item("song")]);
     await pending;
-    await manager.search("daft punk");
-    assert.equal(calls.length, 1);
+    const refresh = manager.search("daft punk");
     assert.equal(manager.resultsAtom.get().results.length, 1);
+    await flush();
+    assert.equal(calls.length, 2);
+    respond(calls[1], [
+        item("song", { downloaded: true, publicId: "local-song" }),
+    ]);
+    await refresh;
+    assert.equal(manager.resultsAtom.get().results.length, 1);
+    assert.equal(manager.resultsAtom.get().results[0].downloaded, true);
+    assert.equal(manager.resultsAtom.get().results[0].publicId, "local-song");
 });
 test("expansion is on demand, coalesces scrolls, deduplicates and stops at the end", async () => {
     const { manager, calls } = setup();

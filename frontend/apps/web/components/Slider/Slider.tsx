@@ -17,6 +17,7 @@ interface SliderProps {
     className?: string;
     barClassName?: string;
     readOnly?: boolean;
+    disabled?: boolean;
 }
 
 export default function Slider({
@@ -31,6 +32,7 @@ export default function Slider({
     className = "",
     barClassName = "bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light)",
     readOnly = false,
+    disabled = false,
 }: SliderProps): JSX.Element {
     const widthPercentage = Math.min(
         100,
@@ -52,6 +54,7 @@ export default function Slider({
 
             <input
                 readOnly={readOnly}
+                disabled={disabled}
                 ref={inputRef}
                 id={id}
                 value={value}

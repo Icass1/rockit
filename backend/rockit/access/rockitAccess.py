@@ -1,3 +1,6 @@
+from sqlalchemy import func
+from backend.core.framework.models.localSong import LocalSong
+from backend.core.utils.safeAsyncCall import safe_async
 from typing import List, Tuple, cast
 
 from sqlalchemy import Result, insert, select
@@ -27,6 +30,55 @@ logger = getLogger(__name__)
 
 
 class RockitAccess:
+    @staticmethod
+    @safe_async
+    async def find_local_songs_async(
+        session: AsyncSession, titles: list[str]
+    ) -> AResult[list[LocalSong]]:
+        """Batch-read available local metadata, independently of remote API health."""
+        if not titles:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+        rows = (
+            await session.execute(
+                select(
+                    CoreMediaRow.public_id,
+                    RockitSongRow.name,
+                    RockitSongRow.file_path,
+                    RockitArtistRow.name,
+                )
+                .select_from(RockitSongRow)
+                .join(CoreMediaRow, CoreMediaRow.id == RockitSongRow.id)
+                .join(song_artists, song_artists.c.song_id == RockitSongRow.id)
+                .join(RockitArtistRow, RockitArtistRow.id == song_artists.c.artist_id)
+                .where(
+                    func.lower(
+                        func.regexp_replace(
+                            func.trim(RockitSongRow.name), r"\s+", " ", "g"
+                        )
+                    ).in_(titles),
+                    RockitSongRow.file_path.isnot(None),
+                    RockitSongRow.file_path != "",
+                )
+                .limit(1001)
+            )
+        ).all()
+        # Never match an incomplete artist list from a truncated result.
+        if len(rows) > 1000:
+            logger.warning(
+                "Too many local song candidates; keeping explicit source selection"
+            )
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+        songs: dict[str, LocalSong] = {}
+        for public_id, name, path, artist_name in rows:
+            if not path:
+                continue
+            if public_id not in songs:
+                songs[public_id] = LocalSong(
+                    public_id=public_id, name=name, artists=[], file_path=path
+                )
+            songs[public_id].artists.append(artist_name)
+        return AResult(code=AResultCode.OK, message="OK", result=list(songs.values()))
+
     @staticmethod
     async def create_song_async(
         session: AsyncSession,

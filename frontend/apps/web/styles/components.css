@@ -717,3 +717,42 @@ img {
     -webkit-appearance: none;
     appearance: none;
 }
+
+/* Downloaded Search songs: primary action over the cover, including keyboard/touch. */
+.search-song-play {
+    opacity: 1;
+    transition: opacity 160ms ease;
+}
+.search-song-play-icon {
+    transform: scale(1);
+    transition: transform 160ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+    .search-song-play {
+        opacity: 0;
+    }
+    .search-song-play-icon {
+        transform: scale(0.8);
+    }
+    .search-song-card:hover .search-song-play,
+    .search-song-card:focus-within .search-song-play,
+    .search-song-play[aria-busy="true"] {
+        opacity: 1;
+    }
+    .search-song-card:hover .search-song-play-icon,
+    .search-song-card:focus-within .search-song-play-icon {
+        transform: scale(1);
+    }
+}
+.search-song-play:active .search-song-play-icon {
+    transform: scale(0.94);
+}
+@media (prefers-reduced-motion: reduce) {
+    .search-song-play,
+    .search-song-play-icon {
+        transition: none;
+    }
+    .search-song-play-icon {
+        transform: none !important;
+    }
+}

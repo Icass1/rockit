@@ -89,6 +89,11 @@ export abstract class BaseMediaPlayerManager {
     protected seekNative(_kind: TMediaKind, _sec: number): void {
         throw new Error("Not implemented: seekNative");
     }
+    /** Platforms can validate against the loaded resource instead of catalog metadata. */
+    protected getPlaybackDuration(media: TPlayableMedia): number | undefined {
+        return getMediaDuration(media);
+    }
+
     protected getNativePosition(_kind: TMediaKind): number {
         throw new Error("Not implemented: getNativePosition");
     }
@@ -243,7 +248,7 @@ export abstract class BaseMediaPlayerManager {
                 }
                 if (data.playbackId !== this._playbackId) return;
                 const time = data.currentTimeMs / 1000;
-                const duration = getMediaDuration(media);
+                const duration = this.getPlaybackDuration(media);
                 if (
                     !Number.isFinite(time) ||
                     time < 0 ||
@@ -653,7 +658,7 @@ export abstract class BaseMediaPlayerManager {
                 this._playbackQueueId
         )
             return;
-        const duration = getMediaDuration(currentMedia);
+        const duration = this.getPlaybackDuration(currentMedia);
         if (!Number.isFinite(time) || time < 0 || (duration && time > duration))
             return;
         this._currentTimeAtom.set(time);

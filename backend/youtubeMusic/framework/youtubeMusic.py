@@ -743,8 +743,8 @@ class YoutubeMusic:
 
         if a_tracks.is_ok():
             tracks = a_tracks.result()
-            downloaded_a: AResult[set[str]] = (
-                await YoutubeMusicAccess.get_downloaded_youtube_ids_async(
+            downloaded_a: AResult[dict[str, str]] = (
+                await YoutubeMusicAccess.get_downloaded_youtube_public_ids_async(
                     session=session,
                     youtube_ids=[t.youtube_id for t in tracks],
                 )
@@ -753,9 +753,9 @@ class YoutubeMusic:
                 logger.error(
                     f"Error getting downloaded YouTube IDs. {downloaded_a.info()}"
                 )
-                downloaded_ids: set[str] = set()
+                downloaded_ids: dict[str, str] = {}
             else:
-                downloaded_ids: set[str] = downloaded_a.result()
+                downloaded_ids: dict[str, str] = downloaded_a.result()
             for track in tracks:
                 result.append(
                     BaseSearchResultsItem(
@@ -769,6 +769,7 @@ class YoutubeMusic:
                         ],
                         provider=YoutubeMusic.provider_name,
                         downloaded=track.youtube_id in downloaded_ids,
+                        publicId=downloaded_ids.get(track.youtube_id),
                         url=None,
                     )
                 )

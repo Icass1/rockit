@@ -8,6 +8,7 @@ from backend.core.aResult import AResult, AResultCode
 from backend.core.access.db import rockit_db
 from backend.core.framework import providers
 from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
+from backend.core.framework.media.localSearch import resolve_local_results
 from backend.core.responses.searchProviderResponse import (
     SearchProviderInfo,
     SearchProviderResponse,
@@ -82,7 +83,7 @@ class ProviderSearch:
         cached = self._cache.get(key)
         if cached and cached[0] > monotonic():
             self._cache.move_to_end(key)
-            return self._filter(cached[1], media_type)
+            return await self._with_local_availability(cached[1], media_type)
         cooldown = self._cooldowns.get(provider_id)
         if cooldown and cooldown[0] > monotonic():
             return cooldown[1]
@@ -99,7 +100,25 @@ class ProviderSearch:
             )
             self._pending[key] = task
         # Disconnecting one client must not cancel the request shared by other clients.
-        return self._filter(await asyncio.shield(task), media_type)
+        return await self._with_local_availability(
+            await asyncio.shield(task), media_type
+        )
+
+    async def _with_local_availability(
+        self, result: AResult[SearchProviderResponse], media_type: str | None
+    ) -> AResult[SearchProviderResponse]:
+        filtered = self._filter(result=result, media_type=media_type)
+        if filtered.is_not_ok():
+            return filtered
+        page = filtered.result()
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=SearchProviderResponse(
+                results=await resolve_local_results(items=page.results),
+                hasMoreTypes=page.hasMoreTypes,
+            ),
+        )
 
     @staticmethod
     def _filter(

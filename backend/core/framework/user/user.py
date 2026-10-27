@@ -938,6 +938,14 @@ class User:
             logger.error(f"Error adding media listened. {a_result.info()}")
             return AResult(code=a_result.code(), message=a_result.message())
 
+        from backend.core.framework.friend.listeningBadges import ListeningBadges
+
+        rewards = await ListeningBadges.refresh_user_async(
+            session=session, user_id=user_id
+        )
+        if rewards.is_not_ok():
+            logger.error("Error awarding listen emblems: %s", rewards.info())
+            return AResult(code=rewards.code(), message=rewards.message())
         return AResult(code=AResultCode.OK, message="OK", result=True)
 
     @staticmethod

@@ -14,7 +14,7 @@ Self-hosted music playback with a personal library and social listening.
 
 Repository evidence: Friends supports friend search and requests, blocking,
 listening activity, shared music, listening sessions, and a listening leaderboard.
-Keep these capabilities and existing managers. No backend changes in this redesign.
+Keep these capabilities and existing managers. The initial visual redesign does not change backend behavior; the separate stacked listening-rewards PR implements XP and emblems.
 
 ## Brand Commitments
 

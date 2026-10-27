@@ -1370,3 +1370,251 @@
         gap: 3rem;
     }
 }
+
+.sessionProgress {
+    margin-top: 1.75rem;
+}
+.sessionProgress h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.sessionProgress p {
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+.sessionProgress progress {
+    width: 100%;
+    height: 5px;
+    accent-color: var(--social-tint);
+    margin-block: 1rem;
+}
+.sessionProgress ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+}
+.sessionProgress li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.5rem;
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+.sessionProgress li[data-reached="true"] {
+    color: var(--social-tint);
+}
+.personalEmblems {
+    margin-top: 2rem;
+}
+.personalEmblems h3,
+.emblemComparison h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+.emblemCollection > ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem 1rem;
+    list-style: none;
+    padding: 0;
+    margin-top: 1rem;
+}
+.emblemCollection li {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 0.5rem;
+    min-width: 0;
+}
+.emblemCollection strong {
+    font-size: 0.8125rem;
+    display: block;
+    overflow-wrap: anywhere;
+}
+.emblemCollection li p,
+.emblemCollection li span:not(.emblem) {
+    font-size: 0.75rem;
+    color: var(--social-secondary);
+}
+.emblem {
+    --emblem-ink: #f8a1c5;
+    --medal-highlight: #f7e3b5;
+    --medal-metal: #b99760;
+    --medal-shadow: #70502e;
+    --medal-face: #211c23;
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    flex-shrink: 0;
+    color: var(--emblem-ink);
+}
+.emblem[data-variant="orbit"] {
+    --emblem-ink: #b0b7f6;
+}
+.emblem[data-variant="groove"] {
+    --emblem-ink: #9edac8;
+}
+.emblem[data-variant="longplay"] {
+    --emblem-ink: #edc38a;
+}
+.emblem[data-variant="atlas"] {
+    --emblem-ink: #9ec9e8;
+}
+.emblem[data-variant="voyager"] {
+    --emblem-ink: #ebafef;
+}
+.emblem > svg:first-child {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+}
+.emblem .emblemLogo {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    transform: translateY(-5px);
+    filter: drop-shadow(0 1px 1px #0006);
+}
+.emblem[data-earned="false"] {
+    color: var(--social-secondary);
+    --medal-highlight: #858589;
+    --medal-metal: #535359;
+    --medal-shadow: #303035;
+    --medal-face: #242429;
+}
+.emblem[data-earned="false"] .emblemLogo {
+    filter: grayscale(1);
+    opacity: 0.45;
+}
+.emblemLock {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: var(--social-base);
+    border-radius: 3px;
+}
+.emblemComparison {
+    margin-top: 1.5rem;
+}
+.emblemComparison > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+.emblemComparison h4 {
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+}
+.emblemCollection[data-compact="true"] > ul {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+.emblemCollection[data-compact="true"] li {
+    flex-direction: row;
+    align-items: center;
+}
+.emblemCollection[data-compact="true"] .emblem {
+    width: 40px;
+    height: 40px;
+}
+.emblemCollection[data-compact="true"] .emblemLogo {
+    width: 22px;
+    height: 22px;
+}
+
+.musicRegion {
+    display: contents;
+}
+@container friends (min-width: 1000px) {
+    .musicRegion {
+        display: grid;
+        gap: 3rem;
+        min-width: 0;
+    }
+}
+.emblemCollection small {
+    display: block;
+    margin-block: 0.25rem;
+    color: var(--social-secondary);
+    font-size: 0.75rem;
+}
+.badgeProgress {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    margin-top: 0.25rem;
+}
+.emblemFilters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-block: 1rem;
+}
+.emblemFilters label {
+    display: grid;
+    gap: 0.3rem;
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+.emblemFilters select,
+.emblemFilters input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.625rem;
+    border-radius: 0.5rem;
+    background: var(--social-raised);
+    color: var(--social-text);
+    font-size: 1rem;
+}
+.emblemFilters > p {
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+.emblemCollection[data-expanded="true"] > ul {
+    max-height: 36rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--social-secondary) transparent;
+    padding-right: 0.5rem;
+}
+.emblemCollection > ul:focus-visible {
+    outline: 2px solid var(--social-tint);
+    outline-offset: 4px;
+}
+.emblem .emblemTier {
+    position: absolute;
+    bottom: 16%;
+    left: 50%;
+    transform: translateX(-50%);
+    font: 700 0.6rem/1 system-ui;
+    color: var(--medal-highlight);
+    font-variant-numeric: tabular-nums;
+}
+.emblemCollection[data-compact="true"] .emblemLogo {
+    width: 17px;
+    height: 17px;
+    transform: translateY(-3px);
+}
+.emblemCollection[data-compact="true"] .emblemTier {
+    font-size: 0.45rem;
+}
+
+.sessionDetails {
+    margin-top: 0.5rem;
+}
+.sessionDetails > summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--social-tint);
+    font-size: 0.875rem;
+}
+.emblemCollection[data-expanded="false"][data-compact="false"] > ul {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
+}

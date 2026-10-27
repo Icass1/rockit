@@ -24,7 +24,7 @@ kickers, metric heroes or ambient motion. Every control has visible focus and
 
 ## Experience follow-up
 
-A separate implementation will replace play-count XP with verified listening-time
+The stacked rewards implementation replaces play-count XP with bounded listening-time
 milestones and Rockit emblems. The user approved session milestones at 10, 20, 30
 and 60 minutes and requested comparable medals. Amounts are provisional policy
 values, not part of this UI revision. Preserve existing earned XP.

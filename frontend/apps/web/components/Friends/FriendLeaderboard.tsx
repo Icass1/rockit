@@ -6,6 +6,7 @@ import { useStore } from "@nanostores/react";
 import { ArrowUpRight, ChevronDown, Flame, Headphones } from "lucide-react";
 import type { LeaderboardEntry } from "@/models/interfaces";
 import { rockIt } from "@/lib/rockit/rockIt";
+import EmblemCollection from "@/components/Friends/EmblemCollection";
 import styles from "@/components/Friends/Friends.module.css";
 
 export default function FriendLeaderboard(): JSX.Element {
@@ -80,6 +81,24 @@ export default function FriendLeaderboard(): JSX.Element {
               )
             : 100
         : 0;
+    const commonBadges = (self?.listeningBadges ?? []).filter(
+        (badge) =>
+            badge.earnedAt &&
+            selected?.listeningBadges?.some(
+                (other) => other.key === badge.key && other.earnedAt
+            )
+    ).length;
+    const sessionSeconds = self?.sessionListeningSeconds ?? 0;
+    const milestones = self?.listeningMilestones ?? [];
+    const nextMilestone = milestones.find((step) => !step.reached);
+    const sessionLabel = nextMilestone
+        ? text("FRIENDS_SESSION_MINUTES", {
+              minutes: Math.floor(sessionSeconds / 60),
+              target: nextMilestone.minutes,
+          })
+        : text("FRIENDS_LISTENED_MINUTES", {
+              minutes: Math.floor(sessionSeconds / 60),
+          });
     const avatar = (entry: LeaderboardEntry): JSX.Element => (
         <span className={styles.leagueAvatar}>
             {entry.imageUrl ? (
@@ -141,12 +160,66 @@ export default function FriendLeaderboard(): JSX.Element {
                             <span>{v.SOCIAL_STREAK}</span>
                         </div>
                     </div>
-                    <p className={styles.statFootnote}>{v.SOCIAL_XP_RULE}</p>
+                    <p className={styles.statFootnote}>
+                        {v.FRIENDS_XP_TIME_RULE}
+                    </p>
+                    {milestones.length > 0 && (
+                        <section
+                            className={styles.sessionProgress}
+                            aria-label={v.FRIENDS_SESSION_PROGRESS}
+                        >
+                            <h3>{v.FRIENDS_SESSION_PROGRESS}</h3>
+                            <p>{sessionLabel}</p>
+                            <progress
+                                className={styles.levelProgress}
+                                value={sessionSeconds}
+                                max={(nextMilestone?.minutes ?? 60) * 60}
+                                aria-label={sessionLabel}
+                            />
+                            <details className={styles.sessionDetails}>
+                                <summary>
+                                    {v.FRIENDS_SESSION_MILESTONES}
+                                </summary>
+                                <ul>
+                                    {milestones.map((step) => (
+                                        <li
+                                            key={step.minutes}
+                                            data-reached={step.reached}
+                                        >
+                                            <span>
+                                                {text("FRIENDS_XP_MILESTONE", {
+                                                    minutes: step.minutes,
+                                                    xp: step.xp,
+                                                })}
+                                            </span>
+                                            <span>
+                                                {step.reached
+                                                    ? v.FRIENDS_MILESTONE_REACHED
+                                                    : v.FRIENDS_MILESTONE_PENDING}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className={styles.statFootnote}>
+                                    {v.FRIENDS_SESSION_RULE}
+                                </p>
+                            </details>
+                        </section>
+                    )}
+                    {self.listeningBadges && (
+                        <section
+                            className={styles.personalEmblems}
+                            aria-label={v.FRIENDS_BADGES}
+                        >
+                            <h3>{v.FRIENDS_BADGES}</h3>
+                            <EmblemCollection badges={self.listeningBadges} />
+                        </section>
+                    )}
                 </section>
             )}
             <details className={styles.leagueDisclosure}>
                 <summary>
-                    {v.SOCIAL_RACE}
+                    {v.FRIENDS_COMPARE_PROGRESS}
                     <ChevronDown size={18} aria-hidden="true" />
                 </summary>
                 <p className={styles.statFootnote}>
@@ -234,6 +307,17 @@ export default function FriendLeaderboard(): JSX.Element {
                                         self.streak,
                                         selected.streak,
                                     ],
+                                    [
+                                        v.FRIENDS_LISTENING_MINUTES,
+                                        Math.floor(
+                                            (self.totalListeningSeconds ?? 0) /
+                                                60
+                                        ),
+                                        Math.floor(
+                                            (selected.totalListeningSeconds ??
+                                                0) / 60
+                                        ),
+                                    ],
                                 ].map(([label, a, b]) => (
                                     <tr key={label}>
                                         <th scope="row">{label}</th>
@@ -243,6 +327,33 @@ export default function FriendLeaderboard(): JSX.Element {
                                 ))}
                             </tbody>
                         </table>
+                        <section
+                            className={styles.emblemComparison}
+                            aria-label={v.FRIENDS_BADGE_COMPARE}
+                        >
+                            <h3>{v.FRIENDS_BADGE_COMPARE}</h3>
+                            <p className={styles.statFootnote}>
+                                {text("FRIENDS_BADGE_COMMON", {
+                                    count: commonBadges,
+                                })}
+                            </p>
+                            <div>
+                                <section aria-label={v.SOCIAL_YOU}>
+                                    <h4>{v.SOCIAL_YOU}</h4>
+                                    <EmblemCollection
+                                        badges={self.listeningBadges ?? []}
+                                        compact
+                                    />
+                                </section>
+                                <section aria-label={selected.username}>
+                                    <h4>{selected.username}</h4>
+                                    <EmblemCollection
+                                        badges={selected.listeningBadges ?? []}
+                                        compact
+                                    />
+                                </section>
+                            </div>
+                        </section>
                     </div>
                 )}
                 {!others.length && (

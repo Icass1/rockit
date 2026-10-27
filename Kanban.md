@@ -2,24 +2,6 @@
 
 ## To Do
 
-### [SOCIAL] Emblemas Rockit y comparación entre amigos
-
-- tags: [frontend, backend, friends, badges, kb-36]
-- priority: medium
-- workload: Normal
-    ```md
-    Medallas originales basadas en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
-    ```
-
-### [SOCIAL] XP por tiempo real de escucha y sesiones
-
-- tags: [backend, friends, xp, kb-35]
-- priority: medium
-- workload: Hard
-    ```md
-    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
-    ```
-
 ### [PLAYER] Tiempos reales de la barra de reproducción
 
 - tags: [frontend, player, playback, bug]
@@ -84,28 +66,6 @@
     ```
 
 ## To Review
-
-### [FRIENDS] Vocabulary desde el Excel
-
-- tags: [frontend, i18n, vocabulary, kb-34]
-- priority: medium
-- workload: Easy
-    ```md
-    Etiquetas de Friends y De/Para localizados en Vocabulary.xlsx (en/es/fr), tipos y fallback generados desde el Excel; generación sin escrituras de BD. Auditadas las referencias de vocabulario de Friends. Pendiente de revisión de Ignacio. Sin tests locales.
-    ```
-
-### [FRIENDS] Mejorar UI/UX de la página de friends
-
-- tags: [frontend, friends, ui, ux, kb-33]
-- priority: high
-- workload: Normal
-    ```md
-    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Revisión de tamaños y del conjunto con XP/medallas en curso; sin tests locales.
-
-    Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Revisión de pantallas grandes: ancho disponible completo, actividad en paralelo y columna de sesiones/compartidos en ultrawide, mediante container queries. Diseño pendiente de revisión de Ignacio. Sin tests locales.
-
-    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
-    ```
 
 ### [HOME] Añadir context menu a las canciones del home
 
@@ -180,6 +140,56 @@
     ```
 
 ## Done
+
+### [SOCIAL] Emblemas Rockit y comparación entre amigos
+
+- tags: [frontend, backend, friends, badges, kb-36]
+- priority: medium
+- workload: Normal
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Revisión con develop actualizado: vista inicial de tres familias de medallas y desglose de hitos plegable, conservando el catálogo completo de 115 y la comparación. Se mantiene el mismo reparto de columnas que Friends base para que el progreso personal no domine la página. Evidencia en docs/friends-integrated-review.md: nueve tamaños y 26 comprobaciones de interacción con datos de ejemplo; sin suites de tests locales.
+
+    115 medallas con descripciones breves, sin etiquetas de dificultad, nueve familias (incluyen amigos, vídeos y descubrimiento + recomendaciones), filtros y búsqueda; diseños basados en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
+    ```
+
+### [SOCIAL] XP por tiempo real de escucha y sesiones
+
+- tags: [backend, friends, xp, kb-35]
+- priority: medium
+- workload: Hard
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
+    ```
+
+### [FRIENDS] Vocabulary desde el Excel
+
+- tags: [frontend, i18n, vocabulary, kb-34]
+- priority: medium
+- workload: Easy
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Etiquetas de Friends y De/Para localizados en Vocabulary.xlsx (en/es/fr), tipos y fallback generados desde el Excel; generación sin escrituras de BD. Auditadas las referencias de vocabulario de Friends. Revisado y aprobado por Ignacio. Sin tests locales.
+    ```
+
+### [FRIENDS] Mejorar UI/UX de la página de friends
+
+- tags: [frontend, friends, ui, ux, kb-33]
+- priority: high
+- workload: Normal
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Conjunto revisado con XP/medallas en nueve tamaños, con capturas y mediciones en docs/friends-integrated-review.md; sin suites de tests locales.
+
+    Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Revisión de pantallas grandes: ancho disponible completo, actividad en paralelo y columna de sesiones/compartidos en ultrawide, mediante container queries. Diseño revisado y aprobado por Ignacio. Sin tests locales.
+
+    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
+    ```
 
 ### [UI] Mejorar blur del header y hacerlo más curvo
 

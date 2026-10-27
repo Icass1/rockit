@@ -1,4 +1,8 @@
-import type { BaseSongWithAlbumResponse, SongListResponse } from "@/dto";
+import type {
+    BaseSongWithAlbumResponse,
+    MediaResponse,
+    SongListResponse,
+} from "@/dto";
 
 export interface HomeData {
     recommendations?: SongListResponse;
@@ -11,6 +15,7 @@ export interface HomeData {
     communityTop: BaseSongWithAlbumResponse[];
     monthlyTop: BaseSongWithAlbumResponse[];
     moodSongs: BaseSongWithAlbumResponse[];
+    recentlyClickedMedia: MediaResponse["media"][];
     currentStreak: number;
     minutesListenedThisWeek: number;
     isEmpty: boolean;

@@ -2,6 +2,7 @@ from typing import List
 from pydantic import BaseModel
 
 from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from backend.core.responses.mediaResponse import MediaResponse
 
 
 class HomeStatsResponse(BaseModel):
@@ -14,3 +15,4 @@ class HomeStatsResponse(BaseModel):
     moodSongs: List[BaseSongWithAlbumResponse]
     currentStreak: int = 0
     minutesListenedThisWeek: float = 0.0
+    recentlyClickedMedia: List[MediaResponse] = []

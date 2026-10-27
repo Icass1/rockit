@@ -232,7 +232,21 @@ function LibraryCard({
             <MediaContextMenu media={media} location={location}>
                 {href ? (
                     <div className={linkClass}>
-                        <Link href={href} onClick={handleSelectionClick}>
+                        <Link
+                            href={href}
+                            onClick={(event): void => {
+                                if (selectable) {
+                                    handleSelectionClick(event);
+                                } else if (
+                                    "publicId" in media &&
+                                    media.publicId
+                                ) {
+                                    rockIt.webSocketManager.sendMediaClicked({
+                                        mediaPublicId: media.publicId,
+                                    });
+                                }
+                            }}
+                        >
                             {imageBlock}
                             {titleBlock}
                         </Link>

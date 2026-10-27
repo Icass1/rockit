@@ -256,7 +256,7 @@ async def get_user_async(session, user_id) -> AResult[UserRow]:
     """Get user by ID."""
 ```
 
-Run black after editing: `venv/bin/python -m black <file>`
+Run black after editing: `.venv/bin/python -m black <file>`
 
 ## Key Files
 
@@ -280,7 +280,7 @@ Run black after editing: `venv/bin/python -m black <file>`
 ```bash
 cd backend
 uvicorn backend.core.main:app --reload
-venv/bin/python -m pyright  # typecheck
+.venv/bin/python -m pyright  # typecheck
 python3 -m backend init-db
 python3 -m backend models  # generate frontend DTOs
 ```

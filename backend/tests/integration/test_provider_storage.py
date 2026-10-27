@@ -188,6 +188,28 @@ async def test_track_storage_preserves_images_and_batch_mutation(
     )
     await database.commit()
 
+    # The same provider-owned lookup used by cross-source Search works without API calls.
+    from importlib import import_module
+
+    modules = {
+        "spotify": ("spotify", "SpotifyAccess"),
+        "spotify_scrapper": ("spotifyScrapper", "SpotifyScrapperAccess"),
+        "youtube_music": ("youtubeMusic", "YoutubeMusicAccess"),
+    }
+    module_name, access_name = modules[schema]
+    access_module = import_module(
+        f"backend.{module_name}.access.{access_name[0].lower() + access_name[1:]}"
+    )
+    monkeypatch.setattr(access_module, "MEDIA_PATH", str(tmp_path))
+    local = await getattr(access_module, access_name).find_local_songs_async(
+        session=database, titles=["track 201"]
+    )
+    assert local.is_ok(), local.info()
+    assert [
+        (song.public_id, song.name, song.artists, song.file_path)
+        for song in local.result()
+    ] == [("track", "Track 201", ["Artist"], str(tmp_path / "201.mp3"))]
+
     for images in (True, False):
         metadata = provider_storage.metadata(with_images=images)
         row = (

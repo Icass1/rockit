@@ -129,11 +129,16 @@ class Media:
             provider: BaseMediaProvider | None = providers.find_media_provider(
                 provider_id
             )
+            local_only = provider is None
+            if local_only:
+                provider = providers.find_local_media_provider(provider_id=provider_id)
             if provider is None:
                 logger.warning(f"No media provider found for provider_id {provider_id}")
                 continue
             a_songs: AResult[List[BaseSongWithAlbumResponse]] = (
-                await provider.get_songs_async(session=session, public_ids=pids)
+                await provider.get_local_songs_async(session=session, public_ids=pids)
+                if local_only
+                else await provider.get_songs_async(session=session, public_ids=pids)
             )
             if a_songs.is_not_ok():
                 logger.error(
@@ -187,7 +192,7 @@ class Media:
             logger.error(f"Could not resolve song. {result.info()}")
             return AResult(code=result.code(), message=result.message())
         song = result.result()
-        provider = providers.find_media_provider(provider_id=song.provider_id)
+        provider = providers.find_local_media_provider(provider_id=song.provider_id)
         if provider is None:
             logger.warning("Audio boundary provider unavailable")
             return AResult(
@@ -216,6 +221,9 @@ class Media:
         provider: BaseMediaProvider | None = providers.find_media_provider(
             provider_id=song.provider_id
         )
+        local_only = provider is None
+        if local_only:
+            provider = providers.find_local_media_provider(provider_id=song.provider_id)
         if provider is None:
             logger.error(f"No provider found for provider_id {song.provider_id}.")
             return AResult(
@@ -223,7 +231,11 @@ class Media:
             )
 
         a_result: AResult[List[BaseSongWithAlbumResponse]] = (
-            await provider.get_songs_async(session=session, public_ids=[public_id])
+            await provider.get_local_songs_async(
+                session=session, public_ids=[public_id]
+            )
+            if local_only
+            else await provider.get_songs_async(session=session, public_ids=[public_id])
         )
         if a_result.is_not_ok():
             logger.error(f"Provider error getting song. {a_result.info()}")
@@ -653,6 +665,18 @@ class Media:
             return AResult(code=a_result_media.code(), message=a_result_media.message())
 
         media: CoreMediaRow = a_result_media.result()
+        if MediaTypeEnum(media.media_type_key) == MediaTypeEnum.SONG:
+            song_result = await Media.get_song_async(
+                session=session, public_id=public_id
+            )
+            if song_result.is_not_ok():
+                logger.error(f"Local song resolution failed. {song_result.info()}")
+                return AResult(code=song_result.code(), message=song_result.message())
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=MediaResponse(media=song_result.result()),
+            )
         provider: BaseMediaProvider | None = providers.find_media_provider(
             media.provider_id
         )
@@ -664,19 +688,7 @@ class Media:
 
         media_type: MediaTypeEnum = MediaTypeEnum(media.media_type_key)
 
-        if media_type == MediaTypeEnum.SONG:
-            a_result = await provider.get_songs_async(
-                session=session, public_ids=[public_id]
-            )
-            if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
-            return AResult(
-                code=AResultCode.OK,
-                message="OK",
-                result=MediaResponse(media=a_result.result()[0]),
-            )
-
-        elif media_type in (MediaTypeEnum.ALBUM, MediaTypeEnum.PLAYLIST):
+        if media_type in (MediaTypeEnum.ALBUM, MediaTypeEnum.PLAYLIST):
             from backend.core.framework.media.collection import Collection
 
             collection = await Collection.metadata_async(

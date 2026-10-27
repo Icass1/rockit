@@ -1,3 +1,4 @@
+from backend.core.framework.models.localSong import LocalSong
 import os
 import re
 from logging import Logger
@@ -82,6 +83,43 @@ SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyScrapperProvider(BaseMediaProvider):
+    async def find_local_songs_async(
+        self, session: AsyncSession, titles: list[str]
+    ) -> AResult[list[LocalSong]]:
+        """Resolve local recordings regardless of this provider's remote health."""
+        return await SpotifyScrapperAccess.find_local_songs_async(
+            session=session, titles=titles
+        )
+
+    async def get_local_songs_async(
+        self, session: AsyncSession, public_ids: list[str]
+    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+        """Build playback metadata using only the local database, never the API."""
+        mapping = (
+            await SpotifyScrapperAccess.get_tracks_spotify_id_from_public_ids_async(
+                session=session, public_ids=public_ids
+            )
+        )
+        if mapping.is_not_ok():
+            logger.error(f"Local identity lookup failed. {mapping.info()}")
+            return AResult(code=mapping.code(), message=mapping.message())
+        tracks = await SpotifyScrapper.get_tracks_from_db(
+            session=session, spotify_ids=list(mapping.result().values())
+        )
+        if tracks.is_not_ok():
+            logger.error(f"Local song lookup failed. {tracks.info()}")
+            return AResult(code=tracks.code(), message=tracks.message())
+        converted = await get_tracks_responses_async(
+            session=session,
+            provider_name=self.get_name(),
+            track_rows=[track for track in tracks.result() if track.path],
+        )
+        if converted.is_not_ok():
+            logger.error(f"Local metadata conversion failed. {converted.info()}")
+            return AResult(code=converted.code(), message=converted.message())
+        songs: List[BaseSongWithAlbumResponse] = [song for song in converted.result()]
+        return AResult(code=AResultCode.OK, message="OK", result=songs)
+
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
     ) -> AResult[AudioBoundsResponse]:

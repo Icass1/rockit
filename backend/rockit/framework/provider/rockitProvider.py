@@ -1,3 +1,4 @@
+from backend.core.framework.models.localSong import LocalSong
 from logging import Logger
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,6 +44,26 @@ logger: Logger = getLogger(__name__)
 
 
 class RockItProvider(BaseMediaProvider, BaseUploadProvider):
+    async def find_local_songs_async(
+        self, session: AsyncSession, titles: list[str]
+    ) -> AResult[list[LocalSong]]:
+        """Resolve local recordings regardless of this provider's remote health."""
+        return await RockitAccess.find_local_songs_async(session=session, titles=titles)
+
+    async def get_local_songs_async(
+        self, session: AsyncSession, public_ids: list[str]
+    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+        """This provider's song retrieval is database-only."""
+        result = await self.get_songs_async(session=session, public_ids=public_ids)
+        if result.is_not_ok():
+            logger.error(f"Local song lookup failed. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result=[song for song in result.result() if song.downloaded],
+        )
+
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
     ) -> AResult[AudioBoundsResponse]:

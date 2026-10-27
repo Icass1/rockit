@@ -36,6 +36,36 @@ class Providers:
 
     _providers: List[BaseProvider] = []
 
+    def __init__(self) -> None:
+        self._offline_media_providers: list[BaseMediaProvider] = []
+
+    def get_local_media_providers(self) -> list[BaseMediaProvider]:
+        """Local capabilities survive remote disablement; search/download discovery does not change."""
+        return [*self.get_media_providers(), *self._offline_media_providers]
+
+    def find_local_media_provider(self, provider_id: int) -> BaseMediaProvider | None:
+        for provider in self.get_local_media_providers():
+            identity = provider.get_id()
+            if identity.is_ok() and identity.result() == provider_id:
+                return provider
+        return None
+
+    def _load_local_provider(
+        self, module_path: str, provider_id: int, name: str
+    ) -> None:
+        """Load database/file capabilities without initializing remote services."""
+        try:
+            module = import_module(module_path)
+            candidate = getattr(module, "provider", None)
+            if isinstance(candidate, BaseMediaProvider):
+                candidate.set_info(provider_id=provider_id, provider_name=name)
+                if candidate not in self._offline_media_providers:
+                    self._offline_media_providers.append(candidate)
+        except Exception:
+            logger.warning(
+                "Local provider capability unavailable: %s", module_path, exc_info=True
+            )
+
     def get_providers(self) -> List[BaseProvider]:
         return self._providers
 
@@ -167,6 +197,11 @@ class Providers:
                             provider_id=db_provider.id, provider_name=db_provider.name
                         )
                         self._providers.append(disabled_provider)
+                        self._load_local_provider(
+                            module_path=module_path,
+                            provider_id=db_provider.id,
+                            name=db_provider.name,
+                        )
                     else:
                         logger.info(f"Adding enabled provider {module_path}")
                         try:
@@ -186,6 +221,11 @@ class Providers:
                                 )
                         except Exception as e:
                             logger.exception(f"Error loading {module_path}. Error {e}.")
+                            self._load_local_provider(
+                                module_path=module_path,
+                                provider_id=db_provider.id,
+                                name=db_provider.name,
+                            )
                     continue
 
                 try:

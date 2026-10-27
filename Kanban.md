@@ -67,6 +67,8 @@
 - steps:
     - [x] Se me abre el context menu para una cancion qe ya tengo descargada y en mi library
     ```md
+    Ampliado KB-25: disponibilidad local independiente del provider de búsqueda. Un resultado de B puede reproducir el archivo de A aunque A esté caído o desactivado. Coincidencia única por título completo y artistas normalizados; se verifica existencia del archivo y se conservan los calificadores de versiones. Las capacidades locales sobreviven a la desactivación sin reactivar búsqueda/descargas remotas. El caché remoto no se muta y la disponibilidad se vuelve a comprobar.
+
     Corregida la causa en los providers: Search recibe publicId y disponibilidad reales de las canciones descargadas. SpotifyScrapper resuelve IDs exactos en una consulta por lote; YouTube Music y RockIt devuelven la identidad local. Sin coincidencias por título ni lógica específica en core.
     Clic izquierdo reproduce o pausa; clic derecho/pulsación larga mantienen el menú. Hover: carátula oscurecida con play blanco centrado que aparece con una escala breve. Foco de teclado visible, acción visible en táctil y movimiento reducido respetado. Vocabulary existente.
     Pendiente de revisión del usuario. Sin suites locales; comprobación visual en Chromium y regresión para CI.

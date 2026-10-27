@@ -1,3 +1,10 @@
+from sqlalchemy import func
+from backend.core.framework.models.localSong import LocalSong
+from backend.spotifyScrapper.access.db.associationTables.song_artists import (
+    song_artists,
+)
+from backend.constants import MEDIA_PATH
+import os
 from datetime import datetime, timezone
 
 from typing import Dict, List, Tuple, cast
@@ -61,6 +68,53 @@ logger = getLogger(__name__)
 
 
 class SpotifyScrapperAccess:
+    @staticmethod
+    @safe_async
+    async def find_local_songs_async(
+        session: AsyncSession, titles: list[str]
+    ) -> AResult[list[LocalSong]]:
+        """Batch-read available local metadata, independently of remote API health."""
+        if not titles:
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+        rows = (
+            await session.execute(
+                select(
+                    CoreMediaRow.public_id, TrackRow.name, TrackRow.path, ArtistRow.name
+                )
+                .select_from(TrackRow)
+                .join(CoreMediaRow, CoreMediaRow.id == TrackRow.id)
+                .join(song_artists, song_artists.c.track_id == TrackRow.id)
+                .join(ArtistRow, ArtistRow.id == song_artists.c.artist_id)
+                .where(
+                    func.lower(
+                        func.regexp_replace(func.trim(TrackRow.name), r"\s+", " ", "g")
+                    ).in_(titles),
+                    TrackRow.path.isnot(None),
+                    TrackRow.path != "",
+                )
+                .limit(1001)
+            )
+        ).all()
+        # Never match an incomplete artist list from a truncated result.
+        if len(rows) > 1000:
+            logger.warning(
+                "Too many local song candidates; keeping explicit source selection"
+            )
+            return AResult(code=AResultCode.OK, message="OK", result=[])
+        songs: dict[str, LocalSong] = {}
+        for public_id, name, path, artist_name in rows:
+            if not path:
+                continue
+            if public_id not in songs:
+                songs[public_id] = LocalSong(
+                    public_id=public_id,
+                    name=name,
+                    artists=[],
+                    file_path=os.path.join(MEDIA_PATH, path),
+                )
+            songs[public_id].artists.append(artist_name)
+        return AResult(code=AResultCode.OK, message="OK", result=list(songs.values()))
+
     @staticmethod
     @safe_async
     async def get_downloaded_search_ids_async(

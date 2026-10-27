@@ -60,7 +60,7 @@ export class SearchManager {
             );
             this.publish();
             this._searchingAtom.set(false);
-            return;
+            return version;
         }
         return version;
     }

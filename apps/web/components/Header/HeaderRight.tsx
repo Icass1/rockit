@@ -24,13 +24,10 @@ export default function HeaderRight(): JSX.Element {
         setIsUserLoaded(true);
     }, []);
 
-    const notifications = useStore(
-        rockIt.notificationManager.notificationsAtom
-    );
+    const notificationCount = useStore(rockIt.notificationManager.unreadCountAtom);
     const vocabulary = useStore(
         rockIt.vocabularyManager.vocabularyAtom
     ) as unknown as Record<string, string>;
-    const notificationCount = notifications.filter((n) => !n.read).length;
 
     useEffect(() => {
         if (!showNotifications) return;

@@ -6,10 +6,10 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import TEMP_PATH
-from core.access.notificationAccess import NotificationAccess
 from core.aResult import AResult, AResultCode
 from core.framework.downloader.downloader import Downloader
-from core.utils.backendUtils import create_id
+from core.framework.notification import ZIP_READY_NOTIFICATION, Notification
+from core.responses.notificationResponses import NotificationDestination, NotificationReplacement
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from zipExport.access.downloadZipAccess import DownloadZipAccess
@@ -129,14 +129,12 @@ class DownloadZip:
             return AResult(code=AResultCode.NOT_FOUND, message="No downloaded files found")
 
         try:
-            notification = await NotificationAccess.create_async(
-                session=session,
-                user_id=user_id,
-                event_key=f"zip:{create_id(32)}",
-                type=3,
-                category="download",
-                message_key="NOTIFICATIONS_ZIP_READY",
-                detail=title[:2000],
+            notification = await Notification.emit_async(
+                session,
+                ZIP_READY_NOTIFICATION,
+                [NotificationReplacement(key="TITLE", value=title[:2000])],
+                NotificationDestination(path="/downloads"),
+                recipient_user_id=user_id,
             )
         except asyncio.CancelledError:
             _remove_quietly(path=zip_path)

@@ -61,3 +61,7 @@ docker build -f apps/web/Dockerfile -t rockit-web .
 ```
 
 Backend maintenance scripts live in `apps/backend/scripts` and can be invoked from the repository root with `uv run --project apps/backend python -m apps.backend.scripts.<module>`.
+
+### Notifications
+
+Rockit uses app-template’s event/subscription notification system, with recipient-scoped personal events and admin subscription controls. Existing history migrates on startup. See [notification documentation](docs/notifications.md).

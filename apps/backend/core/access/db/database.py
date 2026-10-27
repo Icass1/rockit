@@ -240,6 +240,10 @@ class Database:
                     if index.name and index.name.startswith("ix_collection_"):
                         await conn.run_sync(index.create, checkfirst=True)
 
+        from core.access.db.migrations import apply_migrations_async
+
+        await apply_migrations_async(self.engine)
+
         # Now set SessionLocal AFTER tables are created
         self.SessionLocal = async_sessionmaker(
             bind=self.engine, class_=ResilientAsyncSession, expire_on_commit=False

@@ -140,10 +140,13 @@ export class BaseHttp {
 
     private static async apiPatchAsync<T>(
         path: string,
-        responseSchema: TZodSchema<T>
+        responseSchema: TZodSchema<T>,
+        payload?: unknown
     ): Promise<HttpResult<T>> {
         return this.apiFetchAsync(path, responseSchema, {
             method: "PATCH",
+            headers: payload === undefined ? undefined : { "Content-Type": "application/json" },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
         });
     }
 

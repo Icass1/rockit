@@ -332,14 +332,6 @@ export {
     LeaderboardResponseSchema,
     type LeaderboardResponse,
 } from "./leaderboardResponse";
-export {
-    LegacyNotificationRequestSchema,
-    type LegacyNotificationRequest,
-} from "./legacyNotificationRequest";
-export {
-    LegacyNotificationsRequestSchema,
-    type LegacyNotificationsRequest,
-} from "./legacyNotificationsRequest";
 export { LevelConfigSchema, type LevelConfig } from "./levelConfig";
 export {
     LibraryMediaAddedMessageSchema,
@@ -431,21 +423,37 @@ export {
     type MetadataResponse,
 } from "./metadataResponse";
 export {
-    NotificationActivityRequestSchema,
-    type NotificationActivityRequest,
-} from "./notificationActivityRequest";
+    NotificationDestinationSchema,
+    type NotificationDestination,
+} from "./notificationDestination";
+export {
+    NotificationDestinationResponseSchema,
+    type NotificationDestinationResponse,
+} from "./notificationDestinationResponse";
+export {
+    NotificationEventResponseSchema,
+    type NotificationEventResponse,
+} from "./notificationEventResponse";
+export {
+    NotificationPageResponseSchema,
+    type NotificationPageResponse,
+} from "./notificationPageResponse";
+export {
+    NotificationReplacementSchema,
+    type NotificationReplacement,
+} from "./notificationReplacement";
 export {
     NotificationResponseSchema,
     type NotificationResponse,
 } from "./notificationResponse";
 export {
-    NotificationsReadRequestSchema,
-    type NotificationsReadRequest,
-} from "./notificationsReadRequest";
+    NotificationSubscriptionsResponseSchema,
+    type NotificationSubscriptionsResponse,
+} from "./notificationSubscriptionsResponse";
 export {
-    NotificationsResponseSchema,
-    type NotificationsResponse,
-} from "./notificationsResponse";
+    NotificationUserResponseSchema,
+    type NotificationUserResponse,
+} from "./notificationUserResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {
     OnlineUsersMessageSchema,
@@ -717,6 +725,10 @@ export {
     type UpdateLangRequest,
 } from "./updateLangRequest";
 export {
+    UpdateNotificationSubscriptionsRequestSchema,
+    type UpdateNotificationSubscriptionsRequest,
+} from "./updateNotificationSubscriptionsRequest";
+export {
     UpdatePasswordRequestSchema,
     type UpdatePasswordRequest,
 } from "./updatePasswordRequest";
@@ -838,4 +850,8 @@ export {
     type ListeningBadgeScope,
 } from "./listeningBadgeScope";
 export { SequenceSchema, type Sequence } from "./sequence";
+export {
+    NotificationEventKeySchema,
+    type NotificationEventKey,
+} from "./notificationEventKey";
 export { StrictIntSchema, type StrictInt } from "./strictInt";

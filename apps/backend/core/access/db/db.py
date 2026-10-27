@@ -116,3 +116,7 @@ from core.access.db.ormModels.vocabulary import VocabularyRow as VocabularyRow
 
 schemas = ["core"]
 base = CoreBase
+
+from core.access.db.ormModels.notificationSubscription import (
+    NotificationSubscriptionRow as NotificationSubscriptionRow,
+)

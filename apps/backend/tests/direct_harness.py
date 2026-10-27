@@ -165,6 +165,15 @@ class DirectEndpointHarness:
             return DirectResponse(404, {"detail": f"No direct endpoint for {method} {path}"})
 
         assert endpoint is not None
+        from core.middlewares.authMiddleware import AuthMiddleware
+
+        for dependency in route.dependant.dependencies:
+            if dependency.call in {AuthMiddleware.auth_dependency, AuthMiddleware.admin_dependency}:
+                if self.user is None:
+                    return DirectResponse(401, {"detail": "Not logged in."})
+                if dependency.call is AuthMiddleware.admin_dependency and not self.user.admin:
+                    return DirectResponse(403, {"detail": "Admin access required."})
+
         hints = get_type_hints(endpoint)
         arguments: dict[str, Any] = {}
         for name, parameter in signature(endpoint).parameters.items():

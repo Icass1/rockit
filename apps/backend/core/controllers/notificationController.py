@@ -1,93 +1,53 @@
-from typing import TypeVar
+from fastapi import APIRouter, Depends, Query, Request
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-
-from core.aResult import AResult
-from core.framework.notifications import Notifications
-from core.middlewares.authMiddleware import AuthMiddleware
+from core.controllers.notificationSubscriptionsController import value_or_error
+from core.framework.notification import Notification
+from core.middlewares.authMiddleware import AuthMiddleware as AuthDependency
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-from core.requests.notificationRequest import (
-    LegacyNotificationsRequest,
-    NotificationActivityRequest,
-    NotificationsReadRequest,
+from core.responses.notificationResponses import (
+    NotificationDestinationResponse,
+    NotificationPageResponse,
+    NotificationResponse,
 )
-from core.responses.notificationsResponse import NotificationsResponse
-from core.responses.okResponse import OkResponse
-from logger import getLogger
 
-T = TypeVar("T")
-logger = getLogger(__name__)
 router = APIRouter(
     prefix="/notifications",
-    dependencies=[Depends(AuthMiddleware.auth_dependency)],
-    tags=["Core", "Notifications"],
+    tags=["Notifications"],
+    dependencies=[Depends(AuthDependency.auth_dependency)],
 )
 
 
-def _checked[T](result: AResult[T]) -> T:
-    """Translate framework failures at the HTTP boundary."""
-    if result.is_not_ok():
-        logger.error(f"Notifications request failed: {result.info()}")
-        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
-    return result.result()
-
-
-@router.get("")
-async def get_notifications(request: Request) -> NotificationsResponse:
-    """Get the authenticated user's shared inbox."""
-    user = _checked(AuthMiddleware.get_current_user(request=request))
-    return _checked(
-        await Notifications.list_async(
-            session=DBSessionMiddleware.get_session(request=request),
-            user_id=user.id,
-            lang_id=user.lang_id,
-        )
+@router.get("", response_model=NotificationPageResponse)
+async def list_notifications(
+    request: Request,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    unread_only: bool = Query(default=False),
+) -> NotificationPageResponse:
+    session = DBSessionMiddleware.get_session(request)
+    user = value_or_error(AuthDependency.get_current_user(request))
+    rows, unread, total = value_or_error(
+        await Notification.list_async(session, user.id, limit, offset, unread_only)
+    )
+    return NotificationPageResponse(
+        items=[NotificationResponse.from_row(row) for row in rows],
+        unreadCount=unread,
+        totalCount=total,
     )
 
 
-@router.post("/activity")
-async def create_notification_activity(
-    request: Request, payload: NotificationActivityRequest
-) -> OkResponse:
-    """Persist personal client activity in the current user's inbox."""
-    user = _checked(AuthMiddleware.get_current_user(request=request))
-    _checked(
-        await Notifications.activity_async(
-            session=DBSessionMiddleware.get_session(request=request),
-            user_id=user.id,
-            payload=payload,
-        )
-    )
-    return OkResponse()
+@router.patch("/{public_id}/read", response_model=NotificationResponse)
+async def mark_notification_read(request: Request, public_id: str) -> NotificationResponse:
+    session = DBSessionMiddleware.get_session(request)
+    user = value_or_error(AuthDependency.get_current_user(request))
+    row = value_or_error(await Notification.mark_read_async(session, user.id, public_id))
+    return NotificationResponse.from_row(row)
 
 
-@router.post("/read")
-async def mark_notifications_read(
-    request: Request, payload: NotificationsReadRequest
-) -> OkResponse:
-    """Mark the selected notifications read, without deleting them."""
-    user = _checked(AuthMiddleware.get_current_user(request=request))
-    _checked(
-        await Notifications.mark_read_async(
-            session=DBSessionMiddleware.get_session(request=request),
-            user_id=user.id,
-            public_ids=payload.ids,
-        )
-    )
-    return OkResponse()
-
-
-@router.post("/legacy")
-async def migrate_legacy_notifications(
-    request: Request, payload: LegacyNotificationsRequest
-) -> OkResponse:
-    """Import retained browser history into the current user's inbox."""
-    user = _checked(AuthMiddleware.get_current_user(request=request))
-    _checked(
-        await Notifications.migrate_legacy_async(
-            session=DBSessionMiddleware.get_session(request=request),
-            user_id=user.id,
-            payload=payload,
-        )
-    )
-    return OkResponse()
+@router.get("/{public_id}/destination", response_model=NotificationDestinationResponse)
+async def get_notification_destination(
+    request: Request, public_id: str
+) -> NotificationDestinationResponse:
+    session = DBSessionMiddleware.get_session(request)
+    user = value_or_error(AuthDependency.get_current_user(request))
+    return value_or_error(await Notification.get_destination_async(session, user.id, public_id))

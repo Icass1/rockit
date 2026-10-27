@@ -4,8 +4,12 @@
 import { z } from "zod";
 import { NotificationResponseSchema } from "./notificationResponse";
 
-export const NotificationsResponseSchema = z.object({
+export const NotificationPageResponseSchema = z.object({
     items: z.array(z.lazy(() => NotificationResponseSchema)),
+    unreadCount: z.number(),
+    totalCount: z.number(),
 });
 
-export type NotificationsResponse = z.infer<typeof NotificationsResponseSchema>;
+export type NotificationPageResponse = z.infer<
+    typeof NotificationPageResponseSchema
+>;

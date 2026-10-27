@@ -10,7 +10,7 @@ from core.framework.friend.notifications import (
     notify_after_commit,
     notify_notifications_after_commit,
 )
-from core.framework.notifications import Notifications
+from core.framework.notification import Notification
 from logger import getLogger
 
 logger = getLogger(__name__)
@@ -120,7 +120,7 @@ class Friend:
             return AResult(code=a_result.code(), message=a_result.message())
         notify_after_commit(session, [from_user_id, to_user_id])
         request_row = a_result.result()
-        notification = await Notifications.social_async(
+        notification = await Notification.social_async(
             session=session,
             user_id=to_user_id,
             event_key=f"friend_request:{request_row.public_id}",

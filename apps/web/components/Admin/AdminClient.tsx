@@ -21,6 +21,7 @@ import {
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import AdminNotificationSubscriptions from "@/components/Admin/AdminNotificationSubscriptions";
 import AdminMediaSearch from "@/components/Admin/AdminMediaSearch";
 import AdminRequests from "@/components/Admin/AdminRequests";
 import AdminStats from "@/components/Admin/AdminStats";
@@ -509,12 +510,7 @@ export default function AdminClient({
                                 {$vocabulary.ADMIN_USERS_SUBTITLE}
                             </p>
                         </div>
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 py-20">
-                            <Users className="mb-4 h-12 w-12 text-neutral-600" />
-                            <p className="text-neutral-500">
-                                {$vocabulary.ADMIN_USERS_COMING_SOON}
-                            </p>
-                        </div>
+                        <AdminNotificationSubscriptions />
                     </div>
                 )}
 

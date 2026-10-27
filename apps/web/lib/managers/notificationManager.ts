@@ -1,34 +1,29 @@
 import { createElement, ReactNode } from "react";
 import { toast } from "sonner";
+import type { NotificationResponse } from "@rockit/shared";
 import { ENotificationType } from "@/models/enums/notificationType";
-import {
-    INotification,
-    LegacyNotificationsStorageSchema,
-    NotificationOptions,
-    NotificationSchema,
-} from "@/models/interfaces/notification";
+import type { INotification, NotificationOptions } from "@/models/interfaces/notification";
 import { Http } from "@/lib/http";
-import { createArrayAtom, ReadonlyArrayAtom } from "@/lib/store";
+import { createArrayAtom, createAtom, ReadonlyArrayAtom, ReadonlyAtom } from "@/lib/store";
 
 const TAP_MAX_MOVEMENT_PX = 10;
 
 export class NotificationManager {
     private _notificationsAtom = createArrayAtom<INotification>([]);
+    private _unreadCount = createAtom(0);
+    private _totalCount = createAtom(0);
+    private _error = createAtom<string | null>(null);
     private _dismissListenerRegistered = false;
     private _pointerDownPosition: { x: number; y: number } | null = null;
     private _username?: string;
     private _generation = 0;
     private _revision = 0;
-    private _loaded = false;
-    private _localActivityKeys = new Set<string>();
-    private _migration?: Promise<void>;
-    private _refresh?: Promise<void>;
-    private _refreshAgain = false;
+    private _offset = 0;
+    private _unreadOnly = false;
     private _timer?: ReturnType<typeof setInterval>;
     private _refreshListener = (): void => {
-        void this.refreshAsync();
+        if (document.visibilityState !== "hidden") void this.refreshAsync();
     };
-    private _writeQueue: Promise<void> = Promise.resolve();
 
     init(): void {
         if (typeof window === "undefined") return;
@@ -43,215 +38,85 @@ export class NotificationManager {
         this._username = username;
         this._generation++;
         this._revision++;
-        this._loaded = false;
-        this._localActivityKeys.clear();
-        this._migration = undefined;
-        this._refresh = undefined;
-        this._refreshAgain = false;
-        this._writeQueue = Promise.resolve();
-        toast.dismiss();
+        this._offset = 0;
         this._notificationsAtom.set([]);
+        this._unreadCount.set(0);
+        this._totalCount.set(0);
+        this._error.set(null);
+        toast.dismiss();
         if (this._timer) clearInterval(this._timer);
         if (typeof window === "undefined") return;
         window.removeEventListener("focus", this._refreshListener);
         window.removeEventListener("online", this._refreshListener);
+        document.removeEventListener("visibilitychange", this._refreshListener);
         if (!username) return;
         window.addEventListener("focus", this._refreshListener);
         window.addEventListener("online", this._refreshListener);
-        this._timer = setInterval(this._refreshListener, 30000);
+        document.addEventListener("visibilitychange", this._refreshListener);
+        this._timer = setInterval(this._refreshListener, 30_000);
+        void this.refreshAsync();
+    }
+
+    setPage(offset: number, unreadOnly = false): void {
+        this._offset = Math.max(0, offset);
+        this._unreadOnly = unreadOnly;
         void this.refreshAsync();
     }
 
     async refreshAsync(): Promise<void> {
         if (!this._username || typeof window === "undefined") return;
-        if (this._refresh) {
-            this._refreshAgain = true;
-            return this._refresh;
-        }
         const generation = this._generation;
-        const request = (async (): Promise<void> => {
-            do {
-                this._refreshAgain = false;
-                await this._refreshInboxAsync(generation);
-            } while (generation === this._generation && this._refreshAgain);
-        })();
-        this._refresh = request;
-        try {
-            await request;
-        } finally {
-            if (this._refresh === request) {
-                this._refresh = undefined;
-                this._refreshAgain = false;
-            }
-        }
-    }
-
-    private async _refreshInboxAsync(generation: number): Promise<void> {
-        this._migration ??= this._migrateLegacyAsync(generation);
-        await this._migration;
-        if (generation !== this._generation) return;
-        this._migration = undefined;
         const revision = ++this._revision;
-        const result = await Http.getNotifications();
-        if (generation !== this._generation || revision !== this._revision)
-            return;
-        if (result.isNotOk() || !result.result) return;
-        const parsed = NotificationSchema.array().safeParse(
-            result.result.items
-        );
-        if (!parsed.success) return;
-        const previous = new Set(
-            this._notificationsAtom.get().map((n) => n.id)
-        );
-        if (this._loaded) {
-            for (const item of [...parsed.data].reverse()) {
-                if (
-                    !item.read &&
-                    item.category !== "release" &&
-                    !previous.has(item.id) &&
-                    !(item.key && this._localActivityKeys.has(item.key))
-                )
-                    this._showToast(item.type, item.message, item.id);
-            }
-        }
-        this._loaded = true;
-        this._notificationsAtom.set(parsed.data);
-        for (const item of parsed.data) {
-            if (item.key) this._localActivityKeys.delete(item.key);
-        }
-    }
-
-    private async _migrateLegacyAsync(generation: number): Promise<void> {
-        const key = `rockit.notifications.v1:${encodeURIComponent(this._username!)}`;
         try {
-            if (localStorage.getItem(`${key}:migrated`)) return;
-            const raw = localStorage.getItem(key);
-            if (!raw) return;
-            const legacy = LegacyNotificationsStorageSchema.safeParse(
-                JSON.parse(raw)
-            );
-            if (!legacy.success || generation !== this._generation) return;
-            const result = await Http.migrateLegacyNotifications(legacy.data);
-            if (result.isNotOk()) {
-                console.error("Cannot migrate notifications", result.message);
-                return;
+            const result = await Http.listNotifications(20, this._offset, this._unreadOnly);
+            if (generation !== this._generation || revision !== this._revision) return;
+            if (result.isNotOk()) { this._error.set(result.message); return; }
+            this._notificationsAtom.set(result.result.items);
+            this._unreadCount.set(result.result.unreadCount);
+            this._totalCount.set(result.result.totalCount);
+            this._error.set(null);
+            if (this._offset && this._offset >= result.result.totalCount) {
+                this._offset = 0;
+                await this.refreshAsync();
             }
-            // Keep the original browser data as a backup; it is no longer the inbox.
-            localStorage.setItem(`${key}:migrated`, "true");
         } catch {
-            // Private browsing or malformed old storage must not block the server inbox.
+            if (generation === this._generation && revision === this._revision)
+                this._error.set("NOTIFICATIONS_LOAD_FAILED");
         }
     }
 
-    markRead(id: string): void {
-        this._markRead([id]);
-    }
-
-    markAllRead(): void {
-        this._markRead(
-            this._notificationsAtom
-                .get()
-                .filter((n) => !n.read)
-                .map((n) => n.id)
-        );
-    }
-
-    private _markRead(ids: string[]): void {
-        if (!this._username || ids.length === 0) return;
+    async markRead(id: string): Promise<boolean> {
         const generation = this._generation;
-        // Invalidate any older inbox response while the write is in flight.
         this._revision++;
-        this._writeQueue = this._writeQueue
-            .then(async (): Promise<void> => {
-                if (generation !== this._generation) return;
-                const result = await Http.markNotificationsRead({ ids });
-                if (generation !== this._generation) return;
-                if (result.isNotOk()) {
-                    console.error(
-                        "Cannot mark notifications read",
-                        result.message
-                    );
-                    return;
-                }
-                this._revision++;
-                this._notificationsAtom.set(
-                    this._notificationsAtom
-                        .get()
-                        .map((n) =>
-                            ids.includes(n.id) ? { ...n, read: true } : n
-                        )
-                );
-                await this.refreshAsync();
-            })
-            .catch((error: unknown): void => {
-                console.error("Notification update failed", error);
-            });
+        const result = await Http.markNotificationRead(id);
+        if (generation !== this._generation) return false;
+        if (result.isNotOk()) { this._error.set(result.message); return false; }
+        await this.refreshAsync();
+        return true;
     }
 
-    notifyError(message: string): void {
-        this.notify(ENotificationType.ERROR, message);
-    }
-    notifyInfo(message: string): void {
-        this.notify(ENotificationType.INFO, message);
-    }
-    notifyWarn(message: string): void {
-        this.notify(ENotificationType.WARN, message);
-    }
-    notifySuccess(message: string): void {
-        this.notify(ENotificationType.SUCCESS, message);
-    }
-
-    dismiss(id: string): void {
-        this.markRead(id);
-        toast.dismiss(`rockit-notification-${id}`);
-    }
-
-    get notificationsAtom(): ReadonlyArrayAtom<INotification> {
-        return this._notificationsAtom.getReadonlyAtom();
-    }
-
-    notify(
-        type: ENotificationType,
-        message: string,
-        options: NotificationOptions = {}
-    ): void {
-        // Server operations produce their own history; UI feedback stays immediate.
-        if (options.toast !== false) this._showToast(type, message);
-        if (
-            !this._username ||
-            (options.category && options.category !== "activity")
-        ) {
-            void this.refreshAsync();
-            return;
-        }
+    async destinationAsync(notification: NotificationResponse): Promise<string | null> {
         const generation = this._generation;
-        const key = options.key ?? crypto.randomUUID();
-        this._localActivityKeys.add(key);
-        this._writeQueue = this._writeQueue
-            .then(async (): Promise<void> => {
-                if (generation !== this._generation) return;
-                const result = await Http.createNotificationActivity({
-                    type,
-                    message,
-                    detail: options.detail ?? null,
-                    key,
-                });
-                if (generation !== this._generation) return;
-                if (result.isNotOk()) {
-                    this._localActivityKeys.delete(key);
-                    console.error("Cannot save notification", result.message);
-                    return;
-                }
-                // Invalidate an inbox captured before this write. Suppress only
-                // our own activity key, leaving unrelated server events visible.
-                this._revision++;
-                await this.refreshAsync();
-            })
-            .catch((error: unknown): void => {
-                if (generation === this._generation)
-                    this._localActivityKeys.delete(key);
-                console.error("Notification update failed", error);
-            });
+        const result = await Http.getNotificationDestination(notification.publicId);
+        if (generation !== this._generation) return null;
+        if (result.isNotOk()) { this._error.set(result.message); return null; }
+        return await this.markRead(notification.publicId) ? result.result.url : null;
+    }
+
+    get notificationsAtom(): ReadonlyArrayAtom<INotification> { return this._notificationsAtom.getReadonlyAtom(); }
+    get unreadCountAtom(): ReadonlyAtom<number> { return this._unreadCount.getReadonlyAtom(); }
+    get totalCountAtom(): ReadonlyAtom<number> { return this._totalCount.getReadonlyAtom(); }
+    get errorAtom(): ReadonlyAtom<string | null> { return this._error.getReadonlyAtom(); }
+    get offset(): number { return this._offset; }
+
+    notifyError(message: string): void { this.notify(ENotificationType.ERROR, message); }
+    notifyInfo(message: string): void { this.notify(ENotificationType.INFO, message); }
+    notifyWarn(message: string): void { this.notify(ENotificationType.WARN, message); }
+    notifySuccess(message: string): void { this.notify(ENotificationType.SUCCESS, message); }
+    notify(type: ENotificationType, message: string, options: NotificationOptions = {}): void {
+        // Immediate UI feedback stays local. Only registered server events create inbox history.
+        if (options.toast !== false) this._showToast(type, message);
+        if (options.category) void this.refreshAsync();
     }
 
     private _showToast(

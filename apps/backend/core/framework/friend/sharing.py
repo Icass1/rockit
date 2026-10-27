@@ -13,7 +13,7 @@ from core.framework.friend.notifications import (
     notify_notifications_after_commit,
 )
 from core.framework.media.media import Media
-from core.framework.notifications import Notifications
+from core.framework.notification import Notification
 from core.responses.friend.sharedMediaResponse import SharedMediaItem
 from logger import getLogger
 
@@ -65,7 +65,7 @@ class Sharing:
             return AResult(code=rewards.code(), message=rewards.message())
         notify_after_commit(session, [sender_user_id, recipient_user_id])
         share = a_result.result()
-        notification = await Notifications.social_async(
+        notification = await Notification.social_async(
             session=session,
             user_id=recipient_user_id,
             event_key=f"media_share:{share.public_id}",

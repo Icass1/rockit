@@ -17,7 +17,7 @@ from core.access.mediaAccess import MediaAccess
 from core.aResult import AResult
 from core.framework import providers
 from core.framework.media.stream import MediaStream
-from core.framework.notifications import Notifications
+from core.framework.notification import Notification
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -101,7 +101,7 @@ async def upload_rockit_song(
         image_path=image_path,
     )
 
-    notification = await Notifications.import_async(
+    notification = await Notification.import_async(
         session=session,
         user_id=a_result_user.result().id,
         operation_id=upload_id,
@@ -223,7 +223,7 @@ async def upload_rockit_album(
         song_paths=song_paths,
     )
 
-    notification = await Notifications.import_async(
+    notification = await Notification.import_async(
         session=session,
         user_id=a_result_user.result().id,
         operation_id=upload_id,

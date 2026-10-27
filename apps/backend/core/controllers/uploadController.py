@@ -13,7 +13,7 @@ from core.access.pendingUploadAccess import PendingUploadAccess
 from core.aResult import AResult
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
-from core.framework.notifications import Notifications
+from core.framework.notification import Notification
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -239,7 +239,7 @@ async def upload_file(
             file_path=file_path,
             image_path=image_path,
         )
-        notification = await Notifications.import_async(
+        notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
             operation_id=upload_id,
@@ -269,7 +269,7 @@ async def upload_file(
             file_path=file_path,
             image_path=image_path,
         )
-        notification = await Notifications.import_async(
+        notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
             operation_id=upload_id,
@@ -392,7 +392,7 @@ async def upload_album_song_file(
             cover_path=cover_path_to_pass,
             song_paths=song_paths,
         )
-        notification = await Notifications.import_async(
+        notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
             operation_id=upload_id,
@@ -499,7 +499,7 @@ async def assemble_media_upload(
             file_path=file_path,
             image_path=image_path,
         )
-        notification = await Notifications.import_async(
+        notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
             operation_id=upload_id,
@@ -529,7 +529,7 @@ async def assemble_media_upload(
             file_path=file_path,
             image_path=image_path,
         )
-        notification = await Notifications.import_async(
+        notification = await Notification.import_async(
             session=session,
             user_id=_get_user(request=request).id,
             operation_id=upload_id,

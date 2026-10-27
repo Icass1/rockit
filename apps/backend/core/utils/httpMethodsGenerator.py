@@ -188,10 +188,22 @@ async def http_methods_generator() -> None:
             text += "    }"
 
         elif method == "PATCH":
+            body_params = route.dependant.body_params
+            payload_argument = ""
+            if body_params:
+                body_type = body_params[0].type_
+                if (
+                    len(body_params) != 1
+                    or not isinstance(body_type, type)
+                    or not issubclass(body_type, BaseModel)
+                ):
+                    raise TypeError(f"PATCH {route.path} requires one Pydantic body model")
+                params.append(f"payload: dto.{body_type.__name__}")
+                payload_argument = ", payload"
             text += f"    static async {method_name}({','.join(params)})" + " {\n"
             text += (
                 f"        return this.apiPatchAsync(`{path}`, "
-                f"{response_schema(route.response_model)})\n"
+                f"{response_schema(route.response_model)}{payload_argument})\n"
             )
             text += "    }"
 

@@ -2,21 +2,17 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
+import { NotificationDestinationSchema } from "./notificationDestination";
+import { NotificationReplacementSchema } from "./notificationReplacement";
 
 export const NotificationResponseSchema = z.object({
-    id: z.string(),
-    message: z.string(),
-    type: z.number(),
-    category: z.union([
-        z.literal("activity"),
-        z.literal("download"),
-        z.literal("import"),
-        z.literal("release"),
-    ]),
-    createdAt: z.number(),
-    read: z.boolean(),
-    key: z.string(),
-    detail: z.string().nullable(),
+    publicId: z.string(),
+    eventKey: z.string(),
+    vocabularyKey: z.string(),
+    replacements: z.array(z.lazy(() => NotificationReplacementSchema)),
+    dateAdded: z.iso.datetime(),
+    readAt: z.iso.datetime().nullable(),
+    destination: z.lazy(() => NotificationDestinationSchema).nullable(),
 });
 
 export type NotificationResponse = z.infer<typeof NotificationResponseSchema>;

@@ -140,10 +140,16 @@ export class BaseHttp {
 
     private static async apiPatchAsync<T>(
         path: string,
-        responseSchema: TZodSchema<T>
+        responseSchema: TZodSchema<T>,
+        payload?: unknown
     ): Promise<HttpResult<T>> {
         return this.apiFetchAsync(path, responseSchema, {
             method: "PATCH",
+            headers:
+                payload === undefined
+                    ? undefined
+                    : { "Content-Type": "application/json" },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
         });
     }
 
@@ -399,10 +405,14 @@ export class BaseHttp {
         );
     }
 
-    static async updatePlaylistAsync(playlistPublicId: string) {
+    static async updatePlaylistAsync(
+        playlistPublicId: string,
+        payload: dto.UpdatePlaylistRequest
+    ) {
         return this.apiPatchAsync(
             `/default/playlist/${encodeURIComponent(playlistPublicId)}`,
-            dto.BasePlaylistWithMediasResponseSchema
+            dto.BasePlaylistWithMediasResponseSchema,
+            payload
         );
     }
 
@@ -864,10 +874,14 @@ export class BaseHttp {
         );
     }
 
-    static async updateLrclibLyricsTimestampsAsync(publicId: string) {
+    static async updateLrclibLyricsTimestampsAsync(
+        publicId: string,
+        payload: dto.UpdateTimestampsRequest
+    ) {
         return this.apiPatchAsync(
             `/lrclib/lyrics/${encodeURIComponent(publicId)}/timestamps`,
-            dto.GetLyricsResponseSchema
+            dto.GetLyricsResponseSchema,
+            payload
         );
     }
 
@@ -1149,41 +1163,34 @@ export class BaseHttp {
         );
     }
 
-    static async getNotifications() {
+    static async listNotifications(
+        limit?: number,
+        offset?: number,
+        unreadOnly?: boolean
+    ) {
+        const queryParams = new URLSearchParams();
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (unreadOnly !== undefined)
+            queryParams.append("unread_only", `${unreadOnly}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/notifications`,
-            dto.NotificationsResponseSchema
+            `/notifications${queryString ? `?${queryString}` : ""}`,
+            dto.NotificationPageResponseSchema
         );
     }
 
-    static async createNotificationActivity(
-        payload: dto.NotificationActivityRequest
-    ) {
-        return this.apiPostAsync(
-            `/notifications/activity`,
-            dto.NotificationActivityRequestSchema,
-            dto.OkResponseSchema,
-            payload
+    static async getNotificationDestination(publicId: string) {
+        return this.apiGetAsync(
+            `/notifications/${encodeURIComponent(publicId)}/destination`,
+            dto.NotificationDestinationResponseSchema
         );
     }
 
-    static async migrateLegacyNotifications(
-        payload: dto.LegacyNotificationsRequest
-    ) {
-        return this.apiPostAsync(
-            `/notifications/legacy`,
-            dto.LegacyNotificationsRequestSchema,
-            dto.OkResponseSchema,
-            payload
-        );
-    }
-
-    static async markNotificationsRead(payload: dto.NotificationsReadRequest) {
-        return this.apiPostAsync(
-            `/notifications/read`,
-            dto.NotificationsReadRequestSchema,
-            dto.OkResponseSchema,
-            payload
+    static async markNotificationRead(publicId: string) {
+        return this.apiPatchAsync(
+            `/notifications/${encodeURIComponent(publicId)}/read`,
+            dto.NotificationResponseSchema
         );
     }
 
@@ -1552,6 +1559,38 @@ export class BaseHttp {
 
     static async getSession() {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
+    }
+
+    static async listNotificationUsers() {
+        return this.apiGetAsync(
+            `/users`,
+            dto.NotificationUserResponseSchema.array()
+        );
+    }
+
+    static async listNotificationEvents() {
+        return this.apiGetAsync(
+            `/users/notification-events`,
+            dto.NotificationEventResponseSchema.array()
+        );
+    }
+
+    static async getNotificationSubscriptions(publicId: string) {
+        return this.apiGetAsync(
+            `/users/${encodeURIComponent(publicId)}/notification-subscriptions`,
+            dto.NotificationSubscriptionsResponseSchema
+        );
+    }
+
+    static async setNotificationSubscriptions(
+        publicId: string,
+        payload: dto.UpdateNotificationSubscriptionsRequest
+    ) {
+        return this.apiPatchAsync(
+            `/users/${encodeURIComponent(publicId)}/notification-subscriptions`,
+            dto.NotificationSubscriptionsResponseSchema,
+            payload
+        );
     }
 
     static downloadApkURL(filename: string) {

@@ -13,7 +13,7 @@ from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.framework import providers
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.ongoingDownload import OngoingDownload
-from core.framework.notifications import Notifications
+from core.framework.notification import Notification
 from core.framework.websocket.webSocketManager import ws_manager
 from logger import getLogger
 
@@ -251,7 +251,7 @@ class DownloadsManager:
                                     if status_key == DownloadStatusEnum.COMPLETED.value
                                     else (float(latest_status.completed) if latest_status else 0)
                                 )
-                                notification = await Notifications.download_async(
+                                notification = await Notification.download_async(
                                     session=session,
                                     user_id=d.user_id,
                                     public_id=download_public_id,

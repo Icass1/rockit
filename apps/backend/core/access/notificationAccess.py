@@ -1,133 +1,160 @@
 from datetime import UTC, datetime
-from hashlib import sha256
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
-from sqlalchemy.sql.base import Executable
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.notification import NotificationRow
-from core.aResult import AResult, AResultCode
-from core.requests.notificationRequest import LegacyNotificationRequest
-from core.utils.backendUtils import create_id
-from core.utils.safeAsyncCall import safe_async
+from core.access.db.ormModels.notificationSubscription import NotificationSubscriptionRow
+from core.access.db.ormModels.user import UserRow
+from core.responses.notificationResponses import NotificationDestination, NotificationReplacement
+from result import Result, ResultCode
 
 
 class NotificationAccess:
     @staticmethod
-    @safe_async
-    async def create_async(
-        session: AsyncSession,
-        user_id: int,
-        event_key: str,
-        type: int,
-        category: str,
-        message: str = "",
-        message_key: str | None = None,
-        detail: str | None = None,
-        detail_key: str | None = None,
-    ) -> AResult[bool]:
-        """Persist an event once per recipient, including concurrent deliveries."""
-        statement = (
-            insert(NotificationRow)
-            .values(
-                public_id=create_id(32),
-                user_id=user_id,
-                event_key=event_key,
-                type=type,
-                category=category,
-                message=message,
-                message_key=message_key,
-                detail=detail,
-                detail_key=detail_key,
-                read=False,
-            )
-            .on_conflict_do_nothing(constraint="uq_notification_user_event")
-            .returning(NotificationRow.id)
+    async def get_subscriptions_async(session: AsyncSession, user_id: int) -> Result[list[str]]:
+        """List a user's subscribed event keys."""
+        keys = await session.scalars(
+            select(NotificationSubscriptionRow.event_key)
+            .where(NotificationSubscriptionRow.user_id == user_id)
+            .order_by(NotificationSubscriptionRow.event_key)
         )
-        # A failed optional notification must not roll back the upload/download itself.
-        async with session.begin_nested() as savepoint:
-            result = await NotificationAccess._insert_async(
-                connection=await session.connection(),
-                statement=statement,
-            )
-            if result.is_not_ok():
-                await savepoint.rollback()
-            return result
+        return Result[list[str]].ok(list(keys))
 
     @staticmethod
-    @safe_async
-    async def _insert_async(connection: AsyncConnection, statement: Executable) -> AResult[bool]:
-        """Execute within the caller's savepoint; the caller handles rollback."""
-        result = await connection.execute(statement=statement)
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=result.scalar_one_or_none() is not None,
-        )
-
-    @staticmethod
-    @safe_async
-    async def list_async(session: AsyncSession, user_id: int) -> AResult[list[NotificationRow]]:
-        """Return the latest 100 entries belonging to the authenticated user."""
-        result = await session.execute(
-            statement=select(NotificationRow)
-            .where(
-                NotificationRow.user_id == user_id,
-            )
-            .order_by(NotificationRow.date_added.desc(), NotificationRow.id.desc())
-            .limit(100)
-        )
-        return AResult(code=AResultCode.OK, message="OK", result=list(result.scalars().all()))
-
-    @staticmethod
-    @safe_async
-    async def mark_read_async(
-        session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[bool]:
-        """Mark only the specified recipient-owned entries read; retain history."""
+    async def set_subscriptions_async(
+        session: AsyncSession, user_id: int, event_keys: list[str]
+    ) -> Result[list[str]]:
+        """Replace subscriptions while serializing concurrent edits to the same user."""
+        await session.execute(select(UserRow.id).where(UserRow.id == user_id).with_for_update())
         await session.execute(
-            statement=update(NotificationRow)
-            .where(
-                NotificationRow.user_id == user_id,
-                NotificationRow.public_id.in_(public_ids),
+            delete(NotificationSubscriptionRow).where(
+                NotificationSubscriptionRow.user_id == user_id
             )
-            .values(read=True)
         )
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        keys = sorted(set(event_keys))
+        if keys:
+            await session.execute(
+                insert(NotificationSubscriptionRow),
+                [{"user_id": user_id, "event_key": key} for key in keys],
+            )
+        return Result[list[str]].ok(keys)
 
     @staticmethod
-    @safe_async
-    async def migrate_legacy_async(
-        session: AsyncSession, user_id: int, items: list[LegacyNotificationRequest]
-    ) -> AResult[bool]:
-        """Import browser history in one idempotent batch, preserving read receipts."""
-        values: dict[str, dict[str, object]] = {}
-        for item in sorted(items, key=lambda item: item.createdAt):
-            event_key = (
-                item.key
-                or "legacy:"
-                + sha256(item.model_dump_json(exclude={"id", "read"}).encode()).hexdigest()
+    async def deliver_async(
+        session: AsyncSession,
+        event_key: str,
+        vocabulary_key: str,
+        replacements: list[NotificationReplacement],
+        destination: NotificationDestination | None = None,
+        recipient_user_id: int | None = None,
+        source_key: str | None = None,
+    ) -> Result[int]:
+        """Persist one untranslated notification per current subscriber without committing."""
+        subscribers = select(NotificationSubscriptionRow.user_id).where(
+            NotificationSubscriptionRow.event_key == event_key
+        )
+        if recipient_user_id is not None:
+            subscribers = subscribers.where(
+                NotificationSubscriptionRow.user_id == recipient_user_id
             )
-            value: dict[str, object] = dict(
-                public_id=create_id(32),
-                user_id=user_id,
-                event_key=event_key,
-                type=item.type,
-                category=item.category,
-                message=item.message,
-                detail=item.detail,
-                date_added=datetime.fromtimestamp(item.createdAt / 1000, tz=UTC),
-                read=item.read,
+        user_ids = list(await session.scalars(subscribers))
+        if source_key is not None:
+            if not user_ids:
+                return Result[int].ok(0)
+            values = [
+                dict(
+                    user_id=user_id,
+                    event_key=event_key,
+                    source_key=source_key,
+                    vocabulary_key=vocabulary_key,
+                    replacements=[value.model_dump() for value in replacements],
+                    destination=destination.model_dump() if destination is not None else None,
+                )
+                for user_id in user_ids
+            ]
+            delivered = await session.execute(
+                insert(NotificationRow)
+                .values(values)
+                .on_conflict_do_nothing(constraint="notification_user_source_uq")
+                .returning(NotificationRow.id)
             )
-            if event_key in values:
-                value["read"] = bool(value["read"] or values[event_key]["read"])
-            values[event_key] = value
-        if values:
-            statement = insert(NotificationRow).values(list(values.values()))
-            statement = statement.on_conflict_do_update(
-                constraint="uq_notification_user_event",
-                set_={"read": NotificationRow.read | statement.excluded.read},
+            return Result[int].ok(len(list(delivered.scalars())))
+        session.add_all(
+            [
+                NotificationRow(
+                    user_id=user_id,
+                    event_key=event_key,
+                    vocabulary_key=vocabulary_key,
+                    replacements=[replacement.model_dump() for replacement in replacements],
+                    destination=destination.model_dump() if destination is not None else None,
+                )
+                for user_id in user_ids
+            ]
+        )
+        await session.flush()
+        return Result[int].ok(len(user_ids))
+
+    @staticmethod
+    async def list_async(
+        session: AsyncSession, user_id: int, limit: int, offset: int, unread_only: bool = False
+    ) -> Result[tuple[list[NotificationRow], int, int]]:
+        """Return only the current user's notifications and counts."""
+        counts = (
+            await session.execute(
+                select(
+                    func.count(NotificationRow.id),
+                    func.count(NotificationRow.id).filter(NotificationRow.read_at.is_(None)),
+                ).where(NotificationRow.user_id == user_id)
             )
-            await session.execute(statement=statement)
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        ).one()
+        query = select(NotificationRow).where(NotificationRow.user_id == user_id)
+        if unread_only:
+            query = query.where(NotificationRow.read_at.is_(None))
+        rows = list(
+            await session.scalars(
+                query.order_by(NotificationRow.date_added.desc(), NotificationRow.id.desc())
+                .limit(limit)
+                .offset(offset)
+            )
+        )
+        total = counts[1] if unread_only else counts[0]
+        return Result[tuple[list[NotificationRow], int, int]].ok((rows, counts[1], total))
+
+    @staticmethod
+    async def get_from_public_id_async(
+        session: AsyncSession, user_id: int, public_id: str
+    ) -> Result[NotificationRow]:
+        """Find a notification only when it belongs to the authenticated user."""
+        row = await session.scalar(
+            select(NotificationRow).where(
+                NotificationRow.user_id == user_id, NotificationRow.public_id == public_id
+            )
+        )
+        if row is None:
+            return Result[NotificationRow](ResultCode.NOT_FOUND, "Notification not found")
+        return Result[NotificationRow].ok(row)
+
+    @staticmethod
+    async def mark_read_async(
+        session: AsyncSession, user_id: int, public_id: str
+    ) -> Result[NotificationRow]:
+        """Mark an owned notification read without exposing other users' notifications."""
+        row = await session.scalar(
+            select(NotificationRow)
+            .where(NotificationRow.user_id == user_id, NotificationRow.public_id == public_id)
+            .with_for_update()
+        )
+        if row is None:
+            return Result[NotificationRow](ResultCode.NOT_FOUND, "Notification not found")
+        if row.read_at is None:
+            row.read_at = datetime.now(UTC)
+            await session.flush()
+        return Result[NotificationRow].ok(row)
+
+    @staticmethod
+    async def list_users_async(session: AsyncSession) -> Result[list[UserRow]]:
+        """List accounts for the administrator's notification subscription editor."""
+        rows = list(await session.scalars(select(UserRow).order_by(UserRow.username)))
+        return Result[list[UserRow]].ok(rows)

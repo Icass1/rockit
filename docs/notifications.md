@@ -17,7 +17,7 @@ Opening the bell does not mark anything read.
   remain local form errors.
 - ZIP creation records archive availability. The browser toast reports handoff to the
   browser, not completion of saving to disk.
-- Published release announcements live in `backend/core/framework/notifications.py`.
+- Published release announcements live in `apps/backend/core/framework/notifications.py`.
   The server lazily creates the current announcement once per user; reads never reset
   on a subsequent request. Existing announcements stay in the database.
 - Other UI activity can use the authenticated personal-activity endpoint. It cannot
@@ -62,7 +62,7 @@ translations, disconnected producers and legacy migration. They use disposable
 per-test databases via the existing `ROCKIT_TEST_DATABASE_URL` fixture:
 
 ```sh
-pytest backend/tests/integration/test_notifications.py
+pytest apps/backend/tests/integration/test_notifications.py
 ```
 
 ## Header panels
@@ -74,7 +74,7 @@ the panel and returns focus. The account panel shows the actual web build versio
 
 ## Automatic RockIt 2 versions
 
-`node frontend/scripts/version.cjs` calculates `2.minor.patch` from Git. The major
+`node scripts/version.cjs` calculates `2.minor.patch` from Git. The major
 is fixed at 2. The bootstrap baseline is recorded in `frontend/version.json`:
 old history does not turn the first RockIt 2 build into a large patch number.
 Each non-merge commit since the latest stable tag adds one patch. Merge commits
@@ -98,7 +98,7 @@ account menu. Docker receives it as ROCKIT_VERSION because .git is excluded from
 the image context. For local Docker builds use:
 
 ```sh
-ROCKIT_VERSION=$(node frontend/scripts/version.cjs) docker compose build
+ROCKIT_VERSION=$(node scripts/version.cjs) docker compose build
 ```
 
 Without that override, manual Docker builds use the bootstrap 2.0.0. CI always

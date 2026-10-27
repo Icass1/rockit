@@ -2,7 +2,7 @@
 
 ## Context
 
-Working on `frontend/apps/mobile/` (Expo + React Native). Reference web in `frontend/apps/web/`. Backend: FastAPI. See AGENTS.md for API routes.
+Working on `apps/mobile/` (Expo + React Native). Reference web in `apps/web/`. Backend: FastAPI. See AGENTS.md for API routes.
 
 Task: implement app shell (root layout, tab nav, safe areas, nanostores). Just skeleton, no screens yet.
 

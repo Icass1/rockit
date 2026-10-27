@@ -31,8 +31,8 @@ The native response/request schemas and HTTP methods were generated using the re
 ## Validation
 
 ```sh
-python -m pytest backend/tests/unit/test_search.py -q
-cd frontend/apps/web
+python -m pytest apps/backend/tests/unit/test_search.py -q
+cd apps/web
 node tests/search.test.mjs
 pnpm exec eslint components/Search lib/managers/searchManager.ts models/search.ts
 pnpm exec tsc --noEmit

@@ -1,0 +1,75 @@
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, ForeignKey, Index, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from core.access.db.base import CoreBase
+from core.access.db.ormModels.declarativeMixin import (
+    TableAutoincrementId,
+    TableDateAdded,
+    TableDateUpdated,
+    TablePublicId,
+    TZAwareTimestamp,
+)
+
+if TYPE_CHECKING:
+    from core.access.db.ormModels.download import DownloadRow
+
+
+class DownloadGroupRow(
+    CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded
+):
+    __tablename__ = "download_group"
+    __table_args__ = (
+        Index("ix_download_group_browse", "user_id", "seen", "date_started", "id"),
+        {"schema": "core", "extend_existing": True},
+    )
+
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.user.id"), nullable=False)
+    source_public_id: Mapped[str | None] = mapped_column(String, nullable=True)
+
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    date_started: Mapped[datetime] = mapped_column(TZAwareTimestamp, nullable=False)
+    date_ended: Mapped[datetime | None] = mapped_column(TZAwareTimestamp, nullable=True)
+    status_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.download_status_enum.key"), nullable=False, default=1
+    )
+    success: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fail: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    seen: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    downloads: Mapped[list["DownloadRow"]] = relationship(
+        "DownloadRow", back_populates="download_group"
+    )
+
+    def __init__(
+        self,
+        user_id: int,
+        title: str,
+        date_started: datetime,
+        public_id: str | None = None,
+        source_public_id: str | None = None,
+        date_ended: datetime | None = None,
+        status_key: int = 1,
+        success: int | None = None,
+        fail: int | None = None,
+        seen: bool = False,
+        id: int | None = None,
+    ) -> None:
+        kwargs: dict[str, None | bool | datetime | int | str] = {}
+        kwargs["user_id"] = user_id
+        kwargs["title"] = title
+        kwargs["date_started"] = date_started
+        if public_id is not None:
+            kwargs["public_id"] = public_id
+        kwargs["source_public_id"] = source_public_id
+        kwargs["date_ended"] = date_ended
+        kwargs["status_key"] = status_key
+        kwargs["success"] = success
+        kwargs["fail"] = fail
+        kwargs["seen"] = seen
+        if id is not None:
+            kwargs["id"] = id
+        for k, v in kwargs.items():
+            setattr(self, k, v)

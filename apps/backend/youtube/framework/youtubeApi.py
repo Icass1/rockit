@@ -1,0 +1,226 @@
+import asyncio
+from typing import Any
+
+import requests
+from pydantic import BaseModel
+
+from constants import YOUTUBE_API_KEY
+from core.aResult import AResult, AResultCode
+from logger import getLogger
+from youtube.youtubeApiTypes.rawYoutubeApiChannel import RawYoutubeChannel
+from youtube.youtubeApiTypes.rawYoutubeApiVideo import RawYoutubeVideo
+
+logger = getLogger(__name__)
+
+
+class RawYoutubeSearchResult(BaseModel):
+    kind: str | None = None
+    etag: str | None = None
+    video_id: str | None = None
+    channel_id: str | None = None
+    channel_title: str | None = None
+    title: str | None = None
+    description: str | None = None
+    thumbnails: dict[str, Any] | None = None
+    publish_time: str | None = None
+    live_broadcast_content: str | None = None
+
+    @classmethod
+    def from_dict(cls, obj: dict[str, Any]) -> "RawYoutubeSearchResult":
+        search_id: dict[str, Any] = obj.get("id", {})
+        snippet: dict[str, Any] = obj.get("snippet", {})
+        return cls(
+            kind=obj.get("kind"),
+            etag=obj.get("etag"),
+            video_id=search_id.get("videoId"),
+            channel_id=search_id.get("channelId"),
+            channel_title=snippet.get("channelTitle"),
+            title=snippet.get("title"),
+            description=snippet.get("description"),
+            thumbnails=snippet.get("thumbnails"),
+            publish_time=snippet.get("publishTime"),
+            live_broadcast_content=snippet.get("liveBroadcastContent"),
+        )
+
+
+class YoutubeApi:
+    def __init__(self) -> None:
+        self.api_key: str = YOUTUBE_API_KEY
+        self.base_url: str = "https://www.googleapis.com/youtube/v3"
+
+    def _get_params(self, params: dict[str, Any]) -> dict[str, Any]:
+        result: dict[str, Any] = {"key": self.api_key}
+        result.update(params)
+        return result
+
+    def _classify_error(self, status_code: int, body: dict[str, Any] | None) -> int:
+        if status_code == 429:
+            return AResultCode.RATE_LIMITED
+
+        if body:
+            error: dict[str, Any] | None = body.get("error")
+            if error:
+                status: str = error.get("status", "")
+                if status == "RESOURCE_EXHAUSTED":
+                    return AResultCode.QUOTA_EXHAUSTED
+                errors_list: list[dict[str, Any]] = error.get("errors", [])
+                for e in errors_list:
+                    reason: str = e.get("reason", "")
+                    if reason == "quotaExceeded":
+                        return AResultCode.QUOTA_EXHAUSTED
+
+        return AResultCode.GENERAL_ERROR
+
+    async def get_video_async(self, video_id: str) -> AResult[RawYoutubeVideo]:
+        try:
+            url: str = f"{self.base_url}/videos"
+            params: dict[str, Any] = self._get_params(
+                {"part": "snippet,contentDetails,statistics", "id": video_id}
+            )
+            response: requests.Response = requests.get(url, params=params, timeout=10)
+
+            if response.status_code != 200:
+                body: dict[str, Any] | None = None
+                try:
+                    body = response.json()
+                except Exception:
+                    pass
+                code: int = self._classify_error(response.status_code, body)
+                logger.error(f"YouTube API error: {response.status_code} - {response.text}")
+                return AResult(
+                    code=code,
+                    message=f"YouTube API error: {response.status_code}",
+                )
+
+            data: dict[str, Any] = response.json()
+
+            if "error" in data:
+                logger.error(f"YouTube API error: {data['error']}")
+                error_message: str = data["error"].get("message", "Unknown error")
+                return AResult(
+                    code=self._classify_error(response.status_code, data),
+                    message=error_message,
+                )
+
+            items: list[dict[str, Any]] = data.get("items", [])
+            if not items:
+                return AResult(code=AResultCode.NOT_FOUND, message="Video not found on YouTube")
+
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=RawYoutubeVideo.from_dict(items[0]),
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to get video from YouTube API: {e}")
+            return AResult(code=AResultCode.GENERAL_ERROR, message=f"Failed to get video: {e}")
+
+    async def get_channel_async(self, channel_id: str) -> AResult[RawYoutubeChannel]:
+        try:
+            url: str = f"{self.base_url}/channels"
+            params: dict[str, Any] = self._get_params(
+                {"part": "snippet,statistics", "id": channel_id}
+            )
+            response: requests.Response = requests.get(url, params=params, timeout=10)
+
+            if response.status_code != 200:
+                body: dict[str, Any] | None = None
+                try:
+                    body = response.json()
+                except Exception:
+                    pass
+                code: int = self._classify_error(response.status_code, body)
+                logger.error(f"YouTube API error: {response.status_code} - {response.text}")
+                return AResult(
+                    code=code,
+                    message=f"YouTube API error: {response.status_code}",
+                )
+
+            data: dict[str, Any] = response.json()
+
+            if "error" in data:
+                logger.error(f"YouTube API error: {data['error']}")
+                error_message: str = data["error"].get("message", "Unknown error")
+                return AResult(
+                    code=self._classify_error(response.status_code, data),
+                    message=error_message,
+                )
+
+            items: list[dict[str, Any]] = data.get("items", [])
+            if not items:
+                return AResult(code=AResultCode.NOT_FOUND, message="Channel not found on YouTube")
+
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=RawYoutubeChannel.from_dict(items[0]),
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to get channel from YouTube API: {e}")
+            return AResult(code=AResultCode.GENERAL_ERROR, message=f"Failed to get channel: {e}")
+
+    async def search_videos_async(
+        self, query: str, max_results: int = 10, order_by: str = "relevance"
+    ) -> AResult[list[RawYoutubeSearchResult]]:
+        try:
+            url: str = f"{self.base_url}/search"
+            params: dict[str, Any] = self._get_params(
+                {
+                    "part": "snippet",
+                    "q": query,
+                    "type": "video",
+                    "maxResults": max_results,
+                    "order": order_by,
+                    "videoCategoryId": "10",
+                }
+            )
+            response: requests.Response = await asyncio.to_thread(
+                requests.get, url, params=params, timeout=10
+            )
+
+            if response.status_code != 200:
+                body: dict[str, Any] | None = None
+                try:
+                    body = response.json()
+                except Exception:
+                    pass
+                code: int = self._classify_error(response.status_code, body)
+                logger.error(f"YouTube Search API error: {response.status_code} - {response.text}")
+                return AResult(
+                    code=code,
+                    message=f"YouTube Search API error: {response.status_code}",
+                )
+
+            data: dict[str, Any] = response.json()
+
+            if "error" in data:
+                logger.error(f"YouTube Search API error: {data['error']}")
+                error_message: str = data["error"].get("message", "Unknown error")
+                return AResult(
+                    code=self._classify_error(response.status_code, data),
+                    message=error_message,
+                )
+
+            items: list[dict[str, Any]] = data.get("items", [])
+            if not items:
+                logger.error(f"No videos found for query: {query}")
+                return AResult(code=AResultCode.NOT_FOUND, message="No videos found on YouTube")
+
+            results: list[RawYoutubeSearchResult] = [
+                RawYoutubeSearchResult.from_dict(item) for item in items
+            ]
+
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=results,
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to search videos from YouTube API: {e}")
+            return AResult(code=AResultCode.GENERAL_ERROR, message=f"Failed to search videos: {e}")
+
+
+youtube_api = YoutubeApi()

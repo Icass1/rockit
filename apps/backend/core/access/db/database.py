@@ -1,0 +1,456 @@
+import asyncio
+import os
+import ssl
+from collections.abc import AsyncGenerator, Awaitable, Callable, Mapping, Sequence
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from importlib import import_module
+from pathlib import Path
+from typing import Any, Literal, Protocol, TypeVar
+
+from sqlalchemy import (
+    Connection,
+    Inspector,
+    Table,
+    UniqueConstraint,
+    event,
+    inspect,
+    text,
+)
+from sqlalchemy.engine import URL
+from sqlalchemy.engine.cursor import CursorResult
+from sqlalchemy.exc import DBAPIError
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.pool import NullPool
+from sqlalchemy.sql.base import Executable
+
+from core.access.db.authentication import generate_iam_token
+from core.access.db.base import CoreBase
+from core.access.db.ormModels.declarativeMixin import triggers
+from core.utils.afterCommit import run_after_commit
+from core.utils.backendUtils import time_it
+from logger import getLogger
+
+T = TypeVar("T")
+
+logger = getLogger(__name__)
+
+
+class _AsyncPgConnection(Protocol):
+    async def execute(self, query: str) -> object: ...
+
+
+class _ConnectionAdapter(Protocol):
+    def run_async(self, fn: Callable[[_AsyncPgConnection], Awaitable[None]]) -> None: ...
+
+
+async def _init_connection(conn: _AsyncPgConnection) -> None:
+    """Configure asyncpg connection so timestamps are returned timezone-aware (UTC).
+
+    asyncpg uses the binary protocol by default for ``timestamptz``, which
+    returns naive datetimes in Python. Setting the session timezone to UTC
+    causes the PostgreSQL server to send timestamps with an explicit UTC offset,
+    which asyncpg decodes as timezone-aware datetimes directly — no custom
+    codec needed.
+    """
+
+    try:
+        await conn.execute("SET timezone = 'UTC'")
+    except Exception:
+        logger.warning("Could not set asyncpg session timezone to UTC.", exc_info=True)
+
+
+def _on_sync_engine_connect(
+    dbapi_connection: _ConnectionAdapter, connection_record: object
+) -> None:
+    """Run asyncpg initialization through SQLAlchemy's supported sync event bridge."""
+    dbapi_connection.run_async(_init_connection)
+
+
+@dataclass
+class SchemaInfo:
+    name: str
+    base: Any
+
+
+schemas: list[SchemaInfo] = []
+
+modules: list[str] = []
+
+for dirpath, dirnames, filenames in os.walk(Path(__file__).resolve().parents[3]):
+    if not dirpath.endswith("/db"):
+        continue
+
+    if "db.py" not in filenames:
+        logger.warning(f"db.py not found inside db folder in {dirpath}")
+        continue
+
+    base = ".".join(Path(dirpath).relative_to(Path(__file__).resolve().parents[3]).parts)
+    module = f"{base}.db"
+    modules.append(module)
+
+modules_sorted: list[str] = sorted(
+    modules,
+    key=lambda x: (0 if "core" in x else 1, x),  # "core" gets 0, others 1
+)
+
+for module in modules_sorted:
+    logger.info(f"Importing module {module}")
+    module = import_module(module)
+
+    try:
+        for schema in module.schemas:
+            schemas.append(SchemaInfo(name=schema, base=module.base))
+    except Exception:
+        logger.exception(msg=f"{module} doesn't have an schemas variable declared")
+
+
+SET_UPDATED_TIMESTAMP_STMT = """
+CREATE OR REPLACE FUNCTION core.set_updated_timestamp()
+RETURNS trigger AS $$
+BEGIN
+    NEW.date_updated = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+"""
+
+
+class ResilientAsyncSession(AsyncSession):
+    """AsyncSession that auto-recovers from aborted transactions.
+
+    When a SQL query fails, the asyncpg transaction enters an aborted state
+    where all subsequent commands are rejected. ``is_active`` still returns
+    ``True`` because only the asyncpg-level transaction is invalidated — the
+    SQLAlchemy-level transaction object is not rolled back until explicitly
+    told to.
+
+    This subclass catches ``InFailedSQLTransactionError`` inside ``execute()``,
+    rolls back the aborted transaction, and retries the statement once so that
+    the calling code sees the *original* error (e.g. a constraint violation)
+    instead of a confusing cascaded failure.
+    """
+
+    async def execute(
+        self,
+        statement: Executable,
+        params: Mapping[str, object] | Sequence[Mapping[str, object]] | None = None,
+        **kw: object,
+    ) -> CursorResult[Any]:
+        if not self.is_active:
+            await self.rollback()
+        try:
+            return await super().execute(statement, params, **kw)  # type: ignore
+        except DBAPIError as e:
+            # Check if the underlying asyncpg transaction was aborted by a
+            # prior failed statement. If so, roll back and retry so the
+            # caller gets the original error instead of a confusing
+            # "current transaction is aborted" message.
+            if hasattr(e, "orig") and "current transaction is aborted" in str(e.orig):
+                await self.rollback()
+                return await super().execute(statement, params, **kw)  # type: ignore
+            raise
+
+
+class Database:
+    @time_it
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        host: str,
+        port: int,
+        database: str,
+        verbose: bool = False,
+        *,
+        iam_auth: bool = False,
+        region: str | None = None,
+        sslmode: Literal["disable", "require", "verify-full"] | None = None,
+        sslrootcert: str | None = None,
+    ) -> None:
+        """Initialize the database instance and create its async engine."""
+
+        self.database: str = database
+        if iam_auth and not region:
+            raise ValueError("A database region is required for IAM authentication")
+        if iam_auth and sslmode == "disable":
+            raise ValueError("IAM database authentication requires TLS")
+        if sslrootcert and sslmode != "verify-full":
+            raise ValueError("A root certificate requires sslmode=verify-full")
+        connection_url = URL.create(
+            "postgresql+asyncpg",
+            username=username,
+            password=None if iam_auth else password,
+            host=host,
+            port=port,
+            database=database,
+        )
+        connect_args: dict[str, object] = {}
+        effective_sslmode = sslmode or ("require" if iam_auth else None)
+        if effective_sslmode == "verify-full":
+            connect_args["ssl"] = ssl.create_default_context(cafile=sslrootcert)
+        elif effective_sslmode:
+            connect_args["ssl"] = effective_sslmode
+        if iam_auth:
+            assert region is not None
+            token_region = region
+
+            async def get_password_async() -> str:
+                """Generate a fresh token without blocking the application event loop."""
+
+                return await asyncio.to_thread(
+                    generate_iam_token, host, port, username, token_region
+                )
+
+            connect_args["password"] = get_password_async
+        logger.info(f"Using database '{connection_url.render_as_string(hide_password=True)}'")
+        self.engine: AsyncEngine = create_async_engine(
+            url=connection_url,
+            echo=verbose,
+            connect_args=connect_args,
+            poolclass=NullPool,
+        )
+
+        # Register a sync "connect" event on the underlying sync engine and run
+        # the async per-connection setup (e.g. session timezone) against the raw
+        # asyncpg connection through SQLAlchemy’s async adapter.
+        event.listen(
+            self.engine.sync_engine,
+            "connect",
+            _on_sync_engine_connect,
+        )
+
+    @time_it
+    async def async_init(self) -> None:
+        await self.create_schemas()
+        await self.create_extensions()
+
+        # Create tables with run_sync (single call — all bases share the same metadata)
+        async with self.engine.begin() as conn:
+            await conn.run_sync(CoreBase.metadata.create_all)
+            # create_all skips indexes on existing tables; collection pagination
+            # needs these indexes on upgraded installations as well.
+            for table in CoreBase.metadata.tables.values():
+                for index in table.indexes:
+                    if index.name and index.name.startswith("ix_collection_"):
+                        await conn.run_sync(index.create, checkfirst=True)
+
+        # Now set SessionLocal AFTER tables are created
+        self.SessionLocal = async_sessionmaker(
+            bind=self.engine, class_=ResilientAsyncSession, expire_on_commit=False
+        )
+
+        logger.info("SessionLocal initialized.")
+
+        # Check schemas (run sync for simplicity during init)
+        for mapper in CoreBase.registry.mappers:
+            await self.check_table_schema_async(mapper.class_.__table__)
+
+        for table in CoreBase.metadata.tables.values():
+            if not any(mapper.class_.__table__ is table for mapper in CoreBase.registry.mappers):
+                await self.check_table_schema_async(table)
+
+    async def create_schemas(self) -> None:
+        """TODO"""
+
+        async with self.engine.begin() as conn:
+            for schema in schemas:
+                await conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema.name}"))
+            await conn.commit()
+
+    async def drop_schemas(self) -> None:
+        """TODO"""
+
+        async with self.engine.begin() as conn:
+            for schema in schemas:
+                await conn.execute(text(f"DROP SCHEMA IF EXISTS {schema.name} CASCADE"))
+            await conn.commit()
+
+    async def create_extensions(self) -> None:
+        """Enable PostgreSQL extensions required by ORM-defined indexes (e.g.
+        gin_trgm_ops for trigram similarity search)."""
+
+        async with self.engine.begin() as conn:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
+            await conn.commit()
+
+    async def after_all_providers_tables_init(self) -> None:
+        """TODO"""
+
+        async with self.engine.begin() as conn:
+            for trigger in triggers:
+                await conn.execute(text(trigger))
+            await conn.commit()
+
+    @time_it
+    async def check_table_schema_async(self, table: Table) -> None:
+        """Compare ORM Table definition vs actual database table for async engine."""
+
+        logger.debug(f"Comparing {table.name} ORM with database...")
+
+        async with self.engine.begin() as conn:
+
+            def do_check(sync_conn: Connection) -> None:
+                inspector: Inspector = inspect(sync_conn)
+
+                schema = table.schema
+                if not schema:
+                    logger.critical(f"Schema of table {table.name} is None.")
+                    return
+
+                table_name = table.name
+
+                # --- Columns ---
+                try:
+                    db_columns = {
+                        col["name"]: col for col in inspector.get_columns(table_name, schema=schema)
+                    }
+                except Exception as e:
+                    logger.error(f"Table not found in DB: {schema}.{table_name} ({e})")
+                    return
+
+                orm_columns = {col.name: col for col in table.columns}
+
+                # Column existence
+                for col in orm_columns.keys() - db_columns.keys():
+                    logger.error(f"ORM-only column: {col} in table '{table.schema}.{table.name}'")
+                for col in db_columns.keys() - orm_columns.keys():
+                    logger.error(f"DB-only column: {col} in table '{table.schema}.{table.name}'")
+
+                # Type mismatch
+                for col in orm_columns.keys() & db_columns.keys():
+                    orm_type = str(orm_columns[col].type)
+                    db_type = str(db_columns[col]["type"])
+
+                    # Normalize common PostgreSQL type equivalences
+                    normalised_orm = orm_type.lower().replace("double precision", "float")
+                    normalised_db = db_type.lower().replace("double precision", "float")
+
+                    if normalised_orm != normalised_db:
+                        logger.error(
+                            f"Type mismatch on {col}: ORM={orm_type}, DB={db_type} in table "
+                            f"'{table.schema}.{table.name}'"
+                        )
+
+                # Foreign keys
+                orm_fks: set[str] = set()
+                for col in table.columns:
+                    for fk in col.foreign_keys:
+                        orm_fks.add(f"{table_name}.{col.name} -> {fk.target_fullname}")
+
+                db_fks: set[str] = set()
+                try:
+                    for fk in inspector.get_foreign_keys(table_name, schema=schema):
+                        for local, remote in zip(fk["constrained_columns"], fk["referred_columns"]):
+                            db_fks.add(
+                                f"{table_name}.{local} -> "
+                                f"{fk['referred_schema']}.{fk['referred_table']}.{remote}"
+                            )
+                except Exception as e:
+                    logger.error(
+                        f"Could not read foreign keys for table '{schema}.{table_name}' ({e})"
+                    )
+
+                for fk in orm_fks - db_fks:
+                    logger.error(
+                        f"ForeignKey in ORM but missing in DB: {fk} in table "
+                        f"'{table.schema}.{table.name}'"
+                    )
+                for fk in db_fks - orm_fks:
+                    logger.error(
+                        f"ForeignKey in DB but missing in ORM: {fk} in table "
+                        f"'{table.schema}.{table.name}'"
+                    )
+
+                # Unique constraints
+                orm_uqs: set[frozenset[str]] = set()
+                for col in table.columns:
+                    if col.unique:
+                        orm_uqs.add(frozenset([col.name]))
+                for constraint in table.constraints:
+                    if isinstance(constraint, UniqueConstraint):
+                        col_names = [c.name for c in constraint.columns]
+                        orm_uqs.add(frozenset(col_names))
+
+                db_uqs: set[frozenset[str]] = set()
+                try:
+                    db_uqs = {
+                        frozenset(uq["column_names"])
+                        for uq in inspector.get_unique_constraints(table_name, schema=schema)
+                    }
+                except Exception as e:
+                    logger.error(
+                        f"Could not read unique constraints for table '{schema}.{table_name}' ({e})"
+                    )
+
+                for uq in orm_uqs - db_uqs:
+                    logger.error(
+                        f"Unique constraint in ORM but missing in DB: {sorted(uq)} in "
+                        f"table '{table.schema}.{table.name}'"
+                    )
+                for uq in db_uqs - orm_uqs:
+                    logger.error(
+                        f"Unique constraint in DB but missing in ORM: {sorted(uq)} in "
+                        f"table '{table.schema}.{table.name}'"
+                    )
+
+            # Run sync inspection inside async connection
+            await conn.run_sync(do_check)
+
+    def get_session(self) -> AsyncSession:
+        """Create a new async database session. Must be closed by the caller."""
+        return self.SessionLocal()
+
+    async def close(self) -> None:
+        """Dispose of the async engine."""
+        await self.engine.dispose()
+
+    async def wait_for_session_local_async(self) -> None:
+        """Wait until SessionLocal is initialized."""
+        logger.debug("Waiting for SessionLocal to be initialized...")
+        while not hasattr(self, "SessionLocal"):
+            await asyncio.sleep(0.1)
+
+        logger.debug("SessionLocal is now initialized.")
+
+    @asynccontextmanager
+    async def session_scope_async(self) -> AsyncGenerator[AsyncSession, None]:
+        """Provide a transactional scope around async operations."""
+        session: AsyncSession = self.get_session()
+        try:
+            yield session
+            if session.is_active:
+                await session.commit()
+                await run_after_commit(session)
+            else:
+                await session.rollback()
+        except Exception as e:
+            logger.exception(f"Error executing query ({e}). Rolling back...")
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+    async def execute_with_session(self, func: Callable[[AsyncSession], Awaitable[T]]) -> T:
+        """Execute a function with an async session, auto-closing and rolling back on errors."""
+        async with self.session_scope_async() as session:
+            return await func(session)
+
+    async def reinit(self) -> None:
+        logger.info("Dropping schemas...")
+        await self.drop_schemas()
+        logger.info("All schemas dropped")
+
+        logger.info("Creating schemas...")
+        await self.create_schemas()
+        logger.info("All schemas created")
+
+        await self.create_extensions()
+
+        async with self.engine.begin() as conn:
+            await conn.run_sync(CoreBase.metadata.create_all)

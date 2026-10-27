@@ -1,10 +1,10 @@
 # ============================
 # Backend & other projects
 # ============================
-backend/
+apps/backend/
 
 # Web app (not needed for mobile builds)
-frontend/apps/web/
+apps/web/
 
 # ============================
 # IDEs

@@ -1,0 +1,23 @@
+import os
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
+
+from constants import IMAGES_PATH
+from core.middlewares.authMiddleware import AuthMiddleware
+
+router = APIRouter(
+    prefix="/image",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Core", "Image"],
+)
+
+
+@router.get("/{path}")
+async def get_image_async(request: Request, path: str) -> FileResponse:
+    image_path: str = os.path.join(IMAGES_PATH, path)
+
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="Image in database but not in filesystem.")
+
+    return FileResponse(path=image_path)

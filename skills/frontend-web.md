@@ -39,7 +39,7 @@
 - Hooks: `use*.ts`
 - Utils: `*.ts` in `lib/utils/`
 - Managers: `*.ts` in `lib/managers/`
-- Models/enums: `frontend/apps/web/models/` (app-specific) or `frontend/packages/shared/src/models/` (shared with mobile)
+- Models/enums: `apps/web/models/` (app-specific) or `packages/shared/src/models/` (shared with mobile)
 - DTOs: Auto-generated, NEVER edit manually (`packages/shared/src/dto/`)
 
 ### Hydration Safety

@@ -36,15 +36,16 @@ All framework and access functions return `AResult`, never raise exceptions inte
 > **Rule:** You MUST always check `a_result.is_ok()` / `a_result.is_not_ok()` before calling `a_result.result()`. Never call `.result()` on an unchecked `AResult`. When `is_not_ok()`, always log the error with `logger.error(...)` and provide a sensible fallback default or early return.
 
 ```python
-from backend.core.aResult import AResult, AResultCode
+from core.aResult import AResult, AResultCode
+
 
 class AResultCode:
-    OK            = 0x1
+    OK = 0x1
     GENERAL_ERROR = 0x2
-    NOT_FOUND     = 0x3
-    BAD_REQUEST   = 0x4
+    NOT_FOUND = 0x3
+    BAD_REQUEST = 0x4
     NOT_IMPLEMENTED = 0x5
-    ALREADY_EXISTS  = 0x6
+    ALREADY_EXISTS = 0x6
     VALIDATION_ERROR = 0x7
 ```
 
@@ -68,10 +69,7 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
     a_result = await UserFramework.get_user_async(session=session, user_id=user_id)
     if a_result.is_not_ok():
         logger.error(f"Error getting user. {a_result.info()}")
-        raise HTTPException(
-            status_code=a_result.get_http_code(),
-            detail=a_result.message()
-        )
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
     return a_result.result()
 ```
 
@@ -89,7 +87,8 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
 All methods in `access/` files MUST use the `@safe_async` decorator for automatic exception handling and session rollback.
 
 ```python
-from backend.core.utils.safeAsyncCall import safe_async
+from core.utils.safeAsyncCall import safe_async
+
 
 class SomeAccess:
     @staticmethod
@@ -115,7 +114,7 @@ class SomeAccess:
 
 ### Database
 
-- Connection manager: `backend/core/access/db/rockItDb.py`
+- Connection manager: `apps/backend/core/access/db/database.py`
 - Transaction scope: `async with rockit_db.session_scope_async() as session:`
 - Session per request: `DBSessionMiddleware` injects `request.state.db`
 - Controllers retrieve session: `session = DBSessionMiddleware.get_session(request=request)`
@@ -143,13 +142,13 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
 - Session cookie: `session_id` (set on login, destroyed on logout)
 - Middleware: `AuthMiddleware.auth_dependency` for protected endpoints
 - Current user: `AuthMiddleware.get_current_user(request)`
-- Password hashing: `backend/core/framework/auth/password.py`
+- Password hashing: `apps/backend/core/framework/auth/password.py`
 
 ### Providers System
 
 Providers abstract multiple music sources (Spotify, YouTube, RockIt).
 
-**Base provider** (`backend/core/framework/provider/baseProvider.py`):
+**Base provider** (`apps/backend/core/framework/provider/baseProvider.py`):
 
 ```python
 class BaseProvider:
@@ -165,9 +164,9 @@ class BaseProvider:
 
 **To add a provider:**
 
-1. Create `backend/{name}/framework/provider/provider.py` implementing `BaseProvider`
+1. Create `apps/backend/{name}/framework/provider/provider.py` implementing `BaseProvider`
 2. Export `provider = MyProvider()` and `name = "ProviderName"`
-3. Register in `backend/core/framework/provider/providers.py`
+3. Register in `apps/backend/core/framework/provider/providers.py`
 
 ### Code Style
 
@@ -211,39 +210,39 @@ No file headers (copyright, etc.) unless required by law.
 
 | File                                                    | Purpose                             |
 | ------------------------------------------------------- | ----------------------------------- |
-| `backend/core/main.py`                                  | FastAPI app entry, router discovery |
-| `backend/core/aResult.py`                               | Result wrapper                      |
-| `backend/core/access/db/rockItDb.py`                    | DB connection manager               |
-| `backend/core/access/db/ormModels/user.py`              | User ORM model                      |
-| `backend/core/controllers/authController.py`            | Auth endpoints                      |
-| `backend/core/controllers/mediaController.py`           | Media endpoints                     |
-| `backend/core/controllers/statsController.py`           | Stats endpoints                     |
-| `backend/core/framework/auth/session.py`                | Session management                  |
-| `backend/core/framework/providers/providers.py`         | Provider registry                   |
-| `backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
-| `backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
-| `backend/core/middlewares/authMiddleware.py`            | Authentication                      |
-| `backend/constants.py`                                  | Environment config                  |
-| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
-| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
+| `apps/backend/app/main.py`                                  | FastAPI app entry, router discovery |
+| `apps/backend/core/aResult.py`                               | Result wrapper                      |
+| `apps/backend/core/access/db/database.py`                    | DB connection manager               |
+| `apps/backend/core/access/db/ormModels/user.py`              | User ORM model                      |
+| `apps/backend/core/controllers/authController.py`            | Auth endpoints                      |
+| `apps/backend/core/controllers/mediaController.py`           | Media endpoints                     |
+| `apps/backend/core/controllers/statsController.py`           | Stats endpoints                     |
+| `apps/backend/core/framework/auth/session.py`                | Session management                  |
+| `apps/backend/core/framework/providers/providers.py`         | Provider registry                   |
+| `apps/backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
+| `apps/backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
+| `apps/backend/core/middlewares/authMiddleware.py`            | Authentication                      |
+| `apps/backend/constants.py`                                  | Environment config                  |
+| `apps/backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
+| `apps/backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
 
 ### Running the Project
 
 ```bash
-cd backend
+cd apps/backend
 
 # Development server
-uvicorn backend.core.main:app --reload
+uv run uvicorn app.main:app --reload
 
 # Type checking
-.venv/bin/python -m pyright
+.uv run pyright
 
 # Linting / formatting
-.venv/bin/python -m black <file>
+.uv run ruff format <file>
 
 # Initialize database
-python3 -m backend init-db
+uv run --project apps/backend python -m apps.backend init-db
 
 # Generate frontend DTOs from backend responses
-python3 -m backend models
+uv run --project apps/backend python -m apps.backend models
 ```

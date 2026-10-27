@@ -14,7 +14,7 @@
 ## Directory
 
 ```
-backend/
+apps/backend/
 __main__.py (CLI: zod, init-db)
 constants.py
 core/
@@ -53,7 +53,7 @@ Folder naming: controllers/ (plural), framework/ (singular), access/ (singular)
 ### Connection
 
 ```python
-rockit_db = RockItDB(username, password, host, port, database)
+rockit_db = Database(username, password, host, port, database)
 
 await rockit_db.wait_for_session_local_async()
 async with rockit_db.session_scope_async() as session:
@@ -155,7 +155,7 @@ class BaseProvider:
     def match_url(self, url) -> str | None
 ```
 
-Discovery: scans backend/\*/framework/provider/provider.py, imports provider + name exports.
+Discovery: scans apps/backend/\*/framework/provider/provider.py, imports provider + name exports.
 
 Implementation:
 
@@ -163,6 +163,7 @@ Implementation:
 class MyProvider(BaseProvider):
     async def search_async(self, query):
         pass
+
 
 provider = MyProvider()
 name = "MyService"
@@ -256,31 +257,31 @@ async def get_user_async(session, user_id) -> AResult[UserRow]:
     """Get user by ID."""
 ```
 
-Run black after editing: `.venv/bin/python -m black <file>`
+Run black after editing: `.uv run ruff format <file>`
 
 ## Key Files
 
 | File                                                  | Purpose                         |
 | ----------------------------------------------------- | ------------------------------- |
-| backend/core/main.py                                  | FastAPI entry, router discovery |
-| backend/core/aResult.py                               | Result wrapper                  |
-| backend/core/access/db/rockItDb.py                    | DB connection                   |
-| backend/core/access/db/ormModels/user.py              | User ORM                        |
-| backend/core/controllers/authController.py            | Auth endpoints                  |
-| backend/core/framework/auth/session.py                | Session mgmt                    |
-| backend/core/framework/providers/providers.py         | Provider discovery              |
-| backend/core/framework/provider/baseProvider.py       | Provider interface              |
-| backend/core/middlewares/dbSessionMiddleware.py       | Session per request             |
-| backend/core/middlewares/authMiddleware.py            | Auth                            |
-| backend/spotify/framework/provider/spotifyProvider.py | Spotify impl                    |
-| backend/youtube/framework/provider/youtubeProvider.py | YouTube impl                    |
+| apps/backend/app/main.py                                  | FastAPI entry, router discovery |
+| apps/backend/core/aResult.py                               | Result wrapper                  |
+| apps/backend/core/access/db/database.py                    | DB connection                   |
+| apps/backend/core/access/db/ormModels/user.py              | User ORM                        |
+| apps/backend/core/controllers/authController.py            | Auth endpoints                  |
+| apps/backend/core/framework/auth/session.py                | Session mgmt                    |
+| apps/backend/core/framework/providers/providers.py         | Provider discovery              |
+| apps/backend/core/framework/provider/baseProvider.py       | Provider interface              |
+| apps/backend/core/middlewares/dbSessionMiddleware.py       | Session per request             |
+| apps/backend/core/middlewares/authMiddleware.py            | Auth                            |
+| apps/backend/spotify/framework/provider/spotifyProvider.py | Spotify impl                    |
+| apps/backend/youtube/framework/provider/youtubeProvider.py | YouTube impl                    |
 
 ## Running
 
 ```bash
-cd backend
-uvicorn backend.core.main:app --reload
-.venv/bin/python -m pyright  # typecheck
-python3 -m backend init-db
-python3 -m backend models  # generate frontend DTOs
+cd apps/backend
+uv run uvicorn app.main:app --reload
+.uv run pyright  # typecheck
+uv run --project apps/backend python -m apps.backend init-db
+uv run --project apps/backend python -m apps.backend models  # generate frontend DTOs
 ```

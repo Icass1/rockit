@@ -2,7 +2,7 @@
 
 `POST /downloader/download-zip` keeps the existing request and file response.
 The auto-discovered controller, access layer, archive writer and tag helpers live
-in `backend/zipExport`, outside core. ZIP export is an HTTP module, not a new
+in `apps/backend/zipExport`, outside core. ZIP export is an HTTP module, not a new
 music source that needs a provider database row.
 
 Each audio source registers an optional `MediaStorage.audio_tags_statement`
@@ -37,7 +37,7 @@ background task removes successful ZIPs after transfer, as before.
 Run the synthetic copy benchmark from the repository root:
 
 ```sh
-PYTHONPATH=. python backend/tests/performance/zip_export_benchmark.py
+PYTHONPATH=. python apps/backend/tests/performance/zip_export_benchmark.py
 ```
 
 A local warm-cache run with 32 tracks / 256 MiB of source data measured median
@@ -52,9 +52,9 @@ Unit tests generate real MP3s and verify ID3 fields, original artwork bytes,
 MPEG payload equality, decoding with ffmpeg, unchanged originals, duplicate names,
 missing files/artwork, corrupt tags, size limits, write failures and cancellation.
 PostgreSQL integration tests exercise each provider's actual schema and disabled
-provider registration. Run with `backend/requirements-dev.txt` installed and
+provider registration. Run with `apps/backend/requirements-dev.txt` installed and
 `ffmpeg` available:
 
 ```sh
-ROCKIT_TEST_DATABASE_URL=postgresql+asyncpg://... python -m pytest backend/tests -q
+ROCKIT_TEST_DATABASE_URL=postgresql+asyncpg://... python -m pytest apps/backend/tests -q
 ```

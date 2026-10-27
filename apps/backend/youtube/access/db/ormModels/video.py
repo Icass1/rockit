@@ -1,0 +1,95 @@
+from typing import TYPE_CHECKING
+
+from sqlalchemy import BIGINT, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.orm import Mapped, WriteOnlyMapped, mapped_column, relationship
+
+from core.access.db.ormModels.declarativeMixin import (
+    TableAutoincrementId,
+    TableDateAdded,
+    TableDateUpdated,
+)
+from youtube.access.db.associationTables.video_channels import video_channels
+from youtube.access.db.base import YoutubeBase
+
+if TYPE_CHECKING:
+    from youtube.access.db.ormModels.channel import ChannelRow
+    from youtube.access.db.ormModels.playlist_videos import PlaylistVideoRow
+
+
+class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdded):
+    __tablename__ = "video"
+    __table_args__ = (
+        Index(
+            "ix_youtube_video_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        {"schema": "youtube", "extend_existing": True},
+    )
+
+    id: Mapped[int] = mapped_column(Integer, ForeignKey("core.media.id"), primary_key=True)
+    youtube_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    real_duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    view_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
+    like_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
+    comment_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
+    video_path: Mapped[str | None] = mapped_column(String, nullable=True)
+    channel_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("youtube.channel.id"), nullable=False
+    )
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    youtube_url: Mapped[str] = mapped_column(String, nullable=False)
+    tags: Mapped[str | None] = mapped_column(String, nullable=True)
+    published_at: Mapped[str | None] = mapped_column(String, nullable=True)
+
+    channels: WriteOnlyMapped[list["ChannelRow"]] = relationship(
+        "ChannelRow",
+        secondary=video_channels,
+        back_populates="videos",
+        lazy="write_only",
+    )
+
+    playlist_video_links: Mapped[list["PlaylistVideoRow"]] = relationship(
+        "PlaylistVideoRow", back_populates="video"
+    )
+
+    def __init__(
+        self,
+        id: int,
+        youtube_id: str,
+        name: str,
+        image_id: int,
+        channel_id: int,
+        youtube_url: str,
+        duration_ms: int | None = None,
+        real_duration_ms: int | None = None,
+        view_count: int = 0,
+        like_count: int = 0,
+        comment_count: int = 0,
+        video_path: str | None = None,
+        description: str | None = None,
+        tags: str | None = None,
+        published_at: str | None = None,
+    ) -> None:
+        kwargs: dict[str, None | int | str] = {}
+        kwargs["id"] = id
+        kwargs["youtube_id"] = youtube_id
+        kwargs["name"] = name
+        kwargs["image_id"] = image_id
+        kwargs["channel_id"] = channel_id
+        kwargs["youtube_url"] = youtube_url
+        kwargs["duration_ms"] = duration_ms
+        kwargs["real_duration_ms"] = real_duration_ms
+        kwargs["view_count"] = view_count
+        kwargs["like_count"] = like_count
+        kwargs["comment_count"] = comment_count
+        kwargs["video_path"] = video_path
+        kwargs["description"] = description
+        kwargs["tags"] = tags
+        kwargs["published_at"] = published_at
+        for k, v in kwargs.items():
+            setattr(self, k, v)

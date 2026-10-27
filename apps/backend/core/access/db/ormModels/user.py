@@ -1,0 +1,123 @@
+from typing import TYPE_CHECKING
+
+from sqlalchemy import DOUBLE_PRECISION, Boolean, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from core.access.db.base import CoreBase
+from core.access.db.ormModels.declarativeMixin import (
+    TableAutoincrementId,
+    TableDateAdded,
+    TableDateUpdated,
+    TablePublicId,
+)
+
+if TYPE_CHECKING:
+    from core.access.db.ormEnums.queueTypeEnum import QueueTypeEnumRow
+    from core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
+    from core.access.db.ormModels.error import ErrorRow
+    from core.access.db.ormModels.image import ImageRow
+    from core.access.db.ormModels.language import LanguageRow
+    from core.access.db.ormModels.requestLog import RequestLogRow
+    from core.access.db.ormModels.session import SessionRow
+    from core.access.db.ormModels.user_library_media import UserLibraryMediaRow
+    from core.access.db.ormModels.user_queue import UserQueueRow
+
+
+class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, TableDateAdded):
+    __tablename__ = "user"
+    __table_args__ = ({"schema": "core", "extend_existing": True},)
+
+    auto_add_downloads_to_library: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+
+    username: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    provider: Mapped[str | None] = mapped_column(String, nullable=True)
+    provider_account_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    current_station: Mapped[str | None] = mapped_column(String, nullable=True)
+    current_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    current_queue_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    queue_type_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.queue_type_enum.key"), nullable=False, default=2
+    )
+    repeat_mode_key: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.repeat_mode_enum.key"), nullable=False, default=1
+    )
+    volume: Mapped[float] = mapped_column(DOUBLE_PRECISION, nullable=False, default=1)
+    cross_fade_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    lang_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.language.id"), nullable=False, default=1
+    )
+    admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    super_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
+
+    image: Mapped["ImageRow"] = relationship("ImageRow", lazy="selectin", uselist=False)
+    language: Mapped["LanguageRow"] = relationship(
+        "LanguageRow", back_populates=None, uselist=False, lazy="selectin"
+    )
+
+    repeat_mode_enum: Mapped["RepeatModeEnumRow"] = relationship(
+        "RepeatModeEnumRow", back_populates="user", uselist=False, lazy="selectin"
+    )
+
+    queue_type_enum: Mapped["QueueTypeEnumRow"] = relationship(
+        "QueueTypeEnumRow", back_populates="user", uselist=False, lazy="selectin"
+    )
+
+    # one-to-many
+    sessions: Mapped[list["SessionRow"]] = relationship("SessionRow", back_populates="user")
+    errors: Mapped[list["ErrorRow"]] = relationship("ErrorRow", back_populates="user")
+    request_logs: Mapped[list["RequestLogRow"]] = relationship(
+        "RequestLogRow", back_populates="user"
+    )
+    user_library_medias: Mapped[list["UserLibraryMediaRow"]] = relationship(
+        "UserLibraryMediaRow", back_populates="user"
+    )
+    user_queues: Mapped[list["UserQueueRow"]] = relationship("UserQueueRow", back_populates="user")
+
+    def __init__(
+        self,
+        username: str,
+        image_id: int,
+        public_id: str | None = None,
+        auto_add_downloads_to_library: bool = False,
+        password_hash: str | None = None,
+        provider: str | None = None,
+        provider_account_id: str | None = None,
+        current_station: str | None = None,
+        current_time_ms: int | None = None,
+        current_queue_id: int | None = None,
+        queue_type_key: int = 2,
+        repeat_mode_key: int = 1,
+        volume: float = 1,
+        cross_fade_ms: int = 0,
+        lang_id: int = 1,
+        admin: bool = False,
+        super_admin: bool = False,
+        id: int | None = None,
+    ) -> None:
+        kwargs: dict[str, None | bool | float | int | str] = {}
+        kwargs["username"] = username
+        kwargs["image_id"] = image_id
+        if public_id is not None:
+            kwargs["public_id"] = public_id
+        kwargs["auto_add_downloads_to_library"] = auto_add_downloads_to_library
+        kwargs["password_hash"] = password_hash
+        kwargs["provider"] = provider
+        kwargs["provider_account_id"] = provider_account_id
+        kwargs["current_station"] = current_station
+        kwargs["current_time_ms"] = current_time_ms
+        kwargs["current_queue_id"] = current_queue_id
+        kwargs["queue_type_key"] = queue_type_key
+        kwargs["repeat_mode_key"] = repeat_mode_key
+        kwargs["volume"] = volume
+        kwargs["cross_fade_ms"] = cross_fade_ms
+        kwargs["lang_id"] = lang_id
+        kwargs["admin"] = admin
+        kwargs["super_admin"] = super_admin
+        if id is not None:
+            kwargs["id"] = id
+        for k, v in kwargs.items():
+            setattr(self, k, v)

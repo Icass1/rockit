@@ -48,12 +48,12 @@ without a media association.
 Run backend regressions from the repository root:
 
 ```sh
-.venv/bin/python -m unittest discover -s backend/tests -v
+.venv/bin/python -m unittest discover -s apps/backend/tests -v
 ```
 
 Run shared player regressions using the web workspace's installed esbuild:
 
 ```sh
-node -e 'require("./frontend/apps/web/node_modules/esbuild").buildSync({entryPoints:["frontend/packages/shared/tests/playbackSync.test.ts"],outfile:"/tmp/rockit-playback-tests.cjs",bundle:true,platform:"node",format:"cjs",tsconfig:"frontend/packages/shared/tsconfig.json"})'
+node -e 'require("./apps/web/node_modules/esbuild").buildSync({entryPoints:["packages/shared/tests/playbackSync.test.ts"],outfile:"/tmp/rockit-playback-tests.cjs",bundle:true,platform:"node",format:"cjs",tsconfig:"packages/shared/tsconfig.json"})'
 node /tmp/rockit-playback-tests.cjs
 ```

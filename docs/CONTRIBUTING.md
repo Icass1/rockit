@@ -46,7 +46,7 @@ Database:
 
 ## Running
 
-Backend: `fastapi dev backend/main.py`
+Backend: `fastapi dev apps/backend/main.py`
 
 Frontend: `cd frontend && pnpm run dev`
 

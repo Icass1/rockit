@@ -58,7 +58,7 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "backend.core.main:app",
+                "apps.backend.app.main:app",
                 "--host",
                 "0.0.0.0",
                 "--port",
@@ -73,7 +73,7 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "backend.core.main:app",
+                "apps.backend.app.main:app",
                 "--reload",
                 "--host",
                 "0.0.0.0",
@@ -105,9 +105,9 @@
             "runtimeExecutable": "pnpm",
             "runtimeArgs": [
                 "run",
-                "dev",
+                "dev:web",
             ],
-            "cwd": "${workspaceFolder}/frontend",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         },
@@ -122,7 +122,7 @@
                 "--offline",
                 "--go"
             ],
-            "cwd": "${workspaceFolder}/frontend/apps/mobile",
+            "cwd": "${workspaceFolder}/apps/mobile",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         }

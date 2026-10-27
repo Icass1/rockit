@@ -1,0 +1,94 @@
+from logging import Logger
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+
+from core.framework.stats import Stats
+from core.middlewares.authMiddleware import AuthMiddleware
+from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from core.requests.userStatsRequest import UserStatsRequest
+from core.responses.homeStatsResponse import HomeStatsResponse
+from core.responses.streakResponse import StreakResponse
+from core.responses.userStatsResponse import UserStatsResponse
+from logger import getLogger
+
+logger: Logger = getLogger(name=__name__)
+router = APIRouter(
+    prefix="/stats",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Core", "Stats"],
+)
+
+
+@router.post("/user")
+async def get_user_stats(
+    request: Request,
+    body: UserStatsRequest,
+) -> UserStatsResponse:
+    """Get user listening statistics."""
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request=request)
+
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await Stats.get_user_stats_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        range_value=body.range,
+        custom_start=body.start,
+        custom_end=body.end,
+    )
+
+    if a_result.is_not_ok():
+        raise HTTPException(status_code=400, detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/home")
+async def get_home_stats(
+    request: Request,
+) -> HomeStatsResponse:
+    """Get home screen stats with recommended songs and playlists."""
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request=request)
+
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await Stats.get_home_stats_async(
+        session=session,
+        user_id=a_result_user.result().id,
+    )
+
+    if a_result.is_not_ok():
+        raise HTTPException(status_code=400, detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/streak")
+async def get_streak(
+    request: Request,
+) -> StreakResponse:
+    """Get current user streak count."""
+
+    session = DBSessionMiddleware.get_session(request=request)
+    a_result_user = AuthMiddleware.get_current_user(request=request)
+
+    if a_result_user.is_not_ok():
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    a_result = await Stats.get_streak_async(
+        session=session,
+        user_id=a_result_user.result().id,
+    )
+
+    if a_result.is_not_ok():
+        logger.error(f"Error getting streak. {a_result.info()}")
+        raise HTTPException(
+            status_code=a_result.get_http_code(),
+            detail=a_result.message(),
+        )
+
+    return StreakResponse(currentStreak=a_result.result())

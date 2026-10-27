@@ -30,7 +30,7 @@ jobs:
               with:
                   node-version: 22.14.0
                   cache: pnpm
-                  cache-dependency-path: frontend/pnpm-lock.yaml
+                  cache-dependency-path: pnpm-lock.yaml
 
             - name: Set up Java
               uses: actions/setup-java@v4
@@ -42,16 +42,16 @@ jobs:
               uses: gradle/actions/setup-gradle@v4
 
             - name: Install dependencies
-              run: pnpm --dir frontend install --frozen-lockfile
+              run: pnpm install --frozen-lockfile
 
             - name: Ensure Hermes compiler is executable
-              working-directory: frontend/apps/mobile
+              working-directory: apps/mobile
               env:
                   EAS_BUILD_PLATFORM: android
               run: node scripts/check-hermes.cjs
 
             - name: Build preview APK locally
-              working-directory: frontend/apps/mobile/android
+              working-directory: apps/mobile/android
               env:
                   NODE_ENV: production
                   EXPO_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
@@ -59,7 +59,7 @@ jobs:
               run: ./gradlew :app:assembleRelease -Prockit.preview=true --no-daemon
 
             - name: Verify preview APK
-              working-directory: frontend/apps/mobile/android
+              working-directory: apps/mobile/android
               run: |
                   APK_PATH=app/build/outputs/apk/release/app-release.apk
                   OUTPUT_DIR=app/build/outputs/apk/release
@@ -89,7 +89,7 @@ jobs:
                   arch: x86_64
                   target: default
                   disable-animations: true
-                  script: python3 frontend/apps/mobile/scripts/smoke-test-android.py frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.apk --serial emulator-5554 --output android-smoke-test
+                  script: python3 apps/mobile/scripts/smoke-test-android.py apps/mobile/android/app/build/outputs/apk/release/app-release.apk --serial emulator-5554 --output android-smoke-test
 
             - name: Upload installation and startup diagnostics
               if: always()
@@ -105,8 +105,8 @@ jobs:
               with:
                   name: RockIt-Android-preview-${{ github.run_number }}
                   path: |
-                      frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
-                      frontend/apps/mobile/android/app/build/outputs/apk/release/app-release.badging.txt
-                      frontend/apps/mobile/android/app/build/outputs/apk/release/AndroidManifest.xml
+                      apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+                      apps/mobile/android/app/build/outputs/apk/release/app-release.badging.txt
+                      apps/mobile/android/app/build/outputs/apk/release/AndroidManifest.xml
                   if-no-files-found: error
                   retention-days: 14

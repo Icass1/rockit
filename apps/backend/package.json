@@ -1,0 +1,11 @@
+{
+  "name": "@app/backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "typecheck": "uv run ruff check app",
+    "test": "uv run pytest -q",
+    "test:integration": "uv run pytest tests/integration -q"
+  }
+}

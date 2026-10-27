@@ -18,8 +18,8 @@ import {
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
-import { createAtom, type ReadonlyAtom } from "@/lib/store";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
 export class WebSocketManager {
     static #instance: WebSocketManager;

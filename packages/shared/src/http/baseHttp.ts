@@ -1606,5 +1606,4 @@ export class BaseHttp {
             dto.YoutubeVideoResponseSchema
         );
     }
-
 }

@@ -114,7 +114,7 @@
 - priority: medium
 - workload: Easy
     ```md
-    Ajuste visual: blur completo de 20 px solo durante el primer 75 % de la altura real del header. Desde ahí, fundido de coseno suave durante el 25 % restante y una cola de 64 px, con pendiente cero en ambos extremos. Reduce la zona de máximo blur y amplía el recorrido del difuminado sin agrandar el header ni afectar a sus controles. Pendiente de revisión visual; sin tests locales.
+    Técnica revisada: seis capas de blur progresivo (0,5/1/2/4/8/16 px), con máscaras suaves solapadas. Las capas fuertes desaparecen sobre contenido ya desenfocado por las más suaves, evitando mezclar directamente 20 px con la imagen nítida. El fundido comienza al 75 % del header y termina en una cola de 64 px; no cambia sus controles ni captura clics. Padre sin filtro/máscara para no aislar el backdrop. Transparencia reducida oculta las capas y conserva fondo opaco. Comparativa Chromium sobre texto, franjas, damero y foto; pendiente de revisión, sin tests locales.
 
     Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
 

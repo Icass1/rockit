@@ -621,53 +621,44 @@ img {
     }
 }
 
-/* Full blur covers 75% of the header, then a raised-cosine fade reaches zero
-   through its remaining 25% and the 64px tail. Both endpoint slopes are zero.
-   The layer includes the tail: 75% of header = 75% of layer - 48px. */
+/* Unfiltered parent: a mask/filter here would become a backdrop root and
+   prevent the child layers from sampling the page behind the header. */
 .app-header-backdrop {
     position: absolute;
     inset: 0 0 -64px;
     z-index: -1;
     pointer-events: none;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    --header-blur-mask: linear-gradient(
+}
+
+/* Small-to-large radii overlap. As each stronger layer fades, the next smaller
+   blur remains beneath it instead of immediately exposing sharp content.
+   Six static layers keep the filtered area bounded to the desktop header. */
+.app-header-blur-layer {
+    position: absolute;
+    inset: 0;
+    -webkit-backdrop-filter: blur(var(--header-blur-radius));
+    backdrop-filter: blur(var(--header-blur-radius));
+    --header-layer-mask: linear-gradient(
         to bottom,
         #000 0%,
-        #000 calc(75% - 48px),
-        rgb(0 0 0 / 99.384%) calc(76.25% - 45.6px),
-        rgb(0 0 0 / 97.553%) calc(77.5% - 43.2px),
-        rgb(0 0 0 / 94.55%) calc(78.75% - 40.8px),
-        rgb(0 0 0 / 90.451%) calc(80% - 38.4px),
-        rgb(0 0 0 / 85.355%) calc(81.25% - 36px),
-        rgb(0 0 0 / 79.389%) calc(82.5% - 33.6px),
-        rgb(0 0 0 / 72.7%) calc(83.75% - 31.2px),
-        rgb(0 0 0 / 65.451%) calc(85% - 28.8px),
-        rgb(0 0 0 / 57.822%) calc(86.25% - 26.4px),
-        rgb(0 0 0 / 50%) calc(87.5% - 24px),
-        rgb(0 0 0 / 42.178%) calc(88.75% - 21.6px),
-        rgb(0 0 0 / 34.549%) calc(90% - 19.2px),
-        rgb(0 0 0 / 27.3%) calc(91.25% - 16.8px),
-        rgb(0 0 0 / 20.611%) calc(92.5% - 14.4px),
-        rgb(0 0 0 / 14.645%) calc(93.75% - 12px),
-        rgb(0 0 0 / 9.549%) calc(95% - 9.6px),
-        rgb(0 0 0 / 5.45%) calc(96.25% - 7.2px),
-        rgb(0 0 0 / 2.447%) calc(97.5% - 4.8px),
-        rgb(0 0 0 / 0.616%) calc(98.75% - 2.4px),
-        rgb(0 0 0 / 0%) calc(100% - 0px)
+        #000 var(--header-blur-start),
+        rgb(0 0 0 / 85.355%) var(--header-blur-quarter),
+        rgb(0 0 0 / 50%) var(--header-blur-middle),
+        rgb(0 0 0 / 14.645%) var(--header-blur-three-quarters),
+        transparent var(--header-blur-end),
+        transparent 100%
     );
-    -webkit-mask-image: var(--header-blur-mask);
-    mask-image: var(--header-blur-mask);
+    -webkit-mask-image: var(--header-layer-mask);
+    mask-image: var(--header-layer-mask);
 }
 
 @media (prefers-reduced-transparency: reduce) {
     .app-header-backdrop {
         bottom: 0;
         background: #121214;
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        -webkit-mask-image: none;
-        mask-image: none;
+    }
+    .app-header-blur-layer {
+        display: none;
     }
 }
 

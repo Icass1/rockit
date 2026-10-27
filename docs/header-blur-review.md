@@ -2,7 +2,7 @@
 
 The header keeps its controls readable over music artwork while blending back into
 page content. This revision replaces the six full-size filter surfaces with three
-cropped progressive bands, adds a light tint, and fixes keyboard focus and
+cropped progressive bands, adds a contrast scrim, and fixes keyboard focus and
 narrow desktop overflow. The card remains To Review.
 
 ## Implementation
@@ -15,14 +15,12 @@ narrow desktop overflow. The card remains To Review.
   changes to text size. No scroll listener, animated filter or perpetual JavaScript
   loop is introduced. The parent stays unfiltered/unmasked to preserve the backdrop.
 - At viewport widths of at least 1920 px the middle band is omitted and blur is
-  capped at 4 px. The light tint preserves translucency while the capped blur bounds the cost
+  capped at 4 px. The contrast scrim maintains legibility while bounding the cost
   of filtering a wide surface.
-- A black tint at 10% alpha covers the header and fades over the tail. This is a
+- A black scrim at 72% alpha covers the header and fades over the tail. This is a
   separate foreground paint, so it does not isolate the filter backdrop or dim the
-  controls. This follows the user’s preference for translucency. Contrast in the
-  normal translucent mode depends on page content; it no longer has the conservative
-  contrast bound measured with the earlier 72% tint. The opaque accessibility
-  fallbacks remain available.
+  controls. Over a white page, its darkest-case maximum background is approximately
+  RGB(71,71,71), confirmed in a Chromium capture.
 - Reduced transparency and increased contrast use an opaque #121214 background
   with no filter layers. Browsers without backdrop-filter receive the same fallback.
 - Header controls use lighter active, online, offline and streak colours; the unread
@@ -33,14 +31,12 @@ narrow desktop overflow. The card remains To Review.
   is hidden; the avatar/menu remain available. Sign-in and streak copy use existing
   vocabulary keys. LOG_IN translations are explicit in Vocabulary.xlsx (es/fr).
 
-## Historical contrast observations — earlier 72% tint
+## Contrast observations
 
 Measured from computed CSS colours in the actual components, composited over a
 conservative white underlay with the 72% black scrim. Ratios use WCAG 2.x relative
 luminance; these results cover the listed header states, not a whole-app audit.
 The focus outline is compared with the surrounding scrim, not the darker input.
-These ratios describe the earlier 72% tint only and do not certify the current
-10% translucent variant.
 
 | State | Ratio | Target |
 | --- | ---: | ---: |
@@ -81,9 +77,9 @@ sandbox, not a production GPU benchmark or a guarantee of 60 fps.
 
 Safari/macOS/iOS and production hardware were unavailable. The implementation
 includes prefixed filter/mask properties and fallbacks, but real Safari scrolling,
-compositing and battery/GPU behaviour still require integrated review. The current 10% tint intentionally prioritises translucency; contrast over light
-content is not guaranteed in normal mode. The rest of the application and popover
-content need their own audits.
+compositing and battery/GPU behaviour still require integrated review. Colour
+contrast over all real-world content is bounded by the scrim for these header
+controls; the rest of the application and popover content need their own audits.
 
 Existing deployments must import Vocabulary.xlsx through the normal
 `python3 -m backend import-vocabulary` workflow to update persisted translations.

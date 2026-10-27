@@ -1,6 +1,6 @@
 from typing import cast
 
-from sqlalchemy import Result, and_, select
+from sqlalchemy import Result as DBResult, and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
@@ -34,7 +34,7 @@ class MediaAccess:
                 where_stmt = CoreMediaRow.public_id.in_(public_ids)
 
             stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(where_stmt)
-            result: Result[tuple[CoreMediaRow]] = await session.execute(stmt)
+            result: DBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
             rows: list[CoreMediaRow] = cast(list[CoreMediaRow], result.scalars().all())
 
             if not rows:
@@ -95,7 +95,7 @@ class MediaAccess:
 
         try:
             stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(CoreMediaRow.id == id)
-            result: Result[tuple[CoreMediaRow]] = await session.execute(stmt)
+            result: DBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
             row: CoreMediaRow | None = result.scalar_one_or_none()
 
             if row is None:
@@ -116,7 +116,7 @@ class MediaAccess:
 
         try:
             stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(CoreMediaRow.id.in_(ids))
-            result: Result[tuple[CoreMediaRow]] = await session.execute(stmt)
+            result: DBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
             rows: list[CoreMediaRow] = cast(list[CoreMediaRow], result.scalars().all())
 
             if not rows:
@@ -140,7 +140,7 @@ class MediaAccess:
 
         try:
             stmt: Select[tuple[ImageRow]] = select(ImageRow).where(ImageRow.public_id == public_id)
-            result: Result[tuple[ImageRow]] = await session.execute(stmt)
+            result: DBResult[tuple[ImageRow]] = await session.execute(stmt)
             row: ImageRow | None = result.scalar_one_or_none()
 
             if row is None:
@@ -161,7 +161,7 @@ class MediaAccess:
 
         try:
             stmt: Select[tuple[ImageRow]] = select(ImageRow).where(ImageRow.id == id)
-            result: Result[tuple[ImageRow]] = await session.execute(stmt)
+            result: DBResult[tuple[ImageRow]] = await session.execute(stmt)
             row: ImageRow | None = result.scalar_one_or_none()
 
             if row is None:

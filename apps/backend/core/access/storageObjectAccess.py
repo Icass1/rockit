@@ -4,11 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 from core.access.db.ormModels.storageObject import StorageObjectRow
-from core.aResult import AResult as Result
-from core.aResult import AResultCode as ResultCode
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from logger import logger
+from result import Result, ResultCode
 
 
 class StorageObjectAccess:

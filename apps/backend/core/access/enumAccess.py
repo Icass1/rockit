@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from enum import Enum
 
-from sqlalchemy import Result, Select, asc, select
+from sqlalchemy import Result as DBResult, Select, asc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormEnums.baseEnum import BaseEnumRow
@@ -21,7 +21,7 @@ class EnumAccess:
         - DB must contain a prefix of the enum; only additions allowed.
         """
         stmt: Select[tuple[BaseEnumRow]] = select(table).order_by(asc(table.key))
-        result: Result[tuple[BaseEnumRow]] = await session.execute(stmt)
+        result: DBResult[tuple[BaseEnumRow]] = await session.execute(stmt)
         db_rows: Sequence[BaseEnumRow] = result.scalars().all()
 
         # Extract DB keys and values.

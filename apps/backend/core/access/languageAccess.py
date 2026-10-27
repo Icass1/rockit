@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select
+from sqlalchemy import DBResult, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -39,7 +39,7 @@ class LanguageAccess:
             stmt: Select[tuple[LanguageRow]] = select(LanguageRow).where(
                 LanguageRow.lang_code == lang_code
             )
-            result: Result[tuple[LanguageRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[LanguageRow]] = await session.execute(statement=stmt)
 
             language: LanguageRow | None = result.scalar_one_or_none()
 
@@ -65,7 +65,7 @@ class LanguageAccess:
     ) -> AResult[list[LanguageRow]]:
         try:
             stmt: Select[tuple[LanguageRow]] = select(LanguageRow)
-            result: Result[tuple[LanguageRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[LanguageRow]] = await session.execute(statement=stmt)
 
             languages: list[LanguageRow] = list(result.scalars().all())
 

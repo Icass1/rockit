@@ -1,7 +1,7 @@
 from logging import Logger
 
 from passlib.context import CryptContext
-from sqlalchemy import Result, Select
+from sqlalchemy import Result as DBResult, Select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -68,7 +68,7 @@ class UserAccess:
     ) -> AResult[UserRow]:
         try:
             stmt: Select[tuple[UserRow]] = select(UserRow).where(UserRow.username == username)
-            result: Result[tuple[UserRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[UserRow]] = await session.execute(statement=stmt)
 
             user: UserRow | None = result.scalar_one_or_none()
 
@@ -92,7 +92,7 @@ class UserAccess:
     ) -> AResult[UserRow]:
         try:
             stmt: Select[tuple[UserRow]] = select(UserRow).where(UserRow.public_id == public_id)
-            result: Result[tuple[UserRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[UserRow]] = await session.execute(statement=stmt)
 
             user: UserRow | None = result.scalar_one_or_none()
 
@@ -157,7 +157,7 @@ class UserAccess:
                     selectinload(UserLibraryMediaRow.media).selectinload(CoreMediaRow.provider)
                 )
             )
-            result: Result[tuple[UserLibraryMediaRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[UserLibraryMediaRow]] = await session.execute(statement=stmt)
             user_library_medias: list[UserLibraryMediaRow] = list(result.scalars().all())
 
             if not user_library_medias:
@@ -221,7 +221,7 @@ class UserAccess:
             UserLibraryMediaRow.user_id == user_id,
             UserLibraryMediaRow.media_id == media_id,
         )
-        result: Result[tuple[UserLibraryMediaRow]] = await session.execute(statement=stmt)
+        result: DBResult[tuple[UserLibraryMediaRow]] = await session.execute(statement=stmt)
         user_library_media: UserLibraryMediaRow | None = result.scalar_one_or_none()
 
         if user_library_media is None:

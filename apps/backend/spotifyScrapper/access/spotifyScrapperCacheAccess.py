@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Result, Select
+from sqlalchemy import Result as DBResult, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -19,7 +19,7 @@ class SpotifyScrapperCacheAccess:
     async def get_album_async(session: AsyncSession, id: str) -> AResult[CacheAlbumRow]:
         try:
             stmt: Select[tuple[CacheAlbumRow]] = select(CacheAlbumRow).where(CacheAlbumRow.id == id)
-            result: Result[tuple[CacheAlbumRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[CacheAlbumRow]] = await session.execute(statement=stmt)
 
             row: CacheAlbumRow | None = result.scalar_one_or_none()
 

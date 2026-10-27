@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select, delete, select
+from sqlalchemy import Result as DBResult, Select, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.pendingUpload import PendingUploadRow
@@ -21,7 +21,7 @@ class PendingUploadAccess:
         stmt: Select[tuple[PendingUploadRow]] = select(PendingUploadRow).where(
             PendingUploadRow.public_id == public_id
         )
-        result: Result[tuple[PendingUploadRow]] = await session.execute(statement=stmt)
+        result: DBResult[tuple[PendingUploadRow]] = await session.execute(statement=stmt)
         row: PendingUploadRow | None = result.scalar_one_or_none()
         if not row:
             logger.error("TODO")
@@ -59,7 +59,7 @@ class PendingUploadAccess:
         stmt: Select[tuple[PendingUploadRow]] = select(PendingUploadRow).where(
             PendingUploadRow.public_id == public_id
         )
-        result: Result[tuple[PendingUploadRow]] = await session.execute(statement=stmt)
+        result: DBResult[tuple[PendingUploadRow]] = await session.execute(statement=stmt)
         row: PendingUploadRow | None = result.scalar_one_or_none()
         if not row:
             logger.error("TODO")
@@ -80,7 +80,7 @@ class PendingUploadAccess:
         stmt: Select[tuple[PendingUploadRow]] = select(PendingUploadRow).where(
             PendingUploadRow.public_id == public_id
         )
-        result: Result[tuple[PendingUploadRow]] = await session.execute(statement=stmt)
+        result: DBResult[tuple[PendingUploadRow]] = await session.execute(statement=stmt)
         row: PendingUploadRow | None = result.scalar_one_or_none()
         if not row:
             logger.error("TODO")

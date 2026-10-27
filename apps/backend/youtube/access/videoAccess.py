@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select, and_
+from sqlalchemy import Result as DBResult, Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -95,7 +95,7 @@ class VideoAccess:
             )
             .where(CoreMediaRow.public_id == public_id)
         )
-        result: Result[tuple[VideoRow]] = await session.execute(stmt)
+        result: DBResult[tuple[VideoRow]] = await session.execute(stmt)
         video: VideoRow | None = result.scalar_one_or_none()
 
         if not video:
@@ -113,7 +113,7 @@ class VideoAccess:
         session: AsyncSession,
     ) -> AResult[list[VideoRow]]:
         stmt: Select[tuple[VideoRow]] = select(VideoRow)
-        result: Result[tuple[VideoRow]] = await session.execute(stmt)
+        result: DBResult[tuple[VideoRow]] = await session.execute(stmt)
         videos: list[VideoRow] = list(result.scalars().all())
 
         return AResult(code=AResultCode.OK, message="OK", result=videos)

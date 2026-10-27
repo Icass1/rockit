@@ -1,6 +1,6 @@
 from typing import cast
 
-from sqlalchemy import func, Result, insert, select
+from sqlalchemy import func, Result as DBResult, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
@@ -29,7 +29,7 @@ class RockitAccess:
     @safe_async
     async def find_local_songs_async(
         session: AsyncSession, titles: list[str]
-    ) -> AResult[list[LocalSong]]:
+    ) -> ADBResult[list[LocalSong]]:
         """Batch-read available local metadata independently of remote API health."""
         if not titles:
             return AResult(code=AResultCode.OK, message="OK", result=[])
@@ -76,7 +76,7 @@ class RockitAccess:
         disc_number: int,
         track_number: int,
         file_path: str,
-    ) -> AResult[RockitSongRow]:
+    ) -> ADBResult[RockitSongRow]:
         """Create a new song in core.media and rockit.song."""
 
         try:
@@ -123,7 +123,7 @@ class RockitAccess:
         provider_id: int,
         image_id: int,
         release_date: str,
-    ) -> AResult[RockitAlbumRow]:
+    ) -> ADBResult[RockitAlbumRow]:
         """Create a new album in core.media and rockit.album."""
 
         try:
@@ -166,14 +166,14 @@ class RockitAccess:
         song_id: int,
         disc_number: int,
         track_number: int,
-    ) -> AResult[RockitSongRow]:
+    ) -> ADBResult[RockitSongRow]:
         """Add a song to an album by setting its album_id."""
 
         try:
             stmt: Select[tuple[RockitSongRow]] = select(RockitSongRow).where(
                 RockitSongRow.id == song_id
             )
-            result: Result[tuple[RockitSongRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitSongRow]] = await session.execute(stmt)
             song: RockitSongRow | None = result.scalar_one_or_none()
 
             if song is None:
@@ -194,14 +194,14 @@ class RockitAccess:
     async def get_songs_async(
         session: AsyncSession,
         song_ids: list[int],
-    ) -> AResult[list[RockitSongRow]]:
+    ) -> ADBResult[list[RockitSongRow]]:
         """Get rockit songs by their internal IDs."""
 
         try:
             stmt: Select[tuple[RockitSongRow]] = select(RockitSongRow).where(
                 RockitSongRow.id.in_(song_ids)
             )
-            result: Result[tuple[RockitSongRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitSongRow]] = await session.execute(stmt)
             rows: list[RockitSongRow] = cast(list[RockitSongRow], result.scalars().all())
 
             if not rows:
@@ -220,7 +220,7 @@ class RockitAccess:
     async def get_songs_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[RockitSongRow]]:
+    ) -> ADBResult[list[RockitSongRow]]:
         """Get rockit songs by their public IDs (joins through core.media)."""
 
         try:
@@ -233,7 +233,7 @@ class RockitAccess:
                     selectinload(RockitSongRow.album).selectinload(RockitAlbumRow.artists),
                 )
             )
-            result: Result[tuple[RockitSongRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitSongRow]] = await session.execute(stmt)
             rows: list[RockitSongRow] = cast(list[RockitSongRow], result.scalars().all())
 
             if not rows:
@@ -255,14 +255,14 @@ class RockitAccess:
     async def get_albums_async(
         session: AsyncSession,
         album_ids: list[int],
-    ) -> AResult[list[RockitAlbumRow]]:
+    ) -> ADBResult[list[RockitAlbumRow]]:
         """Get rockit albums by their internal IDs."""
 
         try:
             stmt: Select[tuple[RockitAlbumRow]] = select(RockitAlbumRow).where(
                 RockitAlbumRow.id.in_(album_ids)
             )
-            result: Result[tuple[RockitAlbumRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitAlbumRow]] = await session.execute(stmt)
             rows: list[RockitAlbumRow] = cast(list[RockitAlbumRow], result.scalars().all())
 
             if not rows:
@@ -281,7 +281,7 @@ class RockitAccess:
     async def get_albums_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[RockitAlbumRow]]:
+    ) -> ADBResult[list[RockitAlbumRow]]:
         """Get rockit albums by their public IDs."""
 
         try:
@@ -290,7 +290,7 @@ class RockitAccess:
                 .join(CoreMediaRow, RockitAlbumRow.id == CoreMediaRow.id)
                 .where(CoreMediaRow.public_id.in_(public_ids))
             )
-            result: Result[tuple[RockitAlbumRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitAlbumRow]] = await session.execute(stmt)
             rows: list[RockitAlbumRow] = cast(list[RockitAlbumRow], result.scalars().all())
 
             if not rows:
@@ -312,7 +312,7 @@ class RockitAccess:
     async def get_songs_for_album_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[list[RockitSongRow]]:
+    ) -> ADBResult[list[RockitSongRow]]:
         """Get all songs in an album, ordered by disc and track number."""
 
         try:
@@ -322,7 +322,7 @@ class RockitAccess:
                 .order_by(RockitSongRow.disc_number, RockitSongRow.track_number)
                 .options(selectinload(RockitSongRow.artists))
             )
-            result: Result[tuple[RockitSongRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitSongRow]] = await session.execute(stmt)
             rows: list[RockitSongRow] = cast(list[RockitSongRow], result.scalars().all())
 
             return AResult(code=AResultCode.OK, message="OK", result=rows)
@@ -338,14 +338,14 @@ class RockitAccess:
     async def get_song_public_id_async(
         session: AsyncSession,
         song_id: int,
-    ) -> AResult[str]:
+    ) -> ADBResult[str]:
         """Get the public_id for a song from core.media."""
 
         try:
             stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(
                 CoreMediaRow.id == song_id
             )
-            result: Result[tuple[CoreMediaRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
             row: CoreMediaRow | None = result.scalar_one_or_none()
 
             if row is None:
@@ -361,12 +361,12 @@ class RockitAccess:
     async def get_public_ids_by_ids_async(
         session: AsyncSession,
         ids: list[int],
-    ) -> AResult[dict[int, str]]:
+    ) -> ADBResult[dict[int, str]]:
         """Map internal IDs to public IDs."""
 
         try:
             stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(CoreMediaRow.id.in_(ids))
-            result: Result[tuple[CoreMediaRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
             rows: list[CoreMediaRow] = cast(list[CoreMediaRow], result.scalars().all())
 
             mapping: dict[int, str] = {row.id: row.public_id for row in rows}
@@ -386,7 +386,7 @@ class RockitAccess:
         artist_names: list[str],
         image_id: int,
         target: RockitSongRow | RockitAlbumRow | RockitVideoRow,
-    ) -> AResult[bool]:
+    ) -> ADBResult[bool]:
         """Find or create artists by name and link to target via association table."""
 
         try:
@@ -422,14 +422,14 @@ class RockitAccess:
         session: AsyncSession,
         name: str,
         image_id: int,
-    ) -> AResult[RockitArtistRow]:
+    ) -> ADBResult[RockitArtistRow]:
         """Find an artist by name, or create a new one."""
 
         try:
             stmt: Select[tuple[RockitArtistRow]] = select(RockitArtistRow).where(
                 RockitArtistRow.name == name
             )
-            result: Result[tuple[RockitArtistRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitArtistRow]] = await session.execute(stmt)
             artist: RockitArtistRow | None = result.scalar_one_or_none()
 
             if artist is not None:
@@ -457,7 +457,7 @@ class RockitAccess:
         image_id: int,
         duration_ms: int,
         file_path: str,
-    ) -> AResult[RockitVideoRow]:
+    ) -> ADBResult[RockitVideoRow]:
         """Create a new video in core.media and rockit.video."""
 
         try:
@@ -498,14 +498,14 @@ class RockitAccess:
     async def get_videos_async(
         session: AsyncSession,
         video_ids: list[int],
-    ) -> AResult[list[RockitVideoRow]]:
+    ) -> ADBResult[list[RockitVideoRow]]:
         """Get rockit videos by their internal IDs."""
 
         try:
             stmt: Select[tuple[RockitVideoRow]] = select(RockitVideoRow).where(
                 RockitVideoRow.id.in_(video_ids)
             )
-            result: Result[tuple[RockitVideoRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitVideoRow]] = await session.execute(stmt)
             rows: list[RockitVideoRow] = cast(list[RockitVideoRow], result.scalars().all())
 
             if not rows:
@@ -524,7 +524,7 @@ class RockitAccess:
     async def get_videos_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[RockitVideoRow]]:
+    ) -> ADBResult[list[RockitVideoRow]]:
         """Get rockit videos by their public IDs (joins through core.media)."""
 
         try:
@@ -534,7 +534,7 @@ class RockitAccess:
                 .where(CoreMediaRow.public_id.in_(public_ids))
                 .options(selectinload(RockitVideoRow.artists))
             )
-            result: Result[tuple[RockitVideoRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitVideoRow]] = await session.execute(stmt)
             rows: list[RockitVideoRow] = cast(list[RockitVideoRow], result.scalars().all())
 
             if not rows:
@@ -556,14 +556,14 @@ class RockitAccess:
     async def get_video_public_id_async(
         session: AsyncSession,
         video_id: int,
-    ) -> AResult[str]:
+    ) -> ADBResult[str]:
         """Get the public_id for a video from core.media."""
 
         try:
             stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(
                 CoreMediaRow.id == video_id
             )
-            result: Result[tuple[CoreMediaRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
             row: CoreMediaRow | None = result.scalar_one_or_none()
 
             if row is None:
@@ -579,7 +579,7 @@ class RockitAccess:
     async def search_songs_by_name_async(
         session: AsyncSession,
         query: str,
-    ) -> AResult[list[RockitSongRow]]:
+    ) -> ADBResult[list[RockitSongRow]]:
         """Search rockit songs by name (case-insensitive partial match)."""
 
         try:
@@ -588,7 +588,7 @@ class RockitAccess:
                 .where(RockitSongRow.name.ilike(f"%{query}%"))
                 .options(selectinload(RockitSongRow.artists))
             )
-            result: Result[tuple[RockitSongRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitSongRow]] = await session.execute(stmt)
             rows: list[RockitSongRow] = cast(list[RockitSongRow], result.scalars().all())
             return AResult(code=AResultCode.OK, message="OK", result=rows)
         except Exception as e:
@@ -599,7 +599,7 @@ class RockitAccess:
     async def search_albums_by_name_async(
         session: AsyncSession,
         query: str,
-    ) -> AResult[list[RockitAlbumRow]]:
+    ) -> ADBResult[list[RockitAlbumRow]]:
         """Search rockit albums by name (case-insensitive partial match)."""
 
         try:
@@ -608,7 +608,7 @@ class RockitAccess:
                 .where(RockitAlbumRow.name.ilike(f"%{query}%"))
                 .options(selectinload(RockitAlbumRow.artists))
             )
-            result: Result[tuple[RockitAlbumRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitAlbumRow]] = await session.execute(stmt)
             rows: list[RockitAlbumRow] = cast(list[RockitAlbumRow], result.scalars().all())
             return AResult(code=AResultCode.OK, message="OK", result=rows)
         except Exception as e:
@@ -619,7 +619,7 @@ class RockitAccess:
     async def search_videos_by_name_async(
         session: AsyncSession,
         query: str,
-    ) -> AResult[list[RockitVideoRow]]:
+    ) -> ADBResult[list[RockitVideoRow]]:
         """Search rockit videos by name (case-insensitive partial match)."""
 
         try:
@@ -628,7 +628,7 @@ class RockitAccess:
                 .where(RockitVideoRow.name.ilike(f"%{query}%"))
                 .options(selectinload(RockitVideoRow.artists))
             )
-            result: Result[tuple[RockitVideoRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitVideoRow]] = await session.execute(stmt)
             rows: list[RockitVideoRow] = cast(list[RockitVideoRow], result.scalars().all())
             return AResult(code=AResultCode.OK, message="OK", result=rows)
         except Exception as e:
@@ -639,7 +639,7 @@ class RockitAccess:
     async def get_album_by_id_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[RockitAlbumRow]:
+    ) -> ADBResult[RockitAlbumRow]:
         """Get a single rockit album by its internal ID."""
 
         try:
@@ -648,7 +648,7 @@ class RockitAccess:
                 .where(RockitAlbumRow.id == album_id)
                 .options(selectinload(RockitAlbumRow.artists))
             )
-            result: Result[tuple[RockitAlbumRow]] = await session.execute(stmt)
+            result: DBDBResult[tuple[RockitAlbumRow]] = await session.execute(stmt)
             row: RockitAlbumRow | None = result.scalar_one_or_none()
 
             if row is None:

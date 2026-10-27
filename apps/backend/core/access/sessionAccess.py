@@ -1,7 +1,7 @@
 from datetime import datetime
 from logging import Logger
 
-from sqlalchemy import Result, Select, Update, update
+from sqlalchemy import Result as DBResult, Select, Update, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -54,7 +54,7 @@ class SessionAccess:
                 SessionRow.session_id == session_id
             )
 
-            result: Result[tuple[SessionRow]] = await session.execute(stmt)
+            result: DBResult[tuple[SessionRow]] = await session.execute(stmt)
             session_row: SessionRow | None = result.scalar_one_or_none()
 
             if not session_row:

@@ -2,7 +2,7 @@ import os
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import Result, Select, and_
+from sqlalchemy import Result as DBResult, Select, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -116,7 +116,7 @@ class SpotifyScrapperAccess:
                 )
                 .where(AlbumRow.spotify_id == spotify_id)
             )
-            result: Result[tuple[AlbumRow]] = await session.execute(stmt)
+            result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
             album: AlbumRow | None = result.scalar_one_or_none()
 
             if not album:
@@ -150,7 +150,7 @@ class SpotifyScrapperAccess:
                 )
                 .where(CoreMediaRow.public_id == public_id)
             )
-            result: Result[tuple[AlbumRow]] = await session.execute(stmt)
+            result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
             album: AlbumRow | None = result.scalar_one_or_none()
 
             if not album:
@@ -184,7 +184,7 @@ class SpotifyScrapperAccess:
                 )
                 .where(CoreMediaRow.public_id == public_id)
             )
-            result: Result[tuple[TrackRow]] = await session.execute(stmt)
+            result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
             track: TrackRow | None = result.scalar_one_or_none()
 
             if not track:
@@ -218,7 +218,7 @@ class SpotifyScrapperAccess:
                 )
                 .where(CoreMediaRow.public_id == public_id)
             )
-            result: Result[tuple[ArtistRow]] = await session.execute(stmt)
+            result: DBResult[tuple[ArtistRow]] = await session.execute(stmt)
             artist: ArtistRow | None = result.scalar_one_or_none()
 
             if not artist:
@@ -252,7 +252,7 @@ class SpotifyScrapperAccess:
                 )
                 .where(CoreMediaRow.public_id == public_id)
             )
-            result: Result[tuple[PlaylistRow]] = await session.execute(stmt)
+            result: DBResult[tuple[PlaylistRow]] = await session.execute(stmt)
             playlist: PlaylistRow | None = result.scalar_one_or_none()
 
             if not playlist:
@@ -822,7 +822,7 @@ class SpotifyScrapperAccess:
     ) -> AResult[list[ArtistRow]]:
         try:
             stmt: Select[tuple[list[ArtistRow]]] = track_row.artists.select()
-            result: Result[tuple[list[ArtistRow]]] = await session.execute(stmt)
+            result: DBResult[tuple[list[ArtistRow]]] = await session.execute(stmt)
             artists: list[ArtistRow] = cast(list[ArtistRow], result.scalars().all())
 
             if not artists:
@@ -851,7 +851,7 @@ class SpotifyScrapperAccess:
             stmt = (
                 select(ArtistRow).join(album_artists).join(AlbumRow).filter(AlbumRow.id == album_id)
             )
-            result: Result[tuple[ArtistRow]] = await session.execute(stmt)
+            result: DBResult[tuple[ArtistRow]] = await session.execute(stmt)
             artists_list: list[ArtistRow] = cast(list[ArtistRow], result.scalars().all())
 
             if not artists_list:
@@ -878,7 +878,7 @@ class SpotifyScrapperAccess:
     ) -> AResult[list[TrackRow]]:
         try:
             stmt = select(TrackRow).where(TrackRow.album_id == album_id)
-            result: Result[tuple[TrackRow]] = await session.execute(stmt)
+            result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
             tracks_list: list[TrackRow] = cast(list[TrackRow], result.scalars().all())
 
             if not tracks_list:
@@ -910,7 +910,7 @@ class SpotifyScrapperAccess:
                 .join(AlbumRow)
                 .filter(AlbumRow.id == album_id)
             )
-            result: Result[tuple[ExternalImageRow]] = await session.execute(stmt)
+            result: DBResult[tuple[ExternalImageRow]] = await session.execute(stmt)
             images_list: list[ExternalImageRow] = cast(
                 list[ExternalImageRow], result.scalars().all()
             )
@@ -943,7 +943,7 @@ class SpotifyScrapperAccess:
                 .where(TrackRow.album_id == album_id)
                 .order_by(TrackRow.disc_number, TrackRow.track_number)
             )
-            result: Result[tuple[TrackRow, CoreMediaRow]] = await session.execute(stmt)
+            result: DBResult[tuple[TrackRow, CoreMediaRow]] = await session.execute(stmt)
             tracks_with_core: list[TrackWithCoreMedia] = []
 
             for track_row, core_song_row in result.all():
@@ -973,7 +973,7 @@ class SpotifyScrapperAccess:
                 .join(ArtistRow)
                 .filter(ArtistRow.id == artist_id)
             )
-            result: Result[tuple[GenreRow]] = await session.execute(stmt)
+            result: DBResult[tuple[GenreRow]] = await session.execute(stmt)
             genres: list[GenreRow] = cast(list[GenreRow], result.scalars().all())
 
             genre_names: list[str] = [g.name for g in genres]
@@ -996,7 +996,7 @@ class SpotifyScrapperAccess:
             stmt = (
                 select(GenreRow).join(artist_genres).filter(artist_genres.c.artist_id == artist.id)
             )
-            result: Result[tuple[GenreRow]] = await session.execute(stmt)
+            result: DBResult[tuple[GenreRow]] = await session.execute(stmt)
             genres: list[GenreRow] = cast(list[GenreRow], result.scalars().all())
 
             genre_names: list[str] = [g.name for g in genres]
@@ -1019,7 +1019,7 @@ class SpotifyScrapperAccess:
             stmt: Select[tuple[PlaylistTrackRow]] = select(PlaylistTrackRow).where(
                 PlaylistTrackRow.playlist_id == playlist_id
             )
-            result: Result[tuple[PlaylistTrackRow]] = await session.execute(stmt)
+            result: DBResult[tuple[PlaylistTrackRow]] = await session.execute(stmt)
             playlist_track_rows: list[PlaylistTrackRow] = cast(
                 list[PlaylistTrackRow], result.scalars().all()
             )
@@ -1031,7 +1031,7 @@ class SpotifyScrapperAccess:
                     .where(TrackRow.id == ptr.song_id)
                     .options(selectinload(TrackRow.album))
                 )
-                track_result: Result[tuple[TrackRow]] = await session.execute(track_stmt)
+                track_result: DBResult[tuple[TrackRow]] = await session.execute(track_stmt)
                 track_row: TrackRow | None = track_result.scalar_one_or_none()
                 if track_row:
                     track_links.append(PlaylistTrackLink(playlist_track=ptr, track=track_row))

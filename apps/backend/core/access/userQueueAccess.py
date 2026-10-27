@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select, delete, update
+from sqlalchemy import Result as DBResult, Select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -28,7 +28,7 @@ class UserQueueAccess:
                 .where(UserQueueRow.user_id == user_id)
                 .order_by(UserQueueRow.id)
             )
-            result: Result[tuple[UserQueueRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[UserQueueRow]] = await session.execute(statement=stmt)
             queue_items: list[UserQueueRow] = list(result.scalars().all())
 
             return AResult(code=AResultCode.OK, message="OK", result=queue_items)
@@ -116,7 +116,7 @@ class UserQueueAccess:
                 .where(UserQueueRow.user_id == user_id)
                 .where(UserQueueRow.queue_id == queue_id)
             )
-            result: Result[tuple[UserQueueRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[UserQueueRow]] = await session.execute(statement=stmt)
             queue_item: UserQueueRow | None = result.scalar_one_or_none()
 
             if queue_item is None:

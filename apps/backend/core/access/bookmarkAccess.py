@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import Result, Select, select
+from sqlalchemy import Result as DBResult, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.bookmark import BookmarkRow
@@ -22,7 +22,7 @@ class BookmarkAccess:
         """Get all bookmarks for a user."""
 
         stmt: Select[tuple[BookmarkRow]] = select(BookmarkRow).where(BookmarkRow.user_id == user_id)
-        result: Result[tuple[BookmarkRow]] = await session.execute(stmt)
+        result: DBResult[tuple[BookmarkRow]] = await session.execute(stmt)
         rows: Sequence[BookmarkRow] = result.scalars().all()
         return AResult(code=AResultCode.OK, message="OK", result=list(rows))
 
@@ -37,7 +37,7 @@ class BookmarkAccess:
             BookmarkRow.user_id == user_id,
             BookmarkRow.media_id == media_id,
         )
-        result: Result[tuple[BookmarkRow]] = await session.execute(stmt)
+        result: DBResult[tuple[BookmarkRow]] = await session.execute(stmt)
         rows: Sequence[BookmarkRow] = result.scalars().all()
         return AResult(code=AResultCode.OK, message="OK", result=list(rows))
 
@@ -52,7 +52,7 @@ class BookmarkAccess:
             BookmarkRow.public_id == public_id,
             BookmarkRow.user_id == user_id,
         )
-        result: Result[tuple[BookmarkRow]] = await session.execute(stmt)
+        result: DBResult[tuple[BookmarkRow]] = await session.execute(stmt)
         row: BookmarkRow | None = result.scalars().first()
         if row is None:
             return AResult(code=AResultCode.NOT_FOUND, message="Bookmark not found")
@@ -123,7 +123,7 @@ class BookmarkAccess:
         stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(
             CoreMediaRow.public_id == media_public_id
         )
-        result: Result[tuple[CoreMediaRow]] = await session.execute(stmt)
+        result: DBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
         row: CoreMediaRow | None = result.scalars().first()
         if row is None:
             return AResult(code=AResultCode.NOT_FOUND, message="Media not found")

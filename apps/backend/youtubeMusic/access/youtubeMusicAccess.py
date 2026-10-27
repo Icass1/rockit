@@ -2,7 +2,7 @@ import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
-from sqlalchemy import Result, Select, and_
+from sqlalchemy import Result as DBResult, Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -83,7 +83,7 @@ class YoutubeMusicAccess:
             )
             .where(CoreMediaRow.public_id == public_id)
         )
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         track: TrackRow | None = result.scalar_one_or_none()
 
         if not track:
@@ -128,7 +128,7 @@ class YoutubeMusicAccess:
                 selectinload(TrackRow.core_song),
             )
         )
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         track: TrackRow | None = result.scalar_one_or_none()
 
         if not track:
@@ -152,7 +152,7 @@ class YoutubeMusicAccess:
                 selectinload(TrackRow.core_song),
             )
         )
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         track: TrackRow | None = result.scalar_one_or_none()
 
         if not track:
@@ -168,7 +168,7 @@ class YoutubeMusicAccess:
         youtube_id: str,
     ) -> AResult[AlbumRow]:
         stmt: Select[tuple[AlbumRow]] = select(AlbumRow).where(AlbumRow.youtube_id == youtube_id)
-        result: Result[tuple[AlbumRow]] = await session.execute(stmt)
+        result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
         album: AlbumRow | None = result.scalar_one_or_none()
 
         if not album:
@@ -184,7 +184,7 @@ class YoutubeMusicAccess:
         youtube_id: str,
     ) -> AResult[ArtistRow]:
         stmt: Select[tuple[ArtistRow]] = select(ArtistRow).where(ArtistRow.youtube_id == youtube_id)
-        result: Result[tuple[ArtistRow]] = await session.execute(stmt)
+        result: DBResult[tuple[ArtistRow]] = await session.execute(stmt)
         artist: ArtistRow | None = result.scalar_one_or_none()
 
         if not artist:
@@ -211,7 +211,7 @@ class YoutubeMusicAccess:
             )
             .where(CoreMediaRow.public_id == public_id)
         )
-        result: Result[tuple[AlbumRow]] = await session.execute(stmt)
+        result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
         album: AlbumRow | None = result.scalar_one_or_none()
 
         if not album:
@@ -237,7 +237,7 @@ class YoutubeMusicAccess:
             )
             .where(CoreMediaRow.public_id == public_id)
         )
-        result: Result[tuple[ArtistRow]] = await session.execute(stmt)
+        result: DBResult[tuple[ArtistRow]] = await session.execute(stmt)
         artist: ArtistRow | None = result.scalar_one_or_none()
 
         if not artist:
@@ -257,7 +257,7 @@ class YoutubeMusicAccess:
             .where(TrackRow.album_id == album_id)
             .order_by(TrackRow.disc_number, TrackRow.track_number)
         )
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         tracks_list: list[TrackRow] = cast(list[TrackRow], result.scalars().all())
 
         if not tracks_list:
@@ -320,7 +320,7 @@ class YoutubeMusicAccess:
                 selectinload(TrackRow.core_song),
             )
         )
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         tracks_list: list[TrackRow] = cast(list[TrackRow], result.scalars().all())
 
         if not tracks_list:
@@ -349,7 +349,7 @@ class YoutubeMusicAccess:
             )
             .where(CoreMediaRow.public_id == public_id)
         )
-        result: Result[tuple[PlaylistRow]] = await session.execute(stmt)
+        result: DBResult[tuple[PlaylistRow]] = await session.execute(stmt)
         playlist: PlaylistRow | None = result.scalar_one_or_none()
 
         if not playlist:
@@ -367,7 +367,7 @@ class YoutubeMusicAccess:
         stmt: Select[tuple[PlaylistRow]] = select(PlaylistRow).where(
             PlaylistRow.youtube_id == youtube_id
         )
-        result: Result[tuple[PlaylistRow]] = await session.execute(stmt)
+        result: DBResult[tuple[PlaylistRow]] = await session.execute(stmt)
         playlist: PlaylistRow | None = result.scalar_one_or_none()
 
         if not playlist:
@@ -384,7 +384,7 @@ class YoutubeMusicAccess:
         path: str | None,
     ) -> AResultCode:
         stmt: Select[tuple[TrackRow]] = select(TrackRow).where(TrackRow.id == track_id)
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         track_row: TrackRow | None = result.scalar_one_or_none()
         if not track_row:
             logger.warning(f"Could not find track {track_id} to update path")
@@ -405,7 +405,7 @@ class YoutubeMusicAccess:
         stmt: Select[tuple[PlaylistTrackRow]] = select(PlaylistTrackRow).where(
             PlaylistTrackRow.playlist_id == playlist_id
         )
-        result: Result[tuple[PlaylistTrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[PlaylistTrackRow]] = await session.execute(stmt)
         playlist_track_rows: list[PlaylistTrackRow] = cast(
             list[PlaylistTrackRow], result.scalars().all()
         )
@@ -593,7 +593,7 @@ class YoutubeMusicAccess:
                 selectinload(TrackRow.core_song),
             )
         )
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         tracks: list[TrackRow] = cast(list[TrackRow], result.scalars().all())
 
         return AResult(code=AResultCode.OK, message="OK", result=tracks)
@@ -639,7 +639,7 @@ class YoutubeMusicAccess:
             )
             .where(CoreMediaRow.public_id.in_(public_ids))
         )
-        result: Result[tuple[AlbumRow]] = await session.execute(stmt)
+        result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
         albums: list[AlbumRow] = cast(list[AlbumRow], result.scalars().all())
 
         return AResult(code=AResultCode.OK, message="OK", result=albums)
@@ -683,7 +683,7 @@ class YoutubeMusicAccess:
             )
             .order_by(TrackRow.album_id, TrackRow.disc_number, TrackRow.track_number)
         )
-        result: Result[tuple[TrackRow]] = await session.execute(stmt)
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         tracks: list[TrackRow] = cast(list[TrackRow], result.scalars().all())
 
         return AResult(code=AResultCode.OK, message="OK", result=tracks)
@@ -704,7 +704,7 @@ class YoutubeMusicAccess:
             .join(CoreMediaRow, ArtistRow.id == CoreMediaRow.id)
             .where(ArtistRow.youtube_id.in_(youtube_ids))
         )
-        result: Result[tuple[str, str]] = await session.execute(stmt)
+        result: DBResult[tuple[str, str]] = await session.execute(stmt)
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -727,7 +727,7 @@ class YoutubeMusicAccess:
             .join(CoreMediaRow, AlbumRow.id == CoreMediaRow.id)
             .where(AlbumRow.youtube_id.in_(youtube_ids))
         )
-        result: Result[tuple[str, str]] = await session.execute(stmt)
+        result: DBResult[tuple[str, str]] = await session.execute(stmt)
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -750,7 +750,7 @@ class YoutubeMusicAccess:
             .join(CoreMediaRow, PlaylistRow.id == CoreMediaRow.id)
             .where(PlaylistRow.youtube_id.in_(youtube_ids))
         )
-        result: Result[tuple[str, str]] = await session.execute(stmt)
+        result: DBResult[tuple[str, str]] = await session.execute(stmt)
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -776,7 +776,7 @@ class YoutubeMusicAccess:
                 CoreMediaRow.media_type_key == MediaTypeEnum.PLAYLIST.value,
             )
         )
-        result: Result[tuple[str, str]] = await session.execute(stmt)
+        result: DBResult[tuple[str, str]] = await session.execute(stmt)
         return AResult(
             code=AResultCode.OK,
             message="OK",
@@ -805,7 +805,7 @@ class YoutubeMusicAccess:
             )
             .where(PlaylistRow.youtube_id.in_(youtube_ids))
         )
-        result: Result[tuple[PlaylistRow]] = await session.execute(stmt)
+        result: DBResult[tuple[PlaylistRow]] = await session.execute(stmt)
         playlists: list[PlaylistRow] = list(result.scalars().all())
         return AResult(code=AResultCode.OK, message="OK", result=playlists)
 
@@ -890,7 +890,7 @@ class YoutubeMusicAccess:
             TrackRow.youtube_id.in_(youtube_ids),
             TrackRow.path.isnot(None),
         )
-        result: Result[tuple[str]] = await session.execute(stmt)
+        result: DBResult[tuple[str]] = await session.execute(stmt)
         return AResult(code=AResultCode.OK, message="OK", result={row[0] for row in result.all()})
 
     @staticmethod
@@ -912,7 +912,7 @@ class YoutubeMusicAccess:
                 TrackRow.path.isnot(None),
             )
         )
-        result: Result[tuple[str, str]] = await session.execute(stmt)
+        result: DBResult[tuple[str, str]] = await session.execute(stmt)
         return AResult(
             code=AResultCode.OK,
             message="OK",

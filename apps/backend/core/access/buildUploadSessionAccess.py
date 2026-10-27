@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select, delete, select
+from sqlalchemy import Result as DBResult, Select, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.buildUploadSession import BuildUploadSessionRow
@@ -20,7 +20,7 @@ class BuildUploadSessionAccess:
         stmt: Select[tuple[BuildUploadSessionRow]] = select(BuildUploadSessionRow).where(
             BuildUploadSessionRow.public_id == public_id
         )
-        result: Result[tuple[BuildUploadSessionRow]] = await session.execute(statement=stmt)
+        result: DBResult[tuple[BuildUploadSessionRow]] = await session.execute(statement=stmt)
         row: BuildUploadSessionRow | None = result.scalar_one_or_none()
         if not row:
             return AResult(
@@ -63,7 +63,7 @@ class BuildUploadSessionAccess:
         stmt: Select[tuple[BuildUploadSessionRow]] = select(BuildUploadSessionRow).where(
             BuildUploadSessionRow.public_id == public_id
         )
-        result: Result[tuple[BuildUploadSessionRow]] = await session.execute(statement=stmt)
+        result: DBResult[tuple[BuildUploadSessionRow]] = await session.execute(statement=stmt)
         row: BuildUploadSessionRow | None = result.scalar_one_or_none()
         if not row:
             return AResult(

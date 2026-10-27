@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select, delete
+from sqlalchemy import Result as DBResult, Select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -20,7 +20,7 @@ class VocabularyAccess:
             stmt: Select[tuple[VocabularyRow]] = select(VocabularyRow).where(
                 VocabularyRow.lang_id == lang_id
             )
-            result: Result[tuple[VocabularyRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[VocabularyRow]] = await session.execute(statement=stmt)
 
             vocabulary: list[VocabularyRow] = list(result.scalars().all())
 
@@ -67,7 +67,7 @@ class VocabularyAccess:
                 VocabularyRow.key == key,
                 VocabularyRow.lang_id == lang_id,
             )
-            result: Result[tuple[VocabularyRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[VocabularyRow]] = await session.execute(statement=stmt)
             existing: VocabularyRow | None = result.scalar_one_or_none()
 
             if existing:
@@ -114,7 +114,7 @@ class VocabularyAccess:
     async def get_all_keys(session: AsyncSession) -> AResult[list[str]]:
         try:
             stmt: Select[tuple[str]] = select(VocabularyRow.key).distinct()
-            result: Result[tuple[str]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[str]] = await session.execute(statement=stmt)
 
             keys: list[str] = list(result.scalars().all())
 

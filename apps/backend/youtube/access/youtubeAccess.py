@@ -1,7 +1,7 @@
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from sqlalchemy import Result, Select, and_
+from sqlalchemy import Result as DBResult, Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -43,7 +43,7 @@ class YouTubeAccess:
             stmt: Select[tuple[VideoRow]] = select(VideoRow).where(
                 VideoRow.youtube_id == youtube_id
             )
-            result: Result[tuple[VideoRow]] = await session.execute(stmt)
+            result: DBResult[tuple[VideoRow]] = await session.execute(stmt)
             video: VideoRow | None = result.scalar_one_or_none()
 
             if not video:
@@ -69,7 +69,7 @@ class YouTubeAccess:
             stmt: Select[tuple[ChannelRow]] = select(ChannelRow).where(
                 ChannelRow.youtube_id == youtube_id
             )
-            result: Result[tuple[ChannelRow]] = await session.execute(stmt)
+            result: DBResult[tuple[ChannelRow]] = await session.execute(stmt)
             channel: ChannelRow | None = result.scalar_one_or_none()
 
             if not channel:
@@ -93,7 +93,7 @@ class YouTubeAccess:
     ) -> AResult[ChannelRow]:
         try:
             stmt: Select[tuple[ChannelRow]] = select(ChannelRow).where(ChannelRow.id == id)
-            result: Result[tuple[ChannelRow]] = await session.execute(stmt)
+            result: DBResult[tuple[ChannelRow]] = await session.execute(stmt)
             channel: ChannelRow | None = result.scalar_one_or_none()
 
             if not channel:
@@ -125,7 +125,7 @@ class YouTubeAccess:
                 VideoRow.youtube_id.in_(youtube_ids),
                 VideoRow.video_path.isnot(None),
             )
-            result: Result[tuple[str]] = await session.execute(stmt)
+            result: DBResult[tuple[str]] = await session.execute(stmt)
             return {row[0] for row in result.all()}
         except Exception as e:
             logger.error(f"Failed to get downloaded youtube ids: {e}")
@@ -150,7 +150,7 @@ class YouTubeAccess:
                     VideoRow.video_path.isnot(None),
                 )
             )
-            result: Result[tuple[str, str]] = await session.execute(stmt)
+            result: DBResult[tuple[str, str]] = await session.execute(stmt)
             return {row[0]: row[1] for row in result.all()}
         except Exception as e:
             logger.error(f"Failed to get downloaded youtube public ids: {e}")

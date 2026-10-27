@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select, delete
+from sqlalchemy import Result as DBResult, Select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql.dml import Delete
@@ -107,7 +107,7 @@ class PlaylistAccess:
                 .join(CoreMediaRow, PlaylistRow.id == CoreMediaRow.id)
                 .where(CoreMediaRow.public_id == public_id)
             )
-            result: Result[tuple[PlaylistRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistRow]] = await session.execute(statement=stmt)
             playlist: PlaylistRow | None = result.scalar_one_or_none()
             if not playlist:
                 return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found.")
@@ -127,7 +127,7 @@ class PlaylistAccess:
             stmt: Select[tuple[PlaylistRow]] = select(PlaylistRow).where(
                 PlaylistRow.owner_id == user_id
             )
-            result: Result[tuple[PlaylistRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistRow]] = await session.execute(statement=stmt)
             playlists: list[PlaylistRow] = list(result.scalars().all())
             return AResult(code=AResultCode.OK, message="OK", result=playlists)
         except Exception as e:
@@ -194,7 +194,7 @@ class PlaylistAccess:
                 .order_by(PlaylistMediaRow.position.desc())
                 .limit(1)
             )
-            result: Result[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
             last_media: PlaylistMediaRow | None = result.scalar_one_or_none()
             next_position: int = (last_media.position + 1) if last_media else 0
 
@@ -255,7 +255,7 @@ class PlaylistAccess:
                 .where(PlaylistMediaRow.playlist_id == playlist_id)
                 .order_by(PlaylistMediaRow.position)
             )
-            result: Result[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
             medias: list[PlaylistMediaRow] = list(result.scalars().all())
             return AResult(code=AResultCode.OK, message="OK", result=medias)
         except Exception as e:
@@ -274,7 +274,7 @@ class PlaylistAccess:
                 PlaylistMediaRow.playlist_id == playlist_id,
                 PlaylistMediaRow.media_id == media_id,
             )
-            result: Result[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
             playlist_media: PlaylistMediaRow | None = result.scalar_one_or_none()
             if not playlist_media:
                 return AResult(
@@ -317,7 +317,7 @@ class PlaylistAccess:
                 PlaylistContributorRow.playlist_id == playlist_id,
                 PlaylistContributorRow.user_id == user_id,
             )
-            result: Result[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
             contributor: PlaylistContributorRow | None = result.scalar_one_or_none()
             if not contributor:
                 return AResult(code=AResultCode.NOT_FOUND, message="Contributor not found.")
@@ -339,7 +339,7 @@ class PlaylistAccess:
             stmt: Select[tuple[PlaylistContributorRow]] = select(PlaylistContributorRow).where(
                 PlaylistContributorRow.playlist_id == playlist_id
             )
-            result: Result[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
             contributors: list[PlaylistContributorRow] = list(result.scalars().all())
             return AResult(code=AResultCode.OK, message="OK", result=contributors)
         except Exception as e:
@@ -358,7 +358,7 @@ class PlaylistAccess:
                 PlaylistContributorRow.playlist_id == playlist_id,
                 PlaylistContributorRow.user_id == user_id,
             )
-            result: Result[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
             contributor: PlaylistContributorRow | None = result.scalar_one_or_none()
             if not contributor:
                 return AResult(code=AResultCode.NOT_FOUND, message="User is not a contributor.")
@@ -400,7 +400,7 @@ class PlaylistAccess:
                 UserDisabledPlaylistMediaRow.user_id == user_id,
                 UserDisabledPlaylistMediaRow.playlist_media_id == playlist_media_id,
             )
-            result: Result[tuple[UserDisabledPlaylistMediaRow]] = await session.execute(
+            result: DBResult[tuple[UserDisabledPlaylistMediaRow]] = await session.execute(
                 statement=stmt
             )
             disabled_media: UserDisabledPlaylistMediaRow | None = result.scalar_one_or_none()
@@ -432,7 +432,7 @@ class PlaylistAccess:
                     PlaylistMediaRow.playlist_id == playlist_id,
                 )
             )
-            result: Result[tuple[UserPlaylistMediaExpandedRow]] = await session.execute(
+            result: DBResult[tuple[UserPlaylistMediaExpandedRow]] = await session.execute(
                 statement=stmt
             )
             rows: list[UserPlaylistMediaExpandedRow] = list(result.scalars().all())
@@ -460,7 +460,7 @@ class PlaylistAccess:
                 UserPlaylistMediaExpandedRow.user_id == user_id,
                 UserPlaylistMediaExpandedRow.playlist_media_id == playlist_media_id,
             )
-            result: Result[tuple[UserPlaylistMediaExpandedRow]] = await session.execute(
+            result: DBResult[tuple[UserPlaylistMediaExpandedRow]] = await session.execute(
                 statement=stmt
             )
             existing: UserPlaylistMediaExpandedRow | None = result.scalar_one_or_none()
@@ -499,7 +499,7 @@ class PlaylistAccess:
                     PlaylistMediaRow.playlist_id == playlist_id,
                 )
             )
-            result: Result[tuple[UserDisabledPlaylistMediaRow]] = await session.execute(
+            result: DBResult[tuple[UserDisabledPlaylistMediaRow]] = await session.execute(
                 statement=stmt
             )
             disabled_medias: list[UserDisabledPlaylistMediaRow] = list(result.scalars().all())

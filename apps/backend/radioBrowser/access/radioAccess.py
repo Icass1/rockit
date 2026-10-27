@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Result, Select, and_, select
+from sqlalchemy import Result as DBResult, Select, and_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -48,7 +48,7 @@ class RadioAccess:
                     selectinload(StationRow.codec_rel),
                 )
             )
-            result: Result[tuple[StationRow]] = await session.execute(stmt)
+            result: DBResult[tuple[StationRow]] = await session.execute(stmt)
             station: StationRow | None = result.scalar_one_or_none()
 
             if not station:
@@ -90,7 +90,7 @@ class RadioAccess:
                     selectinload(StationRow.codec_rel),
                 )
             )
-            result: Result[tuple[StationRow]] = await session.execute(stmt)
+            result: DBResult[tuple[StationRow]] = await session.execute(stmt)
             station: StationRow | None = result.scalar_one_or_none()
 
             if not station:
@@ -132,7 +132,7 @@ class RadioAccess:
                     selectinload(StationRow.codec_rel),
                 )
             )
-            result: Result[tuple[StationRow]] = await session.execute(stmt)
+            result: DBResult[tuple[StationRow]] = await session.execute(stmt)
             stations: list[StationRow] = list(result.scalars().all())
 
             return AResult(code=AResultCode.OK, message="OK", result=stations)
@@ -179,7 +179,7 @@ class RadioAccess:
                 .offset(offset)
                 .limit(limit)
             )
-            result: Result[tuple[StationRow]] = await session.execute(stmt)
+            result: DBResult[tuple[StationRow]] = await session.execute(stmt)
             stations: list[StationRow] = list(result.scalars().all())
 
             return AResult(code=AResultCode.OK, message="OK", result=stations)

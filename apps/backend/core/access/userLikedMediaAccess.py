@@ -1,6 +1,6 @@
 from logging import Logger
 
-from sqlalchemy import Result, Select, delete
+from sqlalchemy import Result as DBResult, Select, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -74,7 +74,7 @@ class UserLikedMediaAccess:
                 .where(UserLikedMediaRow.user_id == user_id)
                 .order_by(UserLikedMediaRow.date_added.desc())
             )
-            result: Result[tuple[str]] = await session.execute(statement=stmt)
+            result: DBResult[tuple[str]] = await session.execute(statement=stmt)
             public_ids: list[str] = list(result.scalars().all())
 
             return AResult(code=AResultCode.OK, message="OK", result=public_ids)

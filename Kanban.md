@@ -67,17 +67,6 @@
 
 ## To Review
 
-### [SOCIAL] Emblemas Rockit y comparación entre amigos
-
-- tags: [frontend, backend, friends, badges, kb-36]
-- priority: medium
-- workload: Normal
-    ```md
-    Revisión con develop actualizado: vista inicial de tres familias de medallas y desglose de hitos plegable, conservando el catálogo completo de 115 y la comparación. Se mantiene el mismo reparto de columnas que Friends base para que el progreso personal no domine la página. Evidencia en docs/friends-integrated-review.md: nueve tamaños y 26 comprobaciones de interacción con datos de ejemplo; sin suites de tests locales.
-
-    115 medallas con descripciones breves, sin etiquetas de dificultad, nueve familias (incluyen amigos, vídeos y descubrimiento + recomendaciones), filtros y búsqueda; diseños basados en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
-    ```
-
 ### [HOME] Añadir context menu a las canciones del home
 
 - tags: [frontend, home, songs, context-menu, ui, kb-20]
@@ -151,6 +140,19 @@
     ```
 
 ## Done
+
+### [SOCIAL] Emblemas Rockit y comparación entre amigos
+
+- tags: [frontend, backend, friends, badges, kb-36]
+- priority: medium
+- workload: Normal
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Revisión con develop actualizado: vista inicial de tres familias de medallas y desglose de hitos plegable, conservando el catálogo completo de 115 y la comparación. Se mantiene el mismo reparto de columnas que Friends base para que el progreso personal no domine la página. Evidencia en docs/friends-integrated-review.md: nueve tamaños y 26 comprobaciones de interacción con datos de ejemplo; sin suites de tests locales.
+
+    115 medallas con descripciones breves, sin etiquetas de dificultad, nueve familias (incluyen amigos, vídeos y descubrimiento + recomendaciones), filtros y búsqueda; diseños basados en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
+    ```
 
 ### [SOCIAL] XP por tiempo real de escucha y sesiones
 

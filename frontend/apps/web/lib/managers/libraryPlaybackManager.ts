@@ -1,4 +1,9 @@
-import { isStation, type TPlayableMedia } from "@rockit/shared";
+import {
+    EQueueType,
+    isStation,
+    shuffle,
+    type TPlayableMedia,
+} from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { expandPlaylistsToPlayable } from "@/lib/services/mediaService";
@@ -22,19 +27,40 @@ export class LibraryPlaybackManager {
             if (queue.queueIdentity !== ownedQueue) return;
             if (!response.isOk()) throw new Error(response.message);
             let started = false;
+            const randomStart =
+                rockIt.userManager.queueTypeAtom.get() === EQueueType.RANDOM;
             const pending: TPlayableMedia[] = [];
-            const appendOrStart = (media: TPlayableMedia[]): void => {
+            const appendOrStart = (
+                media: TPlayableMedia[],
+                complete = false
+            ): void => {
                 if (started) {
                     queue.appendMedias(media, "library");
                     return;
                 }
                 pending.push(...media);
+                // A random start must include album/playlist tracks in its first draw.
+                // Ordered playback can still begin while collections are loading.
+                if (randomStart && !complete) return;
                 // Metadata alone is not a successful playback selection.
-                if (!media.some((item) => isStation(item) || item.downloaded))
+                if (!pending.some((item) => isStation(item) || item.downloaded))
                     return;
-                queue.setMedia(pending, "library");
+                // Shuffle the complete playable library before creating the queue.
+                // Start at its visible head, rather than drawing a second random index.
+                const selection = randomStart
+                    ? shuffle(
+                          pending.filter(
+                              (item) => isStation(item) || item.downloaded
+                          )
+                      )
+                    : pending;
+                queue.setMedia(selection, "library");
                 ownedQueue = queue.queueIdentity;
-                queue.setQueueMediaId();
+                if (randomStart) {
+                    const first = queue.queue[0];
+                    if (!first) return;
+                    queue.setQueueMediaId(first.queueMediaId);
+                } else queue.setQueueMediaId();
                 started = true;
                 pending.length = 0;
                 rockIt.mediaPlayerManager.play();
@@ -61,6 +87,8 @@ export class LibraryPlaybackManager {
                 if (queue.queueIdentity !== ownedQueue) return;
                 appendOrStart(media);
             }
+            if (queue.queueIdentity !== ownedQueue) return;
+            if (randomStart) appendOrStart([], true);
             if (hadFailures || (!started && pending.length)) {
                 rockIt.notificationManager.notifyWarn(
                     hadFailures

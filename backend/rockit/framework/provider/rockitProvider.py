@@ -334,10 +334,14 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.image              ci  ON ci.id = ra.image_id"""
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
-        return """    SELECT cm.id              AS media_id,
+        return """    SELECT rs.id              AS media_id,
            cm.public_id        AS album_public_id,
            ra.name             AS album_name,
-           ci.url              AS album_image_url
+           ci.url              AS album_image_url,
+           (SELECT string_agg(DISTINCT artist.name, ', ' ORDER BY artist.name)
+            FROM rockit.album_artists aa
+            JOIN rockit.artist artist ON artist.id = aa.artist_id
+            WHERE aa.album_id = ra.id) AS album_artists
     FROM   rockit.song     rs
     JOIN   rockit.album    ra    ON ra.id        = rs.album_id
     JOIN   core.media      cm    ON cm.id        = ra.id

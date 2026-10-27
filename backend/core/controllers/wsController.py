@@ -58,4 +58,6 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON received from user {user_id}")
     except WebSocketDisconnect:
+        pass
+    finally:
         await ws_manager.disconnect_async(user_id, websocket)

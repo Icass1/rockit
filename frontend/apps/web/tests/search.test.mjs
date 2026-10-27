@@ -23,12 +23,17 @@ const { outputFiles } = await build({
         {
             name: "http",
             setup(b) {
-                b.onResolve({ filter: /^@\/lib\/http$/ }, (args) => ({
-                    path: args.path,
-                    namespace: "mock",
-                }));
-                b.onLoad({ filter: /.*/, namespace: "mock" }, () => ({
-                    contents: "export const Http = globalThis.http;",
+                b.onResolve(
+                    { filter: /^@\/lib\/(http|rockit\/rockIt)$/ },
+                    (args) => ({
+                        path: args.path,
+                        namespace: "mock",
+                    })
+                );
+                b.onLoad({ filter: /.*/, namespace: "mock" }, ({ path }) => ({
+                    contents: path.endsWith("rockIt")
+                        ? "export const rockIt = globalThis.rockIt;"
+                        : "export const Http = globalThis.http;",
                 }));
             },
         },
@@ -61,7 +66,23 @@ function setup(count = 1, demand = false) {
         searchProviderAsync: (payload) =>
             new Promise((resolve) => calls.push({ payload, resolve })),
     };
+    const playback = [];
+    const rockIt = {
+        queueManager: {
+            setMedia: (...args) => playback.push(["queue", ...args]),
+            moveToMedia: (id) => playback.push(["move", id]),
+        },
+        mediaPlayerManager: { play: () => playback.push(["play"]) },
+        notificationManager: {
+            notifyError: (message) => playback.push(["error", message]),
+        },
+        vocabularyManager: {
+            vocabulary: { ERROR_GETTING_MEDIA: "Cannot play song" },
+        },
+    };
     const context = vm.createContext({
+        rockIt,
+        console,
         process: { env: { NODE_ENV: "test" } },
         http,
         setTimeout: (fn) => {
@@ -76,6 +97,8 @@ function setup(count = 1, demand = false) {
         manager: new context.module.SearchManager(),
         ProviderTag: context.module.ProviderTag,
         calls,
+        http,
+        playback,
         timers,
         fire: () => {
             const pending = [...timers.values()];
@@ -335,4 +358,49 @@ test("unknown providers keep their name when no icon exists", () => {
     assert.ok(unknown.includes("Custom Provider"));
     assert.ok(!unknown.includes("<svg"));
     assert.ok(spotify.includes("<svg"));
+});
+
+test("downloaded search songs resolve their existing media before playback", async () => {
+    const { manager, http, playback } = setup();
+    const song = { publicId: "stored-song", downloaded: true, type: "song" };
+    const requested = [];
+    http.getSong = async (id) => {
+        requested.push(id);
+        return ok(song);
+    };
+    await manager.playDownloadedSong(
+        item("Already here", { publicId: song.publicId, downloaded: true })
+    );
+    assert.deepEqual(requested, [song.publicId]);
+    assert.equal(playback[0][0], "queue");
+    assert.equal(playback[0][1][0], song);
+    assert.equal(playback[1][1], song.publicId);
+    assert.equal(playback[2][0], "play");
+});
+
+test("undownloaded, missing-id and non-song search items never request playback", async () => {
+    const { manager, http, playback } = setup();
+    http.getSong = async () => {
+        throw new Error("Unexpected media request");
+    };
+    await manager.playDownloadedSong(
+        item("Not downloaded", { publicId: "id" })
+    );
+    await manager.playDownloadedSong(item("No ID", { downloaded: true }));
+    await manager.playDownloadedSong(
+        item("Album", { type: "album", downloaded: true, publicId: "id" })
+    );
+    assert.equal(playback.length, 0);
+});
+
+test("stale downloaded search results report errors without replacing the queue", async () => {
+    for (const response of [ok({ downloaded: false }), { isOk: () => false }]) {
+        const { manager, http, playback } = setup();
+        http.getSong = async () => response;
+        await manager.playDownloadedSong(
+            item("Stale", { downloaded: true, publicId: "id" })
+        );
+        assert.equal(playback.length, 1);
+        assert.equal(playback[0][0], "error");
+    }
 });

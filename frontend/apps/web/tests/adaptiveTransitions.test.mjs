@@ -242,23 +242,52 @@ async function approachEnd(env) {
     return old;
 }
 
-test("live profile distinguishes quiet tails from strong tails and incomplete history", () => {
-    const { transitionDuration: duration } = setup(),
-        samples = [];
-    for (let t = 40; t <= 56.5; t += 0.25)
-        samples.push({ time: t, rms: t < 48 ? 0.3 : 0.03 });
-    assert.equal(duration(samples, 60, 56.5, 3.5), 3.5);
-    assert.equal(
-        duration(
-            samples.map((s) => ({ ...s, rms: 0.3 })),
-            60,
-            56.5,
-            3.5
-        ),
-        0.8
+for (const seconds of [5, 6])
+    test(
+        "custom " +
+            seconds +
+            "-second overlap starts at the requested time without energy history",
+        async () => {
+            const e = setup();
+            await start(e);
+            e.player.configureTransitions({ maxSeconds: seconds });
+            assert.equal(
+                e.player.transitionSettingsAtom.get().maxSeconds,
+                seconds
+            );
+            const old = e.player.audioElement;
+            old.currentTime = 60 - seconds - 0.25;
+            old.ontimeupdate();
+            await flush();
+            assert.equal(e.queue.currentQueueMediaId, 1);
+            old.currentTime = 60 - seconds;
+            old.ontimeupdate();
+            await flush();
+            assert.equal(e.queue.currentQueueMediaId, 2);
+            const deck = e.player._mixer._decks.get(old);
+            assert.equal(deck.high.gain.curves.at(-1).seconds, seconds);
+            e.player.pause();
+        }
     );
-    assert.equal(duration([], 60, 56.5, 3.5), 0.8);
-    assert.equal(duration(samples, 60, 56.5, 2), 2);
+test("long overlaps respect short incoming tracks and require enough buffered audio", async () => {
+    const e = setup();
+    await start(e);
+    e.player.configureTransitions({ maxSeconds: 20 });
+    const old = e.player.audioElement;
+    const incoming = e.player._preloadAudio;
+    incoming.duration = 12;
+    incoming.buffered = { length: 1, start: () => 0, end: () => 5 };
+    old.currentTime = 54;
+    old.ontimeupdate();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    incoming.buffered = { length: 1, start: () => 0, end: () => 8 };
+    old.ontimeupdate();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    const deck = e.player._mixer._decks.get(old);
+    assert.equal(deck.high.gain.curves.at(-1).seconds, 6);
+    e.player.pause();
 });
 test("handoff promotes buffered audio once and preserves the outgoing tail", async () => {
     const e = setup();

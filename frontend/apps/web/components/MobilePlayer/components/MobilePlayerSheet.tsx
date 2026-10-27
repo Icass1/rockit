@@ -91,6 +91,7 @@ export default function MobilePlayerSheet(): JSX.Element | null {
                 <PlayerCoverArt
                     uri={currentMedia?.imageUrl}
                     mediaType={currentMedia?.type}
+                    media={currentMedia ?? undefined}
                 />
 
                 <div className="flex items-center gap-2 px-1 pt-2">

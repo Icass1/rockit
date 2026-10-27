@@ -653,6 +653,7 @@ class Rockit:
                                 type="song",
                                 name=song.name,
                                 providerUrl=f"/rockit/song/{public_id}",
+                                publicId=public_id if song.file_path else None,
                                 imageUrl=image_url,
                                 artists=artists,
                                 provider=Rockit.provider_name,

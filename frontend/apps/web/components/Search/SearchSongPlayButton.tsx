@@ -28,7 +28,7 @@ export default function SearchSongPlayButton({
             title={label}
             aria-busy={loading}
             disabled={loading}
-            className="absolute right-2 bottom-2 grid size-11 place-items-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+            className="search-song-play absolute inset-0 grid place-items-center rounded-lg bg-black/50 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-wait"
             onClick={async (event): Promise<void> => {
                 event.stopPropagation();
                 if (loading) return;
@@ -44,24 +44,26 @@ export default function SearchSongPlayButton({
                 }
             }}
         >
-            {loading ? (
-                <LoaderCircle
-                    className="size-5 motion-safe:animate-spin"
-                    aria-hidden="true"
-                />
-            ) : isPlaying ? (
-                <Pause
-                    className="size-5"
-                    fill="currentColor"
-                    aria-hidden="true"
-                />
-            ) : (
-                <Play
-                    className="size-5 translate-x-px"
-                    fill="currentColor"
-                    aria-hidden="true"
-                />
-            )}
+            <span className="search-song-play-icon grid size-12 place-items-center">
+                {loading ? (
+                    <LoaderCircle
+                        className="size-9 motion-safe:animate-spin"
+                        aria-hidden="true"
+                    />
+                ) : isPlaying ? (
+                    <Pause
+                        className="size-9"
+                        fill="currentColor"
+                        aria-hidden="true"
+                    />
+                ) : (
+                    <Play
+                        className="size-9 translate-x-px"
+                        fill="currentColor"
+                        aria-hidden="true"
+                    />
+                )}
+            </span>
         </button>
     );
 }

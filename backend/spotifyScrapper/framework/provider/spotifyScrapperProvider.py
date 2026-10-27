@@ -57,6 +57,8 @@ from backend.spotifyScrapper.access.artistCatalogAccess import ArtistCatalogAcce
 from backend.core.framework.audio.silence import request_bounds
 from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
 
+from backend.spotifyScrapper.access.spotifyScrapperAccess import SpotifyScrapperAccess
+
 logger: Logger = getLogger(__name__)
 
 SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
@@ -147,7 +149,26 @@ class SpotifyScrapperProvider(BaseMediaProvider):
         limit: int = 15,
         media_type: str | None = None,
     ) -> AResult[List[BaseSearchResultsItem]]:
-        return await SpotifyScrapper.search_async(query, limit=limit)
+        result = await SpotifyScrapper.search_async(query=query, limit=limit)
+        if result.is_not_ok():
+            logger.error(f"Search unavailable. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        items = result.result()
+        ids = [
+            item.providerUrl.rsplit("/", 1)[-1] for item in items if item.type == "song"
+        ]
+        local = await SpotifyScrapperAccess.get_downloaded_search_ids_async(
+            session=session, spotify_ids=ids
+        )
+        if local.is_not_ok():
+            logger.error(f"Local search availability unavailable. {local.info()}")
+            return result
+        identities = local.result()
+        for item in items:
+            if item.type == "song":
+                item.publicId = identities.get(item.providerUrl.rsplit("/", 1)[-1])
+                item.downloaded = item.publicId is not None
+        return AResult(code=AResultCode.OK, message="OK", result=items)
 
     def search_page_size(self) -> int:
         return 100
@@ -156,14 +177,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
     async def search_media_async(
         self, session: AsyncSession, query: str
     ) -> AResult[List[BaseSearchResultsItem]]:
-        a_result: AResult[List[BaseSearchResultsItem]] = (
-            await SpotifyScrapper.search_async(query)
-        )
-        if a_result.is_not_ok():
-            logger.error(f"Error searching Spotify scrapper. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
-
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return await self.search_page_async(session=session, query=query)
 
     @time_it
     async def get_songs_async(

@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from backend.utils.backendUtils import create_id, time_it
 from backend.utils.logger import getLogger
 
+from backend.core.utils.safeAsyncCall import safe_async
 from backend.core.aResult import AResult, AResultCode
 from backend.core.framework.media.image import Image
 
@@ -60,6 +61,29 @@ logger = getLogger(__name__)
 
 
 class SpotifyScrapperAccess:
+    @staticmethod
+    @safe_async
+    async def get_downloaded_search_ids_async(
+        session: AsyncSession, spotify_ids: List[str]
+    ) -> AResult[dict[str, str]]:
+        """Map exact remote identities to playable local songs in one query."""
+        if not spotify_ids:
+            return AResult(code=AResultCode.OK, message="OK", result={})
+        result = await session.execute(
+            select(TrackRow.spotify_id, CoreMediaRow.public_id)
+            .join(CoreMediaRow, TrackRow.id == CoreMediaRow.id)
+            .where(
+                TrackRow.spotify_id.in_(spotify_ids),
+                TrackRow.path.isnot(None),
+                TrackRow.path != "",
+            )
+        )
+        return AResult(
+            code=AResultCode.OK,
+            message="OK",
+            result={row[0]: row[1] for row in result.all()},
+        )
+
     @staticmethod
     @time_it
     async def get_album_public_id_async(

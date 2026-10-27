@@ -31,21 +31,6 @@
 
 ## In Progress
 
-### [SEARCH] Reproducir canciones ya descargadas
-
-- tags: [frontend, search, playback, ui, kb-25]
-- priority: medium
-- workload: Easy
-- defaultExpanded: false
-- steps:
-    - [x] Se me abre el context menu para una cancion qe ya tengo descargada y en mi library
-    ```md
-    Revisión: un clic o toque sobre la tarjeta de una canción descargada reproduce directamente (o alterna pausa si es la actual), sin abrir el menú. El menú permanece en clic derecho y pulsación larga; los resultados pendientes de descargar conservan su selector de acciones. El botón accesible play/pause y la carga por publicId siguen disponibles. Pendiente de revisión integrada; sin tests locales.
-
-    Añadir play en Search cuando una canción ya está descargada.
-
-    Implementado: botón accesible sobre la carátula (play/pause para la canción actual) y acción Reproducir en el menú. Se carga la canción existente por publicId sin iniciar otra descarga; errores con feedback y bloqueo durante la carga. Pendiente de revisión integrada.
-    ```
 
 ### [PLAYER] Tiempos reales de la barra de reproducción
 
@@ -70,6 +55,20 @@
     ```
 
 ## To Review
+
+### [SEARCH] Reproducir canciones ya descargadas
+
+- tags: [frontend, search, playback, ui, kb-25]
+- priority: medium
+- workload: Easy
+- defaultExpanded: false
+- steps:
+    - [x] Se me abre el context menu para una cancion qe ya tengo descargada y en mi library
+    ```md
+    Corregida la causa en los providers: Search recibe publicId y disponibilidad reales de las canciones descargadas. SpotifyScrapper resuelve IDs exactos en una consulta por lote; YouTube Music y RockIt devuelven la identidad local. Sin coincidencias por título ni lógica específica en core.
+    Clic izquierdo reproduce o pausa; clic derecho/pulsación larga mantienen el menú. Hover: carátula oscurecida con play blanco centrado que aparece con una escala breve. Foco de teclado visible, acción visible en táctil y movimiento reducido respetado. Vocabulary existente.
+    Pendiente de revisión del usuario. Sin suites locales; comprobación visual en Chromium y regresión para CI.
+    ```
 
 ### [BUG] Botón play/pause incorrecto al cambiar de canción con transiciones en iOS
 

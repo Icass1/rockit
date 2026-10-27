@@ -345,7 +345,11 @@ export class SearchManager {
                     );
                 }
                 results.push(
-                    sources.find((source) => source.downloaded) ?? sources[0]
+                    sources.find(
+                        (source) => source.downloaded && source.publicId
+                    ) ??
+                        sources.find((source) => source.downloaded) ??
+                        sources[0]
                 );
             }
         }

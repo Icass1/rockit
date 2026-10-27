@@ -29,7 +29,7 @@ export default function SongsSection({
                         key={rockIt.searchManager.getResultKey(song)}
                         media={song}
                     >
-                        <div className="w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105">
+                        <div className="search-song-card w-36 flex-none cursor-pointer md:w-48">
                             <div className="relative">
                                 <Image
                                     sizes="(min-width: 768px) 192px, 144px"

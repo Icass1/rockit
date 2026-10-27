@@ -114,7 +114,7 @@
 - priority: medium
 - workload: Easy
     ```md
-    Revisión aclarada: misma capa de blur de 20 px, con máscara vertical cuya intensidad sigue un cuarto de círculo: α(t) = √(1 − t²), de 100 % arriba a 0 % abajo. Mantiene la geometría rectangular y los controles opacos. Stops más densos cerca del extremo para aproximar la tangente vertical. Comparativa visual con damero, franjas, texto y fotografía; pendiente de revisión, sin tests locales.
+    Revisión del borde final: caída suave en S (smootherstep), con pendiente cero al empezar y al terminar. La capa de blur de 20 px se prolonga 24 px bajo el header para fundirse con el contenido sin terminar con una caída abrupta. Geometría rectangular, controles opacos y fallback de transparencia reducida conservados. Capturas comparativas con texto, franjas y foto; pendiente de revisión, sin tests locales.
 
     Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
 

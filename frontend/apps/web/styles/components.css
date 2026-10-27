@@ -621,12 +621,12 @@ img {
     }
 }
 
-/* Quarter-circle falloff of the blur layer: alpha(t) = sqrt(1 - t²).
-   t is vertical position / header height. Denser stops near the vertical tangent.
-   The gradient direction stays vertical; its alpha samples describe the curve. */
+/* Smooth blur-layer falloff: alpha(t) = 1 - (6t⁵ - 15t⁴ + 10t³).
+   Both endpoint slopes are zero, so the blur blends into sharp content.
+   A short tail below the header gives that blend room without clipping it. */
 .app-header-backdrop {
     position: absolute;
-    inset: 0;
+    inset: 0 0 -24px;
     z-index: -1;
     pointer-events: none;
     -webkit-backdrop-filter: blur(20px);
@@ -634,29 +634,25 @@ img {
     --header-blur-mask: linear-gradient(
         to bottom,
         rgb(0 0 0 / 100%) 0%,
-        rgb(0 0 0 / 99.875%) 5%,
-        rgb(0 0 0 / 99.499%) 10%,
-        rgb(0 0 0 / 98.869%) 15%,
-        rgb(0 0 0 / 97.98%) 20%,
-        rgb(0 0 0 / 96.825%) 25%,
-        rgb(0 0 0 / 95.394%) 30%,
-        rgb(0 0 0 / 93.675%) 35%,
-        rgb(0 0 0 / 91.652%) 40%,
-        rgb(0 0 0 / 89.303%) 45%,
-        rgb(0 0 0 / 86.603%) 50%,
-        rgb(0 0 0 / 83.516%) 55%,
-        rgb(0 0 0 / 80%) 60%,
-        rgb(0 0 0 / 75.993%) 65%,
-        rgb(0 0 0 / 71.414%) 70%,
-        rgb(0 0 0 / 66.144%) 75%,
-        rgb(0 0 0 / 60%) 80%,
-        rgb(0 0 0 / 52.678%) 85%,
-        rgb(0 0 0 / 43.589%) 90%,
-        rgb(0 0 0 / 31.225%) 95%,
-        rgb(0 0 0 / 19.9%) 98%,
-        rgb(0 0 0 / 14.107%) 99%,
-        rgb(0 0 0 / 9.987%) 99.5%,
-        rgb(0 0 0 / 4.471%) 99.9%,
+        rgb(0 0 0 / 99.884%) 5%,
+        rgb(0 0 0 / 99.144%) 10%,
+        rgb(0 0 0 / 97.339%) 15%,
+        rgb(0 0 0 / 94.208%) 20%,
+        rgb(0 0 0 / 89.648%) 25%,
+        rgb(0 0 0 / 83.692%) 30%,
+        rgb(0 0 0 / 76.483%) 35%,
+        rgb(0 0 0 / 68.256%) 40%,
+        rgb(0 0 0 / 59.313%) 45%,
+        rgb(0 0 0 / 50%) 50%,
+        rgb(0 0 0 / 40.687%) 55%,
+        rgb(0 0 0 / 31.744%) 60%,
+        rgb(0 0 0 / 23.517%) 65%,
+        rgb(0 0 0 / 16.308%) 70%,
+        rgb(0 0 0 / 10.352%) 75%,
+        rgb(0 0 0 / 5.792%) 80%,
+        rgb(0 0 0 / 2.661%) 85%,
+        rgb(0 0 0 / 0.856%) 90%,
+        rgb(0 0 0 / 0.116%) 95%,
         rgb(0 0 0 / 0%) 100%
     );
     -webkit-mask-image: var(--header-blur-mask);

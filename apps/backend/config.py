@@ -53,13 +53,13 @@ class Settings(BaseSettings):
 
     # Object storage (S3-compatible, e.g. MinIO / AWS S3)
     # S3-compatible endpoint used by backend-to-storage operations.
-    S3_PRIVATE_ENDPOINT_URL: str | None = None
+    S3_PRIVATE_ENDPOINT_URL: str
     # Endpoint embedded in presigned URLs returned to clients. This must be
     # reachable by clients; it may be different from the private endpoint.
-    S3_PUBLIC_ENDPOINT_URL: str | None = None
-    S3_ACCESS_KEY: str = ""
-    S3_SECRET_KEY: str = ""
-    S3_BUCKET: str = ""
+    S3_PUBLIC_ENDPOINT_URL: str
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_BUCKET: str
     S3_REGION: str = "us-east-1"
     # Objects are private; all access happens through short-lived presigned URLs.
     # Lifetime of a generated presigned URL, in seconds.

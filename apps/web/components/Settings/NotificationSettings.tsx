@@ -33,7 +33,7 @@ export default function NotificationSettings(): JSX.Element {
                 ]);
                 if (!active) return;
 
-                if (availableEvents.isNotOk() || subscriptions.isNotOk()) {
+                if (!availableEvents.isOk() || !subscriptions.isOk()) {
                     setError(true);
                     setLoading(false);
                     return;
@@ -74,7 +74,7 @@ export default function NotificationSettings(): JSX.Element {
             const result = await Http.setNotificationSubscriptions({
                 eventKeys,
             });
-            if (result.isNotOk()) {
+            if (!result.isOk()) {
                 setError(true);
                 return;
             }

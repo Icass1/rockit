@@ -70,7 +70,7 @@ export class NotificationManager {
         try {
             const result = await Http.listNotifications(20, this._offset, this._unreadOnly);
             if (generation !== this._generation || revision !== this._revision) return;
-            if (result.isNotOk()) { this._error.set(result.message); return; }
+            if (!result.isOk()) { this._error.set(result.message); return; }
             this._notificationsAtom.set(result.result.items);
             this._unreadCount.set(result.result.unreadCount);
             this._totalCount.set(result.result.totalCount);
@@ -90,7 +90,7 @@ export class NotificationManager {
         this._revision++;
         const result = await Http.markNotificationRead(id);
         if (generation !== this._generation) return false;
-        if (result.isNotOk()) { this._error.set(result.message); return false; }
+        if (!result.isOk()) { this._error.set(result.message); return false; }
         await this.refreshAsync();
         return true;
     }
@@ -99,7 +99,7 @@ export class NotificationManager {
         const generation = this._generation;
         const result = await Http.getNotificationDestination(notification.publicId);
         if (generation !== this._generation) return null;
-        if (result.isNotOk()) { this._error.set(result.message); return null; }
+        if (!result.isOk()) { this._error.set(result.message); return null; }
         return await this.markRead(notification.publicId) ? result.result.url : null;
     }
 

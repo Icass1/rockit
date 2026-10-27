@@ -1005,14 +1005,6 @@ export class BaseHttp {
         return `${BACKEND_URL}/media/frame/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`;
     }
 
-    static generateImageURL(publicId: string) {
-        return `${BACKEND_URL}/media/image/blur/${encodeURIComponent(publicId)}`;
-    }
-
-    static getMediaImageURL(publicId: string) {
-        return `${BACKEND_URL}/media/image/${encodeURIComponent(publicId)}`;
-    }
-
     static async getPlaylist(
         publicId: string,
         offset?: number,

@@ -39,7 +39,7 @@ export class HttpResult<T> {
         return this.code >= 200 && this.code < 300;
     }
 
-    isNotOk(): this is HttpResult<T> & { detail: FastApiError["detail"] } {
-        return !this.isOk();
+    isNotOk(): this is HttpResult<T> & { result?: undefined; detail: FastApiError["detail"] } {
+        return this.code < 200 || this.code >= 300;
     }
 }

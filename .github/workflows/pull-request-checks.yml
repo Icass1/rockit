@@ -68,10 +68,7 @@ jobs:
                   DB_NAME=rockit-test
                   DB_USER=postgres
                   DB_PASSWORD=postgres
-                  MEDIA_PATH=/tmp/rockit-test-media
-                  IMAGES_PATH=/tmp/rockit-test-images
                   TEMP_PATH=/tmp/rockit-test-temp
-                  BUILDS_PATH=/tmp/rockit-test-builds
                   DOWNLOAD_THREADS=1
                   CLIENT_ID=test
                   CLIENT_SECRET=test

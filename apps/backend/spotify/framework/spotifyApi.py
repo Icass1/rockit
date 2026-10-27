@@ -1,7 +1,5 @@
-import base64
 import json
 import math
-import os
 from typing import Any
 from urllib.parse import quote_plus
 
@@ -35,49 +33,6 @@ class SpotifyApi:
     def get_token(self, from_file: bool = False) -> None:
 
         return
-
-        if not self.client_id:
-            logger.critical("client_id not set")
-            return
-
-        if not self.client_secret:
-            logger.critical("client_secret not set")
-            return
-
-        if from_file and os.path.exists(".spotify_cache/token"):
-            with open(".spotify_cache/token") as f:
-                self.token = f.read()
-            logger.info("New Spotify API token from cache.")
-
-            return
-
-        auth_string = self.client_id + ":" + self.client_secret
-        auth_bytes = auth_string.encode("utf-8")
-        auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
-
-        url = "https://accounts.spotify.com/api/token"
-        headers = {
-            "Authorization": "Basic " + auth_base64,
-            "Content-Type": "application/x-www-form-urlencoded",
-        }
-        data: dict[str, str] = {"grant_type": "client_credentials"}
-
-        result: httpx.Response = httpx.post(url, headers=headers, data=data)
-        json_response = json.loads(result.content)
-
-        try:
-            self.token = json_response["access_token"]
-        except Exception as e:
-            logger.critical(f"Unable to get access_token {e}.")
-            logger.critical(f"Received response code {result.status_code} from Spotify API")
-
-        if self.token:
-            if not os.path.exists(".spotify_cache"):
-                os.makedirs(".spotify_cache")
-            with open(".spotify_cache/token", "w") as f:
-                f.write(self.token)
-
-        logger.info("New Spotify API token.")
 
     def get_auth_header(self) -> dict[str, str] | None:
         if not self.token:

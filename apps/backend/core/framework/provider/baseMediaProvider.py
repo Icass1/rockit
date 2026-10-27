@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from logging import Logger
 from typing import TYPE_CHECKING, Any
 
@@ -212,22 +211,6 @@ class BaseMediaProvider(BaseProvider):
             code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_frame_async method.",
         )
-
-    @staticmethod
-    def _rename_file_to_backup(file_path: str) -> None:
-        """Rename a file by appending .bak<n> where n is the next available number.
-
-        If the file does not exist, this is a no-op.
-        """
-
-        if not os.path.exists(file_path):
-            return
-
-        n: int = 1
-        while os.path.exists(f"{file_path}.bak{n}"):
-            n += 1
-
-        os.rename(file_path, f"{file_path}.bak{n}")
 
     # ------------------------------------------------------------------
     # Stats CTE fragments

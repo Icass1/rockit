@@ -17,6 +17,7 @@ class BuildUploadSessionRow(
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.user.id"), nullable=False)
+    # Ephemeral upload assembly only; completed builds are S3 objects.
     file_path: Mapped[str] = mapped_column(String, nullable=False)
     version: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)

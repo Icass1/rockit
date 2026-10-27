@@ -94,7 +94,7 @@ async def delete_storage_object(
     public_id: str,
     _: None = Depends(AuthDependency.auth_dependency),
 ) -> OkResponse:
-    """Delete an S3 object; local media and image records are separate."""
+    """Delete an S3 object and its storage metadata."""
     session = DBSessionMiddleware.get_session(request=request)
     found = await Storage.get_object_from_public_id_async(session, public_id)
     if found.is_not_ok():

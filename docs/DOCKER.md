@@ -45,8 +45,6 @@ Set in .env.production:
 | SESSION_DURATION   | Session expiry (sec) | 86400                 |
 | SESSION_TOKEN_SECRET | JWT signing key (at least 32 bytes) | Required |
 | ENVIRONMENT        | Dev/Prod             | DEV                   |
-| MEDIA_PATH         | Media files          | /app/media            |
-| IMAGES_PATH        | Images               | /app/images           |
 | TEMP_PATH          | Temp files           | /app/temp             |
 | LOGS_PATH          | Logs                 | /app/logs             |
 | LOG_DUMP_LEVEL     | Log level            | info                  |
@@ -91,7 +89,7 @@ PostgreSQL 16. Data in postgres_data volume.
 
 ### Backend
 
-FastAPI on port 8000. Volumes: media, images, temp, logs. Depends: postgres.
+FastAPI on port 8000. Volumes: temp and logs. Persistent files use the configured S3 bucket. Depends: postgres.
 
 ### Frontend
 
@@ -158,3 +156,22 @@ docker compose build backend && docker compose up -d backend
 | docker compose ps                           | Containers   |
 | docker compose exec backend sh              | Shell        |
 | docker compose exec postgres psql -U rockit | Postgres CLI |
+
+## Persistent object storage
+
+Configure `S3_BUCKET` (required) and `S3_REGION`. For AWS S3, leave endpoint and
+explicit credential settings unset to use AWS endpoints and the credential chain.
+For compatible services such as MinIO, set `S3_PRIVATE_ENDPOINT_URL`,
+`S3_PUBLIC_ENDPOINT_URL`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY`.
+
+Media, images, APKs, derived audio and download backups are S3 objects. The backend
+proxies bounded S3 reads for streaming and ranges. The temporary volume is only
+scratch space for uploads, conversion and ZIP responses; it can be discarded once
+active operations finish. Logs retain their separate log volume.
+
+Before upgrading an existing local-file installation, upload media to the bucket
+using their relative keys (`spotify/…`, `spotify_scrapper/…`, `youtubeMusic/…`,
+`youtube/…`, and `rockit/…`), and APKs under `builds/<apk_filename>`. Replace any
+absolute values in media `path`, `video_path`, and `file_path` columns with the
+corresponding S3 keys. Image records already use storage-object keys. Runtime code
+has no local-file fallback, and this PR does not move files on deployed systems.

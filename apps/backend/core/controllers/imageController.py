@@ -1,10 +1,10 @@
-import os
-
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 
-from constants import IMAGES_PATH
+from core.framework.objectFiles import ObjectFiles
+from core.framework.storage import Storage
 from core.middlewares.authMiddleware import AuthMiddleware
+from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 
 router = APIRouter(
     prefix="/image",
@@ -14,10 +14,12 @@ router = APIRouter(
 
 
 @router.get("/{path}")
-async def get_image_async(request: Request, path: str) -> FileResponse:
-    image_path: str = os.path.join(IMAGES_PATH, path)
-
-    if not os.path.exists(image_path):
-        raise HTTPException(status_code=404, detail="Image in database but not in filesystem.")
-
-    return FileResponse(path=image_path)
+async def get_image_async(request: Request, path: str) -> StreamingResponse:
+    session = DBSessionMiddleware.get_session(request=request)
+    stored = await Storage.get_object_from_key_async(session=session, key=path)
+    if stored.is_not_ok():
+        raise HTTPException(status_code=stored.get_http_code(), detail=stored.message())
+    response = await ObjectFiles.stream_async(key=stored.result().key)
+    if response.is_not_ok():
+        raise HTTPException(status_code=response.get_http_code(), detail=response.message())
+    return response.result()

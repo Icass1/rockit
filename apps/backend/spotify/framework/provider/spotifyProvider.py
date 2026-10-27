@@ -1,16 +1,14 @@
-from backend.spotify.access.spotifyAccess import SpotifyAccess
-from backend.core.framework.models.localSong import LocalSong
-import os
+
 import re
 from logging import Logger
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.access.enumAccess import EnumAccess
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
+from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.responses.artistPageResponse import ArtistCatalogResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
@@ -25,6 +23,9 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.utils.timeIt import time_it
 from logger import getLogger
 from result import Result, ResultCode
+from spotify.access.spotifyAccess import SpotifyAccess
+from core.framework.models.localSong import LocalSong
+import os
 from spotify.access.artistCatalogAccess import ArtistCatalogAccess
 from spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
 from spotify.access.trackAccess import TrackAccess
@@ -593,8 +594,8 @@ class SpotifyProvider(BaseMediaProvider):
         track = a_result_tracks.result()[0]
 
         if track.path:
-            full_path: str = os.path.join(MEDIA_PATH, track.path)
-            self._rename_file_to_backup(full_path)
+            full_path: str = track.path
+            await ObjectFiles.archive_async(full_path)
 
         a_result_clear = await TrackAccess.clear_track_path_async(
             session=session, track_id=track.id

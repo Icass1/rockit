@@ -26,7 +26,7 @@ pnpm dev:mobile
 
 Set real development credentials and a random session-signing secret in the backend environment file. `ENV_FILE` selects an explicit file; `ROCKIT_ENV_FILE` and the existing environment variable names remain supported. Shared configuration uses the template's Pydantic `Settings`.
 
-Backend startup matches Delices: package path bootstrap, lazy `core` helpers, database initialization, optional S3 bucket setup, reference/provider seed data, and session readiness. Rockit then starts its download worker; shutdown cancels it and closes WebSockets. Internal imports use `core`, `config`, `logger`, and provider names without a `backend.` prefix.
+Backend startup matches Delices: package path bootstrap, lazy `core` helpers, database initialization, S3 bucket setup, reference/provider seed data, and session readiness. Rockit then starts its download worker; shutdown cancels it and closes WebSockets. Internal imports use `core`, `config`, `logger`, and provider names without a `backend.` prefix.
 
 ```sh
 uv run --project apps/backend python -m apps.backend models
@@ -37,7 +37,7 @@ The models command uses the same ORM, HTTP client, Zod, and enum generation stag
 
 ### Storage
 
-Existing music, video, images, downloads, uploads and Range streaming stay on local disk with their existing paths. The template's S3-compatible object-storage layer is available alongside them: object records, uploads/downloads/deletes, separate private/public endpoints, AWS credential-chain support, and presigned URLs. Configure `S3_BUCKET` and the optional S3 settings to enable bucket initialization. Authenticated `/storage-object` routes expose object metadata. Nothing moves existing media to S3.
+All persistent music, video, artwork, downloaded media, uploaded media and APK builds use S3-compatible object storage. Configure `S3_BUCKET`, credentials (or the AWS credential chain), and private/public endpoints. Backend streaming reads S3 with bounded buffers and HTTP byte ranges; ZIP exports and media conversion use disposable temporary files. `TEMP_PATH` is only upload assembly and processing scratch space, not persistent file storage. Historical media columns named `path`, `video_path`, or `file_path` contain S3 object keys. Authenticated `/storage-object` routes expose object metadata. Existing local files must be uploaded to S3 and their database values changed to object keys before deploying this version; the application never falls back to a local media directory.
 
 PostgreSQL supports password authentication and the template's IAM/TLS configuration (`DB_IAM_AUTH`, `DB_REGION`, `DB_SSLMODE`, `DB_SSLROOTCERT`).
 
@@ -53,7 +53,7 @@ PRs targeting `develop` or `main` run the same backend and TypeScript quality ga
 
 ### Containers
 
-Dockerfiles live under each app. `compose.yaml` preserves Rockit's deployment configuration and local volumes; the publish workflow builds the relocated backend and web images.
+Dockerfiles live under each app. `compose.yaml` mounts only temporary processing space and logs; persistent files live in S3; the publish workflow builds the relocated backend and web images.
 
 ```sh
 docker build -f apps/backend/Dockerfile -t rockit-backend .

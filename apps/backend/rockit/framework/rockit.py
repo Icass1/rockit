@@ -1,13 +1,12 @@
-import os
 from logging import Logger
 
-import aiofiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL, MEDIA_PATH
+from constants import BACKEND_URL
 from core.access.db.ormModels.image import ImageRow
 from core.access.imageAccess import ImageAccess
 from core.framework.media.image import Image
+from core.framework.objectFiles import ObjectFiles
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -37,19 +36,6 @@ logger: Logger = getLogger(__name__)
 class Rockit:
     provider_name: str = ""
     provider_id: int = 0
-
-    @staticmethod
-    async def _copy_from_path_async(src_path: str, dst_path: str) -> None:
-        """Copy a file from src to dst in 1MB chunks without loading into RAM."""
-
-        os.makedirs(os.path.dirname(dst_path), exist_ok=True)
-        async with aiofiles.open(src_path, "rb") as src:
-            async with aiofiles.open(dst_path, "wb") as dst:
-                while True:
-                    chunk = await src.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    await dst.write(chunk)
 
     @staticmethod
     async def _extract_duration_ms_async(file_path: str) -> int:
@@ -93,11 +79,15 @@ class Rockit:
         try:
             file_ext: str = "mp3"
             file_name: str = f"{create_id(32)}.{file_ext}"
-            final_file_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
+            object_key: str = f"rockit/songs/{file_name}"
 
-            await Rockit._copy_from_path_async(src_path=file_path, dst_path=final_file_path)
+            uploaded = await ObjectFiles.upload_async(
+                session=session, source=file_path, key=object_key
+            )
+            if uploaded.is_not_ok():
+                return Result(code=uploaded.code(), message=uploaded.message())
 
-            duration_ms: int = await Rockit._extract_duration_ms_async(file_path=final_file_path)
+            duration_ms: int = await Rockit._extract_duration_ms_async(file_path=file_path)
 
             image_file_name: str = f"{create_id(32)}.jpg"
             image_key: str = f"images/rockit/{image_file_name}"
@@ -122,7 +112,7 @@ class Rockit:
                 provider_id=Rockit.provider_id,
                 image_id=a_result_image.result().id,
                 duration_ms=duration_ms,
-                file_path=final_file_path,
+                file_path=object_key,
                 disc_number=disc_number,
                 track_number=track_number,
             )
@@ -207,12 +197,16 @@ class Rockit:
 
                 file_ext: str = "mp3"
                 file_name: str = f"{create_id(32)}.{file_ext}"
-                song_dst_path: str = f"{MEDIA_PATH}/rockit/songs/{file_name}"
+                song_key: str = f"rockit/songs/{file_name}"
 
-                await Rockit._copy_from_path_async(src_path=song_src_path, dst_path=song_dst_path)
+                uploaded = await ObjectFiles.upload_async(
+                    session=session, source=song_src_path, key=song_key
+                )
+                if uploaded.is_not_ok():
+                    return Result(code=uploaded.code(), message=uploaded.message())
 
                 song_duration_ms: int = await Rockit._extract_duration_ms_async(
-                    file_path=song_dst_path
+                    file_path=song_src_path
                 )
 
                 a_result_song: Result[RockitSongRow] = await RockitAccess.create_song_async(
@@ -222,7 +216,7 @@ class Rockit:
                     provider_id=Rockit.provider_id,
                     image_id=image_id,
                     duration_ms=song_duration_ms,
-                    file_path=song_dst_path,
+                    file_path=song_key,
                     disc_number=1,
                     track_number=track_number,
                 )
@@ -274,11 +268,15 @@ class Rockit:
         try:
             file_ext: str = "mp4"
             file_name: str = f"{create_id(32)}.{file_ext}"
-            final_file_path: str = f"{MEDIA_PATH}/rockit/videos/{file_name}"
+            object_key: str = f"rockit/videos/{file_name}"
 
-            await Rockit._copy_from_path_async(src_path=file_path, dst_path=final_file_path)
+            uploaded = await ObjectFiles.upload_async(
+                session=session, source=file_path, key=object_key
+            )
+            if uploaded.is_not_ok():
+                return Result(code=uploaded.code(), message=uploaded.message())
 
-            duration_ms: int = await Rockit._extract_duration_ms_async(file_path=final_file_path)
+            duration_ms: int = await Rockit._extract_duration_ms_async(file_path=file_path)
 
             image_file_name: str = f"{create_id(32)}.jpg"
             image_key: str = f"images/rockit/{image_file_name}"
@@ -303,7 +301,7 @@ class Rockit:
                 provider_id=Rockit.provider_id,
                 image_id=a_result_image.result().id,
                 duration_ms=duration_ms,
-                file_path=final_file_path,
+                file_path=object_key,
             )
             if a_result_video.is_not_ok():
                 logger.error(f"Error creating video. {a_result_video.info()}")
@@ -1035,16 +1033,20 @@ class Rockit:
     async def get_frame_async(file_path: str, public_id: str, timestamp_ms: float) -> Result[bytes]:
         """Extract a single frame from a RockIt video at the given timestamp (ms).
 
-        file_path is an absolute path to the video file on disk.
+        file_path is the stored S3 object key; processing uses a disposable local copy.
         """
+
+        import asyncio
 
         from core.utils.frameExtractor import extract_video_frame
 
-        return extract_video_frame(
-            full_video_path=file_path,
-            public_id=public_id,
-            timestamp_ms=timestamp_ms,
-        )
+        async with ObjectFiles.local_copy_async(file_path) as local_path:
+            return await asyncio.to_thread(
+                extract_video_frame,
+                full_video_path=local_path,
+                public_id=public_id,
+                timestamp_ms=timestamp_ms,
+            )
 
     @staticmethod
     async def _get_image_for_media_async(

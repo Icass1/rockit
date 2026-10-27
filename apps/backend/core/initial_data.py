@@ -1,10 +1,8 @@
 import os
-import shutil
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import IMAGES_PATH
 from core.access.db.ormEnums.bookmarkModeEnum import BookmarkModeEnumRow
 from core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow
 from core.access.db.ormEnums.friendStatusEnum import FriendStatusEnumRow
@@ -42,26 +40,17 @@ from result import Result
 
 
 async def add_default_images(session: AsyncSession) -> None:
-    """Move default images from apps/backend/images to IMAGES_PATH and add to database."""
+    """Upload bundled default images to S3 and register them in the database."""
     source_dir = str(Path(__file__).resolve().parents[1] / "images")
     if not os.path.exists(source_dir):
         logger.error(f"Source images directory does not exist: {source_dir}")
         return
 
-    os.makedirs(IMAGES_PATH, exist_ok=True)
-
     for filename in os.listdir(source_dir):
         source_path = os.path.join(source_dir, filename)
-        dest_path = os.path.join(IMAGES_PATH, filename)
 
         if not os.path.isfile(source_path):
             continue
-
-        if os.path.exists(dest_path):
-            logger.info(f"Image already exists at destination: {dest_path}")
-        else:
-            shutil.copy(source_path, dest_path)
-            logger.info(f"Copied image: {filename}")
 
         with open(source_path, "rb") as image_file:
             image_bytes: bytes = image_file.read()

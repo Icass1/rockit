@@ -1,11 +1,10 @@
 import os
-import shutil
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.framework.downloader.baseDownload import BaseDownload
+from core.framework.objectFiles import ObjectFiles
 from logger import getLogger
 from result import Result, ResultCode
 from youtube.framework.youtubeDownloader import YouTubeDownloader
@@ -146,16 +145,17 @@ class YoutubeMusicDownload(BaseDownload):
 
             logger.info(f"Track downloaded successfully: {downloaded_filename}")
 
-            final_relative_dir: str = os.path.join("youtubeMusic")
-            final_dir: str = os.path.join(MEDIA_PATH, "youtubeMusic")
-            final_path: str = os.path.join(final_dir, f"{self.youtube_id}.mp3")
-            final_relative_path: str = os.path.join(final_relative_dir, f"{self.youtube_id}.mp3")
-            os.makedirs(final_dir, exist_ok=True)
+            object_key = f"youtubeMusic/{self.youtube_id}.mp3"
 
-            shutil.move(downloaded_filename, final_path)
+            uploaded = await ObjectFiles.upload_async(
+                session=session, source=downloaded_filename, key=object_key
+            )
+            if uploaded.is_not_ok():
+                return ResultCode(code=uploaded.code(), message=uploaded.message())
+            os.remove(downloaded_filename)
 
             await YoutubeMusicAccess.update_track_path_async(
-                session=session, track_id=self.track_id, path=final_relative_path
+                session=session, track_id=self.track_id, path=object_key
             )
 
             return ResultCode(code=ResultCode.OK, message="Download completed.")

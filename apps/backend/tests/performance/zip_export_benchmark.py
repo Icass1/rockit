@@ -12,9 +12,12 @@ import tempfile
 import time
 import zipfile
 from pathlib import Path
+from typing import BinaryIO
+from unittest.mock import patch
 
 from PIL import Image
 
+from core.framework.objectFiles import ObjectFiles
 from zipExport.models.exportFile import AudioTags, ExportFile
 from zipExport.utils.archive import build_archive
 
@@ -28,9 +31,22 @@ def main() -> None:
         source.write_bytes(b"x" * (8 * 1024 * 1024))
         cover = root / "cover.png"
         Image.effect_noise((1200, 1200), 80).convert("RGB").save(cover)
-        metadata = AudioTags(artists=("Artist",), album="Album", track=1, cover_path=str(cover))
+        metadata = AudioTags(
+            artists=("Artist",),
+            album="Album",
+            track=1,
+            cover_data=cover.read_bytes(),
+            cover_mime="image/png",
+        )
         files = [ExportFile(f"Track {index}", str(source), metadata) for index in range(32)]
         output = root / "export.zip"
+
+        def source_metadata(key: str) -> dict[str, int]:
+            return {"ContentLength": source.stat().st_size}
+
+        def open_source(key: str) -> BinaryIO:
+            return source.open("rb")
+
         samples: dict[str, list[float]] = {"legacy": [], "copy": [], "tagged": []}
         for run in range(6):
             for mode in (
@@ -40,17 +56,25 @@ def main() -> None:
                 if mode == "legacy":
                     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_STORED) as archive:
                         for item in files:
-                            archive.write(item.path, f"{item.name}.mp3")
+                            archive.write(item.key, f"{item.name}.mp3")
                 else:
-                    build_archive(
-                        zip_path=str(output),
-                        files=(
-                            files
-                            if mode == "tagged"
-                            else [ExportFile(item.name, item.path) for item in files]
+                    with (
+                        patch.object(
+                            ObjectFiles,
+                            "metadata",
+                            side_effect=source_metadata,
                         ),
-                        max_bytes=2 * 1024**3,
-                    )
+                        patch.object(ObjectFiles, "open_file", side_effect=open_source),
+                    ):
+                        build_archive(
+                            zip_path=str(output),
+                            files=(
+                                files
+                                if mode == "tagged"
+                                else [ExportFile(item.name, item.key) for item in files]
+                            ),
+                            max_bytes=2 * 1024**3,
+                        )
                 elapsed = time.perf_counter() - start
                 if run:
                     samples[mode].append(elapsed)

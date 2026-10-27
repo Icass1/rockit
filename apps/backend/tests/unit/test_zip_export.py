@@ -5,6 +5,7 @@ import io
 import subprocess
 import threading
 import zipfile
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
@@ -13,10 +14,12 @@ from mutagen.id3 import ID3, TIT2, TXXX  # pyright: ignore[reportPrivateImportUs
 from PIL import Image
 
 from result import Result, ResultCode
+from tests.fake_object_store import FakeObjectStore
 from zipExport.framework import downloadZip
 from zipExport.framework.downloadZip import DownloadZip
 from zipExport.models.exportFile import AudioTags, ExportFile
 from zipExport.utils.archive import ArchiveTooLarge, build_archive
+from zipExport.utils.audioMetadata import read_cover_bytes
 
 # Mutagen's dynamic frame API has no complete member/argument type annotations.
 # pyright: reportUnknownMemberType=false, reportUnknownArgumentType=false
@@ -49,8 +52,38 @@ def mp3(tmp_path: Path) -> Path:
     return path
 
 
+@pytest.fixture(autouse=True)
+def archive_sources(monkeypatch: pytest.MonkeyPatch, object_store: FakeObjectStore) -> None:
+    import zipExport.utils.archive as archive_module
+
+    original = build_archive
+
+    def from_fixtures(zip_path: str, files: list[ExportFile], max_bytes: int) -> int:
+        remote: list[ExportFile] = []
+        for item in files:
+            source = Path(item.key)
+            key = source.name
+            if source.is_file():
+                object_store.objects[key] = source.read_bytes()
+            remote.append(replace(item, key=key))
+        return original(zip_path=zip_path, files=remote, max_bytes=max_bytes)
+
+    monkeypatch.setattr(archive_module, "build_archive", from_fixtures)
+    monkeypatch.setattr(downloadZip, "build_archive", from_fixtures)
+
+
+def artwork(path: Path) -> bytes:
+    result = read_cover_bytes(path.read_bytes())
+    assert result is not None
+    return result[0]
+
+
 def _build_archive(path: str, files: list[ExportFile]) -> int:
-    return build_archive(zip_path=path, files=files, max_bytes=downloadZip.MAX_ZIP_BYTES)
+    import zipExport.utils.archive as archive_module
+
+    return archive_module.build_archive(
+        zip_path=path, files=files, max_bytes=downloadZip.MAX_ZIP_BYTES
+    )
 
 
 def mpeg_bytes(data: bytes) -> bytes:
@@ -75,7 +108,8 @@ def test_export_embeds_tags_original_cover_and_preserves_audio(mp3: Path, tmp_pa
         track=3,
         disc=2,
         isrc="GB1234567890",
-        cover_path=str(cover),
+        cover_data=artwork(cover),
+        cover_mime="image/png",
     )
     path = tmp_path / "export.zip"
     assert _build_archive(str(path), [ExportFile("Canción", str(mp3), metadata)]) == 1
@@ -131,7 +165,7 @@ def test_missing_artwork_preserves_existing_tags(mp3: Path, tmp_path: Path) -> N
     tags.add(TXXX(encoding=3, desc="custom", text=["keep"]))
     tags.save(mp3)
     path = tmp_path / "export.zip"
-    _build_archive(str(path), [ExportFile("Title", str(mp3), AudioTags(cover_path="/missing"))])
+    _build_archive(str(path), [ExportFile("Title", str(mp3), AudioTags())])
     with zipfile.ZipFile(path) as archive:
         tags = ID3(fileobj=io.BytesIO(archive.read("Title.mp3")))
     assert str(tags["TIT2"]) == "Title"
@@ -147,7 +181,13 @@ def test_final_size_limit_includes_artwork(
     with pytest.raises(ArchiveTooLarge):
         _build_archive(
             str(tmp_path / "export.zip"),
-            [ExportFile("Title", str(mp3), AudioTags(cover_path=str(cover)))],
+            [
+                ExportFile(
+                    "Title",
+                    str(mp3),
+                    AudioTags(cover_data=artwork(cover), cover_mime="image/png"),
+                )
+            ],
         )
 
 

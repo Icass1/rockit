@@ -41,7 +41,7 @@ WORKDIR /app
 
 COPY apps/backend/ /app/apps/backend/
 
-RUN mkdir -p /app/media /app/images /app/temp /app/logs && chmod -R 755 /app
+RUN mkdir -p /app/temp /app/logs && chmod -R 755 /app
 
 ENV PYTHONPATH=/app/apps/backend:/app
 

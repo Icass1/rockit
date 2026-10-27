@@ -1,12 +1,12 @@
-import os
 from logging import Logger
+from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BUILDS_PATH
 from core.access.db.ormModels.appVersion import AppVersionRow
+from core.framework.objectFiles import ObjectFiles
 from core.framework.version import Version
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.responses.latestVersionResponse import LatestVersionResponse
@@ -34,25 +34,22 @@ async def get_latest_version(request: Request) -> LatestVersionResponse:
 
 
 @router.get("/apk/{filename}")
-async def download_apk(request: Request, filename: str) -> FileResponse:
-    apk_path = os.path.join(BUILDS_PATH, filename)
-
-    if not os.path.exists(apk_path):
-        logger.error(f"Build not found: {filename}")
-        raise HTTPException(status_code=404, detail="APK file not found.")
-
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    await Version.increment_downloads_async(session=session, apk_filename=filename)
-
-    return FileResponse(
-        path=apk_path,
-        media_type="application/vnd.android.package-archive",
-        filename=filename,
+async def download_apk(request: Request, filename: str) -> StreamingResponse:
+    session = DBSessionMiddleware.get_session(request=request)
+    response = await ObjectFiles.stream_async(
+        key=f"builds/{filename}", range_header=request.headers.get("range")
     )
+    if response.is_not_ok():
+        raise HTTPException(status_code=response.get_http_code(), detail=response.message())
+    response.result().headers["Content-Disposition"] = (
+        f"attachment; filename*=UTF-8''{quote(filename, safe='')}"
+    )
+    await Version.increment_downloads_async(session=session, apk_filename=filename)
+    return response.result()
 
 
 @router.get("/latest/apk")
-async def download_latest_apk(request: Request) -> FileResponse:
+async def download_latest_apk(request: Request) -> StreamingResponse:
     """Endpoint to download the latest APK file."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     a_result: Result[AppVersionRow] = await Version.get_latest_version_path_async(session=session)
@@ -61,17 +58,4 @@ async def download_latest_apk(request: Request) -> FileResponse:
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
     version_row: AppVersionRow = a_result.result()
 
-    apk_path = os.path.join(BUILDS_PATH, version_row.apk_filename)
-
-    if not os.path.exists(apk_path):
-        logger.error(f"Build not found: {apk_path}")
-        raise HTTPException(status_code=404, detail="APK file not found.")
-
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    await Version.increment_downloads_async(session=session, apk_filename=apk_path)
-
-    return FileResponse(
-        path=apk_path,
-        media_type="application/vnd.android.package-archive",
-        filename=f"rockit_v{version_row.version}.apk",
-    )
+    return await download_apk(request=request, filename=version_row.apk_filename)

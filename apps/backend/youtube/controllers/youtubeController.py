@@ -1,15 +1,12 @@
-import os
-from collections.abc import AsyncGenerator
 from logging import Logger
 
-import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
-from constants import MEDIA_PATH
 from core.framework.media.stream import MediaStream
+from core.framework.objectFiles import ObjectFiles
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from logger import getLogger
@@ -44,70 +41,12 @@ async def stream_video_async(request: Request, youtube_id: str) -> Response:
     if not video_response.video_path:
         raise HTTPException(status_code=404, detail="Video file not found")
 
-    video_path: str = os.path.join(MEDIA_PATH, video_response.video_path)
-    if not os.path.exists(video_path):
-        raise HTTPException(status_code=404, detail="Video file not found on disk")
-
-    file_size: int = os.path.getsize(video_path)
-    _, file_ext = os.path.splitext(video_path)
-    media_type: str = "video/mp4"
-    if file_ext == ".webm":
-        media_type = "video/webm"
-    elif file_ext == ".mkv":
-        media_type = "video/x-matroska"
-    range_header: str | None = request.headers.get("range")
-
-    if range_header:
-        range_start: int = 0
-        range_end: int = file_size - 1
-        if "bytes=" in range_header:
-            parts: list[str] = range_header.split("bytes=")[1].split("-")
-            if parts[0]:
-                range_start = int(parts[0])
-            if parts[1]:
-                range_end = int(parts[1])
-
-        content_length: int = range_end - range_start + 1
-
-        async def iter_range(start: int, end: int) -> AsyncGenerator[bytes, None]:
-            async with aiofiles.open(video_path, "rb") as f:
-                await f.seek(start)
-                remaining: int = end - start + 1
-                while remaining > 0:
-                    chunk_size: int = min(1024 * 1024, remaining)
-                    chunk: bytes = await f.read(chunk_size)
-                    if not chunk:
-                        break
-                    remaining -= len(chunk)
-                    yield chunk
-
-        return StreamingResponse(
-            iter_range(range_start, range_end),
-            status_code=206,
-            media_type=media_type,
-            headers={
-                "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
-                "Accept-Ranges": "bytes",
-                "Content-Length": str(content_length),
-            },
-        )
-
-    async def iter_file() -> AsyncGenerator[bytes, None]:
-        async with aiofiles.open(video_path, "rb") as f:
-            while True:
-                chunk: bytes = await f.read(1024 * 1024)
-                if not chunk:
-                    break
-                yield chunk
-
-    return StreamingResponse(
-        iter_file(),
-        media_type=media_type,
-        headers={
-            "Accept-Ranges": "bytes",
-            "Content-Length": str(file_size),
-        },
+    streamed = await ObjectFiles.stream_async(
+        key=video_response.video_path, range_header=request.headers.get("range")
     )
+    if streamed.is_not_ok():
+        raise HTTPException(status_code=streamed.get_http_code(), detail=streamed.message())
+    return streamed.result()
 
 
 @public_router.get("/video/{youtube_id}/stream/audio")
@@ -126,10 +65,8 @@ async def stream_audio_async(request: Request, youtube_id: str) -> Response:
     if not video_response.video_path:
         raise HTTPException(status_code=404, detail="Video file not found")
 
-    video_path: str = os.path.join(MEDIA_PATH, video_response.video_path)
-
-    a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_from_video_async(
-        video_path=video_path, range_header=request.headers.get("range")
+    a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_object_async(
+        key=video_response.video_path, range_header=request.headers.get("range")
     )
     if a_result_stream.is_not_ok():
         logger.error(f"Error streaming audio. {a_result_stream.info()}")

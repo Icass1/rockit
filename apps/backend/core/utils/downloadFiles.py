@@ -1,28 +1,20 @@
 import asyncio
-from pathlib import Path
 
-from constants import MEDIA_PATH
 from core.framework.models.downloadCandidate import DownloadCandidate
+from core.framework.objectFiles import ObjectFiles
 
 
 class DownloadFiles:
     @staticmethod
     async def existing_ids_async(candidates: list[DownloadCandidate]) -> set[int]:
-        """Reuse only a real, nonempty file inside the configured media directory."""
+        """Only reuse nonempty S3 objects; database keys alone do not imply completion."""
+        semaphore = asyncio.Semaphore(16)
 
-        def scan() -> set[int]:
-            root = Path(MEDIA_PATH).resolve()
-            existing: set[int] = set()
-            for candidate in candidates:
-                if not candidate.path:
-                    continue
-                try:
-                    path = (root / candidate.path).resolve()
-                    if path.is_relative_to(root) and path.is_file() and path.stat().st_size > 0:
-                        existing.add(candidate.id)
-                except (OSError, ValueError):
-                    # Missing, unreadable or invalid paths must never appear completed.
-                    continue
-            return existing
+        async def exists(candidate: DownloadCandidate) -> int | None:
+            async with semaphore:
+                if candidate.path and await ObjectFiles.exists_async(candidate.path):
+                    return candidate.id
+            return None
 
-        return await asyncio.to_thread(scan)
+        ids = await asyncio.gather(*(exists(candidate) for candidate in candidates))
+        return {value for value in ids if value is not None}

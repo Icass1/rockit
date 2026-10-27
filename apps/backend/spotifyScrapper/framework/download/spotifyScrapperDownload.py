@@ -1,11 +1,10 @@
 import os
-import shutil
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.framework.downloader.baseDownload import BaseDownload
+from core.framework.objectFiles import ObjectFiles
 from logger import getLogger
 from result import Result, ResultCode
 from spotifyScrapper.access.db.ormModels.artist import ArtistRow
@@ -139,13 +138,14 @@ class SpotifyScrapperDownload(BaseDownload):
 
             logger.info(f"Track downloaded successfully: {downloaded_filename}")
 
-            final_relative_dir: str = os.path.join("spotify_scrapper")
-            final_dir: str = os.path.join(MEDIA_PATH, "spotify_scrapper")
-            final_path: str = os.path.join(final_dir, f"{track.spotify_id}.mp3")
-            final_relative_path: str = os.path.join(final_relative_dir, f"{track.spotify_id}.mp3")
-            os.makedirs(final_dir, exist_ok=True)
+            object_key = f"spotify_scrapper/{track.spotify_id}.mp3"
 
-            shutil.move(downloaded_filename, final_path)
+            uploaded = await ObjectFiles.upload_async(
+                session=session, source=downloaded_filename, key=object_key
+            )
+            if uploaded.is_not_ok():
+                return ResultCode(code=uploaded.code(), message=uploaded.message())
+            os.remove(downloaded_filename)
 
             # Persist the candidate that actually produced a file, which is
             # not necessarily the one the search ranked first.
@@ -154,7 +154,7 @@ class SpotifyScrapperDownload(BaseDownload):
             a_result_update = await TrackAccess.update_track_path_async(
                 session=session,
                 track_id=track.id,
-                path=final_relative_path,
+                path=object_key,
                 download_url=downloaded_url,
             )
 

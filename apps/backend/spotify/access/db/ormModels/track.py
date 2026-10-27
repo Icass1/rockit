@@ -45,6 +45,7 @@ class TrackRow(SpotifyBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Historical column name; value is an S3 object key, never a disk path.
     path: Mapped[str | None] = mapped_column(String, nullable=True)
     album_id: Mapped[int] = mapped_column(Integer, ForeignKey("spotify.album.id"), nullable=False)
     isrc: Mapped[str] = mapped_column(String, nullable=False, unique=False)

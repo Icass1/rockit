@@ -1,5 +1,4 @@
 import io
-import os
 import uuid
 from typing import cast
 
@@ -7,7 +6,6 @@ import requests as req
 from PIL import Image as PILImage
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import IMAGES_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.framework.media.image import Image
 from logger import getLogger
@@ -29,13 +27,7 @@ class ImageDownload:
             if response.status_code != 200:
                 return Result(code=ResultCode.GENERAL_ERROR, message="Image download failed")
 
-            temp_filename = str(uuid.uuid4()) + ".jpg"
-            temp_path = os.path.join(IMAGES_PATH, "youtubeMusic", temp_filename)
-            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-            with open(temp_path, "wb") as f:
-                f.write(response.content)
-
-            image = PILImage.open(temp_path)
+            image = PILImage.open(io.BytesIO(response.content))
 
             real_left_margin_width = int((image.size[0] - image.size[1]) / 2)
             lookup_left_margin_width = int((image.size[0] - image.size[1]) / 2) - 10
@@ -79,8 +71,6 @@ class ImageDownload:
                         f"No border detected, keeping original image. {len(reds)} unique "
                         f"reds, {len(greens)} unique greens, {len(blues)} unique blues"
                     )
-
-            os.remove(temp_path)
 
             filename = str(uuid.uuid4()) + ".png"
             buffer = io.BytesIO()

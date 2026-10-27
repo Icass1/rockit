@@ -29,6 +29,7 @@ class RockitVideoRow(RockitBase, TableDateUpdated, TableDateAdded):
     id: Mapped[int] = mapped_column(Integer, ForeignKey("core.media.id"), primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Historical column name; value is an S3 object key, never a disk path.
     file_path: Mapped[str] = mapped_column(String, nullable=False)
     image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
 

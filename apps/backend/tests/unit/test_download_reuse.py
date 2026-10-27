@@ -14,9 +14,9 @@ from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.downloader.downloader import Downloader
 from core.framework.models.downloadCandidate import DownloadCandidate
-from core.utils import downloadFiles
 from core.utils.downloadFiles import DownloadFiles
 from result import Result, ResultCode
+from tests.fake_object_store import FakeObjectStore
 
 T = TypeVar("T")
 
@@ -43,16 +43,16 @@ def make_group() -> DownloadGroupRow:
     ["existing", "missing", "empty", "directory", "no_path", "outside", "invalid"],
 )
 async def test_file_reuse_requires_a_real_nonempty_file(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: str
+    tmp_path: Path, object_store: FakeObjectStore, case: str
 ) -> None:
     root = tmp_path / "media"
     root.mkdir()
-    monkeypatch.setattr(downloadFiles, "MEDIA_PATH", str(root))
+
     path: str | None = "song.mp3"
     if case == "existing":
-        (root / path).write_bytes(b"audio")
+        object_store.objects[path] = b"audio"
     elif case == "empty":
-        (root / path).touch()
+        object_store.objects[path] = b""
     elif case == "directory":
         (root / path).mkdir()
     elif case == "no_path":

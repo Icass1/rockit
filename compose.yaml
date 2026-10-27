@@ -14,12 +14,8 @@ services:
             YTDLP_POT_PROVIDER_URL: http://pot-provider:4416
         restart: unless-stopped
         volumes:
-            - ./media:/app/media
-            - ./images:/app/images
             - ./temp:/app/temp
             - ./logs:/app/logs
-            - ./builds:/app/builds
-            - /mnt/music:/mnt/music
         networks:
             - rockit-beta
             - postgres_postgres-network

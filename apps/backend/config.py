@@ -53,23 +53,20 @@ class Settings(BaseSettings):
 
     # Object storage (S3-compatible, e.g. MinIO / AWS S3)
     # S3-compatible endpoint used by backend-to-storage operations.
-    S3_PRIVATE_ENDPOINT_URL: str
+    S3_PRIVATE_ENDPOINT_URL: str | None = None
     # Endpoint embedded in presigned URLs returned to clients. This must be
     # reachable by clients; it may be different from the private endpoint.
-    S3_PUBLIC_ENDPOINT_URL: str
-    S3_ACCESS_KEY: str
-    S3_SECRET_KEY: str
-    S3_BUCKET: str
+    S3_PUBLIC_ENDPOINT_URL: str | None = None
+    S3_ACCESS_KEY: str | None = None
+    S3_SECRET_KEY: str | None = None
+    S3_BUCKET: str = Field(min_length=1)
     S3_REGION: str = "us-east-1"
     # Objects are private; all access happens through short-lived presigned URLs.
     # Lifetime of a generated presigned URL, in seconds.
     S3_PRESIGNED_URL_EXPIRES: int = 3600
 
     # Rockit capabilities extend the same shared Settings used by the template.
-    MEDIA_PATH: str
-    IMAGES_PATH: str
     TEMP_PATH: str
-    BUILDS_PATH: str
     DOWNLOAD_THREADS: int
     CLIENT_ID: str
     CLIENT_SECRET: str
@@ -97,6 +94,10 @@ class Settings(BaseSettings):
         return value
 
     @field_validator(
+        "S3_PRIVATE_ENDPOINT_URL",
+        "S3_PUBLIC_ENDPOINT_URL",
+        "S3_ACCESS_KEY",
+        "S3_SECRET_KEY",
         "YTDLP_POT_PROVIDER_URL",
         "YTDLP_COOKIES_FILE",
         "YTDLP_SOURCE_ADDRESS",

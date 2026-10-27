@@ -5,6 +5,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+import pytest
+
+from tests.fake_object_store import FakeObjectStore
+
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND_ROOT))
 
@@ -22,10 +26,7 @@ def pytest_configure(config: object) -> None:
         "SESSION_DURATION_REMEMBER_ME": "86400",
         "PROD_WEB_SESSION_DOMAIN": "localhost",
         "PROD_MOBILE_SESSION_DOMAIN": "localhost",
-        "MEDIA_PATH": "/tmp/rockit-test-media",
-        "IMAGES_PATH": "/tmp/rockit-test-images",
         "TEMP_PATH": "/tmp/rockit-test-temp",
-        "BUILDS_PATH": "/tmp/rockit-test-builds",
         "DOWNLOAD_THREADS": "1",
         "CLIENT_ID": "test",
         "CLIENT_SECRET": "test",
@@ -50,3 +51,12 @@ def pytest_configure(config: object) -> None:
         DB_PORT="5432",
         SESSION_TOKEN_SECRET="test-only-signing-key-with-at-least-32-bytes",
     )
+
+
+@pytest.fixture
+def object_store(monkeypatch: pytest.MonkeyPatch) -> FakeObjectStore:
+    from core.framework import objectFiles
+
+    store = FakeObjectStore()
+    monkeypatch.setattr(objectFiles, "get_s3_client", lambda: store)
+    return store

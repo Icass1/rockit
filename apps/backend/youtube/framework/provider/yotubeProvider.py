@@ -1,13 +1,12 @@
-import os
 import re
 from logging import Logger
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
+from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.types import AddFromUrlResult
 from core.responses.baseVideoResponse import BaseVideoResponse
@@ -374,8 +373,8 @@ class YoutubeProvider(BaseMediaProvider):
         video: VideoRow = a_result_video.result()
 
         if video.video_path:
-            full_video_path: str = os.path.join(MEDIA_PATH, video.video_path)
-            self._rename_file_to_backup(full_video_path)
+            full_video_path: str = video.video_path
+            await ObjectFiles.archive_async(full_video_path)
 
         a_result_clear: ResultCode = await Video.clear_video_paths_async(
             session=session, video_id=video.id

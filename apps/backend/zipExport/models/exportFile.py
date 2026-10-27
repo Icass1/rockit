@@ -12,7 +12,6 @@ class AudioTags:
     track: int = 0
     disc: int = 0
     isrc: str = ""
-    cover_path: str = ""
     cover_storage_object_id: int = 0
     cover_data: bytes | None = None
     cover_mime: str = ""
@@ -20,6 +19,8 @@ class AudioTags:
 
 @dataclass(frozen=True)
 class ExportFile:
+    """A persistent S3 object key and detached tagging metadata."""
+
     name: str
-    path: str
+    key: str
     tags: AudioTags | None = None

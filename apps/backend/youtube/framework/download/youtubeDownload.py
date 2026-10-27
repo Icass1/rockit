@@ -1,11 +1,10 @@
 import os
-import shutil
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.framework.downloader.baseDownload import BaseDownload
+from core.framework.objectFiles import ObjectFiles
 from logger import getLogger
 from result import Result, ResultCode
 from youtube.framework.video import Video
@@ -93,22 +92,21 @@ class YoutubeDownload(BaseDownload):
 
             logger.info(f"Video downloaded successfully: {downloaded_filename}")
 
-            final_relative_dir: str = os.path.join("youtube")
-            final_dir: str = os.path.join(MEDIA_PATH, "youtube")
             _, actual_ext = os.path.splitext(downloaded_filename)
-            final_path: str = os.path.join(final_dir, f"{self.youtube_video_id}{actual_ext}")
-            final_relative_path: str = os.path.join(
-                final_relative_dir, f"{self.youtube_video_id}{actual_ext}"
-            )
-            os.makedirs(final_dir, exist_ok=True)
+            object_key = f"youtube/{self.youtube_video_id}{actual_ext}"
 
-            shutil.move(downloaded_filename, final_path)
+            uploaded = await ObjectFiles.upload_async(
+                session=session, source=downloaded_filename, key=object_key
+            )
+            if uploaded.is_not_ok():
+                return ResultCode(code=uploaded.code(), message=uploaded.message())
+            os.remove(downloaded_filename)
 
             try:
                 a_result_update: ResultCode = await Video.update_video_path_async(
                     session=session,
                     video_id=self.video_id,
-                    video_path=final_relative_path,
+                    video_path=object_key,
                 )
 
                 if a_result_update.is_not_ok():

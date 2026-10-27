@@ -1,11 +1,9 @@
-import os
 from logging import Logger
 from typing import Any
 
 from sqlalchemy import select, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.providerStorage import provider_storage
@@ -85,7 +83,6 @@ class DownloadZipAccess:
         exported: dict[str, ExportFile] = {}
         for row in rows.mappings():
             path = row["path"]
-            path = path if os.path.isabs(path) else os.path.join(MEDIA_PATH, path)
             metadata = None
             if tags is not None and row["id"] is not None:
                 cover_storage_object_id = row["cover_storage_object_id"] or 0
@@ -99,7 +96,7 @@ class DownloadZipAccess:
                     isrc=row["isrc"] or "",
                     cover_storage_object_id=cover_storage_object_id,
                 )
-            exported[row["public_id"]] = ExportFile(name=row["name"], path=path, tags=metadata)
+            exported[row["public_id"]] = ExportFile(name=row["name"], key=path, tags=metadata)
         return Result(
             code=ResultCode.OK,
             message="OK",

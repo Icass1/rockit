@@ -54,19 +54,6 @@ def read_cover_bytes(data: bytes, label: str = "") -> tuple[bytes, str] | None:
         return None
 
 
-def read_cover(path: str) -> tuple[bytes, str] | None:
-    """Read artwork from a local file path."""
-    if not path:
-        return None
-    try:
-        with open(file=path, mode="rb") as source:
-            data = source.read(MAX_COVER_BYTES + 1)
-    except OSError as exception:
-        logger.warning(f"Could not read export cover {path}: {exception}")
-        return None
-    return read_cover_bytes(data=data, label=path)
-
-
 def apply_id3(tags: ID3, title: str, metadata: AudioTags, cover: tuple[bytes, str] | None) -> None:
     """Replace known library fields, preserving existing fields absent in the DB."""
     values = (

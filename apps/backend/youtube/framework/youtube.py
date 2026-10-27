@@ -1,11 +1,10 @@
-import os
 import uuid
 from typing import TYPE_CHECKING, Any
 
 import requests as req
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL, MEDIA_PATH
+from constants import BACKEND_URL
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
@@ -443,12 +442,15 @@ class YouTube:
     ) -> Result[bytes]:
         """Extract a single frame from a video file at the given timestamp (ms)."""
 
+        import asyncio
+
+        from core.framework.objectFiles import ObjectFiles
         from core.utils.frameExtractor import extract_video_frame
 
-        full_video_path: str = os.path.join(MEDIA_PATH, video_path)
-
-        return extract_video_frame(
-            full_video_path=full_video_path,
-            public_id=public_id,
-            timestamp_ms=timestamp_ms,
-        )
+        async with ObjectFiles.local_copy_async(video_path) as local_path:
+            return await asyncio.to_thread(
+                extract_video_frame,
+                full_video_path=local_path,
+                public_id=public_id,
+                timestamp_ms=timestamp_ms,
+            )

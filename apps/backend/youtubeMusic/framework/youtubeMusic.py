@@ -1,16 +1,15 @@
 import asyncio
-import os
 from typing import TYPE_CHECKING
 
 from fastapi import Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL, MEDIA_PATH
+from constants import BACKEND_URL
 from core.access.db.ormModels.image import ImageRow
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.media.image import Image
-from core.framework.media.stream import MediaStream
+from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
@@ -1341,8 +1340,8 @@ class YoutubeMusic:
         track = a_result_track.result()
 
         if track.path:
-            full_path: str = os.path.join(MEDIA_PATH, track.path)
-            YoutubeMusic._rename_file_to_backup(file_path=full_path)
+            full_path: str = track.path
+            await ObjectFiles.archive_async(full_path)
 
         a_result_clear: ResultCode = await YoutubeMusicAccess.update_track_path_async(
             session=session, track_id=track.id, path=None
@@ -1352,22 +1351,6 @@ class YoutubeMusic:
             return ResultCode(code=a_result_clear.code(), message=a_result_clear.message())
 
         return ResultCode(code=ResultCode.OK, message="OK")
-
-    @staticmethod
-    def _rename_file_to_backup(file_path: str) -> None:
-        """Rename a file by appending .bak<n> where n is the next available number.
-
-        If the file does not exist, this is a no-op.
-        """
-
-        if not os.path.exists(file_path):
-            return
-
-        n: int = 1
-        while os.path.exists(f"{file_path}.bak{n}"):
-            n += 1
-
-        os.rename(file_path, f"{file_path}.bak{n}")
 
     @staticmethod
     async def _build_track_response(
@@ -2033,9 +2016,9 @@ class YoutubeMusic:
             logger.error(f"Track {public_id} has no audio file downloaded.")
             return Result(code=ResultCode.NOT_FOUND, message="Audio file not downloaded")
 
-        full_path: str = os.path.join(MEDIA_PATH, track_row.path)
-        return await MediaStream.stream_audio_file_async(
-            audio_path=full_path, range_header=request.headers.get("Range")
+        full_path: str = track_row.path
+        return await ObjectFiles.stream_async(
+            key=full_path, range_header=request.headers.get("Range")
         )
 
 

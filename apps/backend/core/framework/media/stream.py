@@ -20,6 +20,40 @@ _audio_locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
 
 class MediaStream:
     @staticmethod
+    async def stream_audio_object_async(
+        key: str, range_header: str | None
+    ) -> Result[StreamingResponse]:
+        """Cache deterministic video audio in S3, keyed by source ETag and key."""
+        from core.framework.objectFiles import ObjectFiles
+
+        audio: str | None = None
+        try:
+            metadata = await asyncio.to_thread(ObjectFiles.metadata, key)
+            identity = f"{key}:{metadata.get('ETag')}"
+            cache_key = f"derived-audio/{hashlib.sha256(identity.encode()).hexdigest()}.mp3"
+            lock = _audio_locks.setdefault(cache_key, asyncio.Lock())
+            async with lock:
+                if not await ObjectFiles.exists_async(cache_key):
+                    async with ObjectFiles.local_copy_async(key) as source:
+                        prepared = await MediaStream._prepare_audio_async(video_path=source)
+                    if prepared.is_not_ok():
+                        return Result(code=prepared.code(), message=prepared.message())
+                    audio = prepared.result()
+                    await ObjectFiles.store_processing_result_async(source=audio, key=cache_key)
+            return await ObjectFiles.stream_async(
+                key=cache_key, range_header=range_header, media_type="audio/mpeg"
+            )
+        except FileNotFoundError:
+            logger.warning("Video object not found: %s", key)
+            return Result(code=ResultCode.NOT_FOUND, message="Video not found")
+        except Exception:
+            logger.exception("Cannot prepare stored video audio")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Audio unavailable")
+        finally:
+            if audio is not None:
+                os.unlink(audio)
+
+    @staticmethod
     async def stream_audio_from_video_async(
         video_path: str, range_header: str | None
     ) -> Result[StreamingResponse]:

@@ -1,4 +1,3 @@
-import os
 import uuid
 from typing import TYPE_CHECKING
 
@@ -7,11 +6,10 @@ from fastapi import Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.framework.media.image import Image
-from core.framework.media.stream import MediaStream
+from core.framework.objectFiles import ObjectFiles
 from core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
 )
@@ -1333,7 +1331,7 @@ class Spotify:
             logger.error(f"Track {spotify_id} has no audio file downloaded.")
             return Result(code=ResultCode.NOT_FOUND, message="Audio file not downloaded")
 
-        full_path: str = os.path.join(MEDIA_PATH, track_row.path)
-        return await MediaStream.stream_audio_file_async(
-            audio_path=full_path, range_header=request.headers.get("Range")
+        full_path: str = track_row.path
+        return await ObjectFiles.stream_async(
+            key=full_path, range_header=request.headers.get("Range")
         )

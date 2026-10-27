@@ -1,7 +1,6 @@
 import json
 import os
 import shutil
-from collections.abc import AsyncGenerator
 from logging import Logger
 from typing import Any, cast
 
@@ -11,13 +10,14 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
-from constants import MEDIA_PATH
+from constants import TEMP_PATH
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.user import UserRow
 from core.access.mediaAccess import MediaAccess
 from core.framework import providers
 from core.framework.media.stream import MediaStream
 from core.framework.notification import Notification
+from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
 from core.framework.user.user import User
@@ -93,7 +93,7 @@ async def upload_rockit_song(
         raise HTTPException(status_code=500, detail="RockIt upload provider not found")
 
     upload_id: str = create_id(32)
-    temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
+    temp_dir: str = f"{TEMP_PATH}/rockit/uploads/{upload_id}"
     file_path: str = os.path.join(temp_dir, "file")
     image_path: str = os.path.join(temp_dir, "image")
 
@@ -194,7 +194,7 @@ async def upload_rockit_album(
         songs_meta = []
 
     upload_id: str = create_id(32)
-    temp_dir: str = f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
+    temp_dir: str = f"{TEMP_PATH}/rockit/uploads/{upload_id}"
 
     raw_cover = form.get("cover")
     if not isinstance(raw_cover, UploadFile):
@@ -355,73 +355,14 @@ async def serve_rockit_audio(
         raise HTTPException(status_code=404, detail="Song not found")
 
     song: RockitSongRow = a_result_songs.result()[0]
-    if not song.file_path or not os.path.exists(song.file_path):
-        raise HTTPException(status_code=404, detail="Audio file not found")
-
-    file_path: str = song.file_path
-    file_size: int = os.path.getsize(file_path)
-    _, file_ext = os.path.splitext(file_path)
-    media_type: str = "audio/mpeg"
-    if file_ext == ".ogg":
-        media_type = "audio/ogg"
-    elif file_ext == ".wav":
-        media_type = "audio/wav"
-    elif file_ext == ".flac":
-        media_type = "audio/flac"
-
-    range_header: str | None = request.headers.get("range")
-
-    if range_header:
-        range_start: int = 0
-        range_end: int = file_size - 1
-        if "bytes=" in range_header:
-            parts: list[str] = range_header.split("bytes=")[1].split("-")
-            if parts[0]:
-                range_start = int(parts[0])
-            if parts[1]:
-                range_end = int(parts[1])
-
-        content_length: int = range_end - range_start + 1
-
-        async def iter_audio_range(start: int, end: int) -> AsyncGenerator[bytes, None]:
-            async with aiofiles.open(file_path, "rb") as f:
-                await f.seek(start)
-                remaining: int = end - start + 1
-                while remaining > 0:
-                    chunk_size: int = min(1024 * 1024, remaining)
-                    chunk: bytes = await f.read(chunk_size)
-                    if not chunk:
-                        break
-                    remaining -= len(chunk)
-                    yield chunk
-
-        return StreamingResponse(
-            iter_audio_range(range_start, range_end),
-            status_code=206,
-            media_type=media_type,
-            headers={
-                "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
-                "Accept-Ranges": "bytes",
-                "Content-Length": str(content_length),
-            },
-        )
-
-    async def iter_audio_file() -> AsyncGenerator[bytes, None]:
-        async with aiofiles.open(file_path, "rb") as f:
-            while True:
-                chunk: bytes = await f.read(1024 * 1024)
-                if not chunk:
-                    break
-                yield chunk
-
-    return StreamingResponse(
-        iter_audio_file(),
-        media_type=media_type,
-        headers={
-            "Accept-Ranges": "bytes",
-            "Content-Length": str(file_size),
-        },
+    if not song.file_path:
+        raise HTTPException(status_code=404, detail="File not found")
+    streamed = await ObjectFiles.stream_async(
+        key=song.file_path, range_header=request.headers.get("range")
     )
+    if streamed.is_not_ok():
+        raise HTTPException(status_code=streamed.get_http_code(), detail=streamed.message())
+    return streamed.result()
 
 
 @router.get("/video/{public_id}/stream")
@@ -448,71 +389,14 @@ async def serve_rockit_video(
         raise HTTPException(status_code=404, detail="Video not found")
 
     video: RockitVideoRow = a_result_videos.result()[0]
-    if not video.file_path or not os.path.exists(video.file_path):
-        raise HTTPException(status_code=404, detail="Video file not found")
-
-    file_path: str = video.file_path
-    file_size: int = os.path.getsize(file_path)
-    _, file_ext = os.path.splitext(file_path)
-    media_type: str = "video/mp4"
-    if file_ext == ".webm":
-        media_type = "video/webm"
-    elif file_ext == ".mkv":
-        media_type = "video/x-matroska"
-
-    range_header: str | None = request.headers.get("range")
-
-    if range_header:
-        range_start: int = 0
-        range_end: int = file_size - 1
-        if "bytes=" in range_header:
-            parts: list[str] = range_header.split("bytes=")[1].split("-")
-            if parts[0]:
-                range_start = int(parts[0])
-            if parts[1]:
-                range_end = int(parts[1])
-
-        content_length: int = range_end - range_start + 1
-
-        async def iter_video_range(start: int, end: int) -> AsyncGenerator[bytes, None]:
-            async with aiofiles.open(file_path, "rb") as f:
-                await f.seek(start)
-                remaining: int = end - start + 1
-                while remaining > 0:
-                    chunk_size: int = min(1024 * 1024, remaining)
-                    chunk: bytes = await f.read(chunk_size)
-                    if not chunk:
-                        break
-                    remaining -= len(chunk)
-                    yield chunk
-
-        return StreamingResponse(
-            iter_video_range(range_start, range_end),
-            status_code=206,
-            media_type=media_type,
-            headers={
-                "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
-                "Accept-Ranges": "bytes",
-                "Content-Length": str(content_length),
-            },
-        )
-
-    async def iter_video_file() -> AsyncGenerator[bytes, None]:
-        async with aiofiles.open(file_path, "rb") as f:
-            while True:
-                chunk: bytes = await f.read(1024 * 1024)
-                if not chunk:
-                    break
-                yield chunk
-
-    return StreamingResponse(
-        iter_video_file(),
-        media_type=media_type,
-        headers={
-            "Accept-Ranges": "bytes",
-            "Content-Length": str(file_size),
-        },
+    if not video.file_path:
+        raise HTTPException(status_code=404, detail="File not found")
+    streamed = await ObjectFiles.stream_async(
+        key=video.file_path, range_header=request.headers.get("range")
     )
+    if streamed.is_not_ok():
+        raise HTTPException(status_code=streamed.get_http_code(), detail=streamed.message())
+    return streamed.result()
 
 
 @router.get("/video/{public_id}/stream/audio")
@@ -539,11 +423,11 @@ async def serve_rockit_video_audio(
         raise HTTPException(status_code=404, detail="Video not found")
 
     video: RockitVideoRow = a_result_videos.result()[0]
-    if not video.file_path or not os.path.exists(video.file_path):
+    if not video.file_path:
         raise HTTPException(status_code=404, detail="Video file not found")
 
-    a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_from_video_async(
-        video_path=video.file_path, range_header=request.headers.get("range")
+    a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_object_async(
+        key=video.file_path, range_header=request.headers.get("range")
     )
     if a_result_stream.is_not_ok():
         logger.error(f"Error streaming audio. {a_result_stream.info()}")

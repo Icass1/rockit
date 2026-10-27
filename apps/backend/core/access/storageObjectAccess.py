@@ -112,6 +112,11 @@ class StorageObjectAccess:
             existing_row: StorageObjectRow | None = existing_result.scalar_one_or_none()
 
             if existing_row is not None:
+                if etag is not None:
+                    existing_row.etag = etag
+                    existing_row.size_bytes = size_bytes
+                    existing_row.content_type = content_type
+                    await session.flush()
                 if original_key and not existing_row.original_key:
                     existing_row.original_key = original_key
                     await session.flush()

@@ -1,5 +1,6 @@
 import base64
 import os
+import tempfile
 import uuid
 from dataclasses import dataclass
 from logging import Logger
@@ -7,11 +8,12 @@ from typing import Literal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BUILDS_PATH, CHUNK_SIZE
+from constants import CHUNK_SIZE, TEMP_PATH
 from core.access.adminVersionAccess import AdminVersionAccess
 from core.access.buildUploadSessionAccess import BuildUploadSessionAccess
 from core.access.db.ormModels.appVersion import AppVersionRow
 from core.access.db.ormModels.buildUploadSession import BuildUploadSessionRow
+from core.framework.objectFiles import ObjectFiles
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -84,20 +86,20 @@ class AdminBuild:
     ) -> Result[StartChunkedUploadResult]:
         """Initialize a chunked APK upload session."""
 
-        os.makedirs(BUILDS_PATH, exist_ok=True)
+        os.makedirs(TEMP_PATH, exist_ok=True)
 
         file_ext = os.path.splitext(file_name)[1]
         version_filename = f"v{version}{file_ext}"
-        file_path = os.path.join(BUILDS_PATH, version_filename)
+        key = f"builds/{version_filename}"
 
-        if os.path.exists(file_path):
+        if await ObjectFiles.exists_async(key):
             return Result(
                 code=ResultCode.BAD_REQUEST,
                 message=f"A build with filename '{version_filename}' already exists.",
             )
 
-        with open(file_path, "wb"):
-            pass
+        descriptor, file_path = tempfile.mkstemp(prefix="rockit-build-", dir=TEMP_PATH)
+        os.close(descriptor)
 
         public_id = str(uuid.uuid4())
         total_chunks = (total_size + CHUNK_SIZE - 1) // CHUNK_SIZE
@@ -222,6 +224,12 @@ class AdminBuild:
                 ),
             )
 
+        uploaded = await ObjectFiles.upload_async(
+            session=session, source=upload.file_path, key=f"builds/{upload.version_filename}"
+        )
+        if uploaded.is_not_ok():
+            return Result(code=uploaded.code(), message=uploaded.message())
+
         a_result = await AdminVersionAccess.add_version_async(
             session=session,
             version=upload.version,
@@ -237,6 +245,7 @@ class AdminBuild:
             logger.error(f"Error adding build. {a_result.info()}")
             return Result(code=a_result.code(), message=a_result.message())
 
+        os.remove(upload.file_path)
         await BuildUploadSessionAccess.delete_by_public_id_async(
             session=session, public_id=upload_id
         )
@@ -262,13 +271,13 @@ class AdminBuild:
     ) -> Result[CompleteUploadResult]:
         """Upload an APK file in a single request (non-chunked)."""
 
-        os.makedirs(BUILDS_PATH, exist_ok=True)
+        os.makedirs(TEMP_PATH, exist_ok=True)
 
         file_ext = os.path.splitext(file_name)[1]
         version_filename = f"v{version}{file_ext}"
-        file_path = os.path.join(BUILDS_PATH, version_filename)
+        key = f"builds/{version_filename}"
 
-        if os.path.exists(file_path):
+        if await ObjectFiles.exists_async(key):
             return Result(
                 code=ResultCode.BAD_REQUEST,
                 message=f"A build with filename '{version_filename}' already exists.",
@@ -282,8 +291,12 @@ class AdminBuild:
                 message="Invalid base64 content.",
             )
 
-        with open(file_path, "wb") as f:
-            f.write(decoded)
+        with tempfile.NamedTemporaryFile(prefix="rockit-build-", dir=TEMP_PATH) as staging:
+            staging.write(decoded)
+            staging.flush()
+            uploaded = await ObjectFiles.upload_async(session=session, source=staging.name, key=key)
+        if uploaded.is_not_ok():
+            return Result(code=uploaded.code(), message=uploaded.message())
 
         a_result = await AdminVersionAccess.add_version_async(
             session=session,
@@ -293,7 +306,7 @@ class AdminBuild:
         )
 
         if a_result.is_not_ok():
-            os.remove(file_path)
+            await ObjectFiles.delete_async(key)
             logger.error(f"Error adding build. {a_result.info()}")
             return Result(code=a_result.code(), message=a_result.message())
 

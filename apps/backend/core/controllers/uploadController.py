@@ -6,7 +6,7 @@ import aiofiles
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
+from constants import TEMP_PATH
 from core.access.db.ormModels.pendingUpload import PendingUploadRow
 from core.access.db.ormModels.user import UserRow
 from core.access.pendingUploadAccess import PendingUploadAccess
@@ -102,7 +102,7 @@ async def _get_pending_or_404(session: AsyncSession, upload_id: str) -> PendingU
 def _upload_temp_dir(upload_id: str) -> str:
     """Get the temporary directory path for an upload."""
 
-    return f"{MEDIA_PATH}/rockit/uploads/{upload_id}"
+    return f"{TEMP_PATH}/rockit/uploads/{upload_id}"
 
 
 def _upload_temp_cover_path(upload_id: str) -> str:

@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.framework.media.stream import CHUNK_SIZE, MediaStream
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from result import Result, ResultCode
+from tests.fake_object_store import FakeObjectStore
 
 pytestmark = pytest.mark.unit
 
@@ -55,6 +56,7 @@ pytestmark = pytest.mark.unit
 )
 async def test_provider_audio_http_ranges(
     tmp_path: Path,
+    object_store: FakeObjectStore,
     monkeypatch: pytest.MonkeyPatch,
     provider: str,
     access: str,
@@ -70,7 +72,7 @@ async def test_provider_audio_http_ranges(
     audio.write_bytes(b"0123456789")
     module = importlib.import_module(f"{provider}.framework.{provider}")
     controller = importlib.import_module(f"{provider}.controllers.{provider}Controller")
-    monkeypatch.setattr(module, "MEDIA_PATH", str(tmp_path))
+    object_store.objects[audio.name] = audio.read_bytes()
     track_lookup = AsyncMock(
         return_value=Result(
             code=ResultCode.OK,
@@ -101,6 +103,7 @@ async def test_provider_audio_http_ranges(
             assert response.headers["content-type"] == "audio/mpeg"
         # Deleted files retain the existing not-found behavior.
         audio.unlink()
+        del object_store.objects[audio.name]
         missing = await client.get(f"/{prefix}/audio/track")
         assert missing.status_code == 404
         # Metadata without a downloaded path also remains not-found.

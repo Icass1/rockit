@@ -291,11 +291,11 @@ async def main() -> None:
             assert active.is_ok() and not active.result()
             # Re-import an old source: one real file is reused, one missing file is queued.
             import tempfile
-            from unittest.mock import patch
+            from unittest.mock import AsyncMock, patch
 
             from core.access.downloadAccess import DownloadAccess
             from core.framework.downloader import downloads_manager
-            from core.utils import downloadFiles
+            from core.framework.objectFiles import ObjectFiles
 
             with tempfile.TemporaryDirectory(prefix="rockit-reuse-") as folder:
                 Path(folder, "already-downloaded.mp3").write_bytes(b"existing audio")
@@ -314,9 +314,17 @@ async def main() -> None:
                     source_public_id=prefix + "-album",
                 )
                 assert imported.is_ok()
+
+                def source_exists(key: str) -> bool:
+                    return Path(folder, key).is_file()
+
                 queued: list[BaseDownload] = []
                 with (
-                    patch.object(downloadFiles, "MEDIA_PATH", folder),
+                    patch.object(
+                        ObjectFiles,
+                        "exists_async",
+                        new=AsyncMock(side_effect=source_exists),
+                    ),
                     patch.object(providers, "find_media_provider", return_value=object()),
                     patch.object(
                         downloads_manager,
@@ -361,7 +369,11 @@ async def main() -> None:
                 assert complete.is_ok()
                 queued.clear()
                 with (
-                    patch.object(downloadFiles, "MEDIA_PATH", folder),
+                    patch.object(
+                        ObjectFiles,
+                        "exists_async",
+                        new=AsyncMock(side_effect=source_exists),
+                    ),
                     patch.object(
                         downloads_manager,
                         "add_download",

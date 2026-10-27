@@ -37,6 +37,7 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     like_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
     comment_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
+    # Historical column name; value is an S3 object key, never a disk path.
     video_path: Mapped[str | None] = mapped_column(String, nullable=True)
     channel_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("youtube.channel.id"), nullable=False

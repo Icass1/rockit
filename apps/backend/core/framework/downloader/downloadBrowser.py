@@ -1,10 +1,7 @@
-import asyncio
-from pathlib import Path
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import MEDIA_PATH
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
 from core.enums.downloadStatusEnum import DownloadStatusEnum
@@ -13,6 +10,7 @@ from core.framework import providers
 from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.media.image import Image
+from core.framework.objectFiles import ObjectFiles
 from core.framework.user.user import User
 from core.responses.downloadBrowseResponse import (
     DownloadBrowseGroupResponse,
@@ -263,26 +261,12 @@ class DownloadBrowser:
         if cleared.is_not_ok():
             logger.error(f"Could not clear download paths: {cleared.info()}")
             return Result(code=cleared.code(), message=cleared.message())
-        archived: list[tuple[Path, Path]] = []
-
-        def archive() -> None:
-            root = Path(MEDIA_PATH).resolve()
-            for value in dict.fromkeys(cleared.result()):
-                path = (root / value).resolve()
-                if not path.is_relative_to(root):
-                    raise ValueError("Invalid stored media path")
-                if not path.exists():
-                    continue
-                serial = 1
-                backup = Path(f"{path}.bak{serial}")
-                while backup.exists():
-                    serial += 1
-                    backup = Path(f"{path}.bak{serial}")
-                path.rename(backup)
-                archived.append((path, backup))
-
+        backups: list[str] = []
         try:
-            await asyncio.to_thread(archive)
+            for key in dict.fromkeys(cleared.result()):
+                backup = await ObjectFiles.backup_async(key)
+                if backup is not None:
+                    backups.append(backup)
             if action == "delete":
                 saved = await DownloadAccess.mark_download_group_seen(session=session, group=group)
             else:
@@ -297,14 +281,21 @@ class DownloadBrowser:
             await session.commit()
         except Exception as error:
             await session.rollback()
-            for path, backup in reversed(archived):
-                if backup.exists() and not path.exists():
-                    backup.rename(path)
+            for backup in backups:
+                try:
+                    await ObjectFiles.delete_async(backup)
+                except Exception:
+                    logger.exception("Could not discard unneeded S3 backup: %s", backup)
             logger.error(f"Download group action failed: {error}", exc_info=True)
             return Result(
                 code=ResultCode.GENERAL_ERROR,
                 message="Could not complete the group action",
             )
+        for key in dict.fromkeys(cleared.result()):
+            try:
+                await ObjectFiles.delete_async(key)
+            except Exception:
+                logger.exception("Could not remove superseded S3 object: %s", key)
         if action == "retry":
             for row, media in rows:
                 task = DeferredDownload(

@@ -47,6 +47,7 @@ class TrackRow(YoutubeMusicBase, TableAutoincrementId, TableDateUpdated, TableDa
     track_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
+    # Historical column name; value is an S3 object key, never a disk path.
     path: Mapped[str | None] = mapped_column(String, nullable=True)
     album_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("youtube_music.album.id"), nullable=False

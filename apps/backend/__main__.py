@@ -369,7 +369,7 @@ async def main() -> None:
                 await migrate_media_listened_to_intervals_async(user_id=user_id)
 
             elif command == "update-video-durations":
-                from constants import MEDIA_PATH
+                from core.framework.objectFiles import ObjectFiles
                 from youtube.access.videoAccess import VideoAccess
 
                 try:
@@ -398,14 +398,9 @@ async def main() -> None:
                             error_count += 1
                             continue
 
-                        full_path = os.path.join(MEDIA_PATH, video.video_path)
-                        if not os.path.exists(full_path):
-                            logger.warning(f"File not found: {full_path}, skipping")
-                            error_count += 1
-                            continue
-
                         try:
-                            probe = ffmpeg.probe(full_path)  # type: ignore
+                            async with ObjectFiles.local_copy_async(video.video_path) as full_path:
+                                probe = await asyncio.to_thread(ffmpeg.probe, full_path)  # type: ignore
 
                             video_info = next(  # type: ignore
                                 s

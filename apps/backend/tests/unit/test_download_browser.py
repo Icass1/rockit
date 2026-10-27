@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
 from types import SimpleNamespace
 from typing import TypeVar
 from unittest.mock import AsyncMock, Mock
@@ -11,12 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
 from core.framework import providers
-from core.framework.downloader import downloadBrowser, downloads_manager
+from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.downloader.downloadBrowser import DownloadBrowser
 from core.framework.media.image import Image
 from core.framework.user.user import User
 from result import Result, ResultCode
+from tests.fake_object_store import FakeObjectStore
 
 T = TypeVar("T")
 
@@ -126,11 +126,13 @@ class GroupActionFixture:
     reset: AsyncMock
     hide: AsyncMock
     queue: Mock
-    folder: Path
+    store: FakeObjectStore
 
 
 @pytest.fixture
-def group_action(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> GroupActionFixture:
+def group_action(
+    monkeypatch: pytest.MonkeyPatch, object_store: FakeObjectStore
+) -> GroupActionFixture:
     group = SimpleNamespace(id=10, seen=False)
     row = SimpleNamespace(id=12, status_key=3)
     media = SimpleNamespace(id=20, public_id="song", provider_id=2)
@@ -160,8 +162,7 @@ def group_action(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> GroupAction
     monkeypatch.setattr(DownloadBrowseAccess, "reset_group_async", reset)
     monkeypatch.setattr(DownloadAccess, "mark_download_group_seen", hide)
     monkeypatch.setattr(downloads_manager, "add_download", queue)
-    monkeypatch.setattr(downloadBrowser, "MEDIA_PATH", str(tmp_path))
-    (tmp_path / "song.mp3").write_bytes(b"audio")
+    object_store.objects["song.mp3"] = b"audio"
     return GroupActionFixture(
         group=group,
         row=row,
@@ -170,7 +171,7 @@ def group_action(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> GroupAction
         reset=reset,
         hide=hide,
         queue=queue,
-        folder=tmp_path,
+        store=object_store,
     )
 
 
@@ -185,8 +186,8 @@ async def test_group_actions_are_atomic_batches_and_preserve_source_context(
     )
     assert result.is_ok()
     fixture.clear.assert_awaited_once_with(session=session, media_ids=[20])
-    assert not (fixture.folder / "song.mp3").exists()
-    assert (fixture.folder / "song.mp3.bak1").exists()
+    assert "song.mp3" not in fixture.store.objects
+    assert list(fixture.store.objects.values()) == [b"audio"]
     session.commit.assert_awaited_once()
     if action == "delete":
         fixture.hide.assert_awaited_once_with(session=session, group=fixture.group)
@@ -243,8 +244,7 @@ async def test_failed_group_commit_restores_files_and_does_not_queue(
     )
     assert result.is_not_ok()
     session.rollback.assert_awaited_once()
-    assert (group_action.folder / "song.mp3").read_bytes() == b"audio"
-    assert not (group_action.folder / "song.mp3.bak1").exists()
+    assert group_action.store.objects["song.mp3"] == b"audio"
     group_action.queue.assert_not_called()
 
 
@@ -345,7 +345,7 @@ async def test_library_group_saves_source_or_all_legacy_tracks_without_changing_
     )
     group_action.clear.assert_not_awaited()
     group_action.queue.assert_not_called()
-    assert (group_action.folder / "song.mp3").read_bytes() == b"audio"
+    assert group_action.store.objects["song.mp3"] == b"audio"
 
 
 async def test_library_group_rejects_hidden_group_and_propagates_save_failure(

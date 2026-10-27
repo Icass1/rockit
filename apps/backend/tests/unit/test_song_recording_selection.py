@@ -14,7 +14,7 @@ from youtube.framework.youtubeSearch import (
     YoutubeCandidate,
     YoutubeSearch,
     YoutubeSongQuery,
-    _score_candidate,
+    score_candidate,
 )
 
 SONG = YoutubeSongQuery(title="My Song", artists=["The Artist"], duration_ms=180000)
@@ -52,13 +52,13 @@ def test_identity_gates_cannot_be_outweighed_by_title_or_album(
     accepted: bool,
 ) -> None:
     candidate = replace(candidate)
-    _score_candidate(candidate=candidate, song=SONG)
+    score_candidate(candidate=candidate, song=SONG)
     assert (candidate.score >= 0.85) is accepted
 
 
 def test_requested_live_recording_is_preserved() -> None:
     candidate = replace(RECORDING, title="My Song (Live)")
-    _score_candidate(candidate=candidate, song=replace(SONG, title="My Song (Live)"))
+    score_candidate(candidate=candidate, song=replace(SONG, title="My Song (Live)"))
     assert candidate.score >= 0.85
 
 

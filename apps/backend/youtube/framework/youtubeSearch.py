@@ -3,13 +3,14 @@
 import asyncio
 import re
 import unicodedata
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from difflib import SequenceMatcher
 from functools import partial
-from typing import Any
+from typing import Any, cast
 from urllib.parse import parse_qs, urlparse
 
-from requests import Session
+from requests import Response, Session
 from ytmusicapi import YTMusic
 
 from logger import getLogger
@@ -55,10 +56,10 @@ class YoutubeCandidate:
     is_live: bool = False
     source: str = "ytmusic"
     score: float = 0.0
-    reasons: list[str] = field(default_factory=list)
+    reasons: list[str] = field(default_factory=list[str])
     catalog_song: bool = False
     video_type: str | None = None
-    artists: list[str] = field(default_factory=list)
+    artists: list[str] = field(default_factory=list[str])
 
 
 def _normalize(value: str) -> str:
@@ -80,7 +81,7 @@ def _clean_title(title: str, artists: list[str]) -> str:
     return _normalize(title)
 
 
-def _score_candidate(candidate: YoutubeCandidate, song: YoutubeSongQuery) -> None:
+def score_candidate(candidate: YoutubeCandidate, song: YoutubeSongQuery) -> None:
     """Identity, version and timing are gates, not compensatable popularity bonuses."""
     candidate.score = 0
     candidate.reasons.clear()
@@ -157,7 +158,9 @@ class YoutubeSearch:
     @staticmethod
     def _get_ytmusic(session: Session) -> YTMusic:
         # Independent sessions avoid sharing a mutable requests.Session across workers.
-        session.request = partial(session.request, timeout=10)
+        # ytmusicapi documents this requests-session timeout recipe. partial
+        # preserves keyword calls while its inferred positional signature shifts.
+        session.request = cast(Callable[..., Response], partial(session.request, timeout=10))
         return YTMusic(requests_session=session)
 
     @staticmethod
@@ -199,12 +202,9 @@ class YoutubeSearch:
                     r"[A-Za-z0-9_-]{11}", identity
                 ):
                     continue
-                artists = [
-                    str(artist["name"])
-                    for artist in item.get("artists") or []
-                    if artist.get("name")
-                ]
-                album = item.get("album") or {}
+                raw_artists: list[dict[str, Any]] = item.get("artists") or []
+                artists = [str(artist["name"]) for artist in raw_artists if artist.get("name")]
+                album: dict[str, Any] = item.get("album") or {}
                 candidate = YoutubeCandidate(
                     video_id=identity,
                     title=item.get("title") or "",
@@ -216,7 +216,7 @@ class YoutubeSearch:
                     video_type=item.get("videoType"),
                     is_live=bool(item.get("isLive")),
                 )
-                _score_candidate(candidate=candidate, song=song)
+                score_candidate(candidate=candidate, song=song)
                 candidates[identity] = candidate
             if any(
                 candidate.score >= _MINIMUM_ACCEPTABLE_SCORE for candidate in candidates.values()
@@ -255,8 +255,8 @@ class YoutubeSearch:
             try:
                 await youtube_gate.pace_async()
                 info = await asyncio.to_thread(YoutubeSearch._catalog_song, identity=identity)
-                details = info.get("videoDetails") or {}
-                video_type = details.get("musicVideoType")
+                details: dict[str, Any] = info.get("videoDetails") or {}
+                video_type: str | None = details.get("musicVideoType")
                 if details.get("videoId") == identity:
                     if duration_from_preferred and video_type in (
                         "MUSIC_VIDEO_TYPE_OMV",
@@ -264,7 +264,7 @@ class YoutubeSearch:
                     ):
                         song = replace(song, duration_ms=0)
                     if video_type == _ART_TRACK:
-                        length = details.get("lengthSeconds")
+                        length: str | int | None = details.get("lengthSeconds")
                         preferred = YoutubeCandidate(
                             video_id=identity,
                             title=details.get("title") or "",
@@ -274,7 +274,7 @@ class YoutubeSearch:
                             video_type=video_type,
                             is_live=bool(details.get("isLiveContent")),
                         )
-                        _score_candidate(candidate=preferred, song=song)
+                        score_candidate(candidate=preferred, song=song)
             except Exception:
                 logger.warning(
                     "Could not verify stored song URL; searching catalogue", exc_info=True

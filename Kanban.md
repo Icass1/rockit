@@ -57,6 +57,16 @@
 
 ## To Review
 
+### [HEADER] Intensidad gradual de la llama de racha
+
+- tags: [frontend, header, streak, ui]
+- priority: low
+- workload: Easy
+    ```md
+    SVG de llama con gradiente continuo de amarillo tenue a naranja, centro más luminoso y halo creciente entre 1 y 30 días. A partir de 30 días se mantiene la intensidad máxima y el contador sigue mostrando los días reales. Tamaño fijo de 28 px, sin animaciones continuas y con alternativa para contraste alto/colores forzados. Vocabulary existente. Solo interfaz web; sin cambios de backend, almacenamiento ni S3.
+    Capturas de revisión en escritorio y móvil con 1, 3, 7, 14, 21, 30 y 60 días. Sin suites locales. Pendiente de revisión del usuario.
+    ```
+
 ### [PLAYER] Tiempos reales de la barra de reproducción
 
 - tags: [frontend, player, playback, bug, kb-37]

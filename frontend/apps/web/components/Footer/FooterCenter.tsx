@@ -13,7 +13,6 @@ import {
     SkipBack,
     SkipForward,
 } from "lucide-react";
-import { getMediaDuration } from "@/models/types/media";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -26,6 +25,7 @@ const ICON_BTN =
 const ACTIVE = "text-(--color-rockit-pink)";
 
 export default function FooterCenter(): JSX.Element {
+    const duration = useStore(rockIt.mediaPlayerManager.durationAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $loading = useStore(rockIt.mediaPlayerManager.loadingAtom);
@@ -185,7 +185,8 @@ export default function FooterCenter(): JSX.Element {
                             className="h-1 w-full rounded bg-neutral-700 accent-(--color-rockit-pink)"
                             value={$currentTime}
                             min={0}
-                            max={getMediaDuration($currentMedia)}
+                            max={duration || 1}
+                            disabled={duration <= 0}
                             onChange={(e): void =>
                                 rockIt.mediaPlayerManager.setCurrentTime(
                                     Number(e.target.value),
@@ -205,7 +206,7 @@ export default function FooterCenter(): JSX.Element {
                         <Bookmarks />
                     </div>
                     <span className="min-w-6 text-xs font-semibold tabular-nums">
-                        {getTime(getMediaDuration($currentMedia) ?? 0)}
+                        {getTime(duration)}
                     </span>
                 </div>
             )}

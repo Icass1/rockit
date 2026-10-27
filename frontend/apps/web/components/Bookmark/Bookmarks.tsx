@@ -3,7 +3,6 @@
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { ERepeatMode, isStation } from "@rockit/shared";
-import { getMediaDuration } from "@/models/types/media";
 import {
     BOOKMARK_MODE_COLORS,
     BOOKMARK_MODE_MUTED_COLORS,
@@ -13,6 +12,7 @@ import { getTime } from "@/lib/utils/getTime";
 import BookmarkTooltip from "@/components/Bookmark/BookmarkTooltip";
 
 export default function Bookmarks(): JSX.Element {
+    const duration = useStore(rockIt.mediaPlayerManager.durationAtom) || 1;
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );
@@ -25,7 +25,6 @@ export default function Bookmarks(): JSX.Element {
 
     if (isLiveStation || !$currentMedia) return <></>;
 
-    const duration = getMediaDuration($currentMedia) ?? 1;
     const currentPublicId = $currentMedia.publicId;
 
     const filtered = $bookmarks.filter(

@@ -2,7 +2,6 @@
 
 import { useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { getMediaDuration } from "@/models/types/media";
 import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
@@ -10,8 +9,7 @@ import { getTime } from "@/lib/utils/getTime";
 export function PiPProgress(): JSX.Element {
     const text = usePiPText();
     const time = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const media = useStore(rockIt.queueManager.currentMediaAtom);
-    const rawDuration = getMediaDuration(media) ?? 0;
+    const rawDuration = useStore(rockIt.mediaPlayerManager.durationAtom);
     const duration = Number.isFinite(rawDuration)
         ? Math.max(0, rawDuration)
         : 0;

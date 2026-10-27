@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { EQueueType } from "@rockit/shared";
 import { Pause, Play, Shuffle, SkipBack, SkipForward } from "lucide-react";
-import { getMediaArtists, getMediaDuration } from "@/models/types/media";
+import { getMediaArtists } from "@/models/types/media";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Bookmarks from "@/components/Bookmark/Bookmarks";
@@ -14,6 +14,7 @@ export default function MiniPlayer(): JSX.Element {
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
     const $currentStation = useStore(rockIt.stationManager.currentStationAtom);
     const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const duration = useStore(rockIt.mediaPlayerManager.durationAtom);
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $queueType = useStore(rockIt.userManager.queueTypeAtom);
 
@@ -37,7 +38,7 @@ export default function MiniPlayer(): JSX.Element {
                             <div
                                 className="absolute top-0 left-0 h-full rounded-full bg-linear-to-r from-(--color-rockit-pink) to-(--color-rockit-pink-light)"
                                 style={{
-                                    width: `${Math.min(100, Math.max(0, (($currentTime ?? 0) / (getMediaDuration($currentMedia) ?? 1)) * 100))}%`,
+                                    width: `${Math.min(100, Math.max(0, (($currentTime ?? 0) / (duration || 1)) * 100))}%`,
                                 }}
                             />
                             {/* Bookmark markers */}
@@ -45,7 +46,8 @@ export default function MiniPlayer(): JSX.Element {
                             <input
                                 type="range"
                                 min={0}
-                                max={getMediaDuration($currentMedia) ?? 100}
+                                max={duration || 1}
+                                disabled={duration <= 0}
                                 step={0.001}
                                 value={$currentTime ?? 0}
                                 onChange={(e): void =>
@@ -66,7 +68,7 @@ export default function MiniPlayer(): JSX.Element {
                             />
                         </div>
                         <span className="w-8 text-right text-[10px] text-neutral-400 tabular-nums">
-                            {getTime(getMediaDuration($currentMedia) ?? 0)}
+                            {getTime(duration)}
                         </span>
                     </div>
 

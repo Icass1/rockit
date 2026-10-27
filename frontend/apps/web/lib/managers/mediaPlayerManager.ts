@@ -40,6 +40,39 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         );
     }
 
+    private _durationAtom = createAtom<number>(0);
+
+    get durationAtom(): ReadonlyAtom<number> {
+        return this._durationAtom.getReadonlyAtom();
+    }
+
+    /** The loaded resource owns duration; catalog lengths may describe another edit. */
+    protected override getPlaybackDuration(
+        media: TPlayableMedia
+    ): number | undefined {
+        const el = this._el(this._effectiveKind(media));
+        return el &&
+            el.readyState >= 1 &&
+            Number.isFinite(el.duration) &&
+            el.duration > 0
+            ? el.duration
+            : super.getPlaybackDuration(media);
+    }
+
+    private _publishDuration(): void {
+        const el = this._el(
+            this._effectiveKind(getRockIt().queueManager.currentMedia)
+        );
+        this._durationAtom.set(
+            el &&
+                el.readyState >= 1 &&
+                Number.isFinite(el.duration) &&
+                el.duration > 0
+                ? el.duration
+                : 0
+        );
+    }
+
     private _audio?: HTMLAudioElement;
     private _video?: HTMLVideoElement;
     private _videoContainer?: HTMLDivElement;
@@ -161,6 +194,15 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             )
                 this.onNativeLoadStart();
         };
+        this._video.onloadedmetadata = this._video.ondurationchange =
+            (): void => {
+                if (
+                    this._effectiveKind(
+                        getRockIt().queueManager.currentMedia
+                    ) === "video"
+                )
+                    this._publishDuration();
+            };
         this._video.onloadeddata = (): void => {
             if (
                 this._effectiveKind(getRockIt().queueManager.currentMedia) ===
@@ -249,6 +291,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     "audio"
             )
                 this.onNativeLoadStart();
+        };
+        el.onloadedmetadata = el.ondurationchange = (): void => {
+            if (
+                el === this._audio &&
+                this._effectiveKind(getRockIt().queueManager.currentMedia) ===
+                    "audio"
+            )
+                this._publishDuration();
         };
         el.onloadeddata = (): void => {
             if (
@@ -691,7 +741,10 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 this._promotionQueueId ===
                     getRockIt().queueManager.currentQueueMediaId &&
                 uri === this._promotionUri;
-            if (promotion) return;
+            if (promotion) {
+                this._publishDuration();
+                return;
+            }
             this._freshAudioSource = true;
             if (eligible && media) void this._prepareBounds(media.publicId);
             this._cancelTransition();
@@ -724,6 +777,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._preloadedUri === uri &&
             this._preloadAudio.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
         ) {
+            this._durationAtom.set(0);
             el.src = uri;
             this._preloadedUri = undefined;
             this._preloadedForQueueMediaId = undefined;
@@ -731,6 +785,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             return;
         }
 
+        this._durationAtom.set(0);
         el.src = uri;
         if (kind === "video") el.muted = false;
     }
@@ -744,6 +799,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             this._cancelTransition();
         }
 
+        if (this._effectiveKind(getRockIt().queueManager.currentMedia) === kind)
+            this._durationAtom.set(0);
         el.pause();
         el.currentTime = 0;
         const hadContent = el.hasAttribute("src") || el.srcObject !== null;
@@ -759,6 +816,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (kind === "audio" && this._audio && this._mixer.has(this._audio))
             this._mixer.activate();
 
+        this._publishDuration();
         const playbackId = this._playbackId;
         el.play()
             .then((): void => {

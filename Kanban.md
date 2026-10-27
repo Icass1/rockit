@@ -32,14 +32,6 @@
 ## In Progress
 
 
-### [PLAYER] Tiempos reales de la barra de reproducción
-
-- tags: [frontend, player, playback, bug]
-- priority: high
-- workload: Normal
-    ```md
-    Fixear los tiempos de la barra de reproducción para que sean los reales. Revisar si vienen de videoclips. Cuidado con no romper las lyrics.
-    ```
 
 ## Idle
 
@@ -55,6 +47,16 @@
     ```
 
 ## To Review
+
+### [PLAYER] Tiempos reales de la barra de reproducción
+
+- tags: [frontend, player, playback, bug, kb-37]
+- priority: high
+- workload: Normal
+    ```md
+    KB-37: duración medida desde el recurso HTMLAudioElement/HTMLVideoElement activo, no desde el catálogo. Footer, mini player, PiP, player móvil web y marcadores usan la misma duración. El contador continúa más allá del metadato de catálogo; no se reescala ni desplaza el reloj de lyrics.
+    Validación dirigida: archivo real de 30 s con catálogo de 10 s, seek al segundo 15 y contador avanzando. Sin suites locales. Pendiente de revisión del usuario y CI.
+    ```
 
 ### [SEARCH] Reproducir canciones ya descargadas
 

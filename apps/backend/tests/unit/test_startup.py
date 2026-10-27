@@ -51,7 +51,7 @@ async def test_startup_initializes_shared_services_and_closes_workers(
         await asyncio.sleep(0)
         assert calls == ["database", "storage", "seed", "session", "worker"]
     assert calls[-1] == "cancelled"
-    socket.close.assert_awaited_once_with(code=1001)
+    socket.close.assert_awaited_once_with(code=1001, reason="Server shutting down")
 
 
 @pytest.mark.asyncio

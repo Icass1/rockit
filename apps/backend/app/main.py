@@ -66,15 +66,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
             pass
         from core.framework.websocket.webSocketManager import ws_manager
 
-        all_sockets = [
-            ws for connections in ws_manager.active_connections.values() for ws in connections
-        ]
-        for ws in all_sockets:
-            try:
-                await ws.close(code=1001)
-            except Exception:
-                pass
-        logger.info(f"Closed {len(all_sockets)} WebSocket connection(s) on shutdown.")
+        closed_sockets = await ws_manager.close_all_async()
+        logger.info(f"Closed {closed_sockets} WebSocket connection(s) on shutdown.")
 
 
 app = FastAPI(

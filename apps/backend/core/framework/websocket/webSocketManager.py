@@ -39,6 +39,42 @@ class WebSocketManager:
         self.active_connections: Dict[int, Set[WebSocket]] = {}
         self.user_playback_states: Dict[int, UserPlaybackState] = {}
 
+    async def close_all_async(self, timeout_seconds: float = 2.0) -> int:
+        """Close every connected client during application shutdown."""
+        sockets = {
+            websocket
+            for connections in self.active_connections.values()
+            for websocket in connections
+        }
+        self.active_connections.clear()
+        self.playback_owners.clear()
+        self.user_playback_states.clear()
+        self.user_message_locks.clear()
+
+        if not sockets:
+            return 0
+
+        close_tasks = [
+            asyncio.create_task(websocket.close(code=1001, reason="Server shutting down"))
+            for websocket in sockets
+        ]
+        done, pending = await asyncio.wait(close_tasks, timeout=timeout_seconds)
+        for task in pending:
+            task.cancel()
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+
+        for task in done:
+            error = task.exception()
+            if error is not None:
+                logger.warning(f"Error closing WebSocket during shutdown: {error}")
+
+        if pending:
+            logger.warning(
+                f"Timed out closing {len(pending)} WebSocket connection(s) during shutdown."
+            )
+        return len(sockets)
+
     async def connect(self, user_id: int, websocket: WebSocket) -> None:
         await websocket.accept()
         was_online = bool(self.active_connections.get(user_id))

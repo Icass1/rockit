@@ -7,7 +7,11 @@ import { Headphones, LogOut, Pause, Play } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import styles from "@/components/Friends/Friends.module.css";
 
-export default function ListenTogetherPanel(): JSX.Element {
+export default function ListenTogetherPanel({
+    compact = false,
+}: {
+    compact?: boolean;
+}): JSX.Element {
     const sessions = useStore(rockIt.listenTogetherManager.sessionsAtom);
     const active = useStore(rockIt.listenTogetherManager.activeSessionAtom);
     const loading = useStore(rockIt.listenTogetherManager.loadingAtom);
@@ -32,14 +36,15 @@ export default function ListenTogetherPanel(): JSX.Element {
                     )}
                 </div>
                 <div className={styles.sessionCopy}>
-                    <p className={styles.eyebrow}>
+                    <h2 className={styles.sessionTitle}>
+                        {isHost ? active.guestUsername : active.hostUsername}
+                    </h2>
+                    <p className={styles.sessionStatus}>
                         {active.status === "invited"
                             ? v.FRIENDS_PENDING
                             : v.LISTENING_WITH}
                     </p>
-                    <h2 className={styles.sessionTitle}>
-                        {isHost ? active.guestUsername : active.hostUsername}
-                    </h2>
+
                     {active.currentMediaName && (
                         <p className={styles.track}>
                             {active.currentMediaName}
@@ -82,10 +87,7 @@ export default function ListenTogetherPanel(): JSX.Element {
     return (
         <div className="flex flex-col gap-4">
             {sessions.map((session) => (
-                <div
-                    key={session.publicId}
-                    className="flex items-center gap-3 rounded-2xl border border-white/10 p-4"
-                >
+                <div key={session.publicId} className={styles.sessionInvite}>
                     <Headphones className="text-[#ee1086]" />
                     <p className="flex-1 text-sm text-white">
                         {session.hostUsername}
@@ -97,7 +99,7 @@ export default function ListenTogetherPanel(): JSX.Element {
                                 session.publicId
                             );
                         }}
-                        className="rounded-full bg-[#ee1086] px-4 py-2 text-sm text-white"
+                        className={styles.joinSession}
                     >
                         {v.FRIENDS_JOIN}
                     </button>
@@ -120,15 +122,15 @@ export default function ListenTogetherPanel(): JSX.Element {
                         <Headphones size={30} strokeWidth={1.5} aria-hidden />
                     </div>
                     <h2>{v.FRIENDS_PARTY}</h2>
-                    <p
-                        className={styles.subtitle}
-                        style={{ marginInline: "auto" }}
-                    >
-                        {v.INVITE_FRIEND_LISTEN}
-                    </p>
+                    <p className={styles.subtitle}>{v.INVITE_FRIEND_LISTEN}</p>
                 </div>
             )}
-            {friends.length > 0 && (
+            {compact && friends.length > 0 && (
+                <a className={styles.circleLink} href="#social-circle">
+                    {v.FRIENDS_INVITE}
+                </a>
+            )}
+            {!compact && friends.length > 0 && (
                 <>
                     <p className="text-sm text-neutral-400">
                         {v.FRIENDS_INVITE}

@@ -656,4 +656,17 @@ export interface Vocabulary {
     RECOMMENDED_SONGS: string;
     RECOMMENDATIONS: string;
     DISCOVER_UNAVAILABLE: string;
+    FRIENDS_SOCIAL_INTRO: string;
+    FRIENDS_SHARED_MUSIC: string;
+    FRIENDS_RECENT_LISTENS: string;
+    FRIENDS_PERSONAL_PROGRESS: string;
+    FRIENDS_ONLINE_COUNT: string;
+    FRIENDS_SHARED_FROM: string;
+    FRIENDS_SHARED_TO: string;
+    FRIENDS_SHOW_ALL: string;
+    FRIENDS_SHOW_LESS: string;
+    FRIENDS_NAV_SHARED: string;
+    FRIENDS_NAV_RECENT: string;
+    FRIENDS_SHOW_ALL_SHARES: string;
+    FRIENDS_SHOW_ALL_RECENT: string;
 }

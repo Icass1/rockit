@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { ArrowUpRight } from "lucide-react";
+import { Headphones, Music2, Send, Users } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import FriendActivityFeed from "@/components/Friends/FriendActivityFeed";
 import FriendLeaderboard from "@/components/Friends/FriendLeaderboard";
@@ -17,77 +17,158 @@ export default function FriendsClient(): JSX.Element {
     const friends = useStore(rockIt.friendManager.friendsAtom);
     const activity = useStore(rockIt.friendManager.activityAtom);
     const error = useStore(rockIt.friendManager.errorAtom);
+    const loading = useStore(rockIt.friendManager.loadingAtom);
     const requests = useStore(rockIt.friendManager.incomingRequestsAtom);
+    const [ready, setReady] = useState(false);
     const onlineCount = friends.filter((friend) => friend.isOnline).length;
-
     useEffect(() => {
-        void rockIt.friendManager.fetchFriends();
-        void rockIt.friendManager.fetchActivity();
-        void rockIt.friendManager.fetchRequests();
-        void rockIt.sharingManager.fetchInbox();
-        void rockIt.sharingManager.fetchSent();
-        void rockIt.listenTogetherManager.fetchSessions();
+        let current = true;
+        void Promise.allSettled([
+            rockIt.friendManager.fetchFriends(),
+            rockIt.friendManager.fetchActivity(),
+            rockIt.friendManager.fetchRequests(),
+            rockIt.sharingManager.fetchInbox(),
+            rockIt.sharingManager.fetchSent(),
+            rockIt.listenTogetherManager.fetchSessions(),
+        ]).then(() => {
+            if (current) setReady(true);
+        });
+        return () => {
+            current = false;
+        };
     }, []);
-
     return (
         <div className={styles.root}>
-            {error && <p role="alert">{error}</p>}
             <header className={styles.header}>
-                <p className={styles.eyebrow}>RockIt! · {v.FRIENDS}</p>
-                <h1 className={styles.title}>{v.SOCIAL_HEADLINE}</h1>
-                <p className={styles.subtitle}>{v.SOCIAL_INTRO}</p>
-                <a className={styles.circleLink} href="#social-circle">
-                    {v.SOCIAL_PEOPLE} <span>{friends.length}</span>{" "}
-                    <ArrowUpRight size={16} aria-hidden="true" />
-                </a>
-                <p
-                    className="mt-2 flex items-center gap-2 text-sm text-neutral-400"
-                    role="status"
-                >
-                    <span
-                        className="h-2 w-2 rounded-full bg-emerald-400"
-                        aria-hidden
-                    />
-                    {onlineCount} {v.FRIENDS_ONLINE}
-                </p>
+                <div>
+                    <h1 className={styles.title}>{v.FRIENDS}</h1>
+                    <p className={styles.subtitle}>{v.FRIENDS_SOCIAL_INTRO}</p>
+                </div>
             </header>
-            <FriendLeaderboard />
+            <nav className={styles.navigation} aria-label={v.FRIENDS}>
+                {[
+                    {
+                        id: "social-circle",
+                        label: v.SOCIAL_PEOPLE,
+                        icon: Users,
+                    },
+                    {
+                        id: "social-shared",
+                        label: v.FRIENDS_NAV_SHARED,
+                        icon: Send,
+                    },
+                    {
+                        id: "social-recent",
+                        label: v.FRIENDS_NAV_RECENT,
+                        icon: Music2,
+                    },
+                    {
+                        id: "social-together",
+                        label: v.FRIENDS_PARTY,
+                        icon: Headphones,
+                    },
+                ].map(({ id, label, icon: Icon }) => (
+                    <a key={id} href={`#${id}`}>
+                        <Icon size={17} aria-hidden="true" />
+                        <span>{label}</span>
+                    </a>
+                ))}
+            </nav>
+            {error && (
+                <div className={styles.error} role="alert">
+                    <p>{error}</p>
+                    <button
+                        onClick={() => {
+                            void rockIt.friendManager.fetchFriends();
+                        }}
+                    >
+                        {v.SOCIAL_RETRY}
+                    </button>
+                </div>
+            )}
             {requests.length > 0 && <FriendRequests />}
-            <div className={styles.dashboardGrid}>
+            <div className={styles.socialLayout}>
                 <section
-                    className={styles.activitySection}
-                    aria-labelledby="social-activity"
+                    id="social-circle"
+                    className={styles.peopleRegion}
+                    aria-labelledby="social-people"
                 >
-                    <h2 id="social-activity" className={styles.sectionTitle}>
-                        {v.SOCIAL_DISCOVER}
-                    </h2>
-                    <FriendActivityFeed activities={activity} />
+                    <div className={styles.directoryHeading}>
+                        <h2 id="social-people" className={styles.sectionTitle}>
+                            {v.SOCIAL_PEOPLE}
+                        </h2>
+                        <span className={styles.presence} role="status">
+                            {v.FRIENDS_ONLINE_COUNT.replace(
+                                "{count}",
+                                String(onlineCount)
+                            )}
+                        </span>
+                    </div>
+                    {loading && friends.length === 0 ? (
+                        <div
+                            className={styles.directorySkeleton}
+                            aria-busy="true"
+                            aria-label={v.SEARCH_LOADING}
+                        >
+                            <div />
+                            <div />
+                            <div />
+                        </div>
+                    ) : (
+                        <FriendsList friends={friends} />
+                    )}
                 </section>
-                <aside className={styles.socialRail}>
-                    <section aria-label={v.FRIENDS_PARTY}>
-                        <h2 className={styles.sectionTitle}>
-                            {v.FRIENDS_PARTY}
-                        </h2>
-                        <ListenTogetherPanel />
-                    </section>
-                    <section aria-label={v.FRIENDS_SHARE}>
-                        <h2 className={styles.sectionTitle}>
-                            {v.FRIENDS_SHARE}
-                        </h2>
-                        <SharedMediaInbox />
-                    </section>
+                <section
+                    id="social-shared"
+                    className={styles.sharedRegion}
+                    aria-labelledby="social-shared-title"
+                >
+                    <h2
+                        id="social-shared-title"
+                        className={styles.sectionTitle}
+                    >
+                        {v.FRIENDS_SHARED_MUSIC}
+                    </h2>
+                    <SharedMediaInbox />
+                </section>
+                <section
+                    id="social-recent"
+                    className={styles.recentRegion}
+                    aria-labelledby="social-recent-title"
+                >
+                    <h2
+                        id="social-recent-title"
+                        className={styles.sectionTitle}
+                    >
+                        {v.FRIENDS_RECENT_LISTENS}
+                    </h2>
+                    {!ready && activity.length === 0 ? (
+                        <div
+                            className={styles.directorySkeleton}
+                            aria-busy="true"
+                            aria-label={v.SEARCH_LOADING}
+                        >
+                            <div />
+                            <div />
+                        </div>
+                    ) : (
+                        <FriendActivityFeed activities={activity} />
+                    )}
+                </section>
+                <section
+                    id="social-together"
+                    className={styles.togetherRegion}
+                    aria-label={v.FRIENDS_PARTY}
+                >
+                    <ListenTogetherPanel compact />
+                </section>
+                <aside
+                    className={styles.progressRegion}
+                    aria-label={v.FRIENDS_PERSONAL_PROGRESS}
+                >
+                    <FriendLeaderboard />
                 </aside>
             </div>
-            <section
-                id="social-circle"
-                className={styles.circleSection}
-                aria-labelledby="social-people"
-            >
-                <h2 id="social-people" className={styles.sectionTitle}>
-                    {v.SOCIAL_MANAGE}
-                </h2>
-                <FriendsList friends={friends} />
-            </section>
         </div>
     );
 }

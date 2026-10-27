@@ -2,13 +2,22 @@
 
 ## To Do
 
-### [FRIENDS] Mejorar UI/UX de la página de friends
+### [SOCIAL] Emblemas Rockit y comparación entre amigos
 
-- tags: [frontend, friends, ui, ux]
-- priority: high
+- tags: [frontend, backend, friends, badges, kb-36]
+- priority: medium
 - workload: Normal
     ```md
-    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
+    Medallas originales basadas en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
+    ```
+
+### [SOCIAL] XP por tiempo real de escucha y sesiones
+
+- tags: [backend, friends, xp, kb-35]
+- priority: medium
+- workload: Hard
+    ```md
+    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
     ```
 
 ### [PLAYER] Tiempos reales de la barra de reproducción
@@ -75,6 +84,28 @@
     ```
 
 ## To Review
+
+### [FRIENDS] Vocabulary desde el Excel
+
+- tags: [frontend, i18n, vocabulary, kb-34]
+- priority: medium
+- workload: Easy
+    ```md
+    Etiquetas de Friends y De/Para localizados en Vocabulary.xlsx (en/es/fr), tipos y fallback generados desde el Excel; generación sin escrituras de BD. Auditadas las referencias de vocabulario de Friends. Pendiente de revisión de Ignacio. Sin tests locales.
+    ```
+
+### [FRIENDS] Mejorar UI/UX de la página de friends
+
+- tags: [frontend, friends, ui, ux, kb-33]
+- priority: high
+- workload: Normal
+    ```md
+    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Revisión de tamaños y del conjunto con XP/medallas en curso; sin tests locales.
+
+    Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Revisión de pantallas grandes: ancho disponible completo, actividad en paralelo y columna de sesiones/compartidos en ultrawide, mediante container queries. Diseño pendiente de revisión de Ignacio. Sin tests locales.
+
+    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
+    ```
 
 ### [HOME] Añadir context menu a las canciones del home
 

@@ -1,35 +1,3 @@
-.root {
-    --social-base: #0b0b0b;
-    --social-surface: #171719;
-    --social-raised: #242426;
-    --social-text: #f5f5f7;
-    --social-secondary: #b0b0b8;
-    --social-tint: #ff6aa6;
-    max-width: 1120px;
-    margin-inline: auto;
-    padding: 2rem 1rem 5rem;
-    color: var(--social-text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 1rem;
-    line-height: 1.5;
-    isolation: isolate;
-}
-.header {
-    margin-bottom: 2rem;
-}
-.title {
-    margin: 0;
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    letter-spacing: -0.045em;
-    line-height: 1.12;
-}
-.subtitle {
-    margin-top: 0.75rem;
-    max-width: 42rem;
-    color: var(--social-secondary);
-    text-wrap: pretty;
-}
 .root button,
 .root input,
 .root select {
@@ -38,9 +6,6 @@
 }
 .root button {
     cursor: pointer;
-}
-.root button:disabled {
-    cursor: default;
 }
 .root :is(button, a, input, select, textarea):focus-visible {
     outline: 2px solid var(--social-tint);
@@ -69,25 +34,6 @@
 .root :global(.text-\[\#ee1086\]) {
     color: var(--social-tint);
 }
-.root :global(.social-card) {
-    background: var(--social-surface);
-    border: 1px solid #ffffff10;
-    border-radius: 1.5rem;
-    padding: 1.25rem;
-}
-.root button[class*="opacity-0"] {
-    opacity: 1;
-}
-.session {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2rem;
-    align-items: center;
-    padding: clamp(1.5rem, 4vw, 3rem);
-    border: 1px solid #ffffff14;
-    border-radius: 2rem;
-    background: var(--social-surface);
-}
 .artwork {
     position: relative;
     aspect-ratio: 1;
@@ -108,12 +54,6 @@
 .sessionCopy {
     min-width: 0;
     text-align: center;
-}
-.eyebrow {
-    color: var(--social-secondary);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
 }
 .sessionTitle {
     font-size: clamp(1.75rem, 4vw, 2.5rem);
@@ -153,44 +93,6 @@
     color: var(--social-secondary);
     background: var(--social-raised);
 }
-.empty {
-    padding: 3rem 1.5rem;
-    text-align: center;
-    border-radius: 1.5rem;
-    background: var(--social-surface);
-}
-.emptyIcon {
-    display: grid;
-    place-items: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    margin: 0 auto 1.25rem;
-    color: var(--social-tint);
-    background: var(--social-raised);
-}
-.empty h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-}
-.people {
-    margin-top: 1.5rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-    gap: 0.75rem;
-}
-.person {
-    display: flex;
-    gap: 0.875rem;
-    align-items: center;
-    min-width: 0;
-    padding: 1rem;
-    text-align: start;
-    border-radius: 1.25rem;
-    background: var(--social-surface);
-    border: 1px solid #ffffff10;
-}
 .person:hover {
     background: var(--social-raised);
 }
@@ -204,16 +106,6 @@
     place-items: center;
     flex-shrink: 0;
     font-weight: 600;
-}
-.personName {
-    display: block;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-.personAction {
-    display: block;
-    color: var(--social-secondary);
-    font-size: 0.8125rem;
 }
 @media (min-width: 768px) {
     .root {
@@ -242,7 +134,6 @@
     .root {
         --social-secondary: #dedee3;
     }
-    .tabs,
     .session,
     .person {
         border-color: #ffffff80;
@@ -330,13 +221,6 @@
         border-color: #fff9;
     }
 }
-
-.competition {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: 1.25rem;
-    margin-bottom: 2.5rem;
-}
 .passport,
 .league {
     min-width: 0;
@@ -350,62 +234,16 @@
         radial-gradient(ellipse at 10% 0%, #77344f60, transparent 75%),
         var(--social-surface);
 }
-.circleLink {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.65rem;
-    min-height: 44px;
-    color: var(--social-tint);
-    font-weight: 600;
-}
 .identity {
     display: flex;
     align-items: center;
     gap: 1.25rem;
     margin-block: 1.5rem;
 }
-.levelDisc {
-    position: relative;
-    flex: 0 0 120px;
-    height: 120px;
-    border-radius: 50%;
-    background:
-        repeating-radial-gradient(circle, #ffffff06 0 1px, transparent 2px 7px),
-        #141416;
-}
-.levelDisc svg {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-    fill: none;
-    stroke: #ffffff12;
-    stroke-width: 3;
-}
-.levelDisc circle:last-child {
-    stroke: var(--social-tint);
-    stroke-linecap: round;
-}
-.levelDisc > span {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-.levelDisc small {
-    font-size: 0.7rem;
-    color: var(--social-secondary);
-}
-.levelDisc strong {
-    font-size: 2.5rem;
-    line-height: 1.1;
-    letter-spacing: -0.06em;
-}
 .identityName {
     min-width: 0;
 }
-.identityName h2 {
+.identityName h3 {
     overflow-wrap: anywhere;
     font-size: 1.4rem;
     font-weight: 700;
@@ -468,21 +306,10 @@
     font-size: 0.75rem;
     color: var(--social-secondary);
 }
-.leagueHeading {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-.leagueHeading h2,
 .sectionTitle {
     font-size: 1.3rem;
     font-weight: 650;
     letter-spacing: -0.035em;
-}
-.leagueHeading > svg {
-    color: var(--social-tint);
 }
 .rankings {
     padding: 0;
@@ -566,59 +393,8 @@
     font-size: 0.85rem;
     margin-bottom: 1rem;
 }
-.compareNames {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    font-weight: 600;
-    gap: 1rem;
-    overflow-wrap: anywhere;
-}
-.comparison dl > div {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    align-items: center;
-    margin-top: 0.5rem;
-    font-variant-numeric: tabular-nums;
-}
-.comparison dt {
-    text-align: center;
-    font-size: 0.7rem;
-    color: var(--social-secondary);
-}
-.comparison dd:last-child {
-    text-align: right;
-}
-.dashboardGrid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: 2rem;
-}
-.activitySection,
-.socialRail {
-    min-width: 0;
-}
-.socialRail {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-.sectionTitle {
-    margin-bottom: 1rem;
-}
-.circleSection {
-    margin-top: 2.5rem;
-    scroll-margin-top: 5rem;
-}
-.socialRail .session {
-    grid-template-columns: 1fr;
-}
-.socialRail .artwork {
-    max-width: 160px;
-}
 @media (max-width: 800px) {
-    .competition,
-    .dashboardGrid {
+    .competition {
         grid-template-columns: 1fr;
     }
 }
@@ -627,79 +403,970 @@
     .league {
         padding: 1rem;
     }
-    .levelDisc {
-        flex-basis: 96px;
-        height: 96px;
-    }
     .identity {
         gap: 0.75rem;
     }
 }
 
 /* Brief feedback, never an ambient loop: keep the listening screen calm. */
-@keyframes social-arrive {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+
+/* Friends: a listening trail, with people beside the music. */
+
+.root {
+    isolation: isolate;
+    line-height: 1.5;
+    font-size: 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--social-text);
+    margin-inline: auto;
+    --social-base: var(--color-bg, #0b0b0b);
+    --social-surface: var(--color-surface, #151515);
+    --social-raised: var(--color-input-bg, #202020);
+    --social-text: var(--color-text, #e0e0e0);
+    --social-secondary: #b0b0b8;
+    --social-tint: #ff85b7;
+    width: 100%;
+    max-width: none;
+    container: friends / inline-size;
+    padding: 2.5rem clamp(1.5rem, 3vw, 6rem) 6rem;
+    color-scheme: dark;
+    caret-color: var(--social-tint);
 }
-@keyframes social-compare {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+
+.root ::selection {
+    background: var(--social-tint);
+    color: var(--social-base);
 }
-@media (prefers-reduced-motion: no-preference) {
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    animation: none;
+}
+
+.title {
+    font-weight: 700;
+    margin: 0;
+    font-size: 2.5rem;
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+}
+
+.subtitle {
+    text-wrap: pretty;
+    color: var(--social-secondary);
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    max-width: 48ch;
+}
+
+.circleLink {
+    font-weight: 600;
+    min-height: 44px;
+    gap: 0.65rem;
+    align-items: center;
+    display: inline-flex;
+    color: var(--social-text);
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.navigation {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #ffffff1f;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--social-secondary) transparent;
+}
+
+.navigation > button[aria-pressed="true"] {
+    color: var(--social-text);
+    border-bottom-color: var(--social-tint);
+}
+
+.navigation > button:hover {
+    color: var(--social-tint);
+}
+
+.navigation > button:focus-visible {
+    outline-offset: -3px;
+}
+
+.directoryHeading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.sectionTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    margin-bottom: 1.25rem;
+}
+
+.directoryHeading .sectionTitle {
+    margin: 0;
+}
+
+.presence {
+    font-size: 0.8125rem;
+    color: #91c7aa;
+}
+
+.directory {
+    min-width: 0;
+}
+
+.searchField {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    background: var(--social-raised);
+    padding-left: 0.875rem;
+    border-radius: 0.625rem;
+    margin-bottom: 1.25rem;
+    color: var(--social-secondary);
+}
+
+.searchField input {
+    width: 100%;
+    min-width: 0;
+    background: transparent;
+    padding: 0.75rem 0.75rem 0.75rem 0;
+    color: var(--social-text);
+    font-size: 1rem;
+    outline-offset: 2px;
+}
+
+.searchField input::placeholder {
+    color: var(--social-secondary);
+}
+
+.searchField input::-webkit-search-cancel-button {
+    appearance: none;
+}
+
+.searchField button {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.directoryList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.directoryRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block: 0.875rem;
+    min-width: 0;
+}
+
+.directoryAvatar {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    border-radius: 50%;
+    background: var(--social-raised);
+    color: var(--social-secondary);
+    font-weight: 600;
+}
+
+.directoryAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+.directoryAvatar[data-online="true"]::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--social-base);
+    border-radius: 50%;
+    background: #91c7aa;
+    right: 0;
+    bottom: 0;
+}
+
+.personCopy {
+    flex: 1;
+    min-width: 0;
+}
+
+.personName {
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    display: block;
+    font-size: 0.9375rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+}
+
+.personAction {
+    color: var(--social-secondary);
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    margin-top: 0.2rem;
+}
+
+.inviteButton,
+.addFriend {
+    display: grid;
+    place-items: center;
+    color: var(--social-tint);
+    border-radius: 50%;
+}
+
+.inviteButton:hover,
+.addFriend:hover {
+    background: var(--social-raised);
+}
+
+.personMenu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.personMenu summary {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--social-secondary);
+    list-style: none;
+}
+
+.personMenu summary::-webkit-details-marker {
+    display: none;
+}
+
+.personMenu summary:hover {
+    background: var(--social-raised);
+}
+
+.personMenu > div {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-width: 12rem;
+    max-width: 80vw;
+    padding: 0.5rem;
+    background: var(--social-raised);
+    border: 1px solid #ffffff30;
+    border-radius: 0.75rem;
+    box-shadow: 0 12px 28px #0006;
+}
+
+.personMenu button {
+    text-align: start;
+    padding: 0.75rem;
+    color: #ff9b9b;
+    border-radius: 0.375rem;
+}
+
+.personMenu button:hover {
+    background: #ffffff0d;
+}
+
+.root summary:focus-visible {
+    outline: 2px solid var(--social-tint);
+    outline-offset: 3px;
+}
+
+.directoryHint {
+    color: var(--social-secondary);
+    font-size: 0.875rem;
+    padding-block: 0.5rem;
+}
+
+.directoryEmpty {
+    display: grid;
+    gap: 0.75rem;
+    padding-block: 1rem;
+    color: var(--social-secondary);
+    font-size: 0.875rem;
+}
+
+.blocked {
+    margin-top: 1.5rem;
+    color: var(--social-secondary);
+    font-size: 0.875rem;
+}
+
+.blocked summary {
+    cursor: pointer;
+    min-height: 44px;
+    padding-block: 0.75rem;
+}
+
+.blocked button {
+    color: var(--social-tint);
+}
+
+.confirmAction {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    padding-block: 1rem;
+}
+
+.confirmAction > span {
+    flex-basis: 100%;
+    overflow-wrap: anywhere;
+}
+
+.confirmAction button {
+    color: #ff9b9b;
+    padding-inline: 0.5rem;
+}
+
+.confirmAction button:last-child {
+    color: var(--social-secondary);
+}
+
+.sleeve {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 1;
+    color: var(--social-secondary);
+    background: var(--social-raised);
+    border-radius: 0.875rem;
+    overflow: hidden;
+}
+
+.sleeveImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sleevePlay {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #f5f5f7;
+    color: #151515;
+    box-shadow: 0 5px 16px #0005;
+}
+
+.sleevePlay svg {
+    margin-left: 2px;
+}
+
+.sleevePlay:hover {
+    background: var(--social-tint);
+}
+
+.root button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.listenCopy {
+    min-width: 0;
+}
+
+.attribution {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+
+.attribution > span:nth-child(2) {
+    max-width: 16ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--social-text);
+}
+
+.attribution time {
+    margin-left: auto;
+}
+
+.trackTitle {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin-block: 0.875rem 0.5rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.trackActions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.trackActions button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--social-secondary);
+    font-size: 0.8125rem;
+}
+
+.trackActions button:hover {
+    color: var(--social-tint);
+}
+
+.listenRow {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 1.25rem;
+    padding-block: 1rem;
+    align-items: center;
+}
+
+.listenRow .sleeve {
+    border-radius: 0.5rem;
+}
+
+.listenRow .sleevePlay {
+    width: 44px;
+    height: 44px;
+    right: 0.25rem;
+    bottom: 0.25rem;
+}
+
+.listenRow .trackTitle {
+    font-size: 1rem;
+    letter-spacing: 0;
+    margin-block: 0.5rem 0;
+}
+
+.listenRow .trackActions {
+    gap: 0.25rem;
+}
+
+.listenRow .trackActions button {
+    justify-content: center;
+}
+
+.listenRow .trackActions span {
+    display: none;
+}
+
+.listenRow .listenerAvatar {
+    display: none;
+}
+
+.activityEmpty {
+    padding-block: 3rem 5rem;
+    max-width: 34rem;
+}
+
+.activityEmpty > svg {
+    color: var(--social-secondary);
+    margin-bottom: 2rem;
+}
+
+.activityEmpty h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+.activityEmpty p {
+    color: var(--social-secondary);
+    margin-top: 0.75rem;
+}
+
+.activityEmpty a {
+    margin-top: 1rem;
+}
+
+.passport,
+.league {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 1.5rem 0;
+    animation: none;
+}
+
+.competition {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    display: grid;
+    gap: 4rem;
+    margin-bottom: 0;
+}
+
+.error {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 1rem;
+    color: #ff9b9b;
+    font-size: 0.875rem;
+}
+
+.error button {
+    color: var(--social-text);
+}
+
+.directorySkeleton {
+    display: grid;
+    gap: 1rem;
+}
+
+.directorySkeleton div {
+    height: 52px;
+    border-radius: 0.5rem;
+    background: var(--social-raised);
+}
+
+/* Existing session tools use the same unframed language. */
+
+.session {
+    align-items: center;
+    gap: 2rem;
+    display: grid;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+    grid-template-columns: 1fr;
+}
+
+.empty {
+    text-align: start;
+    padding: 1rem 0 2rem;
+    background: transparent;
+    border-radius: 0;
+}
+
+.emptyIcon {
+    color: var(--social-tint);
+    place-items: center;
+    display: grid;
+    margin: 0 0 1.25rem;
+    background: transparent;
+    border-radius: 0;
+    width: 40px;
+    height: 40px;
+}
+
+.empty h2 {
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.people {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 0;
+}
+
+.person {
+    text-align: start;
+    min-width: 0;
+    align-items: center;
+    gap: 0.875rem;
+    display: flex;
+    background: transparent;
+    border: 0;
+    border-radius: 0.5rem;
+    padding: 0.875rem 0.5rem;
+}
+
+@media (max-width: 900px) {
     .header {
-        animation: social-arrive 360ms ease-out both;
+        align-items: start;
     }
-    .passport {
-        animation: social-arrive 420ms 40ms ease-out both;
+}
+
+@media (max-width: 680px) {
+    .root {
+        padding: 1.5rem 1rem 5rem;
     }
-    .league {
-        animation: social-arrive 420ms 100ms ease-out both;
+    .header {
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
     }
-    .dashboardGrid {
-        animation: social-arrive 420ms 160ms ease-out both;
+    .title {
+        font-size: 2rem;
     }
-    .comparison {
-        animation: social-compare 220ms ease-out both;
+    .subtitle {
+        font-size: 0.9375rem;
     }
-    .levelDisc circle:last-child {
-        transition: stroke-dasharray 650ms ease-out;
+    .navigation {
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
     }
-    .rankRow {
+    .navigation > button {
+        font-size: 0.875rem;
+    }
+    .navigation > button > svg {
+        display: none;
+    }
+    .competition {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .listenRow {
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 1rem;
+    }
+    .trackActions {
+        gap: 0.75rem;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .sleevePlay {
+        transition: background-color 160ms;
+    }
+    .navigation > button {
         transition:
-            background-color 180ms,
-            border-color 180ms,
-            transform 180ms;
+            color 160ms,
+            border-color 160ms;
     }
-    .rankRow:active:not(:disabled) {
-        transform: scale(0.985);
+}
+
+@media (prefers-contrast: more) {
+    .root {
+        --social-secondary: #dedee3;
     }
-    .circleLink {
-        transition: gap 180ms;
+    .navigation {
+        border-color: #ffffff80;
     }
-    .circleLink:hover {
-        gap: 0.9rem;
+}
+
+.requests {
+    padding-block: 0.5rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #ffffff1f;
+}
+
+.sessionInvite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block: 1rem;
+}
+
+.joinSession {
+    background: var(--social-tint);
+    color: var(--social-base);
+    padding: 0.625rem 1.25rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.inboxNavigation {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.root .inboxNavigation button {
+    background: transparent;
+    border-radius: 0;
+    color: var(--social-secondary);
+    padding-inline: 0;
+    border-bottom: 2px solid transparent;
+}
+
+.root .inboxNavigation button[aria-pressed="true"] {
+    color: var(--social-text);
+    border-color: var(--social-tint);
+}
+
+.sharedRow {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding-block: 1rem;
+}
+
+.sharedRow[data-unread="true"] .personName {
+    color: var(--social-tint);
+}
+
+.sharedRow[data-unread="true"]::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--social-tint);
+    flex-shrink: 0;
+}
+
+.navigation > button {
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    color: var(--social-secondary);
+    padding: 0.75rem 0.125rem 1rem;
+    gap: 0.625rem;
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.listenerAvatar {
+    font-size: 0.75rem;
+    border-radius: 50%;
+    background: var(--social-raised);
+    height: 24px;
+    width: 24px;
+    place-items: center;
+    display: grid;
+    overflow: hidden;
+}
+
+.listenerAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sessionStatus {
+    color: var(--social-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+}
+.comparisonTable {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    border-collapse: collapse;
+}
+.comparisonTable th,
+.comparisonTable td {
+    padding-block: 0.5rem;
+    overflow-wrap: anywhere;
+}
+.comparisonTable th {
+    text-align: start;
+    font-weight: 400;
+    color: var(--social-secondary);
+}
+.comparisonTable thead th {
+    font-weight: 600;
+    color: var(--social-text);
+}
+.comparisonTable td,
+.comparisonTable thead th:not(:first-child) {
+    text-align: end;
+}
+.comparisonTable th:first-child {
+    width: 46%;
+}
+@media (max-width: 400px) {
+    .navigation {
+        flex-wrap: wrap;
+        gap: 0.25rem 1.25rem;
+        overflow: visible;
     }
-    @media (hover: hover) {
-        .rankRow:hover:not(:disabled) {
-            transform: translateX(3px);
-        }
-        .leagueAvatar {
-            transition: transform 180ms;
-        }
-        .rankRow:hover .leagueAvatar {
-            transform: scale(1.06);
-        }
+    .navigation > button {
+        padding-block: 0.625rem;
+    }
+}
+
+/* Spend additional width on more visible content, rather than outer margins.
+   Container queries follow the available app pane, including its sidebar. */
+@container friends (min-width: 1280px) {
+    .listenRow {
+        grid-template-columns: 96px minmax(0, 1fr);
+        align-items: start;
+        padding-block: 1.25rem;
+    }
+    .listenRow .trackTitle {
+        font-size: 1.125rem;
+    }
+}
+.sharedItems {
+    display: grid;
+    gap: 0.5rem;
+}
+/* People first in reading and keyboard order; personal progress stays last on mobile. */
+.socialLayout {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+}
+.peopleRegion,
+.sharedRegion,
+.recentRegion,
+.togetherRegion,
+.progressRegion {
+    min-width: 0;
+    scroll-margin-top: 6rem;
+}
+.navigation {
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 0.25rem 1.5rem;
+}
+.navigation a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+    color: var(--social-secondary);
+    font-size: 0.875rem;
+}
+.navigation a:hover {
+    color: var(--social-tint);
+}
+.listeningHistory {
+    display: grid;
+    gap: 0.5rem;
+}
+.listeningHistory .listenRow {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.75rem;
+}
+.listeningHistory .sleevePlay {
+    width: 44px;
+    height: 44px;
+    right: 0;
+    bottom: 0;
+}
+.listeningHistory .trackTitle {
+    font-size: 1rem;
+}
+.activityEmpty {
+    padding-block: 1rem;
+}
+.activityEmpty h2 {
+    font-size: 1.125rem;
+}
+.activityEmpty > svg {
+    display: none;
+}
+.competition {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+.passport {
+    padding: 0;
+    background: transparent;
+}
+.identity {
+    gap: 1rem;
+    margin-block: 1.25rem;
+    align-items: start;
+    flex-wrap: wrap;
+}
+.levelLabel {
+    font-size: 0.875rem;
+    color: var(--social-tint);
+    padding-block: 0.2rem;
+}
+.identityName h3 {
+    font-size: 1rem;
+    letter-spacing: 0;
+}
+.personalStats strong {
+    font-size: 1.5rem;
+}
+.personalStats {
+    padding-bottom: 0.5rem;
+}
+.leagueDisclosure {
+    border-top: 1px solid #ffffff1f;
+    padding-top: 0.5rem;
+}
+.leagueDisclosure > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 44px;
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.leagueDisclosure > summary::-webkit-details-marker {
+    display: none;
+}
+.leagueDisclosure[open] > summary svg {
+    transform: rotate(180deg);
+}
+.directoryExpand {
+    margin-top: 0.5rem;
+    color: var(--social-tint);
+    font-size: 0.875rem;
+}
+.sharedItems {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+}
+/* Equal primary columns and bounded initial feeds keep each social section
+   comparable in weight. Mobile retains the DOM order: people, shares, recent. */
+@container friends (min-width: 900px) {
+    .socialLayout {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2.5rem;
+    }
+}
+@container friends (min-width: 1200px) {
+    .socialLayout {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2.5rem;
+    }
+}
+@container friends (min-width: 2400px) {
+    .socialLayout {
+        gap: 3rem;
     }
 }

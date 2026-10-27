@@ -31,6 +31,18 @@ def _identity(path: Path) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
 
 
+def _read_cache(cache: Path) -> AudioBoundsResponse | None:
+    """Treat missing, corrupt or expired failure entries as cache misses."""
+    try:
+        data = json.loads(cache.read_text())
+        result = AudioBoundsResponse.model_validate(data["bounds"])
+        if result.status == "ready" or time.time() - data["created"] < 60:
+            return result
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return None
+
+
 def _prepare(
     path: Path, root: Path
 ) -> tuple[str, AudioBoundsResponse | None, BinaryIO | None]:
@@ -38,19 +50,19 @@ def _prepare(
     key = _identity(path=path)
     root.mkdir(parents=True, exist_ok=True)
     cache = root / f"{key}.json"
-    try:
-        data = json.loads(cache.read_text())
-        result = AudioBoundsResponse.model_validate(data["bounds"])
-        if result.status == "ready" or time.time() - data["created"] < 60:
-            return key, result, None
-    except (OSError, ValueError, KeyError, TypeError):
-        pass
+    cached = _read_cache(cache=cache)
+    if cached is not None:
+        return key, cached, None
     lock = (root / "worker.lock").open("ab")
     try:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
         lock.close()
         return key, None, None
+    cached = _read_cache(cache=cache)
+    if cached is not None:
+        lock.close()
+        return key, cached, None
     return key, None, lock
 
 
@@ -192,10 +204,10 @@ async def _worker(path: Path, root: Path, key: str, lock: BinaryIO) -> None:
     bounds = AudioBoundsResponse()
     try:
         bounds = await analyze(path=path)
-    except (OSError, ValueError, KeyError, StopIteration):
-        logger.warning("Boundary analysis unavailable", exc_info=True)
     except TimeoutError:
         logger.warning("Boundary analysis timed out")
+    except (OSError, ValueError, KeyError):
+        logger.warning("Boundary analysis unavailable", exc_info=True)
     finally:
         try:
             await asyncio.to_thread(

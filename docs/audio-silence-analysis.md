@@ -24,7 +24,7 @@ There is no new user-facing text in this change, so no vocabulary keys are intro
 
 ## Evidence — 27 October 2026
 
-Targeted experiments were executed rather than local application test suites. Environment: Linux x86_64, Chromium using real HTMLAudioElement streams and Web Audio. This is a development container, not production hardware.
+Targeted experiments were executed rather than local application test suites. Environment: Linux x86_64, Intel Xeon Platinum 8573C (container quota: two CPUs), Chromium using real HTMLAudioElement streams and Web Audio. This is a development container, not production hardware.
 
 Two short musical fixtures from [pydub test data](https://github.com/jiaaro/pydub/tree/master/test/data), `bach.ogg` (about 3 s) and `party.mp3` (about 6.6 s), were examined unchanged, then repeated into 25-second excerpts with known 2-second leading and 3-second trailing silence. These are **controlled excerpts, not two complete catalog songs**. Additional 30-second fixtures cover gradual amplitude growth, no silence, internal pauses, one active stereo channel, antiphase stereo, an entirely silent file and a 10 kHz signal.
 
@@ -35,6 +35,7 @@ Two short musical fixtures from [pydub test data](https://github.com/jiaaro/pydu
 - One-channel, antiphase and 10 kHz fixtures: correct 1.85–27.15 s boundaries.
 - Entirely silent fixture: unavailable, no fabricated seek interval.
 - Measured full analysis wall time: approximately 200–423 ms, depending on excerpt. Child-process CPU and raw results are in the measurements JSON. This includes decoder startup and analysis; no production throughput claim follows from these numbers.
+- Two separate Python processes: the first claimed the host slot; the second immediately returned busy. Both exited cleanly.
 - Ten simultaneous metadata requests for the same cold source: one active task; pending responses together in 17.4 ms. Ten warm requests together: 4.8 ms, no remaining decoder tasks. These are service calls in one process, **not ten authenticated users streaming**.
 
 In Chromium the actual MediaPlayerManager, shared base player and mixer were bundled with a fixture queue and simulated HTTP metadata/ownership transport. Both the musical pair and progressive-intro pair promoted once, overlapped before 27.15 s, entered the second deck at its detected original-clock position and ended without duplicate queue advancement or page errors. Pause stopped playback. Recordings capture the real mixer output. This does not validate authenticated multi-device WebSocket ownership or iOS background playback.

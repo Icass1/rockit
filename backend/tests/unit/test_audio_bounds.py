@@ -85,11 +85,19 @@ async def test_shared_cache_slot_and_source_replacement(
         *(silence.request_bounds(path=str(source)) for _ in range(10))
     )
     assert all(item.status == "pending" for item in responses)
+
+    async def wait_ready() -> None:
+        for _ in range(100):
+            if (await silence.request_bounds(path=str(source))).status == "ready":
+                return
+            await asyncio.sleep(0.01)
+        pytest.fail("Boundary metadata did not become ready")
+
     release.set()
-    await asyncio.gather(*list(silence._tasks))
+    await wait_ready()
     assert calls == 1
     assert (await silence.request_bounds(path=str(source))).status == "ready"
     source.write_bytes(b"replacement")
     assert (await silence.request_bounds(path=str(source))).status == "pending"
-    await asyncio.gather(*list(silence._tasks))
+    await wait_ready()
     assert calls == 2

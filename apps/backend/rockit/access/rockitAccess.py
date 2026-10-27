@@ -1,14 +1,15 @@
 from typing import cast
 
-from sqlalchemy import func, Result as DBResult
-from sqlalchemy import insert, select
+from sqlalchemy import Result as DBResult
+from sqlalchemy import func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import Select
 
 from core.access.db.ormModels.media import CoreMediaRow
-from core.framework.models.localSong import LocalSong
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.enums.mediaTypeEnum import MediaTypeEnum
+from core.framework.models.localSong import LocalSong
 from core.utils.createId import create_id
 from logger import getLogger
 from result import Result, ResultCode
@@ -25,19 +26,34 @@ logger = getLogger(__name__)
 
 class RockitAccess:
     @staticmethod
-    async def find_local_songs_async(session: AsyncSession, titles: list[str]) -> Result[list[LocalSong]]:
+    async def find_local_songs_async(
+        session: AsyncSession, titles: list[str]
+    ) -> Result[list[LocalSong]]:
         """Batch-read downloaded RockIt metadata for local search matching."""
         if not titles:
             return Result(code=ResultCode.OK, message="OK", result=[])
-        rows = (await session.execute(
-            select(CoreMediaRow.public_id, RockitSongRow.name, RockitSongRow.file_path, RockitArtistRow.name)
-            .select_from(RockitSongRow)
-            .join(CoreMediaRow, CoreMediaRow.id == RockitSongRow.id)
-            .join(song_artists, song_artists.c.song_id == RockitSongRow.id)
-            .join(RockitArtistRow, RockitArtistRow.id == song_artists.c.artist_id)
-            .where(func.lower(func.regexp_replace(func.trim(RockitSongRow.name), r"\s+", " ", "g")).in_(titles), RockitSongRow.file_path.isnot(None), RockitSongRow.file_path != "")
-            .limit(1001)
-        )).all()
+        rows = (
+            await session.execute(
+                select(
+                    CoreMediaRow.public_id,
+                    RockitSongRow.name,
+                    StorageObjectRow.key,
+                    RockitArtistRow.name,
+                )
+                .select_from(RockitSongRow)
+                .join(CoreMediaRow, CoreMediaRow.id == RockitSongRow.id)
+                .join(StorageObjectRow, StorageObjectRow.id == RockitSongRow.storage_object_id)
+                .join(song_artists, song_artists.c.song_id == RockitSongRow.id)
+                .join(RockitArtistRow, RockitArtistRow.id == song_artists.c.artist_id)
+                .where(
+                    func.lower(
+                        func.regexp_replace(func.trim(RockitSongRow.name), r"\s+", " ", "g")
+                    ).in_(titles),
+                    StorageObjectRow.key != "",
+                )
+                .limit(1001)
+            )
+        ).all()
         if len(rows) > 1000:
             logger.warning("Too many local song candidates; keeping explicit source selection")
             return Result(code=ResultCode.OK, message="OK", result=[])
@@ -46,7 +62,9 @@ class RockitAccess:
             if not path:
                 continue
             if public_id not in songs:
-                songs[public_id] = LocalSong(public_id=public_id, name=name, artists=[], file_path=path)
+                songs[public_id] = LocalSong(
+                    public_id=public_id, name=name, artists=[], storage_key=path
+                )
             songs[public_id].artists.append(artist_name)
         return Result(code=ResultCode.OK, message="OK", result=list(songs.values()))
 
@@ -571,7 +589,9 @@ class RockitAccess:
             stmt: Select[tuple[RockitSongRow]] = (
                 select(RockitSongRow)
                 .where(RockitSongRow.name.ilike(f"%{query}%"))
-                .options(selectinload(RockitSongRow.artists))
+                .options(
+                    selectinload(RockitSongRow.artists), selectinload(RockitSongRow.storage_object)
+                )
             )
             result: DBResult[tuple[RockitSongRow]] = await session.execute(stmt)
             rows: list[RockitSongRow] = cast(list[RockitSongRow], result.scalars().all())

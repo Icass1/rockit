@@ -580,7 +580,7 @@ class Rockit:
                                 type="song",
                                 name=song.name,
                                 providerUrl=f"/rockit/song/{public_id}",
-                                publicId=public_id if song.file_path else None,
+                                publicId=public_id,
                                 imageUrl=image_url,
                                 artists=artists,
                                 provider=Rockit.provider_name,

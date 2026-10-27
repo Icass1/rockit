@@ -1,8 +1,10 @@
 # pyright: reportPrivateUsage=false
 """Local playback is independent of the provider supplying a remote search hit."""
 
+import asyncio
+import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from collections.abc import AsyncIterator
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -11,18 +13,19 @@ from unittest.mock import AsyncMock
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.core.aResult import AResult, AResultCode
-from backend.core.framework.models.localSong import LocalSong
-from backend.core.framework.provider.baseProvider import BaseProvider
-from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
-from backend.core.framework.providers.providers import Providers
-from backend.core.framework.media import localSearch
-from backend.core.framework.media.media import Media
-from backend.core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
-from backend.core.responses.searchResponse import (
-    BaseSearchResultsItem,
+from core.framework.media import localSearch
+from core.framework.media.media import Media
+from core.framework.models.localSong import LocalSong
+from core.framework.objectFiles import ObjectFiles
+from core.framework.provider.baseMediaProvider import BaseMediaProvider
+from core.framework.provider.baseProvider import BaseProvider
+from core.framework.providers.providers import Providers
+from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from core.responses.searchResponse import (
     ArtistSearchResultsItem,
+    BaseSearchResultsItem,
 )
+from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
 
@@ -34,21 +37,21 @@ class ArchivedSource(BaseMediaProvider):
 
     async def find_local_songs_async(
         self, session: AsyncSession, titles: list[str]
-    ) -> AResult[list[LocalSong]]:
-        return AResult(code=AResultCode.OK, message="OK", result=self.songs)
+    ) -> Result[list[LocalSong]]:
+        return Result(code=ResultCode.OK, message="OK", result=self.songs)
 
     async def get_local_songs_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         song = cast(
             BaseSongWithAlbumResponse,
             SimpleNamespace(publicId="local-a", downloaded=True),
         )
-        return AResult(code=AResultCode.OK, message="OK", result=[song])
+        return Result(code=ResultCode.OK, message="OK", result=[song])
 
     async def search_media_async(
         self, session: AsyncSession, query: str
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         raise AssertionError("Offline source must never be searched remotely")
 
 
@@ -94,7 +97,7 @@ async def test_resolves_other_source_without_searching_offline_provider(
                 public_id="local-a",
                 name="Song",
                 artists=["Artist"],
-                file_path=str(file),
+                storage_key=str(file),
             )
         ]
     )
@@ -104,11 +107,16 @@ async def test_resolves_other_source_without_searching_offline_provider(
     registry._offline_media_providers = [archive]
     monkeypatch.setattr(localSearch, "providers", registry)
 
+    async def object_exists(key: str) -> bool:
+        return await asyncio.to_thread(os.path.isfile, key)
+
+    monkeypatch.setattr(ObjectFiles, "exists_async", object_exists)
+
     @asynccontextmanager
-    async def scope() -> AsyncIterator[AsyncSession]:
+    async def scope() -> AsyncGenerator[AsyncSession]:
         yield cast(AsyncSession, AsyncMock())
 
-    monkeypatch.setattr(localSearch.rockit_db, "session_scope_async", scope)
+    monkeypatch.setattr(localSearch.db_context, "session_scope_async", scope)
     original = hit(title=title, artists=artists)
     results = await localSearch.resolve_local_results(items=[original])
     assert bool(results[0].downloaded) is expected
@@ -126,25 +134,26 @@ async def test_missing_file_and_ambiguous_editions_are_not_auto_played(
     file = tmp_path / "audio.mp3"
     if not missing:
         file.write_bytes(b"local")
-    songs = [
-        LocalSong(public_id="one", name="Song", artists=["Artist"], file_path=str(file))
-    ]
+    songs = [LocalSong(public_id="one", name="Song", artists=["Artist"], storage_key=str(file))]
     if ambiguous:
         songs.append(
-            LocalSong(
-                public_id="two", name="Song", artists=["Artist"], file_path=str(file)
-            )
+            LocalSong(public_id="two", name="Song", artists=["Artist"], storage_key=str(file))
         )
     registry = Providers()
     registry._providers = []
     registry._offline_media_providers = [ArchivedSource(songs)]
     monkeypatch.setattr(localSearch, "providers", registry)
 
+    async def object_exists(key: str) -> bool:
+        return await asyncio.to_thread(os.path.isfile, key)
+
+    monkeypatch.setattr(ObjectFiles, "exists_async", object_exists)
+
     @asynccontextmanager
-    async def scope() -> AsyncIterator[AsyncSession]:
+    async def scope() -> AsyncGenerator[AsyncSession]:
         yield cast(AsyncSession, AsyncMock())
 
-    monkeypatch.setattr(localSearch.rockit_db, "session_scope_async", scope)
+    monkeypatch.setattr(localSearch.db_context, "session_scope_async", scope)
     result = await localSearch.resolve_local_results(items=[hit()])
     assert result[0].downloaded is False
     assert result[0].publicId is None
@@ -153,7 +162,7 @@ async def test_missing_file_and_ambiguous_editions_are_not_auto_played(
 async def test_disabled_provider_song_is_retrieved_through_local_capability(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from backend.core.framework.media import media as module
+    from core.framework.media import media as module
 
     registry = Providers()
     registry._providers = []
@@ -163,8 +172,8 @@ async def test_disabled_provider_song_is_retrieved_through_local_capability(
         module.MediaAccess,
         "get_media_from_public_id_async",
         AsyncMock(
-            return_value=AResult(
-                code=AResultCode.OK,
+            return_value=Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=SimpleNamespace(provider_id=42),
             )
@@ -182,12 +191,10 @@ def test_loading_local_capability_does_not_initialize_remote_api(
 ) -> None:
     from importlib import import_module
 
-    registry_module = import_module("backend.core.framework.providers.providers")
+    registry_module = import_module("core.framework.providers.providers")
 
     archive = ArchivedSource([])
-    remote_init = AsyncMock(
-        side_effect=AssertionError("Remote initialization must stay disabled")
-    )
+    remote_init = AsyncMock(side_effect=AssertionError("Remote initialization must stay disabled"))
     monkeypatch.setattr(archive, "async_init", remote_init)
 
     def load_module(name: str) -> SimpleNamespace:

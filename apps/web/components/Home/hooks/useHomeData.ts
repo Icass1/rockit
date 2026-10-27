@@ -1,12 +1,8 @@
 import { useMemo } from "react";
-import {
-    BaseSongWithAlbumResponse,
-    HomeStatsResponse,
-    MediaResponse,
-} from "@/dto";
 import type { SongListResponse } from "@/dto";
-import { mixHomeRecommendations } from "@rockit/shared";
+import { BaseSongWithAlbumResponse, HomeStatsResponse } from "@/dto";
 import type { HttpResult } from "@rockit/shared";
+import { mixHomeRecommendations } from "@rockit/shared";
 import type { HomeData } from "@/models/interfaces/homeData";
 import useAccountCachedData from "@/hooks/useAccountCachedData";
 import useFetch from "@/hooks/useFetch";

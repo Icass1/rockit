@@ -27,10 +27,10 @@ from result import Result, ResultCode
 if TYPE_CHECKING:
     from core.framework.downloader.baseDownload import BaseDownload
 
-logger: Logger = getLogger(__name__)
-
 
 from core.framework.models.localSong import LocalSong
+
+logger: Logger = getLogger(__name__)
 
 
 class BaseMediaProvider(BaseProvider):

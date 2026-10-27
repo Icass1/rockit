@@ -1,15 +1,14 @@
-import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
-from sqlalchemy import func, Result as DBResult
-from sqlalchemy import Select, and_
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from constants import MEDIA_PATH
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.models.localSong import LocalSong
 from core.utils.createId import create_id
@@ -42,28 +41,42 @@ logger = getLogger(__name__)
 class YoutubeMusicAccess:
     @staticmethod
     @safe_async
-    async def find_local_songs_async(session: AsyncSession, titles: list[str]) -> Result[list[LocalSong]]:
+    async def find_local_songs_async(
+        session: AsyncSession, titles: list[str]
+    ) -> Result[list[LocalSong]]:
         """Batch-read downloaded YouTube Music metadata for local search matching."""
         if not titles:
             return Result(code=ResultCode.OK, message="OK", result=[])
-        rows = (await session.execute(
-            select(CoreMediaRow.public_id, TrackRow.title, TrackRow.path, ArtistRow.name)
-            .select_from(TrackRow)
-            .join(CoreMediaRow, CoreMediaRow.id == TrackRow.id)
-            .join(track_artists, track_artists.c.track_id == TrackRow.id)
-            .join(ArtistRow, ArtistRow.id == track_artists.c.artist_id)
-            .where(func.lower(func.regexp_replace(func.trim(TrackRow.title), r"\s+", " ", "g")).in_(titles), TrackRow.path.isnot(None), TrackRow.path != "")
-            .limit(1001)
-        )).all()
+        rows = (
+            await session.execute(
+                select(CoreMediaRow.public_id, TrackRow.title, StorageObjectRow.key, ArtistRow.name)
+                .select_from(TrackRow)
+                .join(CoreMediaRow, CoreMediaRow.id == TrackRow.id)
+                .join(StorageObjectRow, StorageObjectRow.id == TrackRow.storage_object_id)
+                .join(track_artists, track_artists.c.track_id == TrackRow.id)
+                .join(ArtistRow, ArtistRow.id == track_artists.c.artist_id)
+                .where(
+                    func.lower(
+                        func.regexp_replace(func.trim(TrackRow.title), r"\s+", " ", "g")
+                    ).in_(titles),
+                    StorageObjectRow.key != "",
+                )
+                .limit(1001)
+            )
+        ).all()
         if len(rows) > 1000:
-            logger.warning("Too many YouTube Music local candidates; keeping explicit source selection")
+            logger.warning(
+                "Too many YouTube Music local candidates; keeping explicit source selection"
+            )
             return Result(code=ResultCode.OK, message="OK", result=[])
         songs: dict[str, LocalSong] = {}
         for public_id, name, path, artist_name in rows:
             if not path:
                 continue
             if public_id not in songs:
-                songs[public_id] = LocalSong(public_id=public_id, name=name, artists=[], file_path=os.path.join(MEDIA_PATH, path))
+                songs[public_id] = LocalSong(
+                    public_id=public_id, name=name, artists=[], storage_key=path
+                )
             songs[public_id].artists.append(artist_name)
         return Result(code=ResultCode.OK, message="OK", result=list(songs.values()))
 
@@ -86,7 +99,6 @@ class YoutubeMusicAccess:
             message="OK",
             result=storage_object.key if storage_object is not None else None,
         )
-
 
     @staticmethod
     @safe_async

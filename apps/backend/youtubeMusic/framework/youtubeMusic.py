@@ -697,11 +697,11 @@ class YoutubeMusic:
 
         if a_tracks.is_ok():
             tracks = a_tracks.result()
-            downloaded_a: Result[dict[str, str]] = (
-                await YoutubeMusicAccess.get_downloaded_youtube_public_ids_async(
-                    session=session,
-                    youtube_ids=[t.youtube_id for t in tracks],
-                )
+            downloaded_a: Result[
+                dict[str, str]
+            ] = await YoutubeMusicAccess.get_downloaded_youtube_public_ids_async(
+                session=session,
+                youtube_ids=[t.youtube_id for t in tracks],
             )
             if downloaded_a.is_not_ok():
                 logger.error(f"Error getting downloaded YouTube IDs. {downloaded_a.info()}")

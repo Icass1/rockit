@@ -1,17 +1,16 @@
-import os
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import func, Result as DBResult
-from sqlalchemy import Select, and_
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, and_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from constants import MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.media.image import Image
 from core.framework.models.localSong import LocalSong
@@ -19,7 +18,6 @@ from core.utils.createId import create_id
 from core.utils.timeIt import time_it
 from logger import getLogger
 from result import Result, ResultCode
-from spotifyScrapper.access.db.associationTables.song_artists import song_artists
 from spotifyScrapper.access.db.associationTables.album_artists import (
     album_artists,
 )
@@ -29,6 +27,7 @@ from spotifyScrapper.access.db.associationTables.album_external_images import (
 from spotifyScrapper.access.db.associationTables.artist_genres import (
     artist_genres,
 )
+from spotifyScrapper.access.db.associationTables.song_artists import song_artists
 from spotifyScrapper.access.db.ormModels.album import AlbumRow
 from spotifyScrapper.access.db.ormModels.artist import ArtistRow
 from spotifyScrapper.access.db.ormModels.copyright import CopyrightRow
@@ -58,35 +57,61 @@ logger = getLogger(__name__)
 
 class SpotifyScrapperAccess:
     @staticmethod
-    async def find_local_songs_async(session: AsyncSession, titles: list[str]) -> Result[list[LocalSong]]:
+    async def find_local_songs_async(
+        session: AsyncSession, titles: list[str]
+    ) -> Result[list[LocalSong]]:
         """Batch-read downloaded metadata for local search matching."""
         if not titles:
             return Result(code=ResultCode.OK, message="OK", result=[])
-        rows = (await session.execute(
-            select(CoreMediaRow.public_id, TrackRow.name, TrackRow.path, ArtistRow.name)
-            .select_from(TrackRow).join(CoreMediaRow, CoreMediaRow.id == TrackRow.id)
-            .join(song_artists, song_artists.c.track_id == TrackRow.id)
-            .join(ArtistRow, ArtistRow.id == song_artists.c.artist_id)
-            .where(func.lower(func.regexp_replace(func.trim(TrackRow.name), r"\s+", " ", "g")).in_(titles), TrackRow.path.isnot(None), TrackRow.path != "").limit(1001)
-        )).all()
+        rows = (
+            await session.execute(
+                select(CoreMediaRow.public_id, TrackRow.name, StorageObjectRow.key, ArtistRow.name)
+                .select_from(TrackRow)
+                .join(CoreMediaRow, CoreMediaRow.id == TrackRow.id)
+                .join(StorageObjectRow, StorageObjectRow.id == TrackRow.storage_object_id)
+                .join(song_artists, song_artists.c.track_id == TrackRow.id)
+                .join(ArtistRow, ArtistRow.id == song_artists.c.artist_id)
+                .where(
+                    func.lower(func.regexp_replace(func.trim(TrackRow.name), r"\s+", " ", "g")).in_(
+                        titles
+                    ),
+                    StorageObjectRow.key != "",
+                )
+                .limit(1001)
+            )
+        ).all()
         if len(rows) > 1000:
-            logger.warning("Too many Spotify Scrapper local candidates; keeping explicit source selection")
+            logger.warning(
+                "Too many Spotify Scrapper local candidates; keeping explicit source selection"
+            )
             return Result(code=ResultCode.OK, message="OK", result=[])
         songs: dict[str, LocalSong] = {}
         for public_id, name, path, artist_name in rows:
-            if not path: continue
+            if not path:
+                continue
             if public_id not in songs:
-                songs[public_id] = LocalSong(public_id=public_id, name=name, artists=[], file_path=os.path.join(MEDIA_PATH, path))
+                songs[public_id] = LocalSong(
+                    public_id=public_id, name=name, artists=[], storage_key=path
+                )
             songs[public_id].artists.append(artist_name)
         return Result(code=ResultCode.OK, message="OK", result=list(songs.values()))
 
     @staticmethod
-    async def get_downloaded_search_ids_async(session: AsyncSession, spotify_ids: list[str]) -> Result[dict[str, str]]:
+    async def get_downloaded_search_ids_async(
+        session: AsyncSession, spotify_ids: list[str]
+    ) -> Result[dict[str, str]]:
         """Map exact Spotify identities to playable local songs."""
         if not spotify_ids:
             return Result(code=ResultCode.OK, message="OK", result={})
-        result = await session.execute(select(TrackRow.spotify_id, CoreMediaRow.public_id).join(CoreMediaRow, TrackRow.id == CoreMediaRow.id).where(TrackRow.spotify_id.in_(spotify_ids), TrackRow.path.isnot(None), TrackRow.path != ""))
-        return Result(code=ResultCode.OK, message="OK", result={row[0]: row[1] for row in result.all()})
+        result = await session.execute(
+            select(TrackRow.spotify_id, CoreMediaRow.public_id)
+            .join(CoreMediaRow, TrackRow.id == CoreMediaRow.id)
+            .join(StorageObjectRow, StorageObjectRow.id == TrackRow.storage_object_id)
+            .where(TrackRow.spotify_id.in_(spotify_ids), StorageObjectRow.key != "")
+        )
+        return Result(
+            code=ResultCode.OK, message="OK", result={row[0]: row[1] for row in result.all()}
+        )
 
     @staticmethod
     @time_it

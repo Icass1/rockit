@@ -27,10 +27,10 @@ from core.utils.timeIt import time_it
 from logger import getLogger
 from result import Result, ResultCode
 from spotifyScrapper.access.artistCatalogAccess import ArtistCatalogAccess
-from spotifyScrapper.access.spotifyScrapperAccess import SpotifyScrapperAccess
 from spotifyScrapper.access.db.ormEnums.copyrightTypeEnum import (
     CopyrightTypeEnumRow,
 )
+from spotifyScrapper.access.spotifyScrapperAccess import SpotifyScrapperAccess
 from spotifyScrapper.access.trackAccess import TrackAccess
 from spotifyScrapper.enums.copyrightTypeEnum import CopyrightTypeEnum
 from spotifyScrapper.framework.download.spotifyScrapperDownload import (
@@ -137,7 +137,9 @@ class SpotifyScrapperProvider(BaseMediaProvider):
             return Result(code=result.code(), message=result.message())
         items = result.result()
         ids = [item.providerUrl.rsplit("/", 1)[-1] for item in items if item.type == "song"]
-        local = await SpotifyScrapperAccess.get_downloaded_search_ids_async(session=session, spotify_ids=ids)
+        local = await SpotifyScrapperAccess.get_downloaded_search_ids_async(
+            session=session, spotify_ids=ids
+        )
         if local.is_not_ok():
             logger.error(f"Local search availability unavailable. {local.info()}")
             return result

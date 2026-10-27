@@ -11,12 +11,7 @@ import type {
     BaseVideoResponse,
     MediaResponse,
 } from "@/dto";
-import {
-    getMediaSubtitle,
-    isList,
-    isPlayable,
-    type TMedia,
-} from "@rockit/shared";
+import { getMediaSubtitle, isList, isPlayable } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 type RecentlyClickedMedia =

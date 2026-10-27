@@ -1,4 +1,3 @@
-
 import re
 from logging import Logger
 from typing import Any
@@ -8,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.enumAccess import EnumAccess
 from core.framework.audio.silence import request_bounds
 from core.framework.downloader.baseDownload import BaseDownload
+from core.framework.models.localSong import LocalSong
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
@@ -25,11 +25,9 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.utils.timeIt import time_it
 from logger import getLogger
 from result import Result, ResultCode
-from spotify.access.spotifyAccess import SpotifyAccess
-from core.framework.models.localSong import LocalSong
-import os
 from spotify.access.artistCatalogAccess import ArtistCatalogAccess
 from spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
+from spotify.access.spotifyAccess import SpotifyAccess
 from spotify.access.trackAccess import TrackAccess
 from spotify.enums.copyrightTypeEnum import CopyrightTypeEnum
 from spotify.framework.download.spotifyDownload import SpotifyDownload
@@ -67,38 +65,36 @@ SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
 class SpotifyProvider(BaseMediaProvider):
     async def find_local_songs_async(
         self, session: AsyncSession, titles: list[str]
-    ) -> AResult[list[LocalSong]]:
+    ) -> Result[list[LocalSong]]:
         """Resolve local recordings regardless of this provider's remote health."""
-        return await SpotifyAccess.find_local_songs_async(
-            session=session, titles=titles
-        )
+        return await SpotifyAccess.find_local_songs_async(session=session, titles=titles)
 
     async def get_local_songs_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Build playback metadata using only the local database, never the API."""
         mapping = await SpotifyAccess.get_tracks_spotify_id_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if mapping.is_not_ok():
             logger.error(f"Local identity lookup failed. {mapping.info()}")
-            return AResult(code=mapping.code(), message=mapping.message())
+            return Result(code=mapping.code(), message=mapping.message())
         tracks = await Spotify.get_tracks_from_db(
             session=session, spotify_ids=list(mapping.result().values())
         )
         if tracks.is_not_ok():
             logger.error(f"Local song lookup failed. {tracks.info()}")
-            return AResult(code=tracks.code(), message=tracks.message())
+            return Result(code=tracks.code(), message=tracks.message())
         converted = await get_tracks_responses_async(
             session=session,
             provider_name=self.get_name(),
-            track_rows=[track for track in tracks.result() if track.path],
+            track_rows=[track for track in tracks.result() if track.storage_object is not None],
         )
         if converted.is_not_ok():
             logger.error(f"Local metadata conversion failed. {converted.info()}")
-            return AResult(code=converted.code(), message=converted.message())
-        songs: List[BaseSongWithAlbumResponse] = [song for song in converted.result()]
-        return AResult(code=AResultCode.OK, message="OK", result=songs)
+            return Result(code=converted.code(), message=converted.message())
+        songs: list[BaseSongWithAlbumResponse] = [song for song in converted.result()]
+        return Result(code=ResultCode.OK, message="OK", result=songs)
 
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int

@@ -96,19 +96,6 @@
     Etiquetas de Friends y De/Para localizados en Vocabulary.xlsx (en/es/fr), tipos y fallback generados desde el Excel; generación sin escrituras de BD. Auditadas las referencias de vocabulario de Friends. Pendiente de revisión de Ignacio. Sin tests locales.
     ```
 
-### [FRIENDS] Mejorar UI/UX de la página de friends
-
-- tags: [frontend, friends, ui, ux, kb-33]
-- priority: high
-- workload: Normal
-    ```md
-    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Conjunto revisado con XP/medallas en nueve tamaños, con capturas y mediciones en docs/friends-integrated-review.md; sin suites de tests locales.
-
-    Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Revisión de pantallas grandes: ancho disponible completo, actividad en paralelo y columna de sesiones/compartidos en ultrawide, mediante container queries. Diseño pendiente de revisión de Ignacio. Sin tests locales.
-
-    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
-    ```
-
 ### [HOME] Añadir context menu a las canciones del home
 
 - tags: [frontend, home, songs, context-menu, ui, kb-20]
@@ -182,6 +169,21 @@
     ```
 
 ## Done
+
+### [FRIENDS] Mejorar UI/UX de la página de friends
+
+- tags: [frontend, friends, ui, ux, kb-33]
+- priority: high
+- workload: Normal
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Conjunto revisado con XP/medallas en nueve tamaños, con capturas y mediciones en docs/friends-integrated-review.md; sin suites de tests locales.
+
+    Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Revisión de pantallas grandes: ancho disponible completo, actividad en paralelo y columna de sesiones/compartidos en ultrawide, mediante container queries. Diseño revisado y aprobado por Ignacio. Sin tests locales.
+
+    Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".
+    ```
 
 ### [UI] Mejorar blur del header y hacerlo más curvo
 

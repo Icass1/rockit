@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+import uuid
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
@@ -64,6 +65,7 @@ class NotificationAccess:
             [
                 NotificationRow(
                     user_id=user_id,
+                    public_id=str(uuid.uuid4()),
                     event_key=event_key,
                     vocabulary_key=vocabulary_key,
                     replacements=[replacement.model_dump() for replacement in replacements],

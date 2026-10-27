@@ -136,3 +136,4 @@ pyright.txt
 !**/.env.test.example
 
 apps/backend/images/
+apps/backend/media/

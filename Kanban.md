@@ -114,7 +114,7 @@
 - priority: medium
 - workload: Easy
     ```md
-    Técnica revisada: seis capas de blur progresivo (0,5/1/2/4/8/16 px), con máscaras suaves solapadas. Las capas fuertes desaparecen sobre contenido ya desenfocado por las más suaves, evitando mezclar directamente 20 px con la imagen nítida. El fundido comienza al 75 % del header y termina en una cola de 64 px; no cambia sus controles ni captura clics. Padre sin filtro/máscara para no aislar el backdrop. Transparencia reducida oculta las capas y conserva fondo opaco. Comparativa Chromium sobre texto, franjas, damero y foto; pendiente de revisión, sin tests locales.
+    Revisión de legibilidad y coste: tres franjas recortadas de blur progresivo (dos, limitadas a 4 px, desde 1920 px de viewport), tinte oscuro separado para contraste y geometría que sigue la altura real del header. Contraste mínimo de texto medido: 4,97:1 sobre fondo blanco; foco visible, targets de 44 px y estados aclarados. Corregido desbordamiento a 768 px; revisados 768/1024/1440/3440 px y texto al 200 % a 1440 px. Transparencia reducida y contraste aumentado usan fondo opaco sin filtros. Copy desde vocabulary, incluidas traducciones LOG_IN es/fr. Scroll ultrawide mediano: 88,5 ms antes frente a 20,9 ms con la variante adaptativa en Chromium sin GPU; no garantiza 60 fps en hardware real. Detalles en docs/header-blur-review.md. Safari y revisión integrada pendientes; sin tests locales.
 
     Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
 

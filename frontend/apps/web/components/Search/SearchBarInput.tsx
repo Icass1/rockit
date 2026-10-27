@@ -28,7 +28,7 @@ export default function SearchBarInput(): JSX.Element {
                 onClick={(): void => {
                     if (pathname !== "/search") router.push("/search");
                 }}
-                className="z-10 block h-10 w-full rounded-full bg-neutral-900 px-10 text-base font-semibold shadow focus:outline-0 md:z-50"
+                className="z-10 block h-10 w-full rounded-full bg-neutral-900 px-10 text-base font-semibold text-white shadow placeholder:text-neutral-400 placeholder:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-300 md:z-50"
                 style={{
                     backgroundImage: "url(/search-icon.png)",
                     backgroundPosition: "15px center",

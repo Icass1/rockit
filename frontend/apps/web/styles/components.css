@@ -630,34 +630,83 @@ img {
     pointer-events: none;
 }
 
-/* Small-to-large radii overlap. As each stronger layer fades, the next smaller
-   blur remains beneath it instead of immediately exposing sharp content.
-   Six static layers keep the filtered area bounded to the desktop header. */
-.app-header-blur-layer {
+/* A scrim is painted after the blur layers, so white/light content cannot
+   wash out the controls. It is solid through the header and fades in the tail.
+   Keep it off the parent: opacity/masking there would isolate the backdrop. */
+.app-header-backdrop::after {
+    content: "";
     position: absolute;
     inset: 0;
-    -webkit-backdrop-filter: blur(var(--header-blur-radius));
-    backdrop-filter: blur(var(--header-blur-radius));
+    background: linear-gradient(
+        to bottom,
+        rgb(0 0 0 / 72%) 0%,
+        rgb(0 0 0 / 72%) calc(100% - 64px),
+        rgb(0 0 0 / 61.456%) calc(100% - 48px),
+        rgb(0 0 0 / 36%) calc(100% - 32px),
+        rgb(0 0 0 / 10.544%) calc(100% - 16px),
+        transparent 100%
+    );
+}
+
+/* Three cropped bands overlap: stronger blur fades onto a softer backdrop.
+   The filtered area is limited to each useful band, rather than three full
+   header-sized surfaces. Geometry updates only when the header resizes. */
+.app-header-blur-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--header-layer-top);
+    height: var(--header-layer-height);
+    -webkit-backdrop-filter: blur(
+        min(var(--header-blur-radius), var(--header-blur-cap, 16px))
+    );
+    backdrop-filter: blur(
+        min(var(--header-blur-radius), var(--header-blur-cap, 16px))
+    );
     --header-layer-mask: linear-gradient(
         to bottom,
-        #000 0%,
+        var(--header-layer-entry),
         #000 var(--header-blur-start),
         rgb(0 0 0 / 85.355%) var(--header-blur-quarter),
         rgb(0 0 0 / 50%) var(--header-blur-middle),
         rgb(0 0 0 / 14.645%) var(--header-blur-three-quarters),
-        transparent var(--header-blur-end),
         transparent 100%
     );
     -webkit-mask-image: var(--header-layer-mask);
     mask-image: var(--header-layer-mask);
 }
 
-@media (prefers-reduced-transparency: reduce) {
+/* Wide backdrops filter many more pixels. Let the scrim carry contrast and
+   cap the blur kernel instead of increasing compositing cost with screen width. */
+@media (min-width: 1920px) {
+    .app-header-backdrop {
+        --header-blur-cap: 4px;
+    }
+    .app-header-blur-layer:nth-child(2) {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
     .app-header-backdrop {
         bottom: 0;
         background: #121214;
     }
-    .app-header-blur-layer {
+    .app-header-blur-layer,
+    .app-header-backdrop::after {
+        display: none;
+    }
+}
+
+@supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+    .app-header-backdrop {
+        bottom: 0;
+        background: #121214;
+    }
+    .app-header-blur-layer,
+    .app-header-backdrop::after {
         display: none;
     }
 }

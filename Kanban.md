@@ -108,19 +108,6 @@
     Implementado: botón accesible sobre la carátula (play/pause para la canción actual) y acción Reproducir en el menú. Se carga la canción existente por publicId sin iniciar otra descarga; errores con feedback y bloqueo durante la carga. Pendiente de revisión integrada.
     ```
 
-### [UI] Mejorar blur del header y hacerlo más curvo
-
-- tags: [frontend, ui, header, blur, kb-28]
-- priority: medium
-- workload: Easy
-    ```md
-    Revisión de legibilidad y coste: tres franjas recortadas de blur progresivo (dos, limitadas a 4 px, desde 1920 px de viewport), tinte negro ligero del 10 % para conservar translucidez y geometría que sigue la altura real del header. Los ratios de 4,97:1 corresponden al tinte anterior del 72 %, no a esta variante translúcida; foco visible, targets de 44 px y estados aclarados. Corregido desbordamiento a 768 px; revisados 768/1024/1440/3440 px y texto al 200 % a 1440 px. Transparencia reducida y contraste aumentado usan fondo opaco sin filtros. Copy desde vocabulary, incluidas traducciones LOG_IN es/fr. Scroll ultrawide mediano: 88,5 ms antes frente a 20,9 ms con la variante adaptativa en Chromium sin GPU; no garantiza 60 fps en hardware real. Detalles en docs/header-blur-review.md. Safari y revisión integrada pendientes; sin tests locales.
-
-    Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
-
-    Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
-    ```
-
 ### [LIBRARY] Centrar botón library y arreglar random
 
 - tags: [frontend, library, queue, bug, ui, kb-06]
@@ -162,6 +149,21 @@
     ```
 
 ## Done
+
+### [UI] Mejorar blur del header y hacerlo más curvo
+
+- tags: [frontend, ui, header, blur, kb-28]
+- priority: medium
+- workload: Easy
+    ```md
+    Revisado y aprobado por el usuario: blur progresivo con tinte negro del 10 %. Tarea completada.
+
+    Revisión de legibilidad y coste: tres franjas recortadas de blur progresivo (dos, limitadas a 4 px, desde 1920 px de viewport), tinte negro ligero del 10 % para conservar translucidez y geometría que sigue la altura real del header. Los ratios de 4,97:1 corresponden al tinte anterior del 72 %, no a esta variante translúcida; foco visible, targets de 44 px y estados aclarados. Corregido desbordamiento a 768 px; revisados 768/1024/1440/3440 px y texto al 200 % a 1440 px. Transparencia reducida y contraste aumentado usan fondo opaco sin filtros. Copy desde vocabulary, incluidas traducciones LOG_IN es/fr. Scroll ultrawide mediano: 88,5 ms antes frente a 20,9 ms con la variante adaptativa en Chromium sin GPU; no garantiza 60 fps en hardware real. Detalles en docs/header-blur-review.md. Safari sigue sin validación específica; revisión visual aprobada por el usuario, sin tests locales.
+
+    Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
+
+    Mejorar el blur del header haciéndolo más curvo y con mejor acabado.
+    ```
 
 ### [SETTINGS] Subida de imagen de perfil y avatar por defecto
 

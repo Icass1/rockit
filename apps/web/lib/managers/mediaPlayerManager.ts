@@ -20,6 +20,7 @@ import {
     TransitionMixer,
 } from "@/lib/audio/transitionMixer";
 import { resolveOfflineAudioUrl } from "@/lib/offline/store";
+import { isIOS } from "@/lib/utils/isIOS";
 
 let _visibilityBound = false;
 
@@ -32,12 +33,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     static #instance: MediaPlayerManager;
 
     private static _isiOS(): boolean {
-        return (
-            typeof navigator !== "undefined" &&
-            (/iPad|iPhone|iPod/.test(navigator.userAgent ?? "") ||
-                (navigator.platform === "MacIntel" &&
-                    navigator.maxTouchPoints > 1))
-        );
+        return isIOS();
     }
 
     private _durationAtom = createAtom<number>(0);

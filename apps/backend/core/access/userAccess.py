@@ -346,6 +346,20 @@ class UserAccess:
 
     @staticmethod
     @safe_async
+    async def update_user_volume_async(
+        session: AsyncSession, user_id: int, volume: float
+    ) -> Result[bool]:
+        """Persist the authenticated user's normalized playback volume."""
+        user = await session.get(entity=UserRow, ident=user_id)
+        if user is None:
+            logger.warning("Cannot update volume: user %s not found", user_id)
+            return Result(code=ResultCode.NOT_FOUND, message="User not found")
+        user.volume = volume
+        await session.commit()
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
     async def update_user_crossfade_async(
         session: AsyncSession, user_id: int, crossfade_ms: int
     ) -> Result[bool]:

@@ -11,6 +11,7 @@ class SessionResponse(BaseModel):
     queueType: QueueTypeEnum
     repeatMode: RepeatModeEnum
     currentTimeMs: int | None
+    volume: float = 1
 
     @field_serializer("queueType")
     def serialize_queue_type(self, queue_type: QueueTypeEnum) -> str:

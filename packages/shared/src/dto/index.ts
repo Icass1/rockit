@@ -757,6 +757,10 @@ export {
     type UpdateTimestampsRequest,
 } from "./updateTimestampsRequest";
 export {
+    UpdateVolumeRequestSchema,
+    type UpdateVolumeRequest,
+} from "./updateVolumeRequest";
+export {
     UploadAlbumRequestSchema,
     type UploadAlbumRequest,
 } from "./uploadAlbumRequest";

@@ -25,6 +25,7 @@ from core.requests.notificationRequests import UpdateNotificationSubscriptionsRe
 from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
 from core.requests.updateLangRequest import UpdateLangRequest
 from core.requests.updatePasswordRequest import UpdatePasswordRequest
+from core.requests.updateVolumeRequest import UpdateVolumeRequest
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -80,6 +81,7 @@ async def get_user(request: Request) -> UserSettingsResponse:
         username=user.username,
         lang=user.language.lang_code,
         crossfade=user.cross_fade_ms,
+        volume=user.volume,
         queueType=QueueTypeEnum(user.queue_type_enum),
         repeatMode=RepeatModeEnum(user.repeat_mode_enum),
     )
@@ -181,6 +183,7 @@ async def get_session(request: Request) -> SessionResponse:
         queueType=QueueTypeEnum(value=a_result_user.result().queue_type_key),
         repeatMode=RepeatModeEnum(value=a_result_user.result().repeat_mode_key),
         currentTimeMs=a_result_user.result().current_time_ms,
+        volume=a_result_user.result().volume,
     )
 
 
@@ -436,6 +439,24 @@ async def update_crossfade(request: Request, payload: UpdateCrossfadeRequest) ->
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
+    return OkResponse()
+
+
+@router.post("/volume")
+async def update_volume(request: Request, payload: UpdateVolumeRequest) -> OkResponse:
+    """Persist volume for the authenticated user only."""
+    current_user = AuthMiddleware.get_current_user(request=request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify volume preference owner: %s", current_user.info())
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
+    result = await User.update_volume_async(
+        session=DBSessionMiddleware.get_session(request=request),
+        user_id=current_user.result().id,
+        volume=payload.volume,
+    )
+    if result.is_not_ok():
+        logger.error("Cannot save volume preference: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()
 
 

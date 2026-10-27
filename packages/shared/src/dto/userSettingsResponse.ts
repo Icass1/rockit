@@ -7,6 +7,7 @@ export const UserSettingsResponseSchema = z.object({
     username: z.string(),
     lang: z.string(),
     crossfade: z.number(),
+    volume: z.number().default(1),
     queueType: z.enum(["RANDOM", "SORTED"]),
     repeatMode: z.enum(["OFF", "ONE", "ALL"]),
 });

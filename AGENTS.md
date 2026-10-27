@@ -357,6 +357,9 @@ These are the known routes. Use `public_id` for all resource identifiers.
 | PATCH  | `/user/crossfade`    | Yes  | Set crossfade seconds                |
 | PATCH  | `/user/random-queue` | Yes  | Toggle random queue                  |
 | PATCH  | `/user/repeat-mode`  | Yes  | Cycle repeat mode                    |
+| GET    | `/user/notification-events` | Yes | List notification types available for subscriptions |
+| GET    | `/user/notification-subscriptions` | Yes | Get current user's notification preferences |
+| PATCH  | `/user/notification-subscriptions` | Yes | Update current user's notification preferences |
 | GET    | `/user/vocabulary`   | Yes  | Get i18n vocabulary for current lang |
 
 ### Media — `/media`

@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Query, Request
+from typing import TypeVar
 
-from core.controllers.notificationSubscriptionsController import value_or_error
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+
+from core.aResult import AResult
 from core.framework.notification import Notification
 from core.middlewares.authMiddleware import AuthMiddleware as AuthDependency
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -9,6 +11,22 @@ from core.responses.notificationResponses import (
     NotificationPageResponse,
     NotificationResponse,
 )
+from logger import logger
+from result import Result
+
+T = TypeVar("T")
+
+
+def value_or_error[T](result: Result[T] | AResult[T]) -> T:
+    """Translate a terminal service result into an HTTP response."""
+    if result.is_not_ok():
+        if isinstance(result, Result):
+            result.finish()
+        else:
+            logger.error(result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
+
 
 router = APIRouter(
     prefix="/notifications",

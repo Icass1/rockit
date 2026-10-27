@@ -1540,6 +1540,30 @@ export class BaseHttp {
         );
     }
 
+    static async getNotificationEvents() {
+        return this.apiGetAsync(
+            `/user/notification-events`,
+            dto.NotificationEventResponseSchema.array()
+        );
+    }
+
+    static async getNotificationSubscriptions() {
+        return this.apiGetAsync(
+            `/user/notification-subscriptions`,
+            dto.NotificationSubscriptionsResponseSchema
+        );
+    }
+
+    static async setNotificationSubscriptions(
+        payload: dto.UpdateNotificationSubscriptionsRequest
+    ) {
+        return this.apiPatchAsync(
+            `/user/notification-subscriptions`,
+            dto.NotificationSubscriptionsResponseSchema,
+            payload
+        );
+    }
+
     static async updatePassword(payload: dto.UpdatePasswordRequest) {
         return this.apiPostAsync(
             `/user/password`,
@@ -1559,38 +1583,6 @@ export class BaseHttp {
 
     static async getSession() {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
-    }
-
-    static async listNotificationUsers() {
-        return this.apiGetAsync(
-            `/users`,
-            dto.NotificationUserResponseSchema.array()
-        );
-    }
-
-    static async listNotificationEvents() {
-        return this.apiGetAsync(
-            `/users/notification-events`,
-            dto.NotificationEventResponseSchema.array()
-        );
-    }
-
-    static async getNotificationSubscriptions(publicId: string) {
-        return this.apiGetAsync(
-            `/users/${encodeURIComponent(publicId)}/notification-subscriptions`,
-            dto.NotificationSubscriptionsResponseSchema
-        );
-    }
-
-    static async setNotificationSubscriptions(
-        publicId: string,
-        payload: dto.UpdateNotificationSubscriptionsRequest
-    ) {
-        return this.apiPatchAsync(
-            `/users/${encodeURIComponent(publicId)}/notification-subscriptions`,
-            dto.NotificationSubscriptionsResponseSchema,
-            payload
-        );
     }
 
     static downloadApkURL(filename: string) {

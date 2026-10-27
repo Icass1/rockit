@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.notification import NotificationRow
 from core.access.notificationAccess import NotificationAccess
-from core.access.userAccess import UserAccess
 from core.responses.notificationResponses import (
     NotificationDestination,
     NotificationDestinationResponse,
@@ -13,7 +12,6 @@ from core.responses.notificationResponses import (
     NotificationEventResponse,
     NotificationReplacement,
     NotificationSubscriptionsResponse,
-    NotificationUserResponse,
 )
 from logger import logger
 from result import Result, ResultCode
@@ -82,7 +80,7 @@ PERSONAL_NOTIFICATION_EVENTS = frozenset(
 class Notification:
     @staticmethod
     def list_events() -> list[NotificationEventResponse]:
-        """Expose registered events for the admin subscription editor."""
+        """Expose registered events for per-user notification settings."""
         return [
             NotificationEventResponse(key=event.key, vocabularyKey=event.label_key)
             for event in NOTIFICATION_EVENTS
@@ -133,17 +131,11 @@ class Notification:
 
     @staticmethod
     async def get_subscriptions_async(
-        session: AsyncSession, user_public_id: str
+        session: AsyncSession, user_id: int
     ) -> Result[NotificationSubscriptionsResponse]:
-        """Get subscriptions for an existing admin-selected user."""
-        legacy_user = await UserAccess.get_user_from_public_id_async(session, user_public_id)
-        if legacy_user.is_not_ok():
-            return Result[NotificationSubscriptionsResponse](
-                legacy_user.code(), legacy_user.message()
-            )
-        user = legacy_user.result()
+        """Get the authenticated user's event subscriptions."""
         result: Result[list[str]] = await NotificationAccess.get_subscriptions_async(
-            session, user.id
+            session, user_id
         )
         if result.is_not_ok():
             return Result[NotificationSubscriptionsResponse].from_result(result)
@@ -155,21 +147,15 @@ class Notification:
 
     @staticmethod
     async def set_subscriptions_async(
-        session: AsyncSession, user_public_id: str, event_keys: list[NotificationEventKey]
+        session: AsyncSession, user_id: int, event_keys: list[NotificationEventKey]
     ) -> Result[NotificationSubscriptionsResponse]:
-        """Validate and replace subscriptions for an admin-selected user."""
+        """Validate and replace the authenticated user's event subscriptions."""
         if not set(event_keys).issubset({event.key for event in NOTIFICATION_EVENTS}):
             return Result[NotificationSubscriptionsResponse](
                 ResultCode.BAD_REQUEST, "Unknown notification event"
             )
-        legacy_user = await UserAccess.get_user_from_public_id_async(session, user_public_id)
-        if legacy_user.is_not_ok():
-            return Result[NotificationSubscriptionsResponse](
-                legacy_user.code(), legacy_user.message()
-            )
-        user = legacy_user.result()
         result: Result[list[str]] = await NotificationAccess.set_subscriptions_async(
-            session, user.id, list(event_keys)
+            session, user_id, list(event_keys)
         )
         if result.is_not_ok():
             return Result[NotificationSubscriptionsResponse].from_result(result)
@@ -268,17 +254,4 @@ class Notification:
             NotificationDestination(path="/friends"),
             recipient_user_id=user_id,
             source_key=event_key,
-        )
-
-    @staticmethod
-    async def list_users_async(session: AsyncSession) -> Result[list[NotificationUserResponse]]:
-        """Expose account names and public IDs to the administrator's editor."""
-        found = await NotificationAccess.list_users_async(session)
-        if found.is_not_ok():
-            return Result[list[NotificationUserResponse]].from_result(found)
-        return Result[list[NotificationUserResponse]].ok(
-            [
-                NotificationUserResponse(publicId=user.public_id, username=user.username)
-                for user in found.result()
-            ]
         )

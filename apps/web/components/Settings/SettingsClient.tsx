@@ -14,6 +14,9 @@ import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
 import ProfileImageInput from "@/components/Settings/ProfileImageInput";
 
+
+import NotificationSettings from "@/components/Settings/NotificationSettings";
+
 function SettingsSection({
     title,
     children,
@@ -172,6 +175,12 @@ export default function SettingsClient(): JSX.Element {
 
                     <SettingsSection title="Audio">
                         <CrossFadeInput />
+                    </SettingsSection>
+
+                    <SettingsSection
+                        title={$vocabulary.NOTIFICATIONS_SUBSCRIPTIONS}
+                    >
+                        <NotificationSettings />
                     </SettingsSection>
 
                     <SettingsSection title={$vocabulary.DOWNLOAD_APP}>

@@ -34,6 +34,16 @@ from core.framework.user.profileImage import (
 )
 from core.framework.media.image import Image
 
+
+
+from core.framework.media.image import Image
+from core.framework.notification import Notification
+from core.framework.user.user import User
+from core.middlewares.authMiddleware import AuthMiddleware
+from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from core.requests.likeMediaRequest import LikeMediaRequest
+from core.requests.notificationRequests import UpdateNotificationSubscriptionsRequest
+from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
 from core.requests.updateLangRequest import UpdateLangRequest
 from core.requests.updatePasswordRequest import UpdatePasswordRequest
 from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
@@ -56,6 +66,10 @@ from core.responses.libraryMediasResponse import (
     LibraryMediasResponse,
 )
 from core.responses.likedMediaResponse import LikedMediaResponse
+from core.responses.notificationResponses import (
+    NotificationEventResponse,
+    NotificationSubscriptionsResponse,
+)
 from core.responses.okResponse import OkResponse
 from core.responses.queueResponse import QueueResponse
 from core.responses.sessionResponse import SessionResponse
@@ -119,6 +133,55 @@ async def upload_profile_image(
         logger.error("Profile image upload failed: %s", result.info())
         raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return OkResponse()
+
+
+@router.get("/notification-events")
+async def get_notification_events() -> list[NotificationEventResponse]:
+    """List the notification types users can subscribe to."""
+    return Notification.list_events()
+
+
+@router.get("/notification-subscriptions")
+async def get_notification_subscriptions(request: Request) -> NotificationSubscriptionsResponse:
+    """Get notification preferences for the authenticated user."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    user: UserRow = a_result_user.result()
+    result = await Notification.get_subscriptions_async(session=session, user_id=user.id)
+    if result.is_not_ok():
+        logger.error(f"Error getting notification subscriptions. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
+
+
+@router.patch("/notification-subscriptions")
+async def set_notification_subscriptions(
+    request: Request, payload: UpdateNotificationSubscriptionsRequest
+) -> NotificationSubscriptionsResponse:
+    """Update notification preferences for the authenticated user."""
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if a_result_user.is_not_ok():
+        logger.error(f"Error getting current user. {a_result_user.info()}")
+        raise HTTPException(
+            status_code=a_result_user.get_http_code(), detail=a_result_user.message()
+        )
+
+    result = await Notification.set_subscriptions_async(
+        session=session,
+        user_id=a_result_user.result().id,
+        event_keys=payload.eventKeys,
+    )
+    if result.is_not_ok():
+        logger.error(f"Error updating notification subscriptions. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
 
 
 @router.get("/session")

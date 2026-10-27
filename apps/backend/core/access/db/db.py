@@ -76,6 +76,9 @@ from core.access.db.ormModels.media import CoreMediaRow as CoreMediaRow
 from core.access.db.ormModels.notification import (
     NotificationRow as NotificationRow,
 )
+from core.access.db.ormModels.notificationSubscription import (
+    NotificationSubscriptionRow as NotificationSubscriptionRow,
+)
 from core.access.db.ormModels.pendingUpload import (
     PendingUploadRow as PendingUploadRow,
 )
@@ -116,7 +119,3 @@ from core.access.db.ormModels.vocabulary import VocabularyRow as VocabularyRow
 
 schemas = ["core"]
 base = CoreBase
-
-from core.access.db.ormModels.notificationSubscription import (
-    NotificationSubscriptionRow as NotificationSubscriptionRow,
-)

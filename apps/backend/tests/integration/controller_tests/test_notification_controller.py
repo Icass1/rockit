@@ -36,21 +36,21 @@ def test_notification_routes_require_authentication() -> None:
     assert harness.call("PATCH", "/notifications/id/read").status_code == 401
 
 
-def test_subscription_editor_requires_admin() -> None:
+def test_admin_subscription_routes_are_removed() -> None:
     harness = DirectEndpointHarness(app, RecordingSession())
     harness.user = SimpleNamespace(id=7, admin=False)
     for path in ["/users", "/users/notification-events", "/users/other/notification-subscriptions"]:
-        assert harness.get(path).status_code == 403
+        assert harness.get(path).status_code == 404
     assert (
         harness.call(
             "PATCH", "/users/other/notification-subscriptions", json={"eventKeys": []}
         ).status_code
-        == 403
+        == 404
     )
 
 
-def test_admin_can_inspect_registered_personal_events() -> None:
-    response = DirectEndpointHarness(app, RecordingSession()).get("/users/notification-events")
+def test_user_can_inspect_registered_personal_events() -> None:
+    response = DirectEndpointHarness(app, RecordingSession()).get("/user/notification-events")
     assert response.status_code == 200
     assert {event["key"] for event in response.json()} >= {
         "APPLICATION_MESSAGE",
@@ -62,7 +62,7 @@ def test_admin_can_inspect_registered_personal_events() -> None:
 def test_unknown_subscription_events_are_rejected_before_database_access() -> None:
     session = RecordingSession()
     response = DirectEndpointHarness(app, session).call(
-        "PATCH", "/users/user/notification-subscriptions", json={"eventKeys": ["UNKNOWN"]}
+        "PATCH", "/user/notification-subscriptions", json={"eventKeys": ["UNKNOWN"]}
     )
     assert response.status_code == 422
     assert not session.statements

@@ -3,6 +3,5 @@ export enum EAdminClientTab {
     SEARCH = "search",
     REQUESTS = "requests",
     STATS = "stats",
-    USERS = "users",
     SETTINGS = "settings",
 }

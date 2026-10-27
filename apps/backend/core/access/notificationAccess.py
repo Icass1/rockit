@@ -152,9 +152,3 @@ class NotificationAccess:
             row.read_at = datetime.now(UTC)
             await session.flush()
         return Result[NotificationRow].ok(row)
-
-    @staticmethod
-    async def list_users_async(session: AsyncSession) -> Result[list[UserRow]]:
-        """List accounts for the administrator's notification subscription editor."""
-        rows = list(await session.scalars(select(UserRow).order_by(UserRow.username)))
-        return Result[list[UserRow]].ok(rows)

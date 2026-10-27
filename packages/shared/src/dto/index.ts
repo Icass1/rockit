@@ -450,10 +450,6 @@ export {
     NotificationSubscriptionsResponseSchema,
     type NotificationSubscriptionsResponse,
 } from "./notificationSubscriptionsResponse";
-export {
-    NotificationUserResponseSchema,
-    type NotificationUserResponse,
-} from "./notificationUserResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
 export {
     OnlineUsersMessageSchema,

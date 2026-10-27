@@ -74,8 +74,3 @@ class NotificationPageResponse(IBaseModel):
     items: list[NotificationResponse]
     unreadCount: int
     totalCount: int
-
-
-class NotificationUserResponse(IBaseModel):
-    publicId: str
-    username: str

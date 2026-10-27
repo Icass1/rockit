@@ -90,10 +90,7 @@ async def get_vocabulary_by_code(request: Request, lang_code: str) -> Vocabulary
         session=session, lang_code=lang_code
     )
 
-    if (
-        a_result_vocabulary.is_not_ok()
-        and a_result_vocabulary.code() == AResultCode.NOT_FOUND
-    ):
+    if a_result_vocabulary.is_not_ok() and a_result_vocabulary.code() == AResultCode.NOT_FOUND:
         logger.warning(
             f"Language code '{lang_code}' not found, falling back to 'en'. "
             f"{a_result_vocabulary.info()}"

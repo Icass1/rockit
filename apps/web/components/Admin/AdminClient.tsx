@@ -15,13 +15,11 @@ import {
     Smartphone,
     Trash2,
     Upload,
-    Users,
     X,
 } from "lucide-react";
 import { EAdminClientTab } from "@/models/enums/adminClientTab";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import AdminNotificationSubscriptions from "@/components/Admin/AdminNotificationSubscriptions";
 import AdminMediaSearch from "@/components/Admin/AdminMediaSearch";
 import AdminRequests from "@/components/Admin/AdminRequests";
 import AdminStats from "@/components/Admin/AdminStats";
@@ -214,11 +212,6 @@ export default function AdminClient({
             id: EAdminClientTab.STATS,
             label: "Stats",
             icon: BarChart3,
-        },
-        {
-            id: EAdminClientTab.USERS,
-            label: $vocabulary.ADMIN_TAB_USERS,
-            icon: Users,
         },
         {
             id: EAdminClientTab.SETTINGS,
@@ -497,20 +490,6 @@ export default function AdminClient({
                             </p>
                         </div>
                         <AdminStats />
-                    </div>
-                )}
-
-                {activeTab === EAdminClientTab.USERS && (
-                    <div>
-                        <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-white">
-                                {$vocabulary.ADMIN_USERS_TITLE}
-                            </h1>
-                            <p className="mt-1 text-sm text-neutral-500">
-                                {$vocabulary.ADMIN_USERS_SUBTITLE}
-                            </p>
-                        </div>
-                        <AdminNotificationSubscriptions />
                     </div>
                 )}
 

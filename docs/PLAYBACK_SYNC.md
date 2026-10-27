@@ -48,7 +48,7 @@ without a media association.
 Run backend regressions from the repository root:
 
 ```sh
-venv/bin/python -m unittest discover -s backend/tests -v
+.venv/bin/python -m unittest discover -s backend/tests -v
 ```
 
 Run shared player regressions using the web workspace's installed esbuild:

@@ -1,123 +1,97 @@
 "use client";
 
-import { useEffect, useRef, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
+import { getMediaVideoUrl } from "@rockit/shared";
+import { useReducedMotion } from "framer-motion";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { PiPControls } from "@/components/PiP/PiPControls";
-import { PiPProgress } from "@/components/PiP/PiPProgress";
-import type { PiPLayout } from "@/components/PiP/PiPRoot";
+import VinylRecord from "@/components/PlayerUI/VinylRecord";
+import VinylTransition from "@/components/PlayerUI/VinylTransition";
 
-interface PiPCoverProps {
-    showControls: boolean;
-    layout: PiPLayout;
-    minimalOverlay?: boolean;
-    showLyrics?: boolean;
-    onToggleLyrics?: () => void;
-}
-
-export function PiPCover({
-    showControls,
-    layout,
-    minimalOverlay = false,
-    showLyrics = false,
-    onToggleLyrics,
-}: PiPCoverProps): JSX.Element {
+export function PiPCover(): JSX.Element {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const $currentSong = useStore(rockIt.queueManager.currentMediaAtom);
-    const $playing = useStore(rockIt.mediaPlayerManager.playingAtom);
-    const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const media = useStore(rockIt.queueManager.currentMediaAtom);
+    const playing = useStore(rockIt.mediaPlayerManager.playingAtom);
+    const currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
+    const vinylMode = useStore(rockIt.playerUIManager.vinylModeAtom);
+    const reducedMotion = useReducedMotion();
+    const [failedImage, setFailedImage] = useState<string | null>(null);
+    const videoUrl =
+        media?.type === "video" ? getMediaVideoUrl(media) : undefined;
+    const fallback =
+        media?.type === "station"
+            ? "/radio-placeholder.png"
+            : "/song-placeholder.png";
+    const imageUrl = media?.imageUrl || fallback;
+    const cover = imageUrl === failedImage ? fallback : imageUrl;
 
-    const isVideoType = $currentSong?.type === "video";
-    const mediaUrl = isVideoType
-        ? ((($currentSong as Record<string, unknown>)?.videoSrc as string) ??
-          "")
-        : ($currentSong?.imageUrl ?? "");
-    const mediaTitle = $currentSong?.name ?? "";
+    useEffect((): void => {
+        rockIt.playerUIManager.initializeArtworkMode();
+    }, []);
 
-    const intrinsicRatio = isVideoType ? 16 / 9 : 1;
-
-    const isCompact = minimalOverlay;
-    const showProgress = showControls && !isCompact;
-
-    useEffect(() => {
+    useEffect((): void => {
         const video = videoRef.current;
-        if (!video || !isVideoType) return;
+        if (!video || !videoUrl) return;
+        if (playing)
+            void video.play().catch((): void => {
+                /* The audio player retains playback ownership. */
+            });
+        else video.pause();
+    }, [playing, videoUrl]);
 
-        if ($playing) {
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    /* autoplay blocked — wait for user interaction */
-                });
-            }
-        } else {
-            video.pause();
-        }
-    }, [$playing, isVideoType]);
-
-    useEffect(() => {
+    useEffect((): void => {
         const video = videoRef.current;
-        if (!video || !isVideoType) return;
-
-        if (Math.abs(video.currentTime - $currentTime) > 1) {
-            video.currentTime = $currentTime;
-        }
-    }, [$currentTime, isVideoType]);
+        if (!video || video.readyState < 1 || !Number.isFinite(currentTime))
+            return;
+        if (Math.abs(video.currentTime - (currentTime ?? 0)) > 0.5)
+            video.currentTime = currentTime ?? 0;
+    }, [currentTime, videoUrl]);
 
     return (
-        <div
-            className="pip-cover"
-            style={
-                {
-                    "--cover-aspect": String(intrinsicRatio),
-                } as React.CSSProperties
-            }
-        >
-            {isVideoType ? (
+        <div className="pip-cover">
+            {videoUrl ? (
                 <video
                     ref={videoRef}
-                    src={mediaUrl}
+                    key={videoUrl}
+                    src={videoUrl}
+                    poster={cover}
                     playsInline
-                    autoPlay
                     muted
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
+                    onLoadedMetadata={(event): void => {
+                        event.currentTarget.currentTime = Number.isFinite(
+                            currentTime
+                        )
+                            ? (currentTime ?? 0)
+                            : 0;
                     }}
                     data-testid="pip-video"
                 />
+            ) : vinylMode && media?.type === "song" ? (
+                <div className="pip-vinyl" data-testid="pip-vinyl">
+                    <VinylTransition
+                        media={media}
+                        direction={rockIt.queueManager.lastNavigationDirection}
+                    >
+                        <VinylRecord
+                            imageUrl={cover}
+                            name={media.name}
+                            artists={media.artists}
+                            isPlaying={playing && !reducedMotion}
+                        />
+                    </VinylTransition>
+                </div>
             ) : (
                 <Image
-                    src={mediaUrl}
-                    alt={"Cover of " + mediaTitle}
-                    fill
-                    style={{
-                        objectFit: "contain",
-                    }}
+                    src={cover}
+                    alt={media?.name ?? "Cover"}
+                    width={1200}
+                    height={1200}
                     draggable={false}
+                    onError={(): void => setFailedImage(imageUrl)}
                     data-testid="pip-image"
                 />
             )}
-
-            <div
-                className={`pip-overlay ${showControls ? "pip-overlay--visible" : ""} ${
-                    isCompact ? "pip-overlay--bottom" : "pip-overlay--center"
-                }`}
-                data-testid="pip-overlay"
-            >
-                <PiPControls
-                    show={showControls}
-                    layout={layout}
-                    showLyrics={showLyrics}
-                    onToggleLyrics={onToggleLyrics}
-                    isSong={$currentSong?.type === "song"}
-                />
-                {showProgress && (
-                    <PiPProgress show={showProgress} layout={layout} />
-                )}
-            </div>
         </div>
     );
 }

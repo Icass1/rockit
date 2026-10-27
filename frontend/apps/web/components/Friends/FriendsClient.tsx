@@ -118,45 +118,43 @@ export default function FriendsClient(): JSX.Element {
                         <FriendsList friends={friends} />
                     )}
                 </section>
-                <div className={styles.musicRegion}>
-                    <section
-                        id="social-shared"
-                        className={styles.sharedRegion}
-                        aria-labelledby="social-shared-title"
+                <section
+                    id="social-shared"
+                    className={styles.sharedRegion}
+                    aria-labelledby="social-shared-title"
+                >
+                    <h2
+                        id="social-shared-title"
+                        className={styles.sectionTitle}
                     >
-                        <h2
-                            id="social-shared-title"
-                            className={styles.sectionTitle}
-                        >
-                            {v.FRIENDS_SHARED_MUSIC}
-                        </h2>
-                        <SharedMediaInbox />
-                    </section>
-                    <section
-                        id="social-recent"
-                        className={styles.recentRegion}
-                        aria-labelledby="social-recent-title"
+                        {v.FRIENDS_SHARED_MUSIC}
+                    </h2>
+                    <SharedMediaInbox />
+                </section>
+                <section
+                    id="social-recent"
+                    className={styles.recentRegion}
+                    aria-labelledby="social-recent-title"
+                >
+                    <h2
+                        id="social-recent-title"
+                        className={styles.sectionTitle}
                     >
-                        <h2
-                            id="social-recent-title"
-                            className={styles.sectionTitle}
+                        {v.FRIENDS_RECENT_LISTENS}
+                    </h2>
+                    {!ready && activity.length === 0 ? (
+                        <div
+                            className={styles.directorySkeleton}
+                            aria-busy="true"
+                            aria-label={v.SEARCH_LOADING}
                         >
-                            {v.FRIENDS_RECENT_LISTENS}
-                        </h2>
-                        {!ready && activity.length === 0 ? (
-                            <div
-                                className={styles.directorySkeleton}
-                                aria-busy="true"
-                                aria-label={v.SEARCH_LOADING}
-                            >
-                                <div />
-                                <div />
-                            </div>
-                        ) : (
-                            <FriendActivityFeed activities={activity} />
-                        )}
-                    </section>
-                </div>
+                            <div />
+                            <div />
+                        </div>
+                    ) : (
+                        <FriendActivityFeed activities={activity} />
+                    )}
+                </section>
                 <section
                     id="social-together"
                     className={styles.togetherRegion}

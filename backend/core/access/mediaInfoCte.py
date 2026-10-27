@@ -97,7 +97,7 @@ def get_genre_info_cte() -> str:
 
 
 def get_album_info_cte() -> str:
-    """CTE aggregating (media_id, album_public_id, album_name, album_image_url)
+    """CTE aggregating (media_id, album_public_id, album_name, album_image_url, album_artists)
     across every registered media provider."""
 
     from backend.core.framework import providers
@@ -114,6 +114,7 @@ def get_album_info_cte() -> str:
                 ("album_public_id", "text"),
                 ("album_name", "text"),
                 ("album_image_url", "text"),
+                ("album_artists", "text"),
             ],
         )
     return build_cte("album_info", frags)

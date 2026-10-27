@@ -1,11 +1,10 @@
 "use client";
 
 import { JSX } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Vocabulary } from "@rockit/shared";
-import { ChartLine, Download, ImageUp, Lock } from "lucide-react";
+import { ChartLine, Download, Lock } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import DownloadLibrarySetting from "@/components/Downloader/DownloadLibrarySetting";
 import ChangeLang from "@/components/Settings/ChangeLang";
@@ -13,6 +12,7 @@ import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
+import ProfileImageInput from "@/components/Settings/ProfileImageInput";
 
 function SettingsSection({
     title,
@@ -32,26 +32,11 @@ function SettingsSection({
 }
 
 function ProfileSidebar(): JSX.Element {
-    const { username } = useSettingsUser();
+    const { username, image } = useSettingsUser();
 
     return (
         <div className="flex flex-col items-center gap-4">
-            <div className="group relative">
-                <Image
-                    src={rockIt.USER_PLACEHOLDER_IMAGE_URL}
-                    alt="Profile picture"
-                    width={200}
-                    height={200}
-                    className="h-32 w-32 rounded-full object-cover ring-2 ring-neutral-700 transition-all group-hover:ring-(--color-rockit-pink) md:h-44 md:w-44"
-                />
-                <button
-                    type="button"
-                    aria-label="Change profile picture"
-                    className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-                >
-                    <ImageUp className="h-8 w-8 text-white md:h-10 md:w-10" />
-                </button>
-            </div>
+            <ProfileImageInput image={image} username={username} />
 
             <div className="text-center">
                 <p className="text-lg font-bold text-white">{username}</p>

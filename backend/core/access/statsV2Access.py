@@ -90,6 +90,7 @@ def _get_album_info_cte() -> str:
                 ("album_public_id", "text"),
                 ("album_name", "text"),
                 ("album_image_url", "text"),
+                ("album_artists", "text"),
             ],
         )
     return _build_cte("album_info", frags)
@@ -697,20 +698,22 @@ class StatsV2Access:
             SELECT ai.album_public_id,
                    ai.album_name,
                    ai.album_image_url,
+                   ai.album_artists,
                    SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
             FROM     core.user_media_listen_interval umli
             JOIN     album_info ai ON ai.media_id = umli.media_id
             WHERE    umli.user_id    = :user_id
               AND    umli.date_added >= :start_date
               AND    umli.date_added <  :end_date
-            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url, ai.album_artists
         )
         SELECT (ARRAY_AGG(ad.album_public_id ORDER BY ad.total_ms DESC))[1] AS public_id,
                ad.album_name        AS name,
+               ad.album_artists     AS subtitle,
                (ARRAY_AGG(ad.album_image_url ORDER BY ad.total_ms DESC))[1] AS image_url,
                SUM(ad.total_ms)     AS total_ms
         FROM   album_durations ad
-        GROUP BY ad.album_name
+        GROUP BY ad.album_name, ad.album_artists
         ORDER BY total_ms DESC
         LIMIT  :limit
         """)
@@ -735,7 +738,7 @@ class StatsV2Access:
                     href=f"/album/{r.public_id}",
                     value=int(r.total_ms),
                     imageUrl=r.image_url,
-                    subtitle=None,
+                    subtitle=r.subtitle,
                 )
                 for r in rows
             ],

@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import HeaderBackdrop from "@/components/Header/HeaderBackdrop";
 import HeaderRight from "@/components/Header/HeaderRight";
 import SearchBarInput from "@/components/Search/SearchBarInput";
 
@@ -12,17 +13,8 @@ export default function Header(): JSX.Element {
     const isRadio = pathname?.startsWith("/radio");
 
     return (
-        <header className="relative z-50 grid w-full grid-cols-[33%_33%_32%] items-center justify-between px-4 py-4 text-white">
-            {/* Blur overlay — fades out downward so content below stays visible */}
-            <div
-                className="absolute inset-0 -z-10 backdrop-blur-[20px]"
-                style={{
-                    WebkitMaskImage:
-                        "linear-gradient(to bottom, black 33%, transparent 100%)",
-                    maskImage:
-                        "linear-gradient(to bottom, black 33%, transparent 100%)",
-                }}
-            />
+        <header className="relative z-50 grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center justify-between gap-4 px-4 py-4 text-white">
+            <HeaderBackdrop />
 
             <Link href="/" className="flex items-center select-none">
                 <Image
@@ -37,7 +29,7 @@ export default function Header(): JSX.Element {
 
             {/* Search bar hidden on radio page */}
             {!isRadio && (
-                <div className="flex h-3/4 items-center justify-center">
+                <div className="flex h-3/4 w-full max-w-xl min-w-0 items-center justify-center justify-self-center">
                     <SearchBarInput />
                 </div>
             )}

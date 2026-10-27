@@ -1,6 +1,6 @@
 "use client";
 
-import type { JSX, ReactNode } from "react";
+import { useRef, type JSX, type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import {
     EMediaContextLocation,
@@ -19,13 +19,34 @@ export default function SearchResultCard({
 }): JSX.Element {
     useStore(rockIt.searchManager.resultsAtom);
     const sources = rockIt.searchManager.getSources(media);
+    const playing = useRef(false);
+    const canPlay =
+        media.type === "song" && Boolean(media.downloaded && media.publicId);
+    const play = async (): Promise<void> => {
+        if (!canPlay || playing.current) return;
+        if (
+            rockIt.queueManager.currentMediaAtom.get()?.publicId ===
+            media.publicId
+        ) {
+            rockIt.mediaPlayerManager.togglePlayPauseOrSetMedia();
+            return;
+        }
+        playing.current = true;
+        try {
+            await rockIt.searchManager.playDownloadedSong(media);
+        } finally {
+            playing.current = false;
+        }
+    };
     return (
         <MediaContextMenu
             media={media}
             sources={sources}
             location={EMediaContextLocation.SEARCH}
+            openOnLeftClick={!canPlay}
         >
             <div
+                onClick={canPlay ? play : undefined}
                 className={
                     media.type === "video"
                         ? "w-64 shrink-0 md:w-80"

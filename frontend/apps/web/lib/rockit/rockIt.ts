@@ -1,4 +1,4 @@
-import { EventManager, setRockIt } from "@rockit/shared";
+import { EventManager, EWebSocketMessage, setRockIt } from "@rockit/shared";
 import { Http } from "@/lib/http";
 import { AlbumManager } from "@/lib/managers/albumManager";
 import { AuthManager } from "@/lib/managers/authManager";
@@ -38,8 +38,7 @@ export class RockIt {
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/song-placeholder.png";
     public readonly STATION_PLACEHOLDER_IMAGE_URL =
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/radio-placeholder.png";
-    public readonly USER_PLACEHOLDER_IMAGE_URL =
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/image/user-placeholder.png";
+    public readonly USER_PLACEHOLDER_IMAGE_URL = "/user-placeholder.png";
 
     bookmarkManager = new BookmarkManager();
     notificationManager = new NotificationManager();
@@ -69,6 +68,10 @@ export class RockIt {
     constructor() {
         setRockIt(this);
         if (typeof window === "undefined") return;
+        this.webSocketManager.onMessage(
+            EWebSocketMessage.NotificationsChanged,
+            () => void this.notificationManager.refreshAsync()
+        );
         this.webSocketManager.init();
     }
 

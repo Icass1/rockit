@@ -2,11 +2,11 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL
 from core.access.db.ormModels.image import ImageRow
 from core.access.imageAccess import ImageAccess
 from core.framework.media.image import Image
 from core.framework.objectFiles import ObjectFiles
+from core.framework.storage import Storage
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -823,9 +823,7 @@ class Rockit:
                 providerUrl="",
                 name=song.name,
                 artists=song_artists or album_response.artists,
-                audioUrl=(
-                    f"{BACKEND_URL}/rockit/audio/{public_id}" if song.storage_object.key else None
-                ),
+                audioUrl=Storage.get_public_url(song.storage_object),
                 downloaded=True,
                 imageUrl=image_url,
                 duration_ms=song.duration_ms,
@@ -929,9 +927,7 @@ class Rockit:
                         for artist in song.artists
                     ]
 
-                    audio_src: str | None = None
-                    if song.storage_object.key:
-                        audio_src = f"{BACKEND_URL}/rockit/audio/{song_pid}"
+                    audio_src = Storage.get_public_url(song.storage_object)
 
                     song_responses.append(
                         BaseSongWithoutAlbumResponse(
@@ -1004,16 +1000,8 @@ class Rockit:
                 publicId=public_id,
                 providerUrl="",
                 name=video.name,
-                videoUrl=(
-                    f"{BACKEND_URL}/rockit/video/{public_id}/stream"
-                    if video.storage_object.key
-                    else None
-                ),
-                audioUrl=(
-                    f"{BACKEND_URL}/rockit/video/{public_id}/stream/audio"
-                    if video.storage_object.key
-                    else None
-                ),
+                videoUrl=Storage.get_public_url(video.storage_object),
+                audioUrl=None,
                 imageUrl=image_url,
                 duration_ms=video.duration_ms,
                 artists=[

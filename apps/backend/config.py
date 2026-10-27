@@ -61,8 +61,7 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: str | None = None
     S3_BUCKET: str = Field(min_length=1)
     S3_REGION: str = "us-east-1"
-    # Objects are private; all access happens through short-lived presigned URLs.
-    # Lifetime of a generated presigned URL, in seconds.
+    # Lifetime of presigned URLs used when a public endpoint is not configured.
     S3_PRESIGNED_URL_EXPIRES: int = 3600
 
     # Rockit capabilities extend the same shared Settings used by the template.

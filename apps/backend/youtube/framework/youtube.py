@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING, Any
 import requests as req
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
 from core.framework.media.image import Image
+from core.framework.storage import Storage
 from core.responses.baseArtistResponse import BaseArtistResponse
 from logger import getLogger
 from result import Result, ResultCode
@@ -165,12 +165,7 @@ class YouTube:
 
             is_downloaded: bool = video_row.storage_object is not None
 
-            video_src: str | None = None
-            audio_src: str | None = None
-
-            if video_row.storage_object:
-                video_src = f"/youtube/video/{video_row.youtube_id}/stream"
-                audio_src = f"/youtube/video/{video_row.youtube_id}/stream/audio"
+            video_src = Storage.get_public_url(video_row.storage_object)
 
             return Result(
                 code=ResultCode.OK,
@@ -199,8 +194,8 @@ class YouTube:
                     publishedAt=video_row.published_at,
                     video_path=video_row.storage_object.key if video_row.storage_object else None,
                     downloaded=is_downloaded,
-                    videoUrl=BACKEND_URL + video_src if video_src else None,
-                    audioUrl=BACKEND_URL + audio_src if audio_src else None,
+                    videoUrl=video_src,
+                    audioUrl=None,
                 ),
             )
 
@@ -398,11 +393,7 @@ class YouTube:
 
         is_downloaded: bool = video_row.storage_object is not None
 
-        video_src: str | None = None
-        audio_src: str | None = None
-        if video_row.storage_object:
-            video_src = f"/youtube/video/{video_row.youtube_id}/stream"
-            audio_src = f"/youtube/video/{video_row.youtube_id}/stream/audio"
+        video_src = Storage.get_public_url(video_row.storage_object)
 
         return Result(
             code=ResultCode.OK,
@@ -431,8 +422,8 @@ class YouTube:
                 publishedAt=video_row.published_at,
                 video_path=video_row.storage_object.key if video_row.storage_object else None,
                 downloaded=is_downloaded,
-                videoUrl=BACKEND_URL + video_src if video_src else None,
-                audioUrl=BACKEND_URL + audio_src if audio_src else None,
+                videoUrl=video_src,
+                audioUrl=None,
             ),
         )
 

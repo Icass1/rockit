@@ -1,16 +1,14 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-from fastapi import Request
-from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL
 from core.access.db.ormModels.image import ImageRow
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.media.image import Image
 from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
+from core.framework.storage import Storage
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -520,7 +518,7 @@ class YoutubeMusic:
             dominant_color = db_track.image.dominant_color
 
             is_downloaded = db_track.storage_object is not None
-            audio_src = f"{BACKEND_URL}/youtube-music/audio/{public_id}" if is_downloaded else None
+            audio_src = Storage.get_public_url(db_track.storage_object) if is_downloaded else None
 
             album_data = BaseAlbumWithoutSongsResponse(
                 provider=YoutubeMusic.provider_name,
@@ -1399,7 +1397,7 @@ class YoutubeMusic:
         dominant_color = db_track.image.dominant_color
 
         is_downloaded = db_track.storage_object is not None
-        audio_src = f"{BACKEND_URL}/youtube-music/audio/{public_id}" if is_downloaded else None
+        audio_src = Storage.get_public_url(db_track.storage_object) if is_downloaded else None
 
         album_data = BaseAlbumWithoutSongsResponse(
             provider=YoutubeMusic.provider_name,
@@ -1518,11 +1516,7 @@ class YoutubeMusic:
                 track_dominant_color = track.image.dominant_color
 
                 is_downloaded = track.storage_object is not None
-                audio_src = (
-                    f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
-                    if is_downloaded
-                    else None
-                )
+                audio_src = Storage.get_public_url(track.storage_object) if is_downloaded else None
 
                 songs_list.append(
                     YoutubeMusicTrackResponse(
@@ -1638,11 +1632,7 @@ class YoutubeMusic:
                 album_public_id = track.album.core_album.public_id
 
                 is_downloaded = track.storage_object is not None
-                audio_src = (
-                    f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
-                    if is_downloaded
-                    else None
-                )
+                audio_src = Storage.get_public_url(track.storage_object) if is_downloaded else None
 
                 top_songs.append(
                     YoutubeMusicTrackResponse(
@@ -1770,11 +1760,7 @@ class YoutubeMusic:
             dominant_color = db_track.image.dominant_color
 
             is_downloaded = db_track.storage_object is not None
-            audio_src = (
-                f"{BACKEND_URL}/youtube-music/audio/{db_track.core_song.public_id}"
-                if is_downloaded
-                else None
-            )
+            audio_src = Storage.get_public_url(db_track.storage_object) if is_downloaded else None
 
             album_data = BaseAlbumWithoutSongsResponse(
                 provider=YoutubeMusic.provider_name,
@@ -1919,11 +1905,7 @@ class YoutubeMusic:
                         )
 
                 is_downloaded = track.storage_object is not None
-                audio_src = (
-                    f"{BACKEND_URL}/youtube-music/audio/{track.core_song.public_id}"
-                    if is_downloaded
-                    else None
-                )
+                audio_src = Storage.get_public_url(track.storage_object) if is_downloaded else None
 
                 a_result_track_image_url: Result[str] = await Image.get_internal_image_url_async(
                     image=track.image
@@ -1997,29 +1979,6 @@ class YoutubeMusic:
         ]
 
         return Result(code=ResultCode.OK, message="OK", result=results)
-
-    @staticmethod
-    async def get_audio_with_range_async(
-        session: AsyncSession, public_id: str, request: Request
-    ) -> Result[StreamingResponse]:
-        """Stream the existing audio file with exact HTTP byte ranges."""
-        a_result_track = await YoutubeMusicAccess.get_track_by_public_id_async(
-            session=session, public_id=public_id
-        )
-        if a_result_track.is_not_ok():
-            logger.error(f"Error getting track. {a_result_track.info()}")
-            return Result(code=a_result_track.code(), message=a_result_track.message())
-
-        track_row = a_result_track.result()
-
-        if not track_row.storage_object:
-            logger.error(f"Track {public_id} has no audio file downloaded.")
-            return Result(code=ResultCode.NOT_FOUND, message="Audio file not downloaded")
-
-        full_path: str = track_row.storage_object.key
-        return await ObjectFiles.stream_async(
-            key=full_path, range_header=request.headers.get("Range")
-        )
 
 
 youtube_music = YoutubeMusic()

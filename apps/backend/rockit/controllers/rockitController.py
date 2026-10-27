@@ -6,18 +6,12 @@ from typing import Any, cast
 
 import aiofiles
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.responses import Response
 
 from constants import TEMP_PATH
-from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.user import UserRow
-from core.access.mediaAccess import MediaAccess
 from core.framework import providers
-from core.framework.media.stream import MediaStream
 from core.framework.notification import Notification
-from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
 from core.framework.user.user import User
@@ -31,9 +25,6 @@ from core.responses.uploadResponse import UploadResponse
 from core.utils.createId import create_id
 from logger import getLogger
 from result import Result
-from rockit.access.db.ormModels.song import RockitSongRow
-from rockit.access.db.ormModels.video import RockitVideoRow
-from rockit.access.rockitAccess import RockitAccess
 
 logger: Logger = getLogger(__name__)
 
@@ -328,115 +319,6 @@ async def get_rockit_album(
         raise HTTPException(status_code=404, detail="Album not found")
 
     return albums[0]
-
-
-@router.get("/audio/{public_id}")
-async def serve_rockit_audio(
-    request: Request,
-    public_id: str,
-) -> Response:
-    """Stream an uploaded audio file with Range support."""
-
-    session = DBSessionMiddleware.get_session(request=request)
-
-    a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
-        session=session, public_id=public_id, media_type_keys=None
-    )
-    if a_result_media.is_not_ok():
-        logger.error("TODO")
-        raise HTTPException(status_code=404, detail="Media not found")
-
-    media: CoreMediaRow = a_result_media.result()
-
-    a_result_songs: Result[list[RockitSongRow]] = await RockitAccess.get_songs_async(
-        session=session, song_ids=[media.id]
-    )
-    if a_result_songs.is_not_ok() or not a_result_songs.result():
-        raise HTTPException(status_code=404, detail="Song not found")
-
-    song: RockitSongRow = a_result_songs.result()[0]
-    if not song.storage_object.key:
-        raise HTTPException(status_code=404, detail="File not found")
-    streamed = await ObjectFiles.stream_async(
-        key=song.storage_object.key, range_header=request.headers.get("range")
-    )
-    if streamed.is_not_ok():
-        raise HTTPException(status_code=streamed.get_http_code(), detail=streamed.message())
-    return streamed.result()
-
-
-@router.get("/video/{public_id}/stream")
-async def serve_rockit_video(
-    request: Request,
-    public_id: str,
-) -> Response:
-    """Stream an uploaded video file with Range support."""
-
-    session = DBSessionMiddleware.get_session(request=request)
-
-    a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
-        session=session, public_id=public_id, media_type_keys=None
-    )
-    if a_result_media.is_not_ok():
-        raise HTTPException(status_code=404, detail="Media not found")
-
-    media: CoreMediaRow = a_result_media.result()
-
-    a_result_videos: Result[list[RockitVideoRow]] = await RockitAccess.get_videos_async(
-        session=session, video_ids=[media.id]
-    )
-    if a_result_videos.is_not_ok() or not a_result_videos.result():
-        raise HTTPException(status_code=404, detail="Video not found")
-
-    video: RockitVideoRow = a_result_videos.result()[0]
-    if not video.storage_object.key:
-        raise HTTPException(status_code=404, detail="File not found")
-    streamed = await ObjectFiles.stream_async(
-        key=video.storage_object.key, range_header=request.headers.get("range")
-    )
-    if streamed.is_not_ok():
-        raise HTTPException(status_code=streamed.get_http_code(), detail=streamed.message())
-    return streamed.result()
-
-
-@router.get("/video/{public_id}/stream/audio")
-async def serve_rockit_video_audio(
-    request: Request,
-    public_id: str,
-) -> Response:
-    """Stream audio extracted from a RockIt video using ffmpeg."""
-
-    session = DBSessionMiddleware.get_session(request=request)
-
-    a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
-        session=session, public_id=public_id, media_type_keys=None
-    )
-    if a_result_media.is_not_ok():
-        raise HTTPException(status_code=404, detail="Media not found")
-
-    media: CoreMediaRow = a_result_media.result()
-
-    a_result_videos: Result[list[RockitVideoRow]] = await RockitAccess.get_videos_async(
-        session=session, video_ids=[media.id]
-    )
-    if a_result_videos.is_not_ok() or not a_result_videos.result():
-        raise HTTPException(status_code=404, detail="Video not found")
-
-    video: RockitVideoRow = a_result_videos.result()[0]
-    if not video.storage_object.key:
-        raise HTTPException(status_code=404, detail="Video file not found")
-
-    a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_object_async(
-        key=video.storage_object.key, range_header=request.headers.get("range")
-    )
-    if a_result_stream.is_not_ok():
-        logger.error(f"Error streaming audio. {a_result_stream.info()}")
-        raise HTTPException(
-            status_code=a_result_stream.get_http_code(),
-            detail=a_result_stream.message(),
-        )
-
-    return a_result_stream.result()
 
 
 def _get_rockit_media_provider() -> BaseMediaProvider | None:

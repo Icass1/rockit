@@ -19,18 +19,14 @@ declare global {
 }
 declare const self: ServiceWorkerGlobalScope;
 
-// Streaming must be matched before API caches and Serwist's default media
-// routes. Keep Range headers and partial responses untouched, and never clone
-// a media response into Cache Storage (which can drain the entire stream).
+// Media objects are fetched directly from S3. Keep Range requests and media
+// responses out of Cache Storage so partial responses remain untouched.
 const runtimeCaching = [
     {
         matcher: ({ url, request }: { url: URL; request: Request }) =>
             request.headers.has("range") ||
             request.destination === "audio" ||
-            request.destination === "video" ||
-            /^\/youtube\/video\/[^/]+\/stream(?:\/|$)/.test(url.pathname) ||
-            url.pathname.startsWith("/rockit/audio/") ||
-            /^\/rockit\/video\/[^/]+\/stream(?:\/|$)/.test(url.pathname),
+            request.destination === "video",
         handler: new NetworkOnly(),
     },
     {

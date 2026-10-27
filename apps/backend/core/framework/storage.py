@@ -150,6 +150,30 @@ def _download_object(bucket: str, key: str) -> bytes:
 
 class Storage:
     @staticmethod
+    def get_public_url(storage_object: StorageObjectRow | None) -> str | None:
+        """Build the public object URL for a bucket configured for public reads."""
+
+        if storage_object is None:
+            return None
+        endpoint: str | None = settings.S3_PUBLIC_ENDPOINT_URL
+        if endpoint:
+            try:
+                client: S3Client = get_s3_client(public=True)
+                url: str = client.generate_presigned_url(
+                    ClientMethod="get_object",
+                    Params={"Bucket": storage_object.bucket, "Key": storage_object.key},
+                    ExpiresIn=0,
+                )
+                return url.split("?", maxsplit=1)[0]
+            except Exception as e:
+                logger.error(
+                    f"Error building public object URL for {storage_object.key}: {e}",
+                    exc_info=True,
+                )
+                return None
+        return Storage.get_object_url(storage_object)
+
+    @staticmethod
     async def get_all_objects_async(
         session: AsyncSession,
     ) -> Result[list[StorageObjectRow]]:

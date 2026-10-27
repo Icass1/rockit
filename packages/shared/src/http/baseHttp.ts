@@ -1287,10 +1287,6 @@ export class BaseHttp {
         );
     }
 
-    static serveRockitAudioURL(publicId: string) {
-        return `${BACKEND_URL}/rockit/audio/${encodeURIComponent(publicId)}`;
-    }
-
     static async getRockitSong(publicId: string) {
         return this.apiGetAsync(
             `/rockit/song/${encodeURIComponent(publicId)}`,
@@ -1306,14 +1302,6 @@ export class BaseHttp {
         );
     }
 
-    static serveRockitVideoURL(publicId: string) {
-        return `${BACKEND_URL}/rockit/video/${encodeURIComponent(publicId)}/stream`;
-    }
-
-    static serveRockitVideoAudioURL(publicId: string) {
-        return `${BACKEND_URL}/rockit/video/${encodeURIComponent(publicId)}/stream/audio`;
-    }
-
     static async getAlbumAsync(spotifyId: string) {
         return this.apiGetAsync(
             `/spotify/album/${encodeURIComponent(spotifyId)}`,
@@ -1326,10 +1314,6 @@ export class BaseHttp {
             `/spotify/artist/${encodeURIComponent(spotifyId)}`,
             dto.BaseArtistResponseSchema
         );
-    }
-
-    static getSpotifyAudioURL(spotifyId: string) {
-        return `${BACKEND_URL}/spotify/audio/${encodeURIComponent(spotifyId)}`;
     }
 
     static async getSpotifyPlaylistAsync(spotifyId: string) {
@@ -1358,10 +1342,6 @@ export class BaseHttp {
             `/spotify_scrapper/artist/${encodeURIComponent(spotifyId)}`,
             dto.BaseArtistResponseSchema
         );
-    }
-
-    static getSpotifyScrapperAudioURL(spotifyId: string) {
-        return `${BACKEND_URL}/spotify_scrapper/audio/${encodeURIComponent(spotifyId)}`;
     }
 
     static async getSpotifyScrapperPlaylistAsync(spotifyId: string) {
@@ -1613,10 +1593,6 @@ export class BaseHttp {
         );
     }
 
-    static getYoutubeMusicAudioURL(publicId: string) {
-        return `${BACKEND_URL}/youtube-music/audio/${encodeURIComponent(publicId)}`;
-    }
-
     static async getChanelAsync(youtubeId: string) {
         return this.apiGetAsync(
             `/youtube/chanel/${encodeURIComponent(youtubeId)}`,
@@ -1631,11 +1607,4 @@ export class BaseHttp {
         );
     }
 
-    static streamVideoURL(youtubeId: string) {
-        return `${BACKEND_URL}/youtube/video/${encodeURIComponent(youtubeId)}/stream`;
-    }
-
-    static streamAudioURL(youtubeId: string) {
-        return `${BACKEND_URL}/youtube/video/${encodeURIComponent(youtubeId)}/stream/audio`;
-    }
 }

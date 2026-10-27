@@ -1,7 +1,6 @@
 from logging import Logger
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import Response, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -87,20 +86,3 @@ async def get_spotify_scrapper_playlist_async(
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
     return a_result.result()
-
-
-@router.get("/audio/{spotify_id}")
-async def get_spotify_scrapper_audio_async(request: Request, spotify_id: str) -> Response:
-    """Stream audio file with range support for HTML audio element seeking."""
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_response: Result[StreamingResponse] = await SpotifyScrapper.get_audio_with_range_async(
-        session=session, spotify_id=spotify_id, request=request
-    )
-    if a_result_response.is_not_ok():
-        logger.error(f"Error getting audio. {a_result_response.info()}")
-        raise HTTPException(
-            status_code=a_result_response.get_http_code(),
-            detail=a_result_response.message(),
-        )
-
-    return a_result_response.result()

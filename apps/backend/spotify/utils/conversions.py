@@ -4,10 +4,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from constants import BACKEND_URL
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
 from core.framework.media.image import Image
+from core.framework.storage import Storage
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -165,9 +165,7 @@ async def get_track_response_async(
             artist_responses.append(a_result_artist.result())
 
     is_downloaded: bool = track_row.storage_object_id is not None
-    audio_src: str | None = None
-    if is_downloaded:
-        audio_src = f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}"
+    audio_src: str | None = Storage.get_public_url(track_row.storage_object)
 
     public_id: str = track_row.core_song.public_id
 
@@ -284,7 +282,7 @@ async def get_album_with_songs_response_async(
         is_downloaded: bool = track_row.storage_object_id is not None
         audio_src: str | None = None
         if is_downloaded:
-            audio_src = f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}"
+            audio_src = Storage.get_public_url(track_row.storage_object)
 
         track_public_id: str = track_row.core_song.public_id
 
@@ -593,9 +591,7 @@ async def get_tracks_responses_async(
                 )
 
             is_downloaded = track_row.storage_object_id is not None
-            audio_src = (
-                f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}" if is_downloaded else None
-            )
+            audio_src = Storage.get_public_url(track_row.storage_object) if is_downloaded else None
 
             a_result_album: Result[
                 BaseAlbumWithoutSongsResponse
@@ -857,9 +853,7 @@ async def get_albums_with_songs_responses_async(
                     )
 
                 is_downloaded = track.storage_object_id is not None
-                audio_src = (
-                    f"{BACKEND_URL}/spotify/audio/{track.spotify_id}" if is_downloaded else None
-                )
+                audio_src = Storage.get_public_url(track.storage_object) if is_downloaded else None
 
                 song_responses.append(
                     BaseSongWithoutAlbumResponse(

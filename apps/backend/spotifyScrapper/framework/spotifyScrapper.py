@@ -2,14 +2,11 @@ import uuid
 from typing import TYPE_CHECKING
 
 import requests as req
-from fastapi import Request
-from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.framework.media.image import Image
-from core.framework.objectFiles import ObjectFiles
 from core.responses.basePlaylistWithMediasResponse import (
     BasePlaylistWithMediasResponse,
 )
@@ -1332,28 +1329,4 @@ class SpotifyScrapper:
         """Fetch AlbumRows for multiple public_ids in one query."""
         return await SpotifyScrapperAccess.get_album_rows_from_public_ids_async(
             session=session, public_ids=public_ids
-        )
-
-    @staticmethod
-    async def get_audio_with_range_async(
-        session: AsyncSession, spotify_id: str, request: Request
-    ) -> Result[StreamingResponse]:
-        """Stream the existing audio file with exact HTTP byte ranges."""
-
-        a_result_track: Result[TrackRow] = await SpotifyScrapperAccess.get_track_spotify_id_async(
-            session=session, spotify_id=spotify_id
-        )
-        if a_result_track.is_not_ok():
-            logger.error(f"Error getting track. {a_result_track.info()}")
-            return Result(code=a_result_track.code(), message=a_result_track.message())
-
-        track_row: TrackRow = a_result_track.result()
-
-        if not track_row.storage_object:
-            logger.error(f"Track {spotify_id} has no audio file downloaded.")
-            return Result(code=ResultCode.NOT_FOUND, message="Audio file not downloaded")
-
-        full_path: str = track_row.storage_object.key
-        return await ObjectFiles.stream_async(
-            key=full_path, range_header=request.headers.get("Range")
         )

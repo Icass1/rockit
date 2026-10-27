@@ -73,7 +73,7 @@
 - priority: medium
 - workload: Normal
     ```md
-    Revisión con develop actualizado: vista inicial de tres familias de medallas y desglose de hitos plegable, conservando el catálogo completo de 115 y la comparación. Se mantiene el mismo reparto de columnas que Friends base para que el progreso personal no domine la página. Evidencia visual y CI en preparación; sin tests locales.
+    Revisión con develop actualizado: vista inicial de tres familias de medallas y desglose de hitos plegable, conservando el catálogo completo de 115 y la comparación. Se mantiene el mismo reparto de columnas que Friends base para que el progreso personal no domine la página. Evidencia en docs/friends-integrated-review.md: nueve tamaños y 26 comprobaciones de interacción con datos de ejemplo; sin suites de tests locales.
 
     115 medallas con descripciones breves, sin etiquetas de dificultad, nueve familias (incluyen amigos, vídeos y descubrimiento + recomendaciones), filtros y búsqueda; diseños basados en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
     ```
@@ -102,7 +102,7 @@
 - priority: high
 - workload: Normal
     ```md
-    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Revisión de tamaños y del conjunto con XP/medallas en curso; sin tests locales.
+    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Conjunto revisado con XP/medallas en nueve tamaños, con capturas y mediciones en docs/friends-integrated-review.md; sin suites de tests locales.
 
     Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Revisión de pantallas grandes: ancho disponible completo, actividad en paralelo y columna de sesiones/compartidos en ultrawide, mediante container queries. Diseño pendiente de revisión de Ignacio. Sin tests locales.
 

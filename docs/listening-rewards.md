@@ -57,8 +57,8 @@ Unlocks persist once per user/key with an earned timestamp. Emblems do not grant
 extra XP. Profile and comparison projections batch statistics and earned state;
 new awards use one JSON recordset insert rather than per-badge queries. The initial
 collection shows up to three recent family representatives, with an expandable, scrollable
-catalogue filtered by family, earned state and text. Locked requirements
-and numeric progress remain explicit. Accepted-friend comparisons show collections
+catalogue filtered by family, earned state and text. The collapsed preview shows award names, earned/locked state and numeric progress;
+expanded medals show family labels and concise requirements. Accepted-friend comparisons show collections
 and their earned intersection; friendship and blocking access checks remain intact.
 
 ## Provider boundary and vocabulary review

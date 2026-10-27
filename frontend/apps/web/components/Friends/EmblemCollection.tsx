@@ -159,14 +159,18 @@ export default function EmblemCollection({
                         />
                         <div>
                             <strong>{v[badge.titleKey]}</strong>
-                            <small>
-                                {
-                                    v[
-                                        `FRIENDS_BADGE_FAMILY_${badge.scope.toUpperCase()}`
-                                    ]
-                                }
-                            </small>
-                            {!compact && <p>{description(badge)}</p>}
+                            {expanded && (
+                                <small>
+                                    {
+                                        v[
+                                            `FRIENDS_BADGE_FAMILY_${badge.scope.toUpperCase()}`
+                                        ]
+                                    }
+                                </small>
+                            )}
+                            {expanded && !compact && (
+                                <p>{description(badge)}</p>
+                            )}
                             <span>
                                 {badge.earnedAt
                                     ? v.FRIENDS_BADGE_EARNED

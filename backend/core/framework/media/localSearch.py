@@ -96,7 +96,7 @@ async def resolve_local_results(
         key = song_identity(
             name=item.name, artists=[artist.name for artist in item.artists]
         )
-        matches = by_identity.get(key, set()) if key is not None else set()
+        matches: set[str] = by_identity.get(key, set()) if key is not None else set()
         if len(matches) == 1:
             item.publicId = next(iter(matches))
             item.downloaded = True

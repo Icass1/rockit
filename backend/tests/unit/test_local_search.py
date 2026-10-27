@@ -189,9 +189,11 @@ def test_loading_local_capability_does_not_initialize_remote_api(
         side_effect=AssertionError("Remote initialization must stay disabled")
     )
     monkeypatch.setattr(archive, "async_init", remote_init)
-    monkeypatch.setattr(
-        registry_module, "import_module", lambda _: SimpleNamespace(provider=archive)
-    )
+
+    def load_module(name: str) -> SimpleNamespace:
+        return SimpleNamespace(provider=archive)
+
+    monkeypatch.setattr(registry_module, "import_module", load_module)
     registry = Providers()
     registry._providers = []
     registry._load_local_provider(

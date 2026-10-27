@@ -87,15 +87,6 @@
     Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
     ```
 
-### [FRIENDS] Vocabulary desde el Excel
-
-- tags: [frontend, i18n, vocabulary, kb-34]
-- priority: medium
-- workload: Easy
-    ```md
-    Etiquetas de Friends y De/Para localizados en Vocabulary.xlsx (en/es/fr), tipos y fallback generados desde el Excel; generación sin escrituras de BD. Auditadas las referencias de vocabulario de Friends. Pendiente de revisión de Ignacio. Sin tests locales.
-    ```
-
 ### [HOME] Añadir context menu a las canciones del home
 
 - tags: [frontend, home, songs, context-menu, ui, kb-20]
@@ -169,6 +160,17 @@
     ```
 
 ## Done
+
+### [FRIENDS] Vocabulary desde el Excel
+
+- tags: [frontend, i18n, vocabulary, kb-34]
+- priority: medium
+- workload: Easy
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Etiquetas de Friends y De/Para localizados en Vocabulary.xlsx (en/es/fr), tipos y fallback generados desde el Excel; generación sin escrituras de BD. Auditadas las referencias de vocabulario de Friends. Revisado y aprobado por Ignacio. Sin tests locales.
+    ```
 
 ### [FRIENDS] Mejorar UI/UX de la página de friends
 

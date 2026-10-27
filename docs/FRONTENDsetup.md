@@ -12,7 +12,7 @@ cd rockit
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r backend/requirements.txt
+pip install -r apps/backend/requirements.txt
 ```
 
 ## Install node deps
@@ -34,7 +34,7 @@ Fill all settings.
 
 Two servers needed:
 
-Backend (root): `fastapi dev backend/main.py`
+Backend (root): `fastapi dev apps/backend/main.py`
 
 Frontend (frontend/): `pnpm run dev`
 

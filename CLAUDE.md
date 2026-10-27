@@ -35,8 +35,8 @@ Rockit is a self-hosted music player.
 
 ```
 rockit/
-├── frontend/    # Next.js app
-└── backend/     # FastAPI app
+├── apps/web/    # Next.js app
+└── apps/backend/     # FastAPI app
 ```
 
 ---
@@ -46,28 +46,28 @@ rockit/
 ### Backend
 
 ```bash
-cd backend
+cd apps/backend
 
 # Development server
-uvicorn backend.core.main:app --reload
+uv run uvicorn app.main:app --reload
 
 # Type checking
-.venv/bin/python -m pyright
+.uv run pyright
 
 # Linting / formatting
-.venv/bin/python -m black <file>
+.uv run ruff format <file>
 
 # Initialize database
-python3 -m backend init-db
+uv run --project apps/backend python -m apps.backend init-db
 
 # Generate frontend DTOs from backend responses
-python3 -m backend models
+uv run --project apps/backend python -m apps.backend models
 ```
 
 ### Frontend
 
 ```bash
-cd frontend
+cd .
 
 # Development (Turbopack)
 pnpm dev
@@ -88,7 +88,7 @@ npx tsc --noEmit
 ### Mobile (Expo)
 
 ```bash
-cd frontend/apps/mobile
+cd apps/mobile
 
 # Prebuild (generates native directories)
 pnpm prebuild
@@ -116,7 +116,7 @@ pnpm mobile:build:ios:production
 ### 3.1 Directory Structure
 
 ```
-backend/
+apps/backend/
 ├── __main__.py                    # CLI entry (commands: zod, init-db)
 ├── constants.py                   # Environment variables
 │
@@ -201,36 +201,38 @@ controllers/  →  framework/  →  access/
 
 Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (singular).
 
-### 3.3 AResult Pattern
+### 3.3 Result Pattern
 
-All framework and access functions return `AResult`, never raise exceptions internally.
+All framework and access functions return `Result`, never raise exceptions internally.
 
 ```python
-from backend.core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 
-class AResultCode:
-    OK            = 0x1
+
+class ResultCode:
+    OK = 0x1
     GENERAL_ERROR = 0x2
-    NOT_FOUND     = 0x3
-    BAD_REQUEST   = 0x4
+    NOT_FOUND = 0x3
+    BAD_REQUEST = 0x4
     NOT_IMPLEMENTED = 0x5
-    ALREADY_EXISTS  = 0x6
+    ALREADY_EXISTS = 0x6
     VALIDATION_ERROR = 0x7
 ```
 
 ```python
-# Framework/access — return AResult
-async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow]:
+# Framework/access — return Result
+async def get_user_async(session: AsyncSession, user_id: int) -> Result[UserRow]:
     """Get a user by their internal ID."""
 
-    a_result: AResult[UserRow] = await UserAccess.get_user_from_id_async(
+    a_result: Result[UserRow] = await UserAccess.get_user_from_id_async(
         session=session, user_id=user_id
     )
     if a_result.is_not_ok():
         logger.error(f"Error getting user. {a_result.info()}", exc_info=True)
-        return AResult(code=a_result.code(), message=a_result.message())
+        return Result(code=a_result.code(), message=a_result.message())
 
-    return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+    return Result(code=ResultCode.OK, message="OK", result=a_result.result())
+
 
 # Controller — only place that raises HTTPException
 @router.get("/user/{user_id}")
@@ -242,14 +244,11 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
 
     if a_result.is_not_ok():
         logger.error(f"Error getting user. {a_result.info()}")
-        raise HTTPException(
-            status_code=a_result.get_http_code(),
-            detail=a_result.message()
-        )
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
     return a_result.result()
 ```
 
-| AResultCode     | HTTP |
+| ResultCode      | HTTP |
 | --------------- | ---- |
 | OK              | 200  |
 | ALREADY_EXISTS  | 200  |
@@ -261,8 +260,8 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
 ### 3.4 Database
 
 ```python
-# Connection manager — backend/core/access/db/rockItDb.py
-rockit_db = RockItDB(username, password, host, port, database)
+# Connection manager — apps/backend/core/access/db/database.py
+rockit_db = Database(username, password, host, port, database)
 
 # Transaction scope (auto commit/rollback)
 async with rockit_db.session_scope_async() as session:
@@ -297,15 +296,15 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
 
 ```python
 # Get current user in controller
-a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
+
 
 # Protect an endpoint
 @router.get("/protected")
 async def protected_endpoint(
     request: Request,
     _=Depends(AuthMiddleware.auth_dependency),
-):
-    ...
+): ...
 ```
 
 ### 3.6 Providers System
@@ -313,19 +312,19 @@ async def protected_endpoint(
 Providers abstract multiple music sources (Spotify, YouTube, RockIt).
 
 ```python
-# backend/core/framework/provider/baseProvider.py
+# apps/backend/core/framework/provider/baseProvider.py
 class BaseProvider:
-    async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]
-    async def get_song_async(self, session, public_id: str) -> AResult[BaseSongWithAlbumResponse]
-    async def get_album_async(self, session, public_id: str) -> AResult[BaseAlbumWithSongsResponse]
-    async def get_artist_async(self, session, public_id: str) -> AResult[BaseArtistResponse]
-    async def get_playlist_async(self, session, user_id, public_id) -> AResult[BasePlaylistResponse]
-    async def get_video_async(self, session, public_id: str) -> AResult[BaseVideoResponse]
-    async def start_download_async(self, session, public_id, download_id, download_group_id, user_id) -> AResult[BaseDownload]
+    async def search_async(self, query: str) -> Result[List[BaseSearchResultsItem]]
+    async def get_song_async(self, session, public_id: str) -> Result[BaseSongWithAlbumResponse]
+    async def get_album_async(self, session, public_id: str) -> Result[BaseAlbumWithSongsResponse]
+    async def get_artist_async(self, session, public_id: str) -> Result[BaseArtistResponse]
+    async def get_playlist_async(self, session, user_id, public_id) -> Result[BasePlaylistResponse]
+    async def get_video_async(self, session, public_id: str) -> Result[BaseVideoResponse]
+    async def start_download_async(self, session, public_id, download_id, download_group_id, user_id) -> Result[BaseDownload]
     def match_url(self, url: str) -> str | None  # External URL → internal path
 ```
 
-To add a provider: create `backend/{name}/framework/provider/provider.py` implementing `BaseProvider`, export `provider = MyProvider()` and `name = "ProviderName"`.
+To add a provider: create `apps/backend/{name}/framework/provider/provider.py` implementing `BaseProvider`, export `provider = MyProvider()` and `name = "ProviderName"`.
 
 ---
 
@@ -415,11 +414,11 @@ These are the known routes. Use `public_id` for all resource identifiers.
 
 Local engine always; optional external suggestions (`discover`). See `docs/RECOMMENDATIONS.md`.
 
-| Method | Path                                 | Auth | Description                                         |
-| ------ | ------------------------------------ | ---- | --------------------------------------------------- |
-| GET    | `/recommendation/for-you`            | Yes  | Personalized songs + optional external suggestions  |
-| GET    | `/recommendation/playlist/{publicId}` | Yes | Songs to add to a playlist                          |
-| GET    | `/media/song/{publicId}/related`     | Yes  | Songs similar to one song/video                     |
+| Method | Path                                  | Auth | Description                                        |
+| ------ | ------------------------------------- | ---- | -------------------------------------------------- |
+| GET    | `/recommendation/for-you`             | Yes  | Personalized songs + optional external suggestions |
+| GET    | `/recommendation/playlist/{publicId}` | Yes  | Songs to add to a playlist                         |
+| GET    | `/media/song/{publicId}/related`      | Yes  | Songs similar to one song/video                    |
 
 ### Stats — `/stats`
 
@@ -463,7 +462,7 @@ Local engine always; optional external suggestions (`discover`). See `docs/RECOM
 ### 5.1 Directory Structure
 
 ```
-frontend/                           # Monorepo (pnpm workspaces)
+./                                  # Root pnpm workspace
 ├── apps/
 │   ├── web/                       # Next.js web application
 │   │   ├── app/                   # Next.js App Router
@@ -679,11 +678,11 @@ bg-gradient-to-r from-[#ee1086] to-[#fb6467]
 
 ### DTO Generation
 
-Backend Pydantic response models are compiled to Zod schemas in `frontend/packages/shared/src/dto/`:
+Backend Pydantic response models are compiled to Zod schemas in `packages/shared/src/dto/`:
 
 ```bash
-cd backend
-python3 -m backend models
+cd apps/backend
+uv run --project apps/backend python -m apps.backend models
 ```
 
 **Never edit files in `packages/shared/src/dto/` manually.**
@@ -697,7 +696,7 @@ import { SomeResponseSchema, type SomeResponse } from "@/dto";
 ### API Base URL
 
 ```tsx
-// frontend/apps/web/environment.ts
+// apps/web/environment.ts
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 ```
 
@@ -734,8 +733,9 @@ Events from backend:
 #### Backend
 
 ```python
-# 1. backend/core/requests/statsRequest.py
+# 1. apps/backend/core/requests/statsRequest.py
 from pydantic import BaseModel
+
 
 class StatsRequest(BaseModel):
     range: str  # "7d" | "30d" | "1y"
@@ -744,15 +744,17 @@ class StatsRequest(BaseModel):
 ```
 
 ```python
-# 2. backend/core/responses/statsResponse.py
+# 2. apps/backend/core/responses/statsResponse.py
 from pydantic import BaseModel
 from typing import List
+
 
 class StatsTopItem(BaseModel):
     publicId: str
     name: str
     value: int
     imageUrl: str | None
+
 
 class UserStatsResponse(BaseModel):
     songsListened: int
@@ -764,35 +766,33 @@ class UserStatsResponse(BaseModel):
 ```
 
 ```python
-# 3. backend/core/access/statsAccess.py
+# 3. apps/backend/core/access/statsAccess.py
 class StatsAccess:
     @staticmethod
     async def get_user_stats_async(
         session: AsyncSession, user_id: int, range: str
-    ) -> AResult[UserStatsResponse]:
+    ) -> Result[UserStatsResponse]:
         """Get aggregated listening stats for a user."""
 
         # SQLAlchemy queries here
         ...
-        return AResult(code=AResultCode.OK, message="OK", result=stats)
+        return Result(code=ResultCode.OK, message="OK", result=stats)
 ```
 
 ```python
-# 4. backend/core/framework/stats.py
+# 4. apps/backend/core/framework/stats.py
 class Stats:
     @staticmethod
     async def get_user_stats_async(
         session: AsyncSession, user_id: int, range: str
-    ) -> AResult[UserStatsResponse]:
+    ) -> Result[UserStatsResponse]:
         """Get user listening stats."""
 
-        return await StatsAccess.get_user_stats_async(
-            session=session, user_id=user_id, range=range
-        )
+        return await StatsAccess.get_user_stats_async(session=session, user_id=user_id, range=range)
 ```
 
 ```python
-# 5. backend/core/controllers/statsController.py
+# 5. apps/backend/core/controllers/statsController.py
 @router.get("/stats/user")
 async def get_user_stats(
     request: Request,
@@ -818,7 +818,7 @@ async def get_user_stats(
 #### Generate DTO
 
 ```bash
-cd backend && python3 -m backend models
+cd apps/backend && uv run --project apps/backend python -m apps.backend models
 ```
 
 #### Frontend
@@ -857,31 +857,31 @@ export default function UserStats({ range, customStart, customEnd }) {
 ```python
 # Imports order
 import os                                       # 1. stdlib (shortest → longest)
-from backend.utils.logger import getLogger      # 2. backend.utils
-from backend.core.aResult import AResult        # 3. aResult
-from backend.core.access.userAccess import ...  # 4. access
-from backend.core.framework.user import ...     # 5. framework
-from backend.core.middlewares.auth import ...   # 6. middlewares
-from backend.core.responses.ok import ...       # 7. responses
-from backend.core.requests.login import ...     # 8. requests
+from utils.logger import getLogger      # 2. backend.utils
+from result import Result        # 3. aResult
+from core.access.userAccess import ...  # 4. access
+from core.framework.user import ...     # 5. framework
+from core.middlewares.auth import ...   # 6. middlewares
+from core.responses.ok import ...       # 7. responses
+from core.requests.login import ...     # 8. requests
 
 # Every method: async, static, docstring, typed
 class SomeFramework:
     @staticmethod
-    async def do_something_async(session: AsyncSession, user_id: int) -> AResult[str]:
+    async def do_something_async(session: AsyncSession, user_id: int) -> Result[str]:
         """Brief description of what this does."""
 
-        a_result: AResult[str] = await SomeAccess.do_something_async(
+        a_result: Result[str] = await SomeAccess.do_something_async(
             session=session, user_id=user_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error. {a_result.info()}", exc_info=True)
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 
 # Run black after every edit
-# .venv/bin/python -m black <file>
+# .uv run ruff format <file>
 ```
 
 ### Frontend
@@ -921,7 +921,7 @@ if (typeof window !== "undefined") { ... }
 - Never write raw SQL in framework or controller layers — SQL can only live in `access/` files
 - Never return `dict` or raw types from endpoints — always use a Pydantic `BaseModel`
 - Never send the internal `id` to the client — always use `public_id`
-- **ALWAYS** log with `logger.error(...)` or `logger.warning(...)` before raising `HTTPException` or returning a non-OK `AResult`
+- **ALWAYS** log with `logger.error(...)` or `logger.warning(...)` before raising `HTTPException` or returning a non-OK `Result`
 
 ### Frontend
 
@@ -944,44 +944,44 @@ if (typeof window !== "undefined") { ... }
 
 ### Backend
 
-| File                                                    | Purpose                             |
-| ------------------------------------------------------- | ----------------------------------- |
-| `backend/core/main.py`                                  | FastAPI app entry, router discovery |
-| `backend/core/aResult.py`                               | Result wrapper                      |
-| `backend/core/access/db/rockItDb.py`                    | DB connection manager               |
-| `backend/core/access/db/ormModels/user.py`              | User ORM model                      |
-| `backend/core/controllers/authController.py`            | Auth endpoints                      |
-| `backend/core/controllers/mediaController.py`           | Media endpoints                     |
-| `backend/core/controllers/statsController.py`           | Stats endpoints                     |
-| `backend/core/framework/auth/session.py`                | Session management                  |
-| `backend/core/framework/providers/providers.py`         | Provider registry                   |
-| `backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
-| `backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
-| `backend/core/middlewares/authMiddleware.py`            | Authentication                      |
-| `backend/constants.py`                                  | Environment config                  |
-| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
-| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
+| File                                                         | Purpose                             |
+| ------------------------------------------------------------ | ----------------------------------- |
+| `apps/backend/app/main.py`                                   | FastAPI app entry, router discovery |
+| `apps/backend/core/aResult.py`                               | Result wrapper                      |
+| `apps/backend/core/access/db/database.py`                    | DB connection manager               |
+| `apps/backend/core/access/db/ormModels/user.py`              | User ORM model                      |
+| `apps/backend/core/controllers/authController.py`            | Auth endpoints                      |
+| `apps/backend/core/controllers/mediaController.py`           | Media endpoints                     |
+| `apps/backend/core/controllers/statsController.py`           | Stats endpoints                     |
+| `apps/backend/core/framework/auth/session.py`                | Session management                  |
+| `apps/backend/core/framework/providers/providers.py`         | Provider registry                   |
+| `apps/backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
+| `apps/backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
+| `apps/backend/core/middlewares/authMiddleware.py`            | Authentication                      |
+| `apps/backend/constants.py`                                  | Environment config                  |
+| `apps/backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
+| `apps/backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
 
 ### Frontend
 
-| File                                                      | Purpose                                 |
-| --------------------------------------------------------- | --------------------------------------- |
-| `frontend/apps/web/app/layout.tsx`                        | Root layout                             |
-| `frontend/apps/web/app/(protected)/layout.tsx`            | Auth check                              |
-| `frontend/apps/web/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
-| `frontend/lib/store.ts`                                   | createAtom / createArrayAtom            |
-| `frontend/lib/rockit/rockIt.ts`                           | Global singleton                        |
-| `frontend/lib/managers/mediaPlayerManager.ts`             | Audio playback                          |
-| `frontend/lib/managers/queueManager.ts`                   | Queue                                   |
-| `frontend/lib/managers/webSocketManger.ts`                | WebSocket                               |
-| `frontend/lib/utils/apiFetch.ts`                          | Zod-validated fetch                     |
-| `frontend/lib/errors/AppError.ts`                         | Error class                             |
-| `frontend/packages/shared/src/lib/getUserInServer.ts`     | Server-side session check               |
-| `frontend/hooks/useFetch.ts`                              | Client-side fetch hook                  |
-| `frontend/packages/shared/src/dto/index.ts`               | DTO barrel (auto-generated)             |
-| `frontend/apps/web/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
-| `frontend/apps/web/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
-| `frontend/apps/web/environment.ts`                        | BACKEND_URL                             |
+| File                                             | Purpose                                 |
+| ------------------------------------------------ | --------------------------------------- |
+| `apps/web/app/layout.tsx`                        | Root layout                             |
+| `apps/web/app/(protected)/layout.tsx`            | Auth check                              |
+| `apps/web/components/Layout/AppClientLayout.tsx` | App shell (nav, footer, player)         |
+| `apps/web/lib/store.ts`                          | createAtom / createArrayAtom            |
+| `apps/web/lib/rockit/rockIt.ts`                  | Global singleton                        |
+| `apps/web/lib/managers/mediaPlayerManager.ts`    | Audio playback                          |
+| `apps/web/lib/managers/queueManager.ts`          | Queue                                   |
+| `apps/web/lib/managers/webSocketManger.ts`       | WebSocket                               |
+| `apps/web/lib/utils/apiFetch.ts`                 | Zod-validated fetch                     |
+| `apps/web/lib/errors/AppError.ts`                | Error class                             |
+| `packages/shared/src/lib/getUserInServer.ts`     | Server-side session check               |
+| `frontend/hooks/useFetch.ts`                     | Client-side fetch hook                  |
+| `packages/shared/src/dto/index.ts`               | DTO barrel (auto-generated)             |
+| `apps/web/styles/base.css`                       | Reset, CSS vars, md breakpoint override |
+| `apps/web/styles/components.css`                 | Scrollbars, slider, skeleton, safe-area |
+| `apps/web/environment.ts`                        | BACKEND_URL                             |
 
 ---
 
@@ -991,11 +991,11 @@ if (typeof window !== "undefined") { ... }
 
 Enums, interfaces, and types must be placed in one of three `models/` directories:
 
-| Location | Purpose |
-|---|---|
-| `frontend/packages/shared/src/models/` | Types that represent backend entities (DTO-like interfaces, shared enums) — shared between web and mobile |
-| `frontend/apps/web/models/` | Web-only types and enums (app-specific) |
-| `frontend/apps/mobile/models/` | Mobile-only types and enums (app-specific) |
+| Location                      | Purpose                                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `packages/shared/src/models/` | Types that represent backend entities (DTO-like interfaces, shared enums) — shared between web and mobile |
+| `apps/web/models/`            | Web-only types and enums (app-specific)                                                                   |
+| `apps/mobile/models/`         | Mobile-only types and enums (app-specific)                                                                |
 
 **Never create interfaces, types, or enums outside these `models/` directories** — the only exception is component prop types, which may be defined co-located with the component file.
 
@@ -1004,7 +1004,7 @@ Enums, interfaces, and types must be placed in one of three `models/` directorie
 Add the enum to the appropriate `models/` directory:
 
 ```typescript
-// frontend/packages/shared/src/models/enums/contentType.ts
+// packages/shared/src/models/enums/contentType.ts
 export enum EContentType {
     SONG = "song",
     ALBUM = "album",
@@ -1014,7 +1014,7 @@ export enum EContentType {
 ```
 
 ```typescript
-// frontend/apps/web/models/enums/adminTabs.ts
+// apps/web/models/enums/adminTabs.ts
 export enum EAdminClientTab {
     BUILDS = "builds",
     USERS = "users",
@@ -1025,8 +1025,8 @@ export enum EAdminClientTab {
 Import using the short path alias:
 
 ```typescript
-import { EAdminClientTab } from "@/models/enums/adminTabs";  // web-specific
-import { EContentType } from "@shared/models/enums/contentType";  // shared
+import { EContentType } from "@shared/models/enums/contentType"; // shared
+import { EAdminClientTab } from "@/models/enums/adminTabs"; // web-specific
 ```
 
 ### Vocabulary Manager
@@ -1087,7 +1087,7 @@ See `skills/frontend-mobile.md` for detailed conventions, patterns, and best pra
 See `skills/backend.md` for detailed conventions, patterns, and best practices for building the FastAPI backend including:
 
 - Layered architecture (controllers → framework → access)
-- AResult pattern for error handling
+- Result pattern for error handling
 - Database connection and session management
 - Authentication implementation
 - Provider system for multiple music sources

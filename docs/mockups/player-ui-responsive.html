@@ -1,25 +1,783 @@
 <!doctype html>
 <html lang="es">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RockIt · PlayerUI responsive</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#0c0d10;color:#f4f4f5;font:14px system-ui,-apple-system,sans-serif}button{font:inherit;cursor:pointer}header,main{max-width:1520px;margin:auto;padding:28px 36px}header{padding-bottom:20px;border-bottom:1px solid #292a30}.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#fc69a4;font-weight:700}h1{font-size:32px;letter-spacing:-1px;margin:8px 0}p{color:#9d9da9;line-height:1.5;margin:8px 0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}button{border:1px solid #373740;border-radius:8px;color:#c6c6d0;background:#19191f;padding:9px 14px}button.active{color:white;border-color:#ef4387;background:#421c30}button:hover{border-color:#fc69a4}.compare{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px}.left{display:grid;gap:24px;align-content:start}.card{background:#14151a;border:1px solid #2a2b33;border-radius:14px;overflow:hidden}.caption{padding:16px 18px;border-bottom:1px solid #292a32;display:flex;align-items:center;justify-content:space-between;gap:12px}.caption strong{font-size:15px}.caption span{font:11px ui-monospace,monospace;color:#aaa9b5}.frame{position:relative;overflow:hidden;background:#07080a}.description{padding:12px 18px;font-size:12px;line-height:1.5;color:#a5a5b0}.pill{color:#f6aac8!important}.single{display:none}.single .frame{max-height:78vh}.legend{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;color:#a4a4ad;font-size:12px}.dot{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px}.footnote{font-size:12px;margin-top:24px;max-width:1050px}.player{position:absolute;left:0;top:0;transform-origin:top left;background:radial-gradient(ellipse at 50% 40%,#343237 0%,#161821 42%,#0c0d12 78%);overflow:hidden;font-size:32px}.rail{position:absolute;left:0;top:0;bottom:96px;width:48px;border-right:1px solid #ffffff12;display:flex;flex-direction:column;align-items:center;gap:45px;padding-top:36px;color:#9a97a7;font-size:23px}.topbar{position:absolute;top:32px;left:88px;right:40px;display:flex;justify-content:space-between;font-size:22px;color:#bcb9c7}.brand{font-weight:850;color:#fff;letter-spacing:-1px}.brand b{color:#f15c99}.grid{position:absolute;top:120px;bottom:120px;left:48px;right:0;display:grid;gap:16px;padding:0 8px 24px;min-height:0}.landscape .grid{grid-template-columns:minmax(0,clamp(280px,26vw,544px)) minmax(0,1fr) minmax(0,clamp(280px,26vw,544px))}.ultra .grid{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)}.portrait .grid{grid-template-rows:minmax(0,1fr) minmax(0,1fr)}.compact .grid{grid-template-columns:3fr 1fr}.media{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;container-type:size}.landscape .media,.ultra .media{order:2}.lyrics{min-height:0;overflow:hidden;padding:40px 38px;color:#d9d4dd;font-weight:750;position:relative}.landscape .lyrics,.ultra .lyrics{order:1}.ultra .lyrics{width:min(544px,100%);margin:auto;height:100%}.section-name{font-size:18px;text-transform:uppercase;letter-spacing:.15em;color:#f4a8c8;margin-bottom:50px;font-weight:600}.line{line-height:1.35;margin:0 0 30px;opacity:.26}.line.current{opacity:1;color:#fff}.queue{padding:40px 32px;min-height:0;overflow:hidden}.landscape .queue,.ultra .queue{order:3}.ultra .queue{max-width:816px;width:100%;margin:auto}.queue-row{display:flex;gap:22px;align-items:center;padding:18px 10px;border-bottom:1px solid #ffffff0c}.thumb{width:76px;height:76px;border-radius:9px;background:linear-gradient(140deg,#61445b,#df9355 48%,#162b46);flex-shrink:0}.queue-row:nth-child(3n) .thumb{background:linear-gradient(145deg,#1b435b,#78aab1,#1b213f)}.queue-row:nth-child(2n) .thumb{background:linear-gradient(130deg,#574844,#986165,#26192b)}.song-info{min-width:0;flex:1}.song-info strong{font-size:25px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-info small{display:block;font-size:20px;font-weight:400;color:#a5a0ad;margin-top:8px}.time{font:18px ui-monospace,monospace;color:#8a8591}.queue-row.now{background:#ed4d8f18;border-radius:10px}.queue-row.now strong{color:#fc8ab9}.art{width:min(100cqw,96cqh);aspect-ratio:1;position:relative;border-radius:16px;overflow:hidden;box-shadow:0 40px 100px #0005;background:radial-gradient(ellipse at 65% 30%,#d7a4a7,transparent 45%),linear-gradient(150deg,#172634 15%,#8c637c 50%,#e19a75 74%,#2d334d)}.art:before{content:"";position:absolute;inset:50% -10% -15%;background:#1d2839;transform:rotate(-18deg);border-radius:45% 35% 0 0}.art:after{content:"";position:absolute;inset:65% -20% -30%;background:#131d2b;transform:rotate(21deg);border-radius:40%}.art-title{position:absolute;left:8%;top:9%;z-index:2;font-weight:300;letter-spacing:.19em;font-size:clamp(22px,7cqw,86px);color:#fff}.art-sub{font-size:.2em;font-weight:600;display:block;letter-spacing:.4em;margin-top:20px}.media.video .art{width:min(100cqw,calc(90cqh * var(--ratio,1.7777778)));aspect-ratio:var(--ratio,16/9);background:linear-gradient(145deg,#1e3651,#718293 55%,#ab8898)}.media.video .art-title{font-size:48px;letter-spacing:.08em}.video-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:60px;z-index:3}.bottom-panels{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0;gap:16px}.portrait .grid{padding-left:0;padding-right:0}.compact .secondary{min-height:0;overflow:hidden}.tabs{font-size:20px;display:flex;justify-content:center;gap:25px;padding-top:20px}.tabs span:first-child{color:#fff;border-bottom:3px solid #ef5794;padding-bottom:12px}.compact .queue{padding:24px 10px}.compact .queue .section-name{display:none}.compact .queue-row{gap:12px}.compact .thumb{width:50px;height:50px}.compact .song-info strong{font-size:18px}.compact .song-info small{font-size:14px}.compact .time{display:none}.compact .lyrics{font-size:23px;padding:24px 16px}.compact .lyrics .section-name{display:none}.footer{height:96px;position:absolute;bottom:0;left:48px;right:0;border-top:1px solid #ffffff14;background:#111218ec;display:flex;align-items:center;padding:0 34px;gap:28px}.footer .thumb{width:58px;height:58px}.footer .song-info{max-width:350px}.footer .song-info strong{font-size:20px}.footer .song-info small{font-size:16px}.transport{flex:1;text-align:center;color:#bdb8c5;font-size:27px}.transport b{font-size:32px;color:white;margin:0 35px}.progress{height:5px;margin:15px auto 0;max-width:650px;border-radius:8px;background:#55515c}.progress:before{content:"";display:block;width:37%;height:100%;background:#f46ba2;border-radius:8px}.volume{font-size:18px;color:#aaa4b2}.portrait .footer .song-info{max-width:200px}.portrait .topbar{font-size:24px}.portrait .lyrics{font-size:35px;padding:32px 28px}.portrait .section-name{margin-bottom:35px}.split-note{position:absolute;right:24px;top:50%;font-size:18px;letter-spacing:.04em;color:#ffc0da;padding:8px 16px;background:#4b2239;border:1px solid #fa78af66;border-radius:20px;z-index:3;pointer-events:none}@media(max-width:1000px){.compare{grid-template-columns:1fr}.right{max-width:500px}header,main{padding:22px}h1{font-size:25px}}
-</style>
-<header><div class="eyebrow">RockIt · Estudio de layout</div><h1>Un player. Cuatro proporciones.</h1><p>Mockup de la distribución implementada · datos ficticios · espacio reservado para navegación y controles.</p><div class="toolbar" id="views"><button class="active" data-view="all">Comparativa</button><button data-view="normal">Normal · 1920 × 1080</button><button data-view="ultra">Ultrawide · 3440 × 1440</button><button data-view="portrait">Vertical · 1080 × 1920</button><button data-view="compact">Ventana · 1200 × 1000</button></div><div class="toolbar" id="media"><button class="active" data-media="song">Carátula</button><button data-media="video">Vídeo horizontal</button><button data-media="tall">Vídeo vertical</button></div></header>
-<main><div class="legend"><span><i class="dot" style="background:#ee5d99"></i>Carátula o vídeo</span><span><i class="dot" style="background:#a69abf"></i>Lyrics</span><span><i class="dot" style="background:#879fbe"></i>Queue</span></div><div class="compare" id="compare"><div class="left" id="left"></div><div class="right" id="right"></div></div><div class="single" id="single"></div><p class="footnote">El reparto vertical 50 / 50 se aplica al área disponible entre la cabecera y los controles, descontando el espacio entre paneles. En horizontal, los vídeos ocupan el área de lyrics y carátula; la queue permanece a la derecha. Hasta 768 px de ancho se usa el reproductor móvil independiente, no representado aquí. Esta es una maqueta de organización, no una captura de la aplicación en ejecución.</p></main>
-<script>
-const presets={normal:{w:1920,h:1080,title:'Normal · 16:9',desc:'Lyrics a la izquierda · carátula centrada · queue a la derecha.'},ultra:{w:3440,h:1440,title:'Ultrawide · 21:9',desc:'Tres áreas equilibradas; paneles con ancho máximo y carátula centrada.'},portrait:{w:1080,h:1920,title:'Vertical · 9:16',desc:'50 % superior: carátula o vídeo. 50 % inferior: lyrics y queue en paralelo.'},compact:{w:1200,h:1000,title:'Ventana compacta · 6:5',desc:'Carátula a la izquierda (¾). Queue o lyrics mediante pestañas a la derecha (¼).'}};
-let media='song',view='all',tab='queue';
-const lyrics=()=>'<div class="lyrics"><div class="section-name">Lyrics</div><p class="line">Cuando baja la luz</p><p class="line current">Todo vuelve a sonar</p><p class="line current">Como la primera vez</p><p class="line">Nos dejamos llevar</p><p class="line">Hasta ver amanecer</p><p class="line">Sin mirar atrás</p></div>';
-const queue=()=>'<div class="queue"><div class="section-name">Queue · A continuación</div>'+['Horizonte','La ciudad azul','Un lugar tranquilo','Después de llover','Todo lo que queda','Luz de agosto','Al otro lado','Cerca del mar','La última estación'].map((n,i)=>'<div class="queue-row '+(i===0?'now':'')+'"><div class="thumb"></div><div class="song-info"><strong>'+n+'</strong><small>'+['Atlas Norte','Marina Sol','Los días lentos'][i%3]+'</small></div><span class="time">'+(i%2?'4:12':'3:48')+'</span></div>').join('')+'</div>';
-function player(k){let p=presets[k],land=k==='normal'||k==='ultra';const artwork='<div class="media '+(media!=='song'?'video':'')+'" style="--ratio:'+(media==='tall'?'0.5625':'1.7777778')+'"><div class="art"><div class="art-title">'+(media==='song'?'HORIZONTE':'HORIZONTE · LIVE')+'<span class="art-sub">ATLAS NORTE</span></div>'+(media!=='song'?'<span class="video-play">Ⅱ</span>':'')+'</div></div>';
-let content=land?artwork+(media==='song'?lyrics():'<div class="lyrics"></div>')+queue():k==='portrait'?artwork+'<div class="bottom-panels">'+lyrics()+queue()+'</div>':artwork+'<div class="secondary"><div class="tabs" style="cursor:pointer" onclick="window.toggleTab()"><span>'+(tab==='queue'?'QUEUE':'LYRICS')+'</span><span>'+(tab==='queue'?'LYRICS':'QUEUE')+'</span></div>'+(tab==='queue'?queue():lyrics())+'</div>';
-let cols=land?(media!=='song'?'0px minmax(0,1fr) '+Math.min(544,Math.max(280,p.w*.26))+'px':k==='normal'?Math.min(544,Math.max(280,p.w*.26))+'px minmax(0,1fr) '+Math.min(544,Math.max(280,p.w*.26))+'px':''):'';
-return '<div class="player '+(k==='normal'?'landscape':k)+'" style="width:'+p.w+'px;height:'+p.h+'px"><div class="rail">R<span>⌂</span><span>⌕</span><span>▤</span><span>♡</span></div><div class="topbar"><span class="brand">rockit<b>!</b></span><span>Reproduciendo ahora &nbsp; · &nbsp; ⌄</span></div><div class="grid" style="'+(cols?'grid-template-columns:'+cols:'')+'">'+content+'</div><div class="footer"><div class="thumb"></div><div class="song-info"><strong>Horizonte</strong><small>Atlas Norte</small></div><div class="transport">↶ &nbsp; ◀<b>Ⅱ</b>▶ &nbsp; ↷<div class="progress"></div></div><div class="volume">♫ ━━━</div></div></div>'}
-function card(k){let p=presets[k];return '<section class="card" data-preset="'+k+'"><div class="caption"><strong>'+p.title+'</strong><span>'+p.w+' × '+p.h+'</span></div><div class="frame">'+player(k)+'</div><div class="description">'+p.desc+'</div></section>'}
-function fit(){document.querySelectorAll('[data-preset]').forEach(c=>{let p=presets[c.dataset.preset],f=c.querySelector('.frame'),s=f.clientWidth/p.w;if(view!=='all')s=Math.min(s,window.innerHeight*.75/p.h);f.style.height=p.h*s+'px';f.querySelector('.player').style.transform='scale('+s+') translateX(-50%)';f.querySelector('.player').style.left='50%';})}
-function render(){document.querySelector('#compare').style.display=view==='all'?'grid':'none';document.querySelector('#single').style.display=view==='all'?'none':'block';if(view==='all'){document.querySelector('#left').innerHTML=['ultra','normal','compact'].map(card).join('');document.querySelector('#right').innerHTML=card('portrait')}else document.querySelector('#single').innerHTML=card(view);fit()}
-window.toggleTab=()=>{tab=tab==='queue'?'lyrics':'queue';render()};document.querySelector('#views').onclick=e=>{if(!e.target.dataset.view)return;view=e.target.dataset.view;document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('active',b===e.target));render()};document.querySelector('#media').onclick=e=>{if(!e.target.dataset.media)return;media=e.target.dataset.media;document.querySelectorAll('#media button').forEach(b=>b.classList.toggle('active',b===e.target));render()};window.addEventListener('resize',fit);render();
-</script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RockIt · PlayerUI responsive</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            background: #0c0d10;
+            color: #f4f4f5;
+            font:
+                14px system-ui,
+                -apple-system,
+                sans-serif;
+        }
+        button {
+            font: inherit;
+            cursor: pointer;
+        }
+        header,
+        main {
+            max-width: 1520px;
+            margin: auto;
+            padding: 28px 36px;
+        }
+        header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #292a30;
+        }
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #fc69a4;
+            font-weight: 700;
+        }
+        h1 {
+            font-size: 32px;
+            letter-spacing: -1px;
+            margin: 8px 0;
+        }
+        p {
+            color: #9d9da9;
+            line-height: 1.5;
+            margin: 8px 0;
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        button {
+            border: 1px solid #373740;
+            border-radius: 8px;
+            color: #c6c6d0;
+            background: #19191f;
+            padding: 9px 14px;
+        }
+        button.active {
+            color: white;
+            border-color: #ef4387;
+            background: #421c30;
+        }
+        button:hover {
+            border-color: #fc69a4;
+        }
+        .compare {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 24px;
+        }
+        .left {
+            display: grid;
+            gap: 24px;
+            align-content: start;
+        }
+        .card {
+            background: #14151a;
+            border: 1px solid #2a2b33;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .caption {
+            padding: 16px 18px;
+            border-bottom: 1px solid #292a32;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .caption strong {
+            font-size: 15px;
+        }
+        .caption span {
+            font:
+                11px ui-monospace,
+                monospace;
+            color: #aaa9b5;
+        }
+        .frame {
+            position: relative;
+            overflow: hidden;
+            background: #07080a;
+        }
+        .description {
+            padding: 12px 18px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #a5a5b0;
+        }
+        .pill {
+            color: #f6aac8 !important;
+        }
+        .single {
+            display: none;
+        }
+        .single .frame {
+            max-height: 78vh;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            color: #a4a4ad;
+            font-size: 12px;
+        }
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 3px;
+            margin-right: 6px;
+        }
+        .footnote {
+            font-size: 12px;
+            margin-top: 24px;
+            max-width: 1050px;
+        }
+        .player {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform-origin: top left;
+            background: radial-gradient(
+                ellipse at 50% 40%,
+                #343237 0%,
+                #161821 42%,
+                #0c0d12 78%
+            );
+            overflow: hidden;
+            font-size: 32px;
+        }
+        .rail {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 96px;
+            width: 48px;
+            border-right: 1px solid #ffffff12;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 45px;
+            padding-top: 36px;
+            color: #9a97a7;
+            font-size: 23px;
+        }
+        .topbar {
+            position: absolute;
+            top: 32px;
+            left: 88px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 22px;
+            color: #bcb9c7;
+        }
+        .brand {
+            font-weight: 850;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+        .brand b {
+            color: #f15c99;
+        }
+        .grid {
+            position: absolute;
+            top: 120px;
+            bottom: 120px;
+            left: 48px;
+            right: 0;
+            display: grid;
+            gap: 16px;
+            padding: 0 8px 24px;
+            min-height: 0;
+        }
+        .landscape .grid {
+            grid-template-columns:
+                minmax(0, clamp(280px, 26vw, 544px)) minmax(0, 1fr)
+                minmax(0, clamp(280px, 26vw, 544px));
+        }
+        .ultra .grid {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(
+                    0,
+                    1fr
+                );
+        }
+        .portrait .grid {
+            grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+        }
+        .compact .grid {
+            grid-template-columns: 3fr 1fr;
+        }
+        .media {
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            container-type: size;
+        }
+        .landscape .media,
+        .ultra .media {
+            order: 2;
+        }
+        .lyrics {
+            min-height: 0;
+            overflow: hidden;
+            padding: 40px 38px;
+            color: #d9d4dd;
+            font-weight: 750;
+            position: relative;
+        }
+        .landscape .lyrics,
+        .ultra .lyrics {
+            order: 1;
+        }
+        .ultra .lyrics {
+            width: min(544px, 100%);
+            margin: auto;
+            height: 100%;
+        }
+        .section-name {
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #f4a8c8;
+            margin-bottom: 50px;
+            font-weight: 600;
+        }
+        .line {
+            line-height: 1.35;
+            margin: 0 0 30px;
+            opacity: 0.26;
+        }
+        .line.current {
+            opacity: 1;
+            color: #fff;
+        }
+        .queue {
+            padding: 40px 32px;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .landscape .queue,
+        .ultra .queue {
+            order: 3;
+        }
+        .ultra .queue {
+            max-width: 816px;
+            width: 100%;
+            margin: auto;
+        }
+        .queue-row {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+            padding: 18px 10px;
+            border-bottom: 1px solid #ffffff0c;
+        }
+        .thumb {
+            width: 76px;
+            height: 76px;
+            border-radius: 9px;
+            background: linear-gradient(140deg, #61445b, #df9355 48%, #162b46);
+            flex-shrink: 0;
+        }
+        .queue-row:nth-child(3n) .thumb {
+            background: linear-gradient(145deg, #1b435b, #78aab1, #1b213f);
+        }
+        .queue-row:nth-child(2n) .thumb {
+            background: linear-gradient(130deg, #574844, #986165, #26192b);
+        }
+        .song-info {
+            min-width: 0;
+            flex: 1;
+        }
+        .song-info strong {
+            font-size: 25px;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .song-info small {
+            display: block;
+            font-size: 20px;
+            font-weight: 400;
+            color: #a5a0ad;
+            margin-top: 8px;
+        }
+        .time {
+            font:
+                18px ui-monospace,
+                monospace;
+            color: #8a8591;
+        }
+        .queue-row.now {
+            background: #ed4d8f18;
+            border-radius: 10px;
+        }
+        .queue-row.now strong {
+            color: #fc8ab9;
+        }
+        .art {
+            width: min(100cqw, 96cqh);
+            aspect-ratio: 1;
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 40px 100px #0005;
+            background:
+                radial-gradient(ellipse at 65% 30%, #d7a4a7, transparent 45%),
+                linear-gradient(
+                    150deg,
+                    #172634 15%,
+                    #8c637c 50%,
+                    #e19a75 74%,
+                    #2d334d
+                );
+        }
+        .art:before {
+            content: "";
+            position: absolute;
+            inset: 50% -10% -15%;
+            background: #1d2839;
+            transform: rotate(-18deg);
+            border-radius: 45% 35% 0 0;
+        }
+        .art:after {
+            content: "";
+            position: absolute;
+            inset: 65% -20% -30%;
+            background: #131d2b;
+            transform: rotate(21deg);
+            border-radius: 40%;
+        }
+        .art-title {
+            position: absolute;
+            left: 8%;
+            top: 9%;
+            z-index: 2;
+            font-weight: 300;
+            letter-spacing: 0.19em;
+            font-size: clamp(22px, 7cqw, 86px);
+            color: #fff;
+        }
+        .art-sub {
+            font-size: 0.2em;
+            font-weight: 600;
+            display: block;
+            letter-spacing: 0.4em;
+            margin-top: 20px;
+        }
+        .media.video .art {
+            width: min(100cqw, calc(90cqh * var(--ratio, 1.7777778)));
+            aspect-ratio: var(--ratio, 16/9);
+            background: linear-gradient(145deg, #1e3651, #718293 55%, #ab8898);
+        }
+        .media.video .art-title {
+            font-size: 48px;
+            letter-spacing: 0.08em;
+        }
+        .video-play {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            z-index: 3;
+        }
+        .bottom-panels {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            min-height: 0;
+            gap: 16px;
+        }
+        .portrait .grid {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        .compact .secondary {
+            min-height: 0;
+            overflow: hidden;
+        }
+        .tabs {
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            padding-top: 20px;
+        }
+        .tabs span:first-child {
+            color: #fff;
+            border-bottom: 3px solid #ef5794;
+            padding-bottom: 12px;
+        }
+        .compact .queue {
+            padding: 24px 10px;
+        }
+        .compact .queue .section-name {
+            display: none;
+        }
+        .compact .queue-row {
+            gap: 12px;
+        }
+        .compact .thumb {
+            width: 50px;
+            height: 50px;
+        }
+        .compact .song-info strong {
+            font-size: 18px;
+        }
+        .compact .song-info small {
+            font-size: 14px;
+        }
+        .compact .time {
+            display: none;
+        }
+        .compact .lyrics {
+            font-size: 23px;
+            padding: 24px 16px;
+        }
+        .compact .lyrics .section-name {
+            display: none;
+        }
+        .footer {
+            height: 96px;
+            position: absolute;
+            bottom: 0;
+            left: 48px;
+            right: 0;
+            border-top: 1px solid #ffffff14;
+            background: #111218ec;
+            display: flex;
+            align-items: center;
+            padding: 0 34px;
+            gap: 28px;
+        }
+        .footer .thumb {
+            width: 58px;
+            height: 58px;
+        }
+        .footer .song-info {
+            max-width: 350px;
+        }
+        .footer .song-info strong {
+            font-size: 20px;
+        }
+        .footer .song-info small {
+            font-size: 16px;
+        }
+        .transport {
+            flex: 1;
+            text-align: center;
+            color: #bdb8c5;
+            font-size: 27px;
+        }
+        .transport b {
+            font-size: 32px;
+            color: white;
+            margin: 0 35px;
+        }
+        .progress {
+            height: 5px;
+            margin: 15px auto 0;
+            max-width: 650px;
+            border-radius: 8px;
+            background: #55515c;
+        }
+        .progress:before {
+            content: "";
+            display: block;
+            width: 37%;
+            height: 100%;
+            background: #f46ba2;
+            border-radius: 8px;
+        }
+        .volume {
+            font-size: 18px;
+            color: #aaa4b2;
+        }
+        .portrait .footer .song-info {
+            max-width: 200px;
+        }
+        .portrait .topbar {
+            font-size: 24px;
+        }
+        .portrait .lyrics {
+            font-size: 35px;
+            padding: 32px 28px;
+        }
+        .portrait .section-name {
+            margin-bottom: 35px;
+        }
+        .split-note {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            font-size: 18px;
+            letter-spacing: 0.04em;
+            color: #ffc0da;
+            padding: 8px 16px;
+            background: #4b2239;
+            border: 1px solid #fa78af66;
+            border-radius: 20px;
+            z-index: 3;
+            pointer-events: none;
+        }
+        @media (max-width: 1000px) {
+            .compare {
+                grid-template-columns: 1fr;
+            }
+            .right {
+                max-width: 500px;
+            }
+            header,
+            main {
+                padding: 22px;
+            }
+            h1 {
+                font-size: 25px;
+            }
+        }
+    </style>
+    <header>
+        <div class="eyebrow">RockIt · Estudio de layout</div>
+        <h1>Un player. Cuatro proporciones.</h1>
+        <p>
+            Mockup de la distribución implementada · datos ficticios · espacio
+            reservado para navegación y controles.
+        </p>
+        <div class="toolbar" id="views">
+            <button class="active" data-view="all">Comparativa</button
+            ><button data-view="normal">Normal · 1920 × 1080</button
+            ><button data-view="ultra">Ultrawide · 3440 × 1440</button
+            ><button data-view="portrait">Vertical · 1080 × 1920</button
+            ><button data-view="compact">Ventana · 1200 × 1000</button>
+        </div>
+        <div class="toolbar" id="media">
+            <button class="active" data-media="song">Carátula</button
+            ><button data-media="video">Vídeo horizontal</button
+            ><button data-media="tall">Vídeo vertical</button>
+        </div>
+    </header>
+    <main>
+        <div class="legend">
+            <span
+                ><i class="dot" style="background: #ee5d99"></i>Carátula o
+                vídeo</span
+            ><span><i class="dot" style="background: #a69abf"></i>Lyrics</span
+            ><span><i class="dot" style="background: #879fbe"></i>Queue</span>
+        </div>
+        <div class="compare" id="compare">
+            <div class="left" id="left"></div>
+            <div class="right" id="right"></div>
+        </div>
+        <div class="single" id="single"></div>
+        <p class="footnote">
+            El reparto vertical 50 / 50 se aplica al área disponible entre la
+            cabecera y los controles, descontando el espacio entre paneles. En
+            horizontal, los vídeos ocupan el área de lyrics y carátula; la queue
+            permanece a la derecha. Hasta 768 px de ancho se usa el reproductor
+            móvil independiente, no representado aquí. Esta es una maqueta de
+            organización, no una captura de la aplicación en ejecución.
+        </p>
+    </main>
+    <script>
+        const presets = {
+            normal: {
+                w: 1920,
+                h: 1080,
+                title: "Normal · 16:9",
+                desc: "Lyrics a la izquierda · carátula centrada · queue a la derecha.",
+            },
+            ultra: {
+                w: 3440,
+                h: 1440,
+                title: "Ultrawide · 21:9",
+                desc: "Tres áreas equilibradas; paneles con ancho máximo y carátula centrada.",
+            },
+            portrait: {
+                w: 1080,
+                h: 1920,
+                title: "Vertical · 9:16",
+                desc: "50 % superior: carátula o vídeo. 50 % inferior: lyrics y queue en paralelo.",
+            },
+            compact: {
+                w: 1200,
+                h: 1000,
+                title: "Ventana compacta · 6:5",
+                desc: "Carátula a la izquierda (¾). Queue o lyrics mediante pestañas a la derecha (¼).",
+            },
+        };
+        let media = "song",
+            view = "all",
+            tab = "queue";
+        const lyrics = () =>
+            '<div class="lyrics"><div class="section-name">Lyrics</div><p class="line">Cuando baja la luz</p><p class="line current">Todo vuelve a sonar</p><p class="line current">Como la primera vez</p><p class="line">Nos dejamos llevar</p><p class="line">Hasta ver amanecer</p><p class="line">Sin mirar atrás</p></div>';
+        const queue = () =>
+            '<div class="queue"><div class="section-name">Queue · A continuación</div>' +
+            [
+                "Horizonte",
+                "La ciudad azul",
+                "Un lugar tranquilo",
+                "Después de llover",
+                "Todo lo que queda",
+                "Luz de agosto",
+                "Al otro lado",
+                "Cerca del mar",
+                "La última estación",
+            ]
+                .map(
+                    (n, i) =>
+                        '<div class="queue-row ' +
+                        (i === 0 ? "now" : "") +
+                        '"><div class="thumb"></div><div class="song-info"><strong>' +
+                        n +
+                        "</strong><small>" +
+                        ["Atlas Norte", "Marina Sol", "Los días lentos"][
+                            i % 3
+                        ] +
+                        '</small></div><span class="time">' +
+                        (i % 2 ? "4:12" : "3:48") +
+                        "</span></div>"
+                )
+                .join("") +
+            "</div>";
+        function player(k) {
+            let p = presets[k],
+                land = k === "normal" || k === "ultra";
+            const artwork =
+                '<div class="media ' +
+                (media !== "song" ? "video" : "") +
+                '" style="--ratio:' +
+                (media === "tall" ? "0.5625" : "1.7777778") +
+                '"><div class="art"><div class="art-title">' +
+                (media === "song" ? "HORIZONTE" : "HORIZONTE · LIVE") +
+                '<span class="art-sub">ATLAS NORTE</span></div>' +
+                (media !== "song" ? '<span class="video-play">Ⅱ</span>' : "") +
+                "</div></div>";
+            let content = land
+                ? artwork +
+                  (media === "song" ? lyrics() : '<div class="lyrics"></div>') +
+                  queue()
+                : k === "portrait"
+                  ? artwork +
+                    '<div class="bottom-panels">' +
+                    lyrics() +
+                    queue() +
+                    "</div>"
+                  : artwork +
+                    '<div class="secondary"><div class="tabs" style="cursor:pointer" onclick="window.toggleTab()"><span>' +
+                    (tab === "queue" ? "QUEUE" : "LYRICS") +
+                    "</span><span>" +
+                    (tab === "queue" ? "LYRICS" : "QUEUE") +
+                    "</span></div>" +
+                    (tab === "queue" ? queue() : lyrics()) +
+                    "</div>";
+            let cols = land
+                ? media !== "song"
+                    ? "0px minmax(0,1fr) " +
+                      Math.min(544, Math.max(280, p.w * 0.26)) +
+                      "px"
+                    : k === "normal"
+                      ? Math.min(544, Math.max(280, p.w * 0.26)) +
+                        "px minmax(0,1fr) " +
+                        Math.min(544, Math.max(280, p.w * 0.26)) +
+                        "px"
+                      : ""
+                : "";
+            return (
+                '<div class="player ' +
+                (k === "normal" ? "landscape" : k) +
+                '" style="width:' +
+                p.w +
+                "px;height:" +
+                p.h +
+                'px"><div class="rail">R<span>⌂</span><span>⌕</span><span>▤</span><span>♡</span></div><div class="topbar"><span class="brand">rockit<b>!</b></span><span>Reproduciendo ahora &nbsp; · &nbsp; ⌄</span></div><div class="grid" style="' +
+                (cols ? "grid-template-columns:" + cols : "") +
+                '">' +
+                content +
+                '</div><div class="footer"><div class="thumb"></div><div class="song-info"><strong>Horizonte</strong><small>Atlas Norte</small></div><div class="transport">↶ &nbsp; ◀<b>Ⅱ</b>▶ &nbsp; ↷<div class="progress"></div></div><div class="volume">♫ ━━━</div></div></div>'
+            );
+        }
+        function card(k) {
+            let p = presets[k];
+            return (
+                '<section class="card" data-preset="' +
+                k +
+                '"><div class="caption"><strong>' +
+                p.title +
+                "</strong><span>" +
+                p.w +
+                " × " +
+                p.h +
+                '</span></div><div class="frame">' +
+                player(k) +
+                '</div><div class="description">' +
+                p.desc +
+                "</div></section>"
+            );
+        }
+        function fit() {
+            document.querySelectorAll("[data-preset]").forEach((c) => {
+                let p = presets[c.dataset.preset],
+                    f = c.querySelector(".frame"),
+                    s = f.clientWidth / p.w;
+                if (view !== "all")
+                    s = Math.min(s, (window.innerHeight * 0.75) / p.h);
+                f.style.height = p.h * s + "px";
+                f.querySelector(".player").style.transform =
+                    "scale(" + s + ") translateX(-50%)";
+                f.querySelector(".player").style.left = "50%";
+            });
+        }
+        function render() {
+            document.querySelector("#compare").style.display =
+                view === "all" ? "grid" : "none";
+            document.querySelector("#single").style.display =
+                view === "all" ? "none" : "block";
+            if (view === "all") {
+                document.querySelector("#left").innerHTML = [
+                    "ultra",
+                    "normal",
+                    "compact",
+                ]
+                    .map(card)
+                    .join("");
+                document.querySelector("#right").innerHTML = card("portrait");
+            } else document.querySelector("#single").innerHTML = card(view);
+            fit();
+        }
+        window.toggleTab = () => {
+            tab = tab === "queue" ? "lyrics" : "queue";
+            render();
+        };
+        document.querySelector("#views").onclick = (e) => {
+            if (!e.target.dataset.view) return;
+            view = e.target.dataset.view;
+            document
+                .querySelectorAll("#views button")
+                .forEach((b) => b.classList.toggle("active", b === e.target));
+            render();
+        };
+        document.querySelector("#media").onclick = (e) => {
+            if (!e.target.dataset.media) return;
+            media = e.target.dataset.media;
+            document
+                .querySelectorAll("#media button")
+                .forEach((b) => b.classList.toggle("active", b === e.target));
+            render();
+        };
+        window.addEventListener("resize", fit);
+        render();
+    </script>
 </html>

@@ -1,0 +1,149 @@
+name: Pull request checks
+
+on:
+    pull_request:
+        branches:
+            - develop
+            - main
+
+permissions:
+    contents: read
+
+concurrency:
+    group: pull-request-checks-${{ github.event.pull_request.number }}
+    cancel-in-progress: true
+
+jobs:
+    backend:
+        name: Backend tests and quality
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  version: "0.12.19"
+                  enable-cache: true
+                  cache-dependency-glob: apps/backend/uv.lock
+
+            - name: Install media dependencies
+              run: |
+                  if ! command -v ffmpeg >/dev/null 2>&1; then
+                      sudo apt-get update
+                      sudo apt-get install -y ffmpeg
+                  fi
+
+            - name: Install backend dependencies
+              run: uv sync --project apps/backend --locked --dev
+
+            - name: Add backend tools to PATH
+              run: echo "$GITHUB_WORKSPACE/apps/backend/.venv/bin" >> "$GITHUB_PATH"
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+
+            - name: Install TypeScript dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Create test configuration
+              working-directory: apps/backend
+              run: |
+                  cat > .env.test <<'EOF'
+                  BACKEND_URL=http://localhost:8000
+                  CORS_URLS=http://localhost:3000
+                  PROD_WEB_SESSION_DOMAIN=localhost
+                  PROD_MOBILE_SESSION_DOMAIN=localhost
+                  LOGS_PATH=/tmp/rockit-test-logs
+                  DB_HOST=localhost
+                  DB_PORT=5432
+                  DB_NAME=rockit-test
+                  DB_USER=postgres
+                  DB_PASSWORD=postgres
+                  TEMP_PATH=/tmp/rockit-test-temp
+                  DOWNLOAD_THREADS=1
+                  CLIENT_ID=test
+                  CLIENT_SECRET=test
+                  YOUTUBE_API_KEY=test
+                  SESSION_TOKEN_SECRET=test-only-signing-key-with-at-least-32-bytes
+                  SESSION_DURATION=3600
+                  SESSION_DURATION_REMEMBER_ME=86400
+                  ENVIRONMENT=DEV
+                  LOG_DUMP_LEVEL=debug
+                  CONSOLE_DUMP_LEVEL=debug
+                  S3_PRIVATE_ENDPOINT_URL=http://localhost:9000
+                  S3_PUBLIC_ENDPOINT_URL=http://localhost:9000
+                  S3_ACCESS_KEY=template
+                  S3_SECRET_KEY=template-development-only
+                  S3_BUCKET=rockit-test
+                  EOF
+
+            - name: Run backend tests
+              working-directory: apps/backend
+              run: uv run pytest -q --ignore=tests/integration/listening_rewards
+
+            - name: Generate backend models
+              env:
+                  ENV_FILE: apps/backend/.env.test
+              run: uv run --project apps/backend python -m apps.backend models
+
+            - name: Verify model generation made no changes
+              run: git diff --exit-code
+
+            - name: Format Python
+              run: uv run --project apps/backend ruff format .
+
+            - name: Lint Python
+              run: uv run --project apps/backend ruff check --fix --unsafe-fixes
+
+            - name: Check Python types
+              working-directory: apps/backend
+              run: pyright
+
+            - name: Verify Python checks made no changes
+              run: git diff --exit-code
+
+    typescript:
+        name: TypeScript types, formatting, and web lint
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Check TypeScript types
+              run: pnpm typecheck
+
+            - name: Lint web
+              working-directory: apps/web
+              run: pnpm lint
+
+            - name: Format TypeScript
+              run: pnpm exec prettier -w "**/*.{ts,tsx,html}"
+
+            - name: Verify formatting made no changes
+              run: git diff --exit-code

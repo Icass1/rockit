@@ -1,0 +1,883 @@
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.access.mediaInfoCte import (
+    get_album_info_cte as _get_album_info_cte,
+)
+from core.access.mediaInfoCte import (
+    get_artist_info_cte as _get_artist_info_cte,
+)
+from core.access.mediaInfoCte import (
+    get_media_info_cte as _get_media_info_cte,
+)
+from core.enums.mediaTypeEnum import MediaTypeEnum
+from core.framework.media.image import Image
+from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
+from core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
+from core.responses.statsRankedItemResponse import StatsRankedItemResponse
+from core.utils.statsLabels import DAY_NAMES, MONTH_NAMES
+from logger import getLogger
+from result import Result, ResultCode
+
+logger = getLogger(__name__)
+
+
+HEATMAP_HOURS_START = 0
+HEATMAP_HOURS_END = 24
+
+
+def _naive_utc(dt: datetime) -> datetime:
+    """Strip tzinfo so comparisons with PostgreSQL naive timestamps work."""
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(UTC).replace(tzinfo=None)
+    return dt
+
+
+def _utc(dt: datetime) -> datetime:
+    """Attach UTC timezone to a naive datetime."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
+
+
+class StatsAccess:
+    @staticmethod
+    async def get_recently_clicked_media_public_ids_async(
+        session: AsyncSession, user_id: int, limit: int = 12
+    ) -> Result[list[str]]:
+        """Rank recently clicked media, with a small boost for repeat interest."""
+        try:
+            result = await session.execute(
+                text("""
+                    SELECT m.public_id
+                    FROM core.user_media_clicked c
+                    JOIN core.media m ON m.id = c.media_id
+                    WHERE c.user_id = :user_id
+                      AND c.date_added >= NOW() - INTERVAL '30 days'
+                      AND m.media_type_key IN (2, 3, 4, 5)
+                    GROUP BY m.public_id
+                    ORDER BY
+                      (COUNT(*) FILTER (WHERE c.date_added >= NOW() - INTERVAL '30 days'))
+                        + 3 * (COUNT(*) FILTER (WHERE c.date_added >= NOW() - INTERVAL
+                        '2 days')) DESC,
+                      MAX(c.date_added) DESC
+                    LIMIT :limit
+                """),
+                {"user_id": user_id, "limit": limit},
+            )
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=[row[0] for row in result.all()],
+            )
+        except Exception as e:
+            logger.error(f"Error getting recently clicked media: {e}", exc_info=True)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message="Failed to get recently clicked media",
+            )
+
+    @staticmethod
+    async def get_summary_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Result[dict[str, Any]]:
+        sql = text(f"""
+        WITH {_get_media_info_cte()},
+        listens AS (
+            SELECT uml.media_id, cm.media_type_key
+            FROM   core.user_media_listened uml
+            JOIN   core.media               cm  ON cm.id = uml.media_id
+            WHERE  uml.user_id    = :user_id
+              AND  uml.date_added >= :start_date
+              AND  uml.date_added <  :end_date
+              AND  cm.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
+        )
+        SELECT
+            COUNT(*)                                                        AS medias_listened,
+            COUNT(*) FILTER (WHERE l.media_type_key = {MediaTypeEnum.SONG.value})  AS
+            songs_listened,
+            COUNT(*) FILTER (WHERE l.media_type_key = {MediaTypeEnum.VIDEO.value}) AS
+            videos_listened,
+            COALESCE(SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0, 0) AS total_minutes,
+            CASE WHEN COUNT(*) > 0
+                 THEN SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 / COUNT(*)
+                 ELSE 0
+            END                                                             AS avg_minutes
+        FROM listens l
+        LEFT JOIN media_info mi ON mi.media_id = l.media_id
+        """)
+        row = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                },
+            )
+        ).fetchone()
+
+        if row is None:
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result={
+                    "medias_listened": 0,
+                    "songs_listened": 0,
+                    "videos_listened": 0,
+                    "total_minutes": 0.0,
+                    "avg_minutes": 0.0,
+                },
+            )
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result={
+                "medias_listened": int(row.medias_listened or 0),
+                "songs_listened": int(row.songs_listened or 0),
+                "videos_listened": int(row.videos_listened or 0),
+                "total_minutes": float(row.total_minutes or 0),
+                "avg_minutes": float(row.avg_minutes or 0),
+            },
+        )
+
+    @staticmethod
+    async def get_minutes_by_period_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        group_by: str,
+    ) -> Result[list[StatsMinutesEntryResponse]]:
+        pg_period = {
+            "hour": "hour",
+            "day": "day",
+            "week": "week",
+            "month": "month",
+        }.get(group_by, "day")
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()},
+        listens AS (
+            SELECT uml.media_id, uml.date_added
+            FROM   core.user_media_listened uml
+            JOIN   core.media               cm  ON cm.id = uml.media_id
+            WHERE  uml.user_id    = :user_id
+              AND  uml.date_added >= :start_date
+              AND  uml.date_added <  :end_date
+              AND  cm.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
+        )
+        SELECT DATE_TRUNC('{pg_period}', l.date_added AT TIME ZONE 'UTC') AS period_start,
+               SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 AS minutes
+        FROM   listens l
+        LEFT JOIN media_info mi ON mi.media_id = l.media_id
+        GROUP BY period_start
+        ORDER BY period_start
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                },
+            )
+        ).fetchall()
+
+        db_data: dict[datetime, float] = {}
+        for row in rows:
+            key = row.period_start
+            if hasattr(key, "tzinfo") and key.tzinfo is not None:
+                key = key.replace(tzinfo=None)
+            db_data[key] = float(row.minutes)
+
+        entries: list[StatsMinutesEntryResponse] = []
+        start = _naive_utc(start_date).replace(hour=0, minute=0, second=0, microsecond=0)
+        end = _naive_utc(end_date)
+
+        if group_by == "hour":
+            cur = start.replace(hour=0, minute=0, second=0, microsecond=0)
+            while cur < end:
+                nxt = cur + timedelta(hours=1)
+                entries.append(
+                    StatsMinutesEntryResponse(
+                        minutes=round(db_data.get(cur, 0.0), 1),
+                        start=_utc(cur),
+                        end=_utc(nxt),
+                        label=f"{cur.hour:02d}:00",
+                    )
+                )
+                cur = nxt
+
+        elif group_by == "day":
+            cur = start
+            while cur < end:
+                nxt = cur + timedelta(days=1)
+                entries.append(
+                    StatsMinutesEntryResponse(
+                        minutes=round(db_data.get(cur, 0.0), 1),
+                        start=_utc(cur),
+                        end=_utc(nxt),
+                        label=DAY_NAMES[cur.weekday()],
+                    )
+                )
+                cur = nxt
+
+        elif group_by == "week":
+            cur = start - timedelta(days=start.weekday())
+            week_num = 1
+            while cur < end:
+                nxt = cur + timedelta(weeks=1)
+                entries.append(
+                    StatsMinutesEntryResponse(
+                        minutes=round(db_data.get(cur, 0.0), 1),
+                        start=_utc(cur),
+                        end=_utc(nxt),
+                        label=f"W{week_num}",
+                    )
+                )
+                cur = nxt
+                week_num += 1
+
+        elif group_by == "month":
+            cur = start.replace(day=1)
+            while cur < end:
+                nxt = cur.replace(
+                    month=cur.month % 12 + 1,
+                    year=cur.year + (1 if cur.month == 12 else 0),
+                )
+                entries.append(
+                    StatsMinutesEntryResponse(
+                        minutes=round(db_data.get(cur, 0.0), 1),
+                        start=_utc(cur),
+                        end=_utc(nxt),
+                        label=MONTH_NAMES[cur.month - 1],
+                    )
+                )
+                cur = nxt
+
+        return Result(code=ResultCode.OK, message="OK", result=entries)
+
+    @staticmethod
+    async def get_top_songs_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 3,
+    ) -> Result[list[StatsRankedItemResponse]]:
+        sql = text(f"""
+        WITH {_get_media_info_cte()},
+        {_get_artist_info_cte()},
+        play_counts AS (
+            SELECT uml.media_id, COUNT(*) AS play_count
+            FROM   core.user_media_listened uml
+            JOIN   media_info mi ON mi.media_id = uml.media_id
+            WHERE  uml.user_id    = :user_id
+              AND  uml.date_added >= :start_date
+              AND  uml.date_added <  :end_date
+              AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+            GROUP BY uml.media_id
+            ORDER BY play_count DESC
+            LIMIT :limit
+        )
+        SELECT mi.public_id,
+               mi.media_name,
+               mi.image_id,
+               pc.play_count,
+               (SELECT ai.artist_name
+                FROM   artist_info ai
+                WHERE  ai.media_id = pc.media_id
+                LIMIT  1)           AS subtitle
+        FROM   play_counts pc
+        JOIN   media_info  mi ON mi.media_id = pc.media_id
+        ORDER BY pc.play_count DESC
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[
+                StatsRankedItemResponse(
+                    publicId=r.public_id,
+                    name=r.media_name,
+                    href=f"/song/{r.public_id}",
+                    value=int(r.play_count),
+                    imageUrl=image_urls.get(r.image_id),
+                    subtitle=r.subtitle,
+                )
+                for r in rows
+            ],
+        )
+
+    @staticmethod
+    async def get_top_videos_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 3,
+    ) -> Result[list[StatsRankedItemResponse]]:
+        sql = text(f"""
+        WITH {_get_media_info_cte()},
+        {_get_artist_info_cte()},
+        play_counts AS (
+            SELECT uml.media_id, COUNT(*) AS play_count
+            FROM   core.user_media_listened uml
+            JOIN   media_info mi ON mi.media_id = uml.media_id
+            WHERE  uml.user_id    = :user_id
+              AND  uml.date_added >= :start_date
+              AND  uml.date_added <  :end_date
+              AND  mi.media_type_key = {MediaTypeEnum.VIDEO.value}
+            GROUP BY uml.media_id
+            ORDER BY play_count DESC
+            LIMIT :limit
+        )
+        SELECT mi.public_id,
+               mi.media_name,
+               mi.image_id,
+               pc.play_count,
+               (SELECT ai.artist_name
+                FROM   artist_info ai
+                WHERE  ai.media_id = pc.media_id
+                LIMIT  1)           AS subtitle
+        FROM   play_counts pc
+        JOIN   media_info  mi ON mi.media_id = pc.media_id
+        ORDER BY pc.play_count DESC
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[
+                StatsRankedItemResponse(
+                    publicId=r.public_id,
+                    name=r.media_name,
+                    href=f"/video/{r.public_id}",
+                    value=int(r.play_count),
+                    imageUrl=image_urls.get(r.image_id),
+                    subtitle=r.subtitle,
+                )
+                for r in rows
+            ],
+        )
+
+    @staticmethod
+    async def get_top_artists_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 3,
+    ) -> Result[list[StatsRankedItemResponse]]:
+        sql = text(f"""
+        WITH {_get_artist_info_cte()},
+        artist_plays AS (
+            SELECT ai.artist_public_id,
+                   ai.artist_name,
+                   ai.artist_image_id,
+                   COUNT(*) AS play_count
+            FROM     core.user_media_listened uml
+            JOIN     artist_info ai ON ai.media_id = uml.media_id
+            WHERE    uml.user_id    = :user_id
+              AND    uml.date_added >= :start_date
+              AND    uml.date_added <  :end_date
+            GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_id
+        )
+        SELECT (ARRAY_AGG(ap.artist_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
+               ap.artist_name       AS name,
+               (ARRAY_AGG(ap.artist_image_id ORDER BY ap.play_count DESC))[1] AS image_id,
+               SUM(ap.play_count)   AS play_count
+        FROM   artist_plays ap
+        GROUP BY ap.artist_name
+        ORDER BY play_count DESC
+        LIMIT  :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[
+                StatsRankedItemResponse(
+                    publicId=r.public_id,
+                    name=r.name,
+                    href=f"/artist/{r.public_id}",
+                    value=int(r.play_count),
+                    imageUrl=image_urls.get(r.image_id),
+                    subtitle=None,
+                )
+                for r in rows
+            ],
+        )
+
+    @staticmethod
+    async def get_top_albums_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 3,
+    ) -> Result[list[StatsRankedItemResponse]]:
+        sql = text(f"""
+        WITH {_get_album_info_cte()},
+        album_plays AS (
+            SELECT ai.album_public_id,
+                   ai.album_name,
+                   ai.album_image_id,
+                   ai.album_artists,
+                   COUNT(*) AS play_count
+            FROM     core.user_media_listened uml
+            JOIN     album_info ai ON ai.media_id = uml.media_id
+            WHERE    uml.user_id    = :user_id
+              AND    uml.date_added >= :start_date
+              AND    uml.date_added <  :end_date
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_id, ai.album_artists
+        )
+        SELECT (ARRAY_AGG(ap.album_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
+               ap.album_name        AS name,
+               ap.album_artists     AS subtitle,
+               (ARRAY_AGG(ap.album_image_id ORDER BY ap.play_count DESC))[1] AS image_id,
+               SUM(ap.play_count)   AS play_count
+        FROM   album_plays ap
+        GROUP BY ap.album_name, ap.album_artists
+        ORDER BY play_count DESC
+        LIMIT  :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[
+                StatsRankedItemResponse(
+                    publicId=r.public_id,
+                    name=r.name,
+                    href=f"/album/{r.public_id}",
+                    value=int(r.play_count),
+                    imageUrl=image_urls.get(r.image_id),
+                    subtitle=r.subtitle,
+                )
+                for r in rows
+            ],
+        )
+
+    @staticmethod
+    async def get_heatmap_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Result[list[StatsHeatmapCellResponse]]:
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT EXTRACT(HOUR FROM uml.date_added)::int            AS hour,
+               EXTRACT(DOW  FROM uml.date_added)::int            AS day_of_week,
+               SUM(COALESCE(mi.duration_ms, 0))::float / 60000.0 AS minutes
+        FROM   core.user_media_listened uml
+        LEFT JOIN media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id    = :user_id
+          AND  uml.date_added >= :start_date
+          AND  uml.date_added <  :end_date
+        GROUP BY hour, day_of_week
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                },
+            )
+        ).fetchall()
+
+        db_data = {(int(r.hour), int(r.day_of_week)): int(r.minutes) for r in rows}
+
+        cells = [
+            StatsHeatmapCellResponse(
+                hour=hour,
+                day=day,
+                value=db_data.get((hour, day), 0),
+            )
+            for day in range(7)
+            for hour in range(HEATMAP_HOURS_START, HEATMAP_HOURS_END + 1)
+        ]
+        return Result(code=ResultCode.OK, message="OK", result=cells)
+
+    @staticmethod
+    @staticmethod
+    async def get_first_listen_date_async(
+        session: AsyncSession,
+        user_id: int,
+    ) -> Result[datetime | None]:
+        sql = text("""
+        SELECT MIN(date_added) AS first_date
+        FROM   core.user_media_listened
+        WHERE  user_id = :user_id
+        """)
+        row = (await session.execute(sql, {"user_id": user_id})).fetchone()
+        if row is None or row.first_date is None:
+            return Result(code=ResultCode.OK, message="OK", result=None)
+        return Result(code=ResultCode.OK, message="OK", result=_utc(row.first_date))
+
+    @staticmethod
+    async def get_current_streak_async(
+        session: AsyncSession,
+        user_id: int,
+    ) -> Result[int]:
+        sql = text("""
+        SELECT DISTINCT DATE(date_added) AS listen_date
+        FROM   core.user_media_listened
+        WHERE  user_id = :user_id
+        ORDER BY listen_date DESC
+        """)
+        rows = (await session.execute(sql, {"user_id": user_id})).fetchall()
+        dates = [r.listen_date for r in rows]
+
+        if not dates:
+            return Result(code=ResultCode.OK, message="OK", result=0)
+
+        today = datetime.now(UTC).date()
+        yesterday = today - timedelta(days=1)
+
+        if dates[0] < yesterday:
+            return Result(code=ResultCode.OK, message="OK", result=0)
+
+        streak = 0
+        expected = dates[0]
+        for d in dates:
+            if d == expected:
+                streak += 1
+                expected = d - timedelta(days=1)
+            else:
+                break
+
+        return Result(code=ResultCode.OK, message="OK", result=streak)
+
+    @staticmethod
+    async def get_recently_played_songs_async(
+        session: AsyncSession,
+        user_id: int,
+        limit: int = 50,
+    ) -> Result[list[str]]:
+        """Get recently played song public_ids ordered by date_added DESC."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) DESC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_recently_played_songs_since_async(
+        session: AsyncSession,
+        user_id: int,
+        since_date: datetime,
+        limit: int = 500,
+    ) -> Result[list[str]]:
+        """Get song public_ids played after since_date, ordered by most recent first."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+          AND  uml.date_added >= :since_date
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) DESC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "since_date": since_date.astimezone(UTC),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_top_media_public_ids_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 50,
+    ) -> Result[list[str]]:
+        """Get top songs and videos public_ids by play count."""
+
+        limit_clause = f"LIMIT {limit}" if limit > 0 else ""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()},
+        play_counts AS (
+            SELECT uml.media_id, COUNT(*) AS play_count
+            FROM   core.user_media_listened uml
+            JOIN   media_info mi ON mi.media_id = uml.media_id
+            WHERE  uml.user_id    = :user_id
+              AND  uml.date_added >= :start_date
+              AND  uml.date_added <  :end_date
+              AND  mi.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
+            GROUP BY uml.media_id
+            ORDER BY play_count DESC
+            {limit_clause}
+        )
+        SELECT mi.public_id
+        FROM   play_counts pc
+        JOIN   media_info  mi ON mi.media_id = pc.media_id
+        ORDER BY pc.play_count DESC
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                },
+            )
+        ).fetchall()
+
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_recently_played_media_public_ids_async(
+        session: AsyncSession,
+        user_id: int,
+        limit: int = 50,
+    ) -> Result[list[str]]:
+        """Get recently played songs and videos public_ids ordered by date_added DESC."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key IN ({MediaTypeEnum.SONG.value}, {MediaTypeEnum.VIDEO.value})
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) DESC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_least_recently_played_songs_async(
+        session: AsyncSession,
+        user_id: int,
+        limit: int = 12,
+    ) -> Result[list[str]]:
+        """Get song public_ids ordered by oldest last-played date ASC."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+        GROUP BY mi.public_id
+        ORDER BY MAX(uml.date_added) ASC
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+    @staticmethod
+    async def get_random_songs_last_month_async(
+        session: AsyncSession,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime,
+        limit: int = 30,
+    ) -> Result[list[str]]:
+        """Get a random selection of songs listened to in the given date range."""
+
+        sql = text(f"""
+        WITH {_get_media_info_cte()}
+        SELECT mi.public_id
+        FROM   core.user_media_listened uml
+        JOIN   media_info mi ON mi.media_id = uml.media_id
+        WHERE  uml.user_id = :user_id
+          AND  mi.media_type_key = {MediaTypeEnum.SONG.value}
+          AND  uml.date_added >= :start_date
+          AND  uml.date_added <  :end_date
+        GROUP BY mi.public_id
+        ORDER BY random()
+        LIMIT :limit
+        """)
+        rows = (
+            await session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "start_date": start_date.astimezone(UTC),
+                    "end_date": end_date.astimezone(UTC),
+                    "limit": limit,
+                },
+            )
+        ).fetchall()
+
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[str(r.public_id) for r in rows],
+        )
+
+
+def get_media_info_cte() -> str:
+    """Provider-independent media metadata for social activity."""
+    return _get_media_info_cte()
+
+
+def get_artist_info_cte() -> str:
+    """Provider-independent artists for social taste comparisons."""
+    return _get_artist_info_cte()
+
+
+async def get_streaks_for_users_async(
+    session: AsyncSession, user_ids: list[int]
+) -> Result[dict[int, int]]:
+    """Calculate friend streaks in one query, including listeners with no history."""
+    from sqlalchemy import bindparam
+
+    from core.utils.safeAsyncCall import safe_async
+
+    @safe_async
+    async def query(session: AsyncSession) -> Result[dict[int, int]]:
+        sql = text("""SELECT DISTINCT user_id, DATE(date_added) AS day
+            FROM core.user_media_listened WHERE user_id IN :user_ids
+            ORDER BY user_id, day DESC""").bindparams(bindparam("user_ids", expanding=True))
+        rows = await session.execute(sql, {"user_ids": user_ids})
+        today = datetime.now(UTC).date()
+        streaks = dict.fromkeys(user_ids, 0)
+        expected: dict[int, Any] = {}
+        for user_id, day in rows:
+            if user_id not in expected:
+                expected[user_id] = day if day >= today - timedelta(days=1) else None
+            if day == expected[user_id]:
+                streaks[user_id] += 1
+                expected[user_id] = day - timedelta(days=1)
+        return Result(code=ResultCode.OK, message="OK", result=streaks)
+
+    return await query(session)

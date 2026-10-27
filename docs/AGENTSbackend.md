@@ -14,7 +14,7 @@
 ## Directory
 
 ```
-backend/
+apps/backend/
 __main__.py (CLI: zod, init-db)
 constants.py
 core/
@@ -53,7 +53,7 @@ Folder naming: controllers/ (plural), framework/ (singular), access/ (singular)
 ### Connection
 
 ```python
-rockit_db = RockItDB(username, password, host, port, database)
+rockit_db = Database(username, password, host, port, database)
 
 await rockit_db.wait_for_session_local_async()
 async with rockit_db.session_scope_async() as session:
@@ -90,10 +90,10 @@ class RepeatModeEnumRow(CoreBase, TableAutoincrementKey):
     __tablename__ = "repeat_mode_enum"
 ```
 
-## AResult Pattern
+## Result Pattern
 
 ```python
-class AResultCode:
+class ResultCode:
     OK = 0x1
     GENERAL_ERROR = 0x2
     NOT_FOUND = 0x3
@@ -106,16 +106,16 @@ class AResultCode:
 Usage:
 
 ```python
-async def get_user_async(session, user_id) -> AResult[UserRow]:
+async def get_user_async(session, user_id) -> Result[UserRow]:
     a_result = await UserAccess.get_user(session, user_id)
     if a_result.is_not_ok():
         logger.error(f"Error. {a_result.info()}")
-        return AResult(code=a_result.code(), message=a_result.message())
+        return Result(code=a_result.code(), message=a_result.message())
 
-    return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+    return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 ```
 
-| AResultCode     | HTTP |
+| ResultCode      | HTTP |
 | --------------- | ---- |
 | OK              | 200  |
 | ALREADY_EXISTS  | 200  |
@@ -145,17 +145,17 @@ Base provider interface:
 
 ```python
 class BaseProvider:
-    async def search_async(self, query) -> AResult[List[BaseSearchResultsItem]]
-    async def get_song_async(self, session, public_id) -> AResult[BaseSongWithAlbumResponse]
-    async def get_album_async(self, session, public_id) -> AResult[BaseAlbumWithSongsResponse]
-    async def get_artist_async(self, session, public_id) -> AResult[BaseArtistResponse]
-    async def get_playlist_async(self, session, user_id, public_id) -> AResult[BasePlaylistResponse]
-    async def get_video_async(self, session, public_id) -> AResult[BaseVideoResponse]
+    async def search_async(self, query) -> Result[List[BaseSearchResultsItem]]
+    async def get_song_async(self, session, public_id) -> Result[BaseSongWithAlbumResponse]
+    async def get_album_async(self, session, public_id) -> Result[BaseAlbumWithSongsResponse]
+    async def get_artist_async(self, session, public_id) -> Result[BaseArtistResponse]
+    async def get_playlist_async(self, session, user_id, public_id) -> Result[BasePlaylistResponse]
+    async def get_video_async(self, session, public_id) -> Result[BaseVideoResponse]
     async def start_download_async(self, session, public_id, download_id, download_group_id, user_id)
     def match_url(self, url) -> str | None
 ```
 
-Discovery: scans backend/\*/framework/provider/provider.py, imports provider + name exports.
+Discovery: scans apps/backend/\*/framework/provider/provider.py, imports provider + name exports.
 
 Implementation:
 
@@ -163,6 +163,7 @@ Implementation:
 class MyProvider(BaseProvider):
     async def search_async(self, query):
         pass
+
 
 provider = MyProvider()
 name = "MyService"
@@ -232,7 +233,7 @@ Typing: always strict
 ```python
 user_id: int
 results: List[str]
-a_result: AResult[UserRow]
+a_result: Result[UserRow]
 session: AsyncSession
 ```
 
@@ -252,35 +253,35 @@ Everything async.
 Docstring:
 
 ```python
-async def get_user_async(session, user_id) -> AResult[UserRow]:
+async def get_user_async(session, user_id) -> Result[UserRow]:
     """Get user by ID."""
 ```
 
-Run black after editing: `.venv/bin/python -m black <file>`
+Run black after editing: `.uv run ruff format <file>`
 
 ## Key Files
 
-| File                                                  | Purpose                         |
-| ----------------------------------------------------- | ------------------------------- |
-| backend/core/main.py                                  | FastAPI entry, router discovery |
-| backend/core/aResult.py                               | Result wrapper                  |
-| backend/core/access/db/rockItDb.py                    | DB connection                   |
-| backend/core/access/db/ormModels/user.py              | User ORM                        |
-| backend/core/controllers/authController.py            | Auth endpoints                  |
-| backend/core/framework/auth/session.py                | Session mgmt                    |
-| backend/core/framework/providers/providers.py         | Provider discovery              |
-| backend/core/framework/provider/baseProvider.py       | Provider interface              |
-| backend/core/middlewares/dbSessionMiddleware.py       | Session per request             |
-| backend/core/middlewares/authMiddleware.py            | Auth                            |
-| backend/spotify/framework/provider/spotifyProvider.py | Spotify impl                    |
-| backend/youtube/framework/provider/youtubeProvider.py | YouTube impl                    |
+| File                                                       | Purpose                         |
+| ---------------------------------------------------------- | ------------------------------- |
+| apps/backend/app/main.py                                   | FastAPI entry, router discovery |
+| apps/backend/core/aResult.py                               | Result wrapper                  |
+| apps/backend/core/access/db/database.py                    | DB connection                   |
+| apps/backend/core/access/db/ormModels/user.py              | User ORM                        |
+| apps/backend/core/controllers/authController.py            | Auth endpoints                  |
+| apps/backend/core/framework/auth/session.py                | Session mgmt                    |
+| apps/backend/core/framework/providers/providers.py         | Provider discovery              |
+| apps/backend/core/framework/provider/baseProvider.py       | Provider interface              |
+| apps/backend/core/middlewares/dbSessionMiddleware.py       | Session per request             |
+| apps/backend/core/middlewares/authMiddleware.py            | Auth                            |
+| apps/backend/spotify/framework/provider/spotifyProvider.py | Spotify impl                    |
+| apps/backend/youtube/framework/provider/youtubeProvider.py | YouTube impl                    |
 
 ## Running
 
 ```bash
-cd backend
-uvicorn backend.core.main:app --reload
-.venv/bin/python -m pyright  # typecheck
-python3 -m backend init-db
-python3 -m backend models  # generate frontend DTOs
+cd apps/backend
+uv run uvicorn app.main:app --reload
+.uv run pyright  # typecheck
+uv run --project apps/backend python -m apps.backend init-db
+uv run --project apps/backend python -m apps.backend models  # generate frontend DTOs
 ```

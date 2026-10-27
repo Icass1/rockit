@@ -42,8 +42,8 @@ not only Expo Go.
 
 ## Automated checks
 
-Run `pnpm --dir frontend/apps/web test` and the backend tests in
-`backend/tests/unit/test_video_audio_stream.py` (requires FFmpeg). The web tests
+Run `pnpm --dir apps/web test` and the backend tests in
+`apps/backend/tests/unit/test_video_audio_stream.py` (requires FFmpeg). The web tests
 exercise the actual shared playback manager with fake media elements; they do not
 simulate WebKit's OS-level suspension. Backend tests verify exact probe/seek/suffix
 ranges, real encoding, cache reuse, invalidation, and failed-encoder cleanup.

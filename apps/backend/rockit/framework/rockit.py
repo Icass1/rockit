@@ -1,0 +1,1057 @@
+from logging import Logger
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.access.db.ormModels.image import ImageRow
+from core.access.imageAccess import ImageAccess
+from core.framework.media.image import Image
+from core.framework.objectFiles import ObjectFiles
+from core.framework.storage import Storage
+from core.responses.baseAlbumWithoutSongsResponse import (
+    BaseAlbumWithoutSongsResponse,
+)
+from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
+from core.responses.baseArtistResponse import BaseArtistResponse
+from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+from core.responses.baseSongWithoutAlbumResponse import (
+    BaseSongWithoutAlbumResponse,
+)
+from core.responses.baseVideoResponse import BaseVideoResponse
+from core.responses.searchResponse import (
+    ArtistSearchResultsItem,
+    BaseSearchResultsItem,
+)
+from core.responses.uploadResponse import UploadResponse
+from core.utils.createId import create_id
+from logger import getLogger
+from result import Result, ResultCode
+from rockit.access.db.ormModels.album import RockitAlbumRow
+from rockit.access.db.ormModels.song import RockitSongRow
+from rockit.access.db.ormModels.video import RockitVideoRow
+from rockit.access.rockitAccess import RockitAccess
+
+logger: Logger = getLogger(__name__)
+
+
+class Rockit:
+    provider_name: str = ""
+    provider_id: int = 0
+
+    @staticmethod
+    async def _extract_duration_ms_async(file_path: str) -> int:
+        """Extract duration in milliseconds from a media file using ffprobe."""
+
+        import asyncio
+
+        proc = await asyncio.create_subprocess_exec(
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "csv=p=0",
+            file_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await proc.communicate()
+        if stdout:
+            try:
+                duration = float(stdout.decode().strip())
+                return int(duration * 1000)
+            except (ValueError, UnicodeDecodeError):
+                pass
+        return 0
+
+    @staticmethod
+    async def upload_song_async(
+        session: AsyncSession,
+        title: str,
+        artist_names: list[str],
+        file_path: str,
+        image_path: str,
+        disc_number: int,
+        track_number: int,
+    ) -> Result[UploadResponse]:
+        """Upload a song file and create database records."""
+
+        try:
+            file_ext: str = "mp3"
+            file_name: str = f"{create_id(32)}.{file_ext}"
+            object_key: str = f"rockit/songs/{file_name}"
+
+            uploaded = await ObjectFiles.upload_async(
+                session=session, source=file_path, key=object_key
+            )
+            if uploaded.is_not_ok():
+                return Result(code=uploaded.code(), message=uploaded.message())
+
+            duration_ms: int = await Rockit._extract_duration_ms_async(file_path=file_path)
+
+            image_file_name: str = f"{create_id(32)}.jpg"
+            image_key: str = f"images/rockit/{image_file_name}"
+
+            with open(image_path, "rb") as image_file:
+                image_bytes: bytes = image_file.read()
+
+            a_result_image: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=image_key,
+                data=image_bytes,
+                filename=image_file_name,
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error creating image. {a_result_image.info()}")
+                return Result(code=a_result_image.code(), message=a_result_image.message())
+
+            a_result_song: Result[RockitSongRow] = await RockitAccess.create_song_async(
+                session=session,
+                name=title,
+                artist_names=artist_names,
+                provider_id=Rockit.provider_id,
+                image_id=a_result_image.result().id,
+                duration_ms=duration_ms,
+                storage_object_id=uploaded.result().id,
+                disc_number=disc_number,
+                track_number=track_number,
+            )
+            if a_result_song.is_not_ok():
+                logger.error(f"Error creating song. {a_result_song.info()}")
+                return Result(code=a_result_song.code(), message=a_result_song.message())
+
+            a_result_public_id: Result[str] = await RockitAccess.get_song_public_id_async(
+                session=session, song_id=a_result_song.result().id
+            )
+            if a_result_public_id.is_not_ok():
+                logger.error(f"Error getting public_id. {a_result_public_id.info()}")
+                return Result(
+                    code=a_result_public_id.code(),
+                    message=a_result_public_id.message(),
+                )
+
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=UploadResponse(
+                    publicId=a_result_public_id.result(),
+                    message="Song uploaded successfully",
+                    filename=file_name,
+                ),
+            )
+
+        except Exception as e:
+            logger.error(f"Error uploading song: {e}", exc_info=True)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error uploading song")
+
+    @staticmethod
+    async def upload_album_async(
+        session: AsyncSession,
+        title: str,
+        artist_name: list[str],
+        song_titles: list[str],
+        song_paths: dict[str, str],
+        cover_path: str,
+        release_date: str,
+    ) -> Result[UploadResponse]:
+        """Upload an album with multiple songs."""
+
+        try:
+            image_file_name: str = f"{create_id(32)}.jpg"
+            image_key: str = f"images/rockit/{image_file_name}"
+
+            with open(cover_path, "rb") as image_file:
+                image_bytes: bytes = image_file.read()
+
+            a_result_image: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=image_key,
+                data=image_bytes,
+                filename=image_file_name,
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error creating image. {a_result_image.info()}")
+                return Result(code=a_result_image.code(), message=a_result_image.message())
+            image_id: int = a_result_image.result().id
+
+            a_result_album: Result[RockitAlbumRow] = await RockitAccess.create_album_async(
+                session=session,
+                name=title,
+                artist_names=artist_name,
+                provider_id=Rockit.provider_id,
+                image_id=image_id,
+                release_date=release_date,
+            )
+            if a_result_album.is_not_ok():
+                logger.error(f"Error creating album. {a_result_album.info()}")
+                return Result(code=a_result_album.code(), message=a_result_album.message())
+
+            album: RockitAlbumRow = a_result_album.result()
+
+            for track_number, song_title in enumerate(song_titles, start=1):
+                song_src_path: str = song_paths.get(song_title, "")
+
+                if not song_src_path:
+                    logger.warning(f"No file data for song '{song_title}', skipping.")
+                    continue
+
+                file_ext: str = "mp3"
+                file_name: str = f"{create_id(32)}.{file_ext}"
+                song_key: str = f"rockit/songs/{file_name}"
+
+                uploaded = await ObjectFiles.upload_async(
+                    session=session, source=song_src_path, key=song_key
+                )
+                if uploaded.is_not_ok():
+                    return Result(code=uploaded.code(), message=uploaded.message())
+
+                song_duration_ms: int = await Rockit._extract_duration_ms_async(
+                    file_path=song_src_path
+                )
+
+                a_result_song: Result[RockitSongRow] = await RockitAccess.create_song_async(
+                    session=session,
+                    name=song_title,
+                    artist_names=artist_name,
+                    provider_id=Rockit.provider_id,
+                    image_id=image_id,
+                    duration_ms=song_duration_ms,
+                    storage_object_id=uploaded.result().id,
+                    disc_number=1,
+                    track_number=track_number,
+                )
+                if a_result_song.is_not_ok():
+                    logger.error(f"Error creating song '{song_title}'. {a_result_song.info()}")
+                    continue
+
+                await RockitAccess.add_song_to_album_async(
+                    session=session,
+                    album_id=album.id,
+                    song_id=a_result_song.result().id,
+                    disc_number=1,
+                    track_number=track_number,
+                )
+
+            a_result_mapping: Result[
+                dict[int, str]
+            ] = await RockitAccess.get_public_ids_by_ids_async(session=session, ids=[album.id])
+            if a_result_mapping.is_not_ok():
+                logger.error(f"Error getting album public_id. {a_result_mapping.info()}")
+                return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
+
+            public_ids: dict[int, str] = a_result_mapping.result()
+            album_public_id: str = public_ids.get(album.id, "")
+
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=UploadResponse(
+                    publicId=album_public_id,
+                    message=f"Album '{title}' uploaded with {len(song_titles)} songs",
+                ),
+            )
+
+        except Exception as e:
+            logger.error(f"Error uploading album: {e}", exc_info=True)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error uploading album")
+
+    @staticmethod
+    async def upload_video_async(
+        session: AsyncSession,
+        title: str,
+        artist_names: list[str],
+        file_path: str,
+        image_path: str,
+    ) -> Result[UploadResponse]:
+        """Upload a video file and create database records."""
+
+        try:
+            file_ext: str = "mp4"
+            file_name: str = f"{create_id(32)}.{file_ext}"
+            object_key: str = f"rockit/videos/{file_name}"
+
+            uploaded = await ObjectFiles.upload_async(
+                session=session, source=file_path, key=object_key
+            )
+            if uploaded.is_not_ok():
+                return Result(code=uploaded.code(), message=uploaded.message())
+
+            duration_ms: int = await Rockit._extract_duration_ms_async(file_path=file_path)
+
+            image_file_name: str = f"{create_id(32)}.jpg"
+            image_key: str = f"images/rockit/{image_file_name}"
+
+            with open(image_path, "rb") as image_file:
+                image_bytes: bytes = image_file.read()
+
+            a_result_image: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=image_key,
+                data=image_bytes,
+                filename=image_file_name,
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error creating image. {a_result_image.info()}")
+                return Result(code=a_result_image.code(), message=a_result_image.message())
+
+            a_result_video: Result[RockitVideoRow] = await RockitAccess.create_video_async(
+                session=session,
+                name=title,
+                artist_names=artist_names,
+                provider_id=Rockit.provider_id,
+                image_id=a_result_image.result().id,
+                duration_ms=duration_ms,
+                storage_object_id=uploaded.result().id,
+            )
+            if a_result_video.is_not_ok():
+                logger.error(f"Error creating video. {a_result_video.info()}")
+                return Result(code=a_result_video.code(), message=a_result_video.message())
+
+            a_result_public_id: Result[str] = await RockitAccess.get_video_public_id_async(
+                session=session, video_id=a_result_video.result().id
+            )
+            if a_result_public_id.is_not_ok():
+                logger.error(f"Error getting public_id. {a_result_public_id.info()}")
+                return Result(
+                    code=a_result_public_id.code(),
+                    message=a_result_public_id.message(),
+                )
+
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=UploadResponse(
+                    publicId=a_result_public_id.result(),
+                    message="Video uploaded successfully",
+                    filename=file_name,
+                ),
+            )
+
+        except Exception as e:
+            logger.error(f"Error uploading video: {e}", exc_info=True)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error uploading video")
+
+    @staticmethod
+    async def get_videos_responses_async(
+        session: AsyncSession,
+        public_ids: list[str],
+    ) -> Result[list[BaseVideoResponse]]:
+        """Build full video responses from public IDs."""
+
+        try:
+            a_result_videos: Result[
+                list[RockitVideoRow]
+            ] = await RockitAccess.get_videos_from_public_ids_async(
+                session=session, public_ids=public_ids
+            )
+            if a_result_videos.is_not_ok():
+                return Result(code=a_result_videos.code(), message=a_result_videos.message())
+
+            videos: list[RockitVideoRow] = a_result_videos.result()
+
+            a_result_mapping: Result[
+                dict[int, str]
+            ] = await RockitAccess.get_public_ids_by_ids_async(
+                session=session,
+                ids=list({v.id for v in videos} | {a.id for v in videos for a in v.artists}),
+            )
+            if a_result_mapping.is_not_ok():
+                return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
+
+            id_to_public_id: dict[int, str] = a_result_mapping.result()
+
+            a_result_images = await ImageAccess.get_images_by_ids_async(
+                session=session, ids=list({v.image_id for v in videos})
+            )
+            if a_result_images.is_not_ok():
+                logger.error(f"Error loading video images. {a_result_images.info()}")
+                return Result(code=a_result_images.code(), message=a_result_images.message())
+            images = a_result_images.result()
+            responses: list[BaseVideoResponse] = []
+            for video in videos:
+                a_result_response = await Rockit._build_video_response_async(
+                    session=session,
+                    video=video,
+                    public_id=id_to_public_id.get(video.id, ""),
+                    images=images,
+                    public_ids=id_to_public_id,
+                )
+                if a_result_response.is_ok():
+                    responses.append(a_result_response.result())
+
+            response_by_public_id: dict[str, BaseVideoResponse] = {r.publicId: r for r in responses}
+
+            ordered: list[BaseVideoResponse] = [
+                response_by_public_id[pid] for pid in public_ids if pid in response_by_public_id
+            ]
+
+            return Result(code=ResultCode.OK, message="OK", result=ordered)
+
+        except Exception as e:
+            logger.error(f"Error building video responses: {e}", exc_info=True)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message="Error building video responses",
+            )
+
+    @staticmethod
+    async def get_songs_responses_async(
+        session: AsyncSession,
+        public_ids: list[str],
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
+        """Build full song responses from public IDs."""
+
+        try:
+            a_result_songs: Result[
+                list[RockitSongRow]
+            ] = await RockitAccess.get_songs_from_public_ids_async(
+                session=session, public_ids=public_ids
+            )
+            if a_result_songs.is_not_ok():
+                return Result(code=a_result_songs.code(), message=a_result_songs.message())
+
+            songs: list[RockitSongRow] = a_result_songs.result()
+
+            a_result_mapping: Result[
+                dict[int, str]
+            ] = await RockitAccess.get_public_ids_by_ids_async(
+                session=session,
+                ids=list(
+                    {s.id for s in songs}
+                    | {a.id for s in songs for a in s.artists}
+                    | {s.album.id for s in songs if s.album}
+                    | {a.id for s in songs if s.album for a in s.album.artists}
+                ),
+            )
+            if a_result_mapping.is_not_ok():
+                return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
+
+            id_to_public_id: dict[int, str] = a_result_mapping.result()
+
+            image_ids = {song.image_id for song in songs} | {
+                song.album.image_id for song in songs if song.album
+            }
+            a_result_images = await ImageAccess.get_images_by_ids_async(
+                session=session, ids=list(image_ids)
+            )
+            if a_result_images.is_not_ok():
+                logger.error(f"Error loading song images. {a_result_images.info()}")
+                return Result(code=a_result_images.code(), message=a_result_images.message())
+            images = a_result_images.result()
+            responses: list[BaseSongWithAlbumResponse] = []
+            for song in songs:
+                a_result_response = await Rockit._build_song_response_async(
+                    session=session,
+                    song=song,
+                    public_id=id_to_public_id.get(song.id, ""),
+                    images=images,
+                    public_ids=id_to_public_id,
+                )
+                if a_result_response.is_ok():
+                    responses.append(a_result_response.result())
+
+            response_by_public_id: dict[str, BaseSongWithAlbumResponse] = {
+                r.publicId: r for r in responses
+            }
+
+            ordered: list[BaseSongWithAlbumResponse] = [
+                response_by_public_id[pid] for pid in public_ids if pid in response_by_public_id
+            ]
+
+            return Result(code=ResultCode.OK, message="OK", result=ordered)
+
+        except Exception as e:
+            logger.error(f"Error building song responses: {e}", exc_info=True)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message="Error building song responses",
+            )
+
+    @staticmethod
+    async def get_albums_responses_async(
+        session: AsyncSession,
+        public_ids: list[str],
+    ) -> Result[list[BaseAlbumWithSongsResponse]]:
+        """Build full album (with songs) responses from public IDs."""
+
+        try:
+            a_result_albums: Result[
+                list[RockitAlbumRow]
+            ] = await RockitAccess.get_albums_from_public_ids_async(
+                session=session, public_ids=public_ids
+            )
+            if a_result_albums.is_not_ok():
+                return Result(code=a_result_albums.code(), message=a_result_albums.message())
+
+            albums: list[RockitAlbumRow] = a_result_albums.result()
+
+            a_result_mapping: Result[
+                dict[int, str]
+            ] = await RockitAccess.get_public_ids_by_ids_async(
+                session=session, ids=[a.id for a in albums]
+            )
+            if a_result_mapping.is_not_ok():
+                return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
+
+            id_to_public_id: dict[int, str] = a_result_mapping.result()
+
+            responses: list[BaseAlbumWithSongsResponse] = []
+            for album in albums:
+                a_result_response = await Rockit._build_album_response_async(
+                    session=session,
+                    album=album,
+                    public_id=id_to_public_id.get(album.id, ""),
+                )
+                if a_result_response.is_ok():
+                    responses.append(a_result_response.result())
+
+            response_by_public_id: dict[str, BaseAlbumWithSongsResponse] = {
+                r.publicId: r for r in responses
+            }
+
+            ordered: list[BaseAlbumWithSongsResponse] = [
+                response_by_public_id[pid] for pid in public_ids if pid in response_by_public_id
+            ]
+
+            return Result(code=ResultCode.OK, message="OK", result=ordered)
+
+        except Exception as e:
+            logger.error(f"Error building album responses: {e}", exc_info=True)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message="Error building album responses",
+            )
+
+    @staticmethod
+    async def search_async(
+        session: AsyncSession, query: str
+    ) -> Result[list[BaseSearchResultsItem]]:
+        """Search rockit songs and albums by name."""
+
+        try:
+            results: list[BaseSearchResultsItem] = []
+
+            a_result_songs: Result[
+                list[RockitSongRow]
+            ] = await RockitAccess.search_songs_by_name_async(session=session, query=query)
+            if a_result_songs.is_ok() and a_result_songs.result():
+                song_rows: list[RockitSongRow] = a_result_songs.result()
+                a_result_mapping: Result[
+                    dict[int, str]
+                ] = await RockitAccess.get_public_ids_by_ids_async(
+                    session=session, ids=[s.id for s in song_rows]
+                )
+                if a_result_mapping.is_ok():
+                    id_to_public_id: dict[int, str] = a_result_mapping.result()
+
+                    for song in song_rows:
+                        public_id: str = id_to_public_id.get(song.id, "")
+                        a_result_image: Result[ImageRow] = await Rockit._get_image_for_media_async(
+                            session=session, image_id=song.image_id
+                        )
+                        if a_result_image.is_not_ok():
+                            logger.warning(
+                                f"Error getting image for song {song.id}. {a_result_image.info()}"
+                            )
+                            continue
+
+                        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                            image=a_result_image.result()
+                        )
+                        if a_result_image_url.is_not_ok():
+                            logger.warning(
+                                f"Error getting image URL for song {song.id}. "
+                                f"{a_result_image_url.info()}"
+                            )
+                            continue
+
+                        image_url: str = a_result_image_url.result()
+
+                        artists: list[ArtistSearchResultsItem] = [
+                            ArtistSearchResultsItem(
+                                name=artist.name,
+                                url=f"/rockit/artist/{public_id}",
+                            )
+                            for artist in song.artists
+                        ]
+
+                        results.append(
+                            BaseSearchResultsItem(
+                                type="song",
+                                name=song.name,
+                                providerUrl=f"/rockit/song/{public_id}",
+                                publicId=public_id,
+                                imageUrl=image_url,
+                                artists=artists,
+                                provider=Rockit.provider_name,
+                                downloaded=True,
+                                url=f"/rockit/song/{public_id}",
+                            )
+                        )
+
+            a_result_albums: Result[
+                list[RockitAlbumRow]
+            ] = await RockitAccess.search_albums_by_name_async(session=session, query=query)
+            if a_result_albums.is_ok() and a_result_albums.result():
+                album_rows: list[RockitAlbumRow] = a_result_albums.result()
+                a_result_album_mapping: Result[
+                    dict[int, str]
+                ] = await RockitAccess.get_public_ids_by_ids_async(
+                    session=session, ids=[a.id for a in album_rows]
+                )
+                if a_result_album_mapping.is_ok():
+                    id_to_pid: dict[int, str] = a_result_album_mapping.result()
+
+                    for album in album_rows:
+                        pid: str = id_to_pid.get(album.id, "")
+                        a_result_img: Result[ImageRow] = await Rockit._get_image_for_media_async(
+                            session=session, image_id=album.image_id
+                        )
+                        if a_result_img.is_not_ok():
+                            logger.warning(
+                                f"Error getting image for album {album.id}. {a_result_img.info()}"
+                            )
+                            continue
+
+                        a_result_img_url: Result[str] = await Image.get_internal_image_url_async(
+                            image=a_result_img.result()
+                        )
+                        if a_result_img_url.is_not_ok():
+                            logger.warning(
+                                f"Error getting image URL for album {album.id}. "
+                                f"{a_result_img_url.info()}"
+                            )
+                            continue
+
+                        img_url: str = a_result_img_url.result()
+
+                        results.append(
+                            BaseSearchResultsItem(
+                                type="album",
+                                name=album.name,
+                                providerUrl=f"/rockit/album/{pid}",
+                                imageUrl=img_url,
+                                artists=[
+                                    ArtistSearchResultsItem(
+                                        name=artist.name,
+                                        url=f"/rockit/artist/{pid}",
+                                    )
+                                    for artist in album.artists
+                                ],
+                                provider=Rockit.provider_name,
+                                downloaded=True,
+                                url=f"/rockit/album/{pid}",
+                            )
+                        )
+
+            a_result_videos: Result[
+                list[RockitVideoRow]
+            ] = await RockitAccess.search_videos_by_name_async(session=session, query=query)
+            if a_result_videos.is_ok() and a_result_videos.result():
+                video_rows: list[RockitVideoRow] = a_result_videos.result()
+                a_result_video_mapping: Result[
+                    dict[int, str]
+                ] = await RockitAccess.get_public_ids_by_ids_async(
+                    session=session, ids=[v.id for v in video_rows]
+                )
+                if a_result_video_mapping.is_ok():
+                    id_to_pid: dict[int, str] = a_result_video_mapping.result()
+
+                    for video in video_rows:
+                        pid: str = id_to_pid.get(video.id, "")
+                        a_result_img: Result[ImageRow] = await Rockit._get_image_for_media_async(
+                            session=session, image_id=video.image_id
+                        )
+                        if a_result_img.is_not_ok():
+                            logger.warning(
+                                f"Error getting image for video {video.id}. {a_result_img.info()}"
+                            )
+                            continue
+
+                        a_result_img_url: Result[str] = await Image.get_internal_image_url_async(
+                            image=a_result_img.result()
+                        )
+                        if a_result_img_url.is_not_ok():
+                            logger.warning(
+                                f"Error getting image URL for video {video.id}. "
+                                f"{a_result_img_url.info()}"
+                            )
+                            continue
+
+                        img_url: str = a_result_img_url.result()
+
+                        results.append(
+                            BaseSearchResultsItem(
+                                type="video",
+                                name=video.name,
+                                providerUrl=f"/rockit/video/{pid}",
+                                imageUrl=img_url,
+                                artists=[
+                                    ArtistSearchResultsItem(
+                                        name=artist.name,
+                                        url=f"/rockit/video/{pid}",
+                                    )
+                                    for artist in video.artists
+                                ],
+                                provider=Rockit.provider_name,
+                                downloaded=True,
+                                url=f"/rockit/video/{pid}",
+                            )
+                        )
+
+            return Result(code=ResultCode.OK, message="OK", result=results)
+
+        except Exception as e:
+            logger.error(f"Error searching rockit: {e}", exc_info=True)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error searching rockit")
+
+    @staticmethod
+    async def get_media_duration_ms_async(
+        session: AsyncSession,
+        public_id: str,
+    ) -> Result[int]:
+        """Get the duration of a rockit song or video."""
+
+        a_result_songs: Result[
+            list[RockitSongRow]
+        ] = await RockitAccess.get_songs_from_public_ids_async(
+            session=session, public_ids=[public_id]
+        )
+        if a_result_songs.is_ok() and a_result_songs.result():
+            duration_ms: int | None = a_result_songs.result()[0].duration_ms
+            return Result(code=ResultCode.OK, message="OK", result=duration_ms)
+
+        a_result_videos: Result[
+            list[RockitVideoRow]
+        ] = await RockitAccess.get_videos_from_public_ids_async(
+            session=session, public_ids=[public_id]
+        )
+        if a_result_videos.is_ok() and a_result_videos.result():
+            duration_ms = a_result_videos.result()[0].duration_ms
+            return Result(code=ResultCode.OK, message="OK", result=duration_ms)
+
+        return Result(code=ResultCode.NOT_FOUND, message="RockIt media not found")
+
+    @staticmethod
+    async def _build_song_response_async(
+        session: AsyncSession,
+        song: RockitSongRow,
+        public_id: str,
+        images: dict[int, ImageRow],
+        public_ids: dict[int, str],
+    ) -> Result[BaseSongWithAlbumResponse]:
+        """Build a song from relationships and images loaded by the batch caller."""
+        image = images.get(song.image_id)
+        if image is None:
+            logger.error(f"Missing song image for {public_id}")
+            return Result(code=ResultCode.NOT_FOUND, message="Song image not found")
+
+        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(image=image)
+        if a_result_image_url.is_not_ok():
+            logger.error(
+                f"Error getting song image URL for {public_id}. {a_result_image_url.info()}"
+            )
+            return Result[BaseSongWithAlbumResponse].from_result(a_result_image_url)
+        image_url: str = a_result_image_url.result()
+        song_artists = [
+            BaseArtistResponse(
+                provider=Rockit.provider_name,
+                publicId="",
+                url="",
+                providerUrl="",
+                name=artist.name,
+                imageUrl="",
+                dominantColor=image.dominant_color,
+            )
+            for artist in song.artists
+        ]
+        album_response = BaseAlbumWithoutSongsResponse(
+            provider=Rockit.provider_name,
+            publicId="",
+            url="",
+            providerUrl="",
+            name="",
+            artists=[],
+            releaseDate="",
+            imageUrl="",
+            dominantColor="",
+        )
+        album = song.album
+        if album is not None:
+            album_id = public_ids.get(album.id, "")
+            album_image = images.get(album.image_id)
+            album_image_url: str = ""
+            if album_image is not None:
+                a_result_album_image_url: Result[str] = await Image.get_internal_image_url_async(
+                    image=album_image
+                )
+                if a_result_album_image_url.is_not_ok():
+                    logger.error(
+                        f"Error getting album image URL for {public_id}. "
+                        f"{a_result_album_image_url.info()}"
+                    )
+                    return Result[BaseSongWithAlbumResponse].from_result(a_result_album_image_url)
+                album_image_url = a_result_album_image_url.result()
+            album_response = BaseAlbumWithoutSongsResponse(
+                provider=Rockit.provider_name,
+                publicId=album_id,
+                url=f"/album/{album_id}",
+                providerUrl="",
+                name=album.name,
+                releaseDate=album.release_date or "",
+                imageUrl=album_image_url,
+                dominantColor=album_image.dominant_color if album_image else "",
+                artists=[
+                    BaseArtistResponse(
+                        provider=Rockit.provider_name,
+                        publicId="",
+                        url="",
+                        providerUrl="",
+                        name=artist.name,
+                        imageUrl="",
+                        dominantColor=album_image.dominant_color if album_image else "",
+                    )
+                    for artist in album.artists
+                ],
+            )
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=BaseSongWithAlbumResponse(
+                provider=Rockit.provider_name,
+                publicId=public_id,
+                providerUrl="",
+                name=song.name,
+                artists=song_artists or album_response.artists,
+                audioUrl=Storage.get_public_url(song.storage_object),
+                downloaded=True,
+                imageUrl=image_url,
+                duration_ms=song.duration_ms,
+                discNumber=song.disc_number,
+                trackNumber=song.track_number,
+                album=album_response,
+                dominantColor=image.dominant_color,
+            ),
+        )
+
+    @staticmethod
+    async def _build_album_response_async(
+        session: AsyncSession,
+        album: RockitAlbumRow,
+        public_id: str,
+    ) -> Result[BaseAlbumWithSongsResponse]:
+        """Build a full album (with songs) response from a RockitAlbumRow."""
+
+        try:
+            a_result_image: Result[ImageRow] = await Rockit._get_image_for_media_async(
+                session=session, image_id=album.image_id
+            )
+            if a_result_image.is_not_ok():
+                logger.error(f"Error getting image for album {public_id}. {a_result_image.info()}")
+                return Result(code=a_result_image.code(), message=a_result_image.message())
+
+            a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=a_result_image.result()
+            )
+            if a_result_image_url.is_not_ok():
+                logger.error(
+                    f"Error getting album image URL for {public_id}. {a_result_image_url.info()}"
+                )
+                return Result[BaseAlbumWithSongsResponse].from_result(a_result_image_url)
+
+            image_url: str = a_result_image_url.result()
+            dominant_color: str = a_result_image.result().dominant_color
+
+            album_artists: list[BaseArtistResponse] = [
+                BaseArtistResponse(
+                    provider=Rockit.provider_name,
+                    publicId="",
+                    url="",
+                    providerUrl="",
+                    name=artist.name,
+                    imageUrl="",
+                    dominantColor=dominant_color,
+                )
+                for artist in album.artists
+            ]
+
+            a_result_songs: Result[
+                list[RockitSongRow]
+            ] = await RockitAccess.get_songs_for_album_async(session=session, album_id=album.id)
+
+            song_responses: list[BaseSongWithoutAlbumResponse] = []
+            if a_result_songs.is_ok():
+                a_result_mapping: Result[
+                    dict[int, str]
+                ] = await RockitAccess.get_public_ids_by_ids_async(
+                    session=session,
+                    ids=[s.id for s in a_result_songs.result()],
+                )
+                id_to_public_id: dict[int, str] = {}
+                if a_result_mapping.is_ok():
+                    id_to_public_id = a_result_mapping.result()
+
+                for song in a_result_songs.result():
+                    song_pid: str = id_to_public_id.get(song.id, "")
+                    song_image_url: str = image_url
+                    song_dominant_color: str = dominant_color
+
+                    a_result_song_image: Result[ImageRow] = await Rockit._get_image_for_media_async(
+                        session=session, image_id=song.image_id
+                    )
+                    if a_result_song_image.is_ok():
+                        a_result_song_image_url: Result[
+                            str
+                        ] = await Image.get_internal_image_url_async(
+                            image=a_result_song_image.result()
+                        )
+                        if a_result_song_image_url.is_ok():
+                            song_image_url = a_result_song_image_url.result()
+                        else:
+                            logger.warning(
+                                f"Error getting image URL for song {song.id}. "
+                                f"{a_result_song_image_url.info()}"
+                            )
+                        song_dominant_color = a_result_song_image.result().dominant_color
+
+                    song_artists: list[BaseArtistResponse] = [
+                        BaseArtistResponse(
+                            provider=Rockit.provider_name,
+                            publicId="",
+                            url="",
+                            providerUrl="",
+                            name=artist.name,
+                            imageUrl="",
+                            dominantColor=song_dominant_color,
+                        )
+                        for artist in song.artists
+                    ]
+
+                    audio_src = Storage.get_public_url(song.storage_object)
+
+                    song_responses.append(
+                        BaseSongWithoutAlbumResponse(
+                            provider=Rockit.provider_name,
+                            publicId=song_pid,
+                            providerUrl="",
+                            name=song.name,
+                            artists=song_artists,
+                            audioUrl=audio_src,
+                            downloaded=True,
+                            imageUrl=song_image_url,
+                            duration_ms=song.duration_ms,
+                            discNumber=song.disc_number,
+                            trackNumber=song.track_number,
+                            dominantColor=song_dominant_color,
+                        )
+                    )
+
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=BaseAlbumWithSongsResponse(
+                    provider=Rockit.provider_name,
+                    publicId=public_id,
+                    url=f"/rockit/album/{public_id}",
+                    providerUrl="",
+                    name=album.name,
+                    artists=album_artists,
+                    releaseDate=album.release_date or "",
+                    imageUrl=image_url,
+                    undownloadedCount=0,
+                    songs=song_responses,
+                    dominantColor=dominant_color,
+                ),
+            )
+
+        except Exception as e:
+            logger.error(f"Error building album response for {public_id}: {e}", exc_info=True)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message="Error building album response",
+            )
+
+    @staticmethod
+    async def _build_video_response_async(
+        session: AsyncSession,
+        video: RockitVideoRow,
+        public_id: str,
+        images: dict[int, ImageRow],
+        public_ids: dict[int, str],
+    ) -> Result[BaseVideoResponse]:
+        """Build video metadata from the batch caller's prefetched data."""
+        image = images.get(video.image_id)
+        if image is None:
+            logger.error(f"Missing video image for {public_id}")
+            return Result(code=ResultCode.NOT_FOUND, message="Video image not found")
+
+        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(image=image)
+        if a_result_image_url.is_not_ok():
+            logger.error(
+                f"Error getting video image URL for {public_id}. {a_result_image_url.info()}"
+            )
+            return Result[BaseVideoResponse].from_result(a_result_image_url)
+        image_url: str = a_result_image_url.result()
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=BaseVideoResponse(
+                provider=Rockit.provider_name,
+                publicId=public_id,
+                providerUrl="",
+                name=video.name,
+                videoUrl=Storage.get_public_url(video.storage_object),
+                audioUrl=None,
+                imageUrl=image_url,
+                duration_ms=video.duration_ms,
+                artists=[
+                    BaseArtistResponse(
+                        provider=Rockit.provider_name,
+                        publicId="",
+                        url="",
+                        providerUrl="",
+                        name=artist.name,
+                        imageUrl="",
+                        dominantColor=image.dominant_color,
+                    )
+                    for artist in video.artists
+                ],
+                downloaded=True,
+                dominantColor=image.dominant_color,
+            ),
+        )
+
+    @staticmethod
+    async def get_frame_async(file_path: str, public_id: str, timestamp_ms: float) -> Result[bytes]:
+        """Extract a single frame from a RockIt video at the given timestamp (ms).
+
+        file_path is the stored S3 object key; processing uses a disposable local copy.
+        """
+
+        import asyncio
+
+        from core.utils.frameExtractor import extract_video_frame
+
+        async with ObjectFiles.local_copy_async(file_path) as local_path:
+            return await asyncio.to_thread(
+                extract_video_frame,
+                full_video_path=local_path,
+                public_id=public_id,
+                timestamp_ms=timestamp_ms,
+            )
+
+    @staticmethod
+    async def _get_image_for_media_async(
+        session: AsyncSession,
+        image_id: int,
+    ) -> Result[ImageRow]:
+        """Get an ImageRow by its ID."""
+
+        try:
+            from core.access.imageAccess import ImageAccess
+
+            return await ImageAccess.get_image_from_id_async(session=session, id=image_id)
+
+        except Exception as e:
+            logger.error(f"Error getting image: {e}", exc_info=True)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error getting image")

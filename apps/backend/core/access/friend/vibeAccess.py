@@ -1,0 +1,51 @@
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.access.statsAccess import get_artist_info_cte
+from core.utils.safeAsyncCall import safe_async
+from logger import getLogger
+from result import Result, ResultCode
+
+logger = getLogger(__name__)
+
+
+class VibeAccess:
+    @staticmethod
+    @safe_async
+    async def get_shared_artist_stats_async(
+        session: AsyncSession, user_id: int, friend_user_id: int
+    ) -> Result[tuple[int, int, int]]:
+        sql_shared = text(f"""
+        WITH {get_artist_info_cte()}, my_artists AS (
+            SELECT DISTINCT ai.artist_name
+            FROM core.user_media_listened uml
+            JOIN artist_info ai ON ai.media_id = uml.media_id
+            WHERE uml.user_id = :user_id
+        ),
+        friend_artists AS (
+            SELECT DISTINCT ai.artist_name
+            FROM core.user_media_listened uml
+            JOIN artist_info ai ON ai.media_id = uml.media_id
+            WHERE uml.user_id = :friend_user_id
+        )
+        SELECT
+            (SELECT COUNT(*) FROM my_artists) AS my_count,
+            (SELECT COUNT(*) FROM friend_artists) AS friend_count,
+            (SELECT COUNT(*) FROM my_artists
+             WHERE artist_name IN (SELECT artist_name FROM friend_artists)) AS shared_count
+        """)
+        row = (
+            await session.execute(
+                sql_shared,
+                {"user_id": user_id, "friend_user_id": friend_user_id},
+            )
+        ).fetchone()
+        assert row is not None
+        my_count = int(row.my_count or 0)
+        friend_count = int(row.friend_count or 0)
+        shared_count = int(row.shared_count or 0)
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=(my_count, friend_count, shared_count),
+        )

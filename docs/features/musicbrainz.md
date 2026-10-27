@@ -3,7 +3,7 @@
 MusicBrainz is a metadata provider (`BaseMetadataProvider`), not a playable media
 provider. Core selects registered providers and forwards calls. Source URLs,
 queries, MBID validation, JSON parsing, caching and request coordination all live
-under `backend/musicBrainz`. Providers and the `musicbrainz` database schema are
+under `apps/backend/musicBrainz`. Providers and the `musicbrainz` database schema are
 picked up by existing discovery; normal database initialization creates the two
 new tables. The artist page consumes normalized presentations of this metadata. Local and external catalogs remain separate; external identities never become playback IDs.
 

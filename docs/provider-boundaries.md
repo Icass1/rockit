@@ -1,6 +1,6 @@
 # Provider boundaries
 
-`backend/core` coordinates operations through shared contracts. Concrete provider
+`apps/backend/core` coordinates operations through shared contracts. Concrete provider
 imports, provider schema names, URL formats, and download limits belong to the
 provider that implements them.
 
@@ -59,7 +59,7 @@ It is an operator tool, separate from core runtime code.
 
 ## Validation
 
-`backend/tests/unit/test_provider_boundaries.py` checks that core has no concrete
+`apps/backend/tests/unit/test_provider_boundaries.py` checks that core has no concrete
 provider imports or schema names, validates registered SQL projections, and exercises
 provider dispatch, empty registries, and provider-defined concurrency.
 

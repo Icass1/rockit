@@ -45,14 +45,14 @@ jobs:
               shell: bash
               run: |
                   if [ "$PROMOTION" = "true" ]; then
-                      version=$(node frontend/scripts/version.cjs --release)
+                      version=$(node scripts/version.cjs --release)
                       tag="v$version"
                       if ! git rev-parse --verify "refs/tags/$tag" >/dev/null 2>&1; then
                           git tag "$tag" "$GITHUB_SHA"
                           git push origin "$tag"
                       fi
                   else
-                      version=$(node frontend/scripts/version.cjs)
+                      version=$(node scripts/version.cjs)
                   fi
                   echo "value=$version" >> "$GITHUB_OUTPUT"
                   echo "image=$version-${GITHUB_SHA:0:12}" >> "$GITHUB_OUTPUT"
@@ -79,7 +79,7 @@ jobs:
               uses: docker/build-push-action@v6
               with:
                   context: .
-                  file: ./Dockerfile.backend
+                  file: ./apps/backend/Dockerfile
                   push: true
                   tags: |
                       ghcr.io/${{ steps.image.outputs.repository }}/backend:${{ steps.image.outputs.tag }}
@@ -92,7 +92,7 @@ jobs:
               uses: docker/build-push-action@v6
               with:
                   context: .
-                  file: ./Dockerfile.frontend
+                  file: ./apps/web/Dockerfile
                   push: true
                   tags: |
                       ghcr.io/${{ steps.image.outputs.repository }}/frontend:${{ steps.image.outputs.tag }}

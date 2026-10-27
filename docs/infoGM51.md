@@ -57,13 +57,13 @@ Access CRUD SQLAlchemy, retorna ORM
 5 negocios: core, default, spotify, youtube, rockit — NADA de otros negocios en core.
 Patrones clave:
 
-- Toda función retorna AResult (nunca raise). HTTPException solo en controllers.
+- Toda función retorna Result (nunca raise). HTTPException solo en controllers.
 - Sesión DB por request via DBSessionMiddleware.
 - public_id (UUID) para el cliente, nunca el id interno.
 - Providers: sistema extensible (Spotify, YouTube, Rockit) con BaseProvider.
 - Auth: sesión cookie session_id, AuthMiddleware.auth_dependency para proteger endpoints.
   Comandos:
-- uvicorn backend.core.main:app --reload
+- uvicorn apps.backend.app.main:app --reload
 - .venv/bin/python -m pyright (typecheck)
 - .venv/bin/python -m black <file> (format)
 - python3 -m backend init-db
@@ -112,122 +112,122 @@ Convenciones Comunes
 - Tablas DB: singular (user no users), columnas snake_case.
 - Imports orden: stdlib → utils → aResult → access → framework → middleware → responses → requests.
   ▣ Plan · GLM-5.1 · 3m 44s
-  Ahora necesito que completes la página de Vamos a ir página página paso a paso Yo tenía antes una aplicación Pero como lo he pasado todo a react Y he separado el móvil De la página web Ahora solo me falta mirar la página web antigua a la nueva limpiando absolutamente y rehaciendo absolutamente todo el código Entonces mira qué páginas tengo ahora mismo en /home/nicorebo18/rockit/frontend/apps/web (Que es la app buena) Y compárala con las que tenía antes en /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web Hazme una lista detallada de todas las páginas lo que les faltaría por implementar Y lo que ya está implementado A nivel Futures Y de cosas que haya que tener en cuenta Insisto vamos a ir página página así que detalla cada página Al milímetro
+  Ahora necesito que completes la página de Vamos a ir página página paso a paso Yo tenía antes una aplicación Pero como lo he pasado todo a react Y he separado el móvil De la página web Ahora solo me falta mirar la página web antigua a la nueva limpiando absolutamente y rehaciendo absolutamente todo el código Entonces mira qué páginas tengo ahora mismo en /home/nicorebo18/rockit/apps/web (Que es la app buena) Y compárala con las que tenía antes en /home/nicorebo18/rockit/apps/test/apps/web Hazme una lista detallada de todas las páginas lo que les faltaría por implementar Y lo que ya está implementado A nivel Futures Y de cosas que haya que tener en cuenta Insisto vamos a ir página página así que detalla cada página Al milímetro
   Voy a explorar ambas aplicaciones en detalle para compararlas página por página.
   │ Explore Task — Explore new web app pages
   Unknown agent type: Explore is not a valid agent type
   │ Explore Task — Explore old web app pages
   Unknown agent type: Explore is not a valid agent type
   ctrl+x down view subagents
-  ✱ Glob "app/**/page.tsx" in frontend/apps/web (12 matches)
-  ✱ Glob "app/**/layout.tsx" in frontend/apps/web (3 matches)
-  ✱ Glob "app/**/error.tsx" in frontend/apps/web (1 match)
-  ✱ Glob "app/**/not-found.tsx" in frontend/apps/web (1 match)
-  ✱ Glob "app/**/loading.tsx" in frontend/apps/web (1 match)
-  ✱ Glob "components/**/_.tsx" in frontend/apps/web (84 matches)
-  ✱ Glob "lib/managers/_.ts" in frontend/apps/web (18 matches)
-  ✱ Glob "hooks/_.ts" in frontend/apps/web (3 matches)
-  ✱ Glob "contexts/\*\*/_.tsx" in frontend/apps/web
+  ✱ Glob "app/**/page.tsx" in apps/web (12 matches)
+  ✱ Glob "app/**/layout.tsx" in apps/web (3 matches)
+  ✱ Glob "app/**/error.tsx" in apps/web (1 match)
+  ✱ Glob "app/**/not-found.tsx" in apps/web (1 match)
+  ✱ Glob "app/**/loading.tsx" in apps/web (1 match)
+  ✱ Glob "components/**/_.tsx" in apps/web (84 matches)
+  ✱ Glob "lib/managers/_.ts" in apps/web (18 matches)
+  ✱ Glob "hooks/_.ts" in apps/web (3 matches)
+  ✱ Glob "contexts/\*\*/_.tsx" in apps/web
   Ahora voy a explorar la app antigua.
-  ✱ Glob "app/**/page.tsx" in frontend/apps/test/frontend/apps/web (20 matches)
-  ✱ Glob "app/**/layout.tsx" in frontend/apps/test/frontend/apps/web (3 matches)
-  ✱ Glob "app/**/error.tsx" in frontend/apps/test/frontend/apps/web (1 match)
-  ✱ Glob "app/**/not-found.tsx" in frontend/apps/test/frontend/apps/web (1 match)
-  ✱ Glob "app/**/loading.tsx" in frontend/apps/test/frontend/apps/web (3 matches)
-  ✱ Glob "components/**/_.tsx" in frontend/apps/test/frontend/apps/web (100 matches)
-  ✱ Glob "lib/managers/_.ts" in frontend/apps/test/frontend/apps/web
-  ✱ Glob "hooks/_.ts" in frontend/apps/test/frontend/apps/web (4 matches)
+  ✱ Glob "app/**/page.tsx" in apps/test/apps/web (20 matches)
+  ✱ Glob "app/**/layout.tsx" in apps/test/apps/web (3 matches)
+  ✱ Glob "app/**/error.tsx" in apps/test/apps/web (1 match)
+  ✱ Glob "app/**/not-found.tsx" in apps/test/apps/web (1 match)
+  ✱ Glob "app/**/loading.tsx" in apps/test/apps/web (3 matches)
+  ✱ Glob "components/**/_.tsx" in apps/test/apps/web (100 matches)
+  ✱ Glob "lib/managers/_.ts" in apps/test/apps/web
+  ✱ Glob "hooks/_.ts" in apps/test/apps/web (4 matches)
   Ahora necesito leer el contenido de cada página en detalle. Empezaré por las páginas de la app nueva y luego las de la antigua.
-  → Read frontend/apps/web/app/(protected)/(app)/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/library/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/search/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/settings/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/downloader/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/stats/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/radio/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/friends/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/admin/page.tsx
-  → Read frontend/apps/web/app/(protected)/(app)/playlist/[publicId]/page.tsx
-  → Read frontend/apps/web/app/login/page.tsx
-  → Read frontend/apps/web/app/register/page.tsx
+  → Read apps/web/app/(protected)/(app)/page.tsx
+  → Read apps/web/app/(protected)/(app)/library/page.tsx
+  → Read apps/web/app/(protected)/(app)/search/page.tsx
+  → Read apps/web/app/(protected)/(app)/settings/page.tsx
+  → Read apps/web/app/(protected)/(app)/downloader/page.tsx
+  → Read apps/web/app/(protected)/(app)/stats/page.tsx
+  → Read apps/web/app/(protected)/(app)/radio/page.tsx
+  → Read apps/web/app/(protected)/(app)/friends/page.tsx
+  → Read apps/web/app/(protected)/(app)/admin/page.tsx
+  → Read apps/web/app/(protected)/(app)/playlist/[publicId]/page.tsx
+  → Read apps/web/app/login/page.tsx
+  → Read apps/web/app/register/page.tsx
   Ahora leo las páginas de la app antigua.
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/library/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/search/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/settings/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/downloader/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/stats/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/radio/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/friends/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/playlist/[publicId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/album/[publicId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/artist/[id]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/song/[publicId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/login/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/register/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/library/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/search/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/settings/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/downloader/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/stats/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/radio/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/friends/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/playlist/[publicId]/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/album/[publicId]/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/artist/[id]/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/song/[publicId]/page.tsx
+  → Read apps/test/apps/web/app/login/page.tsx
+  → Read apps/test/apps/web/app/register/page.tsx
   Ahora voy a leer los componentes clave de ambas apps para entender las features implementadas.
-  → Read frontend/apps/web/components/Home/HomeClient.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Home/HomeClient.tsx
-  → Read frontend/apps/web/components/Library/LibraryClient.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Library/LibraryClient.tsx
-  → Read frontend/apps/web/components/Settings/SettingsClient.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Settings/SettingsClient.tsx
-  → Read frontend/apps/web/components/Search/Search.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Search/Search.tsx
+  → Read apps/web/components/Home/HomeClient.tsx
+  → Read apps/test/apps/web/components/Home/HomeClient.tsx
+  → Read apps/web/components/Library/LibraryClient.tsx
+  → Read apps/test/apps/web/components/Library/LibraryClient.tsx
+  → Read apps/web/components/Settings/SettingsClient.tsx
+  → Read apps/test/apps/web/components/Settings/SettingsClient.tsx
+  → Read apps/web/components/Search/Search.tsx
+  → Read apps/test/apps/web/components/Search/Search.tsx
   Ahora voy a leer los componentes adicionales de la app antigua que no existen en la nueva.
-  → Read frontend/apps/test/frontend/apps/web/components/Stats/StatsClient.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Downloader/DownloaderClient.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Radio/RadioClient.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/SongPage/SongPageCover.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/SongPage/SongPageAlbum.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/SongPage/SongPageLyrics.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/SongPage/SongPageTopArtistSongs.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Downloader/DownloadInputBar.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Downloader/DownloadLiveFeed.tsx
+  → Read apps/test/apps/web/components/Stats/StatsClient.tsx
+  → Read apps/test/apps/web/components/Downloader/DownloaderClient.tsx
+  → Read apps/test/apps/web/components/Radio/RadioClient.tsx
+  → Read apps/test/apps/web/components/SongPage/SongPageCover.tsx
+  → Read apps/test/apps/web/components/SongPage/SongPageAlbum.tsx
+  → Read apps/test/apps/web/components/SongPage/SongPageLyrics.tsx
+  → Read apps/test/apps/web/components/SongPage/SongPageTopArtistSongs.tsx
+  → Read apps/test/apps/web/components/Downloader/DownloadInputBar.tsx
+  → Read apps/test/apps/web/components/Downloader/DownloadLiveFeed.tsx
   Ahora voy a leer más componentes de la app antigua y verificar qué páginas adicionales existen (Spotify, YouTube, etc).
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/spotify/track/[spotifyId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/spotify/album/[spotifyId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/spotify/artist/[spotifyId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/spotify/playlist/[spotifyId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/app/(protected)/(app)/youtube/video/[youtubeId]/page.tsx
-  → Read frontend/apps/test/frontend/apps/web/components/Stats/UserStats.tsx
-  → Read frontend/apps/web/components/Admin/AdminClient.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/spotify/track/[spotifyId]/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/spotify/album/[spotifyId]/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/spotify/artist/[spotifyId]/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/spotify/playlist/[spotifyId]/page.tsx
+  → Read apps/test/apps/web/app/(protected)/(app)/youtube/video/[youtubeId]/page.tsx
+  → Read apps/test/apps/web/components/Stats/UserStats.tsx
+  → Read apps/web/components/Admin/AdminClient.tsx
   Ahora voy a verificar qué páginas/rutas existen en la app nueva que podrían faltar (album, artist, song).
-  ✱ Glob "app/(protected)/(app)/album/\*\*/_" in frontend/apps/web
-  ✱ Glob "app/(protected)/(app)/artist/**/\*" in frontend/apps/web
-  ✱ Glob "app/(protected)/(app)/song/**/_" in frontend/apps/web
-  ✱ Glob "app/(protected)/(app)/spotify/\*\*/_" in frontend/apps/web
-  ✱ Glob "app/(protected)/(app)/youtube/**/\*" in frontend/apps/web
-  ✱ Glob "app/(protected)/(app)/test-video/**/_" in frontend/apps/test/frontend/apps/web (2 matches)
-  → Read frontend/apps/test/frontend/apps/web/components/Friends/FriendsClient.tsx
+  ✱ Glob "app/(protected)/(app)/album/\*\*/_" in apps/web
+  ✱ Glob "app/(protected)/(app)/artist/**/\*" in apps/web
+  ✱ Glob "app/(protected)/(app)/song/**/_" in apps/web
+  ✱ Glob "app/(protected)/(app)/spotify/\*\*/_" in apps/web
+  ✱ Glob "app/(protected)/(app)/youtube/**/\*" in apps/web
+  ✱ Glob "app/(protected)/(app)/test-video/**/_" in apps/test/apps/web (2 matches)
+  → Read apps/test/apps/web/components/Friends/FriendsClient.tsx
   Ahora verifiquemos algunas cosas más de la app antigua que no están en la nueva.
-  ✱ Glob "components/Spotify/_.tsx" in frontend/apps/test/frontend/apps/web (4 matches)
-  ✱ Glob "components/Spotify/_.tsx" in frontend/apps/web
-  ✱ Glob "components/Youtube/_.tsx" in frontend/apps/test/frontend/apps/web (1 match)
-  ✱ Glob "components/Youtube/_.tsx" in frontend/apps/web
-  ✱ Glob "components/Stats/\*\*/_.tsx" in frontend/apps/test/frontend/apps/web (8 matches)
-  ✱ Glob "components/Stats/**/\*.tsx" in frontend/apps/web
-  ✱ Glob "components/Downloader/**/_.tsx" in frontend/apps/test/frontend/apps/web (3 matches)
-  ✱ Glob "components/Downloader/\*\*/_.tsx" in frontend/apps/web
-  ✱ Glob "components/SongPage/**/\*.tsx" in frontend/apps/test/frontend/apps/web (4 matches)
-  ✱ Glob "components/SongPage/**/_.tsx" in frontend/apps/web
-  ✱ Glob "components/Radio/\*\*/_.tsx" in frontend/apps/test/frontend/apps/web (1 match)
-  ✱ Glob "components/Radio/**/\*.tsx" in frontend/apps/web
-  ✱ Glob "components/Home/**/_.tsx" in frontend/apps/test/frontend/apps/web (6 matches)
-  ✱ Glob "components/Home/\*\*/_.tsx" in frontend/apps/web (1 match)
+  ✱ Glob "components/Spotify/_.tsx" in apps/test/apps/web (4 matches)
+  ✱ Glob "components/Spotify/_.tsx" in apps/web
+  ✱ Glob "components/Youtube/_.tsx" in apps/test/apps/web (1 match)
+  ✱ Glob "components/Youtube/_.tsx" in apps/web
+  ✱ Glob "components/Stats/\*\*/_.tsx" in apps/test/apps/web (8 matches)
+  ✱ Glob "components/Stats/**/\*.tsx" in apps/web
+  ✱ Glob "components/Downloader/**/_.tsx" in apps/test/apps/web (3 matches)
+  ✱ Glob "components/Downloader/\*\*/_.tsx" in apps/web
+  ✱ Glob "components/SongPage/**/\*.tsx" in apps/test/apps/web (4 matches)
+  ✱ Glob "components/SongPage/**/_.tsx" in apps/web
+  ✱ Glob "components/Radio/\*\*/_.tsx" in apps/test/apps/web (1 match)
+  ✱ Glob "components/Radio/**/\*.tsx" in apps/web
+  ✱ Glob "components/Home/**/_.tsx" in apps/test/apps/web (6 matches)
+  ✱ Glob "components/Home/\*\*/_.tsx" in apps/web (1 match)
   Voy a verificar algunos archivos más de la app antigua para completar la comparación.
-  ✱ Glob "components/Masonry/_.tsx" in frontend/apps/test/frontend/apps/web (1 match)
-  ✱ Glob "components/List/_.tsx" in frontend/apps/test/frontend/apps/web (1 match)
-  ✱ Glob "components/ListHeader/_.tsx" in frontend/apps/test/frontend/apps/web (4 matches)
-  ✱ Glob "components/RenderList/\*\*/_.tsx" in frontend/apps/test/frontend/apps/web (2 matches)
-  ✱ Glob "components/RenderList/\*_/_.tsx" in frontend/apps/web (4 matches)
-  ✱ Glob "components/Friends/_.tsx" in frontend/apps/test/frontend/apps/web (1 match)
-  ✱ Glob "components/Test/_.tsx" in frontend/apps/test/frontend/apps/web (1 match)
+  ✱ Glob "components/Masonry/_.tsx" in apps/test/apps/web (1 match)
+  ✱ Glob "components/List/_.tsx" in apps/test/apps/web (1 match)
+  ✱ Glob "components/ListHeader/_.tsx" in apps/test/apps/web (4 matches)
+  ✱ Glob "components/RenderList/\*\*/_.tsx" in apps/test/apps/web (2 matches)
+  ✱ Glob "components/RenderList/\*_/_.tsx" in apps/web (4 matches)
+  ✱ Glob "components/Friends/_.tsx" in apps/test/apps/web (1 match)
+  ✱ Glob "components/Test/_.tsx" in apps/test/apps/web (1 match)
 
 ---
 
 Goal
-The user wants to complete the web app pages of their Rockit music player project. They migrated from a monolithic React app to a new architecture separating mobile (Expo) from web (Next.js). The task is to compare the old web app (at frontend/apps/test/frontend/apps/web) with the new web app (at frontend/apps/web), identify what's implemented and what's missing page-by-page at the feature level, then rebuild/reimplement each page cleanly from scratch.
+The user wants to complete the web app pages of their Rockit music player project. They migrated from a monolithic React app to a new architecture separating mobile (Expo) from web (Next.js). The task is to compare the old web app (at apps/test/apps/web) with the new web app (at apps/web), identify what's implemented and what's missing page-by-page at the feature level, then rebuild/reimplement each page cleanly from scratch.
 Instructions
 
 - Go page by page — the user explicitly wants detailed per-page analysis
@@ -236,9 +236,9 @@ Instructions
 - Follow all project conventions from the docs (AGENTSfrontend.md, AGENTSbackend.md, Rules.md, etc.)
   Discoveries
   Project Architecture
-- Backend: FastAPI (async), SQLAlchemy, PostgreSQL, 3-layer architecture (controllers → framework → access), AResult pattern, 5 businesses (core, default, spotify, youtube, rockit), providers system
+- Backend: FastAPI (async), SQLAlchemy, PostgreSQL, 3-layer architecture (controllers → framework → access), Result pattern, 5 businesses (core, default, spotify, youtube, rockit), providers system
 - Frontend Web: Next.js 16 App Router, TypeScript, Nanostores, Zod, Tailwind CSS v4, pnpm monorepo
-- Frontend Mobile: Expo (React Native), separate app at frontend/apps/mobile/
+- Frontend Mobile: Expo (React Native), separate app at apps/mobile/
 - Key rule: page.tsx NEVER has "use client" — Server Components only. Client logic in \*Client.tsx
 - Key rule: All business logic in Managers (lib/managers/), never in components
 - Key rule: DTOs auto-generated from backend via python3 -m backend models — NEVER edit manually
@@ -383,23 +383,23 @@ Instructions
     Relevant files / directories
     New app (the target to build into)
 
-- /home/nicorebo18/rockit/frontend/apps/web/app/ — all page routes
-- /home/nicorebo18/rockit/frontend/apps/web/components/ — all components
-- /home/nicorebo18/rockit/frontend/apps/web/lib/managers/ — 18 managers
-- /home/nicorebo18/rockit/frontend/apps/web/hooks/ — useFetch, useMedia, useWindowSize
-- /home/nicorebo18/rockit/frontend/apps/web/models/enums/ — TypeScript enums
-- /home/nicorebo18/rockit/frontend/apps/web/components/RenderList/ — shared list component (RenderList.tsx, RenderListClient.tsx, Media.tsx, PlayableMedia.tsx)
+- /home/nicorebo18/rockit/apps/web/app/ — all page routes
+- /home/nicorebo18/rockit/apps/web/components/ — all components
+- /home/nicorebo18/rockit/apps/web/lib/managers/ — 18 managers
+- /home/nicorebo18/rockit/apps/web/hooks/ — useFetch, useMedia, useWindowSize
+- /home/nicorebo18/rockit/apps/web/models/enums/ — TypeScript enums
+- /home/nicorebo18/rockit/apps/web/components/RenderList/ — shared list component (RenderList.tsx, RenderListClient.tsx, Media.tsx, PlayableMedia.tsx)
   Old app (reference for features)
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/app/ — all old page routes
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/Stats/ — StatsClient, UserStats, charts/ (RankingList, ListeningHeatmap, AlbumGrid, MinutesBarChart)
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/Downloader/ — DownloaderClient, DownloadInputBar, DownloadLiveFeed
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/Radio/ — RadioClient
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/SongPage/ — SongPageCover, SongPageAlbum, SongPageLyrics, SongPageTopArtistSongs
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/Spotify/ — Artist, Album, Playlist, Track
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/Youtube/ — Video
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/Home/ — HomeClient, sections/, RecentlyPlayedSong, SongsCarousel, QuickSelectionsSong, hooks/useHomeData
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/Friends/ — FriendsClient (commented out)
-- /home/nicorebo18/rockit/frontend/apps/test/frontend/apps/web/components/RenderList/ — RenderList, RenderListClient
+- /home/nicorebo18/rockit/apps/test/apps/web/app/ — all old page routes
+- /home/nicorebo18/rockit/apps/test/apps/web/components/Stats/ — StatsClient, UserStats, charts/ (RankingList, ListeningHeatmap, AlbumGrid, MinutesBarChart)
+- /home/nicorebo18/rockit/apps/test/apps/web/components/Downloader/ — DownloaderClient, DownloadInputBar, DownloadLiveFeed
+- /home/nicorebo18/rockit/apps/test/apps/web/components/Radio/ — RadioClient
+- /home/nicorebo18/rockit/apps/test/apps/web/components/SongPage/ — SongPageCover, SongPageAlbum, SongPageLyrics, SongPageTopArtistSongs
+- /home/nicorebo18/rockit/apps/test/apps/web/components/Spotify/ — Artist, Album, Playlist, Track
+- /home/nicorebo18/rockit/apps/test/apps/web/components/Youtube/ — Video
+- /home/nicorebo18/rockit/apps/test/apps/web/components/Home/ — HomeClient, sections/, RecentlyPlayedSong, SongsCarousel, QuickSelectionsSong, hooks/useHomeData
+- /home/nicorebo18/rockit/apps/test/apps/web/components/Friends/ — FriendsClient (commented out)
+- /home/nicorebo18/rockit/apps/test/apps/web/components/RenderList/ — RenderList, RenderListClient
   Project docs
 - /home/nicorebo18/rockit/docs/AGENTSfrontend.md — frontend conventions
 - /home/nicorebo18/rockit/docs/AGENTSbackend.md — backend conventions
@@ -461,11 +461,11 @@ Good. Let me also check one more thing about the existing MediaContextMenu and h
 └ 32 toolcalls · 15m 57s
 ctrl+x down view subagents
 Now I have everything needed. Let me also quickly check the server-side fetch pattern used in other pages of the new app, to make sure the Home page server fetch follows the same pattern:
-✱ Grep "credentials.*include|next.*revalidate|apiFetch.\*server|getServerSession|getUserInServer" in frontend/apps/web/app (2 matches)
-→ Read frontend/apps/web/app/(protected)/(app)/admin/page.tsx
-→ Read frontend/apps/web/app/(protected)/(app)/playlist/[publicId]/page.tsx
-→ Read frontend/apps/web/lib/getUserInServer.ts
-→ Read frontend/apps/web/lib/services/mediaService.ts
+✱ Grep "credentials.*include|next.*revalidate|apiFetch.\*server|getServerSession|getUserInServer" in apps/web/app (2 matches)
+→ Read apps/web/app/(protected)/(app)/admin/page.tsx
+→ Read apps/web/app/(protected)/(app)/playlist/[publicId]/page.tsx
+→ Read apps/web/lib/getUserInServer.ts
+→ Read apps/web/lib/services/mediaService.ts
 Now I have the complete picture. Here's the final plan:
 
 ---

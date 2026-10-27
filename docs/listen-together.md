@@ -48,10 +48,10 @@ refreshing a page never awards XP.
 
 ## Validation
 
-`backend/tests/integration/test_friends.py` covers relationships, permissions,
+`apps/backend/tests/integration/test_friends.py` covers relationships, permissions,
 blocking, session transitions, media visibility, HTTP response contracts and
 post-commit notifications using disposable PostgreSQL databases.
-`frontend/apps/web/tests/listenTogether.test.mjs` covers explicit guest consent,
+`apps/web/tests/listenTogether.test.mjs` covers explicit guest consent,
 host ownership, immediate pause/seek, queue restoration, termination and logout.
 The regular web suite also retains the iOS playback, streaming, transitions and
 vinyl regression tests.

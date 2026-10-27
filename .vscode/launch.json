@@ -1,130 +1,71 @@
 {
-    "version": "0.3.0",
-    "compounds": [
-        {
-            "name": "Full Stack Web",
-            "configurations": [
-                "FastAPI Uvicorn (DEBUG)",
-                "NextJS Server"
-            ]
-        },
-        {
-            "name": "Full Stack Web (Tunnel)",
-            "configurations": [
-                "SSH Tunnel",
-                "FastAPI Uvicorn",
-                "NextJS Server"
-            ]
-        },
-        {
-            "name": "Full Stack Mobile",
-            "configurations": [
-                "FastAPI Uvicorn (DEBUG)",
-                "NextJS Server",
-                "Expo LAN"
-            ]
-        },
-        {
-            "name": "Full Stack Mobile (Tunnel)",
-            "configurations": [
-                "SSH Tunnel",
-                "FastAPI Uvicorn (DEBUG)",
-                "NextJS Server",
-                "Expo LAN"
-            ]
-        },
-        {
-            "name": "Full Stack Mobile + Web",
-            "configurations": [
-                "FastAPI Uvicorn (DEBUG)",
-                "NextJS Server",
-                "Expo LAN"
-            ]
-        },
-        {
-            "name": "Full Stack Mobile + Web (Tunnel)",
-            "configurations": [
-                "SSH Tunnel",
-                "FastAPI Uvicorn (DEBUG)",
-                "NextJS Server",
-                "Expo LAN"
-            ]
-        }
-    ],
+    "version": "0.2.0",
     "configurations": [
         {
-            "name": "FastAPI Uvicorn",
+            "name": "Backend (uvicorn)",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "backend.core.main:app",
+                "app.main:app",
                 "--host",
                 "0.0.0.0",
                 "--port",
-                "8000"
+                "8000",
+                "--reload"
             ],
-            "cwd": "${workspaceFolder}",
-            "justMyCode": true
+            "cwd": "${workspaceFolder}/apps/backend",
+            "python": "${workspaceFolder}/apps/backend/.venv/bin/python",
+            "justMyCode": true,
+            "console": "integratedTerminal"
         },
         {
-            "name": "FastAPI Uvicorn (DEBUG)",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "backend.core.main:app",
-                "--reload",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8000"
-            ],
-            "cwd": "${workspaceFolder}",
-            "justMyCode": true
-        },
-        {
-            "name": "SSH Tunnel",
+            "name": "Web (Next.js)",
             "type": "node",
             "request": "launch",
-            "runtimeExecutable": "ssh",
+            "cwd": "${workspaceFolder}/apps/web",
+            "runtimeExecutable": "systemd-run",
             "runtimeArgs": [
-                "-L",
-                "5433:localhost:5432",
-                "-J",
-                "gateway@no-proxy.rockhosting.org",
-                "root@rockit.rockhosting.lan"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "name": "NextJS Server",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "pnpm",
-            "runtimeArgs": [
+                "--user",
+                "--scope",
+                "--property=MemoryMax=2G",
+                "pnpm",
                 "run",
-                "dev",
+                "dev"
             ],
-            "cwd": "${workspaceFolder}/frontend",
             "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "autoAttachChildProcesses": true,
+            "serverReadyAction": {
+                "pattern": "- Local: +(http|https)://localhost:([0-9]+)/",
+                "uriFormat": "http://localhost:%s",
+                "action": "debugWithChrome"
+            },
+            "restart": true,
+            "webRoot": "${workspaceFolder}/apps/web"
         },
         {
-            "name": "Expo LAN",
-            "type": "node",
+            "name": "Mobile (Expo)",
+            "type": "reactnative",
             "request": "launch",
-            "runtimeExecutable": "npx",
-            "runtimeArgs": [
-                "expo",
-                "start",
-                "--offline",
-                "--go"
+            "cwd": "${workspaceFolder}/apps/mobile",
+            "platform": "expo",
+            "sourceMaps": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Backend + Web + Mobile",
+            "configurations": [
+                "Backend (uvicorn)",
+                "Web (Next.js)",
+                "Mobile (Expo)"
             ],
-            "cwd": "${workspaceFolder}/frontend/apps/mobile",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "stopAll": true
+        },
+        {
+            "name": "Backend + Web",
+            "configurations": ["Backend (uvicorn)", "Web (Next.js)"],
+            "stopAll": true
         }
     ]
 }

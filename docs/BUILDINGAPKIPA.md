@@ -3,7 +3,7 @@
 ## Prerequisites
 
 1. Expo account: expo.dev
-2. Mobile app: frontend/apps/mobile/
+2. Mobile app: apps/mobile/
 3. EAS CLI: `npm install -g eas-cli`
 
 ## Auth
@@ -25,7 +25,7 @@ export EXPO_TOKEN=your_token_here
 ### Init EAS (if not linked)
 
 ```bash
-cd frontend/apps/mobile
+cd apps/mobile
 eas init --non-interactive --force
 ```
 
@@ -36,7 +36,7 @@ Config: eas.json with profiles (development, preview, production)
 ### Preview (testing)
 
 ```bash
-cd frontend/apps/mobile
+cd apps/mobile
 EXPO_TOKEN=your_token eas build --platform android --profile preview --wait
 ```
 
@@ -67,7 +67,7 @@ Note: iOS needs Apple Developer credentials in EAS.
 ## Package Scripts
 
 ```bash
-# From frontend/apps/mobile
+# From apps/mobile
 pnpm build:android:preview
 pnpm build:android:production
 pnpm build:ios:preview
@@ -108,7 +108,7 @@ startup logs are attached separately as
 To run the same check locally, use a fresh, booted emulator:
 
 ```bash
-python frontend/apps/mobile/scripts/smoke-test-android.py path/to/app-release.apk \
+python apps/mobile/scripts/smoke-test-android.py path/to/app-release.apk \
   --serial emulator-5554 --output android-smoke-test
 ```
 

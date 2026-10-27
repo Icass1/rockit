@@ -1,0 +1,399 @@
+from datetime import UTC, datetime
+from logging import Logger
+
+from sqlalchemy import or_, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from core.access.db.ormModels.download import DownloadRow
+from core.access.db.ormModels.downloadGroup import DownloadGroupRow
+from core.access.db.ormModels.downloadStatus import DownloadStatusRow
+from core.access.db.ormModels.media import CoreMediaRow
+from core.enums.downloadStatusEnum import DownloadStatusEnum
+from core.utils.createId import create_id
+from core.utils.safeAsyncCall import safe_async
+from logger import getLogger
+from result import Result, ResultCode
+
+logger: Logger = getLogger(__name__)
+
+
+class DownloadAccess:
+    @staticmethod
+    @safe_async
+    async def create_download_group(
+        session: AsyncSession,
+        user_id: int,
+        title: str,
+        source_public_id: str | None = None,
+    ) -> Result[DownloadGroupRow]:
+        """Create a new download group row and flush so its id is available."""
+
+        row: DownloadGroupRow = DownloadGroupRow(
+            public_id=create_id(32),
+            user_id=user_id,
+            title=title,
+            date_started=datetime.now(UTC),
+        )
+        row.source_public_id = source_public_id
+        session.add(row)
+        await session.flush()
+        return Result(code=ResultCode.OK, message="OK", result=row)
+
+    @staticmethod
+    @safe_async
+    async def create_download(
+        session: AsyncSession,
+        download_group_id: int,
+        media_id: int,
+    ) -> Result[DownloadRow]:
+        """Create a new download row for a single song and flush so its id is available."""
+
+        result = await session.execute(
+            select(DownloadRow)
+            .where(DownloadRow.media_id == media_id)
+            .where(DownloadRow.download_group_id == download_group_id)
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            return Result(code=ResultCode.OK, message="OK", result=existing)
+
+        # result_any = await session.execute(
+        #     select(DownloadRow)
+        #     .where(DownloadRow.media_id == media_id)
+        #     .where(DownloadRow.status_key == 3)
+        # )
+        # existing_completed = result_any.scalar_one_or_none()
+        # if existing_completed:
+        #     return Result(
+        #         code=ResultCode.ALREADY_EXISTS,
+        #         message="Download already exists for this media",
+        #         result=existing_completed,
+        #     )
+
+        row: DownloadRow = DownloadRow(
+            public_id=create_id(32),
+            download_group_id=download_group_id,
+            media_id=media_id,
+            date_started=datetime.now(UTC),
+        )
+        session.add(row)
+        await session.flush()
+        return Result(code=ResultCode.OK, message="OK", result=row)
+
+    @staticmethod
+    @safe_async
+    async def create_download_status(
+        session: AsyncSession,
+        download_id: int,
+        completed: float,
+        message: str,
+    ) -> Result[DownloadStatusRow]:
+        """Insert a new row in DownloadStatusRow and flush so its id is available."""
+
+        row: DownloadStatusRow = DownloadStatusRow(
+            download_id=download_id,
+            completed=round(float(completed), 2),
+            message=message,
+        )
+        session.add(row)
+        await session.flush()
+
+        return Result(code=ResultCode.OK, message="OK", result=row)
+
+    @staticmethod
+    @safe_async
+    async def update_download_group_completion(
+        session: AsyncSession,
+        download_group_id: int,
+    ) -> Result[DownloadGroupRow]:
+        """Update download group with success/fail counts and date_ended."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.download_group_id == download_group_id)
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+
+        success_count: int = 0
+        fail_count: int = 0
+        for download in downloads:
+            if download.status_key == DownloadStatusEnum.COMPLETED.value:
+                success_count += 1
+            elif download.status_key == DownloadStatusEnum.FAILED.value:
+                fail_count += 1
+
+        result_group = await session.execute(
+            select(DownloadGroupRow).where(DownloadGroupRow.id == download_group_id)
+        )
+        group: DownloadGroupRow | None = result_group.scalar_one_or_none()
+        if group is None:
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message=f"Download group {download_group_id} not found",
+            )
+
+        group.date_ended = datetime.now(UTC)
+        group.success = success_count
+        group.fail = fail_count
+
+        if fail_count > 0:
+            group.status_key = DownloadStatusEnum.FAILED.value
+        else:
+            group.status_key = DownloadStatusEnum.COMPLETED.value
+
+        return Result(code=ResultCode.OK, message="OK", result=group)
+
+    @staticmethod
+    @safe_async
+    async def finalize_download_async(
+        session: AsyncSession,
+        download_id: int,
+        status_key: int,
+    ) -> Result[DownloadRow]:
+        """Set status_key and date_ended on a download, then commit."""
+
+        result = await session.execute(
+            select(DownloadRow)
+            .where(DownloadRow.id == download_id)
+            .options(selectinload(DownloadRow.download_status_list))
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message=f"Download {download_id} not found",
+            )
+
+        download.status_key = status_key
+        download.date_ended = datetime.now(UTC)
+        await session.commit()
+        return Result(code=ResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def update_download_status(
+        session: AsyncSession,
+        download_id: int,
+        status_key: int,
+    ) -> Result[DownloadRow]:
+        """Update the status_key of a download row."""
+
+        result = await session.execute(select(DownloadRow).where(DownloadRow.id == download_id))
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message=f"Download {download_id} not found",
+            )
+
+        download.status_key = status_key
+        return Result(code=ResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def get_download_groups_by_user_id(
+        session: AsyncSession,
+        user_id: int,
+    ) -> Result[list[DownloadGroupRow]]:
+        """Get all download groups for a user, ordered by most recent first."""
+
+        result = await session.execute(
+            select(DownloadGroupRow)
+            .where(DownloadGroupRow.user_id == user_id, DownloadGroupRow.seen.is_(False))
+            .order_by(DownloadGroupRow.date_started.desc())
+        )
+        groups: list[DownloadGroupRow] = list(result.scalars().all())
+        return Result(code=ResultCode.OK, message="OK", result=groups)
+
+    @staticmethod
+    @safe_async
+    async def mark_download_group_seen(
+        session: AsyncSession,
+        group: DownloadGroupRow,
+    ) -> Result[bool]:
+        """Mark a download group as seen."""
+
+        await session.execute(
+            update(DownloadGroupRow).where(DownloadGroupRow.id == group.id).values(seen=True)
+        )
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def get_downloads_by_group_id(
+        session: AsyncSession,
+        download_group_id: int,
+    ) -> Result[list[DownloadRow]]:
+        """Get all download rows for a download group."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.download_group_id == download_group_id)
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+        return Result(code=ResultCode.OK, message="OK", result=downloads)
+
+    @staticmethod
+    @safe_async
+    async def get_downloads_by_group_ids(
+        session: AsyncSession,
+        download_group_ids: list[int],
+    ) -> Result[list[DownloadRow]]:
+        """Get all download rows for multiple download groups in a single query.
+
+        Uses selectinload to eager load the download status list and avoids the
+        N+1 pattern of querying each group separately.
+        """
+
+        result = await session.execute(
+            select(DownloadRow)
+            .options(selectinload(DownloadRow.download_status_list))
+            .where(
+                DownloadRow.download_group_id.in_(download_group_ids),
+                DownloadRow.seen.is_(False),
+            )
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+        return Result(code=ResultCode.OK, message="OK", result=downloads)
+
+    @staticmethod
+    @safe_async
+    async def get_download_group_by_public_id(
+        session: AsyncSession,
+        public_id: str,
+        user_id: int,
+        lock: bool = False,
+    ) -> Result[DownloadGroupRow]:
+        """Get a download group by public_id, scoped to a user."""
+
+        stmt = select(DownloadGroupRow).where(
+            DownloadGroupRow.public_id == public_id, DownloadGroupRow.user_id == user_id
+        )
+        if lock:
+            stmt = stmt.with_for_update()
+        result = await session.execute(stmt)
+        group: DownloadGroupRow | None = result.scalar_one_or_none()
+        if group is None:
+            return Result(
+                code=ResultCode.NOT_FOUND,
+                message="Download group not found",
+            )
+        return Result(code=ResultCode.OK, message="OK", result=group)
+
+    @staticmethod
+    @safe_async
+    async def delete_download_group_with_downloads(
+        session: AsyncSession,
+        group: DownloadGroupRow,
+    ) -> Result[bool]:
+        """Delete a download group and all its child downloads."""
+
+        result = await session.execute(
+            select(DownloadRow).where(DownloadRow.download_group_id == group.id)
+        )
+        downloads: list[DownloadRow] = list(result.scalars().all())
+        for download in downloads:
+            await session.delete(download)
+
+        await session.delete(group)
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def get_download_by_id(
+        session: AsyncSession,
+        download_id: int,
+    ) -> Result[DownloadRow]:
+        """Get a download row by its id."""
+
+        result = await session.execute(
+            select(DownloadRow)
+            .options(selectinload(DownloadRow.download_status_list))
+            .where(DownloadRow.id == download_id)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return Result(
+                code=ResultCode.NOT_FOUND,
+                message=f"Download {download_id} not found",
+            )
+        return Result(code=ResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def increment_retry_count(
+        session: AsyncSession,
+        download_id: int,
+    ) -> Result[int]:
+        """Increment the retry_count for a download and return the new count."""
+
+        result = await session.execute(select(DownloadRow).where(DownloadRow.id == download_id))
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return Result(
+                code=ResultCode.NOT_FOUND,
+                message=f"Download {download_id} not found",
+            )
+
+        download.retry_count += 1
+        await session.flush()
+        return Result(code=ResultCode.OK, message="OK", result=download.retry_count)
+
+    @staticmethod
+    @safe_async
+    async def reset_download_for_retry(
+        session: AsyncSession,
+        download_id: int,
+    ) -> Result[DownloadRow]:
+        """Reset a download row to PENDING status with retry_count=0."""
+
+        result = await session.execute(select(DownloadRow).where(DownloadRow.id == download_id))
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return Result(
+                code=ResultCode.NOT_FOUND,
+                message=f"Download {download_id} not found",
+            )
+
+        download.status_key = DownloadStatusEnum.PENDING.value
+        download.retry_count = 0
+        download.date_ended = None
+        return Result(code=ResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def get_download_by_media_public_id(
+        session: AsyncSession,
+        media_public_id: str,
+        user_id: int,
+    ) -> Result[DownloadRow]:
+        """Get the latest download row for a given media public_id and user."""
+
+        result = await session.execute(
+            select(DownloadRow)
+            .join(DownloadGroupRow, DownloadRow.download_group_id == DownloadGroupRow.id)
+            .join(CoreMediaRow, DownloadRow.media_id == CoreMediaRow.id)
+            .where(
+                or_(
+                    DownloadRow.public_id == media_public_id,
+                    CoreMediaRow.public_id == media_public_id,
+                ),
+                DownloadGroupRow.user_id == user_id,
+            )
+            .order_by(DownloadRow.id.desc())
+            .limit(1)
+        )
+        download: DownloadRow | None = result.scalar_one_or_none()
+        if download is None:
+            return Result(
+                code=ResultCode.NOT_FOUND,
+                message=f"No download found for media {media_public_id}",
+            )
+        return Result(code=ResultCode.OK, message="OK", result=download)
+
+    @staticmethod
+    @safe_async
+    async def dismiss_download_async(session: AsyncSession, download: DownloadRow) -> Result[bool]:
+        """Hide a terminal download without removing rows used by the worker."""
+        download.seen = True
+        await session.flush()
+        return Result(code=ResultCode.OK, message="OK", result=True)

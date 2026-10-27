@@ -26,7 +26,7 @@ Frontend:
 
 Backend:
 
-- every function return AResult (never raise)
+- every function return Result (never raise)
 - static classes + @staticmethod
 - everything async
 - session scope for DB
@@ -46,7 +46,7 @@ Database:
 
 ## Running
 
-Backend: `fastapi dev backend/main.py`
+Backend: `fastapi dev apps/backend/main.py`
 
 Frontend: `cd frontend && pnpm run dev`
 

@@ -1,0 +1,1 @@
+extend = "apps/backend/pyproject.toml"

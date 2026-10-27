@@ -1,0 +1,854 @@
+import json
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.access.db.ormModels.friend.friend import FriendRow
+from core.access.db.ormModels.image import ImageRow
+from core.access.db.ormModels.user import UserRow
+from core.framework.friend.activity import FriendActivity
+from core.framework.friend.friend import Friend
+from core.framework.friend.levels import Levels
+from core.framework.friend.listenTogether import ListenTogether
+from core.framework.friend.sharing import Sharing
+from core.framework.friend.streakBattle import StreakBattle
+from core.framework.friend.vibe import Vibe
+from core.framework.media.image import Image
+from core.framework.media.media import Media
+from core.framework.stats import Stats as StatsFramework
+from core.middlewares.authMiddleware import AuthMiddleware
+from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from core.requests.friend.friendRequests import (
+    ListenTogetherInviteRequest,
+    ListenTogetherJoinRequest,
+    ListenTogetherLeaveRequest,
+    ListenTogetherSyncRequest,
+    ShareMediaRequest,
+)
+from core.responses.friend.friendActivityResponse import (
+    FriendActivityResponse,
+)
+from core.responses.friend.friendRequestResponse import (
+    FriendRequestListResponse,
+    FriendRequestResponse,
+)
+from core.responses.friend.friendResponse import (
+    FriendListResponse,
+    FriendResponse,
+)
+from core.responses.friend.friendSearchResponse import (
+    FriendSearchResponse,
+    UserSearchResult,
+)
+from core.responses.friend.friendStatsResponse import (
+    CompareStatsResponse,
+    FriendStatsResponse,
+    FriendStreakResponse,
+    VibeScoreResponse,
+)
+from core.responses.friend.listenTogetherResponse import (
+    ListenTogetherListResponse,
+    ListenTogetherSessionResponse,
+)
+from core.responses.friend.sharedMediaResponse import (
+    SharedMediaInboxResponse,
+    SharedMediaSentResponse,
+)
+from core.responses.friend.userLevelResponse import (
+    LeaderboardResponse,
+    UserLevelResponse,
+)
+from core.responses.okResponse import OkResponse
+from logger import getLogger
+
+logger = getLogger(__name__)
+
+
+async def _get_image_url_async(image: ImageRow | None) -> str | None:
+    """Resolve an image to its internal URL, returning None when unavailable."""
+
+    if image is None:
+        return None
+
+    a_result_image_url = await Image.get_internal_image_url_async(image=image)
+    if a_result_image_url.is_not_ok():
+        logger.warning(f"Error getting image URL. {a_result_image_url.info()}")
+        return None
+
+    return a_result_image_url.result()
+
+
+router = APIRouter(
+    prefix="/friends",
+    dependencies=[Depends(AuthMiddleware.auth_dependency)],
+    tags=["Core", "Friends"],
+)
+
+
+def _get_user(request: Request) -> UserRow:
+    a_user = AuthMiddleware.get_current_user(request=request)
+    if a_user.is_not_ok():
+        logger.error(f"Authentication error: {a_user.info()}")
+        raise HTTPException(status_code=500, detail="Internal authentication error")
+    return a_user.result()
+
+
+# ─── Friends CRUD ────────────────────────────────────────────────────────────
+
+
+async def _require_friend(session: AsyncSession, user_id: int, target_id: int) -> None:
+    if user_id == target_id:
+        return
+    allowed = await Friend.require_friend_async(session, user_id, target_id)
+    if allowed.is_not_ok():
+        logger.error(f"Friend profile access denied. {allowed.info()}")
+        raise HTTPException(status_code=allowed.get_http_code(), detail=allowed.message())
+
+
+@router.get("", response_model=FriendListResponse)
+async def get_friends(request: Request) -> FriendListResponse:
+    """Get all friends for the current user."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await Friend.get_friends_async(session=session, user_id=user.id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting friends: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    friend_rows: list[FriendRow] = a_result.result()
+    profiles = await Levels.get_profiles_async(session, [row.friend_user_id for row in friend_rows])
+    if profiles.is_not_ok():
+        logger.error(f"Error getting friend levels. {profiles.info()}")
+        raise HTTPException(status_code=profiles.get_http_code(), detail=profiles.message())
+    levels_by_user = {profile.userId: profile for profile in profiles.result()}
+    from core.framework.websocket.webSocketManager import ws_manager
+
+    friends: list[FriendResponse] = []
+    for fr in friend_rows:
+        friend_user = fr.friend
+        friends.append(
+            FriendResponse(
+                publicId=friend_user.public_id,
+                username=friend_user.username,
+                imageUrl=await _get_image_url_async(friend_user.image),
+                status="accepted",
+                level=levels_by_user[friend_user.public_id].level,
+                levelTitle=levels_by_user[friend_user.public_id].title,
+                isOnline=bool(ws_manager.active_connections.get(friend_user.id)),
+                dateAdded=fr.date_added,
+            )
+        )
+
+    return FriendListResponse(friends=friends)
+
+
+@router.get("/blocked", response_model=FriendListResponse)
+async def get_blocked_users(request: Request) -> FriendListResponse:
+    user = _get_user(request)
+    session = DBSessionMiddleware.get_session(request)
+    blocked = await Friend.get_blocked_async(session, user.id)
+    if blocked.is_not_ok():
+        logger.error(f"Error getting blocked users. {blocked.info()}")
+        raise HTTPException(status_code=blocked.get_http_code(), detail=blocked.message())
+    return FriendListResponse(
+        friends=[
+            FriendResponse(
+                publicId=row.friend.public_id,
+                username=row.friend.username,
+                imageUrl=await _get_image_url_async(row.friend.image),
+                status="blocked",
+                dateAdded=row.date_added,
+            )
+            for row in blocked.result()
+        ]
+    )
+
+
+@router.get("/requests", response_model=FriendRequestListResponse)
+async def get_friend_requests(request: Request) -> FriendRequestListResponse:
+    """Get pending friend requests (incoming and sent)."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_incoming = await Friend.get_pending_requests_async(session=session, user_id=user.id)
+    a_sent = await Friend.get_sent_requests_async(session=session, user_id=user.id)
+
+    incoming: list[FriendRequestResponse] = []
+    if a_incoming.is_ok():
+        for req in a_incoming.result():
+            from_user = req.from_user
+            incoming.append(
+                FriendRequestResponse(
+                    publicId=req.public_id,
+                    fromUserPublicId=from_user.public_id,
+                    fromUsername=from_user.username,
+                    fromUserImageUrl=await _get_image_url_async(from_user.image),
+                    message=req.message,
+                    status="pending",
+                    dateAdded=req.date_added,
+                )
+            )
+
+    sent: list[FriendRequestResponse] = []
+    if a_sent.is_ok():
+        for req in a_sent.result():
+            to_user = req.to_user
+            sent.append(
+                FriendRequestResponse(
+                    publicId=req.public_id,
+                    fromUserPublicId=to_user.public_id,
+                    fromUsername=to_user.username,
+                    fromUserImageUrl=await _get_image_url_async(to_user.image),
+                    message=req.message,
+                    status="pending",
+                    dateAdded=req.date_added,
+                )
+            )
+
+    return FriendRequestListResponse(incoming=incoming, sent=sent)
+
+
+@router.get("/search", response_model=FriendSearchResponse)
+async def search_users(
+    request: Request, q: str = Query(min_length=2, max_length=100)
+) -> FriendSearchResponse:
+    """Search users by username."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await Friend.search_users_async(session=session, query=q, current_user_id=user.id)
+    if a_result.is_not_ok():
+        logger.error(f"Error searching users: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    friend_ids_result = await Friend.get_friend_ids_async(session=session, user_id=user.id)
+    friend_ids: set[int] = set(friend_ids_result.result()) if friend_ids_result.is_ok() else set()
+
+    pending = await Friend.get_sent_requests_async(session, user.id)
+    if pending.is_not_ok():
+        logger.error(f"Error checking sent requests. {pending.info()}")
+        raise HTTPException(status_code=pending.get_http_code(), detail=pending.message())
+    pending_ids = {row.to_user_id for row in pending.result()}
+    results: list[UserSearchResult] = []
+    for user_row in a_result.result():
+        results.append(
+            UserSearchResult(
+                publicId=user_row.public_id,
+                username=user_row.username,
+                imageUrl=await _get_image_url_async(user_row.image),
+                isFriend=user_row.id in friend_ids,
+                requestSent=user_row.id in pending_ids,
+            )
+        )
+
+    return FriendSearchResponse(results=results)
+
+
+@router.post("/request/{user_public_id}", response_model=OkResponse)
+async def send_friend_request(request: Request, user_public_id: str) -> OkResponse:
+    """Send a friend request to a user."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    a_result = await Friend.send_friend_request_async(
+        session=session,
+        from_user_id=user.id,
+        to_user_id=a_target.result().id,
+        message=None,
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error sending friend request: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.post("/request/{request_public_id}/accept", response_model=OkResponse)
+async def accept_friend_request(request: Request, request_public_id: str) -> OkResponse:
+    """Accept a friend request."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await Friend.accept_friend_request_async(
+        session=session, user_id=user.id, request_public_id=request_public_id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error accepting friend request: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.post("/request/{request_public_id}/reject", response_model=OkResponse)
+async def reject_friend_request(request: Request, request_public_id: str) -> OkResponse:
+    """Reject a friend request."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await Friend.reject_friend_request_async(
+        session=session, user_id=user.id, request_public_id=request_public_id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error rejecting friend request: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.delete("/{user_public_id}", response_model=OkResponse)
+async def remove_friend(request: Request, user_public_id: str) -> OkResponse:
+    """Remove a friend."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    a_result = await Friend.remove_friend_async(
+        session=session, user_id=user.id, friend_user_id=a_target.result().id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error removing friend: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.post("/block/{user_public_id}", response_model=OkResponse)
+async def block_user(request: Request, user_public_id: str) -> OkResponse:
+    """Block a user."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    a_result = await Friend.block_user_async(
+        session=session, user_id=user.id, block_user_id=a_target.result().id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error blocking user: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.delete("/block/{user_public_id}", response_model=OkResponse)
+async def unblock_user(request: Request, user_public_id: str) -> OkResponse:
+    """Unblock a user."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    a_result = await Friend.unblock_user_async(
+        session=session, user_id=user.id, blocked_user_id=a_target.result().id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error unblocking user: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+# ─── Activity ─────────────────────────────────────────────────────────────────
+
+
+@router.get("/activity", response_model=FriendActivityResponse)
+async def get_friends_activity(request: Request) -> FriendActivityResponse:
+    """Get activity feed of friends."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await FriendActivity.get_friends_activity_async(session=session, user_id=user.id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting friends activity: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    activities = a_result.result()
+    return FriendActivityResponse(activities=activities)
+
+
+# ─── Share ────────────────────────────────────────────────────────────────────
+
+
+@router.post("/share", response_model=OkResponse)
+async def share_media(request: Request, body: ShareMediaRequest) -> OkResponse:
+    """Share a media item with a friend."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(
+        session=session, public_id=body.recipientPublicId
+    )
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    a_result = await Sharing.share_media_async(
+        session=session,
+        sender_user_id=user.id,
+        recipient_user_id=a_target.result().id,
+        media_public_id=body.mediaPublicId,
+        message=body.message,
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error sharing media: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.get("/share/inbox", response_model=SharedMediaInboxResponse)
+async def get_share_inbox(request: Request) -> SharedMediaInboxResponse:
+    """Get media shared with me."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await Sharing.get_inbox_async(session=session, user_id=user.id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting share inbox: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    items = await Sharing.present_async(session, user.id, a_result.result())
+    if items.is_not_ok():
+        logger.error(f"Error presenting shares. {items.info()}")
+        raise HTTPException(status_code=items.get_http_code(), detail=items.message())
+    return SharedMediaInboxResponse(items=items.result())
+
+
+@router.get("/share/sent", response_model=SharedMediaSentResponse)
+async def get_share_sent(request: Request) -> SharedMediaSentResponse:
+    """Get media I've shared."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await Sharing.get_sent_async(session=session, user_id=user.id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting sent shares: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    items = await Sharing.present_async(session, user.id, a_result.result())
+    if items.is_not_ok():
+        logger.error(f"Error presenting shares. {items.info()}")
+        raise HTTPException(status_code=items.get_http_code(), detail=items.message())
+    return SharedMediaSentResponse(items=items.result())
+
+
+@router.post("/share/{share_public_id}/seen", response_model=OkResponse)
+async def mark_share_seen(request: Request, share_public_id: str) -> OkResponse:
+    """Mark a shared media as seen."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await Sharing.mark_as_seen_async(
+        session=session, user_id=user.id, share_public_id=share_public_id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error marking share as seen: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.delete("/share/{share_public_id}", response_model=OkResponse)
+async def delete_share(request: Request, share_public_id: str) -> OkResponse:
+    user = _get_user(request)
+    session = DBSessionMiddleware.get_session(request)
+    result = await Sharing.delete_share_async(session, user.id, share_public_id)
+    if result.is_not_ok():
+        logger.error(f"Error deleting share. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse(status="OK")
+
+
+# ─── Listen Together ──────────────────────────────────────────────────────────
+
+
+@router.post("/listen-together/invite", response_model=OkResponse)
+async def invite_to_session(request: Request, body: ListenTogetherInviteRequest) -> OkResponse:
+    """Invite a friend to listen together."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(
+        session=session, public_id=body.userPublicId
+    )
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    a_result = await ListenTogether.invite_async(
+        session=session, host_user_id=user.id, guest_user_id=a_target.result().id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error inviting to session: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.post("/listen-together/join", response_model=OkResponse)
+async def join_session(request: Request, body: ListenTogetherJoinRequest) -> OkResponse:
+    """Join a listen together session."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await ListenTogether.join_async(
+        session=session, user_id=user.id, session_public_id=body.sessionPublicId
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error joining session: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.post("/listen-together/leave", response_model=OkResponse)
+async def leave_session(request: Request, body: ListenTogetherLeaveRequest) -> OkResponse:
+    """Leave a listen together session."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await ListenTogether.leave_async(
+        session=session, user_id=user.id, session_public_id=body.sessionPublicId
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error leaving session: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.post("/listen-together/sync", response_model=OkResponse)
+async def sync_session(request: Request, body: ListenTogetherSyncRequest) -> OkResponse:
+    """Sync playback in a listen together session (host only)."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await ListenTogether.sync_async(
+        session=session,
+        user_id=user.id,
+        session_public_id=body.sessionPublicId,
+        media_public_id=body.mediaPublicId,
+        current_time_ms=body.currentTimeMs,
+        is_playing=body.isPlaying,
+        queue_json=json.dumps(body.queue) if body.queue is not None else None,
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error syncing session: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return OkResponse(status="OK")
+
+
+@router.get("/listen-together/sessions", response_model=ListenTogetherListResponse)
+async def get_active_sessions(request: Request) -> ListenTogetherListResponse:
+    """Get active listen together sessions for current user."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result = await ListenTogether.get_active_sessions_async(session=session, user_id=user.id)
+    if a_result.is_not_ok():
+        logger.error(f"Error getting active sessions: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    sessions: list[ListenTogetherSessionResponse] = []
+    for s in a_result.result():
+        host = s.host
+        guest = s.guest
+        current_media = s.current_media
+        resolved = None
+        if current_media:
+            a_resolved = await Media.get_media_async(session, current_media.public_id, user.id)
+            if a_resolved.is_ok():
+                resolved = a_resolved.result()
+            else:
+                logger.error(f"Error resolving session media. {a_resolved.info()}")
+        sessions.append(
+            ListenTogetherSessionResponse(
+                publicId=s.public_id,
+                hostPublicId=host.public_id,
+                hostUsername=host.username,
+                hostImageUrl=await _get_image_url_async(host.image),
+                guestPublicId=guest.public_id,
+                guestUsername=guest.username,
+                guestImageUrl=await _get_image_url_async(guest.image),
+                currentMediaPublicId=current_media.public_id if current_media else None,
+                currentMediaName=resolved.media.name if resolved else None,
+                currentMediaImageUrl=resolved.media.imageUrl if resolved else None,
+                currentMedia=resolved,
+                updatedAt=s.date_updated,
+                currentTimeMs=s.current_time_ms,
+                isPlaying=s.is_playing,
+                status=(
+                    "active"
+                    if s.status.name == "ACTIVE"
+                    else "invited"
+                    if s.status.name == "INVITED"
+                    else "ended"
+                ),
+            )
+        )
+
+    return ListenTogetherListResponse(sessions=sessions)
+
+
+# ─── Stats & Compare ─────────────────────────────────────────────────────────
+
+
+@router.get("/{user_public_id}/stats", response_model=FriendStatsResponse)
+async def get_friend_stats(request: Request, user_public_id: str) -> FriendStatsResponse:
+    """Get a friend's listening stats."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    target = a_target.result()
+    await _require_friend(session, user.id, target.id)
+
+    from core.requests.userStatsRequest import UserStatsRequest
+
+    stats_req = UserStatsRequest(range="7d")
+
+    a_stats = await StatsFramework.get_user_stats_async(
+        session=session,
+        user_id=target.id,
+        range_value=stats_req.range,
+    )
+    if a_stats.is_not_ok():
+        logger.error(f"Error getting user stats: {a_stats.info()}")
+
+    a_level = await Levels.get_user_level_async(session=session, user_id=target.id)
+    if a_level.is_not_ok():
+        logger.error(f"Error getting user level: {a_level.info()}")
+
+    minutes = 0
+    songs = 0
+    streak = 0
+    level = 1
+    xp = 0
+
+    if a_stats.is_ok():
+        minutes = a_stats.result().summary.minutesListened
+        songs = a_stats.result().summary.songsListened
+        streak = a_stats.result().summary.currentStreak
+
+    if a_level.is_ok():
+        level = a_level.result().level
+        xp = a_level.result().xp
+
+    return FriendStatsResponse(
+        username=target.username,
+        imageUrl=await _get_image_url_async(target.image),
+        minutesListened=minutes,
+        songsListened=songs,
+        currentStreak=streak,
+        level=level,
+        xp=xp,
+    )
+
+
+@router.get("/{user_public_id}/streak", response_model=FriendStreakResponse)
+async def get_friend_streak(request: Request, user_public_id: str) -> FriendStreakResponse:
+    """Get a friend's streak."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    await _require_friend(session, user.id, a_target.result().id)
+    a_streak = await StreakBattle.get_streak_for_user_async(
+        session=session, user_id=a_target.result().id
+    )
+    if a_streak.is_not_ok():
+        logger.error(f"Error getting streak: {a_streak.info()}")
+
+    streak = a_streak.result() if a_streak.is_ok() else 0
+    return FriendStreakResponse(currentStreak=streak)
+
+
+@router.get("/compare/{user_public_id}", response_model=CompareStatsResponse)
+async def compare_stats(request: Request, user_public_id: str) -> CompareStatsResponse:
+    """Compare current user's stats with a friend."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    target = a_target.result()
+    await _require_friend(session, user.id, target.id)
+
+    from core.requests.userStatsRequest import UserStatsRequest
+
+    stats_req = UserStatsRequest(range="7d")
+
+    a_my_stats = await StatsFramework.get_user_stats_async(
+        session=session,
+        user_id=user.id,
+        range_value=stats_req.range,
+    )
+    a_friend_stats = await StatsFramework.get_user_stats_async(
+        session=session,
+        user_id=target.id,
+        range_value=stats_req.range,
+    )
+
+    a_my_level = await Levels.get_user_level_async(session=session, user_id=user.id)
+    a_friend_level = await Levels.get_user_level_async(session=session, user_id=target.id)
+    a_vibe = await Vibe.get_vibe_score_async(
+        session=session, user_id=user.id, friend_user_id=target.id
+    )
+
+    if a_my_stats.is_not_ok():
+        logger.error(f"Error getting my stats: {a_my_stats.info()}")
+    if a_friend_stats.is_not_ok():
+        logger.error(f"Error getting friend stats: {a_friend_stats.info()}")
+    if a_my_level.is_not_ok():
+        logger.error(f"Error getting my level: {a_my_level.info()}")
+    if a_friend_level.is_not_ok():
+        logger.error(f"Error getting friend level: {a_friend_level.info()}")
+    if a_vibe.is_not_ok():
+        logger.error(f"Error getting vibe score: {a_vibe.info()}")
+
+    my_stats = a_my_stats.result() if a_my_stats.is_ok() else None
+    friend_stats = a_friend_stats.result() if a_friend_stats.is_ok() else None
+
+    my_level_row = a_my_level.result() if a_my_level.is_ok() else None
+    friend_level_row = a_friend_level.result() if a_friend_level.is_ok() else None
+
+    vibe = a_vibe.result() if a_vibe.is_ok() else None
+
+    return CompareStatsResponse(
+        myStats=FriendStatsResponse(
+            username=user.username,
+            imageUrl=await _get_image_url_async(user.image),
+            minutesListened=my_stats.summary.minutesListened if my_stats else 0,
+            songsListened=my_stats.summary.songsListened if my_stats else 0,
+            currentStreak=my_stats.summary.currentStreak if my_stats else 0,
+            level=my_level_row.level if my_level_row else 1,
+            xp=my_level_row.xp if my_level_row else 0,
+        ),
+        friendStats=FriendStatsResponse(
+            username=target.username,
+            imageUrl=await _get_image_url_async(target.image),
+            minutesListened=friend_stats.summary.minutesListened if friend_stats else 0,
+            songsListened=friend_stats.summary.songsListened if friend_stats else 0,
+            currentStreak=friend_stats.summary.currentStreak if friend_stats else 0,
+            level=friend_level_row.level if friend_level_row else 1,
+            xp=friend_level_row.xp if friend_level_row else 0,
+        ),
+        vibeScore=vibe.score if vibe else 0,
+        vibeDescriptor=vibe.descriptor if vibe else "",
+    )
+
+
+# ─── Levels & Leaderboard ─────────────────────────────────────────────────────
+
+
+@router.get("/levels", response_model=UserLevelResponse)
+async def get_my_level(request: Request) -> UserLevelResponse:
+    """Get current user's level info."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    profiles = await Levels.get_profiles_async(session=session, user_ids=[user.id])
+    if profiles.is_not_ok():
+        logger.error("Cannot load listening profile: %s", profiles.info())
+        raise HTTPException(status_code=profiles.get_http_code(), detail=profiles.message())
+    return profiles.result()[0]
+
+
+@router.get("/{user_public_id}/level", response_model=UserLevelResponse)
+async def get_user_level(request: Request, user_public_id: str) -> UserLevelResponse:
+    """Get a user's level info."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    target = a_target.result()
+    await _require_friend(session, user.id, target.id)
+    profiles = await Levels.get_profiles_async(session=session, user_ids=[target.id])
+    if profiles.is_not_ok():
+        logger.error("Cannot load listening profile: %s", profiles.info())
+        raise HTTPException(status_code=profiles.get_http_code(), detail=profiles.message())
+    return profiles.result()[0]
+
+
+@router.get("/leaderboard", response_model=LeaderboardResponse)
+async def get_leaderboard(request: Request) -> LeaderboardResponse:
+    """Get leaderboard of friends by XP."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_friend_ids = await Friend.get_friend_ids_async(session=session, user_id=user.id)
+    friend_ids = a_friend_ids.result() if a_friend_ids.is_ok() else []
+
+    all_user_ids = [user.id] + friend_ids
+
+    profiles = await Levels.get_profiles_async(session, all_user_ids)
+    if profiles.is_not_ok():
+        logger.error(f"Error getting leaderboard. {profiles.info()}")
+        raise HTTPException(status_code=profiles.get_http_code(), detail=profiles.message())
+    entries = sorted(profiles.result(), key=lambda entry: (-entry.xp, entry.username.casefold()))
+    return LeaderboardResponse(
+        entries=entries,
+        currentUser=next((entry for entry in entries if entry.userId == user.public_id), None),
+    )
+
+
+# ─── Vibe Score ───────────────────────────────────────────────────────────────
+
+
+@router.get("/{user_public_id}/vibe", response_model=VibeScoreResponse)
+async def get_vibe_score(request: Request, user_public_id: str) -> VibeScoreResponse:
+    """Get vibe score with a friend."""
+    user = _get_user(request)
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_target = await Friend.get_user_by_public_id_async(session=session, public_id=user_public_id)
+    if a_target.is_not_ok():
+        logger.error(f"Target user not found: {a_target.info()}")
+        raise HTTPException(status_code=a_target.get_http_code(), detail=a_target.message())
+
+    await _require_friend(session, user.id, a_target.result().id)
+    a_result = await Vibe.get_vibe_score_async(
+        session=session, user_id=user.id, friend_user_id=a_target.result().id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error getting vibe score: {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    vibe = a_result.result()
+    return VibeScoreResponse(
+        score=vibe.score,
+        descriptor=vibe.descriptor,
+        sharedArtistsCount=vibe.sharedArtistsCount,
+    )

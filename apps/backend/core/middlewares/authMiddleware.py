@@ -1,0 +1,91 @@
+from datetime import UTC, datetime
+from logging import Logger
+
+from fastapi import HTTPException, Request
+from sqlalchemy.ext.asyncio.session import AsyncSession
+
+from constants import SESSION_COOKIE
+from core.access.db.ormModels.session import SessionRow
+from core.access.db.ormModels.user import UserRow
+from core.access.userAccess import UserAccess
+from core.framework.auth.session import Session
+from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from logger import getLogger
+from result import Result, ResultCode
+
+logger: Logger = getLogger(__name__)
+
+
+class AuthMiddleware:
+    @staticmethod
+    async def auth_dependency(request: Request) -> None:
+        session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+        session_id: str | None = request.cookies.get(SESSION_COOKIE)
+        if not session_id:
+            raise HTTPException(status_code=401, detail="Not logged in.")
+
+        a_result_session: Result[SessionRow] = await Session.get_user_id_from_session_async(
+            session=session, session_id=session_id
+        )
+        if a_result_session.is_not_ok():
+            logger.error(f"Error getting user from session. {a_result_session.info()}")
+            if a_result_session.code() == ResultCode.NOT_FOUND:
+                raise HTTPException(
+                    status_code=401,
+                    detail=a_result_session.message(),
+                )
+
+            raise HTTPException(
+                status_code=a_result_session.get_http_code(),
+                detail=a_result_session.message(),
+            )
+
+        if a_result_session.result().expires_at < datetime.now(UTC):
+            logger.error("Session has expired.")
+            raise HTTPException(status_code=401, detail="Session has expired.")
+
+        if a_result_session.result().disabled:
+            logger.error("Session is disabled.")
+            raise HTTPException(status_code=401, detail="Session is disabled.")
+
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
+            session, user_id=a_result_session.result().user_id
+        )
+        if a_result_user.is_not_ok():
+            raise HTTPException(
+                status_code=a_result_session.get_http_code(),
+                detail=a_result_user.message(),
+            )
+
+        user: UserRow = a_result_user.result()
+
+        if not user:
+            logger.error("User not found.")
+            raise HTTPException(404, "User not found.")
+
+        request.state.user = user
+        request.state.session_id = session_id
+
+    @staticmethod
+    async def admin_dependency(request: Request) -> None:
+        await AuthMiddleware.auth_dependency(request)
+        user: UserRow = request.state.user
+        if not user.admin:
+            raise HTTPException(status_code=403, detail="Admin access required.")
+
+    @staticmethod
+    def get_current_user(request: Request) -> Result[UserRow]:
+        try:
+            return Result(code=ResultCode.OK, message="OK", result=request.state.user)
+        except Exception:
+            logger.error("User not in request state")
+            return Result(ResultCode.GENERAL_ERROR, message="User not in request state")
+
+    @staticmethod
+    def get_current_session_id(request: Request) -> Result[str]:
+        try:
+            return Result(code=ResultCode.OK, message="OK", result=request.state.session_id)
+        except Exception:
+            logger.error("Session id not in request state")
+            return Result(ResultCode.GENERAL_ERROR, message="Session id not in request state")

@@ -32,7 +32,7 @@ from sqlalchemy.sql.base import Executable
 from core.access.db.authentication import generate_iam_token
 from core.access.db.base import CoreBase
 from core.utils.afterCommit import run_after_commit
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 
 T = TypeVar("T")

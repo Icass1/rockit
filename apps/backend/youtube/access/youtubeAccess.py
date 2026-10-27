@@ -10,7 +10,7 @@ from core.access.db.ormModels.media import CoreMediaRow
 from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.media.image import Image
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from logger import getLogger
 from youtube.access.db.ormModels.channel import ChannelRow
 from youtube.access.db.ormModels.externalImage import ExternalImageRow

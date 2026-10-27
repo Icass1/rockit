@@ -6,12 +6,10 @@ over the most numerically common (which is usually black or white).
 """
 
 import asyncio
-import os
-from typing import Any
+from io import BytesIO
+from typing import Any, cast
 
-from logger import getLogger
-
-logger = getLogger(__name__)
+from logger import logger
 
 _SAMPLE_SIZE = 50
 _QUANTIZE_COLORS = 8
@@ -26,13 +24,13 @@ def _rgb_to_hsl(r: int, g: int, b: int) -> tuple[float, float, float]:
 
     max_val = max(rn, gn, bn)
     min_val = min(rn, gn, bn)
-    item_value = (max_val + min_val) / 2.0
+    lightness: float = (max_val + min_val) / 2.0
 
     if max_val == min_val:
-        return 0.0, 0.0, item_value
+        return 0.0, 0.0, lightness
 
     d = max_val - min_val
-    s = d / (2.0 - max_val - min_val) if item_value > 0.5 else d / (max_val + min_val)
+    s = d / (2.0 - max_val - min_val) if lightness > 0.5 else d / (max_val + min_val)
 
     if max_val == rn:
         h = ((gn - bn) / d + (6 if gn < bn else 0)) / 6.0
@@ -41,13 +39,27 @@ def _rgb_to_hsl(r: int, g: int, b: int) -> tuple[float, float, float]:
     else:
         h = ((rn - gn) / d + 4) / 6.0
 
-    return h, s, item_value
+    return h, s, lightness
 
 
 async def extract_dominant_color(
     image_path: str,
-) -> str | None:  # This should return AResult when AResult is moved to this directory.
+) -> str | None:  # This should return Result when Result is moved to this directory.
     """Extract the dominant vibrant color from an image file.
+
+    Returns a hex string like "#ee1086" or None on failure.
+    """
+
+    try:
+        with open(image_path, "rb") as f:
+            return await extract_dominant_color_from_bytes(data=f.read())
+    except Exception as e:
+        logger.error(f"Error reading image from {image_path}: {e}")
+        return None
+
+
+async def extract_dominant_color_from_bytes(data: bytes) -> str | None:
+    """Extract the dominant vibrant color from image bytes.
 
     Returns a hex string like "#ee1086" or None on failure.
     """
@@ -55,12 +67,15 @@ async def extract_dominant_color(
     def _extract_sync() -> str | None:
         from PIL import Image
 
-        if not os.path.exists(image_path):
+        try:
+            img = Image.open(BytesIO(data))
+        except Exception:
             return None
 
-        img = Image.open(image_path)
         img = img.convert("RGB")
-        img = img.resize((_SAMPLE_SIZE, _SAMPLE_SIZE), Image.Resampling.LANCZOS)
+        image: Any = img
+        resized = image.resize((_SAMPLE_SIZE, _SAMPLE_SIZE), cast(int, Image.Resampling.LANCZOS))
+        img = resized
 
         quantized = img.quantize(colors=_QUANTIZE_COLORS, method=2)
         palette_raw: list[int] | None = quantized.getpalette()
@@ -92,9 +107,9 @@ async def extract_dominant_color(
                 largest_count = count
                 largest_r, largest_g, largest_b = r, g, b
 
-            _h, s, item_value = _rgb_to_hsl(r, g, b)
+            _h, s, lightness = _rgb_to_hsl(r, g, b)
 
-            if item_value < 0.08 or item_value > 0.92:
+            if lightness < 0.08 or lightness > 0.92:
                 continue
             if s < 0.15:
                 continue
@@ -112,5 +127,5 @@ async def extract_dominant_color(
     try:
         return await asyncio.to_thread(_extract_sync)
     except Exception as e:
-        logger.error(f"Error extracting dominant color from {image_path}: {e}")
+        logger.error(f"Error extracting dominant color: {e}")
         return None

@@ -21,7 +21,7 @@ from core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
 from core.types.playlistContributor import PlaylistContributor
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from default.access.recommendationAccess import RecommendationAccess
 from default.framework.default import Default
 from default.framework.models.playlist import PlaylistWithDetailsModel

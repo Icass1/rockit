@@ -17,7 +17,7 @@ from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from core.framework.media.image import Image
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from default.access.db.ormModels.playlist import PlaylistRow
 from default.access.db.ormModels.playlist_contributor import (
     PlaylistContributorRow,

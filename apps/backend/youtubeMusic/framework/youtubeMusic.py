@@ -30,7 +30,7 @@ from core.responses.searchResponse import (
     ArtistSearchResultsItem,
     BaseSearchResultsItem,
 )
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 from youtubeMusic.framework.download.imageDownload import ImageDownload

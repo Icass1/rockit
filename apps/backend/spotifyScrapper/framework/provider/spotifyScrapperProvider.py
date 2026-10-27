@@ -23,7 +23,7 @@ from core.responses.basePlaylistWithoutMediasResponse import (
 )
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.searchResponse import BaseSearchResultsItem
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from spotifyScrapper.access.artistCatalogAccess import ArtistCatalogAccess
 from spotifyScrapper.access.spotifyScrapperAccess import SpotifyScrapperAccess

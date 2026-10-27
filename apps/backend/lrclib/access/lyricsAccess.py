@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from core.aResult import AResult, AResultCode
 from core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from logger import getLogger
 from lrclib.access.db.ormModels.dynamicLyricsLineRow import (
     DynamicLyricsLineRow,

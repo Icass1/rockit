@@ -16,7 +16,8 @@ from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.media.image import Image
 from core.framework.models.localSong import LocalSong
 from core.utils.safeAsyncCall import safe_async
-from core.utils.backendUtils import create_id, time_it
+from core.utils.createId import create_id
+from core.utils.timeIt import time_it
 from logger import getLogger
 from spotifyScrapper.access.db.associationTables.song_artists import song_artists
 from spotifyScrapper.access.db.associationTables.album_artists import (

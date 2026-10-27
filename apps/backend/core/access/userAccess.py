@@ -21,8 +21,9 @@ from core.access.db.ormModels.user_seeks import UserSeeksRow
 from core.access.db.ormModels.user_skipped_media import UserSkippedMediaRow
 from core.aResult import AResult, AResultCode
 from core.framework.media.image import Image
-from core.utils.backendUtils import create_id, time_it
+from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
+from core.utils.timeIt import time_it
 from logger import getLogger
 
 pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")

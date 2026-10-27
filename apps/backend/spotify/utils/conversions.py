@@ -24,7 +24,7 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.baseSongWithoutAlbumResponse import (
     BaseSongWithoutAlbumResponse,
 )
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from spotify.access.db.associationTables.album_external_images import (
     album_external_images,

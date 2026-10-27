@@ -20,7 +20,7 @@ from core.responses.searchResponse import (
     ArtistSearchResultsItem,
     BaseSearchResultsItem,
 )
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from spotify.access.db.ormModels.album import AlbumRow
 from spotify.access.db.ormModels.artist import ArtistRow

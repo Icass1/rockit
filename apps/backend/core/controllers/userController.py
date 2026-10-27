@@ -75,7 +75,7 @@ from core.responses.queueResponse import QueueResponse
 from core.responses.sessionResponse import SessionResponse
 from core.responses.userSettingsResponse import UserSettingsResponse
 from core.types.libraryMediaTypes import LibraryResponseItem
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 
 ph = PasswordHasher(

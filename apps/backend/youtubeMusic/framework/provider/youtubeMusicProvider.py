@@ -22,7 +22,7 @@ from core.responses.basePlaylistWithoutMediasResponse import (
 )
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.searchResponse import BaseSearchResultsItem
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from youtubeMusic.access.artistCatalogAccess import ArtistCatalogAccess
 from youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music

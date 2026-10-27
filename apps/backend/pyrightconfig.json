@@ -1,12 +1,10 @@
 {
     "typeCheckingMode": "strict",
-    "pythonVersion": "3.12",
     "venvPath": ".",
     "venv": ".venv",
-    "analyzeUnannotatedFunctions": true,
-    "stubPath": "typings",
     "extraPaths": [
-        ".",
         "../.."
-    ]
+    ],
+    "analyzeUnannotatedFunctions": true,
+    "stubPath": "typings"
 }

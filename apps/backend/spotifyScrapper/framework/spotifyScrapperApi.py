@@ -21,7 +21,7 @@ from spotify_scraper.models.track import Track as ScraperTrack
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.aResult import AResult, AResultCode
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from spotifyScrapper.framework.models.spotifyScrapperApi import (
     ScrappedAlbum,

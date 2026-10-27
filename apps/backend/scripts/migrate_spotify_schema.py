@@ -20,7 +20,7 @@ sys.path.append(".")
 
 from core.access.db.db import CoreMediaRow, ImageRow
 from core.enums.mediaTypeEnum import MediaTypeEnum
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from spotify.access.db.associationTables.album_artists import album_artists
 from spotify.access.db.associationTables.album_copyrights import (
     album_copyrights,

@@ -10,7 +10,7 @@ from core.aResult import AResult, AResultCode
 from core.framework.models.localSong import LocalSong
 from core.utils.safeAsyncCall import safe_async
 from core.enums.mediaTypeEnum import MediaTypeEnum
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from logger import getLogger
 from rockit.access.db.associationTables.album_artists import album_artists
 from rockit.access.db.associationTables.song_artists import song_artists

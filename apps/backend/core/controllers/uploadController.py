@@ -23,7 +23,7 @@ from core.requests.uploadVideoRequest import UploadVideoRequest
 from core.responses.okResponse import OkResponse
 from core.responses.startUploadResponse import StartUploadResponse
 from core.responses.uploadResponse import UploadResponse
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from logger import getLogger
 
 logger: Logger = getLogger(__name__)

@@ -4,33 +4,31 @@ from typing import ParamSpec, TypeVar, overload
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
-from logger import getLogger
+from logger import logger
+from result import Result, ResultCode
 
 T = TypeVar("T")
 P = ParamSpec("P")
 
-logger = getLogger(__name__)
-
 
 @overload
 def safe_async[**P, T](
-    func: Callable[P, Awaitable[AResult[T]]],
-) -> Callable[P, Awaitable[AResult[T]]]: ...
+    func: Callable[P, Awaitable[Result[T]]],
+) -> Callable[P, Awaitable[Result[T]]]: ...
 
 
 @overload
 def safe_async[**P](
-    func: Callable[P, Awaitable[AResultCode]],
-) -> Callable[P, Awaitable[AResultCode]]: ...
+    func: Callable[P, Awaitable[ResultCode]],
+) -> Callable[P, Awaitable[ResultCode]]: ...
 
 
 def safe_async[**P, T](
-    func: Callable[P, Awaitable[AResult[T] | AResultCode]],
-) -> Callable[P, Awaitable[AResult[T] | AResultCode]]:
+    func: Callable[P, Awaitable[Result[T] | ResultCode]],
+) -> Callable[P, Awaitable[Result[T] | ResultCode]]:
 
     @functools.wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> AResult[T] | AResultCode:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Result[T] | ResultCode:
 
         try:
             return await func(*args, **kwargs)
@@ -48,19 +46,19 @@ def safe_async[**P, T](
                         pass
                     break
 
-            # Detect whether function returns AResult or AResultCode
+            # Detect whether function returns Result or ResultCode
             return_type = func.__annotations__.get("return")
 
-            # Case 1: AResult[T]
-            if return_type is not None and getattr(return_type, "__origin__", None) is AResult:
-                return AResult[T](
-                    code=AResultCode.GENERAL_ERROR,
+            # Case 1: Result[T]
+            if return_type is not None and getattr(return_type, "__origin__", None) is Result:
+                return Result[T](
+                    code=ResultCode.GENERAL_ERROR,
                     message=f"Error in {func.__name__}",
                 )
 
-            # Case 2: AResultCode
-            return AResultCode(
-                code=AResultCode.GENERAL_ERROR,
+            # Case 2: ResultCode
+            return ResultCode(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Error in {func.__name__}",
             )
 

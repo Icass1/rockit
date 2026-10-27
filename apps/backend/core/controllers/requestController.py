@@ -13,7 +13,7 @@ from core.responses.userRequestResponse import (
     UserRequestListResponse,
     UserRequestResponse,
 )
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from logger import getLogger
 
 logger: Logger = getLogger(__name__)

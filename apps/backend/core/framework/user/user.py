@@ -39,7 +39,7 @@ from core.responses.libraryMediaAddedMessage import LibraryMediaAddedMessage
 from core.responses.libraryMediaRemovedMessage import LibraryMediaRemovedMessage
 from core.responses.queueResponse import QueueResponse, QueueResponseItem
 from core.types.libraryMediaTypes import LibraryMediaItem, LibraryResponseItem
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 
 logger = getLogger(__name__)

@@ -27,7 +27,7 @@ from core.requests.uploadSongRequest import UploadSongRequest
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.uploadResponse import UploadResponse
-from core.utils.backendUtils import create_id
+from core.utils.createId import create_id
 from logger import getLogger
 from rockit.access.db.ormModels.song import RockitSongRow
 from rockit.access.db.ormModels.video import RockitVideoRow

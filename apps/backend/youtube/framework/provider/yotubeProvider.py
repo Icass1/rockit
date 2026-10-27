@@ -16,7 +16,7 @@ from core.responses.searchResponse import (
     ArtistSearchResultsItem,
     BaseSearchResultsItem,
 )
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from youtube.access.db.ormModels.video import VideoRow
 from youtube.access.youtubeAccess import YouTubeAccess

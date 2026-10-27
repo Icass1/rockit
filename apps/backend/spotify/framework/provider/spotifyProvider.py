@@ -23,7 +23,7 @@ from core.responses.basePlaylistWithoutMediasResponse import (
     BasePlaylistWithoutMediasResponse,
 )
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from spotify.access.artistCatalogAccess import ArtistCatalogAccess
 from spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow

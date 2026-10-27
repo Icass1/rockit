@@ -146,7 +146,7 @@ class RecordingSession:
         self, instance: object, attribute_names: Sequence[str] | None = None, **kwargs: object
     ) -> None:
         """Apply defaults that SQLAlchemy refresh would obtain from PostgreSQL."""
-        from core.utils.backendUtils import create_id
+        from core.utils.createId import create_id
 
         del attribute_names
         if kwargs:

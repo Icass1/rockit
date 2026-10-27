@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import CLIENT_ID, CLIENT_SECRET
 from core.aResult import AResult, AResultCode
-from core.utils.backendUtils import time_it
+from core.utils.timeIt import time_it
 from logger import getLogger
 from spotify.framework.spotifyCache import SpotifyCache
 from spotify.spotifyApiTypes.rawSpotifyApiAlbum import RawSpotifyApiAlbum

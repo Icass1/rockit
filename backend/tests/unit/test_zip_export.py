@@ -1,10 +1,12 @@
-"""ZIP export behavior that does not require ffmpeg."""
+"""ZIP exports preserve MPEG bytes and source files while adding portable tags."""
 
 # Mutagen's dynamic frame API has no complete member/argument type annotations.
 # pyright: reportUnknownMemberType=false, reportUnknownArgumentType=false
 
+import io
 import asyncio
 import threading
+import subprocess
 import zipfile
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock
@@ -12,18 +14,96 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from mutagen.id3 import ID3
 
+# Mutagen dynamically re-exports these public frames without static export hints.
+from mutagen.id3 import TIT2, TXXX  # pyright: ignore[reportPrivateImportUsage]
+from PIL import Image
+
 from backend.core.aResult import AResult, AResultCode
 from backend.zipExport.framework import downloadZip
 from backend.zipExport.framework.downloadZip import DownloadZip
-from backend.zipExport.utils.archive import build_archive
+from backend.zipExport.utils.archive import build_archive, ArchiveTooLarge
 from backend.zipExport.models.exportFile import AudioTags, ExportFile
 
 pytestmark = pytest.mark.unit
 
 
+@pytest.fixture
+def mp3(tmp_path: Path) -> Path:
+    """Generate real MPEG audio so ffmpeg can also validate the exported payload."""
+    path = tmp_path / "source.mp3"
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:duration=0.1",
+            str(path),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    return path
+
+
 def _build_archive(path: str, files: list[ExportFile]) -> int:
     return build_archive(
         zip_path=path, files=files, max_bytes=downloadZip.MAX_ZIP_BYTES
+    )
+
+
+def mpeg_bytes(data: bytes) -> bytes:
+    source = io.BytesIO(data)
+    tags = ID3(fileobj=source)
+    return data[tags.size :]
+
+
+def test_export_embeds_tags_original_cover_and_preserves_audio(
+    mp3: Path, tmp_path: Path
+) -> None:
+    old = ID3(filename=mp3)
+    old.add(TIT2(encoding=3, text=["Old title"]))
+    old.add(TXXX(encoding=3, desc="custom", text=["keep me"]))
+    old.save(mp3)
+    cover = tmp_path / "cover.png"
+    Image.new(mode="RGB", size=(1400, 1400), color="red").save(cover)
+    before = mp3.read_bytes()
+    metadata = AudioTags(
+        artists=("Björk", "Guest"),
+        album="Álbum",
+        album_artists=("Album artist",),
+        date="2024-01-02",
+        track=3,
+        disc=2,
+        isrc="GB1234567890",
+        cover_path=str(cover),
+    )
+    path = tmp_path / "export.zip"
+    assert _build_archive(str(path), [ExportFile("Canción", str(mp3), metadata)]) == 1
+    with zipfile.ZipFile(path) as archive:
+        assert archive.getinfo("Canción.mp3").compress_type == zipfile.ZIP_STORED
+        data = archive.read("Canción.mp3")
+    tags = ID3(fileobj=io.BytesIO(data))
+    assert tags.version == (2, 3, 0)
+    assert tags["TIT2"].text == ["Canción"]
+    assert tags["TPE1"].text == ["Björk/Guest"]
+    assert tags["TALB"].text == ["Álbum"]
+    assert tags["TPE2"].text == ["Album artist"]
+    assert str(tags["TDRC"]) == "2024-01-02"
+    assert str(tags["TRCK"]) == "3"
+    assert str(tags["TPOS"]) == "2"
+    assert str(tags["TSRC"]) == "GB1234567890"
+    assert tags["TXXX:custom"].text == ["keep me"]
+    assert tags.getall("APIC")[0].data == cover.read_bytes()
+    assert mpeg_bytes(data) == mpeg_bytes(before)
+    assert mp3.read_bytes() == before
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", "pipe:0", "-f", "null", "-"],
+        input=data,
+        check=True,
+        capture_output=True,
     )
 
 
@@ -48,6 +128,33 @@ def test_duplicate_safe_names_missing_files_and_unchanged_video(tmp_path: Path) 
         assert all("/" not in name and ":" not in name for name in archive.namelist())
         assert all(
             archive.read(name) == video.read_bytes() for name in archive.namelist()
+        )
+
+
+def test_missing_artwork_preserves_existing_tags(mp3: Path, tmp_path: Path) -> None:
+    tags = ID3(filename=mp3)
+    tags.add(TXXX(encoding=3, desc="custom", text=["keep"]))
+    tags.save(mp3)
+    path = tmp_path / "export.zip"
+    _build_archive(
+        str(path), [ExportFile("Title", str(mp3), AudioTags(cover_path="/missing"))]
+    )
+    with zipfile.ZipFile(path) as archive:
+        tags = ID3(fileobj=io.BytesIO(archive.read("Title.mp3")))
+    assert str(tags["TIT2"]) == "Title"
+    assert str(tags["TXXX:custom"]) == "keep"
+
+
+def test_final_size_limit_includes_artwork(
+    mp3: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cover = tmp_path / "cover.bmp"
+    Image.effect_noise((800, 800), 80).convert("RGB").save(cover)
+    monkeypatch.setattr(downloadZip, "MAX_ZIP_BYTES", mp3.stat().st_size + 1024)
+    with pytest.raises(ArchiveTooLarge):
+        _build_archive(
+            str(tmp_path / "export.zip"),
+            [ExportFile("Title", str(mp3), AudioTags(cover_path=str(cover)))],
         )
 
 
@@ -83,6 +190,22 @@ async def test_failed_archive_is_removed(
     )
     assert result.is_not_ok()
     assert not list(tmp_path.glob("rockit-*.zip"))
+
+
+def test_untagged_mp3_gets_id3_without_dropping_audio(
+    mp3: Path, tmp_path: Path
+) -> None:
+    raw = mpeg_bytes(mp3.read_bytes())
+    mp3.write_bytes(raw)
+    path = tmp_path / "export.zip"
+    _build_archive(
+        str(path), [ExportFile("Title", str(mp3), AudioTags(artists=("Artist",)))]
+    )
+    with zipfile.ZipFile(path) as archive:
+        data = archive.read("Title.mp3")
+    assert str(ID3(fileobj=io.BytesIO(data))["TPE1"]) == "Artist"
+    assert mpeg_bytes(data) == raw
+    assert mp3.read_bytes() == raw
 
 
 def test_corrupt_tags_fall_back_to_unchanged_file(tmp_path: Path) -> None:

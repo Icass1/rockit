@@ -104,7 +104,7 @@ jobs:
                   retention-days: 14
 
     backend-tests:
-        name: Backend unit tests
+        name: Backend unit tests (PR)
         runs-on: ubuntu-latest
         timeout-minutes: 15
         steps:
@@ -122,5 +122,21 @@ jobs:
               run: |
                   python -m venv .venv
                   .venv/bin/python -m pip install -r backend/requirements-dev.txt
+            - name: Install media test dependencies
+              timeout-minutes: 6
+              shell: bash
+              run: |
+                  if command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null; then
+                      exit 0
+                  fi
+                  # The Azure mirror can stall long enough to exhaust the job timeout.
+                  # Keep Ubuntu's signed packages, using its public archive instead.
+                  if [[ -f /etc/apt/apt-mirrors.txt ]]; then
+                      printf '%s\n' 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+                  fi
+                  sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 update
+                  sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 install -y --no-install-recommends ffmpeg
             - name: Run backend tests
-              run: .venv/bin/python -m pytest -q
+              # PostgreSQL-backed integration tests remain available locally and for
+              # dedicated integration runs, but are excluded from pull request CI.
+              run: .venv/bin/python -m pytest -q --ignore=backend/tests/integration

@@ -1,5 +1,3 @@
-from typing import TypeVar
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from core.framework.notification import Notification
@@ -10,19 +8,13 @@ from core.responses.notificationResponses import (
     NotificationPageResponse,
     NotificationResponse,
 )
-from logger import logger
 from result import Result
 
-T = TypeVar("T")
 
-
-def value_or_error[T](result: Result[T] | Result[T]) -> T:
+def value_or_error[T](result: Result[T]) -> T:
     """Translate a terminal service result into an HTTP response."""
     if result.is_not_ok():
-        if isinstance(result, Result):
-            result.finish()
-        else:
-            logger.error(result.info())
+        result.finish()
         raise HTTPException(status_code=result.get_http_code(), detail=result.message())
     return result.result()
 

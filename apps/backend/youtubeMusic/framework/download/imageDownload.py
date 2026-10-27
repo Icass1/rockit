@@ -1,3 +1,4 @@
+import io
 import os
 import uuid
 from typing import cast
@@ -82,22 +83,24 @@ class ImageDownload:
             os.remove(temp_path)
 
             filename = str(uuid.uuid4()) + ".png"
-            full_path = os.path.join(IMAGES_PATH, "youtubeMusic", filename)
-            image.save(full_path, format="PNG")
+            buffer = io.BytesIO()
+            image.save(buffer, format="PNG")
             image.close()
 
-            path = "youtubeMusic/" + filename
-            a_result_image = await Image.create_image_async(
+            key = f"images/youtubeMusic/{filename}"
+            a_result_image = await Image.ensure_image_from_bytes_async(
                 session=session,
-                path=path,
-                url=url,
+                key=key,
+                data=buffer.getvalue(),
+                filename=filename,
+                content_type="image/png",
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error creating image: {a_result_image.info()}")
                 return Result(code=a_result_image.code(), message=a_result_image.message())
 
             db_image = a_result_image.result()
-            logger.debug(f"Image created: {db_image.public_id} from url {url} saved to {path}")
+            logger.debug(f"Image created: {db_image.public_id} from url {url} saved to {key}")
             return Result(code=ResultCode.OK, message="OK", result=db_image)
         except Exception as e:
             logger.error(f"Failed to download/create internal image: {e}")

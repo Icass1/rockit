@@ -53,11 +53,14 @@ def build_archive(zip_path: str, files: list[ExportFile], max_bytes: int) -> int
                 header = b""
                 if item.tags is not None and extension.lower() == ".mp3":
                     try:
+                        cover = cover_for(item.tags.cover_path)
+                        if item.tags.cover_data is not None:
+                            cover = (item.tags.cover_data, item.tags.cover_mime)
                         header = mp3_header(
                             source=source,
                             title=item.name,
                             metadata=item.tags,
-                            cover=cover_for(item.tags.cover_path),
+                            cover=cover,
                         )
                     except Exception as exception:
                         # A corrupt tag must not prevent downloading otherwise usable audio.

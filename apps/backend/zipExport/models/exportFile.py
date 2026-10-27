@@ -13,6 +13,9 @@ class AudioTags:
     disc: int = 0
     isrc: str = ""
     cover_path: str = ""
+    cover_storage_object_id: int = 0
+    cover_data: bytes | None = None
+    cover_mime: str = ""
 
 
 @dataclass(frozen=True)

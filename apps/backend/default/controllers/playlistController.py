@@ -26,13 +26,13 @@ from default.requests.createPlaylistRequest import CreatePlaylistRequest
 from default.requests.updatePlaylistRequest import UpdatePlaylistRequest
 from default.responses.userPlaylistsResponse import UserPlaylistsResponse
 from logger import getLogger
-from result import Result
+from result import Result, ResultCode
 
 
 async def get_playlist_list_response(
     session: AsyncSession,
     playlists: list[PlaylistModel],
-) -> list[BasePlaylistWithMediasResponse]:
+) -> Result[list[BasePlaylistWithMediasResponse]]:
     """Build a list of BasePlaylistResponse from PlaylistModels."""
 
     from core.access.userAccess import UserAccess
@@ -53,6 +53,15 @@ async def get_playlist_list_response(
         owner_name: str = owner.username
         owner_public_id: str = owner.public_id
 
+        a_result_owner_image_url: Result[str] = await Image.get_internal_image_url_async(
+            image=owner.image
+        )
+        if a_result_owner_image_url.is_not_ok():
+            logger.error(f"Error getting owner image URL. {a_result_owner_image_url.info()}")
+            return Result[list[BasePlaylistWithMediasResponse]].from_result(
+                a_result_owner_image_url
+            )
+
         result.append(
             BasePlaylistWithMediasResponse(
                 type="playlist",
@@ -71,12 +80,12 @@ async def get_playlist_list_response(
                     url=f"/user/{owner_public_id}",
                     providerUrl="",
                     name=owner_name,
-                    imageUrl=Image.get_image_url(owner.image),
+                    imageUrl=a_result_owner_image_url.result(),
                     dominantColor=owner.image.dominant_color,
                 ),
             )
         )
-    return result
+    return Result(code=ResultCode.OK, message="OK", result=result)
 
 
 logger: Logger = getLogger(__name__)
@@ -109,6 +118,17 @@ async def create_playlist_async(
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
     playlist: PlaylistModel = a_result.result()
+
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+        image=user.result().image
+    )
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting user image URL. {a_result_image_url.info()}")
+        raise HTTPException(
+            status_code=a_result_image_url.get_http_code(),
+            detail=a_result_image_url.message(),
+        )
+
     return BasePlaylistWithMediasResponse(
         type="playlist",
         description=playlist.description,
@@ -126,7 +146,7 @@ async def create_playlist_async(
             url=f"/user/{user.result().public_id}",
             providerUrl="",
             name=user.result().username,
-            imageUrl=Image.get_image_url(user.result().image),
+            imageUrl=a_result_image_url.result(),
             dominantColor=user.result().image.dominant_color,
         ),
     )
@@ -150,9 +170,16 @@ async def get_user_playlists_async(
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
     playlists: list[PlaylistModel] = a_result.result()
-    return UserPlaylistsResponse(
-        playlists=await get_playlist_list_response(session=session, playlists=playlists)
+    a_result_list: Result[list[BasePlaylistWithMediasResponse]] = await get_playlist_list_response(
+        session=session, playlists=playlists
     )
+    if a_result_list.is_not_ok():
+        logger.error(f"Error building playlist list response. {a_result_list.info()}")
+        raise HTTPException(
+            status_code=a_result_list.get_http_code(), detail=a_result_list.message()
+        )
+
+    return UserPlaylistsResponse(playlists=a_result_list.result())
 
 
 @router.get("/{playlist_public_id}", response_model=BasePlaylistWithMediasResponse)

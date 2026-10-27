@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy import select, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import IMAGES_PATH, MEDIA_PATH
+from constants import MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.providerStorage import provider_storage
@@ -76,7 +76,7 @@ class DownloadZipAccess:
             source = source.outerjoin(tags, tags.c.id == files.c.id).outerjoin(
                 ImageRow, ImageRow.id == tags.c.image_id
             )
-            columns.extend([tags, ImageRow.path.label("cover_path")])
+            columns.extend([tags, ImageRow.storage_object_id.label("cover_storage_object_id")])
         rows = await session.execute(
             select(*columns)
             .select_from(source)
@@ -88,7 +88,7 @@ class DownloadZipAccess:
             path = path if os.path.isabs(path) else os.path.join(MEDIA_PATH, path)
             metadata = None
             if tags is not None and row["id"] is not None:
-                cover = row["cover_path"] or ""
+                cover_storage_object_id = row["cover_storage_object_id"] or 0
                 metadata = AudioTags(
                     artists=tuple(row["artists"] or ()),
                     album=row["album"] or "",
@@ -97,7 +97,7 @@ class DownloadZipAccess:
                     track=row["track"] or 0,
                     disc=row["disc"] or 0,
                     isrc=row["isrc"] or "",
-                    cover_path=os.path.join(IMAGES_PATH, cover) if cover else "",
+                    cover_storage_object_id=cover_storage_object_id,
                 )
             exported[row["public_id"]] = ExportFile(name=row["name"], path=path, tags=metadata)
         return Result(

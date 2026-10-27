@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.friend.friend import FriendRow
+from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.user import UserRow
 from core.framework.friend.activity import FriendActivity
 from core.framework.friend.friend import Friend
@@ -12,6 +13,7 @@ from core.framework.friend.listenTogether import ListenTogether
 from core.framework.friend.sharing import Sharing
 from core.framework.friend.streakBattle import StreakBattle
 from core.framework.friend.vibe import Vibe
+from core.framework.media.image import Image
 from core.framework.media.media import Media
 from core.framework.stats import Stats as StatsFramework
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -60,6 +62,21 @@ from core.responses.okResponse import OkResponse
 from logger import getLogger
 
 logger = getLogger(__name__)
+
+
+async def _get_image_url_async(image: ImageRow | None) -> str | None:
+    """Resolve an image to its internal URL, returning None when unavailable."""
+
+    if image is None:
+        return None
+
+    a_result_image_url = await Image.get_internal_image_url_async(image=image)
+    if a_result_image_url.is_not_ok():
+        logger.warning(f"Error getting image URL. {a_result_image_url.info()}")
+        return None
+
+    return a_result_image_url.result()
+
 
 router = APIRouter(
     prefix="/friends",
@@ -114,7 +131,7 @@ async def get_friends(request: Request) -> FriendListResponse:
             FriendResponse(
                 publicId=friend_user.public_id,
                 username=friend_user.username,
-                imageUrl=friend_user.image.url if friend_user.image else None,
+                imageUrl=await _get_image_url_async(friend_user.image),
                 status="accepted",
                 level=levels_by_user[friend_user.public_id].level,
                 levelTitle=levels_by_user[friend_user.public_id].title,
@@ -139,7 +156,7 @@ async def get_blocked_users(request: Request) -> FriendListResponse:
             FriendResponse(
                 publicId=row.friend.public_id,
                 username=row.friend.username,
-                imageUrl=row.friend.image.url if row.friend.image else None,
+                imageUrl=await _get_image_url_async(row.friend.image),
                 status="blocked",
                 dateAdded=row.date_added,
             )
@@ -166,7 +183,7 @@ async def get_friend_requests(request: Request) -> FriendRequestListResponse:
                     publicId=req.public_id,
                     fromUserPublicId=from_user.public_id,
                     fromUsername=from_user.username,
-                    fromUserImageUrl=from_user.image.url if from_user.image else None,
+                    fromUserImageUrl=await _get_image_url_async(from_user.image),
                     message=req.message,
                     status="pending",
                     dateAdded=req.date_added,
@@ -182,7 +199,7 @@ async def get_friend_requests(request: Request) -> FriendRequestListResponse:
                     publicId=req.public_id,
                     fromUserPublicId=to_user.public_id,
                     fromUsername=to_user.username,
-                    fromUserImageUrl=to_user.image.url if to_user.image else None,
+                    fromUserImageUrl=await _get_image_url_async(to_user.image),
                     message=req.message,
                     status="pending",
                     dateAdded=req.date_added,
@@ -219,7 +236,7 @@ async def search_users(
             UserSearchResult(
                 publicId=user_row.public_id,
                 username=user_row.username,
-                imageUrl=user_row.image.url if user_row.image else None,
+                imageUrl=await _get_image_url_async(user_row.image),
                 isFriend=user_row.id in friend_ids,
                 requestSent=user_row.id in pending_ids,
             )
@@ -566,10 +583,10 @@ async def get_active_sessions(request: Request) -> ListenTogetherListResponse:
                 publicId=s.public_id,
                 hostPublicId=host.public_id,
                 hostUsername=host.username,
-                hostImageUrl=host.image.url if host.image else None,
+                hostImageUrl=await _get_image_url_async(host.image),
                 guestPublicId=guest.public_id,
                 guestUsername=guest.username,
-                guestImageUrl=guest.image.url if guest.image else None,
+                guestImageUrl=await _get_image_url_async(guest.image),
                 currentMediaPublicId=current_media.public_id if current_media else None,
                 currentMediaName=resolved.media.name if resolved else None,
                 currentMediaImageUrl=resolved.media.imageUrl if resolved else None,
@@ -640,7 +657,7 @@ async def get_friend_stats(request: Request, user_public_id: str) -> FriendStats
 
     return FriendStatsResponse(
         username=target.username,
-        imageUrl=target.image.url if target.image else None,
+        imageUrl=await _get_image_url_async(target.image),
         minutesListened=minutes,
         songsListened=songs,
         currentStreak=streak,
@@ -728,7 +745,7 @@ async def compare_stats(request: Request, user_public_id: str) -> CompareStatsRe
     return CompareStatsResponse(
         myStats=FriendStatsResponse(
             username=user.username,
-            imageUrl=user.image.url if user.image else None,
+            imageUrl=await _get_image_url_async(user.image),
             minutesListened=my_stats.summary.minutesListened if my_stats else 0,
             songsListened=my_stats.summary.songsListened if my_stats else 0,
             currentStreak=my_stats.summary.currentStreak if my_stats else 0,
@@ -737,7 +754,7 @@ async def compare_stats(request: Request, user_public_id: str) -> CompareStatsRe
         ),
         friendStats=FriendStatsResponse(
             username=target.username,
-            imageUrl=target.image.url if target.image else None,
+            imageUrl=await _get_image_url_async(target.image),
             minutesListened=friend_stats.summary.minutesListened if friend_stats else 0,
             songsListened=friend_stats.summary.songsListened if friend_stats else 0,
             currentStreak=friend_stats.summary.currentStreak if friend_stats else 0,

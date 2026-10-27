@@ -29,15 +29,13 @@ logger = getLogger(name=__name__)
 MAX_COVER_BYTES = 16 * 1024 * 1024
 
 
-def read_cover(path: str) -> tuple[bytes, str] | None:
+def read_cover_bytes(data: bytes, label: str = "") -> tuple[bytes, str] | None:
     """Use original artwork pixels and JPEG/PNG bytes, never UI thumbnails."""
-    if not path:
+    if not data:
         return None
     try:
-        with open(file=path, mode="rb") as source:
-            data = source.read(MAX_COVER_BYTES + 1)
         if len(data) > MAX_COVER_BYTES:
-            logger.warning(f"Cover exceeds export artwork limit: {path}")
+            logger.warning(f"Cover exceeds export artwork limit: {label}")
             return None
         with Image.open(io.BytesIO(data)) as image:
             if image.format in ("JPEG", "PNG"):
@@ -52,8 +50,21 @@ def read_cover(path: str) -> tuple[bytes, str] | None:
         SyntaxError,
         Image.DecompressionBombError,
     ) as exception:
+        logger.warning(f"Could not read export cover {label}: {exception}")
+        return None
+
+
+def read_cover(path: str) -> tuple[bytes, str] | None:
+    """Read artwork from a local file path."""
+    if not path:
+        return None
+    try:
+        with open(file=path, mode="rb") as source:
+            data = source.read(MAX_COVER_BYTES + 1)
+    except OSError as exception:
         logger.warning(f"Could not read export cover {path}: {exception}")
         return None
+    return read_cover_bytes(data=data, label=path)
 
 
 def apply_id3(tags: ID3, title: str, metadata: AudioTags, cover: tuple[bytes, str] | None) -> None:

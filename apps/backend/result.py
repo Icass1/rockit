@@ -57,6 +57,9 @@ class ResultCode:
     def is_retryable(self) -> bool:
         return self._code in (self.GENERAL_ERROR, self.RATE_LIMITED)
 
+    def is_rate_limited(self) -> bool:
+        return self._code in (self.RATE_LIMITED, self.QUOTA_EXHAUSTED)
+
     def get_http_code(
         self,
     ) -> (
@@ -235,6 +238,9 @@ class Result[T]:
 
     def is_retryable(self) -> bool:
         return self._code.is_retryable()
+
+    def is_rate_limited(self) -> bool:
+        return self._code.is_rate_limited()
 
     def get_http_code(
         self,

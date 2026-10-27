@@ -82,6 +82,19 @@ class ImageAccess:
 
     @staticmethod
     @safe_async
+    async def get_images_by_ids_async(
+        session: AsyncSession, ids: list[int]
+    ) -> Result[dict[int, ImageRow]]:
+        """Load images for a response batch without per-media queries."""
+
+        stmt: Select[tuple[ImageRow]] = select(ImageRow).where(ImageRow.id.in_(ids))
+        result: DBResult[tuple[ImageRow]] = await session.execute(stmt)
+        rows: list[ImageRow] = list(result.scalars().all())
+
+        return Result(code=ResultCode.OK, message="OK", result={row.id: row for row in rows})
+
+    @staticmethod
+    @safe_async
     async def insert_image_async(
         session: AsyncSession,
         storage_object_id: int,

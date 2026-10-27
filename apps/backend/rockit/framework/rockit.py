@@ -1,11 +1,10 @@
 import os
-import shutil
 from logging import Logger
 
 import aiofiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL, IMAGES_PATH, MEDIA_PATH
+from constants import BACKEND_URL, MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.imageAccess import ImageAccess
 from core.framework.media.image import Image
@@ -101,13 +100,16 @@ class Rockit:
             duration_ms: int = await Rockit._extract_duration_ms_async(file_path=final_file_path)
 
             image_file_name: str = f"{create_id(32)}.jpg"
-            image_rel_path: str = f"rockit/{image_file_name}"
-            image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
-            os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
-            shutil.copy2(image_path, image_full_path)
+            image_key: str = f"images/rockit/{image_file_name}"
 
-            a_result_image: Result[ImageRow] = await Image.create_image_async(
-                session=session, path=image_rel_path
+            with open(image_path, "rb") as image_file:
+                image_bytes: bytes = image_file.read()
+
+            a_result_image: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=image_key,
+                data=image_bytes,
+                filename=image_file_name,
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error creating image. {a_result_image.info()}")
@@ -166,15 +168,16 @@ class Rockit:
 
         try:
             image_file_name: str = f"{create_id(32)}.jpg"
-            image_rel_path: str = f"rockit/{image_file_name}"
-            image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
+            image_key: str = f"images/rockit/{image_file_name}"
 
-            os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
+            with open(cover_path, "rb") as image_file:
+                image_bytes: bytes = image_file.read()
 
-            shutil.copy2(cover_path, image_full_path)
-
-            a_result_image: Result[ImageRow] = await Image.create_image_async(
-                session=session, path=image_rel_path
+            a_result_image: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=image_key,
+                data=image_bytes,
+                filename=image_file_name,
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error creating image. {a_result_image.info()}")
@@ -278,13 +281,16 @@ class Rockit:
             duration_ms: int = await Rockit._extract_duration_ms_async(file_path=final_file_path)
 
             image_file_name: str = f"{create_id(32)}.jpg"
-            image_rel_path: str = f"rockit/{image_file_name}"
-            image_full_path: str = f"{IMAGES_PATH}/{image_rel_path}"
-            os.makedirs(os.path.dirname(image_full_path), exist_ok=True)
-            shutil.copy2(image_path, image_full_path)
+            image_key: str = f"images/rockit/{image_file_name}"
 
-            a_result_image: Result[ImageRow] = await Image.create_image_async(
-                session=session, path=image_rel_path
+            with open(image_path, "rb") as image_file:
+                image_bytes: bytes = image_file.read()
+
+            a_result_image: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=image_key,
+                data=image_bytes,
+                filename=image_file_name,
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error creating image. {a_result_image.info()}")
@@ -551,7 +557,17 @@ class Rockit:
                             )
                             continue
 
-                        image_url: str = Image.get_image_url(a_result_image.result())
+                        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                            image=a_result_image.result()
+                        )
+                        if a_result_image_url.is_not_ok():
+                            logger.warning(
+                                f"Error getting image URL for song {song.id}. "
+                                f"{a_result_image_url.info()}"
+                            )
+                            continue
+
+                        image_url: str = a_result_image_url.result()
 
                         artists: list[ArtistSearchResultsItem] = [
                             ArtistSearchResultsItem(
@@ -599,7 +615,17 @@ class Rockit:
                             )
                             continue
 
-                        img_url: str = Image.get_image_url(a_result_img.result())
+                        a_result_img_url: Result[str] = await Image.get_internal_image_url_async(
+                            image=a_result_img.result()
+                        )
+                        if a_result_img_url.is_not_ok():
+                            logger.warning(
+                                f"Error getting image URL for album {album.id}. "
+                                f"{a_result_img_url.info()}"
+                            )
+                            continue
+
+                        img_url: str = a_result_img_url.result()
 
                         results.append(
                             BaseSearchResultsItem(
@@ -644,7 +670,17 @@ class Rockit:
                             )
                             continue
 
-                        img_url: str = Image.get_image_url(a_result_img.result())
+                        a_result_img_url: Result[str] = await Image.get_internal_image_url_async(
+                            image=a_result_img.result()
+                        )
+                        if a_result_img_url.is_not_ok():
+                            logger.warning(
+                                f"Error getting image URL for video {video.id}. "
+                                f"{a_result_img_url.info()}"
+                            )
+                            continue
+
+                        img_url: str = a_result_img_url.result()
 
                         results.append(
                             BaseSearchResultsItem(
@@ -711,7 +747,14 @@ class Rockit:
         if image is None:
             logger.error(f"Missing song image for {public_id}")
             return Result(code=ResultCode.NOT_FOUND, message="Song image not found")
-        image_url = Image.get_image_url(image=image)
+
+        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(image=image)
+        if a_result_image_url.is_not_ok():
+            logger.error(
+                f"Error getting song image URL for {public_id}. {a_result_image_url.info()}"
+            )
+            return Result[BaseSongWithAlbumResponse].from_result(a_result_image_url)
+        image_url: str = a_result_image_url.result()
         song_artists = [
             BaseArtistResponse(
                 provider=Rockit.provider_name,
@@ -739,6 +782,18 @@ class Rockit:
         if album is not None:
             album_id = public_ids.get(album.id, "")
             album_image = images.get(album.image_id)
+            album_image_url: str = ""
+            if album_image is not None:
+                a_result_album_image_url: Result[str] = await Image.get_internal_image_url_async(
+                    image=album_image
+                )
+                if a_result_album_image_url.is_not_ok():
+                    logger.error(
+                        f"Error getting album image URL for {public_id}. "
+                        f"{a_result_album_image_url.info()}"
+                    )
+                    return Result[BaseSongWithAlbumResponse].from_result(a_result_album_image_url)
+                album_image_url = a_result_album_image_url.result()
             album_response = BaseAlbumWithoutSongsResponse(
                 provider=Rockit.provider_name,
                 publicId=album_id,
@@ -746,7 +801,7 @@ class Rockit:
                 providerUrl="",
                 name=album.name,
                 releaseDate=album.release_date or "",
-                imageUrl=Image.get_image_url(image=album_image),
+                imageUrl=album_image_url,
                 dominantColor=album_image.dominant_color if album_image else "",
                 artists=[
                     BaseArtistResponse(
@@ -797,7 +852,16 @@ class Rockit:
                 logger.error(f"Error getting image for album {public_id}. {a_result_image.info()}")
                 return Result(code=a_result_image.code(), message=a_result_image.message())
 
-            image_url: str = Image.get_image_url(a_result_image.result())
+            a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=a_result_image.result()
+            )
+            if a_result_image_url.is_not_ok():
+                logger.error(
+                    f"Error getting album image URL for {public_id}. {a_result_image_url.info()}"
+                )
+                return Result[BaseAlbumWithSongsResponse].from_result(a_result_image_url)
+
+            image_url: str = a_result_image_url.result()
             dominant_color: str = a_result_image.result().dominant_color
 
             album_artists: list[BaseArtistResponse] = [
@@ -838,7 +902,18 @@ class Rockit:
                         session=session, image_id=song.image_id
                     )
                     if a_result_song_image.is_ok():
-                        song_image_url = Image.get_image_url(a_result_song_image.result())
+                        a_result_song_image_url: Result[
+                            str
+                        ] = await Image.get_internal_image_url_async(
+                            image=a_result_song_image.result()
+                        )
+                        if a_result_song_image_url.is_ok():
+                            song_image_url = a_result_song_image_url.result()
+                        else:
+                            logger.warning(
+                                f"Error getting image URL for song {song.id}. "
+                                f"{a_result_song_image_url.info()}"
+                            )
                         song_dominant_color = a_result_song_image.result().dominant_color
 
                     song_artists: list[BaseArtistResponse] = [
@@ -913,7 +988,14 @@ class Rockit:
         if image is None:
             logger.error(f"Missing video image for {public_id}")
             return Result(code=ResultCode.NOT_FOUND, message="Video image not found")
-        image_url = Image.get_image_url(image=image)
+
+        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(image=image)
+        if a_result_image_url.is_not_ok():
+            logger.error(
+                f"Error getting video image URL for {public_id}. {a_result_image_url.info()}"
+            )
+            return Result[BaseVideoResponse].from_result(a_result_image_url)
+        image_url: str = a_result_image_url.result()
         return Result(
             code=ResultCode.OK,
             message="OK",

@@ -48,15 +48,18 @@ class NotificationAccess:
         vocabulary_key: str,
         replacements: list[NotificationReplacement],
         destination: NotificationDestination | None = None,
+        recipient_user_id: int | None = None,
+        source_key: str | None = None,
     ) -> Result[int]:
         """Persist one untranslated notification per current subscriber without committing."""
-        user_ids = list(
-            await session.scalars(
-                select(NotificationSubscriptionRow.user_id).where(
-                    NotificationSubscriptionRow.event_key == event_key
-                )
-            )
+        subscribers = select(NotificationSubscriptionRow.user_id).where(
+            NotificationSubscriptionRow.event_key == event_key
         )
+        if recipient_user_id is not None:
+            subscribers = subscribers.where(
+                NotificationSubscriptionRow.user_id == recipient_user_id
+            )
+        user_ids = list(await session.scalars(subscribers))
         session.add_all(
             [
                 NotificationRow(
@@ -65,6 +68,7 @@ class NotificationAccess:
                     vocabulary_key=vocabulary_key,
                     replacements=[replacement.model_dump() for replacement in replacements],
                     destination=destination.model_dump() if destination is not None else None,
+                    source_key=source_key,
                 )
                 for user_id in user_ids
             ]

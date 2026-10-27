@@ -5,6 +5,7 @@ from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import IMAGES_PATH
+from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormEnums.bookmarkModeEnum import BookmarkModeEnumRow
 from core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow
 from core.access.db.ormEnums.friendStatusEnum import FriendStatusEnumRow
@@ -37,6 +38,7 @@ from core.enums.skipDirectionEnum import SkipDirectionEnum
 from core.framework import providers
 from core.framework.media.image import Image
 from logger import logger
+from result import Result
 
 
 async def add_default_images(session: AsyncSession) -> None:
@@ -61,15 +63,14 @@ async def add_default_images(session: AsyncSession) -> None:
             shutil.copy(source_path, dest_path)
             logger.info(f"Copied image: {filename}")
 
-        a_result_image = await Image.get_image_from_key_async(session=session, key=filename)
-        if a_result_image.is_ok():
-            logger.info(f"Image already in database: {filename}")
-            continue
+        with open(source_path, "rb") as image_file:
+            image_bytes: bytes = image_file.read()
 
-        a_result = await Image.create_image_async(
+        a_result: Result[ImageRow] = await Image.ensure_image_from_bytes_async(
             session=session,
-            path=filename,
-            url=None,
+            key=filename,
+            data=image_bytes,
+            filename=filename,
         )
         if a_result.is_ok():
             logger.info(f"Added image to database: {filename}")

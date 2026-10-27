@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 import requests as req
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL, IMAGES_PATH, MEDIA_PATH
+from constants import BACKEND_URL, MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
@@ -44,12 +44,15 @@ class YouTube:
             response = req.get(url, timeout=10)
             if response.status_code != 200:
                 return Result(code=ResultCode.GENERAL_ERROR, message="Image download failed")
-            filename = "youtube/" + str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(IMAGES_PATH, filename)
-            os.makedirs(name=os.path.dirname(p=full_path), exist_ok=True)
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-            return await Image.create_image_async(session=session, path=filename, url=url)
+            filename = str(uuid.uuid4()) + ".jpg"
+            key = f"images/youtube/{filename}"
+            return await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=key,
+                data=response.content,
+                filename=filename,
+                content_type=response.headers.get("Content-Type"),
+            )
         except Exception as e:
             logger.error(f"Failed to download/create internal image: {e}")
             return Result(
@@ -98,7 +101,14 @@ class YouTube:
                     message=a_result_internal_image.message(),
                 )
 
-            image_url: str = Image.get_image_url(a_result_internal_image.result())
+            a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=a_result_internal_image.result()
+            )
+            if a_result_image_url.is_not_ok():
+                logger.error(f"Error getting video image URL. {a_result_image_url.info()}")
+                return Result[YoutubeVideoResponse].from_result(a_result_image_url)
+
+            image_url: str = a_result_image_url.result()
             dominant_color: str = a_result_internal_image.result().dominant_color
 
             channel_response: YoutubeChannelResponse | None = None
@@ -114,13 +124,22 @@ class YouTube:
                         message=a_result_channel_image.message(),
                     )
 
+                a_result_channel_image_url: Result[str] = await Image.get_internal_image_url_async(
+                    image=a_result_channel_image.result()
+                )
+                if a_result_channel_image_url.is_not_ok():
+                    logger.error(
+                        f"Error getting channel image URL. {a_result_channel_image_url.info()}"
+                    )
+                    return Result[YoutubeVideoResponse].from_result(a_result_channel_image_url)
+
                 channel_dominant_color = a_result_channel_image.result().dominant_color
 
                 channel_response = YoutubeChannelResponse(
                     provider=YouTube.provider_name,
                     publicId=channel.youtube_id,
                     name=channel.name,
-                    imageUrl=Image.get_image_url(a_result_channel_image.result()),
+                    imageUrl=a_result_channel_image_url.result(),
                     subscriberCount=channel.subscriber_count,
                     videoCount=channel.video_count,
                     viewCount=channel.view_count,
@@ -315,7 +334,14 @@ class YouTube:
                 message=a_result_internal_image.message(),
             )
 
-        image_url: str = Image.get_image_url(a_result_internal_image.result())
+        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+            image=a_result_internal_image.result()
+        )
+        if a_result_image_url.is_not_ok():
+            logger.error(f"Error getting video image URL. {a_result_image_url.info()}")
+            return Result[YoutubeVideoResponse].from_result(a_result_image_url)
+
+        image_url: str = a_result_image_url.result()
         dominant_color: str = a_result_internal_image.result().dominant_color
 
         channel_response: YoutubeChannelResponse | None = None
@@ -331,13 +357,22 @@ class YouTube:
                     message=a_result_channel_image.message(),
                 )
 
+            a_result_channel_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=a_result_channel_image.result()
+            )
+            if a_result_channel_image_url.is_not_ok():
+                logger.error(
+                    f"Error getting channel image URL. {a_result_channel_image_url.info()}"
+                )
+                return Result[YoutubeVideoResponse].from_result(a_result_channel_image_url)
+
             channel_dominant_color = a_result_channel_image.result().dominant_color
 
             channel_response = YoutubeChannelResponse(
                 provider=YouTube.provider_name,
                 publicId=fetched_channel.youtube_id,
                 name=fetched_channel.name,
-                imageUrl=Image.get_image_url(a_result_channel_image.result()),
+                imageUrl=a_result_channel_image_url.result(),
                 subscriberCount=fetched_channel.subscriber_count,
                 videoCount=fetched_channel.video_count,
                 viewCount=fetched_channel.view_count,

@@ -11,6 +11,7 @@ from core.framework.friend.notifications import (
     notify_after_commit,
     notify_notifications_after_commit,
 )
+from core.framework.media.image import Image
 from core.framework.media.media import Media
 from core.framework.notification import Notification
 from core.responses.friend.sharedMediaResponse import SharedMediaItem
@@ -158,12 +159,20 @@ class Sharing:
                 if image_id
                 else images.result().get(record.public_id)
             )
+            a_result_sender_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=share.sender.image
+            )
+            if a_result_sender_image_url.is_not_ok():
+                logger.error(f"Error getting sender image URL. {a_result_sender_image_url.info()}")
+                return Result[list[SharedMediaItem]].from_result(a_result_sender_image_url)
+            sender_image_url: str = a_result_sender_image_url.result()
+
             items.append(
                 SharedMediaItem(
                     publicId=share.public_id,
                     senderPublicId=share.sender.public_id,
                     senderUsername=share.sender.username,
-                    senderImageUrl=(share.sender.image.url if share.sender.image else None),
+                    senderImageUrl=sender_image_url,
                     recipientPublicId=share.recipient.public_id,
                     recipientUsername=share.recipient.username,
                     mediaPublicId=record.public_id,

@@ -123,6 +123,15 @@ class DefaultProvider(BaseMediaProvider):
             owner = a_result_owner.result()
             owner_name: str = owner.username
 
+            a_result_owner_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=owner.image
+            )
+            if a_result_owner_image_url.is_not_ok():
+                logger.error(f"Error getting owner image URL. {a_result_owner_image_url.info()}")
+                return Result[list[BasePlaylistWithMediasResponse]].from_result(
+                    a_result_owner_image_url
+                )
+
             a_result_response: Result[
                 BasePlaylistWithMediasResponse
             ] = await Playlist.build_playlist_response_async(
@@ -134,7 +143,7 @@ class DefaultProvider(BaseMediaProvider):
                     url=f"/user/{owner.public_id}",
                     providerUrl="",
                     name=owner_name,
-                    imageUrl=Image.get_image_url(owner.image),
+                    imageUrl=a_result_owner_image_url.result(),
                     dominantColor=owner.image.dominant_color,
                 ),
                 user_id=user_id,
@@ -187,6 +196,15 @@ class DefaultProvider(BaseMediaProvider):
             owner = a_result_owner.result()
             owner_name: str = owner.username
 
+            a_result_owner_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=owner.image
+            )
+            if a_result_owner_image_url.is_not_ok():
+                logger.error(f"Error getting owner image URL. {a_result_owner_image_url.info()}")
+                return Result[list[BasePlaylistWithoutMediasResponse]].from_result(
+                    a_result_owner_image_url
+                )
+
             contributor_responses: list[PlaylistContributor] = []
             for c in playlist.contributors:
                 a_result_user = await UserAccess.get_user_from_id(
@@ -220,7 +238,7 @@ class DefaultProvider(BaseMediaProvider):
                         url=f"/user/{owner.public_id}",
                         providerUrl="",
                         name=owner_name,
-                        imageUrl=Image.get_image_url(owner.image),
+                        imageUrl=a_result_owner_image_url.result(),
                         dominantColor=owner.image.dominant_color,
                     ),
                 )

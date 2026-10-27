@@ -122,5 +122,6 @@ def test_retried_downloads_keep_the_same_recipient_and_source_key() -> None:
             )
             assert result.is_ok()
     assert emit.await_args_list[0] == emit.await_args_list[1]
+    assert emit.await_args is not None
     assert emit.await_args.kwargs["recipient_user_id"] == 7
     assert emit.await_args.kwargs["source_key"] == "download:download-id:DOWNLOAD_COMPLETED:2"

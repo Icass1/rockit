@@ -1,13 +1,16 @@
 import asyncio
 import os
 import tempfile
+from dataclasses import replace
 from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import TEMP_PATH
+from core.access.storageObjectAccess import StorageObjectAccess
 from core.framework.downloader.downloader import Downloader
 from core.framework.notification import ZIP_READY_NOTIFICATION, Notification
+from core.framework.storage import Storage
 from core.responses.notificationResponses import NotificationDestination, NotificationReplacement
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
@@ -15,6 +18,7 @@ from result import Result, ResultCode
 from zipExport.access.downloadZipAccess import DownloadZipAccess
 from zipExport.models.exportFile import ExportFile
 from zipExport.utils.archive import ArchiveTooLarge, build_archive
+from zipExport.utils.audioMetadata import read_cover_bytes
 
 logger: Logger = getLogger(name=__name__)
 
@@ -30,6 +34,54 @@ def _remove_quietly(path: str) -> None:
         os.unlink(path)
     except OSError as exception:
         logger.warning(f"Could not remove temporary ZIP. {path} {exception}")
+
+
+async def _with_cover_data_async(
+    session: AsyncSession, files: list[ExportFile]
+) -> list[ExportFile]:
+    """Download stored artwork once per image and attach it to export metadata."""
+
+    resolved: list[ExportFile] = []
+    cover_cache: dict[int, tuple[bytes, str] | None] = {}
+    for item in files:
+        tags = item.tags
+        storage_object_id = tags.cover_storage_object_id if tags is not None else 0
+        if tags is None or storage_object_id <= 0 or tags.cover_data is not None:
+            resolved.append(item)
+            continue
+
+        if storage_object_id not in cover_cache:
+            cover: tuple[bytes, str] | None = None
+            a_result_object = await StorageObjectAccess.get_object_from_id_async(
+                session=session, id=storage_object_id
+            )
+            if a_result_object.is_not_ok():
+                logger.warning(
+                    f"Error getting cover storage object {storage_object_id}. "
+                    f"{a_result_object.info()}"
+                )
+            else:
+                a_result_bytes = await Storage.download_bytes_async(
+                    session=session, storage_object=a_result_object.result()
+                )
+                if a_result_bytes.is_not_ok():
+                    logger.warning(
+                        f"Error downloading cover object {storage_object_id}. "
+                        f"{a_result_bytes.info()}"
+                    )
+                else:
+                    cover = read_cover_bytes(
+                        data=a_result_bytes.result(),
+                        label=a_result_object.result().key,
+                    )
+            cover_cache[storage_object_id] = cover
+
+        cover = cover_cache[storage_object_id]
+        if cover is not None:
+            tags = replace(tags, cover_data=cover[0], cover_mime=cover[1])
+        resolved.append(replace(item, tags=tags))
+
+    return resolved
 
 
 class DownloadZip:
@@ -84,6 +136,8 @@ class DownloadZip:
         if not files:
             logger.warning(f"No downloaded files found for ZIP '{title}'")
             return Result(code=ResultCode.NOT_FOUND, message="No downloaded files found")
+
+        files = await _with_cover_data_async(session=session, files=files)
 
         os.makedirs(TEMP_PATH, exist_ok=True)
         fd, zip_path = tempfile.mkstemp(prefix="rockit-", suffix=".zip", dir=TEMP_PATH)

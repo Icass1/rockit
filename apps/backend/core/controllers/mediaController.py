@@ -1,23 +1,23 @@
 import io
-import os
 from logging import Logger
 
 import cv2
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 from PIL import Image
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import IMAGES_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.user import UserRow
 from core.framework import providers
 from core.framework.media.artist import Artist
+from core.framework.media.image import Image as ImageFramework
 from core.framework.media.collection import Collection
 from core.framework.media.media import Media
 from core.framework.media.search import provider_search
 from core.framework.provider.types import AddFromUrlResult
+from core.framework.storage import Storage
 from core.framework.recommendation import Recommendation, RecommendationResult
 from core.framework.user.user import User
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -335,8 +335,8 @@ async def get_media_async(
 
 
 @router.get("/image/{public_id}")
-async def get_media_image_async(request: Request, public_id: str) -> FileResponse:
-    """Get an image by its public_id."""
+async def get_media_image_async(request: Request, public_id: str) -> RedirectResponse:
+    """Redirect to the stored image identified by its public_id."""
 
     logger.debug(f"Getting image with public_id: {public_id}")
 
@@ -346,16 +346,15 @@ async def get_media_image_async(request: Request, public_id: str) -> FileRespons
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
     image: ImageRow = a_result.result()
-    image_path: str = IMAGES_PATH + "/" + image.path
-
-    if not os.path.exists(image_path):
-        logger.error(
-            f"Image with public_id {public_id} found in database but not in "
-            f"filesystem at path {image_path}"
+    a_result_image_url: Result[str] = await ImageFramework.get_internal_image_url_async(image=image)
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting image URL for {public_id}. {a_result_image_url.info()}")
+        raise HTTPException(
+            status_code=a_result_image_url.get_http_code(),
+            detail=a_result_image_url.message(),
         )
-        raise HTTPException(status_code=404, detail="Image in database but not in filesystem.")
 
-    return FileResponse(path=image_path)
+    return RedirectResponse(url=a_result_image_url.result())
 
 
 @router.get("/image/blur/{public_id}")
@@ -368,14 +367,19 @@ async def generate_image_async(request: Request, public_id: str) -> Response:
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
     image: ImageRow = a_result.result()
-    image_path: str = IMAGES_PATH + "/" + image.path
-
-    if not os.path.exists(path=image_path):
-        raise HTTPException(status_code=404, detail="Image not found")
+    a_result_image_bytes: Result[bytes] = await Storage.download_bytes_async(
+        session=session, storage_object=image.storage_object
+    )
+    if a_result_image_bytes.is_not_ok():
+        logger.error(f"Error downloading image for {public_id}. {a_result_image_bytes.info()}")
+        raise HTTPException(
+            status_code=a_result_image_bytes.get_http_code(),
+            detail=a_result_image_bytes.message(),
+        )
 
     try:
         # Load source image
-        src: Image.Image = Image.open(image_path).convert("RGB")
+        src: Image.Image = Image.open(io.BytesIO(a_result_image_bytes.result())).convert("RGB")
 
         src = src.resize(size=(60, 60))
 

@@ -62,6 +62,13 @@ async def get_artist_response_async(
 
     public_id: str = artist_row.core_artist.public_id
 
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+        image=artist_row.image
+    )
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting artist image URL. {a_result_image_url.info()}")
+        return Result[SpotifyArtistResponse].from_result(a_result_image_url)
+
     return Result(
         code=ResultCode.OK,
         message="OK",
@@ -71,44 +78,65 @@ async def get_artist_response_async(
             url=f"/artist/{public_id}",
             providerUrl=f"https://open.spotify.com/artist/{artist_row.spotify_id}",
             name=artist_row.name,
-            imageUrl=Image.get_image_url(image=artist_row.image),
+            imageUrl=a_result_image_url.result(),
             genres=genres,
             dominantColor=artist_row.image.dominant_color,
         ),
     )
 
 
-def get_album_without_songs_response(
+async def get_album_without_songs_response_async(
     provider_name: str,
     album_row: AlbumRow,
-) -> BaseAlbumWithoutSongsResponse:
+) -> Result[BaseAlbumWithoutSongsResponse]:
     """Convert an AlbumRow to a BaseAlbumWithoutSongsResponse (no songs included)."""
 
     public_id: str = album_row.core_album.public_id
 
-    artist_responses: list[BaseArtistResponse] = [
-        BaseArtistResponse(
-            provider=provider_name,
-            publicId=a.core_artist.public_id,
-            url=f"/artist/{a.core_artist.public_id}",
-            providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
-            name=a.name,
-            imageUrl=Image.get_image_url(image=a.image),
-            dominantColor=a.image.dominant_color,
+    artist_responses: list[BaseArtistResponse] = []
+    for a in album_row.artists:
+        a_result_artist_image_url: Result[str] = await Image.get_internal_image_url_async(
+            image=a.image
         )
-        for a in album_row.artists
-    ]
+        if a_result_artist_image_url.is_not_ok():
+            logger.error(
+                f"Error getting album artist image URL. {a_result_artist_image_url.info()}"
+            )
+            return Result[BaseAlbumWithoutSongsResponse].from_result(a_result_artist_image_url)
 
-    return BaseAlbumWithoutSongsResponse(
-        provider=provider_name,
-        publicId=public_id,
-        url=f"/album/{public_id}",
-        providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
-        name=album_row.name,
-        imageUrl=Image.get_image_url(image=album_row.image),
-        artists=artist_responses,
-        releaseDate=album_row.release_date,
-        dominantColor=album_row.image.dominant_color,
+        artist_responses.append(
+            BaseArtistResponse(
+                provider=provider_name,
+                publicId=a.core_artist.public_id,
+                url=f"/artist/{a.core_artist.public_id}",
+                providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
+                name=a.name,
+                imageUrl=a_result_artist_image_url.result(),
+                dominantColor=a.image.dominant_color,
+            )
+        )
+
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+        image=album_row.image
+    )
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting album image URL. {a_result_image_url.info()}")
+        return Result[BaseAlbumWithoutSongsResponse].from_result(a_result_image_url)
+
+    return Result(
+        code=ResultCode.OK,
+        message="OK",
+        result=BaseAlbumWithoutSongsResponse(
+            provider=provider_name,
+            publicId=public_id,
+            url=f"/album/{public_id}",
+            providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
+            name=album_row.name,
+            imageUrl=a_result_image_url.result(),
+            artists=artist_responses,
+            releaseDate=album_row.release_date,
+            dominantColor=album_row.image.dominant_color,
+        ),
     )
 
 
@@ -143,6 +171,25 @@ async def get_track_response_async(
 
     public_id: str = track_row.core_song.public_id
 
+    a_result_album: Result[
+        BaseAlbumWithoutSongsResponse
+    ] = await get_album_without_songs_response_async(
+        provider_name=provider_name, album_row=track_row.album
+    )
+    if a_result_album.is_not_ok():
+        logger.error(
+            f"Error building album response for track {track_row.spotify_id}. "
+            f"{a_result_album.info()}"
+        )
+        return Result[SpotifyTrackResponse].from_result(a_result_album)
+
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+        image=track_row.album.image
+    )
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting track image URL. {a_result_image_url.info()}")
+        return Result[SpotifyTrackResponse].from_result(a_result_image_url)
+
     return Result(
         code=ResultCode.OK,
         message="OK",
@@ -155,13 +202,11 @@ async def get_track_response_async(
             artists=artist_responses,
             audioUrl=audio_src,
             downloaded=is_downloaded,
-            imageUrl=Image.get_image_url(image=track_row.album.image),
+            imageUrl=a_result_image_url.result(),
             duration_ms=track_row.duration_ms,
             discNumber=track_row.disc_number,
             trackNumber=track_row.track_number,
-            album=get_album_without_songs_response(
-                provider_name=provider_name, album_row=track_row.album
-            ),
+            album=a_result_album.result(),
             dominantColor=(track_row.album.image.dominant_color),
         ),
     )
@@ -193,18 +238,28 @@ async def get_album_with_songs_response_async(
         a_result_external_images.result() if a_result_external_images.is_ok() else []
     )
 
-    album_artist_responses: list[BaseArtistResponse] = [
-        BaseArtistResponse(
-            provider=provider_name,
-            publicId=a.core_artist.public_id,
-            url=f"/artist/{a.core_artist.public_id}",
-            providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
-            name=a.name,
-            imageUrl=Image.get_image_url(image=a.image),
-            dominantColor=a.image.dominant_color,
+    album_artist_responses: list[BaseArtistResponse] = []
+    for a in album_row.artists:
+        a_result_album_artist_image_url: Result[str] = await Image.get_internal_image_url_async(
+            image=a.image
         )
-        for a in album_row.artists
-    ]
+        if a_result_album_artist_image_url.is_not_ok():
+            logger.error(
+                f"Error getting album artist image URL. {a_result_album_artist_image_url.info()}"
+            )
+            return Result[SpotifyAlbumResponse].from_result(a_result_album_artist_image_url)
+
+        album_artist_responses.append(
+            BaseArtistResponse(
+                provider=provider_name,
+                publicId=a.core_artist.public_id,
+                url=f"/artist/{a.core_artist.public_id}",
+                providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
+                name=a.name,
+                imageUrl=a_result_album_artist_image_url.result(),
+                dominantColor=a.image.dominant_color,
+            )
+        )
 
     song_responses: list[BaseSongWithoutAlbumResponse] = []
     for twc in tracks_with_core:
@@ -233,6 +288,13 @@ async def get_album_with_songs_response_async(
 
         track_public_id: str = track_row.core_song.public_id
 
+        a_result_track_image_url: Result[str] = await Image.get_internal_image_url_async(
+            image=track_row.album.image
+        )
+        if a_result_track_image_url.is_not_ok():
+            logger.error(f"Error getting track image URL. {a_result_track_image_url.info()}")
+            return Result[SpotifyAlbumResponse].from_result(a_result_track_image_url)
+
         song_responses.append(
             BaseSongWithoutAlbumResponse(
                 provider=provider_name,
@@ -242,7 +304,7 @@ async def get_album_with_songs_response_async(
                 artists=track_artist_responses,
                 audioUrl=audio_src,
                 downloaded=is_downloaded,
-                imageUrl=Image.get_image_url(image=track_row.album.image),
+                imageUrl=a_result_track_image_url.result(),
                 duration_ms=track_row.duration_ms,
                 discNumber=track_row.disc_number,
                 trackNumber=track_row.track_number,
@@ -257,6 +319,13 @@ async def get_album_with_songs_response_async(
 
     public_id: str = album_row.core_album.public_id
 
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+        image=album_row.image
+    )
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting album image URL. {a_result_image_url.info()}")
+        return Result[SpotifyAlbumResponse].from_result(a_result_image_url)
+
     return Result(
         code=ResultCode.OK,
         message="OK",
@@ -266,7 +335,7 @@ async def get_album_with_songs_response_async(
             url=f"/album/{public_id}",
             providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
             name=album_row.name,
-            imageUrl=Image.get_image_url(image=album_row.image),
+            imageUrl=a_result_image_url.result(),
             artists=album_artist_responses,
             releaseDate=album_row.release_date,
             spotifyId=album_row.spotify_id,
@@ -296,6 +365,13 @@ async def get_playlist_without_medias_response_async(
 
     public_id: str = a_result_core_playlist.result().public_id
 
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+        image=playlist_row.image
+    )
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting playlist image URL. {a_result_image_url.info()}")
+        return Result[BasePlaylistWithoutMediasResponse].from_result(a_result_image_url)
+
     return Result(
         code=ResultCode.OK,
         message="OK",
@@ -308,7 +384,7 @@ async def get_playlist_without_medias_response_async(
             providerUrl=f"https://open.spotify.com/playlist/{playlist_row.spotify_id}",
             name=playlist_row.name,
             contributors=[],
-            imageUrl=Image.get_image_url(image=playlist_row.image),
+            imageUrl=a_result_image_url.result(),
             owner=BaseArtistResponse(
                 provider=provider_name,
                 publicId="",
@@ -384,6 +460,13 @@ async def get_playlist_with_medias_response_async(
 
     public_id: str = a_result_core_playlist.result().public_id
 
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+        image=playlist_row.image
+    )
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting playlist image URL. {a_result_image_url.info()}")
+        return Result[BasePlaylistWithMediasResponse].from_result(a_result_image_url)
+
     return Result(
         code=ResultCode.OK,
         message="OK",
@@ -397,7 +480,7 @@ async def get_playlist_with_medias_response_async(
             name=playlist_row.name,
             medias=song_responses,
             contributors=[],
-            imageUrl=Image.get_image_url(image=playlist_row.image),
+            imageUrl=a_result_image_url.result(),
             owner=BaseArtistResponse(
                 provider=provider_name,
                 publicId="",
@@ -485,24 +568,53 @@ async def get_tracks_responses_async(
                 continue
 
             track_artists = track_artist_map.get(track_row.id, [])
-            track_artist_responses: list[SpotifyArtistResponse] = [
-                SpotifyArtistResponse(
-                    provider=provider_name,
-                    publicId=a.core_artist.public_id,
-                    url=f"/artist/{a.core_artist.public_id}",
-                    providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
-                    name=a.name,
-                    imageUrl=Image.get_image_url(image=a.image),
-                    genres=artist_genre_map.get(a.id, []),
-                    dominantColor=a.image.dominant_color,
+            track_artist_responses: list[SpotifyArtistResponse] = []
+            for a in track_artists:
+                a_result_artist_image_url: Result[str] = await Image.get_internal_image_url_async(
+                    image=a.image
                 )
-                for a in track_artists
-            ]
+                if a_result_artist_image_url.is_not_ok():
+                    logger.error(
+                        f"Error getting artist image URL. {a_result_artist_image_url.info()}"
+                    )
+                    return Result[list[SpotifyTrackResponse]].from_result(a_result_artist_image_url)
+
+                track_artist_responses.append(
+                    SpotifyArtistResponse(
+                        provider=provider_name,
+                        publicId=a.core_artist.public_id,
+                        url=f"/artist/{a.core_artist.public_id}",
+                        providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
+                        name=a.name,
+                        imageUrl=a_result_artist_image_url.result(),
+                        genres=artist_genre_map.get(a.id, []),
+                        dominantColor=a.image.dominant_color,
+                    )
+                )
 
             is_downloaded = track_row.path is not None
             audio_src = (
                 f"{BACKEND_URL}/spotify/audio/{track_row.spotify_id}" if is_downloaded else None
             )
+
+            a_result_album: Result[
+                BaseAlbumWithoutSongsResponse
+            ] = await get_album_without_songs_response_async(
+                provider_name=provider_name, album_row=album_row
+            )
+            if a_result_album.is_not_ok():
+                logger.error(
+                    f"Error building album response for track {track_row.spotify_id}. "
+                    f"{a_result_album.info()}"
+                )
+                return Result[list[SpotifyTrackResponse]].from_result(a_result_album)
+
+            a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=album_row.image
+            )
+            if a_result_image_url.is_not_ok():
+                logger.error(f"Error getting track image URL. {a_result_image_url.info()}")
+                return Result[list[SpotifyTrackResponse]].from_result(a_result_image_url)
 
             responses.append(
                 SpotifyTrackResponse(
@@ -514,13 +626,11 @@ async def get_tracks_responses_async(
                     artists=track_artist_responses,
                     audioUrl=audio_src,
                     downloaded=is_downloaded,
-                    imageUrl=Image.get_image_url(image=album_row.image),
+                    imageUrl=a_result_image_url.result(),
                     duration_ms=track_row.duration_ms,
                     discNumber=track_row.disc_number,
                     trackNumber=track_row.track_number,
-                    album=get_album_without_songs_response(
-                        provider_name=provider_name, album_row=album_row
-                    ),
+                    album=a_result_album.result(),
                     dominantColor=(album_row.image.dominant_color),
                 )
             )
@@ -557,19 +667,27 @@ async def get_artists_responses_async(
             for row in genre_result.all():
                 artist_genre_map[row.artist_id].append(row.name)
 
-        responses: list[SpotifyArtistResponse] = [
-            SpotifyArtistResponse(
-                provider=provider_name,
-                publicId=artist_row.core_artist.public_id,
-                url=f"/artist/{artist_row.core_artist.public_id}",
-                providerUrl=f"https://open.spotify.com/artist/{artist_row.spotify_id}",
-                name=artist_row.name,
-                imageUrl=Image.get_image_url(image=artist_row.image),
-                genres=artist_genre_map.get(artist_row.id, []),
-                dominantColor=(artist_row.image.dominant_color),
+        responses: list[SpotifyArtistResponse] = []
+        for artist_row in artist_rows:
+            a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=artist_row.image
             )
-            for artist_row in artist_rows
-        ]
+            if a_result_image_url.is_not_ok():
+                logger.error(f"Error getting artist image URL. {a_result_image_url.info()}")
+                return Result[list[SpotifyArtistResponse]].from_result(a_result_image_url)
+
+            responses.append(
+                SpotifyArtistResponse(
+                    provider=provider_name,
+                    publicId=artist_row.core_artist.public_id,
+                    url=f"/artist/{artist_row.core_artist.public_id}",
+                    providerUrl=f"https://open.spotify.com/artist/{artist_row.spotify_id}",
+                    name=artist_row.name,
+                    imageUrl=a_result_image_url.result(),
+                    genres=artist_genre_map.get(artist_row.id, []),
+                    dominantColor=(artist_row.image.dominant_color),
+                )
+            )
 
         return Result(code=ResultCode.OK, message="OK", result=responses)
 
@@ -675,35 +793,68 @@ async def get_albums_with_songs_responses_async(
                 key=lambda t: (t.disc_number, t.track_number),
             )
 
-            album_artist_responses: list[BaseArtistResponse] = [
-                BaseArtistResponse(
-                    provider=provider_name,
-                    publicId=a.core_artist.public_id,
-                    url=f"/artist/{a.core_artist.public_id}",
-                    providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
-                    name=a.name,
-                    imageUrl=Image.get_image_url(image=a.image),
-                    dominantColor=a.image.dominant_color,
-                )
-                for a in album_row.artists
-            ]
+            album_artist_responses: list[BaseArtistResponse] = []
+            for a in album_row.artists:
+                a_result_album_artist_image_url: Result[
+                    str
+                ] = await Image.get_internal_image_url_async(image=a.image)
+                if a_result_album_artist_image_url.is_not_ok():
+                    logger.error(
+                        f"Error getting album artist image URL. "
+                        f"{a_result_album_artist_image_url.info()}"
+                    )
+                    return Result[list[SpotifyAlbumResponse]].from_result(
+                        a_result_album_artist_image_url
+                    )
 
-            song_responses: list[BaseSongWithoutAlbumResponse] = []
-            for track in album_tracks:
-                track_artists = track_artist_map.get(track.id, [])
-                track_artist_responses: list[SpotifyArtistResponse] = [
-                    SpotifyArtistResponse(
+                album_artist_responses.append(
+                    BaseArtistResponse(
                         provider=provider_name,
                         publicId=a.core_artist.public_id,
                         url=f"/artist/{a.core_artist.public_id}",
                         providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
                         name=a.name,
-                        imageUrl=Image.get_image_url(image=a.image),
-                        genres=artist_genre_map.get(a.id, []),
+                        imageUrl=a_result_album_artist_image_url.result(),
                         dominantColor=a.image.dominant_color,
                     )
-                    for a in track_artists
-                ]
+                )
+
+            a_result_album_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=album_row.image
+            )
+            if a_result_album_image_url.is_not_ok():
+                logger.error(f"Error getting album image URL. {a_result_album_image_url.info()}")
+                return Result[list[SpotifyAlbumResponse]].from_result(a_result_album_image_url)
+            album_image_url: str = a_result_album_image_url.result()
+
+            song_responses: list[BaseSongWithoutAlbumResponse] = []
+            for track in album_tracks:
+                track_artists = track_artist_map.get(track.id, [])
+                track_artist_responses: list[SpotifyArtistResponse] = []
+                for a in track_artists:
+                    a_result_artist_image_url: Result[
+                        str
+                    ] = await Image.get_internal_image_url_async(image=a.image)
+                    if a_result_artist_image_url.is_not_ok():
+                        logger.error(
+                            f"Error getting artist image URL. {a_result_artist_image_url.info()}"
+                        )
+                        return Result[list[SpotifyAlbumResponse]].from_result(
+                            a_result_artist_image_url
+                        )
+
+                    track_artist_responses.append(
+                        SpotifyArtistResponse(
+                            provider=provider_name,
+                            publicId=a.core_artist.public_id,
+                            url=f"/artist/{a.core_artist.public_id}",
+                            providerUrl=f"https://open.spotify.com/artist/{a.spotify_id}",
+                            name=a.name,
+                            imageUrl=a_result_artist_image_url.result(),
+                            genres=artist_genre_map.get(a.id, []),
+                            dominantColor=a.image.dominant_color,
+                        )
+                    )
 
                 is_downloaded = track.path is not None
                 audio_src = (
@@ -719,7 +870,7 @@ async def get_albums_with_songs_responses_async(
                         artists=track_artist_responses,
                         audioUrl=audio_src,
                         downloaded=is_downloaded,
-                        imageUrl=Image.get_image_url(image=album_row.image),
+                        imageUrl=album_image_url,
                         duration_ms=track.duration_ms,
                         discNumber=track.disc_number,
                         trackNumber=track.track_number,
@@ -741,7 +892,7 @@ async def get_albums_with_songs_responses_async(
                     url=f"/album/{album_row.core_album.public_id}",
                     providerUrl=f"https://open.spotify.com/album/{album_row.spotify_id}",
                     name=album_row.name,
-                    imageUrl=Image.get_image_url(image=album_row.image),
+                    imageUrl=album_image_url,
                     artists=album_artist_responses,
                     releaseDate=album_row.release_date,
                     spotifyId=album_row.spotify_id,

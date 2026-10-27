@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import os
 import uuid
 from logging import Logger
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import IMAGES_PATH
 from core.framework.media.image import Image
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.responses.baseStationResponse import BaseStationResponse
@@ -284,17 +282,13 @@ class Radio:
                         message="Image download failed",
                     )
 
-                filename = str(uuid.uuid4()) + ".png"
-                full_path = os.path.join(IMAGES_PATH, "radio", filename)
-                os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                with open(full_path, "wb") as f:
-                    f.write(response.content)
-
-            path = "radio/" + filename
-            a_result_image = await Image.create_image_async(
+            filename = str(uuid.uuid4()) + ".png"
+            key = f"images/radio/{filename}"
+            a_result_image = await Image.ensure_image_from_bytes_async(
                 session=session,
-                path=path,
-                url=url,
+                key=key,
+                data=response.content,
+                filename=filename,
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error creating image: {a_result_image.info()}")
@@ -306,7 +300,7 @@ class Radio:
             return Result(
                 code=ResultCode.OK,
                 message="OK",
-                result=path,
+                result=key,
             )
 
         except Exception as e:

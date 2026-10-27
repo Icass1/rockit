@@ -7,7 +7,7 @@ from fastapi import Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import IMAGES_PATH, MEDIA_PATH
+from constants import MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.framework.media.image import Image
@@ -68,10 +68,14 @@ class Spotify:
             if response.status_code != 200:
                 return Result(code=ResultCode.GENERAL_ERROR, message="Image download failed")
             filename = str(uuid.uuid4()) + ".jpg"
-            full_path = os.path.join(IMAGES_PATH, filename)
-            with open(full_path, "wb") as f:
-                f.write(response.content)
-            return await Image.create_image_async(session=session, path=filename, url=url)
+            key = f"images/spotify/{filename}"
+            return await Image.ensure_image_from_bytes_async(
+                session=session,
+                key=key,
+                data=response.content,
+                filename=filename,
+                content_type=response.headers.get("Content-Type"),
+            )
         except Exception as e:
             logger.error(f"Failed to download/create internal image: {e}")
             return Result(

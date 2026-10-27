@@ -198,9 +198,17 @@ async def get_session(request: Request) -> SessionResponse:
 
     image: ImageRow = a_result_user.result().image
 
+    a_result_image_url: Result[str] = await Image.get_internal_image_url_async(image=image)
+    if a_result_image_url.is_not_ok():
+        logger.error(f"Error getting image URL. {a_result_image_url.info()}")
+        raise HTTPException(
+            status_code=a_result_image_url.get_http_code(),
+            detail=a_result_image_url.message(),
+        )
+
     return SessionResponse(
         username=a_result_user.result().username,
-        image=Image.get_image_url(image),
+        image=a_result_image_url.result(),
         admin=a_result_user.result().admin,
         queueType=QueueTypeEnum(value=a_result_user.result().queue_type_key),
         repeatMode=RepeatModeEnum(value=a_result_user.result().repeat_mode_key),

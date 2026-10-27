@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from core.access.db.ormModels.friend.userLevel import UserLevelRow
 from core.access.friend.userLevelAccess import UserLevelAccess
+from core.framework.media.image import Image
 from core.responses.friend.userLevelResponse import UserLevelResponse
 from logger import getLogger
 from result import Result, ResultCode
@@ -102,11 +103,19 @@ class Levels:
             row = by_user[user.id]
             title = next((c.title for c in configs.result() if c.level == row.level), "")
             next_xp = next((c.xp_required for c in configs.result() if c.level > row.level), row.xp)
+            a_result_image_url: Result[str] = await Image.get_internal_image_url_async(
+                image=user.image
+            )
+            if a_result_image_url.is_not_ok():
+                logger.error(f"Error getting user image URL. {a_result_image_url.info()}")
+                return Result[list[UserLevelResponse]].from_result(a_result_image_url)
+            image_url: str = a_result_image_url.result()
+
             responses.append(
                 UserLevelResponse(
                     userId=user.public_id,
                     username=user.username,
-                    imageUrl=user.image.url if user.image else None,
+                    imageUrl=image_url,
                     level=row.level,
                     xp=row.xp,
                     xpToNext=max(0, next_xp - row.xp),

@@ -39,7 +39,9 @@ function transformStats(
     const moodSongs = dataResponse.moodSongs.map(
         (song): BaseSongWithAlbumResponse => song
     );
-    const recentlyClickedMedia = dataResponse.recentlyClickedMedia.map(
+    // Offline snapshots can predate this field, even though the current API
+    // schema supplies an empty-array default for network responses.
+    const recentlyClickedMedia = (dataResponse.recentlyClickedMedia ?? []).map(
         (item) => item.media
     );
 

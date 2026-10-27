@@ -85,6 +85,7 @@ export class RockIt {
         // the authenticated state and all message handlers are registered.
         await this.init();
         await this.userManager.updateAsync();
+        await this.vocabularyManager.init();
         await this.notificationManager.refreshAsync();
         await this.webSocketManager.reconnectAsync();
         await this.queueManager.refreshAsync();

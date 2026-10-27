@@ -20,7 +20,8 @@ export default function SignupModal(): JSX.Element {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const language = navigator.language.split("-")[0] ?? "en";
+        const language =
+            navigator.language.split(/[-_]/)[0]?.toLowerCase() || "en";
         const func = async (): Promise<void> => {
             const b =
                 await rockIt.vocabularyManager.getVocabularyAsync(language);

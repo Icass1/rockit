@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
 from core.access.languageAccess import LanguageAccess
-from core.aResult import AResult
+from core.aResult import AResult, AResultCode
 from core.framework.vocabulary import Vocabulary
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -84,16 +84,21 @@ async def get_vocabulary_by_code(request: Request, lang_code: str) -> Vocabulary
     """Get vocabulary for a specific language code."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    resolved_lang_code = lang_code
 
     a_result_vocabulary: AResult[dict[str, str]] = await Vocabulary.get_vocabulary_by_lang_code(
         session=session, lang_code=lang_code
     )
 
-    if a_result_vocabulary.is_not_ok():
+    if (
+        a_result_vocabulary.is_not_ok()
+        and a_result_vocabulary.code() == AResultCode.NOT_FOUND
+    ):
         logger.warning(
             f"Language code '{lang_code}' not found, falling back to 'en'. "
             f"{a_result_vocabulary.info()}"
         )
+        resolved_lang_code = "en"
         a_result_vocabulary = await Vocabulary.get_vocabulary_by_lang_code(
             session=session, lang_code="en"
         )
@@ -107,5 +112,5 @@ async def get_vocabulary_by_code(request: Request, lang_code: str) -> Vocabulary
 
     return VocabularyResponse(
         vocabulary=a_result_vocabulary.result(),
-        currentLang=lang_code,
+        currentLang=resolved_lang_code,
     )

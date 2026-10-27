@@ -31,7 +31,6 @@ from sqlalchemy.sql.base import Executable
 
 from core.access.db.authentication import generate_iam_token
 from core.access.db.base import CoreBase
-from core.access.db.ormModels.declarativeMixin import triggers
 from core.utils.afterCommit import run_after_commit
 from core.utils.backendUtils import time_it
 from logger import getLogger
@@ -286,10 +285,10 @@ class Database:
     async def after_all_providers_tables_init(self) -> None:
         """TODO"""
 
-        async with self.engine.begin() as conn:
-            for trigger in triggers:
-                await conn.execute(text(trigger))
-            await conn.commit()
+        # async with self.engine.begin() as conn:
+        #     for trigger in triggers:
+        #         await conn.execute(text(trigger))
+        #     await conn.commit()
 
     @time_it
     async def check_table_schema_async(self, table: Table) -> None:

@@ -27,7 +27,7 @@ function createVocabularyProxy(
             if (typeof prop === "symbol") {
                 return (target as Record<string | symbol, unknown>)[prop];
             }
-            return target[prop] || fallback[prop] || defaults.en[prop] || prop;
+            return target[prop] || fallback?.[prop] || prop;
         },
     }) as unknown as VocabularyType;
 }

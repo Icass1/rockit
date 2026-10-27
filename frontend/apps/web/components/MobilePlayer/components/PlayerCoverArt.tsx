@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import { type TPlayableMedia } from "@rockit/shared";
 import { useReducedMotion } from "framer-motion";
 import { Disc3, DiscAlbum } from "lucide-react";
+import useWindowSize from "@/hooks/useWindowSize";
 import { rockIt } from "@/lib/rockit/rockIt";
 import VinylRecord from "@/components/PlayerUI/VinylRecord";
 import VinylTransition from "@/components/PlayerUI/VinylTransition";
@@ -56,8 +57,14 @@ export default function PlayerCoverArt({
     useEffect((): void => {
         rockIt.playerUIManager.initializeArtworkMode();
     }, []);
+    const { width, height } = useWindowSize();
     const videoContainerRef = useRef<HTMLDivElement>(null);
-    const showVideo = mediaType === "video" && !audioOnly;
+    const isDesktop =
+        width !== undefined &&
+        height !== undefined &&
+        width >= 768 &&
+        height >= 500;
+    const showVideo = mediaType === "video" && !audioOnly && !isDesktop;
 
     const attachVideoRef = useCallback(
         (container: HTMLDivElement | null): void => {

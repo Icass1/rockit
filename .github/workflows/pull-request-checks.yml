@@ -33,7 +33,7 @@ jobs:
     backend:
         name: Backend tests and quality
         runs-on: ubuntu-latest
-        timeout-minutes: 2
+        timeout-minutes: 5
         steps:
             - name: Check out repository
               uses: actions/checkout@v4

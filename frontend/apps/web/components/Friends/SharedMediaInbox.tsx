@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useId, useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
@@ -14,6 +14,9 @@ export default function SharedMediaInbox(): JSX.Element {
     const $inbox = useStore(rockIt.sharingManager.inboxAtom);
     const $sent = useStore(rockIt.sharingManager.sentAtom);
     const items = view === "inbox" ? $inbox : $sent;
+    const [expanded, setExpanded] = useState(false);
+    const listId = useId();
+    const visibleItems = expanded ? items : items.slice(0, 3);
 
     const unreadCount = $inbox.filter((i) => !i.seen).length;
 
@@ -22,7 +25,10 @@ export default function SharedMediaInbox(): JSX.Element {
             <div className={styles.inboxNavigation}>
                 <button
                     aria-pressed={view === "inbox"}
-                    onClick={() => setView("inbox")}
+                    onClick={() => {
+                        setView("inbox");
+                        setExpanded(false);
+                    }}
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "inbox"
@@ -40,7 +46,10 @@ export default function SharedMediaInbox(): JSX.Element {
                 </button>
                 <button
                     aria-pressed={view === "sent"}
-                    onClick={() => setView("sent")}
+                    onClick={() => {
+                        setView("sent");
+                        setExpanded(false);
+                    }}
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "sent"
@@ -59,8 +68,8 @@ export default function SharedMediaInbox(): JSX.Element {
                     <p className="text-sm">{v.FRIENDS_NO_SHARED}</p>
                 </div>
             ) : (
-                <div className={styles.sharedItems}>
-                    {items.map((item) => (
+                <div id={listId} className={styles.sharedItems}>
+                    {visibleItems.map((item) => (
                         <div
                             key={item.publicId}
                             className={styles.sharedRow}
@@ -155,6 +164,22 @@ export default function SharedMediaInbox(): JSX.Element {
                         </div>
                     ))}
                 </div>
+            )}
+            {items.length > 3 && (
+                <button
+                    type="button"
+                    className={styles.directoryExpand}
+                    aria-expanded={expanded}
+                    aria-controls={listId}
+                    onClick={() => setExpanded(!expanded)}
+                >
+                    {expanded
+                        ? v.FRIENDS_SHOW_LESS
+                        : v.FRIENDS_SHOW_ALL_SHARES.replace(
+                              "{count}",
+                              String(items.length)
+                          )}
+                </button>
             )}
         </div>
     );

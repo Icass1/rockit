@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useId, useState, type JSX } from "react";
 import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Heart, ListPlus, Music2, Play, Share2 } from "lucide-react";
@@ -142,6 +142,9 @@ export default function FriendActivityFeed({
     activities: FriendActivity[];
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const [expanded, setExpanded] = useState(false);
+    const listId = useId();
+    const visibleActivities = expanded ? activities : activities.slice(0, 4);
     if (activities.length === 0)
         return (
             <div className={styles.activityEmpty}>
@@ -154,13 +157,31 @@ export default function FriendActivityFeed({
             </div>
         );
     return (
-        <div className={styles.listeningHistory}>
-            {activities.map((item, i) => (
-                <ActivitySleeve
-                    key={`${item.userPublicId}-${item.mediaPublicId}-${i}`}
-                    item={item}
-                />
-            ))}
+        <div>
+            <div id={listId} className={styles.listeningHistory}>
+                {visibleActivities.map((item, i) => (
+                    <ActivitySleeve
+                        key={`${item.userPublicId}-${item.mediaPublicId}-${i}`}
+                        item={item}
+                    />
+                ))}
+            </div>
+            {activities.length > 4 && (
+                <button
+                    type="button"
+                    className={styles.directoryExpand}
+                    aria-expanded={expanded}
+                    aria-controls={listId}
+                    onClick={() => setExpanded(!expanded)}
+                >
+                    {expanded
+                        ? v.FRIENDS_SHOW_LESS
+                        : v.FRIENDS_SHOW_ALL_RECENT.replace(
+                              "{count}",
+                              String(activities.length)
+                          )}
+                </button>
+            )}
         </div>
     );
 }

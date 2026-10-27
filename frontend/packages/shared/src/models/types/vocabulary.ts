@@ -667,4 +667,6 @@ export interface Vocabulary {
     FRIENDS_SHOW_LESS: string;
     FRIENDS_NAV_SHARED: string;
     FRIENDS_NAV_RECENT: string;
+    FRIENDS_SHOW_ALL_SHARES: string;
+    FRIENDS_SHOW_ALL_RECENT: string;
 }

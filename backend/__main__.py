@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import shutil
 import sqlite3
 import sys
@@ -150,11 +151,17 @@ async def import_vocabulary(persist: bool = True) -> None:
     friends_defaults_path = Path(
         "frontend/apps/web/lib/generated/friendsVocabulary.json"
     )
+    # Include common actions and level names used by the Friends surface.
+    friends_keys = {"NEWCOMER", "EXPLORER", "ENTHUSIAST", "CONNOISSEUR", "LEGEND"}
+    for component in Path("frontend/apps/web/components/Friends").glob("*.tsx"):
+        friends_keys.update(
+            re.findall(r"\bv\.([A-Z][A-Z_0-9]+)", component.read_text())
+        )
     friends_defaults = {
         lang: {
             key: value
             for key, value in translations.items()
-            if key.startswith(("FRIENDS_", "SOCIAL_"))
+            if key.startswith(("FRIENDS_", "SOCIAL_")) or key in friends_keys
         }
         for lang, translations in vocabulary_data.items()
     }

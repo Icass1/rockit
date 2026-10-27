@@ -1350,55 +1350,22 @@
     grid-template-columns: 1fr;
     gap: 0.5rem;
 }
+/* Equal primary columns and bounded initial feeds keep each social section
+   comparable in weight. Mobile retains the DOM order: people, shares, recent. */
 @container friends (min-width: 1000px) {
     .socialLayout {
-        grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
-        grid-template-areas: "people shared" "people recent" "progress together";
-        gap: 3rem;
-    }
-    .peopleRegion {
-        grid-area: people;
-    }
-    .sharedRegion {
-        grid-area: shared;
-    }
-    .recentRegion {
-        grid-area: recent;
-    }
-    .progressRegion {
-        grid-area: progress;
-    }
-    .togetherRegion {
-        grid-area: together;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2.5rem;
     }
 }
 @container friends (min-width: 1400px) {
     .socialLayout {
-        grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.6fr) minmax(
-                300px,
-                0.9fr
-            );
-        grid-template-areas: "people shared progress" "people recent together";
-        gap: 3rem;
-    }
-    .listeningHistory {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.5rem 1.5rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2.5rem;
     }
 }
 @container friends (min-width: 2400px) {
     .socialLayout {
-        grid-template-columns: minmax(360px, 480px) minmax(0, 1fr) minmax(
-                360px,
-                480px
-            );
-        gap: 4rem;
-    }
-    .listeningHistory {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .sharedItems {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem 2rem;
+        gap: 3rem;
     }
 }

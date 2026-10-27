@@ -100,6 +100,8 @@
 - priority: high
 - workload: Normal
     ```md
+    Revisión tras integrar develop: columnas principales de igual anchura; compartidos muestra 3 filas y recientes 4, con expansión accesible. Se evita que la columna central y los listados completos dominen la página. Revisión de tamaños y del conjunto con XP/medallas en curso; sin tests locales.
+
     Rama separada: feat/friends-listening-space. Propuesta con música y personas primero, actividad sin tarjetas repetidas, directorio con búsqueda e invitaciones, vistas de escucha conjunta/compartidos y rankings bajo demanda. Revisión de pantallas grandes: ancho disponible completo, actividad en paralelo y columna de sesiones/compartidos en ultrawide, mediante container queries. Diseño pendiente de revisión de Ignacio. Sin tests locales.
 
     Mejorar el diseño general de la página de friends y eliminar el aspecto "vibecodeado".

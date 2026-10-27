@@ -1,37 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type JSX } from "react";
-import type { GetLyricsResponse } from "@/dto";
+import { useEffect, useMemo, useRef, type JSX } from "react";
 import { useStore } from "@nanostores/react";
-import { Http } from "@/lib/http";
+import type { PiPLyricsState } from "@/models/types/pip";
+import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
 
-export function PiPLyrics(): JSX.Element | null {
-    const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
+export function PiPLyrics({
+    data: lyrics,
+    loading,
+    glance = false,
+}: PiPLyricsState & { glance?: boolean }): JSX.Element | null {
+    const text = usePiPText();
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
-    const [lyrics, setLyrics] = useState<GetLyricsResponse | undefined>();
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLyrics(undefined);
-        setLoading(false);
-        if ($currentMedia?.type !== "song") return;
-        setLoading(true);
-        let cancelled = false;
-
-        Http.getLrclibLyricsAsync($currentMedia.publicId).then((response) => {
-            if (cancelled) return;
-            if (response.isOk()) {
-                setLyrics(response.result);
-            }
-            setLoading(false);
-        });
-        return (): void => {
-            cancelled = true;
-        };
-    }, [$currentMedia]);
-
     const syncedLines = useMemo(() => {
         return lyrics?.dynamicLyrics ?? [];
     }, [lyrics]);
@@ -52,7 +33,7 @@ export function PiPLyrics(): JSX.Element | null {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!scrollRef.current || currentLineIndex < 0) return;
+        if (glance || !scrollRef.current || currentLineIndex < 0) return;
 
         const el = scrollRef.current.querySelector(
             `[data-lyric-index="${currentLineIndex}"]`
@@ -65,23 +46,14 @@ export function PiPLyrics(): JSX.Element | null {
         const containerHeight = container.clientHeight;
         const targetY = elTop + elHeight / 2 - containerHeight / 2;
 
-        const startY = container.scrollTop;
-        const diff = targetY - startY;
-        if (Math.abs(diff) < 1) return;
-
-        const startTime = performance.now();
-        const duration = 400;
-        const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-
-        const animate = (now: number): void => {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            container.scrollTop = startY + diff * easeOutCubic(progress);
-            if (progress < 1) requestAnimationFrame(animate);
-        };
-
-        requestAnimationFrame(animate);
-    }, [currentLineIndex]);
+        const reducedMotion = container.ownerDocument.defaultView?.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+        ).matches;
+        container.scrollTo({
+            top: Math.max(0, targetY),
+            behavior: reducedMotion ? "auto" : "smooth",
+        });
+    }, [currentLineIndex, glance]);
 
     const goToLine = (index: number): void => {
         const ts = syncedLines[index]?.timestamp_s;
@@ -90,7 +62,24 @@ export function PiPLyrics(): JSX.Element | null {
         }
     };
 
-    if ($currentMedia?.type === "video") return null;
+    if (glance) {
+        const line =
+            syncedLines[Math.max(0, currentLineIndex)]?.text ??
+            lyrics?.lyrics?.[0]?.text;
+        const message = loading
+            ? text("PIP_LOADING_LYRICS", "Loading lyrics…", "Cargando letra…")
+            : (line ??
+              text(
+                  "PIP_NO_LYRICS",
+                  "No synced lyrics",
+                  "No hay letra sincronizada"
+              ));
+        return (
+            <p className="pip-lyric-glance" title={message}>
+                {message}
+            </p>
+        );
+    }
 
     if (loading) {
         return (
@@ -107,10 +96,30 @@ export function PiPLyrics(): JSX.Element | null {
         );
     }
 
+    if (syncedLines.length === 0 && lyrics?.lyrics?.length) {
+        return (
+            <div className="pip-lyrics-overlay" data-testid="pip-lyrics-static">
+                <div className="pip-lyrics-scroll">
+                    {lyrics.lyrics.map((line, index) => (
+                        <p className="pip-lyrics-line" key={index}>
+                            {line.text}
+                        </p>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     if (syncedLines.length === 0) {
         return (
             <div className="pip-lyrics-overlay" data-testid="pip-lyrics-empty">
-                <p className="text-xs text-neutral-400">No synced lyrics</p>
+                <p className="text-xs text-neutral-400">
+                    {text(
+                        "PIP_NO_LYRICS",
+                        "No synced lyrics",
+                        "No hay letra sincronizada"
+                    )}
+                </p>
             </div>
         );
     }
@@ -134,8 +143,10 @@ export function PiPLyrics(): JSX.Element | null {
                             role="button"
                             tabIndex={0}
                             onKeyDown={(e): void => {
-                                if (e.key === "Enter" || e.key === " ")
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
                                     goToLine(i);
+                                }
                             }}
                         >
                             {line.text}

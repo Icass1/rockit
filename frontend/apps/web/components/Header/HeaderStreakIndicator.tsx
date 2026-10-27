@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState, type JSX } from "react";
+import { useStore } from "@nanostores/react";
 import { Flame } from "lucide-react";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function StreakIndicator(): JSX.Element | null {
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [streak, setStreak] = useState<number | null>(null);
 
     useEffect(() => {
@@ -19,13 +22,11 @@ export default function StreakIndicator(): JSX.Element | null {
 
     return (
         <div
-            className="flex items-center gap-1 text-orange-500"
-            title={`${streak} day streak`}
+            className="flex items-center gap-1 text-orange-300"
+            title={`${streak} ${vocabulary.HOME_STREAK_DAYS}`}
         >
-            <span className="text-sm font-semibold tabular-nums">
-                {streak}d
-            </span>
-            <Flame className="h-7 w-7" />
+            <span className="text-sm font-semibold tabular-nums">{streak}</span>
+            <Flame className="h-7 w-7" aria-hidden="true" />
         </div>
     );
 }

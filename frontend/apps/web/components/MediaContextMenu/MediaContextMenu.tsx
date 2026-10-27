@@ -109,6 +109,8 @@ export default function MediaContextMenu({
     listPublicId,
     openOnLeftClick,
     sources,
+    triggerClassName,
+    onOpenChange,
 }: {
     children: ReactNode;
     media: TMediaWithSearch;
@@ -116,6 +118,8 @@ export default function MediaContextMenu({
     listPublicId?: string;
     openOnLeftClick?: boolean;
     sources?: readonly BaseSearchResultsItem[];
+    triggerClassName?: string;
+    onOpenChange?: (open: boolean) => void;
 }): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const [loading, setLoading] = useState(false);
@@ -162,8 +166,11 @@ export default function MediaContextMenu({
 
     return (
         <>
-            <ContextMenu>
-                <ContextMenuTrigger openOnLeftClick={isSearch}>
+            <ContextMenu onOpenChange={onOpenChange}>
+                <ContextMenuTrigger
+                    openOnLeftClick={isSearch}
+                    className={triggerClassName}
+                >
                     {children}
                 </ContextMenuTrigger>
                 <ContextMenuContent

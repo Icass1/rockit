@@ -165,6 +165,10 @@ export default function RadioClient(): JSX.Element {
                             <Search className="pointer-events-none absolute top-3.5 left-3 h-4 w-4 text-neutral-500" />
                             <input
                                 type="search"
+                                enterKeyHint="search"
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
                                 maxLength={120}
                                 aria-label={v.RADIO_SEARCH}
                                 value={query}
@@ -180,13 +184,14 @@ export default function RadioClient(): JSX.Element {
                                     );
                                     setError(false);
                                 }}
-                                className="h-11 w-full rounded-xl border border-white/10 bg-neutral-900 pr-11 pl-10 text-sm text-white focus:border-pink-500 focus:outline-none"
+                                className="radio-search-input h-11 w-full appearance-none rounded-xl border border-white/10 bg-neutral-900 pr-11 pl-10 text-base text-white shadow-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/25 focus:outline-none"
                             />
                             {query && (
                                 <button
+                                    type="button"
                                     onClick={clear}
                                     aria-label={v.RADIO_CLEAR}
-                                    className="absolute top-0 right-0 flex h-11 w-11 cursor-pointer items-center justify-center text-neutral-400"
+                                    className="absolute top-0 right-0 flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-neutral-400 hover:text-white focus-visible:outline-2 focus-visible:outline-pink-500"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -254,6 +259,7 @@ export default function RadioClient(): JSX.Element {
                             </span>
                             {browsing && (
                                 <button
+                                    type="button"
                                     onClick={clear}
                                     aria-label={v.RADIO_CLEAR}
                                     className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center text-neutral-400"

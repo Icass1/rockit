@@ -590,7 +590,11 @@ class SpotifyScrapperProvider(BaseMediaProvider):
         return """    SELECT t.id              AS media_id,
            cm_al.public_id   AS album_public_id,
            al.name           AS album_name,
-           ai.url            AS album_image_url
+           ai.url            AS album_image_url,
+           (SELECT string_agg(DISTINCT artist.name, ', ' ORDER BY artist.name)
+            FROM spotify_scrapper.album_artist aa
+            JOIN spotify_scrapper.artist artist ON artist.id = aa.artist_id
+            WHERE aa.album_id = al.id) AS album_artists
     FROM   spotify_scrapper.track t
     JOIN   spotify_scrapper.album   al    ON al.id    = t.album_id
     JOIN   core.media      cm_al ON cm_al.id = al.id

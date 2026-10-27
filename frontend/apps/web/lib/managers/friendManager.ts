@@ -13,6 +13,7 @@ import { createArrayAtom, createAtom, ReadonlyAtom } from "@/lib/store";
 export class FriendManager {
     private _init = false;
     private _searchGeneration = 0;
+    private _friendsGeneration = 0;
 
     private _blockedAtom = createArrayAtom<Friend>([]);
     get blockedAtom(): ReadonlyAtom<Friend[]> {
@@ -37,6 +38,8 @@ export class FriendManager {
                 void this.fetchBlocked();
                 void this.fetchRequests();
             } else {
+                ++this._friendsGeneration;
+                this._loadingAtom.set(false);
                 this._friendsAtom.set([]);
                 this._blockedAtom.set([]);
                 this._incomingRequestsAtom.set([]);
@@ -52,6 +55,12 @@ export class FriendManager {
                 void this.fetchBlocked();
                 void this.fetchRequests();
                 void this.fetchActivity();
+            }
+        );
+        rockIt.webSocketManager.onMessage(
+            EWebSocketMessage.FriendsPresenceChanged,
+            () => {
+                void this.fetchFriends();
             }
         );
         rockIt.webSocketManager.onMessage(
@@ -111,10 +120,12 @@ export class FriendManager {
     async fetchFriends(): Promise<void> {
         const requestingUser = rockIt.userManager.usernameAtom.get();
         if (!rockIt.userManager.loggedInAtom.get()) return;
+        const generation = ++this._friendsGeneration;
         this._loadingAtom.set(true);
         try {
             const res = await Http.getFriends();
             if (
+                generation !== this._friendsGeneration ||
                 !rockIt.userManager.loggedInAtom.get() ||
                 requestingUser !== rockIt.userManager.usernameAtom.get()
             )
@@ -125,12 +136,14 @@ export class FriendManager {
             if (!res.isOk()) throw new Error(String(res.detail));
             this._errorAtom.set(null);
         } catch (e) {
+            if (generation !== this._friendsGeneration) return;
             console.error(e);
             this._errorAtom.set(
                 rockIt.vocabularyManager.vocabulary.FRIENDS_LOAD_ERROR
             );
         } finally {
-            this._loadingAtom.set(false);
+            if (generation === this._friendsGeneration)
+                this._loadingAtom.set(false);
         }
     }
 

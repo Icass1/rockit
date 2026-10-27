@@ -52,10 +52,10 @@ cd backend
 uvicorn backend.core.main:app --reload
 
 # Type checking
-venv/bin/python -m pyright
+.venv/bin/python -m pyright
 
 # Linting / formatting
-venv/bin/python -m black <file>
+.venv/bin/python -m black <file>
 
 # Initialize database
 python3 -m backend init-db
@@ -881,7 +881,7 @@ class SomeFramework:
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
 # Run black after every edit
-# venv/bin/python -m black <file>
+# .venv/bin/python -m black <file>
 ```
 
 ### Frontend

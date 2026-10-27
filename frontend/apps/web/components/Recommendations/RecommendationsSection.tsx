@@ -9,10 +9,14 @@ import type {
 } from "@/dto";
 import { useStore } from "@nanostores/react";
 import { EMediaContextLocation, isDiscoverItemInLibrary } from "@rockit/shared";
-import { Music } from "lucide-react";
+import { Download, Music, Play } from "lucide-react";
 import { isDownloadable, isQueueable } from "@/models/types/media";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ContextMenuContent from "@/components/ContextMenu/Content";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
+import ContextMenuOption from "@/components/ContextMenu/Option";
+import ContextMenuTrigger from "@/components/ContextMenu/Trigger";
 import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 /** Queue identifier used when playing straight from a recommendation card
@@ -114,13 +118,37 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
         />
     );
 
-    // No providerUrl means no provider resolved this suggestion (external
-    // providers carry none), so there is nothing a search-result menu could act on —
-    // show a bare card whose single action is download or play.
-    if (!item.providerUrl) return card;
+    // Unresolved discovery still has a valid action: the same on-demand
+    // search/download used by tapping it. Never send an empty provider URL.
+    if (!item.providerUrl)
+        return (
+            <ContextMenu>
+                <ContextMenuTrigger>{card}</ContextMenuTrigger>
+                <ContextMenuContent
+                    cover={item.imageUrl}
+                    title={item.name}
+                    description={item.artists
+                        .map((artist) => artist.name)
+                        .join(", ")}
+                >
+                    <ContextMenuOption onClick={handleClick}>
+                        {inLibrary ? (
+                            <Play className="size-5" />
+                        ) : (
+                            <Download className="size-5" />
+                        )}
+                        {inLibrary ? $vocabulary.PLAY : $vocabulary.DOWNLOAD}
+                    </ContextMenuOption>
+                </ContextMenuContent>
+            </ContextMenu>
+        );
 
     return (
-        <MediaContextMenu media={item} location={EMediaContextLocation.SEARCH}>
+        <MediaContextMenu
+            media={item}
+            location={EMediaContextLocation.SEARCH}
+            openOnLeftClick={false}
+        >
             {card}
         </MediaContextMenu>
     );
@@ -141,6 +169,7 @@ function RecommendationCard({
     hint?: string;
     onClick?: () => void;
 }): JSX.Element {
+    const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     return (
         <div
             className={`group relative w-36 flex-none cursor-pointer transition md:w-48 md:hover:scale-105 ${dimmed ? "opacity-50" : ""}`}
@@ -152,7 +181,7 @@ function RecommendationCard({
                     height={350}
                     className="aspect-square w-full rounded-lg object-cover select-none"
                     src={imageUrl}
-                    alt={`Cover of ${name}`}
+                    alt={vocabulary.COVER_OF.replace("{name}", name)}
                 />
             ) : (
                 // Suggestions no provider could resolve have no artwork.

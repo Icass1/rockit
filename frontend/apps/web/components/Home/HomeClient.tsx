@@ -10,6 +10,7 @@ import HomeHeroCoverflow, {
 import HomeSkeleton from "@/components/Home/HomeSkeleton";
 import { useGreeting } from "@/components/Home/hooks/useGreeting";
 import { useHomeData } from "@/components/Home/hooks/useHomeData";
+import RecentlyClickedSection from "@/components/Home/RecentlyClickedSection";
 import BentoSection from "@/components/Home/sections/BentoSection";
 import QuickSelectionsSection from "@/components/Home/sections/QuickSelectionsSection";
 import RecommendationsSection from "@/components/Recommendations/RecommendationsSection";
@@ -197,6 +198,8 @@ export default function HomeClient(): JSX.Element {
             ) : null}
 
             {/* Bento sections — each section gets its own grid layout */}
+            <RecentlyClickedSection items={data.recentlyClickedMedia} />
+
             {data.songsByTimePlayed.length > 0 && (
                 <BentoSection
                     title={$vocabulary.RECENTLY_PLAYED}

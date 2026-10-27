@@ -288,6 +288,10 @@ export {
     type FriendStreakResponse,
 } from "./friendStreakResponse";
 export {
+    FriendsPresenceChangedMessageSchema,
+    type FriendsPresenceChangedMessage,
+} from "./friendsPresenceChangedMessage";
+export {
     GetAllRequestsRequestSchema,
     type GetAllRequestsRequest,
 } from "./getAllRequestsRequest";
@@ -431,6 +435,10 @@ export {
     type NotificationsResponse,
 } from "./notificationsResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
+export {
+    OnlineUsersMessageSchema,
+    type OnlineUsersMessage,
+} from "./onlineUsersMessage";
 export {
     PlaylistContributorSchema,
     type PlaylistContributor,

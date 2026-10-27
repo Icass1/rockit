@@ -1,7 +1,7 @@
 from typing import List, cast
 
 from argon2 import PasswordHasher
-from fastapi import Depends, APIRouter, HTTPException, Request
+from fastapi import Depends, APIRouter, File, HTTPException, Request, UploadFile
 from logging import Logger
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
@@ -27,6 +27,10 @@ from backend.core.access.db.ormModels.user_library_media import UserLibraryMedia
 
 
 from backend.core.framework.user.user import User
+from backend.core.framework.user.profileImage import (
+    MAX_PROFILE_IMAGE_BYTES,
+    upload_profile_image_async,
+)
 from backend.core.framework.media.image import Image
 
 from backend.core.requests.updateLangRequest import UpdateLangRequest
@@ -83,6 +87,29 @@ async def get_user(request: Request) -> UserSettingsResponse:
         queueType=QueueTypeEnum(user.queue_type_enum),
         repeatMode=RepeatModeEnum(user.repeat_mode_enum),
     )
+
+
+@router.post("/image", response_model=OkResponse)
+async def upload_profile_image(
+    request: Request, file: UploadFile = File(...)
+) -> OkResponse:
+    current_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    if current_user.is_not_ok():
+        logger.error("Cannot identify profile image owner: %s", current_user.info())
+        raise HTTPException(
+            status_code=current_user.get_http_code(), detail=current_user.message()
+        )
+    try:
+        data = await file.read(MAX_PROFILE_IMAGE_BYTES + 1)
+    finally:
+        await file.close()
+    result = await upload_profile_image_async(
+        DBSessionMiddleware.get_session(request), current_user.result().id, data
+    )
+    if result.is_not_ok():
+        logger.error("Profile image upload failed: %s", result.info())
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return OkResponse()
 
 
 @router.get("/session")

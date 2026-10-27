@@ -47,8 +47,9 @@ const ACTION_REGISTRY: ActionDef[] = [
         icon: Play,
         labelKey: "PLAY",
         mediaTypes: [EMediaType.Song, EMediaType.Video, EMediaType.Station],
-        // Show play for all playable media, hide for search results.
-        condition: (m) => !isSearchResult(m),
+        condition: (m) =>
+            !isSearchResult(m) ||
+            (m.type === "song" && Boolean(m.downloaded && m.publicId)),
     },
     {
         id: EMediaContextAction.AddToPlaylist,

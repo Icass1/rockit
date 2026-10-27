@@ -127,10 +127,7 @@ class UserLevelAccess:
             values.append({"user_id": user_id, "xp": xp, "level": level})
         statement = insert(UserLevelRow).values(values)
         await session.execute(
-            statement.on_conflict_do_update(
-                index_elements=[UserLevelRow.user_id],
-                set_={"xp": statement.excluded.xp, "level": statement.excluded.level},
-            )
+            statement.on_conflict_do_nothing(index_elements=[UserLevelRow.user_id])
         )
         rows = await session.execute(
             select(UserLevelRow)

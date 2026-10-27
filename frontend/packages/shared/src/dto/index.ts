@@ -288,6 +288,10 @@ export {
     type FriendStreakResponse,
 } from "./friendStreakResponse";
 export {
+    FriendsPresenceChangedMessageSchema,
+    type FriendsPresenceChangedMessage,
+} from "./friendsPresenceChangedMessage";
+export {
     GetAllRequestsRequestSchema,
     type GetAllRequestsRequest,
 } from "./getAllRequestsRequest";
@@ -381,6 +385,14 @@ export {
     ListenTogetherSyncRequestSchema,
     type ListenTogetherSyncRequest,
 } from "./listenTogetherSyncRequest";
+export {
+    ListeningBadgeResponseSchema,
+    type ListeningBadgeResponse,
+} from "./listeningBadgeResponse";
+export {
+    ListeningMilestoneResponseSchema,
+    type ListeningMilestoneResponse,
+} from "./listeningMilestoneResponse";
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
@@ -431,6 +443,10 @@ export {
     type NotificationsResponse,
 } from "./notificationsResponse";
 export { OkResponseSchema, type OkResponse } from "./okResponse";
+export {
+    OnlineUsersMessageSchema,
+    type OnlineUsersMessage,
+} from "./onlineUsersMessage";
 export {
     PlaylistContributorSchema,
     type PlaylistContributor,
@@ -809,5 +825,9 @@ export {
 export { CoroutineSchema, type Coroutine } from "./coroutine";
 export { DictSchema, type Dict } from "./dict";
 export { ListSchema, type List } from "./list";
+export {
+    ListeningBadgeScopeSchema,
+    type ListeningBadgeScope,
+} from "./listeningBadgeScope";
 export { SequenceSchema, type Sequence } from "./sequence";
 export { StrictIntSchema, type StrictInt } from "./strictInt";

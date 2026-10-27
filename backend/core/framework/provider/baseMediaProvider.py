@@ -242,7 +242,7 @@ class BaseMediaProvider(BaseProvider):
         return None
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
-        """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url)."""
+        """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url, album_artists)."""
         return None
 
     def get_stats_genre_info_cte_fragment(self) -> str | None:

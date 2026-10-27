@@ -852,43 +852,13 @@ async def get_my_level(request: Request):
     user = _get_user(request)
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_level = await Levels.get_user_level_async(session=session, user_id=user.id)
-    if a_level.is_not_ok():
-        logger.error(f"Error getting my level: {a_level.info()}")
+    profiles = await Levels.get_profiles_async(session=session, user_ids=[user.id])
+    if profiles.is_not_ok():
+        logger.error("Cannot load listening profile: %s", profiles.info())
         raise HTTPException(
-            status_code=a_level.get_http_code(), detail=a_level.message()
+            status_code=profiles.get_http_code(), detail=profiles.message()
         )
-
-    level_row = a_level.result()
-    a_configs = await Levels.get_level_configs_async(session=session)
-    configs = a_configs.result() if a_configs.is_ok() else []
-
-    for c in configs:
-        if c.level > level_row.level:
-            break
-
-    title = ""
-    xp_to_next = 0
-    for c in configs:
-        if c.level == level_row.level:
-            title = c.title
-        if c.level == level_row.level + 1:
-            xp_to_next = c.xp_required - level_row.xp
-
-    a_streak = await StreakBattle.get_streak_for_user_async(
-        session=session, user_id=user.id
-    )
-
-    return UserLevelResponse(
-        userId=user.public_id,
-        username=user.username,
-        imageUrl=user.image.url if user.image else None,
-        level=level_row.level,
-        xp=level_row.xp,
-        xpToNext=max(0, xp_to_next),
-        title=title,
-        streak=a_streak.result() if a_streak.is_ok() else 0,
-    )
+    return profiles.result()[0]
 
 
 @router.get("/{user_public_id}/level", response_model=UserLevelResponse)
@@ -908,39 +878,13 @@ async def get_user_level(request: Request, user_public_id: str):
 
     target = a_target.result()
     await _require_friend(session, user.id, target.id)
-    a_level = await Levels.get_user_level_async(session=session, user_id=target.id)
-    if a_level.is_not_ok():
-        logger.error(f"Error getting user level: {a_level.info()}")
+    profiles = await Levels.get_profiles_async(session=session, user_ids=[target.id])
+    if profiles.is_not_ok():
+        logger.error("Cannot load listening profile: %s", profiles.info())
         raise HTTPException(
-            status_code=a_level.get_http_code(), detail=a_level.message()
+            status_code=profiles.get_http_code(), detail=profiles.message()
         )
-
-    level_row = a_level.result()
-    a_configs = await Levels.get_level_configs_async(session=session)
-    configs = a_configs.result() if a_configs.is_ok() else []
-
-    title = ""
-    xp_to_next = 0
-    for c in configs:
-        if c.level == level_row.level:
-            title = c.title
-        if c.level == level_row.level + 1:
-            xp_to_next = c.xp_required - level_row.xp
-
-    a_streak = await StreakBattle.get_streak_for_user_async(
-        session=session, user_id=target.id
-    )
-
-    return UserLevelResponse(
-        userId=target.public_id,
-        username=target.username,
-        imageUrl=target.image.url if target.image else None,
-        level=level_row.level,
-        xp=level_row.xp,
-        xpToNext=max(0, xp_to_next),
-        title=title,
-        streak=a_streak.result() if a_streak.is_ok() else 0,
-    )
+    return profiles.result()[0]
 
 
 @router.get("/leaderboard", response_model=LeaderboardResponse)

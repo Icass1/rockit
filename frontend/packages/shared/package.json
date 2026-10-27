@@ -8,6 +8,10 @@
         ".": {
             "types": "./src/index.ts",
             "default": "./src/index.ts"
+        },
+        "./dto/*": {
+            "types": "./src/dto/*.ts",
+            "default": "./src/dto/*.ts"
         }
     },
     "scripts": {

@@ -3,11 +3,13 @@ import type {
     CurrentQueueMessage,
     CurrentTimeMessage,
     DownloadProgressMessage,
+    FriendsPresenceChangedMessage,
     LibraryMediaAddedMessage,
     LibraryMediaRemovedMessage,
     MediaAddedToPlaylistMessage,
     MediaListenedMessage,
     MediaRemovedFromPlaylistMessage,
+    OnlineUsersMessage,
     PlaylistCreatedMessage,
     PlaylistDeletedMessage,
     PlaylistRenamedMessage,
@@ -40,6 +42,8 @@ export enum EWebSocketMessage {
     DownloadProgress = "download_progress",
     FriendActivity = "friend_activity",
     SocialChanged = "social_changed",
+    OnlineUsers = "online_users",
+    FriendsPresenceChanged = "friends_presence_changed",
     NotificationsChanged = "notifications_changed",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
@@ -57,6 +61,8 @@ export enum EWebSocketMessage {
 }
 
 export interface IWebSocketMessagePayloadMap {
+    [EWebSocketMessage.OnlineUsers]: OnlineUsersMessage;
+    [EWebSocketMessage.FriendsPresenceChanged]: FriendsPresenceChangedMessage;
     [EWebSocketMessage.SocialChanged]: SocialChangedMessage;
     [EWebSocketMessage.NotificationsChanged]: NotificationsChangedMessage;
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
@@ -77,6 +83,8 @@ export interface IWebSocketMessagePayloadMap {
 }
 
 export type TWebSocketIncomingMessage =
+    | OnlineUsersMessage
+    | FriendsPresenceChangedMessage
     | DownloadProgressMessage
     | FriendActivityMessage
     | SocialChangedMessage

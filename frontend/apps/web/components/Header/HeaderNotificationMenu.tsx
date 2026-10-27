@@ -43,7 +43,7 @@ export default function NotificationMenu({
                 <h2 className="flex-1 text-base font-semibold">
                     {vocabulary.NOTIFICATIONS_TITLE}{" "}
                     {unread > 0 && (
-                        <span className="ml-1 text-sm text-(--rockit-pink)">
+                        <span className="ml-1 text-sm text-pink-300">
                             {unread}
                         </span>
                     )}
@@ -51,7 +51,7 @@ export default function NotificationMenu({
                 <button
                     onClick={onClose}
                     aria-label={vocabulary.NOTIFICATIONS_CLOSE}
-                    className="rounded-lg p-2 text-neutral-400 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-(--rockit-pink)"
+                    className="rounded-lg p-2 text-neutral-400 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-pink-300"
                 >
                     <X size={18} />
                 </button>
@@ -70,7 +70,7 @@ export default function NotificationMenu({
                         key={value}
                         aria-pressed={filter === value}
                         onClick={() => setFilter(value)}
-                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-(--rockit-pink) ${filter === value ? "bg-(--rockit-pink)/15 text-(--rockit-pink)" : "text-neutral-400 hover:bg-white/5 hover:text-white"}`}
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-pink-300 ${filter === value ? "bg-(--rockit-pink)/15 text-pink-300" : "text-neutral-400 hover:bg-white/5 hover:text-white"}`}
                     >
                         {label}
                     </button>
@@ -110,7 +110,7 @@ export default function NotificationMenu({
                                 className={`flex gap-3 border-b border-white/5 px-4 py-4 ${!n.read ? "bg-white/[0.03]" : ""}`}
                             >
                                 <div
-                                    className={`mt-0.5 self-start rounded-xl p-2 ${n.type === ENotificationType.ERROR ? "bg-red-500/10 text-red-400" : n.type === ENotificationType.WARN ? "bg-amber-500/10 text-amber-400" : n.category === "release" ? "bg-(--rockit-pink)/10 text-(--rockit-pink)" : "bg-white/5 text-neutral-300"}`}
+                                    className={`mt-0.5 self-start rounded-xl p-2 ${n.type === ENotificationType.ERROR ? "bg-red-500/10 text-red-400" : n.type === ENotificationType.WARN ? "bg-amber-500/10 text-amber-400" : n.category === "release" ? "bg-(--rockit-pink)/10 text-pink-300" : "bg-white/5 text-neutral-300"}`}
                                 >
                                     <Icon size={18} />
                                 </div>
@@ -127,7 +127,7 @@ export default function NotificationMenu({
                                         dateTime={new Date(
                                             n.createdAt
                                         ).toISOString()}
-                                        className="mt-2 block text-[11px] text-neutral-500"
+                                        className="mt-2 block text-[11px] text-neutral-400"
                                     >
                                         {new Date(n.createdAt).toLocaleString(
                                             lang || "en",
@@ -164,7 +164,7 @@ export default function NotificationMenu({
                                                 title={
                                                     vocabulary.NOTIFICATIONS_READ
                                                 }
-                                                className="rounded p-1.5 text-neutral-400 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-(--rockit-pink)"
+                                                className="rounded p-1.5 text-neutral-400 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-pink-300"
                                             >
                                                 <X size={15} />
                                             </button>

@@ -1,6 +1,5 @@
 import type {
     TransitionDeck,
-    TransitionEnergySample,
     WebTransitionSettings,
 } from "@/models/types/transitions";
 
@@ -10,29 +9,13 @@ export const DEFAULT_TRANSITIONS: WebTransitionSettings = {
     preserveAlbum: true,
 };
 
+/** Keep the requested overlap, bounded by half of either track's duration. */
 export function transitionDuration(
-    samples: TransitionEnergySample[],
     duration: number,
-    now: number,
+    incomingDuration: number,
     maximum: number
 ): number {
-    const energy = (points: TransitionEnergySample[]): number =>
-        Math.sqrt(
-            points.reduce((sum, sample): number => sum + sample.rms ** 2, 0) /
-                Math.max(1, points.length)
-        );
-    const baseline = samples.filter(
-        (sample): boolean =>
-            sample.time >= duration - 20 && sample.time < duration - 12
-    );
-    const tail = samples.filter((sample): boolean => sample.time >= now - 4);
-    // After a seek or a suspended page we may not have a representative window.
-    // Use a short handoff rather than guessing a quiet tail from missing data.
-    if (baseline.length < 8 || tail.length < 4) return Math.min(0.8, maximum);
-    const reference = energy(baseline);
-    if (reference < 0.001) return Math.min(0.8, maximum);
-    const ratio = energy(tail) / reference;
-    return Math.min(maximum, ratio < 0.35 ? 3.5 : ratio < 0.65 ? 2 : 0.8);
+    return Math.min(maximum, duration / 2, incomingDuration / 2);
 }
 
 /** Persistent native Web Audio graph; never fetches/decodes a whole track. */

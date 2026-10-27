@@ -61,6 +61,14 @@ class Sharing:
         if a_result.is_not_ok():
             logger.error(f"Error sharing media. {a_result.info()}", exc_info=True)
             return AResult(code=a_result.code(), message=a_result.message())
+        from backend.core.framework.friend.listeningBadges import ListeningBadges
+
+        rewards = await ListeningBadges.refresh_user_async(
+            session=session, user_id=sender_user_id
+        )
+        if rewards.is_not_ok():
+            logger.error("Error awarding sharing emblems: %s", rewards.info())
+            return AResult(code=rewards.code(), message=rewards.message())
         notify_after_commit(session, [sender_user_id, recipient_user_id])
         share = a_result.result()
         notification = await Notifications.social_async(

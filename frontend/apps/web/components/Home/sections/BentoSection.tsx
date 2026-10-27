@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import PlayButton from "@/components/Home/PlayButton";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 interface BentoSectionProps {
     title: string;
@@ -42,92 +44,98 @@ function BentoCard({
     }
 
     return (
-        <div
-            className={`bento-card group relative cursor-pointer overflow-hidden rounded-2xl transition-transform duration-300 hover:scale-[1.02] ${positionClass}`}
-            onClick={handlePlay}
+        <MediaContextMenu
+            media={song}
+            location={EMediaContextLocation.HOME}
+            triggerClassName={positionClass}
         >
-            {/* Album art background */}
-            <Image
-                src={song.imageUrl}
-                alt=""
-                fill
-                sizes={
-                    size === "lg"
-                        ? "(max-width: 768px) 90vw, 40vw"
-                        : "(max-width: 768px) 60vw, 20vw"
-                }
-                className={`object-cover transition-opacity duration-500 group-hover:opacity-40 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
-                loading="lazy"
-                draggable={false}
-                aria-hidden="true"
-                onLoad={(): void => setImgLoaded(true)}
-            />
-
-            {/* Gradient overlay for readability */}
             <div
-                className="absolute inset-0"
-                style={{
-                    background:
-                        "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%)",
-                }}
-                aria-hidden="true"
-            />
+                className={`bento-card group relative h-full w-full cursor-pointer overflow-hidden rounded-2xl transition-transform duration-300 hover:scale-[1.02]`}
+                onClick={handlePlay}
+            >
+                {/* Album art background */}
+                <Image
+                    src={song.imageUrl}
+                    alt=""
+                    fill
+                    sizes={
+                        size === "lg"
+                            ? "(max-width: 768px) 90vw, 40vw"
+                            : "(max-width: 768px) 60vw, 20vw"
+                    }
+                    className={`object-cover transition-opacity duration-500 group-hover:opacity-40 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                    loading="lazy"
+                    draggable={false}
+                    aria-hidden="true"
+                    onLoad={(): void => setImgLoaded(true)}
+                />
 
-            {/* Color tint — very subtle */}
-            <div
-                className="absolute inset-0 mix-blend-color transition-colors duration-700"
-                style={{
-                    backgroundColor: hex,
-                    opacity: 0.08,
-                }}
-                aria-hidden="true"
-            />
+                {/* Gradient overlay for readability */}
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background:
+                            "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%)",
+                    }}
+                    aria-hidden="true"
+                />
 
-            {/* Content */}
-            <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between p-3">
-                <div className="min-w-0 flex-1">
-                    <span
-                        className={`block truncate font-bold text-white ${
-                            size === "lg" ? "text-[17px]" : "text-[13px]"
+                {/* Color tint — very subtle */}
+                <div
+                    className="absolute inset-0 mix-blend-color transition-colors duration-700"
+                    style={{
+                        backgroundColor: hex,
+                        opacity: 0.08,
+                    }}
+                    aria-hidden="true"
+                />
+
+                {/* Content */}
+                <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between p-3">
+                    <div className="min-w-0 flex-1">
+                        <span
+                            className={`block truncate font-bold text-white ${
+                                size === "lg" ? "text-[17px]" : "text-[13px]"
+                            }`}
+                        >
+                            {song.name}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-white/60">
+                            {song.artists[0]?.name}
+                        </span>
+                    </div>
+
+                    {/* Play button — always visible on lg card, on hover for small */}
+                    <div
+                        className={`ml-2 shrink-0 ${
+                            size === "lg"
+                                ? "opacity-100"
+                                : "opacity-0 transition-opacity group-hover:opacity-100"
                         }`}
                     >
-                        {song.name}
-                    </span>
-                    <span className="mt-0.5 block truncate text-xs text-white/60">
-                        {song.artists[0]?.name}
-                    </span>
-                </div>
-
-                {/* Play button — always visible on lg card, on hover for small */}
-                <div
-                    className={`ml-2 shrink-0 ${
-                        size === "lg"
-                            ? "opacity-100"
-                            : "opacity-0 transition-opacity group-hover:opacity-100"
-                    }`}
-                >
-                    <PlayButton
-                        isPlaying={!!isThisPlaying}
-                        download={!song.downloaded}
-                        onClick={handlePlay}
-                        size={size === "lg" ? 40 : 32}
-                        label={
-                            !song.downloaded
-                                ? $vocabulary.CLICK_TO_DOWNLOAD
-                                : isThisPlaying
-                                  ? $vocabulary.PAUSE_SONG_NAME.replace(
-                                        "{name}",
-                                        song.name
-                                    )
-                                  : $vocabulary.PLAY_SONG_NAME.replace(
-                                        "{name}",
-                                        song.name
-                                    )
-                        }
-                    />
+                        <PlayButton
+                            isPlaying={!!isThisPlaying}
+                            download={!song.downloaded}
+                            onClick={handlePlay}
+                            size={size === "lg" ? 40 : 32}
+                            label={
+                                !song.downloaded
+                                    ? $vocabulary.CLICK_TO_DOWNLOAD
+                                    : isThisPlaying
+                                      ? $vocabulary.PAUSE_SONG_NAME.replace(
+                                            "{name}",
+                                            song.name
+                                        )
+                                      : $vocabulary.PLAY_SONG_NAME.replace(
+                                            "{name}",
+                                            song.name
+                                        )
+                            }
+                        />
+                    </div>
                 </div>
             </div>
-        </div>
+        </MediaContextMenu>
     );
 }
 

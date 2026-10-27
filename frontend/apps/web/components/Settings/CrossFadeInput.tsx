@@ -1,14 +1,34 @@
 "use client";
 
-import { type JSX } from "react";
+import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
+import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function CrossFadeInput(): JSX.Element {
+    const notifySaved = useSettingsFeedback();
     const settings = useStore(rockIt.mediaPlayerManager.transitionSettingsAtom);
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const lang = useStore(rockIt.vocabularyManager.langAtom);
     const es = lang.startsWith("es");
+    const [duration, setDuration] = useState<string | null>(null);
+    const saveDuration = (): void => {
+        if (duration === null) return;
+        const seconds = Number(duration);
+        if (
+            duration.trim() !== "" &&
+            Number.isFinite(seconds) &&
+            seconds >= 0.1 &&
+            seconds !== settings.maxSeconds
+        ) {
+            notifySaved(
+                rockIt.mediaPlayerManager.configureTransitions({
+                    maxSeconds: seconds,
+                })
+            );
+        }
+        setDuration(null);
+    };
     const text = (key: string, english: string, spanish: string): string => {
         const translated = (vocabulary as unknown as Record<string, string>)[
             key
@@ -38,9 +58,11 @@ export default function CrossFadeInput(): JSX.Element {
                     type="checkbox"
                     checked={settings.enabled}
                     onChange={(event): void =>
-                        rockIt.mediaPlayerManager.configureTransitions({
-                            enabled: event.currentTarget.checked,
-                        })
+                        notifySaved(
+                            rockIt.mediaPlayerManager.configureTransitions({
+                                enabled: event.currentTarget.checked,
+                            })
+                        )
                     }
                     className="h-4 w-4 accent-(--color-rockit-pink)"
                 />
@@ -48,26 +70,33 @@ export default function CrossFadeInput(): JSX.Element {
             <div className="flex items-center justify-between gap-3">
                 <label htmlFor="transition-duration">
                     {text(
-                        "SETTINGS_TRANSITION_MAXIMUM",
-                        "Maximum overlap",
-                        "Superposición máxima"
+                        "SETTINGS_TRANSITION_DURATION",
+                        "Transition duration",
+                        "Duración de la transición"
                     )}
                 </label>
-                <select
-                    id="transition-duration"
-                    value={settings.maxSeconds}
-                    disabled={!settings.enabled}
-                    onChange={(event): void =>
-                        rockIt.mediaPlayerManager.configureTransitions({
-                            maxSeconds: Number(event.currentTarget.value),
-                        })
-                    }
-                    className="rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-white disabled:opacity-50"
-                >
-                    <option value={0.8}>0.8 s</option>
-                    <option value={2}>2 s</option>
-                    <option value={3.5}>3.5 s</option>
-                </select>
+                <div className="flex items-center gap-2">
+                    <input
+                        id="transition-duration"
+                        type="number"
+                        min={0.1}
+                        step={0.1}
+                        value={duration ?? settings.maxSeconds}
+                        disabled={!settings.enabled}
+                        onChange={(event): void =>
+                            setDuration(event.currentTarget.value)
+                        }
+                        onBlur={saveDuration}
+                        onKeyDown={(event): void => {
+                            if (event.key === "Enter")
+                                event.currentTarget.blur();
+                            if (event.key === "Escape") setDuration(null);
+                        }}
+                        aria-describedby="transition-duration-unit"
+                        className="w-24 rounded-xl border border-neutral-700 bg-neutral-800 px-3 py-2 text-white disabled:opacity-50"
+                    />
+                    <span id="transition-duration-unit">s</span>
+                </div>
             </div>
             <label
                 htmlFor="transition-preserve-album"
@@ -86,18 +115,20 @@ export default function CrossFadeInput(): JSX.Element {
                     checked={settings.preserveAlbum}
                     disabled={!settings.enabled}
                     onChange={(event): void =>
-                        rockIt.mediaPlayerManager.configureTransitions({
-                            preserveAlbum: event.currentTarget.checked,
-                        })
+                        notifySaved(
+                            rockIt.mediaPlayerManager.configureTransitions({
+                                preserveAlbum: event.currentTarget.checked,
+                            })
+                        )
                     }
                     className="h-4 w-4 accent-(--color-rockit-pink)"
                 />
             </label>
             <p className="text-xs text-neutral-500">
                 {text(
-                    "SETTINGS_TRANSITION_HELP",
-                    "Shorter blends for stronger endings. Audio songs only. Changes apply from the next song and are saved on this device.",
-                    "Cruces más cortos si el final mantiene mucha energía. Solo canciones de audio. Los cambios se aplican desde la siguiente canción y se guardan en este dispositivo."
+                    "SETTINGS_TRANSITION_DURATION_HELP",
+                    "Choose any duration from 0.1 seconds, for example 5 or 6. Overlap is limited to half of either track. Audio songs only; silence is not skipped. Changes are saved on this device.",
+                    "Elige una duración desde 0,1 segundos, por ejemplo 5 o 6. El cruce se limita a la mitad de cada canción. Solo audio; no se saltan silencios. Los cambios se guardan en este dispositivo."
                 )}
             </p>
         </div>

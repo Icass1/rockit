@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useId, useState, type JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Inbox, Play, Send, Trash2 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import styles from "@/components/Friends/Friends.module.css";
 
 export default function SharedMediaInbox(): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -13,19 +14,21 @@ export default function SharedMediaInbox(): JSX.Element {
     const $inbox = useStore(rockIt.sharingManager.inboxAtom);
     const $sent = useStore(rockIt.sharingManager.sentAtom);
     const items = view === "inbox" ? $inbox : $sent;
-
-    useEffect(() => {
-        rockIt.sharingManager.fetchInbox();
-        rockIt.sharingManager.fetchSent();
-    }, []);
+    const [expanded, setExpanded] = useState(false);
+    const listId = useId();
+    const visibleItems = expanded ? items : items.slice(0, 3);
 
     const unreadCount = $inbox.filter((i) => !i.seen).length;
 
     return (
         <div className="flex flex-col gap-3">
-            <div className="flex gap-2">
+            <div className={styles.inboxNavigation}>
                 <button
-                    onClick={() => setView("inbox")}
+                    aria-pressed={view === "inbox"}
+                    onClick={() => {
+                        setView("inbox");
+                        setExpanded(false);
+                    }}
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "inbox"
@@ -42,7 +45,11 @@ export default function SharedMediaInbox(): JSX.Element {
                     )}
                 </button>
                 <button
-                    onClick={() => setView("sent")}
+                    aria-pressed={view === "sent"}
+                    onClick={() => {
+                        setView("sent");
+                        setExpanded(false);
+                    }}
                     className={
                         "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors " +
                         (view === "sent"
@@ -61,23 +68,12 @@ export default function SharedMediaInbox(): JSX.Element {
                     <p className="text-sm">{v.FRIENDS_NO_SHARED}</p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-2">
-                    {items.map((item) => (
+                <div id={listId} className={styles.sharedItems}>
+                    {visibleItems.map((item) => (
                         <div
                             key={item.publicId}
-                            className={
-                                "flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-neutral-900/50 " +
-                                (!item.seen && view === "inbox"
-                                    ? "border-l-2 border-[#ee1086] bg-neutral-900/30"
-                                    : "bg-neutral-900/10")
-                            }
-                            onClick={() => {
-                                if (!item.seen && view === "inbox") {
-                                    rockIt.sharingManager.markAsSeen(
-                                        item.publicId
-                                    );
-                                }
-                            }}
+                            className={styles.sharedRow}
+                            data-unread={!item.seen && view === "inbox"}
                         >
                             <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
                                 {item.mediaImageUrl ? (
@@ -101,6 +97,12 @@ export default function SharedMediaInbox(): JSX.Element {
                                 ) ? (
                                     <Link
                                         href={`/${item.mediaType}/${item.mediaPublicId}`}
+                                        onClick={() => {
+                                            if (!item.seen && view === "inbox")
+                                                void rockIt.sharingManager.markAsSeen(
+                                                    item.publicId
+                                                );
+                                        }}
                                         className="text-sm text-[#ee1086]"
                                     >
                                         {
@@ -111,6 +113,10 @@ export default function SharedMediaInbox(): JSX.Element {
                                 ) : (
                                     <button
                                         onClick={() => {
+                                            if (!item.seen && view === "inbox")
+                                                void rockIt.sharingManager.markAsSeen(
+                                                    item.publicId
+                                                );
                                             void rockIt.sharingManager.playSharedMedia(
                                                 item.mediaPublicId
                                             );
@@ -128,8 +134,14 @@ export default function SharedMediaInbox(): JSX.Element {
                                 </p>
                                 <p className="truncate text-xs text-neutral-500">
                                     {view === "inbox"
-                                        ? `from ${item.senderUsername}`
-                                        : `to ${item.recipientUsername}`}
+                                        ? v.FRIENDS_SHARED_FROM.replace(
+                                              "{name}",
+                                              item.senderUsername
+                                          )
+                                        : v.FRIENDS_SHARED_TO.replace(
+                                              "{name}",
+                                              item.recipientUsername
+                                          )}
                                 </p>
                                 {item.message && (
                                     <p className="mt-0.5 truncate text-xs text-neutral-600 italic">
@@ -152,6 +164,22 @@ export default function SharedMediaInbox(): JSX.Element {
                         </div>
                     ))}
                 </div>
+            )}
+            {items.length > 3 && (
+                <button
+                    type="button"
+                    className={styles.directoryExpand}
+                    aria-expanded={expanded}
+                    aria-controls={listId}
+                    onClick={() => setExpanded(!expanded)}
+                >
+                    {expanded
+                        ? v.FRIENDS_SHOW_LESS
+                        : v.FRIENDS_SHOW_ALL_SHARES.replace(
+                              "{count}",
+                              String(items.length)
+                          )}
+                </button>
             )}
         </div>
     );

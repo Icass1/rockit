@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useStore } from "@nanostores/react";
 import { Check, X } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import styles from "@/components/Friends/Friends.module.css";
 
 export default function FriendRequests(): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
@@ -13,8 +14,8 @@ export default function FriendRequests(): JSX.Element {
     if ($incoming.length === 0) return <></>;
 
     return (
-        <div className="rounded-2xl border border-[#ee1086]/15 bg-[#ee1086]/[0.04] p-4">
-            <p className="mb-3 text-[11px] font-semibold tracking-widest text-[#ee1086] uppercase">
+        <div className={styles.requests}>
+            <p className={styles.sectionTitle}>
                 {$incoming.length}{" "}
                 {$incoming.length === 1 ? v.FRIEND_REQUEST : v.FRIEND_REQUESTS}
             </p>

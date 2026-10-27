@@ -88,9 +88,18 @@ function LibraryCard({
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const linkClass = `library-item relative flex flex-col select-none transition-transform [-webkit-touch-callout:none] md:hover:scale-105 ${className}`;
     const isVideo = aspectRatio === "video";
-    const [cardImgSrc, setCardImgSrc] = useState(
-        imageUrl || "/radio-placeholder.png"
-    );
+    const fallbackImage =
+        media.type === "station"
+            ? "/radio-placeholder.png"
+            : media.type === "playlist"
+              ? "/playlist-placeholder.png"
+              : isVideo
+                ? "/video-placeholder.png"
+                : "/song-placeholder.png";
+    const [failedImage, setFailedImage] = useState<string | null>(null);
+    const sourceImage = imageUrl || fallbackImage;
+    const cardImgSrc =
+        sourceImage === failedImage ? fallbackImage : sourceImage;
     const { selectionMode, isSelected, toggleSelection } =
         useLibrarySelection();
 
@@ -136,9 +145,7 @@ function LibraryCard({
                     fill
                     sizes={COVER_SIZES}
                     className="object-cover select-none"
-                    onError={(): void =>
-                        setCardImgSrc("/radio-placeholder.png")
-                    }
+                    onError={(): void => setFailedImage(sourceImage)}
                 />
             ) : (
                 <Image
@@ -148,9 +155,7 @@ function LibraryCard({
                     height={COVER_PX}
                     sizes={COVER_SIZES}
                     className="aspect-square w-full rounded-md object-cover select-none"
-                    onError={(): void =>
-                        setCardImgSrc("/radio-placeholder.png")
-                    }
+                    onError={(): void => setFailedImage(sourceImage)}
                 />
             )}
             <div className="absolute top-1 left-1 flex gap-1">

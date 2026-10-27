@@ -11,12 +11,14 @@ import {
 import Image from "next/image";
 import type { BaseSongWithAlbumResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { EMediaContextLocation } from "@rockit/shared";
 import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { useCoverflow } from "@/components/Home/hooks/useCoverflow";
 import { parseDominantColor } from "@/components/Home/hooks/useDominantColor";
 import { useHomeSubtitle } from "@/components/Home/hooks/useHomeSubtitle";
 import PlayButton from "@/components/Home/PlayButton";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -64,10 +66,12 @@ function CoverflowCardComponent({
     card,
     delta,
     cardSize,
+    onMenuOpenChange,
 }: {
     card: CoverflowCard;
     delta: number;
     cardSize: number;
+    onMenuOpenChange: (open: boolean) => void;
 }): JSX.Element {
     const song = useMedia(card.song);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
@@ -84,7 +88,12 @@ function CoverflowCardComponent({
     }
 
     return (
-        <>
+        <MediaContextMenu
+            media={song}
+            location={EMediaContextLocation.HOME}
+            triggerClassName="h-full w-full"
+            onOpenChange={onMenuOpenChange}
+        >
             {/* Album art background — full card */}
             <Image
                 src={song.imageUrl}
@@ -143,7 +152,7 @@ function CoverflowCardComponent({
                     />
                 </div>
             )}
-        </>
+        </MediaContextMenu>
     );
 }
 
@@ -163,13 +172,14 @@ export default function HomeHeroCoverflow({
 }: HomeHeroCoverflowProps): JSX.Element | null {
     const n = cards.length;
 
+    const [menuOpen, setMenuOpen] = useState(false);
     const [stageWidth, setStageWidth] = useState(0);
     const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
     const stageRef = useRef<HTMLDivElement>(null);
 
     const { center, next, prev, goTo, startAuto, stopAuto } = useCoverflow({
         length: n,
-        reducedMotion,
+        reducedMotion: reducedMotion || menuOpen,
     });
 
     // Early-return-safe derived values
@@ -231,6 +241,8 @@ export default function HomeHeroCoverflow({
     const dragMovedRef = useRef(false);
 
     const handlePointerDown = useCallback((e: React.PointerEvent): void => {
+        if (e.button !== 0 || (e.target as HTMLElement).closest("button"))
+            return;
         dragStartRef.current = e.clientX;
         dragMovedRef.current = false;
     }, []);
@@ -246,6 +258,7 @@ export default function HomeHeroCoverflow({
             if (dragStartRef.current === null) return;
             const delta = e.clientX - dragStartRef.current;
             dragStartRef.current = null;
+            if (menuOpen) return;
 
             if (dragMovedRef.current) {
                 if (delta < 0) next();
@@ -261,12 +274,13 @@ export default function HomeHeroCoverflow({
             const idx = (((center + closestDelta) % n) + n) % n;
             if (idx !== center) goTo(idx);
         },
-        [center, n, config.spacing, next, prev, goTo]
+        [center, n, config.spacing, next, prev, goTo, menuOpen]
     );
 
     // ── Keyboard ──
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent): void => {
+            if (e.target !== e.currentTarget || menuOpen) return;
             if (e.key === "ArrowLeft") {
                 e.preventDefault();
                 prev();
@@ -275,7 +289,7 @@ export default function HomeHeroCoverflow({
                 next();
             }
         },
-        [next, prev]
+        [next, prev, menuOpen]
     );
 
     const subtitle = useHomeSubtitle({
@@ -356,6 +370,7 @@ export default function HomeHeroCoverflow({
                                     card={card}
                                     delta={delta}
                                     cardSize={config.cardSize}
+                                    onMenuOpenChange={setMenuOpen}
                                 />
                             </div>
                         );

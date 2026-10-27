@@ -41,7 +41,8 @@ export default function LivePulseBanner({
     friends: Friend[];
 }): JSX.Element {
     const v = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const live = friends.filter((f) => f.isOnline).slice(0, 10);
+    const online = friends.filter((f) => f.isOnline);
+    const live = online.slice(0, 10);
 
     if (live.length === 0) return <></>;
 
@@ -52,7 +53,7 @@ export default function LivePulseBanner({
                     <div className="h-2 w-2 animate-pulse rounded-full bg-[#ee1086]" />
                 </div>
                 <span className="text-[10px] font-semibold tracking-wider text-[#ee1086] uppercase">
-                    {live.length} {v.FRIENDS_ONLINE}
+                    {online.length} {v.FRIENDS_ONLINE}
                 </span>
             </div>
 

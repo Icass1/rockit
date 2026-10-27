@@ -50,11 +50,12 @@ export default function HeaderUser(): JSX.Element {
                 ref={buttonRef}
                 type="button"
                 onClick={() => setOpen((previous) => !previous)}
+                aria-label={$username}
                 aria-expanded={open}
                 aria-controls={open ? "header-user-menu" : undefined}
-                className={`flex items-center gap-2 rounded-xl border px-2 py-1.5 transition focus-visible:outline-2 focus-visible:outline-(--rockit-pink) ${open ? "border-(--rockit-pink)/30 bg-(--rockit-pink)/15 text-(--rockit-pink)" : "border-transparent hover:bg-white/10"}`}
+                className={`flex min-h-11 items-center gap-2 rounded-xl border px-2 py-1.5 transition focus-visible:outline-2 focus-visible:outline-pink-300 ${open ? "border-(--rockit-pink)/30 bg-(--rockit-pink)/15 text-pink-300" : "border-transparent hover:bg-white/10"}`}
             >
-                <span className="max-w-36 truncate text-sm font-medium">
+                <span className="hidden max-w-36 truncate text-sm font-medium xl:block">
                     {$username}
                 </span>
                 <ChevronDown
@@ -82,7 +83,7 @@ export default function HeaderUser(): JSX.Element {
                         <p className="truncate text-sm font-semibold">
                             {$username}
                         </p>
-                        <p className="mt-1 text-xs text-neutral-500">
+                        <p className="mt-1 text-xs text-neutral-400">
                             RockIt! v{APP_VERSION}
                         </p>
                     </div>
@@ -92,7 +93,7 @@ export default function HeaderUser(): JSX.Element {
                                 close();
                                 router.push("/settings");
                             }}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-(--rockit-pink)"
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-pink-300"
                         >
                             <Settings size={17} />
                             {$vocabulary.SETTINGS}
@@ -100,7 +101,7 @@ export default function HeaderUser(): JSX.Element {
                         <button
                             disabled={$networkStatus === "offline"}
                             onClick={handleLogOut}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-(--rockit-pink) disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-neutral-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-pink-300 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             <LogOut size={17} />
                             {$vocabulary.LOG_OUT}

@@ -4,6 +4,7 @@ import {
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
 import artistVocabulary from "@/lib/generated/artistVocabulary.json";
+import friendsVocabulary from "@/lib/generated/friendsVocabulary.json";
 import { Http } from "@/lib/http";
 import { saveVocabularyOffline } from "@/lib/offline/db";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
@@ -12,7 +13,15 @@ function createVocabularyProxy(
     data: Record<string, string>,
     lang = "en"
 ): VocabularyType {
-    const defaults: Record<string, Record<string, string>> = artistVocabulary;
+    const defaults: Record<string, Record<string, string>> = Object.fromEntries(
+        Object.keys(artistVocabulary).map((code) => [
+            code,
+            {
+                ...artistVocabulary[code as keyof typeof artistVocabulary],
+                ...friendsVocabulary[code as keyof typeof friendsVocabulary],
+            },
+        ])
+    );
     const language = lang.toLowerCase().split(/[-_]/)[0];
     const fallback = defaults[language] ?? defaults.en;
     return new Proxy(data, {

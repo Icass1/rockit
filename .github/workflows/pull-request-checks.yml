@@ -17,6 +17,7 @@ jobs:
     backend:
         name: Backend tests and quality
         runs-on: ubuntu-latest
+        timeout-minutes: 2
         steps:
             - name: Check out repository
               uses: actions/checkout@v4
@@ -88,7 +89,7 @@ jobs:
 
             - name: Run backend tests
               working-directory: apps/backend
-              run: uv run pytest -q --ignore=tests/integration/listening_rewards --ignore=tests/integration/storage_references
+              run: uv run pytest -q --ignore=tests/integration/listening_rewards
 
             - name: Generate backend models
               env:
@@ -114,6 +115,7 @@ jobs:
     typescript:
         name: TypeScript types, formatting, and web lint
         runs-on: ubuntu-latest
+        timeout-minutes: 2
 
         steps:
             - name: Check out repository

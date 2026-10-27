@@ -122,11 +122,16 @@ export class NotificationManager {
     private _showToast(
         type: ENotificationType,
         message: string,
-        id: string = crypto.randomUUID()
+        id?: string
     ): void {
         if (typeof window === "undefined") return;
         this._ensureDismissListener();
-        const sonnerId = `rockit-notification-${id}`;
+        const notificationId =
+            id ??
+            (typeof globalThis.crypto?.randomUUID === "function"
+                ? globalThis.crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+        const sonnerId = `rockit-notification-${notificationId}`;
         const content: ReactNode = createElement(
             "div",
             {

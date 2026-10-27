@@ -6,9 +6,11 @@ import { useContextMenu } from "@/components/ContextMenu/context";
 export default function ContextMenuTrigger({
     children,
     openOnLeftClick,
+    className,
 }: {
     children: ReactNode;
     openOnLeftClick?: boolean;
+    className?: string;
 }): JSX.Element {
     const {
         _setContextMenuOpen,
@@ -152,11 +154,7 @@ export default function ContextMenuTrigger({
                 ]);
                 _setContextMenuOpen?.((value) => !value);
             }}
-            className={
-                openOnLeftClick
-                    ? "rounded-lg focus-visible:outline-2 focus-visible:outline-white"
-                    : undefined
-            }
+            className={`${className ?? ""} ${openOnLeftClick ? "rounded-lg focus-visible:outline-2 focus-visible:outline-white" : ""}`}
             onTouchCancel={clearLongPress}
             onContextMenu={handleContextMenu}
             onClick={handleClick}

@@ -1,3 +1,6 @@
+import type { ListeningBadgeResponse } from "@rockit/shared/dto/listeningBadgeResponse";
+import type { ListeningMilestoneResponse } from "@rockit/shared/dto/listeningMilestoneResponse";
+
 export interface Friend {
     publicId: string;
     username: string;
@@ -39,6 +42,10 @@ export interface LeaderboardEntry {
     levelStartXp: number;
     title: string;
     streak: number;
+    totalListeningSeconds?: number;
+    sessionListeningSeconds?: number;
+    listeningMilestones?: ListeningMilestoneResponse[];
+    listeningBadges?: ListeningBadgeResponse[];
 }
 
 export interface FriendActivity {

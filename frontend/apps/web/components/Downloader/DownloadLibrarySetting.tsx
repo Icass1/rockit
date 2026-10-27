@@ -3,12 +3,14 @@
 import { useState, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import useFetch from "@/hooks/useFetch";
+import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
 
 export default function DownloadLibrarySetting(): JSX.Element {
     const { data, loading, error, update } = useFetch(Http.getDownloadSettings);
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const notifySaved = useSettingsFeedback();
     const [saving, setSaving] = useState(false);
     const change = async (autoAddToLibrary: boolean): Promise<void> => {
         setSaving(true);
@@ -17,6 +19,7 @@ export default function DownloadLibrarySetting(): JSX.Element {
                 autoAddToLibrary,
             });
             if (!result.isOk()) throw new Error(result.message);
+            notifySaved();
             update();
         } catch (error) {
             rockIt.notificationManager.notifyError(

@@ -4,6 +4,7 @@ import type {
 } from "@rockit/shared";
 import type { SearchMediaType, SearchProviderState } from "@/models/search";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
 export class SearchManager {
@@ -276,6 +277,28 @@ export class SearchManager {
             item.name.trim().toLowerCase(),
             item.artists.map((artist) => artist.name.trim().toLowerCase()),
         ]);
+    }
+
+    async playDownloadedSong(item: BaseSearchResultsItem): Promise<void> {
+        if (item.type !== "song" || !item.downloaded || !item.publicId) return;
+        try {
+            const response = await Http.getSong(item.publicId);
+            if (!response.isOk() || !response.result.downloaded) {
+                rockIt.notificationManager.notifyError(
+                    rockIt.vocabularyManager.vocabulary.ERROR_GETTING_MEDIA
+                );
+                return;
+            }
+            const song = response.result;
+            rockIt.queueManager.setMedia([song], song.publicId);
+            rockIt.queueManager.moveToMedia(song.publicId);
+            rockIt.mediaPlayerManager.play();
+        } catch (error) {
+            console.error("Error playing downloaded search song", error);
+            rockIt.notificationManager.notifyError(
+                rockIt.vocabularyManager.vocabulary.ERROR_GETTING_MEDIA
+            );
+        }
     }
 
     getSources(item: BaseSearchResultsItem): readonly BaseSearchResultsItem[] {

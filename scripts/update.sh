@@ -42,10 +42,10 @@ fi
 PYTHON_VERSION="$("$PYTHON_BIN" -V 2>&1 | awk '{print $2}')"
 echo "=== Using $PYTHON_BIN ($PYTHON_VERSION) ==="
 
-VENV_DIR="$REPO_ROOT/venv"
+VENV_DIR="$REPO_ROOT/.venv"
 
-# Recreate the venv when it is missing or was built with another interpreter
-# (a 3.14 venv cannot install the pinned requirements).
+# Recreate .venv when it is missing or was built with another interpreter
+# (a 3.14 environment cannot install the pinned requirements).
 if [ -x "$VENV_DIR/bin/python" ]; then
     VENV_VERSION="$("$VENV_DIR/bin/python" -V 2>&1 | awk '{print $2}')"
 else
@@ -54,10 +54,10 @@ fi
 
 if [ "$VENV_VERSION" != "$PYTHON_VERSION" ]; then
     if [ -n "$VENV_VERSION" ]; then
-        echo "=== Recreating venv (was $VENV_VERSION, now $PYTHON_VERSION) ==="
+        echo "=== Recreating .venv (was $VENV_VERSION, now $PYTHON_VERSION) ==="
         rm -rf "$VENV_DIR"
     else
-        echo "=== Creating Python venv (venv) ==="
+        echo "=== Creating Python environment (.venv) ==="
     fi
     "$PYTHON_BIN" -m venv "$VENV_DIR"
 fi

@@ -1,5 +1,9 @@
 from typing import List
-from backend.core.framework.friend.notifications import notify_after_commit
+from backend.core.framework.friend.notifications import (
+    notify_after_commit,
+    notify_notifications_after_commit,
+)
+from backend.core.framework.notifications import Notifications
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -131,6 +135,15 @@ class Friend:
             )
             return AResult(code=a_result.code(), message=a_result.message())
         notify_after_commit(session, [from_user_id, to_user_id])
+        request_row = a_result.result()
+        notification = await Notifications.social_async(
+            session=session,
+            user_id=to_user_id,
+            event_key=f"friend_request:{request_row.public_id}",
+            message="You have a new friend request",
+        )
+        if notification.is_ok() and notification.result():
+            notify_notifications_after_commit(session, to_user_id)
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
@@ -183,6 +196,15 @@ class Friend:
         )
         if a_add2.is_not_ok():
             return AResult(code=a_add2.code(), message=a_add2.message())
+        from backend.core.framework.friend.listeningBadges import ListeningBadges
+
+        for owner_id in (request_row.from_user_id, user_id):
+            rewards = await ListeningBadges.refresh_user_async(
+                session=session, user_id=owner_id
+            )
+            if rewards.is_not_ok():
+                logger.error("Error awarding friendship emblems: %s", rewards.info())
+                return AResult(code=rewards.code(), message=rewards.message())
         notify_after_commit(session, [request_row.from_user_id, user_id])
         return AResult(code=AResultCode.OK, message="OK", result=a_add.result())
 

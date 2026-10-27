@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 folders_to_process: List[str] = []
 
 for root, dirs, files in os.walk("."):
-    if "venv" in root:
+    if ".venv" in Path(root).parts:
         continue
     if "node_modules" in root:
         continue

@@ -4,7 +4,11 @@ from backend.core.access.collectionAccess import CollectionAccess
 from backend.core.access.friend.mediaSummaryAccess import MediaSummaryAccess
 from backend.core.enums.mediaTypeEnum import MEDIA_TYPE_NAMES
 from backend.core.responses.friend.sharedMediaResponse import SharedMediaItem
-from backend.core.framework.friend.notifications import notify_after_commit
+from backend.core.framework.friend.notifications import (
+    notify_after_commit,
+    notify_notifications_after_commit,
+)
+from backend.core.framework.notifications import Notifications
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -57,7 +61,25 @@ class Sharing:
         if a_result.is_not_ok():
             logger.error(f"Error sharing media. {a_result.info()}", exc_info=True)
             return AResult(code=a_result.code(), message=a_result.message())
+        from backend.core.framework.friend.listeningBadges import ListeningBadges
+
+        rewards = await ListeningBadges.refresh_user_async(
+            session=session, user_id=sender_user_id
+        )
+        if rewards.is_not_ok():
+            logger.error("Error awarding sharing emblems: %s", rewards.info())
+            return AResult(code=rewards.code(), message=rewards.message())
         notify_after_commit(session, [sender_user_id, recipient_user_id])
+        share = a_result.result()
+        notification = await Notifications.social_async(
+            session=session,
+            user_id=recipient_user_id,
+            event_key=f"media_share:{share.public_id}",
+            message="A friend shared media with you",
+            detail=message,
+        )
+        if notification.is_ok() and notification.result():
+            notify_notifications_after_commit(session, recipient_user_id)
         return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod

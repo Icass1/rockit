@@ -64,8 +64,8 @@ Patrones clave:
 - Auth: sesión cookie session_id, AuthMiddleware.auth_dependency para proteger endpoints.
   Comandos:
 - uvicorn backend.core.main:app --reload
-- venv/bin/python -m pyright (typecheck)
-- venv/bin/python -m black <file> (format)
+- .venv/bin/python -m pyright (typecheck)
+- .venv/bin/python -m black <file> (format)
 - python3 -m backend init-db
 - python3 -m backend models (genera DTOs Zod para frontend)
 

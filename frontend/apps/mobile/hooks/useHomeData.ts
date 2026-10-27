@@ -1,6 +1,7 @@
 import {
     BaseSongWithAlbumResponse,
     HomeStatsResponseSchema,
+    MediaResponse,
     mixHomeRecommendations,
 } from "@rockit/shared";
 import { Http } from "@/lib/http";
@@ -15,6 +16,7 @@ export interface HomeData {
     hiddenGems: BaseSongWithAlbumResponse[];
     communityTop: BaseSongWithAlbumResponse[];
     monthlyTop: BaseSongWithAlbumResponse[];
+    recentlyClickedMedia: MediaResponse["media"][];
     isEmpty: boolean;
 }
 
@@ -30,13 +32,17 @@ function transformStats(
     const hiddenGems = dataResponse.hiddenGems.map((song) => song);
     const communityTop = dataResponse.communityTop.map((song) => song);
     const monthlyTop = dataResponse.monthlyTop.map((song) => song);
+    const recentlyClickedMedia = dataResponse.recentlyClickedMedia.map(
+        (item) => item.media
+    );
 
     const isEmpty =
         songsByTimePlayed.length === 0 &&
         randomSongsLastMonth.length === 0 &&
         hiddenGems.length === 0 &&
         communityTop.length === 0 &&
-        monthlyTop.length === 0;
+        monthlyTop.length === 0 &&
+        recentlyClickedMedia.length === 0;
 
     return {
         songsByTimePlayed,
@@ -44,6 +50,7 @@ function transformStats(
         hiddenGems,
         communityTop,
         monthlyTop,
+        recentlyClickedMedia,
         isEmpty,
     };
 }

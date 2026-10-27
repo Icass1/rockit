@@ -9,8 +9,20 @@ export default function PlayAction({
     media,
     vocabulary,
     listPublicId,
+    loading,
+    setLoading,
 }: ActionComponentProps): JSX.Element {
-    const play = (): void => {
+    const play = async (): Promise<void> => {
+        if (loading) return;
+        if (isSearchResult(media)) {
+            setLoading(true);
+            try {
+                await rockIt.searchManager.playDownloadedSong(media);
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
         if (!isSearchResult(media) && isQueueable(media)) {
             if (listPublicId) {
                 void rockIt.queueManager.playCollection(
@@ -29,7 +41,7 @@ export default function PlayAction({
         !isSearchResult(media) && isDownloadable(media) && !media.downloaded;
 
     return (
-        <ContextMenuOption onClick={play} disable={disablePlay}>
+        <ContextMenuOption onClick={play} disable={disablePlay || loading}>
             <Play className="h-5 w-5" />
             {vocabulary.PLAY}
         </ContextMenuOption>

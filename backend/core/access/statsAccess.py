@@ -40,6 +40,41 @@ def _utc(dt: datetime) -> datetime:
 
 class StatsAccess:
     @staticmethod
+    async def get_recently_clicked_media_public_ids_async(
+        session: AsyncSession, user_id: int, limit: int = 12
+    ) -> AResult[list[str]]:
+        """Rank recently clicked media, with a small boost for repeat interest."""
+        try:
+            result = await session.execute(
+                text("""
+                    SELECT m.public_id
+                    FROM core.user_media_clicked c
+                    JOIN core.media m ON m.id = c.media_id
+                    WHERE c.user_id = :user_id
+                      AND c.date_added >= NOW() - INTERVAL '30 days'
+                      AND m.media_type_key IN (2, 3, 4, 5)
+                    GROUP BY m.public_id
+                    ORDER BY
+                      (COUNT(*) FILTER (WHERE c.date_added >= NOW() - INTERVAL '30 days'))
+                        + 3 * (COUNT(*) FILTER (WHERE c.date_added >= NOW() - INTERVAL '2 days')) DESC,
+                      MAX(c.date_added) DESC
+                    LIMIT :limit
+                """),
+                {"user_id": user_id, "limit": limit},
+            )
+            return AResult(
+                code=AResultCode.OK,
+                message="OK",
+                result=[row[0] for row in result.all()],
+            )
+        except Exception as e:
+            logger.error(f"Error getting recently clicked media: {e}", exc_info=True)
+            return AResult(
+                code=AResultCode.GENERAL_ERROR,
+                message="Failed to get recently clicked media",
+            )
+
+    @staticmethod
     async def get_summary_async(
         session: AsyncSession,
         user_id: int,
@@ -420,20 +455,22 @@ class StatsAccess:
             SELECT ai.album_public_id,
                    ai.album_name,
                    ai.album_image_url,
+                   ai.album_artists,
                    COUNT(*) AS play_count
             FROM     core.user_media_listened uml
             JOIN     album_info ai ON ai.media_id = uml.media_id
             WHERE    uml.user_id    = :user_id
               AND    uml.date_added >= :start_date
               AND    uml.date_added <  :end_date
-            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url, ai.album_artists
         )
         SELECT (ARRAY_AGG(ap.album_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
                ap.album_name        AS name,
+               ap.album_artists     AS subtitle,
                (ARRAY_AGG(ap.album_image_url ORDER BY ap.play_count DESC))[1] AS image_url,
                SUM(ap.play_count)   AS play_count
         FROM   album_plays ap
-        GROUP BY ap.album_name
+        GROUP BY ap.album_name, ap.album_artists
         ORDER BY play_count DESC
         LIMIT  :limit
         """)
@@ -458,7 +495,7 @@ class StatsAccess:
                     href=f"/album/{r.public_id}",
                     value=int(r.play_count),
                     imageUrl=r.image_url,
-                    subtitle=None,
+                    subtitle=r.subtitle,
                 )
                 for r in rows
             ],

@@ -9,8 +9,12 @@ import PlayerUIContent from "@/components/PlayerUI/Content";
 export default function PlayerUI(): JSX.Element | null {
     const $isPlayerUIVisible = useStore(rockIt.playerUIManager.visibleAtom);
 
-    const innerWidth = useWindowSize().width;
-    const shouldRender = innerWidth !== undefined && innerWidth > 768;
+    const { width: innerWidth, height: innerHeight } = useWindowSize();
+    const shouldRender =
+        innerWidth !== undefined &&
+        innerHeight !== undefined &&
+        innerWidth >= 768 &&
+        innerHeight >= 500;
 
     // Scroll queue to current song when player opens
     if (!shouldRender) return null;

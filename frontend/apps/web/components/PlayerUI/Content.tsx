@@ -154,7 +154,7 @@ export default function PlayerUIContent(): JSX.Element {
     const gridClass = isLandscape
         ? "px-2 transition-all ease-in-out duration-500"
         : isPortrait
-          ? "grid-rows-[auto_minmax(0,1fr)]"
+          ? "grid-rows-[minmax(0,1fr)_minmax(0,1fr)]"
           : "grid-cols-[3fr_1fr] px-2";
 
     // Keep mainComponent at the same child index across all layouts so React
@@ -178,16 +178,13 @@ export default function PlayerUIContent(): JSX.Element {
 
             <div
                 className={
-                    (isPortrait
-                        ? "min-h-0 min-w-0"
-                        : "h-full max-h-full min-h-0 min-w-0") +
+                    "h-full max-h-full min-h-0 min-w-0" +
                     (isLandscape ? " order-2" : "")
                 }
             >
                 <PlayerUIMain
                     key={isVideoMedia ? $currentMedia.publicId : "audio"}
                     currentMedia={$currentMedia}
-                    edgeToEdge={isPortrait}
                 />
             </div>
 

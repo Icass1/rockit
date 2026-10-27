@@ -497,3 +497,63 @@ test("a rejected playlist insertion reports failure and releases the loading sta
         false
     );
 });
+
+test("vinyl direction follows visible queue positions before media is published", () => {
+    const { manager, seed, container } = setup();
+    seed(["a", "b", "c"]);
+    container.webSocketManager.sendMediaClicked = () => {};
+    const seen = [];
+    manager.currentMediaAtom.listen((media) =>
+        seen.push([media.publicId, manager.lastNavigationDirection])
+    );
+    manager.moveToMedia("c");
+    manager.moveToMedia("a");
+    assert.equal(seen[0][0], "c");
+    assert.equal(seen[0][1], 1);
+    assert.equal(seen[1][0], "a");
+    assert.equal(seen[1][1], -1);
+    const reordered = [manager.queue[2], manager.queue[0], manager.queue[1]];
+    manager._queueAtom.set(reordered);
+    manager.moveToMedia("c");
+    assert.equal(manager.lastNavigationDirection, -1);
+    manager.moveToMedia("b");
+    assert.equal(manager.lastNavigationDirection, 1);
+});
+
+test("next and previous preserve direction when wrapping the queue", () => {
+    const { manager, seed, container } = setup();
+    seed(["a", "b", "c"]);
+    container.bookmarkManager = {
+        skipToPrevBookmark: () => false,
+        skipToNextBookmark: () => false,
+    };
+    container.mediaPlayerManager.currentTime = 0;
+    container.webSocketManager.sendSkipClicked = () => {};
+    manager.skipBack();
+    assert.equal(manager.currentMedia.publicId, "c");
+    assert.equal(manager.lastNavigationDirection, -1);
+    manager.skipForward();
+    assert.equal(manager.currentMedia.publicId, "a");
+    assert.equal(manager.lastNavigationDirection, 1);
+    container.mediaPlayerManager.currentTime = 5;
+    container.mediaPlayerManager.setCurrentTime = () => {};
+    manager.skipBack();
+    assert.equal(manager.currentMedia.publicId, "a");
+    assert.equal(manager.lastNavigationDirection, 1);
+});
+
+test("unavailable queue entries do not reverse explicit navigation", () => {
+    const { manager, seed, container } = setup();
+    seed(["a", "b", "c"]);
+    container.notificationManager = { notifyWarn: () => {} };
+    container.vocabularyManager = {
+        vocabulary: { MEDIA_NOT_DOWNLOADED: "Unavailable" },
+    };
+    manager.queue[1].media.downloaded = false;
+    manager.setQueueMediaId(1, -1);
+    assert.equal(manager.currentMedia.publicId, "a");
+    assert.equal(manager.lastNavigationDirection, -1);
+    manager.setQueueMediaId(1, 1);
+    assert.equal(manager.currentMedia.publicId, "c");
+    assert.equal(manager.lastNavigationDirection, 1);
+});

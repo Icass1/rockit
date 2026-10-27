@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import shutil
 import sqlite3
 import sys
@@ -47,9 +48,8 @@ if args.env:
     os.environ["ROCKIT_ENV_FILE"] = args.env
 
 
-async def import_vocabulary() -> None:
-    """Import vocabulary from Vocabulary.xlsx file."""
-    from backend.core.access.db import rockit_db
+async def import_vocabulary(persist: bool = True) -> None:
+    """Generate vocabulary artifacts and optionally import the workbook into the DB."""
 
     types_path = Path("frontend/packages/shared/src/models/types/vocabulary.ts")
 
@@ -148,7 +148,33 @@ async def import_vocabulary() -> None:
         encoding="utf-8",
     )
 
+    friends_defaults_path = Path(
+        "frontend/apps/web/lib/generated/friendsVocabulary.json"
+    )
+    # Include common actions and level names used by the Friends surface.
+    friends_keys = {"NEWCOMER", "EXPLORER", "ENTHUSIAST", "CONNOISSEUR", "LEGEND"}
+    for component in Path("frontend/apps/web/components/Friends").glob("*.tsx"):
+        friends_keys.update(
+            re.findall(r"\bv\.([A-Z][A-Z_0-9]+)", component.read_text())
+        )
+    friends_defaults = {
+        lang: {
+            key: value
+            for key, value in translations.items()
+            if key.startswith(("FRIENDS_", "SOCIAL_")) or key in friends_keys
+        }
+        for lang, translations in vocabulary_data.items()
+    }
+    friends_defaults_path.write_text(
+        json.dumps(friends_defaults, ensure_ascii=False, indent=4) + "\n",
+        encoding="utf-8",
+    )
+    workbook.close()
     logger.info(f"Found {len(all_keys)} vocabulary keys")
+    if not persist:
+        return
+
+    from backend.core.access.db import rockit_db
 
     async with rockit_db.session_scope_async() as session:
         from backend.core.framework.language import Language
@@ -682,6 +708,10 @@ async def migrate_media_listened_to_intervals_async(user_id: int) -> None:
 
 
 async def main() -> None:
+    if command_to_run == "generate-vocabulary":
+        await import_vocabulary(persist=False)
+        return
+
     from backend.core import add_initial_content_async
     from backend.core.access.db import rockit_db
 

@@ -6,9 +6,11 @@ import {
     CurrentTimeMessageRequest,
     CurrentTimeMessageSchema,
     EWebSocketMessage,
+    FriendsPresenceChangedMessageSchema,
     MediaClickedMessageRequest,
     MediaEndedMessageRequest,
     MediaExpandedMessageRequest,
+    OnlineUsersMessageSchema,
     QueueTypeRequest,
     SeekMessageRequest,
     SkipClickedMessageRequest,
@@ -16,9 +18,16 @@ import {
     type IWebSocketMessagePayloadMap,
     type WebSocketMessageHandler,
 } from "@rockit/shared";
+import { createAtom, type ReadonlyAtom } from "@/lib/store";
 
 export class WebSocketManager {
     static #instance: WebSocketManager;
+
+    private _onlineUsers = createAtom<number | undefined>();
+
+    get onlineUsersAtom(): ReadonlyAtom<number | undefined> {
+        return this._onlineUsers.getReadonlyAtom();
+    }
 
     private webSocket?: WebSocket;
     private _init = false;
@@ -34,7 +43,14 @@ export class WebSocketManager {
     private _onMessageHandler = (event: MessageEvent): void => {
         try {
             let data = JSON.parse(event.data) as TWebSocketIncomingMessage;
-            if (data.type === EWebSocketMessage.CurrentMedia) {
+            if (data.type === EWebSocketMessage.OnlineUsers) {
+                data = OnlineUsersMessageSchema.parse(data);
+                if (!Number.isInteger(data.count) || data.count < 0)
+                    throw new Error("Invalid online user count");
+                this._onlineUsers.set(data.count);
+            } else if (data.type === EWebSocketMessage.FriendsPresenceChanged) {
+                data = FriendsPresenceChangedMessageSchema.parse(data);
+            } else if (data.type === EWebSocketMessage.CurrentMedia) {
                 data = CurrentMediaMessageSchema.parse(data);
                 if (this._outgoingPlayback?.playbackId !== data.playbackId) {
                     this._outgoingPlayback = undefined;
@@ -101,6 +117,7 @@ export class WebSocketManager {
 
     async reconnectAsync(): Promise<void> {
         this._connectionGeneration++;
+        this._onlineUsers.set(undefined);
         const previousSocket = this.webSocket;
         this.webSocket = undefined;
         this._init = false;
@@ -147,6 +164,7 @@ export class WebSocketManager {
 
                 this.webSocket.onclose = (): void => {
                     if (generation !== this._connectionGeneration) return;
+                    this._onlineUsers.set(undefined);
                     this.initializing = false;
                     this._init = false;
                     this.attemptReconnect();

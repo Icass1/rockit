@@ -39,6 +39,11 @@ function transformStats(
     const moodSongs = dataResponse.moodSongs.map(
         (song): BaseSongWithAlbumResponse => song
     );
+    // Offline snapshots can predate this field, even though the current API
+    // schema supplies an empty-array default for network responses.
+    const recentlyClickedMedia = (dataResponse.recentlyClickedMedia ?? []).map(
+        (item) => item.media
+    );
 
     const isEmpty =
         songsByTimePlayed.length === 0 &&
@@ -47,7 +52,8 @@ function transformStats(
         hiddenGems.length === 0 &&
         communityTop.length === 0 &&
         monthlyTop.length === 0 &&
-        moodSongs.length === 0;
+        moodSongs.length === 0 &&
+        recentlyClickedMedia.length === 0;
 
     return {
         songsByTimePlayed,
@@ -57,6 +63,7 @@ function transformStats(
         communityTop,
         monthlyTop,
         moodSongs,
+        recentlyClickedMedia,
         currentStreak: dataResponse.currentStreak,
         minutesListenedThisWeek: dataResponse.minutesListenedThisWeek,
         isEmpty,

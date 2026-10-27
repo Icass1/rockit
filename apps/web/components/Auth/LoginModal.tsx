@@ -80,7 +80,7 @@ export default function LoginModal(): JSX.Element {
     }, [handleSubmit]);
 
     return (
-        <div className="bg-opacity-[.92] absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black p-8 text-center shadow-lg md:w-full">
+        <div className="absolute top-1/2 left-1/2 w-[90%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-black/70 p-8 text-center shadow-lg backdrop-blur-2xl md:w-full">
             <div id="login-form">
                 <div className="flex items-center justify-center space-x-2">
                     <h2 className="text-foreground text-3xl font-extrabold">

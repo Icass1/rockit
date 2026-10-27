@@ -14,6 +14,7 @@ from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
 from core.framework.notification import Notification
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
+from core.framework.user.user import User
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.requests.uploadAlbumRequest import UploadAlbumRequest
@@ -69,6 +70,18 @@ def _get_user(request: Request) -> UserRow:
             detail=a_result_user.message(),
         )
     return a_result_user.result()
+
+
+async def _add_uploaded_media_to_library(
+    session: AsyncSession, user_id: int, media_public_id: str
+) -> None:
+    """Add a successfully uploaded media item to its uploader's library."""
+    a_result = await User.add_medias_to_library_async(
+        session=session, user_id=user_id, public_ids=[media_public_id]
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error adding uploaded media to library. {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
 
 async def _get_pending_or_404(session: AsyncSession, upload_id: str) -> PendingUploadRow:
@@ -256,6 +269,11 @@ async def upload_file(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),
             )
+        await _add_uploaded_media_to_library(
+            session=session,
+            user_id=_get_user(request=request).id,
+            media_public_id=a_result.result().publicId,
+        )
         return a_result.result()
 
     elif pending.media_type_key == MediaTypeEnum.VIDEO.value:
@@ -286,6 +304,11 @@ async def upload_file(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),
             )
+        await _add_uploaded_media_to_library(
+            session=session,
+            user_id=_get_user(request=request).id,
+            media_public_id=a_result.result().publicId,
+        )
         return a_result.result()
 
     await _cleanup_upload_temp_dir(upload_id=upload_id)
@@ -410,6 +433,11 @@ async def upload_album_song_file(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),
             )
+        await _add_uploaded_media_to_library(
+            session=session,
+            user_id=_get_user(request=request).id,
+            media_public_id=a_result.result().publicId,
+        )
         return a_result.result()
 
     return UploadResponse(
@@ -516,6 +544,11 @@ async def assemble_media_upload(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),
             )
+        await _add_uploaded_media_to_library(
+            session=session,
+            user_id=_get_user(request=request).id,
+            media_public_id=a_result.result().publicId,
+        )
         return a_result.result()
 
     elif pending.media_type_key == MediaTypeEnum.VIDEO.value:
@@ -546,6 +579,11 @@ async def assemble_media_upload(
                 status_code=a_result.get_http_code(),
                 detail=a_result.message(),
             )
+        await _add_uploaded_media_to_library(
+            session=session,
+            user_id=_get_user(request=request).id,
+            media_public_id=a_result.result().publicId,
+        )
         return a_result.result()
 
     await _cleanup_upload_temp_dir(upload_id=upload_id)

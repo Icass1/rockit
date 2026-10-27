@@ -8,6 +8,7 @@ from typing import Any, cast
 import aiofiles
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
 from constants import MEDIA_PATH
@@ -17,6 +18,7 @@ from core.access.mediaAccess import MediaAccess
 from core.framework import providers
 from core.framework.media.stream import MediaStream
 from core.framework.notification import Notification
+from core.framework.user.user import User
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -50,6 +52,18 @@ async def _stream_to_file(upload_file: UploadFile, dest_path: str) -> None:
             if not chunk:
                 break
             await f.write(chunk)
+
+
+async def _add_uploaded_media_to_library(
+    session: AsyncSession, user_id: int, media_public_id: str
+) -> None:
+    """Add a successfully uploaded media item to its uploader's library."""
+    a_result = await User.add_medias_to_library_async(
+        session=session, user_id=user_id, public_ids=[media_public_id]
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Error adding uploaded media to library. {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
 
 @router.post("/upload/song", response_model=UploadResponse)
@@ -118,6 +132,12 @@ async def upload_rockit_song(
             status_code=a_result.get_http_code(),
             detail=a_result.message(),
         )
+
+    await _add_uploaded_media_to_library(
+        session=session,
+        user_id=a_result_user.result().id,
+        media_public_id=a_result.result().publicId,
+    )
 
     return a_result.result()
 
@@ -240,6 +260,12 @@ async def upload_rockit_album(
             status_code=a_result.get_http_code(),
             detail=a_result.message(),
         )
+
+    await _add_uploaded_media_to_library(
+        session=session,
+        user_id=a_result_user.result().id,
+        media_public_id=a_result.result().publicId,
+    )
 
     return a_result.result()
 

@@ -78,15 +78,6 @@
     115 medallas con descripciones breves, sin etiquetas de dificultad, nueve familias (incluyen amigos, vídeos y descubrimiento + recomendaciones), filtros y búsqueda; diseños basados en el logo de Rockit, con condiciones de desbloqueo reales, colección personal y comparación de logros entre amigos. No poner comparación antes que la actividad social en móvil.
     ```
 
-### [SOCIAL] XP por tiempo real de escucha y sesiones
-
-- tags: [backend, friends, xp, kb-35]
-- priority: medium
-- workload: Hard
-    ```md
-    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
-    ```
-
 ### [HOME] Añadir context menu a las canciones del home
 
 - tags: [frontend, home, songs, context-menu, ui, kb-20]
@@ -160,6 +151,17 @@
     ```
 
 ## Done
+
+### [SOCIAL] XP por tiempo real de escucha y sesiones
+
+- tags: [backend, friends, xp, kb-35]
+- priority: medium
+- workload: Hard
+    ```md
+    Completada por indicación de Ignacio tras la revisión de PR145 y PR146.
+
+    Aprobado: hitos de sesión a 10, 20, 30 y 60 minutos de escucha real; excluir pausas, seeks y dispositivos duplicados. Conservar XP anterior, premios idempotentes y progreso persistente. Importes iniciales ajustables por política. PR separado del rediseño de Friends.
+    ```
 
 ### [FRIENDS] Vocabulary desde el Excel
 

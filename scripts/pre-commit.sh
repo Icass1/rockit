@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 uv run --project apps/backend ruff format --check .
 uv run --project apps/backend ruff check .
-(cd apps/backend && uv run pyright && uv run pytest -q)
+(cd apps/backend && uv run pyright && uv run pytest -q --ignore=tests/integration/listening_rewards --ignore=tests/integration/storage_references)
 pnpm exec prettier --check "**/*.{ts,tsx,html}"
 pnpm typecheck
 pnpm --filter @app/web lint

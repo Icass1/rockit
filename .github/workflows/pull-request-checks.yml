@@ -14,6 +14,22 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
+    quality:
+        # Preserve the required status name used by branch protection.
+        name: PR quality checks
+        needs: [backend, typescript]
+        if: ${{ always() }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 1
+        steps:
+            - name: Require both quality jobs to succeed
+              env:
+                  BACKEND_RESULT: ${{ needs.backend.result }}
+                  TYPESCRIPT_RESULT: ${{ needs.typescript.result }}
+              run: |
+                  test "$BACKEND_RESULT" = success
+                  test "$TYPESCRIPT_RESULT" = success
+
     backend:
         name: Backend tests and quality
         runs-on: ubuntu-latest

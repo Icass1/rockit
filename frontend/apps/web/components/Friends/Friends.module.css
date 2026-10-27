@@ -1123,6 +1123,7 @@
 }
 
 .sharedRow {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 0.875rem;
@@ -1347,7 +1348,7 @@
 }
 .sharedItems {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.5rem;
 }
 /* Equal primary columns and bounded initial feeds keep each social section

@@ -30,18 +30,12 @@ async def test_original_clock_boundaries(tmp_path: Path, mode: str) -> None:
             if mode in ("edges", "antiphase", "one-channel")
             else not (mode == "internal" and 2 < t < 4)
         )
-        gain = (
-            0 if mode == "silent" or not active else (0.002 if mode == "quiet" else 0.2)
-        )
+        gain = 0 if mode == "silent" or not active else (0.002 if mode == "quiet" else 0.2)
         value = int(32767 * gain * math.sin(2 * math.pi * 440 * t))
         samples.extend(
             (
                 value,
-                (
-                    -value
-                    if mode == "antiphase"
-                    else 0 if mode == "one-channel" else value
-                ),
+                (-value if mode == "antiphase" else 0 if mode == "one-channel" else value),
             )
         )
     path = tmp_path / "song.wav"
@@ -70,7 +64,7 @@ async def test_shared_cache_slot_and_source_replacement(
 
     source = tmp_path / "song.wav"
     source.write_bytes(b"first")
-    monkeypatch.setattr(silence, "MEDIA_PATH", str(tmp_path))
+    monkeypatch.setattr(silence, "TEMP_PATH", str(tmp_path))
     release = asyncio.Event()
     calls = 0
 
@@ -81,9 +75,7 @@ async def test_shared_cache_slot_and_source_replacement(
         return AudioBoundsResponse(status="ready", start=1, end=9, duration=10)
 
     monkeypatch.setattr(silence, "analyze", analyze)
-    responses = await asyncio.gather(
-        *(silence.request_bounds(path=str(source)) for _ in range(10))
-    )
+    responses = await asyncio.gather(*(silence.request_bounds(path=str(source)) for _ in range(10)))
     assert all(item.status == "pending" for item in responses)
 
     async def wait_ready() -> None:

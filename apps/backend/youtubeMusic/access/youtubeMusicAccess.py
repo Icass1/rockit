@@ -2,7 +2,7 @@ import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
-from sqlalchemy import Result as DBResult
+from sqlalchemy import func, Result as DBResult
 from sqlalchemy import Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -42,10 +42,10 @@ logger = getLogger(__name__)
 class YoutubeMusicAccess:
     @staticmethod
     @safe_async
-    async def find_local_songs_async(session: AsyncSession, titles: list[str]) -> AResult[list[LocalSong]]:
+    async def find_local_songs_async(session: AsyncSession, titles: list[str]) -> Result[list[LocalSong]]:
         """Batch-read downloaded YouTube Music metadata for local search matching."""
         if not titles:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
         rows = (await session.execute(
             select(CoreMediaRow.public_id, TrackRow.title, TrackRow.path, ArtistRow.name)
             .select_from(TrackRow)
@@ -57,7 +57,7 @@ class YoutubeMusicAccess:
         )).all()
         if len(rows) > 1000:
             logger.warning("Too many YouTube Music local candidates; keeping explicit source selection")
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
         songs: dict[str, LocalSong] = {}
         for public_id, name, path, artist_name in rows:
             if not path:
@@ -65,7 +65,28 @@ class YoutubeMusicAccess:
             if public_id not in songs:
                 songs[public_id] = LocalSong(public_id=public_id, name=name, artists=[], file_path=os.path.join(MEDIA_PATH, path))
             songs[public_id].artists.append(artist_name)
-        return AResult(code=AResultCode.OK, message="OK", result=list(songs.values()))
+        return Result(code=ResultCode.OK, message="OK", result=list(songs.values()))
+
+    @staticmethod
+    async def get_audio_key_async(session: AsyncSession, media_id: int) -> Result[str | None]:
+        """Get a downloaded track's S3 key for local audio analysis."""
+        stmt: Select[tuple[TrackRow]] = (
+            select(TrackRow)
+            .where(TrackRow.id == media_id)
+            .options(selectinload(TrackRow.storage_object))
+        )
+        result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
+        track: TrackRow | None = result.scalar_one_or_none()
+        if track is None:
+            logger.warning("Track %s not found for audio analysis", media_id)
+            return Result(code=ResultCode.NOT_FOUND, message="Track not found")
+        storage_object = track.storage_object
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=storage_object.key if storage_object is not None else None,
+        )
+
 
     @staticmethod
     @safe_async
@@ -92,19 +113,6 @@ class YoutubeMusicAccess:
             return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
         return Result(code=ResultCode.OK, message="OK", result=track.youtube_id)
-
-    @staticmethod
-    @safe_async
-    async def get_audio_path_async(
-        session: AsyncSession, media_id: int
-    ) -> AResult[str | None]:
-        """Resolve the provider-owned file for an already validated core song."""
-        result = await session.execute(
-            select(TrackRow.path).where(TrackRow.id == media_id)
-        )
-        return AResult(
-            code=AResultCode.OK, message="OK", result=result.scalar_one_or_none()
-        )
 
     @staticmethod
     @safe_async

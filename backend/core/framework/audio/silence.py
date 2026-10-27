@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import BinaryIO
 
 from backend.constants import MEDIA_PATH
-from backend.utils.logger import getLogger
 from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
+from backend.utils.logger import getLogger
 
 logger = getLogger(__name__)
 VERSION = "edges-v1-60db-500ms-150ms"
@@ -25,9 +25,7 @@ def _identity(path: Path) -> str:
     info = path.stat()
     if not path.is_file():
         raise OSError("Not a regular file")
-    value = (
-        f"{path.resolve()}:{info.st_size}:{info.st_mtime_ns}:{info.st_ino}:{VERSION}"
-    )
+    value = f"{path.resolve()}:{info.st_size}:{info.st_mtime_ns}:{info.st_ino}:{VERSION}"
     return hashlib.sha256(value.encode()).hexdigest()
 
 
@@ -43,9 +41,7 @@ def _read_cache(cache: Path) -> AudioBoundsResponse | None:
     return None
 
 
-def _prepare(
-    path: Path, root: Path
-) -> tuple[str, AudioBoundsResponse | None, BinaryIO | None]:
+def _prepare(path: Path, root: Path) -> tuple[str, AudioBoundsResponse | None, BinaryIO | None]:
     """Read cache and claim one host-wide slot, without queuing work or blocking."""
     key = _identity(path=path)
     root.mkdir(parents=True, exist_ok=True)
@@ -189,9 +185,7 @@ def _publish(path: Path, root: Path, key: str, bounds: AudioBoundsResponse) -> N
     bounds.fingerprint = key
     target = root / f"{key}.json"
     temporary = root / f"{key}.tmp"
-    temporary.write_text(
-        json.dumps({"created": time.time(), "bounds": bounds.model_dump()})
-    )
+    temporary.write_text(json.dumps({"created": time.time(), "bounds": bounds.model_dump()}))
     temporary.replace(target)
     # One writer owns the slot; retain at most 2048 tiny metadata entries.
     entries = sorted(root.glob("*.json"), key=lambda item: item.stat().st_mtime)
@@ -210,9 +204,7 @@ async def _worker(path: Path, root: Path, key: str, lock: BinaryIO) -> None:
         logger.warning("Boundary analysis unavailable", exc_info=True)
     finally:
         try:
-            await asyncio.to_thread(
-                _publish, path=path, root=root, key=key, bounds=bounds
-            )
+            await asyncio.to_thread(_publish, path=path, root=root, key=key, bounds=bounds)
         except OSError:
             logger.warning("Could not persist audio boundaries", exc_info=True)
         finally:

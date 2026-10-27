@@ -1,16 +1,17 @@
-from backend.core.framework.models.localSong import LocalSong
-import os
+from youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 import re
 from logging import Logger
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.framework.audio.silence import request_bounds
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.types import AddFromUrlResult
 from core.responses.artistPageResponse import ArtistCatalogResponse
+from core.responses.audioBoundsResponse import AudioBoundsResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistWithMediasResponse import (
@@ -25,18 +26,8 @@ from core.utils.timeIt import time_it
 from logger import getLogger
 from result import Result, ResultCode
 from youtubeMusic.access.artistCatalogAccess import ArtistCatalogAccess
+from youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 from youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music
-
-# Core framework.
-
-# Core responses.
-
-# Youtube Music framework.
-
-from core.framework.audio.silence import request_bounds
-from core.responses.audioBoundsResponse import AudioBoundsResponse
-from backend.constants import MEDIA_PATH
-from backend.youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 
 logger: Logger = getLogger(__name__)
 
@@ -104,19 +95,14 @@ class YoutubeMusicProvider(BaseMediaProvider):
 
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
-    ) -> AResult[AudioBoundsResponse]:
+    ) -> Result[AudioBoundsResponse]:
         """Resolve this provider's downloaded audio for optional analysis."""
-        result = await YoutubeMusicAccess.get_audio_path_async(
-            session=session, media_id=media_id
-        )
+        result = await YoutubeMusicAccess.get_audio_key_async(session=session, media_id=media_id)
         if result.is_not_ok():
             logger.error(f"Could not resolve audio source. {result.info()}")
-            return AResult(code=result.code(), message=result.message())
-        path = result.result()
-        bounds = await request_bounds(
-            path=os.path.join(MEDIA_PATH, path) if path else None
-        )
-        return AResult(code=AResultCode.OK, message="OK", result=bounds)
+            return Result(code=result.code(), message=result.message())
+        bounds = await request_bounds(path=result.result())
+        return Result(code=ResultCode.OK, message="OK", result=bounds)
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None

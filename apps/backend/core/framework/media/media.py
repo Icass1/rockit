@@ -11,6 +11,7 @@ from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
 from core.framework.models.media import MediaModel
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
+from core.responses.audioBoundsResponse import AudioBoundsResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistWithMediasResponse import (
@@ -22,7 +23,6 @@ from core.responses.basePlaylistWithoutMediasResponse import (
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.baseVideoResponse import BaseVideoResponse
-from core.responses.audioBoundsResponse import AudioBoundsResponse
 from core.responses.mediaResponse import MediaResponse
 from core.responses.searchResponse import (
     BaseSearchResultsItem,
@@ -172,21 +172,19 @@ class Media:
     @staticmethod
     async def get_audio_bounds_async(
         session: AsyncSession, public_id: str
-    ) -> AResult[AudioBoundsResponse]:
+    ) -> Result[AudioBoundsResponse]:
         """Dispatch optional boundary analysis without source-specific storage."""
         result = await MediaAccess.get_media_from_public_id_async(
             session=session, public_id=public_id, media_type_keys=[MediaTypeEnum.SONG]
         )
         if result.is_not_ok():
             logger.error(f"Could not resolve song. {result.info()}")
-            return AResult(code=result.code(), message=result.message())
+            return Result(code=result.code(), message=result.message())
         song = result.result()
         provider = providers.find_media_provider(provider_id=song.provider_id)
         if provider is None:
             logger.warning("Audio boundary provider unavailable")
-            return AResult(
-                code=AResultCode.OK, message="OK", result=AudioBoundsResponse()
-            )
+            return Result(code=ResultCode.OK, message="OK", result=AudioBoundsResponse())
         return await provider.get_audio_bounds_async(session=session, media_id=song.id)
 
     @staticmethod

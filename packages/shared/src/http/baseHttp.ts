@@ -1054,6 +1054,13 @@ export class BaseHttp {
         );
     }
 
+    static async getAudioBounds(publicId: string) {
+        return this.apiGetAsync(
+            `/media/song/${encodeURIComponent(publicId)}/audio-bounds`,
+            dto.AudioBoundsResponseSchema
+        );
+    }
+
     static async getRelatedSongs(
         publicId: string,
         limit?: number,

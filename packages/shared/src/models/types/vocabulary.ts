@@ -9,8 +9,8 @@ export interface Vocabulary {
     ADD_MEDIA_TO_PLAYLIST: string;
     ADD_SONG_TO_PLAYLIST: string;
     ADD_SONG_TO_QUEUE: string;
-    ADD_TO_LIBRARY: string;
-    ADD_TO_LIKED: string;
+    FRIENDS_SHOW_ALL_SHARES: string;
+    FRIENDS_SHOW_ALL_RECENT: string;
     ADD_TO_PLAYLIST_AND_DOWNLOAD: string;
     ADD_TO_QUEUE: string;
     ADDED_TO_LIBRARY: string;
@@ -667,8 +667,6 @@ export interface Vocabulary {
     FRIENDS_SHOW_LESS: string;
     FRIENDS_NAV_SHARED: string;
     FRIENDS_NAV_RECENT: string;
-    FRIENDS_SHOW_ALL_SHARES: string;
-    FRIENDS_SHOW_ALL_RECENT: string;
     FRIENDS_XP_TIME_RULE: string;
     FRIENDS_SESSION_PROGRESS: string;
     FRIENDS_SESSION_MINUTES: string;
@@ -837,7 +835,6 @@ export interface Vocabulary {
     FRIENDS_BADGE_FRIENDS_DESCRIPTION_ONE: string;
     FRIENDS_BADGE_VIDEOS_DESCRIPTION_ONE: string;
     FRIENDS_BADGE_MIXED_DESCRIPTION_ONE: string;
-    FRIENDS_SESSION_MILESTONES: string;
     NOTIFICATION_EVENT_APPLICATION_MESSAGE: string;
     NOTIFICATION_APPLICATION_MESSAGE: string;
     NOTIFICATION_UNKNOWN: string;
@@ -866,4 +863,7 @@ export interface Vocabulary {
     NOTIFICATION_EVENT_MEDIA_SHARED: string;
     NOTIFICATION_ZIP_READY: string;
     NOTIFICATION_EVENT_ZIP_READY: string;
+    ADD_TO_LIBRARY: string;
+    ADD_TO_LIKED: string;
+    FRIENDS_SESSION_MILESTONES: string;
 }

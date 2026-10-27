@@ -5,12 +5,14 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.enumAccess import EnumAccess
+from core.framework.audio.silence import request_bounds
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.types import AddFromUrlResult
 from core.responses.artistPageResponse import ArtistCatalogResponse
+from core.responses.audioBoundsResponse import AudioBoundsResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistWithMediasResponse import (
@@ -45,9 +47,6 @@ from spotifyScrapper.utils.conversions import (
     get_tracks_responses_async,
 )
 
-from core.framework.audio.silence import request_bounds
-from core.responses.audioBoundsResponse import AudioBoundsResponse
-
 logger: Logger = getLogger(__name__)
 
 SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
@@ -73,19 +72,15 @@ SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
 class SpotifyScrapperProvider(BaseMediaProvider):
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
-    ) -> AResult[AudioBoundsResponse]:
+    ) -> Result[AudioBoundsResponse]:
         """Resolve provider-owned downloaded audio for optional boundary analysis."""
-        result = await TrackAccess.get_track_by_id_async(
-            session=session, track_id=media_id
-        )
+        result = await TrackAccess.get_track_by_id_async(session=session, track_id=media_id)
         if result.is_not_ok():
             logger.error(f"Could not resolve audio source. {result.info()}")
-            return AResult(code=result.code(), message=result.message())
-        path = result.result().path
-        bounds = await request_bounds(
-            path=os.path.join(MEDIA_PATH, path) if path else None
-        )
-        return AResult(code=AResultCode.OK, message="OK", result=bounds)
+            return Result(code=result.code(), message=result.message())
+        storage_object = result.result().storage_object
+        bounds = await request_bounds(path=storage_object.key if storage_object else None)
+        return Result(code=ResultCode.OK, message="OK", result=bounds)
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None

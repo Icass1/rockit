@@ -3,6 +3,7 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.framework.audio.silence import request_bounds
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
@@ -11,6 +12,7 @@ from core.requests.uploadAlbumRequest import UploadAlbumRequest
 from core.requests.uploadSongRequest import UploadSongRequest
 from core.requests.uploadVideoRequest import UploadVideoRequest
 from core.responses.artistPageResponse import ArtistCatalogResponse
+from core.responses.audioBoundsResponse import AudioBoundsResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistWithMediasResponse import (
@@ -29,9 +31,6 @@ from rockit.access.artistCatalogAccess import ArtistCatalogAccess
 from rockit.access.db.ormModels.video import RockitVideoRow
 from rockit.access.rockitAccess import RockitAccess
 from rockit.framework.rockit import Rockit
-
-from core.framework.audio.silence import request_bounds
-from core.responses.audioBoundsResponse import AudioBoundsResponse
 
 logger: Logger = getLogger(__name__)
 
@@ -59,17 +58,16 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
 
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
-    ) -> AResult[AudioBoundsResponse]:
-        """Resolve this source's local song without exposing paths to clients."""
-        result = await RockitAccess.get_songs_async(
-            session=session, song_ids=[media_id]
-        )
+    ) -> Result[AudioBoundsResponse]:
+        """Resolve this source's S3 audio key without exposing it to clients."""
+        result = await RockitAccess.get_songs_async(session=session, song_ids=[media_id])
         if result.is_not_ok():
             logger.error(f"Could not resolve audio source. {result.info()}")
-            return AResult(code=result.code(), message=result.message())
+            return Result(code=result.code(), message=result.message())
         songs = result.result()
-        bounds = await request_bounds(path=songs[0].file_path if songs else None)
-        return AResult(code=AResultCode.OK, message="OK", result=bounds)
+        object_row = songs[0].storage_object if songs else None
+        bounds = await request_bounds(path=object_row.key if object_row else None)
+        return Result(code=ResultCode.OK, message="OK", result=bounds)
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None

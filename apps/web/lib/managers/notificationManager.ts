@@ -1,5 +1,5 @@
 import { createElement, ReactNode } from "react";
-import type { NotificationResponse } from "@rockit/shared";
+import { EWebSocketMessage, type NotificationResponse } from "@rockit/shared";
 import { toast } from "sonner";
 import { ENotificationType } from "@/models/enums/notificationType";
 import type {
@@ -7,6 +7,7 @@ import type {
     NotificationOptions,
 } from "@/models/interfaces/notification";
 import { Http } from "@/lib/http";
+import { rockIt } from "@/lib/rockit/rockIt";
 import {
     createArrayAtom,
     createAtom,

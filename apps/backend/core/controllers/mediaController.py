@@ -19,6 +19,7 @@ from core.requests.addFromUrlRequest import AddFromUrlRequest
 from core.requests.searchProviderRequest import SearchProviderRequest
 from core.responses.addFromUrlResponse import AddFromUrlResponse
 from core.responses.artistPageResponse import ArtistPageResponse
+from core.responses.audioBoundsResponse import AudioBoundsResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistWithMediasResponse import (
@@ -46,15 +47,12 @@ router = APIRouter(
 )
 
 
-from core.responses.audioBoundsResponse import AudioBoundsResponse
-
-
 @router.get("/song/{public_id}/audio-bounds")
 async def get_audio_bounds(
     request: Request,
     public_id: str,
     response: Response,
-    _=Depends(dependency=AuthMiddleware.auth_dependency),
+    _: None = Depends(dependency=AuthMiddleware.auth_dependency),
 ) -> AudioBoundsResponse:
     """Cached metadata only; never wait for a decoder or accept file paths."""
     response.headers["Cache-Control"] = "no-store"

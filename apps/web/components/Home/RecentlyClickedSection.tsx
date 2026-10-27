@@ -3,7 +3,14 @@
 import type { JSX } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { MediaResponse } from "@/dto";
+import type {
+    BaseAlbumWithSongsResponse,
+    BasePlaylistWithMediasResponse,
+    BasePlaylistWithoutMediasResponse,
+    BaseSongWithAlbumResponse,
+    BaseVideoResponse,
+    MediaResponse,
+} from "@/dto";
 import {
     getMediaSubtitle,
     isList,
@@ -12,13 +19,20 @@ import {
 } from "@rockit/shared";
 import { rockIt } from "@/lib/rockit/rockIt";
 
+type RecentlyClickedMedia =
+    | BaseAlbumWithSongsResponse
+    | BasePlaylistWithMediasResponse
+    | BasePlaylistWithoutMediasResponse
+    | BaseSongWithAlbumResponse
+    | BaseVideoResponse;
+
 export default function RecentlyClickedSection({
     items,
 }: {
     items: MediaResponse["media"][];
 }): JSX.Element | null {
     const mediaItems = items.filter(
-        (item): item is TMedia =>
+        (item): item is RecentlyClickedMedia =>
             item.type === "album" ||
             item.type === "playlist" ||
             item.type === "song" ||

@@ -3,7 +3,6 @@ import {
     VocabularyResponse,
     type Vocabulary as VocabularyType,
 } from "@rockit/shared";
-import friendsVocabulary from "@/lib/generated/friendsVocabulary.json";
 import { Http } from "@/lib/http";
 import { saveVocabularyOffline } from "@/lib/offline/db";
 import { createAtom, ReadonlyAtom } from "@/lib/store";
@@ -12,22 +11,12 @@ function createVocabularyProxy(
     data: Record<string, string>,
     lang = "en"
 ): VocabularyType {
-    const defaults: Record<string, Record<string, string>> = Object.fromEntries(
-        Object.keys(friendsVocabulary).map((code) => [
-            code,
-            {
-                ...friendsVocabulary[code as keyof typeof friendsVocabulary],
-            },
-        ])
-    );
-    const language = lang.toLowerCase().split(/[-_]/)[0];
-    const fallback = defaults[language] ?? defaults.en;
     return new Proxy(data, {
         get(target, prop) {
             if (typeof prop === "symbol") {
                 return (target as Record<string | symbol, unknown>)[prop];
             }
-            return target[prop] || fallback?.[prop] || prop;
+            return target[prop] || prop;
         },
     }) as unknown as VocabularyType;
 }

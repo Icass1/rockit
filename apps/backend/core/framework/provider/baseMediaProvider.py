@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.framework.provider.baseProvider import BaseProvider
 from core.framework.provider.types import AddFromUrlResult
 from core.responses.artistPageResponse import ArtistCatalogResponse
+from core.responses.audioBoundsResponse import AudioBoundsResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistWithMediasResponse import (
@@ -29,10 +30,7 @@ if TYPE_CHECKING:
 logger: Logger = getLogger(__name__)
 
 
-from core.responses.audioBoundsResponse import AudioBoundsResponse
-
-
-from backend.core.framework.models.localSong import LocalSong
+from core.framework.models.localSong import LocalSong
 
 
 class BaseMediaProvider(BaseProvider):
@@ -40,21 +38,21 @@ class BaseMediaProvider(BaseProvider):
 
     async def find_local_songs_async(
         self, session: AsyncSession, titles: list[str]
-    ) -> AResult[list[LocalSong]]:
+    ) -> Result[list[LocalSong]]:
         """Read downloaded song metadata without consulting any remote service."""
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     async def get_local_songs_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[List[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Local playback capability, including when remote integration is disabled."""
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
-    ) -> AResult[AudioBoundsResponse]:
+    ) -> Result[AudioBoundsResponse]:
         """Optional capability for seekable local songs; unsupported sources play normally."""
-        return AResult(code=AResultCode.OK, message="OK", result=AudioBoundsResponse())
+        return Result(code=ResultCode.OK, message="OK", result=AudioBoundsResponse())
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None

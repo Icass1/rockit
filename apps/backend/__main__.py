@@ -1,8 +1,6 @@
 import argparse
 import asyncio
-import json
 import os
-import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -126,23 +124,7 @@ async def import_vocabulary(persist: bool = True) -> None:
     types_content.append("")
     types_path.write_text("\n".join(types_content))
 
-    friends_defaults_path = Path("apps/web/lib/generated/friendsVocabulary.json")
     # Include common actions and level names used by the Friends surface.
-    friends_keys = {"NEWCOMER", "EXPLORER", "ENTHUSIAST", "CONNOISSEUR", "LEGEND"}
-    for component in Path("apps/web/components/Friends").glob("*.tsx"):
-        friends_keys.update(re.findall(r"\bv\.([A-Z][A-Z_0-9]+)", component.read_text()))
-    friends_defaults = {
-        lang: {
-            key: value
-            for key, value in translations.items()
-            if key.startswith(("FRIENDS_", "SOCIAL_")) or key in friends_keys
-        }
-        for lang, translations in vocabulary_data.items()
-    }
-    friends_defaults_path.write_text(
-        json.dumps(friends_defaults, ensure_ascii=False, indent=4) + "\n",
-        encoding="utf-8",
-    )
     workbook.close()
     logger.info(f"Found {len(all_keys)} vocabulary keys")
     if not persist:

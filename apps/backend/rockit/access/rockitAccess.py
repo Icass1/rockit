@@ -60,7 +60,7 @@ class RockitAccess:
         duration_ms: int,
         disc_number: int,
         track_number: int,
-        file_path: str,
+        storage_object_id: int,
     ) -> Result[RockitSongRow]:
         """Create a new song in core.media and rockit.song."""
 
@@ -78,7 +78,7 @@ class RockitAccess:
                 name=name,
                 image_id=image_id,
                 duration_ms=duration_ms,
-                file_path=file_path,
+                storage_object_id=storage_object_id,
                 disc_number=disc_number,
                 track_number=track_number,
             )
@@ -441,7 +441,7 @@ class RockitAccess:
         provider_id: int,
         image_id: int,
         duration_ms: int,
-        file_path: str,
+        storage_object_id: int,
     ) -> Result[RockitVideoRow]:
         """Create a new video in core.media and rockit.video."""
 
@@ -459,7 +459,7 @@ class RockitAccess:
                 name=name,
                 image_id=image_id,
                 duration_ms=duration_ms,
-                file_path=file_path,
+                storage_object_id=storage_object_id,
             )
             session.add(video)
             await session.flush()

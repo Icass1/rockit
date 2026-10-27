@@ -124,7 +124,7 @@ class YouTubeAccess:
         try:
             stmt: Select[tuple[str]] = select(VideoRow.youtube_id).where(
                 VideoRow.youtube_id.in_(youtube_ids),
-                VideoRow.video_path.isnot(None),
+                VideoRow.storage_object_id.isnot(None),
             )
             result: DBResult[tuple[str]] = await session.execute(stmt)
             return {row[0] for row in result.all()}
@@ -148,7 +148,7 @@ class YouTubeAccess:
                 .join(CoreMediaRow, VideoRow.id == CoreMediaRow.id)
                 .where(
                     VideoRow.youtube_id.in_(youtube_ids),
-                    VideoRow.video_path.isnot(None),
+                    VideoRow.storage_object_id.isnot(None),
                 )
             )
             result: DBResult[tuple[str, str]] = await session.execute(stmt)
@@ -339,7 +339,7 @@ class YouTubeAccess:
                 view_count=view_count,
                 like_count=like_count,
                 comment_count=comment_count,
-                video_path=None,
+                storage_object_id=None,
                 description=snippet.get("description"),
                 youtube_url=f"https://www.youtube.com/watch?v={raw.id}",
                 tags=tags_str,

@@ -266,7 +266,7 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
 
         video: RockitVideoRow = a_result_videos.result()[0]
 
-        if not video.file_path:
+        if not video.storage_object.key:
             logger.error(f"Video {public_id} has no file path.")
             return Result(
                 code=ResultCode.NOT_FOUND,
@@ -274,7 +274,7 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
             )
 
         return await Rockit.get_frame_async(
-            file_path=video.file_path,
+            file_path=video.storage_object.key,
             public_id=public_id,
             timestamp_ms=timestamp_ms,
         )

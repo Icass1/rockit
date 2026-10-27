@@ -15,6 +15,19 @@ logger: Logger = getLogger(__name__)
 class AdminVersionAccess:
     @staticmethod
     @safe_async
+    async def get_version_by_filename_async(
+        session: AsyncSession, filename: str
+    ) -> Result[AppVersionRow]:
+        result = await session.execute(
+            select(AppVersionRow).where(AppVersionRow.apk_filename == filename)
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            return Result(code=ResultCode.NOT_FOUND, message="Build not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
+
+    @staticmethod
+    @safe_async
     async def get_latest_version_async(
         session: AsyncSession,
     ) -> Result[AppVersionRow]:
@@ -41,11 +54,13 @@ class AdminVersionAccess:
         session: AsyncSession,
         version: str,
         apk_filename: str,
+        storage_object_id: int,
         description: str | None = None,
     ) -> Result[AppVersionRow]:
         row = AppVersionRow(
             version=version,
             apk_filename=apk_filename,
+            storage_object_id=storage_object_id,
             description=description,
             public_id=create_id(32),
         )

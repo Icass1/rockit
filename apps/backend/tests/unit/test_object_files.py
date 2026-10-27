@@ -39,7 +39,7 @@ async def test_publishing_registers_s3_key_without_moving_the_processing_input(
 
     result = await ObjectFiles.upload_async(session=session, source=str(source), key=row.key)
 
-    assert result.is_ok() and result.result() == "spotify/song.mp3"
+    assert result.is_ok() and result.result() is row
     assert object_store.objects[row.key] == b"media bytes"
     assert source.read_bytes() == b"media bytes"
     assert register.call_args.kwargs["size_bytes"] == len(b"media bytes")
@@ -116,7 +116,7 @@ async def test_single_build_upload_publishes_to_s3_and_removes_assembly_file(
 
     monkeypatch.setattr(build, "TEMP_PATH", str(tmp_path))
     monkeypatch.setattr(Storage, "ensure_bucket_async", AsyncMock())
-    stored = StorageObjectRow(bucket="rockit-test", key="builds/v1.apk")
+    stored = StorageObjectRow(bucket="rockit-test", key="builds/v1.apk", id=12)
     monkeypatch.setattr(
         StorageObjectAccess,
         "insert_object_async",
@@ -128,7 +128,9 @@ async def test_single_build_upload_publishes_to_s3_and_removes_assembly_file(
             )
         ),
     )
-    version = AppVersionRow(version="1", apk_filename="v1.apk", public_id="version")
+    version = AppVersionRow(
+        version="1", apk_filename="v1.apk", public_id="version", storage_object_id=12
+    )
     monkeypatch.setattr(
         AdminVersionAccess,
         "add_version_async",

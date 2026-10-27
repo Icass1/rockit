@@ -155,7 +155,7 @@ class SpotifyDownload(BaseDownload):
             a_result_update = await TrackAccess.update_track_path_async(
                 session=session,
                 track_id=track.id,
-                path=object_key,
+                storage_object_id=uploaded.result().id,
                 download_url=downloaded_url,
             )
 

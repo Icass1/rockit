@@ -8,6 +8,7 @@ from sqlalchemy.sql import Select
 
 from core.access.db.shared_metadata import shared_metadata
 from core.access.providerStorage import MediaStorage, provider_storage
+from core.access.storedFiles import file_key_column
 from core.utils.safeAsyncCall import safe_async
 from result import Result, ResultCode
 
@@ -42,7 +43,7 @@ def video_files() -> Select[Any]:
     table = shared_metadata.tables["youtube.video"]
     return select(
         table.c.id.label("id"),
-        table.c.video_path.label("path"),
+        file_key_column(table).label("path"),
         table.c.name.label("name"),
     )
 
@@ -51,9 +52,11 @@ def video_files() -> Select[Any]:
 async def clear_video_files(session: AsyncSession, media_ids: list[int]) -> Result[list[str]]:
     """Detach this provider's downloaded files in one batch."""
     table = shared_metadata.tables["youtube.video"]
-    old = await session.execute(select(table.c.video_path).where(table.c.id.in_(media_ids)))
+    old = await session.execute(select(file_key_column(table)).where(table.c.id.in_(media_ids)))
     paths = [path for path in old.scalars() if path]
-    await session.execute(update(table).where(table.c.id.in_(media_ids)).values(video_path=None))
+    await session.execute(
+        update(table).where(table.c.id.in_(media_ids)).values(storage_object_id=None)
+    )
     return Result(code=ResultCode.OK, message="OK", result=paths)
 
 

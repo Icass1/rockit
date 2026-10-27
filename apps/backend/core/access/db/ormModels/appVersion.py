@@ -1,5 +1,5 @@
-from sqlalchemy import Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.access.db.base import CoreBase
 from core.access.db.ormModels.declarativeMixin import (
@@ -8,6 +8,7 @@ from core.access.db.ormModels.declarativeMixin import (
     TableDateUpdated,
     TablePublicId,
 )
+from core.access.db.ormModels.storageObject import StorageObjectRow
 
 
 class AppVersionRow(
@@ -17,7 +18,11 @@ class AppVersionRow(
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
     version: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    # Published as the S3 key builds/<apk_filename>; no local build directory.
+    storage_object_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.storage_object.id"), nullable=False
+    )
+    storage_object: Mapped[StorageObjectRow] = relationship(StorageObjectRow, lazy="selectin")
+    # Display/download filename; storage is resolved exclusively through the FK.
     apk_filename: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     downloads: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -25,6 +30,7 @@ class AppVersionRow(
     def __init__(
         self,
         version: str,
+        storage_object_id: int,
         apk_filename: str,
         public_id: str | None = None,
         description: str | None = None,
@@ -33,6 +39,7 @@ class AppVersionRow(
     ) -> None:
         kwargs: dict[str, None | int | str] = {}
         kwargs["version"] = version
+        kwargs["storage_object_id"] = storage_object_id
         kwargs["apk_filename"] = apk_filename
         if public_id is not None:
             kwargs["public_id"] = public_id

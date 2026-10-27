@@ -1349,11 +1349,11 @@ class SpotifyScrapper:
 
         track_row: TrackRow = a_result_track.result()
 
-        if not track_row.path:
+        if not track_row.storage_object:
             logger.error(f"Track {spotify_id} has no audio file downloaded.")
             return Result(code=ResultCode.NOT_FOUND, message="Audio file not downloaded")
 
-        full_path: str = track_row.path
+        full_path: str = track_row.storage_object.key
         return await ObjectFiles.stream_async(
             key=full_path, range_header=request.headers.get("Range")
         )

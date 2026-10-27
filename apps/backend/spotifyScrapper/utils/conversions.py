@@ -175,7 +175,7 @@ async def get_track_response_async(
         if a_result_artist.is_ok():
             artist_responses.append(a_result_artist.result())
 
-    is_downloaded: bool = track_row.path is not None
+    is_downloaded: bool = track_row.storage_object_id is not None
     audio_src: str | None = None
     if is_downloaded:
         audio_src = f"{BACKEND_URL}/spotify_scrapper/audio/{track_row.spotify_id}"
@@ -312,7 +312,7 @@ async def get_album_with_songs_response_async(
                 if a_result_artist.is_ok():
                     track_artist_responses.append(a_result_artist.result())
 
-        is_downloaded: bool = track_row.path is not None
+        is_downloaded: bool = track_row.storage_object_id is not None
         audio_src: str | None = None
         if is_downloaded:
             audio_src = f"{BACKEND_URL}/spotify_scrapper/audio/{track_row.spotify_id}"
@@ -612,7 +612,7 @@ async def get_tracks_responses_async(
                     )
                 )
 
-            is_downloaded = track_row.path is not None
+            is_downloaded = track_row.storage_object_id is not None
             audio_src = (
                 f"{BACKEND_URL}/spotify_scrapper/audio/{track_row.spotify_id}"
                 if is_downloaded
@@ -872,7 +872,7 @@ async def get_albums_with_songs_responses_async(
                         )
                     )
 
-                is_downloaded = track.path is not None
+                is_downloaded = track.storage_object_id is not None
                 audio_src = (
                     f"{BACKEND_URL}/spotify_scrapper/audio/{track.spotify_id}"
                     if is_downloaded
@@ -903,7 +903,7 @@ async def get_albums_with_songs_responses_async(
                 for img in ext_image_map.get(album_row.id, [])
             ]
 
-            undownloaded_count = sum(1 for track in album_tracks if track.path is None)
+            undownloaded_count = sum(1 for track in album_tracks if track.storage_object_id is None)
 
             responses.append(
                 SpotifyScrapperAlbumResponse(

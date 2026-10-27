@@ -7,6 +7,7 @@ from core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
 )
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from rockit.access.db.associationTables.video_artists import video_artists
 from rockit.access.db.base import RockitBase
 
@@ -29,8 +30,10 @@ class RockitVideoRow(RockitBase, TableDateUpdated, TableDateAdded):
     id: Mapped[int] = mapped_column(Integer, ForeignKey("core.media.id"), primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
-    # Historical column name; value is an S3 object key, never a disk path.
-    file_path: Mapped[str] = mapped_column(String, nullable=False)
+    storage_object_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.storage_object.id"), nullable=False
+    )
+    storage_object: Mapped["StorageObjectRow"] = relationship(StorageObjectRow, lazy="selectin")
     image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
 
     artists: Mapped[list["RockitArtistRow"]] = relationship(
@@ -39,12 +42,14 @@ class RockitVideoRow(RockitBase, TableDateUpdated, TableDateAdded):
         back_populates="videos",
     )
 
-    def __init__(self, id: int, name: str, duration_ms: int, file_path: str, image_id: int) -> None:
+    def __init__(
+        self, id: int, name: str, duration_ms: int, storage_object_id: int, image_id: int
+    ) -> None:
         kwargs: dict[str, int | str] = {}
         kwargs["id"] = id
         kwargs["name"] = name
         kwargs["duration_ms"] = duration_ms
-        kwargs["file_path"] = file_path
+        kwargs["storage_object_id"] = storage_object_id
         kwargs["image_id"] = image_id
         for k, v in kwargs.items():
             setattr(self, k, v)

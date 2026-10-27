@@ -10,6 +10,7 @@ from core.access.db.ormModels.declarativeMixin import (
 )
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from youtubeMusic.access.db.associationTables.track_album_artists import (
     track_artists,
 )
@@ -47,8 +48,12 @@ class TrackRow(YoutubeMusicBase, TableAutoincrementId, TableDateUpdated, TableDa
     track_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
-    # Historical column name; value is an S3 object key, never a disk path.
-    path: Mapped[str | None] = mapped_column(String, nullable=True)
+    storage_object_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("core.storage_object.id"), nullable=True
+    )
+    storage_object: Mapped["StorageObjectRow | None"] = relationship(
+        StorageObjectRow, lazy="selectin"
+    )
     album_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("youtube_music.album.id"), nullable=False
     )
@@ -82,7 +87,7 @@ class TrackRow(YoutubeMusicBase, TableAutoincrementId, TableDateUpdated, TableDa
         album_id: int,
         track_number: int = 1,
         disc_number: int = 1,
-        path: str | None = None,
+        storage_object_id: int | None = None,
         isrc: str | None = None,
         download_url: str | None = None,
     ) -> None:
@@ -95,7 +100,7 @@ class TrackRow(YoutubeMusicBase, TableAutoincrementId, TableDateUpdated, TableDa
         kwargs["album_id"] = album_id
         kwargs["track_number"] = track_number
         kwargs["disc_number"] = disc_number
-        kwargs["path"] = path
+        kwargs["storage_object_id"] = storage_object_id
         kwargs["isrc"] = isrc
         kwargs["download_url"] = download_url
         for k, v in kwargs.items():

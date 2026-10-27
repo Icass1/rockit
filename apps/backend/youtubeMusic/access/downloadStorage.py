@@ -9,6 +9,7 @@ from sqlalchemy.sql import Select
 
 from core.access.db.shared_metadata import shared_metadata
 from core.access.providerStorage import MediaStorage, provider_storage
+from core.access.storedFiles import file_key_column
 from core.utils.safeAsyncCall import safe_async
 from result import Result, ResultCode
 
@@ -54,16 +55,20 @@ def track_metadata(with_images: bool) -> Select[Any]:
 
 def track_files() -> Select[Any]:
     table = shared_metadata.tables["youtube_music.track"]
-    return select(table.c.id.label("id"), table.c.path.label("path"), table.c.title.label("name"))
+    return select(
+        table.c.id.label("id"), file_key_column(table).label("path"), table.c.title.label("name")
+    )
 
 
 @safe_async
 async def clear_track_files(session: AsyncSession, media_ids: list[int]) -> Result[list[str]]:
     """Detach this provider's downloaded files in one batch."""
     table = shared_metadata.tables["youtube_music.track"]
-    old = await session.execute(select(table.c.path).where(table.c.id.in_(media_ids)))
+    old = await session.execute(select(file_key_column(table)).where(table.c.id.in_(media_ids)))
     paths = [path for path in old.scalars() if path]
-    await session.execute(update(table).where(table.c.id.in_(media_ids)).values(path=None))
+    await session.execute(
+        update(table).where(table.c.id.in_(media_ids)).values(storage_object_id=None)
+    )
     return Result(code=ResultCode.OK, message="OK", result=paths)
 
 

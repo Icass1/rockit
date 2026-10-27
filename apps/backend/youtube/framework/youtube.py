@@ -163,12 +163,12 @@ class YouTube:
                     )
                 ]
 
-            is_downloaded: bool = video_row.video_path is not None
+            is_downloaded: bool = video_row.storage_object is not None
 
             video_src: str | None = None
             audio_src: str | None = None
 
-            if video_row.video_path:
+            if video_row.storage_object:
                 video_src = f"/youtube/video/{video_row.youtube_id}/stream"
                 audio_src = f"/youtube/video/{video_row.youtube_id}/stream/audio"
 
@@ -197,7 +197,7 @@ class YouTube:
                     youtubeUrl=video_row.youtube_url,
                     tags=tags,
                     publishedAt=video_row.published_at,
-                    video_path=video_row.video_path,
+                    video_path=video_row.storage_object.key if video_row.storage_object else None,
                     downloaded=is_downloaded,
                     videoUrl=BACKEND_URL + video_src if video_src else None,
                     audioUrl=BACKEND_URL + audio_src if audio_src else None,
@@ -396,11 +396,11 @@ class YouTube:
                 )
             ]
 
-        is_downloaded: bool = video_row.video_path is not None
+        is_downloaded: bool = video_row.storage_object is not None
 
         video_src: str | None = None
         audio_src: str | None = None
-        if video_row.video_path:
+        if video_row.storage_object:
             video_src = f"/youtube/video/{video_row.youtube_id}/stream"
             audio_src = f"/youtube/video/{video_row.youtube_id}/stream/audio"
 
@@ -429,7 +429,7 @@ class YouTube:
                 youtubeUrl=video_row.youtube_url,
                 tags=tags,
                 publishedAt=video_row.published_at,
-                video_path=video_row.video_path,
+                video_path=video_row.storage_object.key if video_row.storage_object else None,
                 downloaded=is_downloaded,
                 videoUrl=BACKEND_URL + video_src if video_src else None,
                 audioUrl=BACKEND_URL + audio_src if audio_src else None,

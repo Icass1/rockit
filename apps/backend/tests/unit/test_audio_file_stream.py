@@ -77,7 +77,7 @@ async def test_provider_audio_http_ranges(
         return_value=Result(
             code=ResultCode.OK,
             message="OK",
-            result=SimpleNamespace(path=audio.name),
+            result=SimpleNamespace(storage_object=SimpleNamespace(key=audio.name)),
         )
     )
     monkeypatch.setattr(getattr(module, access), lookup, track_lookup)
@@ -108,7 +108,7 @@ async def test_provider_audio_http_ranges(
         assert missing.status_code == 404
         # Metadata without a downloaded path also remains not-found.
         track_lookup.return_value = Result(
-            code=ResultCode.OK, message="OK", result=SimpleNamespace(path=None)
+            code=ResultCode.OK, message="OK", result=SimpleNamespace(storage_object=None)
         )
         unavailable = await client.get(f"/{prefix}/audio/track")
         assert unavailable.status_code == 404

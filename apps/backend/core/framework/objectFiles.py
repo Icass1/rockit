@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.background import BackgroundTask
 
 from config import settings
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.access.storageObjectAccess import StorageObjectAccess
 from core.framework.storage import Storage, get_s3_client
 from logger import logger
@@ -53,7 +54,9 @@ class ObjectFiles:
             return False
 
     @staticmethod
-    async def upload_async(session: AsyncSession, source: str, key: str) -> Result[str]:
+    async def upload_async(
+        session: AsyncSession, source: str, key: str
+    ) -> Result[StorageObjectRow]:
         """Upload a processing file with bounded buffers and register its S3 key."""
         try:
             key = ObjectFiles.key(key)
@@ -78,7 +81,7 @@ class ObjectFiles:
             if stored.is_not_ok():
                 logger.error("Cannot register S3 file: %s", stored.info())
                 return Result(code=stored.code(), message=stored.message())
-            return Result(code=ResultCode.OK, message="OK", result=key)
+            return Result(code=ResultCode.OK, message="OK", result=stored.result())
         except Exception:
             logger.exception("Cannot upload persistent file to S3")
             return Result(code=ResultCode.GENERAL_ERROR, message="File upload failed")
@@ -226,3 +229,64 @@ class ObjectFiles:
         except Exception:
             logger.exception("Cannot stream S3 file: %s", key)
             return Result(code=ResultCode.GENERAL_ERROR, message="File unavailable")
+
+    @staticmethod
+    async def start_multipart_async(key: str) -> str:
+        await Storage.ensure_bucket_async()
+        response = await asyncio.to_thread(
+            get_s3_client().create_multipart_upload,
+            Bucket=settings.S3_BUCKET,
+            Key=ObjectFiles.key(key),
+            ContentType="application/vnd.android.package-archive",
+        )
+        return response["UploadId"]
+
+    @staticmethod
+    async def upload_part_async(key: str, upload_id: str, number: int, data: bytes) -> None:
+        await asyncio.to_thread(
+            get_s3_client().upload_part,
+            Bucket=settings.S3_BUCKET,
+            Key=ObjectFiles.key(key),
+            UploadId=upload_id,
+            PartNumber=number,
+            Body=data,
+        )
+
+    @staticmethod
+    async def multipart_parts_async(key: str, upload_id: str) -> list[dict[str, Any]]:
+        def collect() -> list[dict[str, Any]]:
+            parts: list[dict[str, Any]] = []
+            paginator = get_s3_client().get_paginator("list_parts")
+            for page in paginator.paginate(
+                Bucket=settings.S3_BUCKET, Key=ObjectFiles.key(key), UploadId=upload_id
+            ):
+                parts.extend(
+                    {"PartNumber": part["PartNumber"], "ETag": part["ETag"]}
+                    for part in page.get("Parts", [])
+                    if "PartNumber" in part and "ETag" in part
+                )
+            return parts
+
+        return await asyncio.to_thread(collect)
+
+    @staticmethod
+    async def complete_multipart_async(
+        key: str, upload_id: str, parts: list[dict[str, Any]]
+    ) -> None:
+        client: Any = get_s3_client()
+        await asyncio.to_thread(
+            client.complete_multipart_upload,
+            Bucket=settings.S3_BUCKET,
+            Key=ObjectFiles.key(key),
+            UploadId=upload_id,
+            MultipartUpload={"Parts": parts},
+        )
+
+    @staticmethod
+    async def abort_multipart_async(key: str, upload_id: str) -> None:
+        await asyncio.to_thread(
+            get_s3_client().abort_multipart_upload,
+            Bucket=settings.S3_BUCKET,
+            Key=ObjectFiles.key(key),
+            UploadId=upload_id,
+        )

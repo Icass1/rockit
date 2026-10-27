@@ -372,8 +372,8 @@ class YoutubeProvider(BaseMediaProvider):
 
         video: VideoRow = a_result_video.result()
 
-        if video.video_path:
-            full_video_path: str = video.video_path
+        if video.storage_object:
+            full_video_path: str = video.storage_object.key
             await ObjectFiles.archive_async(full_video_path)
 
         a_result_clear: ResultCode = await Video.clear_video_paths_async(
@@ -402,7 +402,7 @@ class YoutubeProvider(BaseMediaProvider):
 
         video: VideoRow = a_result_video.result()
 
-        if not video.video_path:
+        if not video.storage_object:
             logger.error(f"Video {public_id} has no downloaded file.")
             return Result(
                 code=ResultCode.NOT_FOUND,
@@ -410,7 +410,7 @@ class YoutubeProvider(BaseMediaProvider):
             )
 
         return await YouTube.get_frame_async(
-            video_path=video.video_path,
+            video_path=video.storage_object.key,
             public_id=public_id,
             timestamp_ms=timestamp_ms,
         )

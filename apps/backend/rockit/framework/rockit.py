@@ -112,7 +112,7 @@ class Rockit:
                 provider_id=Rockit.provider_id,
                 image_id=a_result_image.result().id,
                 duration_ms=duration_ms,
-                file_path=object_key,
+                storage_object_id=uploaded.result().id,
                 disc_number=disc_number,
                 track_number=track_number,
             )
@@ -216,7 +216,7 @@ class Rockit:
                     provider_id=Rockit.provider_id,
                     image_id=image_id,
                     duration_ms=song_duration_ms,
-                    file_path=song_key,
+                    storage_object_id=uploaded.result().id,
                     disc_number=1,
                     track_number=track_number,
                 )
@@ -301,7 +301,7 @@ class Rockit:
                 provider_id=Rockit.provider_id,
                 image_id=a_result_image.result().id,
                 duration_ms=duration_ms,
-                file_path=object_key,
+                storage_object_id=uploaded.result().id,
             )
             if a_result_video.is_not_ok():
                 logger.error(f"Error creating video. {a_result_video.info()}")
@@ -823,7 +823,9 @@ class Rockit:
                 providerUrl="",
                 name=song.name,
                 artists=song_artists or album_response.artists,
-                audioUrl=(f"{BACKEND_URL}/rockit/audio/{public_id}" if song.file_path else None),
+                audioUrl=(
+                    f"{BACKEND_URL}/rockit/audio/{public_id}" if song.storage_object.key else None
+                ),
                 downloaded=True,
                 imageUrl=image_url,
                 duration_ms=song.duration_ms,
@@ -928,7 +930,7 @@ class Rockit:
                     ]
 
                     audio_src: str | None = None
-                    if song.file_path:
+                    if song.storage_object.key:
                         audio_src = f"{BACKEND_URL}/rockit/audio/{song_pid}"
 
                     song_responses.append(
@@ -1003,11 +1005,13 @@ class Rockit:
                 providerUrl="",
                 name=video.name,
                 videoUrl=(
-                    f"{BACKEND_URL}/rockit/video/{public_id}/stream" if video.file_path else None
+                    f"{BACKEND_URL}/rockit/video/{public_id}/stream"
+                    if video.storage_object.key
+                    else None
                 ),
                 audioUrl=(
                     f"{BACKEND_URL}/rockit/video/{public_id}/stream/audio"
-                    if video.file_path
+                    if video.storage_object.key
                     else None
                 ),
                 imageUrl=image_url,

@@ -7,6 +7,7 @@ from core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
 )
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from rockit.access.db.associationTables.song_artists import song_artists
 from rockit.access.db.base import RockitBase
 
@@ -37,8 +38,10 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
     id: Mapped[int] = mapped_column(Integer, ForeignKey("core.media.id"), primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
-    # Historical column name; value is an S3 object key, never a disk path.
-    file_path: Mapped[str] = mapped_column(String, nullable=False)
+    storage_object_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.storage_object.id"), nullable=False
+    )
+    storage_object: Mapped["StorageObjectRow"] = relationship(StorageObjectRow, lazy="selectin")
     image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
     album_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("rockit.album.id"), nullable=True
@@ -59,7 +62,7 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
         id: int,
         name: str,
         duration_ms: int,
-        file_path: str,
+        storage_object_id: int,
         image_id: int,
         disc_number: int,
         track_number: int,
@@ -69,7 +72,7 @@ class RockitSongRow(RockitBase, TableDateUpdated, TableDateAdded):
         kwargs["id"] = id
         kwargs["name"] = name
         kwargs["duration_ms"] = duration_ms
-        kwargs["file_path"] = file_path
+        kwargs["storage_object_id"] = storage_object_id
         kwargs["image_id"] = image_id
         kwargs["disc_number"] = disc_number
         kwargs["track_number"] = track_number

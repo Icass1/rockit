@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.access.storageObjectAccess import StorageObjectAccess
+from core.utils.afterCommit import after_commit
 from core.utils.createId import create_id
 from logger import logger
 from result import Result as Result
@@ -255,19 +256,20 @@ class Storage:
         """Delete an object from object storage and remove its DB row."""
 
         try:
-            await asyncio.to_thread(
-                _delete_object,
-                bucket=storage_object.bucket,
-                key=storage_object.key,
-            )
-
+            bucket, key = storage_object.bucket, storage_object.key
             a_result: ResultCode = await StorageObjectAccess.delete_object_async(
                 session=session,
                 storage_object_id=storage_object.id,
             )
             if a_result.is_not_ok():
                 logger.error(f"Error deleting storage object row. {a_result.info()}")
+                return a_result
 
+            async def remove_bytes() -> None:
+                await asyncio.to_thread(_delete_object, bucket=bucket, key=key)
+
+            # Foreign keys protect referenced files, and rollback must preserve S3 bytes.
+            after_commit(session, remove_bytes)
             return a_result
 
         except Exception as e:

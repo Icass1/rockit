@@ -155,7 +155,7 @@ class YoutubeMusicDownload(BaseDownload):
             os.remove(downloaded_filename)
 
             await YoutubeMusicAccess.update_track_path_async(
-                session=session, track_id=self.track_id, path=object_key
+                session=session, track_id=self.track_id, storage_object_id=uploaded.result().id
             )
 
             return ResultCode(code=ResultCode.OK, message="Download completed.")

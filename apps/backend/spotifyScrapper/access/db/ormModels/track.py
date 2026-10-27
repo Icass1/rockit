@@ -9,6 +9,7 @@ from core.access.db.ormModels.declarativeMixin import (
     TableDateUpdated,
 )
 from core.access.db.ormModels.media import CoreMediaRow
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from spotifyScrapper.access.db.associationTables.song_artists import (
     song_artists,
 )
@@ -49,8 +50,12 @@ class TrackRow(SpotifyScrapperBase, TableAutoincrementId, TableDateUpdated, Tabl
     track_number: Mapped[int] = mapped_column(Integer, nullable=False)
     disc_number: Mapped[int] = mapped_column(Integer, nullable=False)
     popularity: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    # Historical column name; value is an S3 object key, never a disk path.
-    path: Mapped[str | None] = mapped_column(String, nullable=True)
+    storage_object_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("core.storage_object.id"), nullable=True
+    )
+    storage_object: Mapped["StorageObjectRow | None"] = relationship(
+        StorageObjectRow, lazy="selectin"
+    )
     album_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("spotify_scrapper.album.id"), nullable=False
     )
@@ -80,7 +85,7 @@ class TrackRow(SpotifyScrapperBase, TableAutoincrementId, TableDateUpdated, Tabl
         album_id: int,
         real_duration_ms: int | None = None,
         popularity: int | None = None,
-        path: str | None = None,
+        storage_object_id: int | None = None,
         download_url: str | None = None,
         preview_url: str | None = None,
     ) -> None:
@@ -94,7 +99,7 @@ class TrackRow(SpotifyScrapperBase, TableAutoincrementId, TableDateUpdated, Tabl
         kwargs["album_id"] = album_id
         kwargs["real_duration_ms"] = real_duration_ms
         kwargs["popularity"] = popularity
-        kwargs["path"] = path
+        kwargs["storage_object_id"] = storage_object_id
         kwargs["download_url"] = download_url
         kwargs["preview_url"] = preview_url
         for k, v in kwargs.items():

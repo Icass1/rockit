@@ -8,6 +8,7 @@ from core.access.db.ormModels.declarativeMixin import (
     TableDateAdded,
     TableDateUpdated,
 )
+from core.access.db.ormModels.storageObject import StorageObjectRow
 from youtube.access.db.associationTables.video_channels import video_channels
 from youtube.access.db.base import YoutubeBase
 
@@ -37,8 +38,12 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
     like_count: Mapped[int] = mapped_column(BIGINT, nullable=False, default=0)
     comment_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     image_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.image.id"), nullable=False)
-    # Historical column name; value is an S3 object key, never a disk path.
-    video_path: Mapped[str | None] = mapped_column(String, nullable=True)
+    storage_object_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("core.storage_object.id"), nullable=True
+    )
+    storage_object: Mapped["StorageObjectRow | None"] = relationship(
+        StorageObjectRow, lazy="selectin"
+    )
     channel_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("youtube.channel.id"), nullable=False
     )
@@ -71,7 +76,7 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         view_count: int = 0,
         like_count: int = 0,
         comment_count: int = 0,
-        video_path: str | None = None,
+        storage_object_id: int | None = None,
         description: str | None = None,
         tags: str | None = None,
         published_at: str | None = None,
@@ -88,7 +93,7 @@ class VideoRow(YoutubeBase, TableAutoincrementId, TableDateUpdated, TableDateAdd
         kwargs["view_count"] = view_count
         kwargs["like_count"] = like_count
         kwargs["comment_count"] = comment_count
-        kwargs["video_path"] = video_path
+        kwargs["storage_object_id"] = storage_object_id
         kwargs["description"] = description
         kwargs["tags"] = tags
         kwargs["published_at"] = published_at

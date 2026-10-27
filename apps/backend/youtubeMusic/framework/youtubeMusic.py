@@ -519,7 +519,7 @@ class YoutubeMusic:
             image_url = a_result_image_url.result()
             dominant_color = db_track.image.dominant_color
 
-            is_downloaded = db_track.path is not None
+            is_downloaded = db_track.storage_object is not None
             audio_src = f"{BACKEND_URL}/youtube-music/audio/{public_id}" if is_downloaded else None
 
             album_data = BaseAlbumWithoutSongsResponse(
@@ -1339,12 +1339,12 @@ class YoutubeMusic:
 
         track = a_result_track.result()
 
-        if track.path:
-            full_path: str = track.path
+        if track.storage_object:
+            full_path: str = track.storage_object.key
             await ObjectFiles.archive_async(full_path)
 
         a_result_clear: ResultCode = await YoutubeMusicAccess.update_track_path_async(
-            session=session, track_id=track.id, path=None
+            session=session, track_id=track.id, storage_object_id=None
         )
         if a_result_clear.is_not_ok():
             logger.error(f"Error clearing track path. {a_result_clear.info()}")
@@ -1398,7 +1398,7 @@ class YoutubeMusic:
         image_url = a_result_image_url.result()
         dominant_color = db_track.image.dominant_color
 
-        is_downloaded = db_track.path is not None
+        is_downloaded = db_track.storage_object is not None
         audio_src = f"{BACKEND_URL}/youtube-music/audio/{public_id}" if is_downloaded else None
 
         album_data = BaseAlbumWithoutSongsResponse(
@@ -1517,7 +1517,7 @@ class YoutubeMusic:
                 image_url = a_result_track_image_url.result()
                 track_dominant_color = track.image.dominant_color
 
-                is_downloaded = track.path is not None
+                is_downloaded = track.storage_object is not None
                 audio_src = (
                     f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
                     if is_downloaded
@@ -1637,7 +1637,7 @@ class YoutubeMusic:
 
                 album_public_id = track.album.core_album.public_id
 
-                is_downloaded = track.path is not None
+                is_downloaded = track.storage_object is not None
                 audio_src = (
                     f"{BACKEND_URL}/youtube-music/audio/{core_track.public_id}"
                     if is_downloaded
@@ -1769,7 +1769,7 @@ class YoutubeMusic:
             image_url = a_result_track_image_url.result()
             dominant_color = db_track.image.dominant_color
 
-            is_downloaded = db_track.path is not None
+            is_downloaded = db_track.storage_object is not None
             audio_src = (
                 f"{BACKEND_URL}/youtube-music/audio/{db_track.core_song.public_id}"
                 if is_downloaded
@@ -1886,7 +1886,7 @@ class YoutubeMusic:
                     )
 
             album_tracks = tracks_by_album.get(db_album.id, [])
-            undownloaded_count = sum(1 for t in album_tracks if t.path is None)
+            undownloaded_count = sum(1 for t in album_tracks if t.storage_object is None)
             songs_list: list[YoutubeMusicTrackResponse] = []
             for track in album_tracks:
                 track_artists = track_artists_map.get(track.id, [])
@@ -1918,7 +1918,7 @@ class YoutubeMusic:
                             )
                         )
 
-                is_downloaded = track.path is not None
+                is_downloaded = track.storage_object is not None
                 audio_src = (
                     f"{BACKEND_URL}/youtube-music/audio/{track.core_song.public_id}"
                     if is_downloaded
@@ -2012,11 +2012,11 @@ class YoutubeMusic:
 
         track_row = a_result_track.result()
 
-        if not track_row.path:
+        if not track_row.storage_object:
             logger.error(f"Track {public_id} has no audio file downloaded.")
             return Result(code=ResultCode.NOT_FOUND, message="Audio file not downloaded")
 
-        full_path: str = track_row.path
+        full_path: str = track_row.storage_object.key
         return await ObjectFiles.stream_async(
             key=full_path, range_header=request.headers.get("Range")
         )

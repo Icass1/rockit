@@ -11,6 +11,8 @@ from botocore.exceptions import ClientError
 class FakeObjectStore:
     def __init__(self) -> None:
         self.objects: dict[str, bytes] = {}
+        self.uploads: dict[str, dict[int, bytes]] = {}
+        self.upload_keys: dict[str, str] = {}
         self.reads: list[str] = []
 
     def head_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
@@ -51,3 +53,50 @@ class FakeObjectStore:
     def copy_object(self, *, Bucket: str, Key: str, CopySource: dict[str, str]) -> dict[str, str]:
         self.objects[Key] = self.objects[CopySource["Key"]]
         return {}
+
+    def create_multipart_upload(self, *, Bucket: str, Key: str, ContentType: str) -> dict[str, str]:
+        upload_id = f"upload-{len(self.uploads)}"
+        self.uploads[upload_id] = {}
+        self.upload_keys[upload_id] = Key
+        return {"UploadId": upload_id}
+
+    def upload_part(
+        self, *, Bucket: str, Key: str, UploadId: str, PartNumber: int, Body: bytes
+    ) -> dict[str, str]:
+        assert self.upload_keys[UploadId] == Key
+        self.uploads[UploadId][PartNumber] = Body
+        return {"ETag": str(PartNumber)}
+
+    def get_paginator(self, name: str) -> "FakePartsPaginator":
+        assert name == "list_parts"
+        return FakePartsPaginator(self)
+
+    def complete_multipart_upload(
+        self, *, Bucket: str, Key: str, UploadId: str, MultipartUpload: dict[str, Any]
+    ) -> dict[str, str]:
+        self.objects[Key] = b"".join(
+            self.uploads[UploadId][part["PartNumber"]] for part in MultipartUpload["Parts"]
+        )
+        del self.uploads[UploadId]
+        del self.upload_keys[UploadId]
+        return {}
+
+    def abort_multipart_upload(self, *, Bucket: str, Key: str, UploadId: str) -> dict[str, str]:
+        del self.uploads[UploadId]
+        del self.upload_keys[UploadId]
+        return {}
+
+
+class FakePartsPaginator:
+    def __init__(self, store: FakeObjectStore) -> None:
+        self.store = store
+
+    def paginate(self, *, Bucket: str, Key: str, UploadId: str) -> list[dict[str, Any]]:
+        return [
+            {
+                "Parts": [
+                    {"PartNumber": number, "ETag": str(number)}
+                    for number in sorted(self.store.uploads[UploadId])
+                ]
+            }
+        ]

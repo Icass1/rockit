@@ -36,7 +36,8 @@ class BuildUploadSessionAccess:
         session: AsyncSession,
         public_id: str,
         user_id: int,
-        file_path: str,
+        storage_object_id: int,
+        multipart_upload_id: str,
         version: str,
         description: str | None,
         version_filename: str,
@@ -45,7 +46,8 @@ class BuildUploadSessionAccess:
         row = BuildUploadSessionRow(
             public_id=public_id,
             user_id=user_id,
-            file_path=file_path,
+            storage_object_id=storage_object_id,
+            multipart_upload_id=multipart_upload_id,
             version=version,
             description=description,
             version_filename=version_filename,
@@ -58,8 +60,8 @@ class BuildUploadSessionAccess:
 
     @staticmethod
     @safe_async
-    async def increment_chunks_received_async(
-        session: AsyncSession, public_id: str
+    async def set_chunks_received_async(
+        session: AsyncSession, public_id: str, count: int
     ) -> Result[BuildUploadSessionRow]:
         stmt: Select[tuple[BuildUploadSessionRow]] = select(BuildUploadSessionRow).where(
             BuildUploadSessionRow.public_id == public_id
@@ -71,7 +73,7 @@ class BuildUploadSessionAccess:
                 code=ResultCode.NOT_FOUND,
                 message="Upload session not found.",
             )
-        row.chunks_received += 1
+        row.chunks_received = count
         await session.commit()
         await session.refresh(instance=row)
         return Result(code=ResultCode.OK, message="OK", result=row)

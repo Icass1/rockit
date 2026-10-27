@@ -8,6 +8,7 @@ from sqlalchemy.sql import Select
 
 from core.access.db.shared_metadata import shared_metadata
 from core.access.providerStorage import MediaStorage, provider_storage
+from core.access.storedFiles import file_key_column
 
 
 def album_metadata(with_images: bool) -> Select[Any]:
@@ -40,7 +41,7 @@ def song_files() -> Select[Any]:
     table = shared_metadata.tables["rockit.song"]
     return select(
         table.c.id.label("id"),
-        table.c.file_path.label("path"),
+        file_key_column(table).label("path"),
         table.c.name.label("name"),
     )
 
@@ -62,7 +63,7 @@ def video_files() -> Select[Any]:
     table = shared_metadata.tables["rockit.video"]
     return select(
         table.c.id.label("id"),
-        table.c.file_path.label("path"),
+        file_key_column(table).label("path"),
         table.c.name.label("name"),
     )
 

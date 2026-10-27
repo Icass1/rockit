@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.access.adminVersionAccess import AdminVersionAccess
 from core.access.db.ormModels.appVersion import AppVersionRow
 from core.framework.objectFiles import ObjectFiles
 from core.framework.version import Version
@@ -36,8 +37,13 @@ async def get_latest_version(request: Request) -> LatestVersionResponse:
 @router.get("/apk/{filename}")
 async def download_apk(request: Request, filename: str) -> StreamingResponse:
     session = DBSessionMiddleware.get_session(request=request)
+    version = await AdminVersionAccess.get_version_by_filename_async(
+        session=session, filename=filename
+    )
+    if version.is_not_ok():
+        raise HTTPException(status_code=version.get_http_code(), detail=version.message())
     response = await ObjectFiles.stream_async(
-        key=f"builds/{filename}", range_header=request.headers.get("range")
+        key=version.result().storage_object.key, range_header=request.headers.get("range")
     )
     if response.is_not_ok():
         raise HTTPException(status_code=response.get_http_code(), detail=response.message())

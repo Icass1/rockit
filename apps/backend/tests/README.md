@@ -11,3 +11,10 @@ The previously separate recommendation tests are included in `tests/unit/recomme
 To run the persistence checks locally, set `ROCKIT_TEST_DATABASE_URL` to a PostgreSQL admin URL (for example, `postgresql+asyncpg://postgres:postgres@localhost:5432/postgres`) before running pytest. The fixture creates and drops a uniquely named database per test.
 
 Persistent-file regression tests use `FakeObjectStore`, an in-memory S3 boundary. They verify byte ranges, uploaded media reuse, ZIP inputs and artwork, S3 audio caching, build publication, and removal of temporary processing files without starting S3 or PostgreSQL.
+
+Storage-reference schema and multipart tests run in the service-free suite.
+PostgreSQL migration tests in `tests/integration/storage_references` verify key
+backfill, FK enforcement, missing-key rollback and idempotence. They are explicitly
+excluded from GitHub workflows along with listening-reward persistence tests.
+To run them locally, set `ROCKIT_TEST_DATABASE_URL` and run
+`uv run pytest tests/integration/storage_references -q` from `apps/backend`.

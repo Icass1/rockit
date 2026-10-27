@@ -355,10 +355,10 @@ async def serve_rockit_audio(
         raise HTTPException(status_code=404, detail="Song not found")
 
     song: RockitSongRow = a_result_songs.result()[0]
-    if not song.file_path:
+    if not song.storage_object.key:
         raise HTTPException(status_code=404, detail="File not found")
     streamed = await ObjectFiles.stream_async(
-        key=song.file_path, range_header=request.headers.get("range")
+        key=song.storage_object.key, range_header=request.headers.get("range")
     )
     if streamed.is_not_ok():
         raise HTTPException(status_code=streamed.get_http_code(), detail=streamed.message())
@@ -389,10 +389,10 @@ async def serve_rockit_video(
         raise HTTPException(status_code=404, detail="Video not found")
 
     video: RockitVideoRow = a_result_videos.result()[0]
-    if not video.file_path:
+    if not video.storage_object.key:
         raise HTTPException(status_code=404, detail="File not found")
     streamed = await ObjectFiles.stream_async(
-        key=video.file_path, range_header=request.headers.get("range")
+        key=video.storage_object.key, range_header=request.headers.get("range")
     )
     if streamed.is_not_ok():
         raise HTTPException(status_code=streamed.get_http_code(), detail=streamed.message())
@@ -423,11 +423,11 @@ async def serve_rockit_video_audio(
         raise HTTPException(status_code=404, detail="Video not found")
 
     video: RockitVideoRow = a_result_videos.result()[0]
-    if not video.file_path:
+    if not video.storage_object.key:
         raise HTTPException(status_code=404, detail="Video file not found")
 
     a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_object_async(
-        key=video.file_path, range_header=request.headers.get("range")
+        key=video.storage_object.key, range_header=request.headers.get("range")
     )
     if a_result_stream.is_not_ok():
         logger.error(f"Error streaming audio. {a_result_stream.info()}")

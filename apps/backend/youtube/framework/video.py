@@ -11,11 +11,11 @@ logger = getLogger(__name__)
 class Video:
     @staticmethod
     async def update_video_path_async(
-        session: AsyncSession, video_id: int, video_path: str
+        session: AsyncSession, video_id: int, storage_object_id: int
     ) -> ResultCode:
 
         a_result: ResultCode = await VideoAccess.update_video_path_async(
-            session=session, video_id=video_id, video_path=video_path
+            session=session, video_id=video_id, storage_object_id=storage_object_id
         )
 
         if a_result.is_not_ok():

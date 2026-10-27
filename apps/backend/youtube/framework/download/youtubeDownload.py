@@ -106,7 +106,7 @@ class YoutubeDownload(BaseDownload):
                 a_result_update: ResultCode = await Video.update_video_path_async(
                     session=session,
                     video_id=self.video_id,
-                    video_path=object_key,
+                    storage_object_id=uploaded.result().id,
                 )
 
                 if a_result_update.is_not_ok():

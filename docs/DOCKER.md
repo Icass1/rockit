@@ -173,5 +173,14 @@ Before upgrading an existing local-file installation, upload media to the bucket
 using their relative keys (`spotify/…`, `spotify_scrapper/…`, `youtubeMusic/…`,
 `youtube/…`, and `rockit/…`), and APKs under `builds/<apk_filename>`. Replace any
 absolute values in media `path`, `video_path`, and `file_path` columns with the
-corresponding S3 keys. Image records already use storage-object keys. Runtime code
-has no local-file fallback, and this PR does not move files on deployed systems.
+corresponding S3 keys and ensure each has a matching `core.storage_object` record.
+The versioned startup migration backfills `storage_object_id` foreign keys and
+removes the legacy path columns atomically. Missing registry entries abort and
+roll back the migration so existing paths are not lost. Image records already use
+storage-object foreign keys. APK filenames are retained only as display/download
+metadata; their storage is resolved through the same foreign key.
+
+Legacy local build-upload sessions expire during migration and must be restarted.
+New build-upload sessions reference a storage object and an S3 multipart upload ID;
+no assembly file path is stored in the database. Runtime code has no local-file
+fallback, and this PR does not move files on deployed systems.

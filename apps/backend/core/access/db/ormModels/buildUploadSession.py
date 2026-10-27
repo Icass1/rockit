@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.access.db.base import CoreBase
 from core.access.db.ormModels.declarativeMixin import (
@@ -8,6 +8,7 @@ from core.access.db.ormModels.declarativeMixin import (
     TableDateUpdated,
     TablePublicId,
 )
+from core.access.db.ormModels.storageObject import StorageObjectRow
 
 
 class BuildUploadSessionRow(
@@ -17,8 +18,11 @@ class BuildUploadSessionRow(
     __table_args__ = ({"schema": "core", "extend_existing": True},)
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("core.user.id"), nullable=False)
-    # Ephemeral upload assembly only; completed builds are S3 objects.
-    file_path: Mapped[str] = mapped_column(String, nullable=False)
+    storage_object_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("core.storage_object.id"), nullable=False
+    )
+    storage_object: Mapped[StorageObjectRow] = relationship(StorageObjectRow, lazy="selectin")
+    multipart_upload_id: Mapped[str] = mapped_column(String, nullable=False)
     version: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     version_filename: Mapped[str] = mapped_column(String, nullable=False)
@@ -28,7 +32,8 @@ class BuildUploadSessionRow(
     def __init__(
         self,
         user_id: int,
-        file_path: str,
+        storage_object_id: int,
+        multipart_upload_id: str,
         version: str,
         version_filename: str,
         total_chunks: int,
@@ -39,7 +44,8 @@ class BuildUploadSessionRow(
     ) -> None:
         kwargs: dict[str, None | int | str] = {}
         kwargs["user_id"] = user_id
-        kwargs["file_path"] = file_path
+        kwargs["storage_object_id"] = storage_object_id
+        kwargs["multipart_upload_id"] = multipart_upload_id
         kwargs["version"] = version
         kwargs["version_filename"] = version_filename
         kwargs["total_chunks"] = total_chunks

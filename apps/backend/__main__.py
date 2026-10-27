@@ -393,13 +393,15 @@ async def main() -> None:
                     error_count = 0
 
                     for video in videos:
-                        if not video.video_path:
+                        if not video.storage_object:
                             logger.warning(f"Video {video.id} has no video_path, skipping")
                             error_count += 1
                             continue
 
                         try:
-                            async with ObjectFiles.local_copy_async(video.video_path) as full_path:
+                            async with ObjectFiles.local_copy_async(
+                                video.storage_object.key
+                            ) as full_path:
                                 probe = await asyncio.to_thread(ffmpeg.probe, full_path)  # type: ignore
 
                             video_info = next(  # type: ignore

@@ -593,8 +593,8 @@ class SpotifyProvider(BaseMediaProvider):
 
         track = a_result_tracks.result()[0]
 
-        if track.path:
-            full_path: str = track.path
+        if track.storage_object:
+            full_path: str = track.storage_object.key
             await ObjectFiles.archive_async(full_path)
 
         a_result_clear = await TrackAccess.clear_track_path_async(

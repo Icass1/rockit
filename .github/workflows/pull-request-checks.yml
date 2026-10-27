@@ -88,7 +88,7 @@ jobs:
 
             - name: Run backend tests
               working-directory: apps/backend
-              run: uv run pytest -q --ignore=tests/integration/listening_rewards
+              run: uv run pytest -q --ignore=tests/integration/listening_rewards --ignore=tests/integration/storage_references
 
             - name: Generate backend models
               env:

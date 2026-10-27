@@ -8,12 +8,15 @@ from typing import Literal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from constants import CHUNK_SIZE, TEMP_PATH
 from core.access.adminVersionAccess import AdminVersionAccess
 from core.access.buildUploadSessionAccess import BuildUploadSessionAccess
 from core.access.db.ormModels.appVersion import AppVersionRow
-from core.access.db.ormModels.buildUploadSession import BuildUploadSessionRow
+from core.access.storageObjectAccess import StorageObjectAccess
 from core.framework.objectFiles import ObjectFiles
+from core.framework.storage import Storage
+from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -64,10 +67,16 @@ class AdminBuild:
     ) -> Result[AppVersionRow]:
         """Add a new build version."""
 
+        stored = await Storage.get_object_from_key_async(
+            session=session, key=f"builds/{apk_filename}"
+        )
+        if stored.is_not_ok():
+            return Result(code=stored.code(), message=stored.message())
         a_result = await AdminVersionAccess.add_version_async(
             session=session,
             version=version,
             apk_filename=apk_filename,
+            storage_object_id=stored.result().id,
             description=description,
         )
         if a_result.is_not_ok():
@@ -76,6 +85,7 @@ class AdminBuild:
         return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
+    @safe_async
     async def start_chunked_upload_async(
         session: AsyncSession,
         user_id: int,
@@ -84,53 +94,51 @@ class AdminBuild:
         version: str,
         description: str | None,
     ) -> Result[StartChunkedUploadResult]:
-        """Initialize a chunked APK upload session."""
-
-        os.makedirs(TEMP_PATH, exist_ok=True)
-
-        file_ext = os.path.splitext(file_name)[1]
-        version_filename = f"v{version}{file_ext}"
-        key = f"builds/{version_filename}"
-
+        """Store an S3 multipart upload handle; no local assembly path is persisted."""
+        chunk_size = max(CHUNK_SIZE, 5 * 1024 * 1024)
+        total_chunks = (total_size + chunk_size - 1) // chunk_size
+        if not 1 <= total_chunks <= 10000:
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid upload size")
+        version_filename = f"v{version}{os.path.splitext(file_name)[1]}"
+        key = ObjectFiles.key(f"builds/{version_filename}")
         if await ObjectFiles.exists_async(key):
-            return Result(
-                code=ResultCode.BAD_REQUEST,
-                message=f"A build with filename '{version_filename}' already exists.",
-            )
-
-        descriptor, file_path = tempfile.mkstemp(prefix="rockit-build-", dir=TEMP_PATH)
-        os.close(descriptor)
-
+            return Result(code=ResultCode.BAD_REQUEST, message="Build already exists")
+        stored = await StorageObjectAccess.insert_object_async(
+            session=session,
+            bucket=settings.S3_BUCKET,
+            key=key,
+            content_type="application/vnd.android.package-archive",
+        )
+        if stored.is_not_ok():
+            return Result(code=stored.code(), message=stored.message())
+        multipart_id = await ObjectFiles.start_multipart_async(key)
         public_id = str(uuid.uuid4())
-        total_chunks = (total_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-
-        a_result = await BuildUploadSessionAccess.create_async(
+        created = await BuildUploadSessionAccess.create_async(
             session=session,
             public_id=public_id,
             user_id=user_id,
-            file_path=file_path,
+            storage_object_id=stored.result().id,
+            multipart_upload_id=multipart_id,
             version=version,
             description=description,
             version_filename=version_filename,
             total_chunks=total_chunks,
         )
-
-        if a_result.is_not_ok():
-            os.remove(file_path)
-            logger.error(f"Error creating upload session. {a_result.info()}")
-            return Result(code=a_result.code(), message=a_result.message())
-
+        if created.is_not_ok():
+            await ObjectFiles.abort_multipart_async(key, multipart_id)
+            return Result(code=created.code(), message=created.message())
         return Result(
             code=ResultCode.OK,
             message="OK",
             result=StartChunkedUploadResult(
                 uploadId=public_id,
-                chunkSize=CHUNK_SIZE,
+                chunkSize=chunk_size,
                 totalChunks=total_chunks,
             ),
         )
 
     @staticmethod
+    @safe_async
     async def upload_chunk_async(
         session: AsyncSession,
         upload_id: str,
@@ -138,124 +146,96 @@ class AdminBuild:
         chunk_data: str,
         total_chunks: int,
     ) -> Result[UploadChunkResult]:
-        """Upload a single chunk for a chunked upload session."""
-
-        a_result = await BuildUploadSessionAccess.get_by_public_id_async(
+        found = await BuildUploadSessionAccess.get_by_public_id_async(
             session=session, public_id=upload_id
         )
-
-        if a_result.is_not_ok():
-            logger.error(f"Upload session not found. {a_result.info()}")
-            return Result(
-                code=ResultCode.NOT_FOUND,
-                message=a_result.message(),
-            )
-
-        upload: BuildUploadSessionRow = a_result.result()
-
-        if chunk_index >= total_chunks:
-            return Result(
-                code=ResultCode.BAD_REQUEST,
-                message="Invalid chunk index.",
-            )
-
+        if found.is_not_ok():
+            return Result(code=found.code(), message=found.message())
+        upload = found.result()
+        if total_chunks != upload.total_chunks or not 0 <= chunk_index < total_chunks:
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid chunk index or count")
         try:
-            decoded = base64.b64decode(chunk_data)
-        except Exception:
-            return Result(
-                code=ResultCode.BAD_REQUEST,
-                message="Invalid base64 chunk data.",
-            )
-
-        with open(upload.file_path, "ab") as f:
-            f.write(decoded)
-
-        a_result = await BuildUploadSessionAccess.increment_chunks_received_async(
-            session=session, public_id=upload_id
+            decoded = base64.b64decode(chunk_data, validate=True)
+        except ValueError:
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid base64 chunk data")
+        size = max(CHUNK_SIZE, 5 * 1024 * 1024)
+        if (
+            not decoded
+            or len(decoded) > size
+            or (chunk_index < total_chunks - 1 and len(decoded) != size)
+        ):
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid chunk size")
+        key = upload.storage_object.key
+        await ObjectFiles.upload_part_async(
+            key, upload.multipart_upload_id, chunk_index + 1, decoded
         )
-
-        if a_result.is_not_ok():
-            logger.error(f"Error incrementing chunk count. {a_result.info()}")
-            return Result(code=a_result.code(), message=a_result.message())
-
-        upload = a_result.result()
-
+        parts = await ObjectFiles.multipart_parts_async(key, upload.multipart_upload_id)
+        updated = await BuildUploadSessionAccess.set_chunks_received_async(
+            session=session,
+            public_id=upload_id,
+            count=len(parts),
+        )
+        if updated.is_not_ok():
+            return Result(code=updated.code(), message=updated.message())
         return Result(
             code=ResultCode.OK,
             message="OK",
             result=UploadChunkResult(
                 uploadId=upload_id,
                 chunkIndex=chunk_index,
-                chunksReceived=upload.chunks_received,
+                chunksReceived=len(parts),
                 totalChunks=total_chunks,
             ),
         )
 
     @staticmethod
+    @safe_async
     async def complete_chunked_upload_async(
         session: AsyncSession,
         upload_id: str,
     ) -> Result[CompleteUploadResult]:
-        """Finalize a chunked upload and persist the build record."""
-
-        a_result = await BuildUploadSessionAccess.get_by_public_id_async(
+        found = await BuildUploadSessionAccess.get_by_public_id_async(
             session=session, public_id=upload_id
         )
+        if found.is_not_ok():
+            return Result(code=found.code(), message=found.message())
+        upload = found.result()
+        key = upload.storage_object.key
+        parts = await ObjectFiles.multipart_parts_async(key, upload.multipart_upload_id)
+        if [part["PartNumber"] for part in parts] != list(range(1, upload.total_chunks + 1)):
+            return Result(code=ResultCode.BAD_REQUEST, message="Incomplete upload")
+        await ObjectFiles.complete_multipart_async(key, upload.multipart_upload_id, parts)
+        import asyncio
 
-        if a_result.is_not_ok():
-            logger.error(f"Upload session not found. {a_result.info()}")
-            return Result(
-                code=ResultCode.NOT_FOUND,
-                message=a_result.message(),
-            )
-
-        upload: BuildUploadSessionRow = a_result.result()
-
-        if upload.chunks_received != upload.total_chunks:
-            os.remove(upload.file_path)
-            await BuildUploadSessionAccess.delete_by_public_id_async(
-                session=session, public_id=upload_id
-            )
-            return Result(
-                code=ResultCode.BAD_REQUEST,
-                message=(
-                    f"Incomplete upload. Expected {upload.total_chunks} chunks, got "
-                    f"{upload.chunks_received}."
-                ),
-            )
-
-        uploaded = await ObjectFiles.upload_async(
-            session=session, source=upload.file_path, key=f"builds/{upload.version_filename}"
+        metadata = await asyncio.to_thread(ObjectFiles.metadata, key)
+        registered = await StorageObjectAccess.insert_object_async(
+            session=session,
+            bucket=upload.storage_object.bucket,
+            key=key,
+            content_type="application/vnd.android.package-archive",
+            size_bytes=int(metadata["ContentLength"]),
+            etag=metadata.get("ETag"),
         )
-        if uploaded.is_not_ok():
-            return Result(code=uploaded.code(), message=uploaded.message())
-
-        a_result = await AdminVersionAccess.add_version_async(
+        if registered.is_not_ok():
+            return Result(code=registered.code(), message=registered.message())
+        version = await AdminVersionAccess.add_version_async(
             session=session,
             version=upload.version,
             apk_filename=upload.version_filename,
+            storage_object_id=registered.result().id,
             description=upload.description,
         )
-
-        if a_result.is_not_ok():
-            os.remove(upload.file_path)
-            await BuildUploadSessionAccess.delete_by_public_id_async(
-                session=session, public_id=upload_id
-            )
-            logger.error(f"Error adding build. {a_result.info()}")
-            return Result(code=a_result.code(), message=a_result.message())
-
-        os.remove(upload.file_path)
+        if version.is_not_ok():
+            return Result(code=version.code(), message=version.message())
         await BuildUploadSessionAccess.delete_by_public_id_async(
             session=session, public_id=upload_id
         )
-
         return Result(
             code=ResultCode.OK,
             message="OK",
             result=CompleteUploadResult(
                 message="BUILD_UPLOAD_SUCCESS",
-                publicId=a_result.result().public_id,
+                publicId=version.result().public_id,
                 filename=upload.version_filename,
             ),
         )
@@ -302,6 +282,7 @@ class AdminBuild:
             session=session,
             version=version,
             apk_filename=version_filename,
+            storage_object_id=uploaded.result().id,
             description=description,
         )
 

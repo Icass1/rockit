@@ -88,7 +88,7 @@ class TrackAccess:
                 logger.error(f"Track with id {track_id} not found.")
                 return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
 
-            track.path = None
+            track.storage_object_id = None
 
             await session.commit()
 
@@ -108,7 +108,7 @@ class TrackAccess:
     async def update_track_path_async(
         session: AsyncSession,
         track_id: int,
-        path: str | None,
+        storage_object_id: int | None,
         download_url: str | None,
     ) -> ResultCode:
         try:
@@ -120,7 +120,7 @@ class TrackAccess:
                 logger.error(f"Track with id {track_id} not found.")
                 return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
 
-            track.path = path
+            track.storage_object_id = storage_object_id
             track.download_url = download_url
 
             await session.commit()

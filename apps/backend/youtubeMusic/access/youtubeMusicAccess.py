@@ -382,7 +382,7 @@ class YoutubeMusicAccess:
     async def update_track_path_async(
         session: AsyncSession,
         track_id: int,
-        path: str | None,
+        storage_object_id: int | None,
     ) -> ResultCode:
         stmt: Select[tuple[TrackRow]] = select(TrackRow).where(TrackRow.id == track_id)
         result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
@@ -393,7 +393,7 @@ class YoutubeMusicAccess:
                 code=ResultCode.NOT_FOUND,
                 message=f"Track {track_id} not found",
             )
-        track_row.path = path
+        track_row.storage_object_id = storage_object_id
         await session.commit()
         return ResultCode(code=ResultCode.OK, message="OK")
 
@@ -889,7 +889,7 @@ class YoutubeMusicAccess:
 
         stmt: Select[tuple[str]] = select(TrackRow.youtube_id).where(
             TrackRow.youtube_id.in_(youtube_ids),
-            TrackRow.path.isnot(None),
+            TrackRow.storage_object_id.isnot(None),
         )
         result: DBResult[tuple[str]] = await session.execute(stmt)
         return Result(code=ResultCode.OK, message="OK", result={row[0] for row in result.all()})
@@ -910,7 +910,7 @@ class YoutubeMusicAccess:
             .join(CoreMediaRow, TrackRow.id == CoreMediaRow.id)
             .where(
                 TrackRow.youtube_id.in_(youtube_ids),
-                TrackRow.path.isnot(None),
+                TrackRow.storage_object_id.isnot(None),
             )
         )
         result: DBResult[tuple[str, str]] = await session.execute(stmt)

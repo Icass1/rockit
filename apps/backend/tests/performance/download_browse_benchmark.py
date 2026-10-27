@@ -259,9 +259,20 @@ async def main() -> None:
                     assert isinstance(data, DownloadItemsPageResponse)
                     assert len(data.items) == 48 and data.hasMore and data.total == 50
             # Exercise the batched SQL used by whole-group file actions as well.
+            from core.access.storageObjectAccess import StorageObjectAccess
+
+            async def register_key(key: str) -> int:
+                stored = await StorageObjectAccess.insert_object_async(
+                    session=session, bucket="benchmark", key=key
+                )
+                assert stored.is_ok(), stored.info()
+                return stored.result().id
+
             tracks = shared_metadata.tables["spotify.track"]
             await session.execute(
-                tracks.update().where(tracks.c.id.in_(media_ids[:2])).values(path="benchmark.mp3")
+                tracks.update()
+                .where(tracks.c.id.in_(media_ids[:2]))
+                .values(storage_object_id=await register_key("benchmark.mp3"))
             )
             cleared = await DownloadBrowseAccess.clear_files_async(
                 session=session, media_ids=media_ids[:2]
@@ -271,7 +282,11 @@ async def main() -> None:
                 "benchmark.mp3",
             ]
             remaining_paths = (
-                (await session.execute(select(tracks.c.path).where(tracks.c.id.in_(media_ids[:2]))))
+                (
+                    await session.execute(
+                        select(tracks.c.storage_object_id).where(tracks.c.id.in_(media_ids[:2]))
+                    )
+                )
                 .scalars()
                 .all()
             )
@@ -302,10 +317,12 @@ async def main() -> None:
                 await session.execute(
                     tracks.update()
                     .where(tracks.c.id == media_ids[0])
-                    .values(path="already-downloaded.mp3")
+                    .values(storage_object_id=await register_key("already-downloaded.mp3"))
                 )
                 await session.execute(
-                    tracks.update().where(tracks.c.id == media_ids[1]).values(path="missing.mp3")
+                    tracks.update()
+                    .where(tracks.c.id == media_ids[1])
+                    .values(storage_object_id=await register_key("missing.mp3"))
                 )
                 imported = await DownloadAccess.create_download_group(
                     session=session,

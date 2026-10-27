@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.utils.logger import getLogger
 
+from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
 from backend.core.aResult import AResult, AResultCode
 
 from backend.core.access.mediaAccess import MediaAccess
@@ -173,6 +174,26 @@ class Media:
                 provider_id=a_result_media.result().provider_id,
             ),
         )
+
+    @staticmethod
+    async def get_audio_bounds_async(
+        session: AsyncSession, public_id: str
+    ) -> AResult[AudioBoundsResponse]:
+        """Dispatch optional boundary analysis without knowing source-specific storage."""
+        result = await MediaAccess.get_media_from_public_id_async(
+            session=session, public_id=public_id, media_type_keys=[MediaTypeEnum.SONG]
+        )
+        if result.is_not_ok():
+            logger.error(f"Could not resolve song. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        song = result.result()
+        provider = providers.find_media_provider(provider_id=song.provider_id)
+        if provider is None:
+            logger.warning("Audio boundary provider unavailable")
+            return AResult(
+                code=AResultCode.OK, message="OK", result=AudioBoundsResponse()
+            )
+        return await provider.get_audio_bounds_async(session=session, media_id=song.id)
 
     @staticmethod
     async def get_song_async(

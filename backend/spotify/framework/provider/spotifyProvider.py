@@ -46,6 +46,9 @@ from backend.spotify.access.trackAccess import TrackAccess
 from backend.core.responses.artistPageResponse import ArtistCatalogResponse
 from backend.spotify.access.artistCatalogAccess import ArtistCatalogAccess
 
+from backend.core.framework.audio.silence import request_bounds
+from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
+
 logger: Logger = getLogger(__name__)
 
 SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
@@ -69,6 +72,22 @@ SPOTIFY_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyProvider(BaseMediaProvider):
+    async def get_audio_bounds_async(
+        self, session: AsyncSession, media_id: int
+    ) -> AResult[AudioBoundsResponse]:
+        """Resolve this source's local song without exposing paths to clients."""
+        result = await TrackAccess.get_track_by_id_async(
+            session=session, track_id=media_id
+        )
+        if result.is_not_ok():
+            logger.error(f"Could not resolve audio source. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        path = result.result().path
+        bounds = await request_bounds(
+            path=os.path.join(MEDIA_PATH, path) if path else None
+        )
+        return AResult(code=AResultCode.OK, message="OK", result=bounds)
+
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None
     ) -> AResult[ArtistCatalogResponse]:

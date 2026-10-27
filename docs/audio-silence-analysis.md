@@ -1,92 +1,44 @@
 # Cached boundary-silence analysis [KB-13]
 
-Status: design only. Implementation is paused for a later session.
+PR144 implements optional boundary analysis for web song transitions. Original files are never modified or re-encoded. Audio timestamps and lyrics retain their original clock. No new DJ engine, presets, tempo processing, waveform editor or queue redesign is included.
 
-## Goal
+## Operation
 
-When song transitions are enabled, skip confirmed leading and trailing silence
-so the configured crossfade overlaps audible music. Keep original files,
-internal pauses, and the original playback clock used by lyrics.
+The authenticated `GET /media/song/{public_id}/audio-bounds` dispatches through a generic provider capability. Spotify, SpotifyScrapper, YouTube Music and RockIt resolve their own local file using their access layers; unsupported providers return unavailable. Core contains no source-specific branches, imports or paths. Live radio, video and the native Expo player retain their playback paths.
 
-This work is independent of the frontend fixes in PR #143. The configurable
-crossfade changes in that PR are an integration dependency, not part of this PR.
+On a miss, return pending without waiting for decoding. A non-blocking `flock` in `MEDIA_PATH/.audio-boundaries` permits one analysis task across API worker processes sharing that directory. There is **no pending server job queue**: busy callers can retry; the web client attempts at most six requests with bounded HTTP timeouts. Ten distinct files can therefore fall back to ordinary playback instead of accumulating jobs. Separate hosts require a shared coordinating worker or deployment-level limit; local disk locks alone do not coordinate them.
 
-## Proposed implementation
+FFprobe reads duration and channel count. FFmpeg decodes at most 20 seconds at each edge, one codec/filter thread, low process priority. Analysis uses 48 kHz float PCM, 10 ms blocks, the peak over all channels, a -60 dBFS threshold, at least 0.5 seconds of boundary quiet and a 150 ms safety margin. Keeping channels separate avoids cancellation of antiphase material and preserves single-channel audio. Peak reduction runs off the event loop. No mono downmix or low-rate analysis discards audible high-frequency intro detail.
 
-1. Resolve a downloaded song's local file through the existing
-   controller → framework → access layers. Do not accept arbitrary file paths or
-   remote URLs from the client. Initially support Spotify downloads and RockIt
-   uploads; leave live radio and video playback unchanged.
-2. Return cached bounds immediately. On a cache miss, enqueue a background job
-   and return a pending response. Playback continues with the original bounds;
-   neither an HTTP request nor playback waits for FFmpeg.
-3. Use FFprobe to obtain the file duration and FFmpeg's silencedetect filter to
-   inspect bounded head and tail windows. Start with a maximum of 20 seconds
-   per edge, one decoder thread, one filter thread, and low process priority.
-   Validate accurate tail seeking for each supported format. Ambiguous or
-   unsupported cases retain the original bounds.
-4. Detect only silence connected to the start or end of the file. Initial
-   parameters for testing: -55 dB, at least 0.5 seconds of silence, and a
-   0.1-second safety margin around audible material. These are provisional:
-   validate soft intros, fades, noise floors, and stereo channels before release.
-   An entirely silent or unusually short file must not produce invalid bounds.
-5. Store start, end, and source duration in a shared disk cache, keyed by file
-   identity, size, modification time, and analysis-version settings. Write
-   atomically; invalidate after replacement or redownload. Do not copy or
-   re-encode the song. Choose a persistent shared directory and define a cache
-   cleanup policy before implementation is considered complete.
-6. In the player, seek to the confirmed intro boundary only for a fresh track
-   start. Schedule the crossfade against the confirmed outro boundary.
-   Preserve explicit seeks, resumed positions, playback ownership, pause/skip
-   behavior, album protection, and repeat-one semantics. Do not rebase time:
-   lyrics continue to use the original media position.
-7. Request bounds for the current and preloaded next song, only while
-   transitions are enabled. Coalesce client requests and use bounded pending
-   retries. Do not jump suddenly when late analysis arrives during playback;
-   apply intro bounds on a future fresh start and use outro bounds only if
-   still safely ahead of the current position.
+A gradual intro is **not** classified as wholly silent until the loud part begins: the first block above the conservative threshold anchors entry. Below-threshold sound can still be skipped; this is an amplitude detector, not a perceptual or semantic detector. Entirely silent windows, very short or multichannel sources, missing tools, errors and uncertain duration retain ordinary playback. Internal pauses are untouched. The detector deliberately leaves some quiet rather than risk cutting music.
 
-## Resource and failure limits
+Each subprocess has a 15-second timeout and 8 MiB stdout cap; cancellation kills and reaps children. Shutdown cancels active jobs. Cache identity includes canonical file path, inode, size, nanosecond mtime and analyzer version. Publication checks identity again and replaces metadata atomically. Failures back off for 60 seconds; at most 2048 cache entries are retained. Keep this directory persistent and shared by workers. FFmpeg, FFprobe, `nice` and Linux `flock` are deployment prerequisites; unavailable tools degrade to normal playback.
 
-- One active analysis process per backend host, including multiple API workers.
-  An in-process semaphore alone is insufficient; use a shared worker or
-  cross-process lock. Multiple hosts require deployment-level coordination.
-- Deduplicate the same source across users and workers. Bound pending jobs
-  (initial target: 32 per host); a full queue falls back to normal playback.
-- Bound subprocess lifetime and captured output. Kill and reap subprocesses on
-  timeout, cancellation, and shutdown; release locks in all cases.
-- Cache failures briefly to prevent repeated retries for corrupt or unsupported
-  files. Missing FFmpeg, read-only storage, or analysis failures never prevent
-  ordinary playback.
-- Check the source fingerprint again before publishing a result. Validate
-  finite bounds with 0 ≤ start < end ≤ duration.
-- Run blocking filesystem work outside the event loop. Never hold a database
-  transaction open while waiting for an analysis job.
+## Playback
 
-## Acceptance and verification
+Only query current/preloaded song metadata while transitions are enabled. Validate returned bounds against native media duration. Prepare the incoming seek and require buffering around that original-clock position before promoting its deck. Trigger overlap relative to the outgoing audible end; retain that endpoint throughout the fade, including a delayed playback grant. Reuse the existing ownership, queue handoff, repeat-one, album protection and cancellation behavior.
 
-- Real generated audio fixtures cover leading silence, trailing silence,
-  silence at both ends, no silence, internal pauses, entirely silent files,
-  stereo with one quiet channel, soft intros, and gradual fades.
-- Ten simultaneous users requesting one uncached song produce at most one
-  successful analysis for that fingerprint; all requests return without waiting
-  for decoding. Cached requests do not spawn FFmpeg.
-- Requests for distinct files respect the global process limit and bounded queue,
-  including across two worker processes. Test timeout, cancellation, failed
-  analysis backoff, restart cache reuse, and source replacement.
-- Measure cold and warm API latency, event-loop responsiveness, CPU, and disk I/O
-  with ten concurrent playback clients, against playback without analysis.
-  Record the hardware and results; concurrency limits alone are not evidence
-  that performance is unaffected.
-- Frontend tests cover intro seeks, crossfades ending at the audible boundary,
-  unchanged lyric timestamps, late results, user seeks, resume, album/repeat
-  protection, disabled transitions, missing metadata, and offline playback.
-- Verify on a real iPhone/PWA before promoting KB-13 to Done.
+Late metadata never jumps an already playing intro. A first track on a cold cache can play its original intro; subsequent prepared transitions use confirmed entry bounds. Explicit seeks/resume are preserved. Missing/stale metadata, network failures and insufficient buffering use the previous playback path. No playback or database transaction waits for the background decoder.
 
-## Tracking
+There is no new user-facing text in this change, so no vocabulary keys are introduced. The feature follows the existing experimental song-transition setting.
 
-- Kanban tag: kb-13.
-- Branch: feat/audio-silence-analysis.
-- Keep future implementation commits marked [KB-13].
-- Move the card to In Progress when implementation resumes, and To Review after
-  the required checks. This draft does not implement silence skipping.
+## Evidence — 27 October 2026
+
+Targeted experiments were executed rather than local application test suites. Environment: Linux x86_64, Chromium using real HTMLAudioElement streams and Web Audio. This is a development container, not production hardware.
+
+Two short musical fixtures from [pydub test data](https://github.com/jiaaro/pydub/tree/master/test/data), `bach.ogg` (about 3 s) and `party.mp3` (about 6.6 s), were examined unchanged, then repeated into 25-second excerpts with known 2-second leading and 3-second trailing silence. These are **controlled excerpts, not two complete catalog songs**. Additional 30-second fixtures cover gradual amplitude growth, no silence, internal pauses, one active stereo channel, antiphase stereo, an entirely silent file and a 10 kHz signal.
+
+- Original musical fixtures: no boundary removal.
+- Padded excerpts: entry 1.85/1.87 s; end 27.15 s in 30-second files.
+- Gradual fixture: actual quiet ends at 2 s, then a growing signal; entry 2.53 s, before its first above-threshold block, retaining the quiet rise rather than jumping to full volume.
+- Internal pause and no-silence fixtures: original 0–30 s retained.
+- One-channel, antiphase and 10 kHz fixtures: correct 1.85–27.15 s boundaries.
+- Entirely silent fixture: unavailable, no fabricated seek interval.
+- Measured full analysis wall time: approximately 200–423 ms, depending on excerpt. Child-process CPU and raw results are in the measurements JSON. This includes decoder startup and analysis; no production throughput claim follows from these numbers.
+- Ten simultaneous metadata requests for the same cold source: one active task; pending responses together in 17.4 ms. Ten warm requests together: 4.8 ms, no remaining decoder tasks. These are service calls in one process, **not ten authenticated users streaming**.
+
+In Chromium the actual MediaPlayerManager, shared base player and mixer were bundled with a fixture queue and simulated HTTP metadata/ownership transport. Both the musical pair and progressive-intro pair promoted once, overlapped before 27.15 s, entered the second deck at its detected original-clock position and ended without duplicate queue advancement or page errors. Pause stopped playback. Recordings capture the real mixer output. This does not validate authenticated multi-device WebSocket ownership or iOS background playback.
+
+Artifacts in the task workspace: `/workspace/artifacts/audio-silence/`: `measurements.json`, `experiment.py`, `browser-music.json`, `browser-gradual.json`, `transition-music.mp3`, `transition-gradual.mp3`, and `boundaries.svg`. Audio files are deliberately not added to the repository.
+
+Regression cases were added for CI without running local suites. Before marking Done, review the audio examples; validate real iPhone/PWA and production latency/CPU/I/O with concurrent streaming and multiple workers. CI checks code correctness but does not replace those listening/device checks.

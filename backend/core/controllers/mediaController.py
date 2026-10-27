@@ -59,6 +59,27 @@ router = APIRouter(
 )
 
 
+from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
+
+
+@router.get("/song/{public_id}/audio-bounds")
+async def get_audio_bounds(
+    request: Request,
+    public_id: str,
+    response: Response,
+    _=Depends(dependency=AuthMiddleware.auth_dependency),
+) -> AudioBoundsResponse:
+    """Cached metadata only; never wait for a decoder or accept file paths."""
+    response.headers["Cache-Control"] = "no-store"
+    result = await Media.get_audio_bounds_async(
+        session=DBSessionMiddleware.get_session(request=request), public_id=public_id
+    )
+    if result.is_not_ok():
+        logger.error(f"Could not get audio boundaries. {result.info()}")
+        raise HTTPException(status_code=result.get_http_code(), detail=result.message())
+    return result.result()
+
+
 @router.get("/song/{public_id}")
 async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumResponse:
     """Get a song by its public_id."""

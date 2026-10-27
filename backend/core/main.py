@@ -127,6 +127,9 @@ async def app_shutdown():
     """Close all active WebSocket connections before shutdown."""
 
     from backend.core.framework.websocket.webSocketManager import ws_manager
+    from backend.core.framework.audio.silence import shutdown_bounds
+
+    await shutdown_bounds()
 
     all_sockets = [
         ws

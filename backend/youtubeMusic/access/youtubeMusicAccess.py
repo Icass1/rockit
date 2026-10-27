@@ -66,6 +66,19 @@ class YoutubeMusicAccess:
 
     @staticmethod
     @safe_async
+    async def get_audio_path_async(
+        session: AsyncSession, media_id: int
+    ) -> AResult[str | None]:
+        """Resolve the provider-owned file for an already validated core song."""
+        result = await session.execute(
+            select(TrackRow.path).where(TrackRow.id == media_id)
+        )
+        return AResult(
+            code=AResultCode.OK, message="OK", result=result.scalar_one_or_none()
+        )
+
+    @staticmethod
+    @safe_async
     @time_it
     async def get_track_by_public_id_async(
         session: AsyncSession,

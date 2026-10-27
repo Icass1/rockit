@@ -29,16 +29,6 @@
     Intentar que spotdl o yt-dlp descargue solo música que no sean videoclips. Ajustar la búsqueda.
     ```
 
-### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
-
-- tags: [frontend, transitions, player, audio, kb-13]
-- priority: medium
-- workload: Hard
-    ```md
-    Quitar el silencio final/inicial de las canciones cuando las transiciones están activadas. Cuidado con esto.
-
-    Pendiente: detectar límites de audio con FFmpeg y guardar posiciones de entrada/salida sin modificar el archivo ni el reloj original de lyrics. El crossfade configurable no elimina silencios por sí solo.
-    ```
 
 ### [LIBRARY] Drag & drop de canciones a listas
 
@@ -66,6 +56,16 @@
     ```
 
 ## To Review
+
+### [TRANSITIONS] Quitar silencio inicial/final con transiciones activas
+
+- tags: [frontend, transitions, player, audio, kb-13]
+- priority: medium
+- workload: Hard
+    ```md
+    KB-13 / PR144: análisis acotado y cacheado de silencios en los extremos, con margen para entradas suaves. Archivos y reloj de lyrics originales. Integrado con las transiciones web y resolución de archivos en cada provider.
+    Evidencias y límites: docs/audio-silence-analysis.md. Revisar las grabaciones antes de mover a Done. Validación pendiente en iPhone/PWA real y carga de producción.
+    ```
 
 ### [HOME] Añadir context menu a las canciones del home
 

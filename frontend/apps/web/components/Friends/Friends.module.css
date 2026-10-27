@@ -1352,13 +1352,13 @@
 }
 /* Equal primary columns and bounded initial feeds keep each social section
    comparable in weight. Mobile retains the DOM order: people, shares, recent. */
-@container friends (min-width: 1000px) {
+@container friends (min-width: 900px) {
     .socialLayout {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 2.5rem;
     }
 }
-@container friends (min-width: 1400px) {
+@container friends (min-width: 1200px) {
     .socialLayout {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 2.5rem;

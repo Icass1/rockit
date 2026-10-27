@@ -621,8 +621,7 @@ img {
     }
 }
 
-/* Preserve the original flat header and 20px blur. Only opacity is curved:
-   alpha = 1 - t², sampled every 10% (not a radial/curved silhouette). */
+/* Match develop's original header blur, without tint or curved geometry. */
 .app-header-backdrop {
     position: absolute;
     inset: 0;
@@ -630,22 +629,8 @@ img {
     pointer-events: none;
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    --header-fade: linear-gradient(
-        to bottom,
-        rgb(0 0 0 / 100%) 0%,
-        rgb(0 0 0 / 99%) 10%,
-        rgb(0 0 0 / 96%) 20%,
-        rgb(0 0 0 / 91%) 30%,
-        rgb(0 0 0 / 84%) 40%,
-        rgb(0 0 0 / 75%) 50%,
-        rgb(0 0 0 / 64%) 60%,
-        rgb(0 0 0 / 51%) 70%,
-        rgb(0 0 0 / 36%) 80%,
-        rgb(0 0 0 / 19%) 90%,
-        transparent 100%
-    );
-    -webkit-mask-image: var(--header-fade);
-    mask-image: var(--header-fade);
+    -webkit-mask-image: linear-gradient(to bottom, black 33%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 33%, transparent 100%);
 }
 
 @media (prefers-reduced-transparency: reduce) {

@@ -114,7 +114,7 @@
 - priority: medium
 - workload: Easy
     ```md
-    Aclaración aplicada: recuperado el blur original de 20 px, rectangular y sin tinte añadido. Solo cambia la máscara vertical: opacidad α = 1 − t² (100, 99, 96, 91, 84, 75, 64, 51, 36, 19, 0 %). Empieza casi plana y cae progresivamente; idéntica en todo el ancho, sin elipse ni esquinas curvas. Pendiente de revisión visual; sin tests locales.
+    Corrección de revisión: restaurado exactamente el efecto original de develop: blur de 20 px y máscara original (black 33%, transparent 100%), sin tinte ni cambio de geometría. Retirada la curva de opacidad añadida en la revisión anterior. Pendiente de revisión del usuario; sin tests locales.
 
     Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
 

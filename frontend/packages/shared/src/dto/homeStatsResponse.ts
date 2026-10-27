@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import { BaseSongWithAlbumResponseSchema } from "./baseSongWithAlbumResponse";
+import { MediaResponseSchema } from "./mediaResponse";
 
 export const HomeStatsResponseSchema = z.object({
     songsByTimePlayed: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
@@ -16,6 +17,9 @@ export const HomeStatsResponseSchema = z.object({
     moodSongs: z.array(z.lazy(() => BaseSongWithAlbumResponseSchema)),
     currentStreak: z.number().default(0),
     minutesListenedThisWeek: z.number().default(0.0),
+    recentlyClickedMedia: z
+        .array(z.lazy(() => MediaResponseSchema))
+        .default([]),
 });
 
 export type HomeStatsResponse = z.infer<typeof HomeStatsResponseSchema>;

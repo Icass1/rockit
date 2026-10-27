@@ -111,6 +111,28 @@ class Notifications:
         return result
 
     @staticmethod
+    async def social_async(
+        session: AsyncSession,
+        user_id: int,
+        event_key: str,
+        message: str,
+        detail: str | None = None,
+    ) -> AResult[bool]:
+        """Persist a recipient-owned friend or share notification once."""
+        result = await NotificationAccess.create_async(
+            session=session,
+            user_id=user_id,
+            event_key=event_key,
+            type=1,
+            category="activity",
+            message=message,
+            detail=detail,
+        )
+        if result.is_not_ok():
+            logger.error(f"Cannot record social notification: {result.info()}")
+        return result
+
+    @staticmethod
     async def mark_read_async(
         session: AsyncSession, user_id: int, public_ids: list[str]
     ) -> AResult[bool]:

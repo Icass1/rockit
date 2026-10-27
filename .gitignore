@@ -13,7 +13,6 @@ Thumbs.db
 # ============================
 # Python / Backend
 # ============================
-venv/
 env/
 .venv/
 __pycache__/

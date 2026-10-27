@@ -43,6 +43,7 @@ import { mediaStorage } from "@/lib/storage/mediaStorage";
 import { toasterManager } from "@/lib/toasterManager";
 import { useTypedRouter } from "@/lib/useTypedRouter";
 import { useVocabulary } from "@/lib/vocabulary";
+import { webSocketManager } from "@/lib/webSocketManager";
 import EditMetadataModal from "@/components/EditMetadata/EditMetadataModal";
 
 interface MediaCardProps {
@@ -424,6 +425,11 @@ const MediaPressableWrapper = memo(function MediaPressableWrapper({
     }, [media, menuOnly, show, buildMainMenu]);
 
     const handlePress = useCallback(() => {
+        if (!isSearchResult(media)) {
+            webSocketManager.sendMediaClicked({
+                mediaPublicId: media.publicId,
+            });
+        }
         if (onPress) {
             onPress();
         } else if (menuOnly || isSearchResult(media)) {

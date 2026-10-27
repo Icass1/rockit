@@ -630,8 +630,8 @@ img {
     pointer-events: none;
 }
 
-/* A scrim is painted after the blur layers, so white/light content cannot
-   wash out the controls. It is solid through the header and fades in the tail.
+/* A light tint preserves artwork translucency and fades through the tail.
+   Stronger contrast is provided by the opaque accessibility fallback below.
    Keep it off the parent: opacity/masking there would isolate the backdrop. */
 .app-header-backdrop::after {
     content: "";
@@ -639,11 +639,11 @@ img {
     inset: 0;
     background: linear-gradient(
         to bottom,
-        rgb(0 0 0 / 72%) 0%,
-        rgb(0 0 0 / 72%) calc(100% - 64px),
-        rgb(0 0 0 / 61.456%) calc(100% - 48px),
-        rgb(0 0 0 / 36%) calc(100% - 32px),
-        rgb(0 0 0 / 10.544%) calc(100% - 16px),
+        rgb(0 0 0 / 10%) 0%,
+        rgb(0 0 0 / 10%) calc(100% - 64px),
+        rgb(0 0 0 / 8.536%) calc(100% - 48px),
+        rgb(0 0 0 / 5%) calc(100% - 32px),
+        rgb(0 0 0 / 1.464%) calc(100% - 16px),
         transparent 100%
     );
 }

@@ -437,8 +437,8 @@ class SpotifyScrapperAccess:
                 return Result(code=ResultCode.OK, message="OK", result=existing)
 
             if image_id is None:
-                a_result_image: Result[ImageRow] = await Image.get_image_from_path_async(
-                    session=session, path="album-placeholder.png"
+                a_result_image: Result[ImageRow] = await Image.get_image_from_key_async(
+                    session=session, key="album-placeholder.png"
                 )
                 if a_result_image.is_ok():
                     image_id = a_result_image.result().id

@@ -38,6 +38,8 @@ class ResultCode:
     VALIDATION_ERROR = 0x7
     RATE_LIMITED = 0x8
     QUOTA_EXHAUSTED = 0x9
+    CONFIGURATION_ERROR = 0xA
+    SERVICE_UNAVAILABLE = 0xB
 
     _code: int
     _message: str
@@ -66,6 +68,7 @@ class ResultCode:
         | Literal[501]
         | Literal[403]
         | Literal[429]
+        | Literal[503]
     ):
         if self._code == ResultCode.OK:
             return 200
@@ -85,6 +88,11 @@ class ResultCode:
             return 429
         if self._code == ResultCode.QUOTA_EXHAUSTED:
             return 429
+        if self._code in (
+            ResultCode.CONFIGURATION_ERROR,
+            ResultCode.SERVICE_UNAVAILABLE,
+        ):
+            return 503
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -113,6 +121,10 @@ class ResultCode:
             return "RATE_LIMITED"
         if self._code == ResultCode.QUOTA_EXHAUSTED:
             return "QUOTA_EXHAUSTED"
+        if self._code == ResultCode.SERVICE_UNAVAILABLE:
+            return "SERVICE_UNAVAILABLE"
+        if self._code == ResultCode.CONFIGURATION_ERROR:
+            return "CONFIGURATION_ERROR"
 
         raise Exception(f"Code {self._code} not implemented")
 
@@ -235,6 +247,7 @@ class Result[T]:
         | Literal[501]
         | Literal[403]
         | Literal[429]
+        | Literal[503]
     ):
         return self._code.get_http_code()
 

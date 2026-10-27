@@ -22,7 +22,6 @@ from core.access.db.ormEnums.requestStatusEnum import RequestStatusEnumRow
 from core.access.db.ormEnums.requestTypeEnum import RequestTypeEnumRow
 from core.access.db.ormEnums.skipDirectionEnum import SkipDirectionEnumRow
 from core.access.enumAccess import EnumAccess
-from core.access.imageAccess import ImageAccess
 from core.enums.bookmarkModeEnum import BookmarkModeEnum
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.enums.friend.friendStatusEnum import FriendStatusEnum
@@ -62,7 +61,7 @@ async def add_default_images(session: AsyncSession) -> None:
             shutil.copy(source_path, dest_path)
             logger.info(f"Copied image: {filename}")
 
-        a_result_image = await ImageAccess.get_image_from_path_async(session=session, path=filename)
+        a_result_image = await Image.get_image_from_key_async(session=session, key=filename)
         if a_result_image.is_ok():
             logger.info(f"Image already in database: {filename}")
             continue

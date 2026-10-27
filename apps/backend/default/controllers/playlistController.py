@@ -71,7 +71,7 @@ async def get_playlist_list_response(
                     url=f"/user/{owner_public_id}",
                     providerUrl="",
                     name=owner_name,
-                    imageUrl=Image.get_internal_image_url(owner.image),
+                    imageUrl=Image.get_image_url(owner.image),
                     dominantColor=owner.image.dominant_color,
                 ),
             )
@@ -126,7 +126,7 @@ async def create_playlist_async(
             url=f"/user/{user.result().public_id}",
             providerUrl="",
             name=user.result().username,
-            imageUrl=Image.get_internal_image_url(user.result().image),
+            imageUrl=Image.get_image_url(user.result().image),
             dominantColor=user.result().image.dominant_color,
         ),
     )

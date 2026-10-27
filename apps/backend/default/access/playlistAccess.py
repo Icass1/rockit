@@ -39,8 +39,8 @@ class PlaylistAccess:
         is_public: bool = True,
     ) -> Result[PlaylistRow]:
         try:
-            a_result_image: Result[ImageRow] = await Image.get_image_from_path_async(
-                session=session, path="playlist-placeholder.png"
+            a_result_image: Result[ImageRow] = await Image.get_image_from_key_async(
+                session=session, key="playlist-placeholder.png"
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error getting placeholder image: {a_result_image.info()}")

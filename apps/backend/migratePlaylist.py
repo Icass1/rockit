@@ -116,8 +116,8 @@ async def migrate_playlist_async(
                 f"Missing {len(missing_ids)} tracks (first 10 shown): {missing_ids[:10]}"
             )
 
-        a_result_image = await Image.get_image_from_path_async(
-            session=session, path="playlist-placeholder.png"
+        a_result_image = await Image.get_image_from_key_async(
+            session=session, key="playlist-placeholder.png"
         )
         if a_result_image.is_not_ok():
             logger.error(f"Placeholder image not found. {a_result_image.info()}")

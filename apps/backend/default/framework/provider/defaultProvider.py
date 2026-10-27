@@ -134,7 +134,7 @@ class DefaultProvider(BaseMediaProvider):
                     url=f"/user/{owner.public_id}",
                     providerUrl="",
                     name=owner_name,
-                    imageUrl=Image.get_internal_image_url(owner.image),
+                    imageUrl=Image.get_image_url(owner.image),
                     dominantColor=owner.image.dominant_color,
                 ),
                 user_id=user_id,
@@ -220,7 +220,7 @@ class DefaultProvider(BaseMediaProvider):
                         url=f"/user/{owner.public_id}",
                         providerUrl="",
                         name=owner_name,
-                        imageUrl=Image.get_internal_image_url(owner.image),
+                        imageUrl=Image.get_image_url(owner.image),
                         dominantColor=owner.image.dominant_color,
                     ),
                 )

@@ -98,7 +98,7 @@ class YouTube:
                     message=a_result_internal_image.message(),
                 )
 
-            image_url: str = Image.get_internal_image_url(a_result_internal_image.result())
+            image_url: str = Image.get_image_url(a_result_internal_image.result())
             dominant_color: str = a_result_internal_image.result().dominant_color
 
             channel_response: YoutubeChannelResponse | None = None
@@ -120,7 +120,7 @@ class YouTube:
                     provider=YouTube.provider_name,
                     publicId=channel.youtube_id,
                     name=channel.name,
-                    imageUrl=Image.get_internal_image_url(a_result_channel_image.result()),
+                    imageUrl=Image.get_image_url(a_result_channel_image.result()),
                     subscriberCount=channel.subscriber_count,
                     videoCount=channel.video_count,
                     viewCount=channel.view_count,
@@ -315,7 +315,7 @@ class YouTube:
                 message=a_result_internal_image.message(),
             )
 
-        image_url: str = Image.get_internal_image_url(a_result_internal_image.result())
+        image_url: str = Image.get_image_url(a_result_internal_image.result())
         dominant_color: str = a_result_internal_image.result().dominant_color
 
         channel_response: YoutubeChannelResponse | None = None
@@ -337,7 +337,7 @@ class YouTube:
                 provider=YouTube.provider_name,
                 publicId=fetched_channel.youtube_id,
                 name=fetched_channel.name,
-                imageUrl=Image.get_internal_image_url(a_result_channel_image.result()),
+                imageUrl=Image.get_image_url(a_result_channel_image.result()),
                 subscriberCount=fetched_channel.subscriber_count,
                 videoCount=fetched_channel.video_count,
                 viewCount=fetched_channel.view_count,

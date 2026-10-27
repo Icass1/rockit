@@ -551,7 +551,7 @@ class Rockit:
                             )
                             continue
 
-                        image_url: str = Image.get_internal_image_url(a_result_image.result())
+                        image_url: str = Image.get_image_url(a_result_image.result())
 
                         artists: list[ArtistSearchResultsItem] = [
                             ArtistSearchResultsItem(
@@ -599,7 +599,7 @@ class Rockit:
                             )
                             continue
 
-                        img_url: str = Image.get_internal_image_url(a_result_img.result())
+                        img_url: str = Image.get_image_url(a_result_img.result())
 
                         results.append(
                             BaseSearchResultsItem(
@@ -644,7 +644,7 @@ class Rockit:
                             )
                             continue
 
-                        img_url: str = Image.get_internal_image_url(a_result_img.result())
+                        img_url: str = Image.get_image_url(a_result_img.result())
 
                         results.append(
                             BaseSearchResultsItem(
@@ -711,7 +711,7 @@ class Rockit:
         if image is None:
             logger.error(f"Missing song image for {public_id}")
             return Result(code=ResultCode.NOT_FOUND, message="Song image not found")
-        image_url = Image.get_internal_image_url(image=image)
+        image_url = Image.get_image_url(image=image)
         song_artists = [
             BaseArtistResponse(
                 provider=Rockit.provider_name,
@@ -746,7 +746,7 @@ class Rockit:
                 providerUrl="",
                 name=album.name,
                 releaseDate=album.release_date or "",
-                imageUrl=Image.get_internal_image_url(image=album_image),
+                imageUrl=Image.get_image_url(image=album_image),
                 dominantColor=album_image.dominant_color if album_image else "",
                 artists=[
                     BaseArtistResponse(
@@ -797,7 +797,7 @@ class Rockit:
                 logger.error(f"Error getting image for album {public_id}. {a_result_image.info()}")
                 return Result(code=a_result_image.code(), message=a_result_image.message())
 
-            image_url: str = Image.get_internal_image_url(a_result_image.result())
+            image_url: str = Image.get_image_url(a_result_image.result())
             dominant_color: str = a_result_image.result().dominant_color
 
             album_artists: list[BaseArtistResponse] = [
@@ -838,7 +838,7 @@ class Rockit:
                         session=session, image_id=song.image_id
                     )
                     if a_result_song_image.is_ok():
-                        song_image_url = Image.get_internal_image_url(a_result_song_image.result())
+                        song_image_url = Image.get_image_url(a_result_song_image.result())
                         song_dominant_color = a_result_song_image.result().dominant_color
 
                     song_artists: list[BaseArtistResponse] = [
@@ -913,7 +913,7 @@ class Rockit:
         if image is None:
             logger.error(f"Missing video image for {public_id}")
             return Result(code=ResultCode.NOT_FOUND, message="Video image not found")
-        image_url = Image.get_internal_image_url(image=image)
+        image_url = Image.get_image_url(image=image)
         return Result(
             code=ResultCode.OK,
             message="OK",

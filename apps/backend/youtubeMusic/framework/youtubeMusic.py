@@ -104,7 +104,7 @@ class YoutubeMusic:
             if a_result.is_ok():
                 image_row = a_result.result()
                 result[url] = (
-                    Image.get_internal_image_url(image_row),
+                    Image.get_image_url(image_row),
                     image_row.dominant_color,
                 )
             else:
@@ -125,8 +125,8 @@ class YoutubeMusic:
         if a_result_img.is_ok():
             image_id = a_result_img.result().id
         else:
-            a_result_image = await Image.get_image_from_path_async(
-                session=session, path="artist-placeholder.png"
+            a_result_image = await Image.get_image_from_key_async(
+                session=session, key="artist-placeholder.png"
             )
             if a_result_image.is_ok():
                 image_id = a_result_image.result().id
@@ -485,12 +485,12 @@ class YoutubeMusic:
                             url=f"/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                             name=artist.name,
-                            imageUrl=Image.get_internal_image_url(artist.image),
+                            imageUrl=Image.get_image_url(artist.image),
                             dominantColor=artist.image.dominant_color,
                         )
                     )
 
-            image_url = Image.get_internal_image_url(db_track.image)
+            image_url = Image.get_image_url(db_track.image)
             dominant_color = db_track.image.dominant_color
 
             is_downloaded = db_track.path is not None
@@ -1156,7 +1156,7 @@ class YoutubeMusic:
             )
 
         public_id = playlist_row.core_playlist.public_id
-        image_url = Image.get_internal_image_url(playlist_row.image) if playlist_row.image else ""
+        image_url = Image.get_image_url(playlist_row.image) if playlist_row.image else ""
 
         return Result(
             code=ResultCode.OK,
@@ -1192,7 +1192,7 @@ class YoutubeMusic:
         """Build a playlist-without-medias response from the database only."""
 
         public_id = playlist_row.core_playlist.public_id
-        image_url = Image.get_internal_image_url(playlist_row.image) if playlist_row.image else ""
+        image_url = Image.get_image_url(playlist_row.image) if playlist_row.image else ""
 
         return Result(
             code=ResultCode.OK,
@@ -1352,12 +1352,12 @@ class YoutubeMusic:
                         url=f"/artist/{core_artist.public_id}",
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                         name=artist.name,
-                        imageUrl=Image.get_internal_image_url(artist.image),
+                        imageUrl=Image.get_image_url(artist.image),
                         dominantColor=artist.image.dominant_color,
                     )
                 )
 
-        image_url = Image.get_internal_image_url(db_track.image)
+        image_url = Image.get_image_url(db_track.image)
         dominant_color = db_track.image.dominant_color
 
         is_downloaded = db_track.path is not None
@@ -1415,7 +1415,7 @@ class YoutubeMusic:
                         url=f"/artist/{core_artist.public_id}",
                         providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                         name=artist.name,
-                        imageUrl=Image.get_internal_image_url(artist.image),
+                        imageUrl=Image.get_image_url(artist.image),
                         dominantColor=artist.image.dominant_color,
                     )
                 )
@@ -1441,12 +1441,12 @@ class YoutubeMusic:
                                 url=f"/artist/{core_artist.public_id}",
                                 providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                                 name=artist.name,
-                                imageUrl=Image.get_internal_image_url(artist.image),
+                                imageUrl=Image.get_image_url(artist.image),
                                 dominantColor=artist.image.dominant_color,
                             )
                         )
 
-                image_url = Image.get_internal_image_url(track.image)
+                image_url = Image.get_image_url(track.image)
                 track_dominant_color = track.image.dominant_color
 
                 is_downloaded = track.path is not None
@@ -1485,7 +1485,7 @@ class YoutubeMusic:
                     )
                 )
 
-        image_url = Image.get_internal_image_url(db_album.image)
+        image_url = Image.get_image_url(db_album.image)
         dominant_color = db_album.image.dominant_color
 
         response = YoutubeMusicAlbumResponse(
@@ -1533,12 +1533,12 @@ class YoutubeMusic:
                                 url=f"/artist/{core_artist.public_id}",
                                 providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                                 name=artist.name,
-                                imageUrl=Image.get_internal_image_url(artist.image),
+                                imageUrl=Image.get_image_url(artist.image),
                                 dominantColor=artist.image.dominant_color,
                             )
                         )
 
-                image_url = Image.get_internal_image_url(track.image)
+                image_url = Image.get_image_url(track.image)
                 track_dominant_color = track.image.dominant_color
 
                 album_public_id = track.album.core_album.public_id
@@ -1585,7 +1585,7 @@ class YoutubeMusic:
         image_url = (
             ""
             if db_artist.youtube_id.startswith("artist-")
-            else Image.get_internal_image_url(db_artist.image)
+            else Image.get_image_url(db_artist.image)
         )
         dominant_color = db_artist.image.dominant_color
 
@@ -1644,12 +1644,12 @@ class YoutubeMusic:
                             url=f"/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                             name=artist.name,
-                            imageUrl=Image.get_internal_image_url(artist.image),
+                            imageUrl=Image.get_image_url(artist.image),
                             dominantColor=artist.image.dominant_color,
                         )
                     )
 
-            image_url = Image.get_internal_image_url(db_track.image)
+            image_url = Image.get_image_url(db_track.image)
             dominant_color = db_track.image.dominant_color
 
             is_downloaded = db_track.path is not None
@@ -1752,7 +1752,7 @@ class YoutubeMusic:
                             url=f"/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                             name=artist.name,
-                            imageUrl=Image.get_internal_image_url(artist.image),
+                            imageUrl=Image.get_image_url(artist.image),
                             dominantColor=artist.image.dominant_color,
                         )
                     )
@@ -1773,7 +1773,7 @@ class YoutubeMusic:
                                 url=f"/artist/{core_artist.public_id}",
                                 providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                                 name=artist.name,
-                                imageUrl=Image.get_internal_image_url(artist.image),
+                                imageUrl=Image.get_image_url(artist.image),
                                 dominantColor=(artist.image.dominant_color),
                             )
                         )
@@ -1794,7 +1794,7 @@ class YoutubeMusic:
                         duration_ms=track.duration_ms,
                         trackNumber=track.track_number,
                         discNumber=track.disc_number,
-                        imageUrl=Image.get_internal_image_url(track.image),
+                        imageUrl=Image.get_image_url(track.image),
                         audioUrl=audio_src,
                         downloaded=is_downloaded,
                         artists=track_artists_list,
@@ -1806,7 +1806,7 @@ class YoutubeMusic:
                             name=db_album.title,
                             artists=album_artists_list,
                             releaseDate=db_album.release_date,
-                            imageUrl=Image.get_internal_image_url(track.image),
+                            imageUrl=Image.get_image_url(track.image),
                             dominantColor=track.image.dominant_color,
                         ),
                         youtubeId=track.youtube_id,
@@ -1814,7 +1814,7 @@ class YoutubeMusic:
                     )
                 )
 
-            image_url = Image.get_internal_image_url(db_album.image)
+            image_url = Image.get_image_url(db_album.image)
             dominant_color = db_album.image.dominant_color
 
             album_by_public_id[db_album.core_album.public_id] = YoutubeMusicAlbumResponse(

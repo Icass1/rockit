@@ -134,3 +134,5 @@ pyright.txt
 # Share example configuration only.
 !**/.env.example
 !**/.env.test.example
+
+apps/backend/images/

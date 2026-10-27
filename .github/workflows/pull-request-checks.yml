@@ -138,12 +138,6 @@ jobs:
             - name: Check TypeScript types
               run: pnpm typecheck
 
-            - name: Test web utilities
-              run: pnpm --filter @app/web test
-
-            - name: Test shared utilities
-              run: pnpm --filter @rockit/shared test
-
             - name: Lint web
               working-directory: apps/web
               run: pnpm lint

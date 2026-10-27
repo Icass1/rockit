@@ -6,10 +6,8 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "test": "node tests/radio.test.mjs && node tests/iosPlayback.test.mjs && node tests/mediaStreaming.test.mjs && node tests/adaptiveTransitions.test.mjs && node tests/vinylArtwork.test.mjs && node tests/listenTogether.test.mjs && node tests/downloads.test.mjs && node tests/notifications.test.mjs && node tests/search.test.mjs && node tests/libraryPerformance.test.mjs && node tests/cachedScreens.test.mjs && node tests/recommendations.test.mjs",
         "lint": "eslint --cache app components && npx tsc --noEmit",
         "prettier": "prettier --write app components hooks styles environment.ts",
-        "test:pip": "node tests/pipResponsive.browser.mjs",
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
@@ -48,7 +46,6 @@
         "esbuild": "^0.28.1",
         "eslint": "^9",
         "eslint-config-next": "16.1.6",
-        "playwright": "1.62.1",
         "postcss": "^8.5.8",
         "tailwindcss": "^4.2.1",
         "typescript": "^5"

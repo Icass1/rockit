@@ -621,39 +621,40 @@ img {
     }
 }
 
-/* Smooth blur-layer falloff: alpha(t) = 1 - (6t⁵ - 15t⁴ + 10t³).
-   Both endpoint slopes are zero, so the blur blends into sharp content.
-   A short tail below the header gives that blend room without clipping it. */
+/* Cover the entire header at full blur. Fade only in the 64px tail below it.
+   The smoothstep curve has zero endpoint slopes, avoiding a visible cutoff.
+   Positions are relative to the layer's bottom so this follows header height. */
 .app-header-backdrop {
     position: absolute;
-    inset: 0 0 -24px;
+    inset: 0 0 -64px;
     z-index: -1;
     pointer-events: none;
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     --header-blur-mask: linear-gradient(
         to bottom,
-        rgb(0 0 0 / 100%) 0%,
-        rgb(0 0 0 / 99.884%) 5%,
-        rgb(0 0 0 / 99.144%) 10%,
-        rgb(0 0 0 / 97.339%) 15%,
-        rgb(0 0 0 / 94.208%) 20%,
-        rgb(0 0 0 / 89.648%) 25%,
-        rgb(0 0 0 / 83.692%) 30%,
-        rgb(0 0 0 / 76.483%) 35%,
-        rgb(0 0 0 / 68.256%) 40%,
-        rgb(0 0 0 / 59.313%) 45%,
-        rgb(0 0 0 / 50%) 50%,
-        rgb(0 0 0 / 40.687%) 55%,
-        rgb(0 0 0 / 31.744%) 60%,
-        rgb(0 0 0 / 23.517%) 65%,
-        rgb(0 0 0 / 16.308%) 70%,
-        rgb(0 0 0 / 10.352%) 75%,
-        rgb(0 0 0 / 5.792%) 80%,
-        rgb(0 0 0 / 2.661%) 85%,
-        rgb(0 0 0 / 0.856%) 90%,
-        rgb(0 0 0 / 0.116%) 95%,
-        rgb(0 0 0 / 0%) 100%
+        #000 0%,
+        #000 calc(100% - 64px),
+        rgb(0 0 0 / 99.884%) calc(100% - 60.8px),
+        rgb(0 0 0 / 99.144%) calc(100% - 57.6px),
+        rgb(0 0 0 / 97.339%) calc(100% - 54.4px),
+        rgb(0 0 0 / 94.208%) calc(100% - 51.2px),
+        rgb(0 0 0 / 89.648%) calc(100% - 48px),
+        rgb(0 0 0 / 83.692%) calc(100% - 44.8px),
+        rgb(0 0 0 / 76.483%) calc(100% - 41.6px),
+        rgb(0 0 0 / 68.256%) calc(100% - 38.4px),
+        rgb(0 0 0 / 59.313%) calc(100% - 35.2px),
+        rgb(0 0 0 / 50%) calc(100% - 32px),
+        rgb(0 0 0 / 40.687%) calc(100% - 28.8px),
+        rgb(0 0 0 / 31.744%) calc(100% - 25.6px),
+        rgb(0 0 0 / 23.517%) calc(100% - 22.4px),
+        rgb(0 0 0 / 16.308%) calc(100% - 19.2px),
+        rgb(0 0 0 / 10.352%) calc(100% - 16px),
+        rgb(0 0 0 / 5.792%) calc(100% - 12.8px),
+        rgb(0 0 0 / 2.661%) calc(100% - 9.6px),
+        rgb(0 0 0 / 0.856%) calc(100% - 6.4px),
+        rgb(0 0 0 / 0.116%) calc(100% - 3.2px),
+        rgb(0 0 0 / 0%) calc(100% - 0px)
     );
     -webkit-mask-image: var(--header-blur-mask);
     mask-image: var(--header-blur-mask);

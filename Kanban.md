@@ -114,7 +114,7 @@
 - priority: medium
 - workload: Easy
     ```md
-    Revisión del borde final: caída suave en S (smootherstep), con pendiente cero al empezar y al terminar. La capa de blur de 20 px se prolonga 24 px bajo el header para fundirse con el contenido sin terminar con una caída abrupta. Geometría rectangular, controles opacos y fallback de transparencia reducida conservados. Capturas comparativas con texto, franjas y foto; pendiente de revisión, sin tests locales.
+    Revisión de legibilidad: blur completo de 20 px durante toda la altura del header; el fundido suave en S empieza por debajo de los controles y ocupa una cola adicional de 64 px. No aumenta la altura del header ni desplaza los ítems; se amplía solo la capa visual, sin interceptar clics. La máscara sigue la altura real del header y conserva pendiente cero en ambos extremos. Pendiente de revisión visual; sin tests locales.
 
     Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
 

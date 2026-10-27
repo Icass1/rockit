@@ -621,9 +621,9 @@ img {
     }
 }
 
-/* Cover the entire header at full blur. Fade only in the 64px tail below it.
-   The smoothstep curve has zero endpoint slopes, avoiding a visible cutoff.
-   Positions are relative to the layer's bottom so this follows header height. */
+/* Full blur covers 75% of the header, then a raised-cosine fade reaches zero
+   through its remaining 25% and the 64px tail. Both endpoint slopes are zero.
+   The layer includes the tail: 75% of header = 75% of layer - 48px. */
 .app-header-backdrop {
     position: absolute;
     inset: 0 0 -64px;
@@ -634,26 +634,26 @@ img {
     --header-blur-mask: linear-gradient(
         to bottom,
         #000 0%,
-        #000 calc(100% - 64px),
-        rgb(0 0 0 / 99.884%) calc(100% - 60.8px),
-        rgb(0 0 0 / 99.144%) calc(100% - 57.6px),
-        rgb(0 0 0 / 97.339%) calc(100% - 54.4px),
-        rgb(0 0 0 / 94.208%) calc(100% - 51.2px),
-        rgb(0 0 0 / 89.648%) calc(100% - 48px),
-        rgb(0 0 0 / 83.692%) calc(100% - 44.8px),
-        rgb(0 0 0 / 76.483%) calc(100% - 41.6px),
-        rgb(0 0 0 / 68.256%) calc(100% - 38.4px),
-        rgb(0 0 0 / 59.313%) calc(100% - 35.2px),
-        rgb(0 0 0 / 50%) calc(100% - 32px),
-        rgb(0 0 0 / 40.687%) calc(100% - 28.8px),
-        rgb(0 0 0 / 31.744%) calc(100% - 25.6px),
-        rgb(0 0 0 / 23.517%) calc(100% - 22.4px),
-        rgb(0 0 0 / 16.308%) calc(100% - 19.2px),
-        rgb(0 0 0 / 10.352%) calc(100% - 16px),
-        rgb(0 0 0 / 5.792%) calc(100% - 12.8px),
-        rgb(0 0 0 / 2.661%) calc(100% - 9.6px),
-        rgb(0 0 0 / 0.856%) calc(100% - 6.4px),
-        rgb(0 0 0 / 0.116%) calc(100% - 3.2px),
+        #000 calc(75% - 48px),
+        rgb(0 0 0 / 99.384%) calc(76.25% - 45.6px),
+        rgb(0 0 0 / 97.553%) calc(77.5% - 43.2px),
+        rgb(0 0 0 / 94.55%) calc(78.75% - 40.8px),
+        rgb(0 0 0 / 90.451%) calc(80% - 38.4px),
+        rgb(0 0 0 / 85.355%) calc(81.25% - 36px),
+        rgb(0 0 0 / 79.389%) calc(82.5% - 33.6px),
+        rgb(0 0 0 / 72.7%) calc(83.75% - 31.2px),
+        rgb(0 0 0 / 65.451%) calc(85% - 28.8px),
+        rgb(0 0 0 / 57.822%) calc(86.25% - 26.4px),
+        rgb(0 0 0 / 50%) calc(87.5% - 24px),
+        rgb(0 0 0 / 42.178%) calc(88.75% - 21.6px),
+        rgb(0 0 0 / 34.549%) calc(90% - 19.2px),
+        rgb(0 0 0 / 27.3%) calc(91.25% - 16.8px),
+        rgb(0 0 0 / 20.611%) calc(92.5% - 14.4px),
+        rgb(0 0 0 / 14.645%) calc(93.75% - 12px),
+        rgb(0 0 0 / 9.549%) calc(95% - 9.6px),
+        rgb(0 0 0 / 5.45%) calc(96.25% - 7.2px),
+        rgb(0 0 0 / 2.447%) calc(97.5% - 4.8px),
+        rgb(0 0 0 / 0.616%) calc(98.75% - 2.4px),
         rgb(0 0 0 / 0%) calc(100% - 0px)
     );
     -webkit-mask-image: var(--header-blur-mask);

@@ -114,7 +114,7 @@
 - priority: medium
 - workload: Easy
     ```md
-    Revisión de legibilidad: blur completo de 20 px durante toda la altura del header; el fundido suave en S empieza por debajo de los controles y ocupa una cola adicional de 64 px. No aumenta la altura del header ni desplaza los ítems; se amplía solo la capa visual, sin interceptar clics. La máscara sigue la altura real del header y conserva pendiente cero en ambos extremos. Pendiente de revisión visual; sin tests locales.
+    Ajuste visual: blur completo de 20 px solo durante el primer 75 % de la altura real del header. Desde ahí, fundido de coseno suave durante el 25 % restante y una cola de 64 px, con pendiente cero en ambos extremos. Reduce la zona de máximo blur y amplía el recorrido del difuminado sin agrandar el header ni afectar a sus controles. Pendiente de revisión visual; sin tests locales.
 
     Implementado: blur con máscara elíptica, caída prolongada, esquinas inferiores curvas y tinte suave. No intercepta los controles; incluye fallback opaco para transparencia reducida. Pendiente de revisión visual, sin ejecutar tests locales.
 

@@ -19,6 +19,7 @@ import {
     type WebSocketMessageHandler,
 } from "@rockit/shared";
 import { createAtom, type ReadonlyAtom } from "@/lib/store";
+import { rockIt } from "@/lib/rockit/rockIt";
 
 export class WebSocketManager {
     static #instance: WebSocketManager;
@@ -108,7 +109,7 @@ export class WebSocketManager {
     }
 
     async init(): Promise<void> {
-        if (this._init) return;
+        if (this._init || !rockIt.userManager.loggedInAtom.get()) return;
 
         // console.debug("WebSocketManager.init", this.webSocket);
 
@@ -125,7 +126,20 @@ export class WebSocketManager {
         this._latestPlaybackId = "";
         this._outgoingPlayback = undefined;
         previousSocket?.close();
+        if (!rockIt.userManager.loggedInAtom.get()) return;
         await this.init();
+    }
+
+    disconnect(): void {
+        this._connectionGeneration++;
+        this._onlineUsers.set(undefined);
+        const previousSocket = this.webSocket;
+        this.webSocket = undefined;
+        this._init = false;
+        this.initializing = false;
+        this._latestPlaybackId = "";
+        this._outgoingPlayback = undefined;
+        previousSocket?.close();
     }
 
     private async attemptReconnect(): Promise<void> {
@@ -133,6 +147,7 @@ export class WebSocketManager {
         let retries = 0;
         // console.debug("WebSocketManager.attemptReconnect", this.initializing);
         if (this.initializing) return;
+        if (!rockIt.userManager.loggedInAtom.get()) return;
         this.initializing = true;
         const generation = this._connectionGeneration;
 
@@ -141,6 +156,10 @@ export class WebSocketManager {
                 setTimeout(resolve, Math.max(2000 * retries, 2000))
             );
             if (generation !== this._connectionGeneration) return;
+            if (!rockIt.userManager.loggedInAtom.get()) {
+                this.initializing = false;
+                return;
+            }
             if (this.webSocket?.readyState === WebSocket.OPEN) break;
 
             try {
@@ -190,6 +209,7 @@ export class WebSocketManager {
     }
 
     async send(message: object): Promise<void> {
+        if (!rockIt.userManager.loggedInAtom.get()) return;
         if (this.webSocket?.readyState !== WebSocket.OPEN) {
             await this.init();
             const deadline = Date.now() + 10000;

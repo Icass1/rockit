@@ -48,10 +48,12 @@ export class UserManager extends BaseUserManager {
                 } else {
                     this._loggedIn.set(false);
                     rockIt.notificationManager.setUser();
+                    rockIt.webSocketManager.disconnect();
                 }
             } else {
                 this._loggedIn.set(false);
                 rockIt.notificationManager.setUser();
+                rockIt.webSocketManager.disconnect();
                 clearSessionOffline().catch(() => {});
                 console.error(res.detail);
             }
@@ -113,6 +115,7 @@ export class UserManager extends BaseUserManager {
             await clearSessionOffline().catch(() => {});
             this._loggedIn.set(false);
             rockIt.notificationManager.setUser();
+            rockIt.webSocketManager.disconnect();
         } else {
             console.error(
                 "Error logging out",

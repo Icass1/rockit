@@ -72,7 +72,6 @@ export class RockIt {
             EWebSocketMessage.NotificationsChanged,
             () => void this.notificationManager.refreshAsync()
         );
-        this.webSocketManager.init();
     }
 
     init(): Promise<void> {
@@ -101,6 +100,9 @@ export class RockIt {
         });
         rockIt.mediaPlayerManager.init();
         await rockIt.userManager.init();
+        if (rockIt.userManager.loggedInAtom.get()) {
+            await rockIt.webSocketManager.init();
+        }
         await rockIt.notificationManager.refreshAsync();
         await rockIt.queueManager.init();
         await Promise.all([

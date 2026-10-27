@@ -544,7 +544,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
            COALESCE(t.real_duration_ms, t.duration_ms)   AS duration_ms,
            cm.public_id                                   AS public_id,
            t.name                                         AS media_name,
-           ci.url                                         AS image_url,
+           ci.id AS image_id,
            {MediaTypeEnum.SONG.value}                     AS media_type_key
     FROM   spotify_scrapper.track t
     JOIN   core.media    cm ON cm.id = t.id
@@ -552,10 +552,10 @@ class SpotifyScrapperProvider(BaseMediaProvider):
     JOIN   core.image    ci ON ci.id = al.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
-        return """    SELECT t.id               AS media_id,
+        return f"""    SELECT t.id               AS media_id,
            cm_a.public_id     AS artist_public_id,
            a.name             AS artist_name,
-           ai.url             AS artist_image_url
+           ai.id AS artist_image_id
     FROM   spotify_scrapper.track       t
     JOIN   spotify_scrapper.track_artist ta   ON ta.track_id  = t.id
     JOIN   spotify_scrapper.artist       a    ON a.id         = ta.artist_id
@@ -563,10 +563,10 @@ class SpotifyScrapperProvider(BaseMediaProvider):
     JOIN   core.image           ai   ON ai.id        = a.image_id"""
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
-        return """    SELECT t.id              AS media_id,
+        return f"""    SELECT t.id              AS media_id,
            cm_al.public_id   AS album_public_id,
            al.name           AS album_name,
-           ai.url            AS album_image_url,
+           ai.id             AS album_image_id,
            (SELECT string_agg(DISTINCT artist.name, ', ' ORDER BY artist.name)
             FROM spotify_scrapper.album_artist aa
             JOIN spotify_scrapper.artist artist ON artist.id = aa.artist_id
@@ -594,7 +594,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
            )                            AS subtitle,
            {MediaTypeEnum.SONG.value}   AS media_type_key,
            p.name                       AS provider_name,
-           ci.url                       AS image_url
+           ci.id AS image_id
     FROM   spotify_scrapper.track t
     JOIN   core.media    cm ON cm.id = t.id
     JOIN   core.provider p  ON p.id = cm.provider_id
@@ -602,7 +602,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
     JOIN   core.image    ci ON ci.id = al.image_id
     LEFT JOIN spotify_scrapper.track_artist ta ON ta.track_id = t.id
     LEFT JOIN spotify_scrapper.artist     ar ON ar.id = ta.artist_id
-    GROUP BY cm.id, cm.public_id, t.name, al.name, p.name, ci.url
+    GROUP BY cm.id, cm.public_id, t.name, al.name, p.name, ci.id
     UNION ALL
     SELECT cm.id                       AS internal_id,
            cm.public_id                 AS public_id,
@@ -610,14 +610,14 @@ class SpotifyScrapperProvider(BaseMediaProvider):
            NULLIF(string_agg(DISTINCT ar.name, ', '), '') AS subtitle,
            {MediaTypeEnum.ALBUM.value}  AS media_type_key,
            p.name                       AS provider_name,
-           ci.url                       AS image_url
+           ci.id AS image_id
     FROM   spotify_scrapper.album al
     JOIN   core.media    cm ON cm.id = al.id
     JOIN   core.provider p  ON p.id = cm.provider_id
     JOIN   core.image    ci ON ci.id = al.image_id
     LEFT JOIN spotify_scrapper.album_artist aa ON aa.album_id = al.id
     LEFT JOIN spotify_scrapper.artist     ar ON ar.id = aa.artist_id
-    GROUP BY cm.id, cm.public_id, al.name, p.name, ci.url
+    GROUP BY cm.id, cm.public_id, al.name, p.name, ci.id
     UNION ALL
     SELECT cm.id                        AS internal_id,
            cm.public_id                  AS public_id,
@@ -625,7 +625,7 @@ class SpotifyScrapperProvider(BaseMediaProvider):
            NULL                          AS subtitle,
            {MediaTypeEnum.ARTIST.value}  AS media_type_key,
            p.name                        AS provider_name,
-           ci.url                        AS image_url
+           ci.id AS image_id
     FROM   spotify_scrapper.artist a
     JOIN   core.media    cm ON cm.id = a.id
     JOIN   core.provider p  ON p.id = cm.provider_id

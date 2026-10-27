@@ -262,7 +262,7 @@ class DefaultProvider(BaseMediaProvider):
            NULL                            AS subtitle,
            {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
            p.name                          AS provider_name,
-           ci.url                          AS image_url
+           ci.id AS image_id
     FROM   default_schema.playlist pl
     JOIN   core.media    cm ON cm.id = pl.id
     JOIN   core.provider p  ON p.id = cm.provider_id

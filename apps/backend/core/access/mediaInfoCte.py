@@ -27,7 +27,7 @@ def get_recommendation_playlist_edges_cte() -> str:
 
 
 def get_media_info_cte() -> str:
-    """CTE aggregating (media_id, duration_ms, public_id, media_name, image_url,
+    """CTE aggregating (media_id, duration_ms, public_id, media_name, image_id,
     media_type_key) across every registered media provider."""
 
     from core.framework import providers
@@ -42,7 +42,7 @@ def get_media_info_cte() -> str:
                 ("duration_ms", "bigint"),
                 ("public_id", "text"),
                 ("media_name", "text"),
-                ("image_url", "text"),
+                ("image_id", "int"),
                 ("media_type_key", "int"),
             ],
         )
@@ -50,7 +50,7 @@ def get_media_info_cte() -> str:
 
 
 def get_artist_info_cte() -> str:
-    """CTE aggregating (media_id, artist_public_id, artist_name, artist_image_url)
+    """CTE aggregating (media_id, artist_public_id, artist_name, artist_image_id)
     across every registered media provider."""
 
     from core.framework import providers
@@ -64,7 +64,7 @@ def get_artist_info_cte() -> str:
                 ("media_id", "int"),
                 ("artist_public_id", "text"),
                 ("artist_name", "text"),
-                ("artist_image_url", "text"),
+                ("artist_image_id", "int"),
             ],
         )
     return build_cte("artist_info", frags)
@@ -91,7 +91,7 @@ def get_genre_info_cte() -> str:
 
 
 def get_album_info_cte() -> str:
-    """CTE aggregating (media_id, album_public_id, album_name, album_image_url, album_artists)
+    """CTE aggregating (media_id, album_public_id, album_name, album_image_id, album_artists)
     across every registered media provider."""
 
     from core.framework import providers
@@ -105,7 +105,7 @@ def get_album_info_cte() -> str:
                 ("media_id", "int"),
                 ("album_public_id", "text"),
                 ("album_name", "text"),
-                ("album_image_url", "text"),
+                ("album_image_id", "int"),
                 ("album_artists", "text"),
             ],
         )

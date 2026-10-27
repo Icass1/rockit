@@ -3,6 +3,7 @@ from logging import Logger
 from sqlalchemy import Float, Integer, String, bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.framework.media.image import Image
 from core.models.searchIndex import SearchIndexEntry
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
@@ -59,7 +60,7 @@ class AdminSearchAccess:
             subtitle,
             media_type_key,
             provider_name,
-            image_url,
+            image_id,
             score
         FROM (
             SELECT
@@ -95,6 +96,9 @@ class AdminSearchAccess:
         )
         rows = result.fetchall()
 
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[row[6] for row in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -106,7 +110,7 @@ class AdminSearchAccess:
                     subtitle=row[3],
                     media_type_key=int(row[4]),
                     provider_name=row[5],
-                    image_url=row[6],
+                    image_url=image_urls.get(row[6]),
                     score=float(row[7]),
                 )
                 for row in rows

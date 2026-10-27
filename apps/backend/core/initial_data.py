@@ -5,7 +5,6 @@ from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import IMAGES_PATH
-from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormEnums.bookmarkModeEnum import BookmarkModeEnumRow
 from core.access.db.ormEnums.downloadStatusEnum import DownloadStatusEnumRow
 from core.access.db.ormEnums.friendStatusEnum import FriendStatusEnumRow
@@ -22,6 +21,7 @@ from core.access.db.ormEnums.repeatModeEnum import RepeatModeEnumRow
 from core.access.db.ormEnums.requestStatusEnum import RequestStatusEnumRow
 from core.access.db.ormEnums.requestTypeEnum import RequestTypeEnumRow
 from core.access.db.ormEnums.skipDirectionEnum import SkipDirectionEnumRow
+from core.access.db.ormModels.image import ImageRow
 from core.access.enumAccess import EnumAccess
 from core.enums.bookmarkModeEnum import BookmarkModeEnum
 from core.enums.downloadStatusEnum import DownloadStatusEnum

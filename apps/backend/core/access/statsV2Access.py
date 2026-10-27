@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.enums.mediaTypeEnum import MediaTypeEnum
+from core.framework.media.image import Image
 from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from core.responses.statsInsightsResponse import StatsInsightsResponse
 from core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
@@ -46,7 +47,7 @@ def _get_media_info_cte() -> str:
                 ("duration_ms", "bigint"),
                 ("public_id", "text"),
                 ("media_name", "text"),
-                ("image_url", "text"),
+                ("image_id", "int"),
                 ("media_type_key", "int"),
             ],
         )
@@ -65,7 +66,7 @@ def _get_artist_info_cte() -> str:
                 ("media_id", "int"),
                 ("artist_public_id", "text"),
                 ("artist_name", "text"),
-                ("artist_image_url", "text"),
+                ("artist_image_id", "int"),
             ],
         )
     return _build_cte("artist_info", frags)
@@ -83,7 +84,7 @@ def _get_album_info_cte() -> str:
                 ("media_id", "int"),
                 ("album_public_id", "text"),
                 ("album_name", "text"),
-                ("album_image_url", "text"),
+                ("album_image_id", "int"),
                 ("album_artists", "text"),
             ],
         )
@@ -538,7 +539,7 @@ class StatsV2Access:
         )
         SELECT mi.public_id,
                mi.media_name,
-               mi.image_url,
+               mi.image_id,
                ld.total_ms,
                (SELECT ai.artist_name
                 FROM   artist_info ai
@@ -559,6 +560,9 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -568,7 +572,7 @@ class StatsV2Access:
                     name=r.media_name,
                     href=f"/song/{r.public_id}",
                     value=int(r.total_ms),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=r.subtitle,
                 )
                 for r in rows
@@ -601,7 +605,7 @@ class StatsV2Access:
         )
         SELECT mi.public_id,
                mi.media_name,
-               mi.image_url,
+               mi.image_id,
                ld.total_ms,
                (SELECT ai.artist_name
                 FROM   artist_info ai
@@ -622,6 +626,9 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -631,7 +638,7 @@ class StatsV2Access:
                     name=r.media_name,
                     href=f"/video/{r.public_id}",
                     value=int(r.total_ms),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=r.subtitle,
                 )
                 for r in rows
@@ -651,18 +658,18 @@ class StatsV2Access:
         artist_durations AS (
             SELECT ai.artist_public_id,
                    ai.artist_name,
-                   ai.artist_image_url,
+                   ai.artist_image_id,
                    SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
             FROM     core.user_media_listen_interval umli
             JOIN     artist_info ai ON ai.media_id = umli.media_id
             WHERE    umli.user_id    = :user_id
               AND    umli.date_added >= :start_date
               AND    umli.date_added <  :end_date
-            GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_url
+            GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_id
         )
         SELECT (ARRAY_AGG(ad.artist_public_id ORDER BY ad.total_ms DESC))[1] AS public_id,
                ad.artist_name       AS name,
-               (ARRAY_AGG(ad.artist_image_url ORDER BY ad.total_ms DESC))[1] AS image_url,
+               (ARRAY_AGG(ad.artist_image_id ORDER BY ad.total_ms DESC))[1] AS image_id,
                SUM(ad.total_ms)     AS total_ms
         FROM   artist_durations ad
         GROUP BY ad.artist_name
@@ -680,6 +687,9 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -689,7 +699,7 @@ class StatsV2Access:
                     name=r.name,
                     href=f"/artist/{r.public_id}",
                     value=int(r.total_ms),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=None,
                 )
                 for r in rows
@@ -709,7 +719,7 @@ class StatsV2Access:
         album_durations AS (
             SELECT ai.album_public_id,
                    ai.album_name,
-                   ai.album_image_url,
+                   ai.album_image_id,
                    ai.album_artists,
                    SUM(umli.time_ms_end - umli.time_ms_start) AS total_ms
             FROM     core.user_media_listen_interval umli
@@ -717,12 +727,12 @@ class StatsV2Access:
             WHERE    umli.user_id    = :user_id
               AND    umli.date_added >= :start_date
               AND    umli.date_added <  :end_date
-            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url, ai.album_artists
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_id, ai.album_artists
         )
         SELECT (ARRAY_AGG(ad.album_public_id ORDER BY ad.total_ms DESC))[1] AS public_id,
                ad.album_name        AS name,
                ad.album_artists     AS subtitle,
-               (ARRAY_AGG(ad.album_image_url ORDER BY ad.total_ms DESC))[1] AS image_url,
+               (ARRAY_AGG(ad.album_image_id ORDER BY ad.total_ms DESC))[1] AS image_id,
                SUM(ad.total_ms)     AS total_ms
         FROM   album_durations ad
         GROUP BY ad.album_name, ad.album_artists
@@ -740,6 +750,9 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -749,7 +762,7 @@ class StatsV2Access:
                     name=r.name,
                     href=f"/album/{r.public_id}",
                     value=int(r.total_ms),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=r.subtitle,
                 )
                 for r in rows

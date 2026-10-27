@@ -280,17 +280,17 @@ class YoutubeProvider(BaseMediaProvider):
            COALESCE(v.real_duration_ms, v.duration_ms)   AS duration_ms,
            cm.public_id                                   AS public_id,
            v.name                                         AS media_name,
-           ci.url                                         AS image_url,
+           ci.id AS image_id,
            {MediaTypeEnum.VIDEO.value}                    AS media_type_key
     FROM   youtube.video v
     JOIN   core.media    cm ON cm.id = v.id
     JOIN   core.image    ci ON ci.id = v.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
-        return """    SELECT v.id               AS media_id,
+        return f"""    SELECT v.id               AS media_id,
            cm_ch.public_id    AS artist_public_id,
            ch.name            AS artist_name,
-           ci.url             AS artist_image_url
+           ci.id AS artist_image_id
     FROM   youtube.video         v
     JOIN   youtube.video_channel vc    ON vc.video_id   = v.id
     JOIN   youtube.channel       ch    ON ch.id         = vc.channel_id
@@ -317,7 +317,7 @@ class YoutubeProvider(BaseMediaProvider):
            ch.name                         AS subtitle,
            {MediaTypeEnum.VIDEO.value}     AS media_type_key,
            p.name                          AS provider_name,
-           ci.url                          AS image_url
+           ci.id AS image_id
     FROM   youtube.video v
     JOIN   core.media    cm ON cm.id = v.id
     JOIN   core.provider p  ON p.id = cm.provider_id
@@ -330,7 +330,7 @@ class YoutubeProvider(BaseMediaProvider):
            NULL                            AS subtitle,
            {MediaTypeEnum.ARTIST.value}    AS media_type_key,
            p.name                          AS provider_name,
-           ci.url                          AS image_url
+           ci.id AS image_id
     FROM   youtube.channel ch
     JOIN   core.media    cm ON cm.id = ch.id
     JOIN   core.provider p  ON p.id = cm.provider_id
@@ -342,7 +342,7 @@ class YoutubeProvider(BaseMediaProvider):
            NULL                            AS subtitle,
            {MediaTypeEnum.PLAYLIST.value}  AS media_type_key,
            p.name                          AS provider_name,
-           ci.url                          AS image_url
+           ci.id AS image_id
     FROM   youtube.playlist pl
     JOIN   core.media    cm ON cm.id = pl.id
     JOIN   core.provider p  ON p.id = cm.provider_id

@@ -2,6 +2,7 @@ from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.statsAccess import get_media_info_cte
+from core.framework.media.image import Image
 from core.responses.friend.friendActivityResponse import FriendActivityItem
 from core.utils.safeAsyncCall import safe_async
 from result import Result, ResultCode
@@ -18,8 +19,8 @@ class ActivityAccess:
         sql = text(f"""
             WITH {get_media_info_cte()}
             SELECT u.public_id AS "userPublicId", u.username,
-                   i.url AS "userImageUrl", mi.public_id AS "mediaPublicId",
-                   mi.media_name AS "mediaName", mi.image_url AS "mediaImageUrl",
+                   i.id AS "userImageId", mi.public_id AS "mediaPublicId",
+                   mi.media_name AS "mediaName", mi.image_id AS "mediaImageId",
                    uml.date_added::text AS "listenedAt"
             FROM core.user_media_listened uml
             JOIN core."user" u ON u.id = uml.user_id
@@ -29,10 +30,23 @@ class ActivityAccess:
             ORDER BY uml.date_added DESC, uml.id DESC LIMIT :limit
         """).bindparams(bindparam("friend_ids", expanding=True))
         rows = await session.execute(sql, {"friend_ids": friend_ids, "limit": limit})
+        mappings = [dict(row) for row in rows.mappings()]
+        image_ids = [
+            image_id
+            for row in mappings
+            for image_id in (row["userImageId"], row["mediaImageId"])
+            if image_id is not None
+        ]
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=image_ids
+        )
+        for row in mappings:
+            row["userImageUrl"] = image_urls.get(row.pop("userImageId"))
+            row["mediaImageUrl"] = image_urls.get(row.pop("mediaImageId"))
         return Result(
             code=ResultCode.OK,
             message="OK",
-            result=[FriendActivityItem.model_validate(dict(row)) for row in rows.mappings()],
+            result=[FriendActivityItem.model_validate(row) for row in mappings],
         )
 
     @staticmethod

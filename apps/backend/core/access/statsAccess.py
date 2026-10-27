@@ -14,6 +14,7 @@ from core.access.mediaInfoCte import (
     get_media_info_cte as _get_media_info_cte,
 )
 from core.enums.mediaTypeEnum import MediaTypeEnum
+from core.framework.media.image import Image
 from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
 from core.responses.statsRankedItemResponse import StatsRankedItemResponse
@@ -289,7 +290,7 @@ class StatsAccess:
         )
         SELECT mi.public_id,
                mi.media_name,
-               mi.image_url,
+               mi.image_id,
                pc.play_count,
                (SELECT ai.artist_name
                 FROM   artist_info ai
@@ -310,6 +311,9 @@ class StatsAccess:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -319,7 +323,7 @@ class StatsAccess:
                     name=r.media_name,
                     href=f"/song/{r.public_id}",
                     value=int(r.play_count),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=r.subtitle,
                 )
                 for r in rows
@@ -351,7 +355,7 @@ class StatsAccess:
         )
         SELECT mi.public_id,
                mi.media_name,
-               mi.image_url,
+               mi.image_id,
                pc.play_count,
                (SELECT ai.artist_name
                 FROM   artist_info ai
@@ -372,6 +376,9 @@ class StatsAccess:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -381,7 +388,7 @@ class StatsAccess:
                     name=r.media_name,
                     href=f"/video/{r.public_id}",
                     value=int(r.play_count),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=r.subtitle,
                 )
                 for r in rows
@@ -401,18 +408,18 @@ class StatsAccess:
         artist_plays AS (
             SELECT ai.artist_public_id,
                    ai.artist_name,
-                   ai.artist_image_url,
+                   ai.artist_image_id,
                    COUNT(*) AS play_count
             FROM     core.user_media_listened uml
             JOIN     artist_info ai ON ai.media_id = uml.media_id
             WHERE    uml.user_id    = :user_id
               AND    uml.date_added >= :start_date
               AND    uml.date_added <  :end_date
-            GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_url
+            GROUP BY ai.artist_public_id, ai.artist_name, ai.artist_image_id
         )
         SELECT (ARRAY_AGG(ap.artist_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
                ap.artist_name       AS name,
-               (ARRAY_AGG(ap.artist_image_url ORDER BY ap.play_count DESC))[1] AS image_url,
+               (ARRAY_AGG(ap.artist_image_id ORDER BY ap.play_count DESC))[1] AS image_id,
                SUM(ap.play_count)   AS play_count
         FROM   artist_plays ap
         GROUP BY ap.artist_name
@@ -430,6 +437,9 @@ class StatsAccess:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -439,7 +449,7 @@ class StatsAccess:
                     name=r.name,
                     href=f"/artist/{r.public_id}",
                     value=int(r.play_count),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=None,
                 )
                 for r in rows
@@ -459,7 +469,7 @@ class StatsAccess:
         album_plays AS (
             SELECT ai.album_public_id,
                    ai.album_name,
-                   ai.album_image_url,
+                   ai.album_image_id,
                    ai.album_artists,
                    COUNT(*) AS play_count
             FROM     core.user_media_listened uml
@@ -467,12 +477,12 @@ class StatsAccess:
             WHERE    uml.user_id    = :user_id
               AND    uml.date_added >= :start_date
               AND    uml.date_added <  :end_date
-            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_url, ai.album_artists
+            GROUP BY ai.album_public_id, ai.album_name, ai.album_image_id, ai.album_artists
         )
         SELECT (ARRAY_AGG(ap.album_public_id ORDER BY ap.play_count DESC))[1] AS public_id,
                ap.album_name        AS name,
                ap.album_artists     AS subtitle,
-               (ARRAY_AGG(ap.album_image_url ORDER BY ap.play_count DESC))[1] AS image_url,
+               (ARRAY_AGG(ap.album_image_id ORDER BY ap.play_count DESC))[1] AS image_id,
                SUM(ap.play_count)   AS play_count
         FROM   album_plays ap
         GROUP BY ap.album_name, ap.album_artists
@@ -490,6 +500,9 @@ class StatsAccess:
                 },
             )
         ).fetchall()
+        image_urls = await Image.get_internal_image_urls_by_ids_async(
+            session=session, image_ids=[r.image_id for r in rows]
+        )
         return Result(
             code=ResultCode.OK,
             message="OK",
@@ -499,7 +512,7 @@ class StatsAccess:
                     name=r.name,
                     href=f"/album/{r.public_id}",
                     value=int(r.play_count),
-                    imageUrl=r.image_url,
+                    imageUrl=image_urls.get(r.image_id),
                     subtitle=r.subtitle,
                 )
                 for r in rows

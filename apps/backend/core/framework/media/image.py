@@ -1,6 +1,5 @@
 import os
 
-from core.utils.imageConverter import convert_image_bytes
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.image import ImageRow
@@ -8,6 +7,7 @@ from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.access.imageAccess import ImageAccess
 from core.framework.storage import Storage
 from core.utils.colorExtractor import extract_dominant_color_from_bytes
+from core.utils.imageConverter import convert_image_bytes
 from logger import logger
 from result import Result, ResultCode
 
@@ -249,6 +249,31 @@ class Image:
             )
 
         return a_result_image
+
+    @staticmethod
+    async def get_internal_image_urls_by_ids_async(
+        session: AsyncSession, image_ids: list[int | None]
+    ) -> dict[int, str | None]:
+        """Resolve image IDs to short-lived storage URLs through the Image framework."""
+
+        ids = list({image_id for image_id in image_ids if image_id is not None})
+        if not ids:
+            return {}
+
+        a_result_images = await ImageAccess.get_images_by_ids_async(session=session, ids=ids)
+        if a_result_images.is_not_ok():
+            logger.error(f"Error getting images by ids. {a_result_images.info()}")
+            return {}
+
+        urls: dict[int, str | None] = {}
+        for image_id, image in a_result_images.result().items():
+            a_result_url = await Image.get_internal_image_url_async(image=image)
+            if a_result_url.is_not_ok():
+                logger.error(f"Error getting URL for image {image_id}. {a_result_url.info()}")
+                urls[image_id] = None
+            else:
+                urls[image_id] = a_result_url.result()
+        return urls
 
     @staticmethod
     async def get_internal_image_url_async(image: ImageRow) -> Result[str]:

@@ -345,17 +345,17 @@ class YoutubeMusicProvider(BaseMediaProvider):
            t.duration_ms AS duration_ms,
            cm.public_id  AS public_id,
            t.title       AS media_name,
-           ci.url        AS image_url,
+           ci.id AS image_id,
            {MediaTypeEnum.SONG.value} AS media_type_key
     FROM   youtube_music.track t
     JOIN   core.media          cm ON cm.id = t.id
     JOIN   core.image          ci ON ci.id = t.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
-        return """    SELECT t.id               AS media_id,
+        return f"""    SELECT t.id               AS media_id,
            cm_a.public_id     AS artist_public_id,
            a.name             AS artist_name,
-           ai.url             AS artist_image_url
+           ai.id AS artist_image_id
     FROM   youtube_music.track         t
     JOIN   youtube_music.track_artists ta   ON ta.track_id  = t.id
     JOIN   youtube_music.artist        a    ON a.id         = ta.artist_id
@@ -363,10 +363,10 @@ class YoutubeMusicProvider(BaseMediaProvider):
     JOIN   core.image                  ai   ON ai.id        = a.image_id"""
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
-        return """    SELECT t.id              AS media_id,
+        return f"""    SELECT t.id              AS media_id,
            cm_al.public_id   AS album_public_id,
            al.title          AS album_name,
-           ai.url            AS album_image_url,
+           ai.id             AS album_image_id,
            (SELECT string_agg(DISTINCT artist.name, ', ' ORDER BY artist.name)
             FROM youtube_music.album_artists aa
             JOIN youtube_music.artist artist ON artist.id = aa.artist_id
@@ -399,7 +399,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
            )                            AS subtitle,
            {MediaTypeEnum.SONG.value}   AS media_type_key,
            p.name                       AS provider_name,
-           ci.url                       AS image_url
+           ci.id AS image_id
     FROM   youtube_music.track t
     JOIN   core.media    cm ON cm.id = t.id
     JOIN   core.provider p  ON p.id = cm.provider_id
@@ -407,7 +407,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     LEFT JOIN youtube_music.album        al  ON al.id = t.album_id
     LEFT JOIN youtube_music.track_artists ta ON ta.track_id = t.id
     LEFT JOIN youtube_music.artist       ar  ON ar.id = ta.artist_id
-    GROUP BY cm.id, cm.public_id, t.title, al.title, p.name, ci.url
+    GROUP BY cm.id, cm.public_id, t.title, al.title, p.name, ci.id
     UNION ALL
     SELECT cm.id                       AS internal_id,
            cm.public_id                 AS public_id,
@@ -415,14 +415,14 @@ class YoutubeMusicProvider(BaseMediaProvider):
            NULLIF(string_agg(DISTINCT ar.name, ', '), '') AS subtitle,
            {MediaTypeEnum.ALBUM.value}  AS media_type_key,
            p.name                       AS provider_name,
-           ci.url                       AS image_url
+           ci.id AS image_id
     FROM   youtube_music.album al
     JOIN   core.media    cm ON cm.id = al.id
     JOIN   core.provider p  ON p.id = cm.provider_id
     JOIN   core.image    ci ON ci.id = al.image_id
     LEFT JOIN youtube_music.album_artists aa ON aa.album_id = al.id
     LEFT JOIN youtube_music.artist       ar  ON ar.id = aa.artist_id
-    GROUP BY cm.id, cm.public_id, al.title, p.name, ci.url
+    GROUP BY cm.id, cm.public_id, al.title, p.name, ci.id
     UNION ALL
     SELECT cm.id                        AS internal_id,
            cm.public_id                  AS public_id,
@@ -430,7 +430,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
            NULL                           AS subtitle,
            {MediaTypeEnum.ARTIST.value}  AS media_type_key,
            p.name                        AS provider_name,
-           ci.url                        AS image_url
+           ci.id AS image_id
     FROM   youtube_music.artist a
     JOIN   core.media    cm ON cm.id = a.id
     JOIN   core.provider p  ON p.id = cm.provider_id

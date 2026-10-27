@@ -1,9 +1,8 @@
 import argparse
 import asyncio
+import json
 import os
 import re
-import shutil
-import sqlite3
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -127,15 +126,11 @@ async def import_vocabulary(persist: bool = True) -> None:
     types_content.append("")
     types_path.write_text("\n".join(types_content))
 
-    friends_defaults_path = Path(
-        "apps/web/lib/generated/friendsVocabulary.json"
-    )
+    friends_defaults_path = Path("apps/web/lib/generated/friendsVocabulary.json")
     # Include common actions and level names used by the Friends surface.
     friends_keys = {"NEWCOMER", "EXPLORER", "ENTHUSIAST", "CONNOISSEUR", "LEGEND"}
     for component in Path("apps/web/components/Friends").glob("*.tsx"):
-        friends_keys.update(
-            re.findall(r"\bv\.([A-Z][A-Z_0-9]+)", component.read_text())
-        )
+        friends_keys.update(re.findall(r"\bv\.([A-Z][A-Z_0-9]+)", component.read_text()))
     friends_defaults = {
         lang: {
             key: value

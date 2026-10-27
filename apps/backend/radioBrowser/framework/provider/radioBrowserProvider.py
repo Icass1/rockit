@@ -73,9 +73,7 @@ class RadioBrowserProvider(BaseMediaProvider):
                 return up.path_template.format(match.group(1))
         return None
 
-    async def add_from_url_async(
-        self, session: AsyncSession, url: str
-    ) -> Result[AddFromUrlResult]:
+    async def add_from_url_async(self, session: AsyncSession, url: str) -> Result[AddFromUrlResult]:
         path: str | None = self.match_url(url)
         if path is None:
             return Result(

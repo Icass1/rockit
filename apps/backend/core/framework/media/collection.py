@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.collectionAccess import CollectionAccess
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.framework import providers
-from core.framework.models.collection import CollectionEntry, CollectionRecord
 from core.framework.media.image import Image
+from core.framework.models.collection import CollectionEntry, CollectionRecord
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistForPlaylistResponse import (
@@ -57,14 +57,15 @@ class Collection:
                 **common,
                 artists=[
                     BaseArtistResponse(
+                        type="artist",
                         **{
-                            **a,
+                            **{key: value for key, value in a.items() if key != "type"},
                             "provider": common["provider"],
                             "imageUrl": await Image.get_internal_image_url_by_public_id_async(
                                 session=session, public_id=a.get("image_public_id")
                             )
                             or "",
-                        }
+                        },
                     )
                     for a in data.get("artists", [])
                 ],

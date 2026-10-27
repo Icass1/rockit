@@ -5,19 +5,21 @@ import type {
     Vocabulary,
 } from "@rockit/shared";
 
-export function unreadNotifications(page: NotificationPageResponse | null): NotificationPageResponse["items"] {
+export function unreadNotifications(
+    page: NotificationPageResponse | null
+): NotificationPageResponse["items"] {
     if (!page?.unreadCount) return [];
     return page.items.filter((notification) => notification.readAt === null);
 }
-
-
 
 export function notificationVocabularyText(
     vocabulary: Vocabulary,
     key: string
 ): string {
     const entry = (vocabulary as unknown as Record<string, unknown>)[key];
-    return typeof entry === "string" && entry !== key ? entry : vocabulary.NOTIFICATION_UNKNOWN;
+    return typeof entry === "string" && entry !== key
+        ? entry
+        : vocabulary.NOTIFICATION_UNKNOWN;
 }
 
 export function replaceNotificationGaps(

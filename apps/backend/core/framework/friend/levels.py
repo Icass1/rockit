@@ -1,23 +1,23 @@
-from typing import List
-from datetime import datetime, timedelta, timezone
-from core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
-from core.framework.friend.listeningBadges import ListeningBadges, badge_current
-from core.framework.friend.listeningPolicy import LISTENING_BADGES
-from core.responses.friend.userLevelResponse import ListeningBadgeResponse
-from core.framework.friend.listeningPolicy import (
-    SESSION_BREAK_SECONDS,
-    SESSION_MILESTONES,
-)
-from core.responses.friend.userLevelResponse import ListeningMilestoneResponse
-from core.responses.friend.userLevelResponse import UserLevelResponse
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from core.access.db.ormModels.friend.userLevel import UserLevelRow
+from core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
 from core.access.friend.userLevelAccess import UserLevelAccess
+from core.framework.friend.listeningBadges import ListeningBadges, badge_current
+from core.framework.friend.listeningPolicy import (
+    LISTENING_BADGES,
+    SESSION_BREAK_SECONDS,
+    SESSION_MILESTONES,
+)
 from core.framework.media.image import Image
-from core.responses.friend.userLevelResponse import UserLevelResponse
+from core.responses.friend.userLevelResponse import (
+    ListeningBadgeResponse,
+    ListeningMilestoneResponse,
+    UserLevelResponse,
+)
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -81,8 +81,7 @@ class Levels:
         rewards = await ListeningRewardsAccess.get_summaries_async(
             session=session,
             user_ids=user_ids,
-            active_after=datetime.now(timezone.utc)
-            - timedelta(seconds=SESSION_BREAK_SECONDS),
+            active_after=datetime.now(UTC) - timedelta(seconds=SESSION_BREAK_SECONDS),
         )
         for result in (users, levels, configs, streaks, rewards):
             if result.is_not_ok():
@@ -128,9 +127,7 @@ class Levels:
                             descriptionKey=badge.description_key,
                             scope=badge.scope,
                             targetMinutes=(
-                                badge.target
-                                if badge.scope in {"session", "total"}
-                                else 0
+                                badge.target if badge.scope in {"session", "total"} else 0
                             ),
                             target=badge.target,
                             current=badge_current(
@@ -146,14 +143,12 @@ class Levels:
                     ],
                     songsListened=rewards.result()[user.id].recorded_listens,
                     totalListeningSeconds=rewards.result()[user.id].total_ms // 1000,
-                    sessionListeningSeconds=rewards.result()[user.id].session_ms
-                    // 1000,
+                    sessionListeningSeconds=rewards.result()[user.id].session_ms // 1000,
                     listeningMilestones=[
                         ListeningMilestoneResponse(
                             minutes=step.minutes,
                             xp=step.xp,
-                            reached=rewards.result()[user.id].session_ms
-                            >= step.minutes * 60000,
+                            reached=rewards.result()[user.id].session_ms >= step.minutes * 60000,
                         )
                         for step in SESSION_MILESTONES
                     ],

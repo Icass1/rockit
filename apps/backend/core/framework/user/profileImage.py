@@ -1,16 +1,15 @@
 import asyncio
 from io import BytesIO
-from pathlib import Path
 from uuid import uuid4
 
-from PIL import Image as PillowImage, ImageOps, UnidentifiedImageError
+from PIL import Image as PillowImage
+from PIL import ImageOps, UnidentifiedImageError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import IMAGES_PATH
-from result import Result, ResultCode
 from core.access.userAccess import UserAccess
 from core.framework.media.image import Image
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024
@@ -35,13 +34,6 @@ def _encode_profile_image(data: bytes) -> bytes:
         return output.getvalue()
 
 
-async def _remove_failed_image(path: Path) -> None:
-    try:
-        await asyncio.to_thread(path.unlink, missing_ok=True)
-    except OSError:
-        logger.exception("Cannot remove failed profile image")
-
-
 async def upload_profile_image_async(
     session: AsyncSession, user_id: int, data: bytes
 ) -> Result[bool]:
@@ -61,26 +53,23 @@ async def upload_profile_image_async(
         logger.warning("Invalid profile image for user %s", user_id)
         return Result(code=ResultCode.BAD_REQUEST, message="Invalid profile image")
 
-    relative = f"avatars/{uuid4().hex}.webp"
-    destination = Path(IMAGES_PATH) / relative
     try:
-        await asyncio.to_thread(destination.parent.mkdir, parents=True, exist_ok=True)
-        await asyncio.to_thread(destination.write_bytes, encoded)
-        image = await Image.create_image_async(session, relative)
+        image = await Image.create_image_from_bytes_async(
+            session=session,
+            data=encoded,
+            filename=f"avatars/{uuid4().hex}.webp",
+            content_type="image/webp",
+            target_format=None,
+        )
         if image.is_not_ok():
             logger.error("Cannot create profile image: %s", image.info())
-            await _remove_failed_image(destination)
             return Result(code=image.code(), message=image.message())
         result = await UserAccess.update_user_image_async(
-            session, user_id, image.result().id
+            session=session, user_id=user_id, image_id=image.result().id
         )
         if result.is_not_ok():
             logger.error("Cannot assign profile image: %s", result.info())
-            await _remove_failed_image(destination)
         return result
     except Exception:
         logger.exception("Cannot save profile image for user %s", user_id)
-        await _remove_failed_image(destination)
-        return Result(
-            code=ResultCode.GENERAL_ERROR, message="Cannot save profile image"
-        )
+        return Result(code=ResultCode.GENERAL_ERROR, message="Cannot save profile image")

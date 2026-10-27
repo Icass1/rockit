@@ -1,30 +1,32 @@
 from datetime import datetime
 from uuid import uuid4
-from sqlalchemy import func, select, update, tuple_, case
-from sqlalchemy.orm import aliased
-from core.access.db.ormModels.media import CoreMediaRow
-from core.access.db.ormModels.friend.friend import FriendRow
-from core.enums.friend.friendStatusEnum import FriendStatusEnum
-from core.enums.mediaTypeEnum import MediaTypeEnum
+
+from sqlalchemy import case, func, select, tuple_, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from result import Result, ResultCode
+from sqlalchemy.orm import aliased
+
+from core.access.db.ormModels.friend.friend import FriendRow
+from core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from core.access.db.ormModels.friend.listeningProgress import (
     ListeningProgressRow,
 )
 from core.access.db.ormModels.friend.listeningXpEvent import ListeningXpEventRow
-from core.access.db.ormModels.friend.userLevel import UserLevelRow
 from core.access.db.ormModels.friend.sharedMedia import SharedMediaRow
-from core.access.db.ormModels.friend.levelConfig import LevelConfigRow
+from core.access.db.ormModels.friend.userLevel import UserLevelRow
+from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.user_media_listened import UserMediaListenedRow
+from core.access.friend.userLevelAccess import UserLevelAccess
+from core.enums.friend.friendStatusEnum import FriendStatusEnum
+from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.models.listeningRewards import (
     ListeningProgressUpdate,
     ListeningRewardSummary,
     ListeningXpAward,
 )
 from core.utils.safeAsyncCall import safe_async
-from core.access.friend.userLevelAccess import UserLevelAccess
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -92,9 +94,7 @@ class ListeningRewardsAccess:
             .execution_options(populate_existing=True)
         )
         if row is None:
-            return Result(
-                code=ResultCode.NOT_FOUND, message="Listening progress unavailable"
-            )
+            return Result(code=ResultCode.NOT_FOUND, message="Listening progress unavailable")
         return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
@@ -124,10 +124,7 @@ class ListeningRewardsAccess:
             result = await session.execute(
                 insert(ListeningXpEventRow)
                 .values(
-                    [
-                        {"user_id": user_id, "event_key": a.event_key, "xp": a.xp}
-                        for a in awards
-                    ]
+                    [{"user_id": user_id, "event_key": a.event_key, "xp": a.xp} for a in awards]
                 )
                 .on_conflict_do_nothing(
                     index_elements=[
@@ -168,9 +165,7 @@ class ListeningRewardsAccess:
             return Result(code=ResultCode.OK, message="OK", result={})
         cursors = (
             await session.scalars(
-                select(ListeningProgressRow).where(
-                    ListeningProgressRow.user_id.in_(user_ids)
-                )
+                select(ListeningProgressRow).where(ListeningProgressRow.user_id.in_(user_ids))
             )
         ).all()
         counts = await session.execute(
@@ -197,11 +192,7 @@ class ListeningRewardsAccess:
             select(
                 SharedMediaRow.sender_user_id,
                 func.count(
-                    func.distinct(
-                        tuple_(
-                            SharedMediaRow.recipient_user_id, SharedMediaRow.media_id
-                        )
-                    )
+                    func.distinct(tuple_(SharedMediaRow.recipient_user_id, SharedMediaRow.media_id))
                 ),
             )
             .where(SharedMediaRow.sender_user_id.in_(user_ids))
@@ -210,9 +201,7 @@ class ListeningRewardsAccess:
         recommendations = {user_id: int(count) for user_id, count in shares}
         reverse = aliased(FriendRow)
         friend_counts = await session.execute(
-            select(
-                FriendRow.user_id, func.count(func.distinct(FriendRow.friend_user_id))
-            )
+            select(FriendRow.user_id, func.count(func.distinct(FriendRow.friend_user_id)))
             .where(
                 FriendRow.user_id.in_(user_ids),
                 FriendRow.status_key == FriendStatusEnum.ACCEPTED.value,
@@ -233,9 +222,7 @@ class ListeningRewardsAccess:
             row = by_user.get(user_id)
             result[user_id] = ListeningRewardSummary(
                 total_ms=row.total_ms if row else 0,
-                session_ms=(
-                    row.session_ms if row and row.active_at >= active_after else 0
-                ),
+                session_ms=(row.session_ms if row and row.active_at >= active_after else 0),
                 recorded_listens=plays.get(user_id, (0, 0))[0],
                 unique_recordings=plays.get(user_id, (0, 0))[1],
                 recommendations=recommendations.get(user_id, 0),

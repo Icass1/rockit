@@ -57,9 +57,7 @@ class Sharing:
             return Result(code=a_result.code(), message=a_result.message())
         from core.framework.friend.listeningBadges import ListeningBadges
 
-        rewards = await ListeningBadges.refresh_user_async(
-            session=session, user_id=sender_user_id
-        )
+        rewards = await ListeningBadges.refresh_user_async(session=session, user_id=sender_user_id)
         if rewards.is_not_ok():
             logger.error("Error awarding sharing emblems: %s", rewards.info())
             return Result(code=rewards.code(), message=rewards.message())

@@ -1,23 +1,25 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from result import Result
-from core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
+
 from core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
-from core.framework.friend.listeningPolicy import LISTENING_BADGES
+from core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
+from core.framework.friend.friend import Friend
 from core.framework.friend.listeningPolicy import (
+    LISTENING_BADGES,
     MAX_OBSERVATION_GAP_MS,
     POSITION_TOLERANCE_MS,
     SESSION_BREAK_SECONDS,
     SESSION_MILESTONES,
 )
+from core.framework.friend.notifications import notify_after_commit
 from core.framework.models.listeningRewards import (
     ListeningProgressUpdate,
     ListeningXpAward,
 )
 from logger import getLogger
-from core.framework.friend.notifications import notify_after_commit
-from core.framework.friend.friend import Friend
+from result import Result
 
 logger = getLogger(__name__)
 
@@ -32,7 +34,7 @@ class ListeningRewards:
         baseline: bool = False,
     ) -> Result[bool]:
         """Credit advancing audio positions bounded by server elapsed time, never seeks."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         loaded = await ListeningRewardsAccess.get_locked_async(
             session=session,
             user_id=user_id,
@@ -97,15 +99,11 @@ class ListeningRewards:
                 return Result(code=unlocked.code(), message=unlocked.message())
             unlocked_any = unlocked.result()
         if saved.is_ok() and (
-            saved.result()
-            or unlocked_any
-            or progress.session_ms // 30000 != previous_ms // 30000
+            saved.result() or unlocked_any or progress.session_ms // 30000 != previous_ms // 30000
         ):
             recipients = [user_id]
             if saved.result() or unlocked_any:
-                friends = await Friend.get_friend_ids_async(
-                    session=session, user_id=user_id
-                )
+                friends = await Friend.get_friend_ids_async(session=session, user_id=user_id)
                 if friends.is_ok():
                     recipients.extend(friends.result())
                 else:

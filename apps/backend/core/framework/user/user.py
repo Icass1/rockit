@@ -840,9 +840,7 @@ class User:
 
         from core.framework.friend.listeningBadges import ListeningBadges
 
-        rewards = await ListeningBadges.refresh_user_async(
-            session=session, user_id=user_id
-        )
+        rewards = await ListeningBadges.refresh_user_async(session=session, user_id=user_id)
         if rewards.is_not_ok():
             logger.error("Error awarding listen emblems: %s", rewards.info())
             return Result(code=rewards.code(), message=rewards.message())

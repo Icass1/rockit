@@ -11,15 +11,13 @@ from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.framework.websocket.listenInterval import (
     close_listen_interval_on_disconnect_async,
 )
-
-from core.responses.downloadProgressMessage import DownloadProgressMessage
-from core.responses.onlineUsersMessage import OnlineUsersMessage
-from core.responses.friendsPresenceChangedMessage import (
-    FriendsPresenceChangedMessage,
-)
 from core.framework.websocket.playbackState import UserPlaybackState
 from core.framework.websocket.webSocketRouter import websocket_router
 from core.responses.downloadProgressMessage import DownloadProgressMessage
+from core.responses.friendsPresenceChangedMessage import (
+    FriendsPresenceChangedMessage,
+)
+from core.responses.onlineUsersMessage import OnlineUsersMessage
 from logger import getLogger
 
 logger = getLogger(__name__)
@@ -34,10 +32,10 @@ class _PlaybackMessage(Protocol):
 class WebSocketManager:
     def __init__(self) -> None:
         self._presence_lock = asyncio.Lock()
-        self.user_message_locks: Dict[int, asyncio.Lock] = {}
-        self.playback_owners: Dict[int, WebSocket] = {}
-        self.active_connections: Dict[int, Set[WebSocket]] = {}
-        self.user_playback_states: Dict[int, UserPlaybackState] = {}
+        self.user_message_locks: dict[int, asyncio.Lock] = {}
+        self.playback_owners: dict[int, WebSocket] = {}
+        self.active_connections: dict[int, set[WebSocket]] = {}
+        self.user_playback_states: dict[int, UserPlaybackState] = {}
 
     async def close_all_async(self, timeout_seconds: float = 2.0) -> int:
         """Close every connected client during application shutdown."""
@@ -132,16 +130,12 @@ class WebSocketManager:
             async with db_context.session_scope_async() as session:
                 friends = await Friend.get_friend_ids_async(session, user_id)
                 if friends.is_not_ok():
-                    logger.error(
-                        "Cannot resolve presence recipients: %s", friends.info()
-                    )
+                    logger.error("Cannot resolve presence recipients: %s", friends.info())
                     return
                 friend_ids = friends.result()
             # Only accepted mutual friends receive an invalidation, without user IDs.
             for friend_id in friend_ids:
-                await self.send_to_user_async(
-                    friend_id, FriendsPresenceChangedMessage()
-                )
+                await self.send_to_user_async(friend_id, FriendsPresenceChangedMessage())
         except Exception:
             logger.exception("Cannot notify friends of presence change")
 

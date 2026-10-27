@@ -221,9 +221,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
         return await youtube_music.get_artists_async(session=session, public_ids=public_ids)
 
     @time_it
-    async def add_from_url_async(
-        self, session: AsyncSession, url: str
-    ) -> Result[AddFromUrlResult]:
+    async def add_from_url_async(self, session: AsyncSession, url: str) -> Result[AddFromUrlResult]:
         """Add a YouTube Music track/album/artist/playlist from URL to the database."""
 
         internal_path: str | None = self.match_url(url)
@@ -352,7 +350,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     JOIN   core.image          ci ON ci.id = t.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
-        return f"""    SELECT t.id               AS media_id,
+        return """    SELECT t.id               AS media_id,
            cm_a.public_id     AS artist_public_id,
            a.name             AS artist_name,
            ai.id AS artist_image_id
@@ -363,7 +361,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     JOIN   core.image                  ai   ON ai.id        = a.image_id"""
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
-        return f"""    SELECT t.id              AS media_id,
+        return """    SELECT t.id              AS media_id,
            cm_al.public_id   AS album_public_id,
            al.title          AS album_name,
            ai.id             AS album_image_id,

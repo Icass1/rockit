@@ -2,42 +2,21 @@ from logging import Logger
 from typing import cast
 
 from argon2 import PasswordHasher
-from fastapi import Depends, APIRouter, File, HTTPException, Request, UploadFile
-from logging import Logger
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from logger import getLogger
-from core.utils.backendUtils import time_it
-
-from result import Result
-
-from core.types.libraryMediaTypes import LibraryResponseItem
-
+from core.access.db.ormModels.image import ImageRow
+from core.access.db.ormModels.user import UserRow
+from core.access.db.ormModels.user_library_media import UserLibraryMediaRow
+from core.access.db.ormModels.user_liked_media import UserLikedMediaRow
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.enums.repeatModeEnum import RepeatModeEnum
-
-from core.requests.likeMediaRequest import LikeMediaRequest
-
-from core.middlewares.authMiddleware import AuthMiddleware
-from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
-
-from core.access.db.ormModels.user import UserRow
-from core.access.db.ormModels.image import ImageRow
-from core.access.db.ormModels.user_liked_media import UserLikedMediaRow
-from core.access.db.ormModels.user_library_media import UserLibraryMediaRow
-
-
-from core.framework.user.user import User
+from core.framework.media.image import Image
+from core.framework.notification import Notification
 from core.framework.user.profileImage import (
     MAX_PROFILE_IMAGE_BYTES,
     upload_profile_image_async,
 )
-from core.framework.media.image import Image
-
-
-
-from core.framework.media.image import Image
-from core.framework.notification import Notification
 from core.framework.user.user import User
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -46,13 +25,6 @@ from core.requests.notificationRequests import UpdateNotificationSubscriptionsRe
 from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
 from core.requests.updateLangRequest import UpdateLangRequest
 from core.requests.updatePasswordRequest import UpdatePasswordRequest
-from core.requests.updateCrossfadeRequest import UpdateCrossfadeRequest
-
-from core.responses.okResponse import OkResponse
-from core.responses.queueResponse import QueueResponse
-from core.responses.sessionResponse import SessionResponse
-from core.responses.likedMediaResponse import LikedMediaResponse
-from core.responses.userSettingsResponse import UserSettingsResponse
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
 )
@@ -114,15 +86,11 @@ async def get_user(request: Request) -> UserSettingsResponse:
 
 
 @router.post("/image", response_model=OkResponse)
-async def upload_profile_image(
-    request: Request, file: UploadFile = File(...)
-) -> OkResponse:
+async def upload_profile_image(request: Request, file: UploadFile = File(...)) -> OkResponse:
     current_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if current_user.is_not_ok():
         logger.error("Cannot identify profile image owner: %s", current_user.info())
-        raise HTTPException(
-            status_code=current_user.get_http_code(), detail=current_user.message()
-        )
+        raise HTTPException(status_code=current_user.get_http_code(), detail=current_user.message())
     try:
         data = await file.read(MAX_PROFILE_IMAGE_BYTES + 1)
     finally:

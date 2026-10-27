@@ -778,9 +778,7 @@ async def get_my_level(request: Request) -> UserLevelResponse:
     profiles = await Levels.get_profiles_async(session=session, user_ids=[user.id])
     if profiles.is_not_ok():
         logger.error("Cannot load listening profile: %s", profiles.info())
-        raise HTTPException(
-            status_code=profiles.get_http_code(), detail=profiles.message()
-        )
+        raise HTTPException(status_code=profiles.get_http_code(), detail=profiles.message())
     return profiles.result()[0]
 
 
@@ -800,9 +798,7 @@ async def get_user_level(request: Request, user_public_id: str) -> UserLevelResp
     profiles = await Levels.get_profiles_async(session=session, user_ids=[target.id])
     if profiles.is_not_ok():
         logger.error("Cannot load listening profile: %s", profiles.info())
-        raise HTTPException(
-            status_code=profiles.get_http_code(), detail=profiles.message()
-        )
+        raise HTTPException(status_code=profiles.get_http_code(), detail=profiles.message())
     return profiles.result()[0]
 
 

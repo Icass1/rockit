@@ -179,9 +179,7 @@ class Friend:
         from core.framework.friend.listeningBadges import ListeningBadges
 
         for owner_id in (request_row.from_user_id, user_id):
-            rewards = await ListeningBadges.refresh_user_async(
-                session=session, user_id=owner_id
-            )
+            rewards = await ListeningBadges.refresh_user_async(session=session, user_id=owner_id)
             if rewards.is_not_ok():
                 logger.error("Error awarding friendship emblems: %s", rewards.info())
                 return Result(code=rewards.code(), message=rewards.message())

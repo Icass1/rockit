@@ -160,9 +160,7 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
 
         return await Rockit.get_videos_responses_async(session=session, public_ids=public_ids)
 
-    async def add_from_url_async(
-        self, session: AsyncSession, url: str
-    ) -> Result[AddFromUrlResult]:
+    async def add_from_url_async(self, session: AsyncSession, url: str) -> Result[AddFromUrlResult]:
         """RockIt does not support adding media from external URLs."""
 
         return Result(
@@ -328,7 +326,7 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
     JOIN   core.image ci ON ci.id = rv.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
-        return f"""    SELECT rs.id           AS media_id,
+        return """    SELECT rs.id           AS media_id,
            cm.public_id     AS artist_public_id,
            ra.name          AS artist_name,
            ci.id AS artist_image_id

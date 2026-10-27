@@ -5,13 +5,11 @@ from typing import TYPE_CHECKING, Any
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from logger import getLogger
-from result import Result
-from core.framework.user.user import User
-from core.framework.websocket.playbackState import UserPlaybackState
-from core.framework.websocket.listenInterval import close_listen_interval_async
-from core.framework.websocket.webSocketRouter import websocket_router
 from core.framework.friend.listeningRewards import ListeningRewards
+from core.framework.user.user import User
+from core.framework.websocket.listenInterval import close_listen_interval_async
+from core.framework.websocket.playbackState import UserPlaybackState
+from core.framework.websocket.webSocketRouter import websocket_router
 from core.requests.wsMessages import CurrentMediaMessageRequest
 from core.responses.currentMediaMessage import CurrentMediaMessage
 from logger import getLogger

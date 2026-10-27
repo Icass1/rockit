@@ -34,6 +34,11 @@ def pytest_configure(config: object) -> None:
         "DB_USER": "test",
         "DB_PASSWORD": "test",
         "DB_NAME": "unused_test_database",
+        "S3_PRIVATE_ENDPOINT_URL": "http://localhost:9000",
+        "S3_PUBLIC_ENDPOINT_URL": "http://localhost:9000",
+        "S3_ACCESS_KEY": "test",
+        "S3_SECRET_KEY": "test-only-storage-key",
+        "S3_BUCKET": "rockit-test",
     }
     os.environ.update(defaults)
     os.environ.update(

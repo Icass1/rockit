@@ -10,7 +10,6 @@ from core.framework.media.collection import Collection
 from core.framework.media.media import Media
 from core.framework.media.search import provider_search
 from core.framework.provider.types import AddFromUrlResult
-from core.framework.storage import Storage
 from core.framework.recommendation import Recommendation, RecommendationResult
 from core.framework.user.user import User
 from core.middlewares.authMiddleware import AuthMiddleware

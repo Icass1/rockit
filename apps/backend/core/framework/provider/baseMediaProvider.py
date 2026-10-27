@@ -172,9 +172,7 @@ class BaseMediaProvider(BaseProvider):
             message=f"Provider '{self._name}' doesn't implement get_stations_async.",
         )
 
-    async def add_from_url_async(
-        self, session: AsyncSession, url: str
-    ) -> Result[AddFromUrlResult]:
+    async def add_from_url_async(self, session: AsyncSession, url: str) -> Result[AddFromUrlResult]:
         return Result(
             code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement add_from_url_async.",
@@ -257,7 +255,7 @@ class BaseMediaProvider(BaseProvider):
         return None
 
     def get_stats_album_info_cte_fragment(self) -> str | None:
-        """SELECT fragment for album_info (media_id, album_public_id, album_name, album_image_url, album_artists)."""
+        """SELECT fragment for album_info, including image ID and artist names."""
         return None
 
     def get_stats_genre_info_cte_fragment(self) -> str | None:

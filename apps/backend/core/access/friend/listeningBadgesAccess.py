@@ -1,10 +1,12 @@
 from datetime import datetime
-from sqlalchemy import func, select, bindparam, column, Integer, String, true
-from sqlalchemy.dialects.postgresql import insert, JSONB
+
+from sqlalchemy import Integer, String, bindparam, column, func, select, true
+from sqlalchemy.dialects.postgresql import JSONB, insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from result import Result, ResultCode
+
 from core.access.db.ormModels.friend.listeningBadge import ListeningBadgeRow
 from core.utils.safeAsyncCall import safe_async
+from result import Result, ResultCode
 
 
 class ListeningBadgesAccess:
@@ -24,9 +26,7 @@ class ListeningBadgesAccess:
             )
             .returning(ListeningBadgeRow.badge_key)
         )
-        return Result(
-            code=ResultCode.OK, message="OK", result=bool(result.scalars().all())
-        )
+        return Result(code=ResultCode.OK, message="OK", result=bool(result.scalars().all()))
 
     @staticmethod
     @safe_async

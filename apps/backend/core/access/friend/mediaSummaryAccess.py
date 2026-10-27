@@ -27,8 +27,5 @@ class MediaSummaryAccess:
         return Result(
             code=ResultCode.OK,
             message="OK",
-            result={
-                str(public_id): image_urls.get(image_id)
-                for public_id, image_id in rows
-            },
+            result={str(public_id): image_urls.get(image_id) for public_id, image_id in rows},
         )

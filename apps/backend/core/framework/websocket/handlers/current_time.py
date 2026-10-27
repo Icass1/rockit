@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.framework.friend.listeningRewards import ListeningRewards
 from core.framework.user.user import User
 from core.framework.websocket.listenInterval import (
     check_and_record_listen_threshold_async,
@@ -15,7 +16,6 @@ from core.framework.websocket.listenInterval import (
 )
 from core.framework.websocket.playbackState import UserPlaybackState
 from core.framework.websocket.webSocketRouter import websocket_router
-from core.framework.friend.listeningRewards import ListeningRewards
 from core.requests.wsMessages import CurrentTimeMessageRequest
 from core.responses.currentTimeMessage import CurrentTimeMessage
 from logger import getLogger

@@ -124,9 +124,7 @@ class Providers:
                 return path
         return None
 
-    async def add_from_url_async(
-        self, session: AsyncSession, url: str
-    ) -> Result[AddFromUrlResult]:
+    async def add_from_url_async(self, session: AsyncSession, url: str) -> Result[AddFromUrlResult]:
         """Try all providers to add media from a URL."""
         for provider in self.get_media_providers():
             a_result = await provider.add_from_url_async(session=session, url=url)

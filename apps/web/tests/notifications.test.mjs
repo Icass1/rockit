@@ -74,11 +74,11 @@ test("immediate UI toasts do not create server inbox activity", async () => {
 });
 test("failed reads preserve the inbox and failed destinations never mark read", async () => {
     const { manager, http } = setup(); manager.setUser("alice"); await settle();
-    http.markNotificationRead = async () => ({ isNotOk: () => true, message: "failed" });
+    http.markNotificationRead = async () => ({ isOk: () => false, isNotOk: () => true, message: "failed" });
     assert.equal(await manager.markRead("one"), false);
     assert.equal(manager.notificationsAtom.get()[0].readAt, null);
     let reads = 0; http.markNotificationRead = async () => { reads++; return ok(entry("one")); };
-    http.getNotificationDestination = async () => ({ isNotOk: () => true, message: "missing" });
+    http.getNotificationDestination = async () => ({ isOk: () => false, isNotOk: () => true, message: "missing" });
     assert.equal(await manager.destinationAsync(entry("one")), null);
     assert.equal(reads, 0);
 });

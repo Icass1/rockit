@@ -1,10 +1,18 @@
 import { createElement, ReactNode } from "react";
-import { toast } from "sonner";
 import type { NotificationResponse } from "@rockit/shared";
+import { toast } from "sonner";
 import { ENotificationType } from "@/models/enums/notificationType";
-import type { INotification, NotificationOptions } from "@/models/interfaces/notification";
+import type {
+    INotification,
+    NotificationOptions,
+} from "@/models/interfaces/notification";
 import { Http } from "@/lib/http";
-import { createArrayAtom, createAtom, ReadonlyArrayAtom, ReadonlyAtom } from "@/lib/store";
+import {
+    createArrayAtom,
+    createAtom,
+    ReadonlyArrayAtom,
+    ReadonlyAtom,
+} from "@/lib/store";
 
 const TAP_MAX_MOVEMENT_PX = 10;
 
@@ -68,9 +76,17 @@ export class NotificationManager {
         const generation = this._generation;
         const revision = ++this._revision;
         try {
-            const result = await Http.listNotifications(20, this._offset, this._unreadOnly);
-            if (generation !== this._generation || revision !== this._revision) return;
-            if (!result.isOk()) { this._error.set(result.message); return; }
+            const result = await Http.listNotifications(
+                20,
+                this._offset,
+                this._unreadOnly
+            );
+            if (generation !== this._generation || revision !== this._revision)
+                return;
+            if (!result.isOk()) {
+                this._error.set(result.message);
+                return;
+            }
             this._notificationsAtom.set(result.result.items);
             this._unreadCount.set(result.result.unreadCount);
             this._totalCount.set(result.result.totalCount);
@@ -90,30 +106,64 @@ export class NotificationManager {
         this._revision++;
         const result = await Http.markNotificationRead(id);
         if (generation !== this._generation) return false;
-        if (!result.isOk()) { this._error.set(result.message); return false; }
+        if (!result.isOk()) {
+            this._error.set(result.message);
+            return false;
+        }
         await this.refreshAsync();
         return true;
     }
 
-    async destinationAsync(notification: NotificationResponse): Promise<string | null> {
+    async destinationAsync(
+        notification: NotificationResponse
+    ): Promise<string | null> {
         const generation = this._generation;
-        const result = await Http.getNotificationDestination(notification.publicId);
+        const result = await Http.getNotificationDestination(
+            notification.publicId
+        );
         if (generation !== this._generation) return null;
-        if (!result.isOk()) { this._error.set(result.message); return null; }
-        return await this.markRead(notification.publicId) ? result.result.url : null;
+        if (!result.isOk()) {
+            this._error.set(result.message);
+            return null;
+        }
+        return (await this.markRead(notification.publicId))
+            ? result.result.url
+            : null;
     }
 
-    get notificationsAtom(): ReadonlyArrayAtom<INotification> { return this._notificationsAtom.getReadonlyAtom(); }
-    get unreadCountAtom(): ReadonlyAtom<number> { return this._unreadCount.getReadonlyAtom(); }
-    get totalCountAtom(): ReadonlyAtom<number> { return this._totalCount.getReadonlyAtom(); }
-    get errorAtom(): ReadonlyAtom<string | null> { return this._error.getReadonlyAtom(); }
-    get offset(): number { return this._offset; }
+    get notificationsAtom(): ReadonlyArrayAtom<INotification> {
+        return this._notificationsAtom.getReadonlyAtom();
+    }
+    get unreadCountAtom(): ReadonlyAtom<number> {
+        return this._unreadCount.getReadonlyAtom();
+    }
+    get totalCountAtom(): ReadonlyAtom<number> {
+        return this._totalCount.getReadonlyAtom();
+    }
+    get errorAtom(): ReadonlyAtom<string | null> {
+        return this._error.getReadonlyAtom();
+    }
+    get offset(): number {
+        return this._offset;
+    }
 
-    notifyError(message: string): void { this.notify(ENotificationType.ERROR, message); }
-    notifyInfo(message: string): void { this.notify(ENotificationType.INFO, message); }
-    notifyWarn(message: string): void { this.notify(ENotificationType.WARN, message); }
-    notifySuccess(message: string): void { this.notify(ENotificationType.SUCCESS, message); }
-    notify(type: ENotificationType, message: string, options: NotificationOptions = {}): void {
+    notifyError(message: string): void {
+        this.notify(ENotificationType.ERROR, message);
+    }
+    notifyInfo(message: string): void {
+        this.notify(ENotificationType.INFO, message);
+    }
+    notifyWarn(message: string): void {
+        this.notify(ENotificationType.WARN, message);
+    }
+    notifySuccess(message: string): void {
+        this.notify(ENotificationType.SUCCESS, message);
+    }
+    notify(
+        type: ENotificationType,
+        message: string,
+        options: NotificationOptions = {}
+    ): void {
         // Immediate UI feedback stays local. Only registered server events create inbox history.
         if (options.toast !== false) this._showToast(type, message);
         if (options.category) void this.refreshAsync();

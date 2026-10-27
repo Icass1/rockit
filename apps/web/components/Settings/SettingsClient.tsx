@@ -12,10 +12,8 @@ import CrossFadeInput from "@/components/Settings/CrossFadeInput";
 import DownloadAppButton from "@/components/Settings/DownloadAppButton";
 import { useSettingsUser } from "@/components/Settings/hooks/useSettingsUser";
 import LogOutButton from "@/components/Settings/LogOutButton";
-import ProfileImageInput from "@/components/Settings/ProfileImageInput";
-
-
 import NotificationSettings from "@/components/Settings/NotificationSettings";
+import ProfileImageInput from "@/components/Settings/ProfileImageInput";
 
 function SettingsSection({
     title,

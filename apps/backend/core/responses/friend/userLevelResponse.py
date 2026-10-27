@@ -1,10 +1,10 @@
-from typing import List
 from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 from core.framework.models.listeningRewards import (
     ListeningBadgeScope,
 )
-
-from pydantic import BaseModel, Field
 
 
 class LevelConfig(BaseModel):

@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from result import Result, ResultCode
+
 from core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
 from core.framework.friend.listeningBadgeCatalog import LISTENING_BADGES
 from core.framework.friend.notifications import notify_after_commit
@@ -9,6 +10,7 @@ from core.framework.models.listeningRewards import (
     ListeningRewardSummary,
 )
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -43,8 +45,7 @@ class ListeningBadges:
         summaries = await ListeningRewardsAccess.get_summaries_async(
             session=session,
             user_ids=[user_id],
-            active_after=datetime.now(timezone.utc)
-            - timedelta(seconds=SESSION_BREAK_SECONDS),
+            active_after=datetime.now(UTC) - timedelta(seconds=SESSION_BREAK_SECONDS),
         )
         streaks = await get_streaks_for_users_async(session, [user_id])
         for result in (summaries, streaks):
@@ -70,9 +71,7 @@ class ListeningBadges:
         streaks: dict[int, int],
     ) -> Result[dict[int, dict[str, datetime]]]:
         """Unlock new families and historical lower tiers without rewriting earned dates."""
-        loaded = await ListeningBadgesAccess.get_for_users_async(
-            session=session, user_ids=user_ids
-        )
+        loaded = await ListeningBadgesAccess.get_for_users_async(session=session, user_ids=user_ids)
         if loaded.is_not_ok():
             logger.error("Cannot load emblem collections: %s", loaded.info())
             return Result(code=loaded.code(), message=loaded.message())
@@ -95,16 +94,10 @@ class ListeningBadges:
                     summary=summaries[user_id],
                     streak=streaks.get(user_id, 0),
                 )
-                eligible = (
-                    max(current, proven_session)
-                    if badge.scope == "session"
-                    else current
-                )
+                eligible = max(current, proven_session) if badge.scope == "session" else current
                 if badge.key not in owned and eligible >= badge.target:
                     awards.append((user_id, badge.key))
-        granted = await ListeningBadgesAccess.award_many_async(
-            session=session, awards=awards
-        )
+        granted = await ListeningBadgesAccess.award_many_async(session=session, awards=awards)
         if granted.is_not_ok():
             logger.error("Cannot unlock emblem collection: %s", granted.info())
             return Result(code=granted.code(), message=granted.message())

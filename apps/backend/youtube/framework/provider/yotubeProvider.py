@@ -141,9 +141,7 @@ class YoutubeProvider(BaseMediaProvider):
                 return up.path_template.format(match.group(1))
         return None
 
-    async def add_from_url_async(
-        self, session: AsyncSession, url: str
-    ) -> Result[AddFromUrlResult]:
+    async def add_from_url_async(self, session: AsyncSession, url: str) -> Result[AddFromUrlResult]:
         """Add a YouTube video from URL to the database."""
         video_id: str | None = None
         for up in YOUTUBE_URL_PATTERNS:
@@ -287,7 +285,7 @@ class YoutubeProvider(BaseMediaProvider):
     JOIN   core.image    ci ON ci.id = v.image_id"""
 
     def get_stats_artist_info_cte_fragment(self) -> str | None:
-        return f"""    SELECT v.id               AS media_id,
+        return """    SELECT v.id               AS media_id,
            cm_ch.public_id    AS artist_public_id,
            ch.name            AS artist_name,
            ci.id AS artist_image_id

@@ -18,9 +18,9 @@ from core.access.mediaAccess import MediaAccess
 from core.framework import providers
 from core.framework.media.stream import MediaStream
 from core.framework.notification import Notification
-from core.framework.user.user import User
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
+from core.framework.user.user import User
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.requests.uploadAlbumRequest import UploadAlbumRequest

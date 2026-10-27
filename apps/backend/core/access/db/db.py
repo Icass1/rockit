@@ -58,6 +58,13 @@ from core.access.db.ormModels.friend.friendRequest import (
 from core.access.db.ormModels.friend.levelConfig import (
     LevelConfigRow as LevelConfigRow,
 )
+from core.access.db.ormModels.friend.listeningBadge import ListeningBadgeRow as ListeningBadgeRow
+from core.access.db.ormModels.friend.listeningProgress import (
+    ListeningProgressRow as ListeningProgressRow,
+)
+from core.access.db.ormModels.friend.listeningXpEvent import (
+    ListeningXpEventRow as ListeningXpEventRow,
+)
 from core.access.db.ormModels.friend.listenTogether import (
     ListenTogetherSessionRow as ListenTogetherSessionRow,
 )

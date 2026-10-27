@@ -116,7 +116,7 @@ def _family_badges(
     badges: list[ListeningBadgeDefinition] = []
     for index, target in enumerate(family.targets):
         legacy = _LEGACY_KEYS.get((family.scope, target))
-        key = legacy or f"{family.scope}_{index+1:02d}"
+        key = legacy or f"{family.scope}_{index + 1:02d}"
         badges.append(
             ListeningBadgeDefinition(
                 key=key,
@@ -125,7 +125,7 @@ def _family_badges(
                 title_key=(
                     f"FRIENDS_BADGE_{legacy.upper()}"
                     if legacy
-                    else f"FRIENDS_BADGE_{family.scope.upper()}_{index+1:02d}"
+                    else f"FRIENDS_BADGE_{family.scope.upper()}_{index + 1:02d}"
                 ),
                 description_key=f"FRIENDS_BADGE_{family.scope.upper()}_DESCRIPTION"
                 + ("_ONE" if target == 1 else ""),
@@ -136,6 +136,4 @@ def _family_badges(
     return tuple(badges)
 
 
-LISTENING_BADGES = tuple(
-    badge for family in BADGE_FAMILIES for badge in _family_badges(family)
-)
+LISTENING_BADGES = tuple(badge for family in BADGE_FAMILIES for badge in _family_badges(family))

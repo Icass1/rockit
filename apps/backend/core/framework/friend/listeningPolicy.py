@@ -1,3 +1,6 @@
+from core.framework.friend.listeningBadgeCatalog import (
+    LISTENING_BADGES as LISTENING_BADGES,
+)
 from core.framework.models.listeningRewards import ListeningMilestone
 
 # Incremental awards, once per milestone per session. Policy is provider-neutral.
@@ -10,7 +13,3 @@ SESSION_MILESTONES = (
 SESSION_BREAK_SECONDS = 90
 MAX_OBSERVATION_GAP_MS = 75_000
 POSITION_TOLERANCE_MS = 1500
-
-from core.framework.friend.listeningBadgeCatalog import (
-    LISTENING_BADGES as LISTENING_BADGES,
-)

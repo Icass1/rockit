@@ -24,7 +24,9 @@ export default function HeaderRight(): JSX.Element {
         setIsUserLoaded(true);
     }, []);
 
-    const notificationCount = useStore(rockIt.notificationManager.unreadCountAtom);
+    const notificationCount = useStore(
+        rockIt.notificationManager.unreadCountAtom
+    );
     const vocabulary = useStore(
         rockIt.vocabularyManager.vocabularyAtom
     ) as unknown as Record<string, string>;

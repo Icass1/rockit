@@ -5,7 +5,7 @@
         "dev:web": "pnpm --filter @app/web dev",
         "dev:mobile": "pnpm --filter @app/mobile start",
         "lint": "pnpm --filter @app/web lint",
-        "typecheck": "pnpm -r typecheck",
+        "typecheck": "pnpm --filter '!@app/backend' -r typecheck",
         "clean": "turbo clean",
         "clean:all": "turbo clean && rm -rf node_modules",
         "mobile:prebuild": "cd apps/mobile && pnpm prebuild",

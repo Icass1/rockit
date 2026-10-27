@@ -4,6 +4,22 @@ import type { NextConfig } from "next";
 import { withSerwist } from "@serwist/turbopack";
 
 const isDev = process.env.NODE_ENV === "development";
+const s3PublicEndpoint = process.env.NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL;
+const s3PublicPattern = s3PublicEndpoint
+    ? (() => {
+          try {
+              const endpoint = new URL(s3PublicEndpoint);
+              return {
+                  protocol: endpoint.protocol.slice(0, -1) as "http" | "https",
+                  hostname: endpoint.hostname,
+                  ...(endpoint.port ? { port: endpoint.port } : {}),
+                  pathname: "/**",
+              };
+          } catch {
+              return null;
+          }
+      })()
+    : null;
 
 const nextConfig: NextConfig = {
     env: {
@@ -79,16 +95,7 @@ const nextConfig: NextConfig = {
                 hostname: "yt3.googleusercontent.com",
                 pathname: "/**",
             },
-            {
-                protocol: "https",
-                hostname: "api-beta-rockit.rockhosting.org",
-                pathname: "/media/image/**",
-            },
-            {
-                protocol: "https",
-                hostname: "api-rockit.rockhosting.org",
-                pathname: "/media/image/**",
-            },
+            ...(s3PublicPattern ? [s3PublicPattern] : []),
         ],
     },
     allowedDevOrigins: ["ignaciodev"],

@@ -55,6 +55,7 @@ services:
             args:
                 ROCKIT_VERSION: ${ROCKIT_VERSION:-2.0.0}
                 NEXT_PUBLIC_BACKEND_URL: https://api-rockit.rockhosting.org
+                NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL: ${NEXT_PUBLIC_S3_PUBLIC_ENDPOINT_URL:-}
         restart: unless-stopped
         ports:
             - "9100:3000"

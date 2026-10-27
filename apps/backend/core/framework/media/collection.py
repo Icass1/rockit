@@ -4,11 +4,11 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL
 from core.access.collectionAccess import CollectionAccess
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.framework import providers
 from core.framework.models.collection import CollectionEntry, CollectionRecord
+from core.framework.media.image import Image
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.basePlaylistForPlaylistResponse import (
@@ -28,10 +28,10 @@ logger = getLogger(__name__)
 
 class Collection:
     @staticmethod
-    def summary(
-        record: CollectionRecord,
+    async def summary_async(
+        session: AsyncSession, record: CollectionRecord
     ) -> BaseAlbumWithSongsResponse | BasePlaylistWithMediasResponse:
-        """Build collection metadata with explicitly unloaded child contents."""
+        """Build collection metadata with S3 image URLs and unloaded children."""
         provider = providers.find_media_provider(provider_id=record.provider_id)
         data = record.data
         provider_url = (
@@ -47,17 +47,25 @@ class Collection:
             url=f"/{'album' if record.media_type_key == 2 else 'playlist'}/{record.public_id}",
             providerUrl=provider_url,
             name=record.name,
-            imageUrl=(
-                f"{BACKEND_URL}/media/image/{data['image_public_id']}"
-                if data.get("image_public_id")
-                else ""
-            ),
+            imageUrl=await Image.get_internal_image_url_by_public_id_async(
+                session=session, public_id=data.get("image_public_id")
+            )
+            or "",
         )
         if record.media_type_key == 2:
             return BaseAlbumWithSongsResponse(
                 **common,
                 artists=[
-                    BaseArtistResponse(**{**a, "provider": common["provider"]})
+                    BaseArtistResponse(
+                        **{
+                            **a,
+                            "provider": common["provider"],
+                            "imageUrl": await Image.get_internal_image_url_by_public_id_async(
+                                session=session, public_id=a.get("image_public_id")
+                            )
+                            or "",
+                        }
+                    )
                     for a in data.get("artists", [])
                 ],
                 releaseDate=str(data.get("release_date", "")),
@@ -75,6 +83,13 @@ class Collection:
             dominantColor="",
             imageUrl="",
         )
+        if owner.get("image_public_id"):
+            owner["imageUrl"] = (
+                await Image.get_internal_image_url_by_public_id_async(
+                    session=session, public_id=owner.get("image_public_id")
+                )
+                or ""
+            )
         return BasePlaylistWithMediasResponse(
             **common,
             owner=BaseArtistResponse(**owner),
@@ -94,7 +109,7 @@ class Collection:
         groups: defaultdict[tuple[int, int], list[str]] = defaultdict(list)
         for record in records:
             if record.media_type_key in (2, 3):
-                item = Collection.summary(record=record)
+                item = await Collection.summary_async(session=session, record=record)
                 if isinstance(item, BasePlaylistWithMediasResponse):
                     item = BasePlaylistForPlaylistResponse(
                         **item.model_dump(exclude={"owner", "contributors"}),
@@ -142,7 +157,7 @@ class Collection:
         return Result(
             code=ResultCode.OK,
             message="OK",
-            result=Collection.summary(record=records[0]),
+            result=await Collection.summary_async(session=session, record=records[0]),
         )
 
     @staticmethod
@@ -203,7 +218,7 @@ class Collection:
             code=ResultCode.OK,
             message="OK",
             result=CollectionPageResponse(
-                collection=Collection.summary(record=root),
+                collection=await Collection.summary_async(session=session, record=root),
                 items=[
                     PlaylistResponseItem(
                         item=items[ids[e.media_id]],

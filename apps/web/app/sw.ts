@@ -142,8 +142,7 @@ const runtimeCaching = [
     },
     {
         matcher: ({ url, request }: { url: URL; request: Request }) =>
-            request.destination === "image" ||
-            url.pathname.startsWith("/media/image/"),
+            request.destination === "image",
         handler: new CacheFirst({
             cacheName: "rockit-images",
             plugins: [

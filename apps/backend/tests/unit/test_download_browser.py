@@ -14,6 +14,7 @@ from core.framework import providers
 from core.framework.downloader import downloadBrowser, downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.downloader.downloadBrowser import DownloadBrowser
+from core.framework.media.image import Image
 from core.framework.user.user import User
 from result import Result, ResultCode
 
@@ -29,6 +30,11 @@ def ok[T](value: T) -> Result[T]:
 async def test_browse_limits_headers_and_previews_before_loading_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(
+        Image,
+        "get_internal_image_url_by_public_id_async",
+        AsyncMock(return_value="https://s3.example.test/cover?signature=presigned"),
+    )
     now = datetime.now(UTC)
     rows = [
         dict(
@@ -86,7 +92,7 @@ async def test_browse_limits_headers_and_previews_before_loading_metadata(
     assert group.sourceType == "playlist" and group.sourceUrl == "/playlist/playlist"
     assert group.providerUrl == "https://open.spotify.com/playlist/spotify-playlist"
     assert group.imageUrl is not None
-    assert group.imageUrl.endswith("/media/image/cover")
+    assert group.imageUrl == "https://s3.example.test/cover?signature=presigned"
     assert group.total == 1000 and group.hasMoreItems and group.canManage
 
 

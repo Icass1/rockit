@@ -96,7 +96,9 @@ class Artist:
             else:
                 page.albums = [
                     BaseAlbumWithoutSongsResponse.model_validate(
-                        Collection.summary(record=record).model_dump()
+                        (
+                            await Collection.summary_async(session=session, record=record)
+                        ).model_dump()
                     )
                     for record in albums.result()
                 ]

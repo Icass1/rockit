@@ -1,6 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL
 from core.access.collectionAccess import CollectionAccess
 from core.access.db.ormModels.friend.sharedMedia import SharedMediaRow
 from core.access.friend.mediaSummaryAccess import MediaSummaryAccess
@@ -154,11 +153,11 @@ class Sharing:
             if record is None:
                 continue
             image_id = record.data.get("image_public_id")
-            image_url = (
-                f"{BACKEND_URL}/media/image/{image_id}"
-                if image_id
-                else images.result().get(record.public_id)
+            image_url = await Image.get_internal_image_url_by_public_id_async(
+                session=session, public_id=image_id
             )
+            if image_url is None:
+                image_url = images.result().get(record.public_id)
             a_result_sender_image_url: Result[str] = await Image.get_internal_image_url_async(
                 image=share.sender.image
             )

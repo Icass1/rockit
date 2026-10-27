@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import BACKEND_URL, MEDIA_PATH
+from constants import MEDIA_PATH
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
 from core.enums.downloadStatusEnum import DownloadStatusEnum
@@ -12,6 +12,7 @@ from core.enums.mediaTypeEnum import MEDIA_TYPE_NAMES
 from core.framework import providers
 from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
+from core.framework.media.image import Image
 from core.framework.user.user import User
 from core.responses.downloadBrowseResponse import (
     DownloadBrowseGroupResponse,
@@ -28,7 +29,7 @@ logger = getLogger(__name__)
 
 class DownloadBrowser:
     @staticmethod
-    def item(row: dict[str, Any]) -> DownloadItemResponse:
+    async def item_async(session: AsyncSession, row: dict[str, Any]) -> DownloadItemResponse:
         """Build a lightweight tile directly from local metadata and latest progress."""
         return DownloadItemResponse(
             publicId=row["public_id"],
@@ -37,10 +38,8 @@ class DownloadBrowser:
             subtitle=row["provider"],
             status=DownloadStatusEnum(row["status_key"]),
             progress=100 if row["status_key"] == 3 else float(row["progress"] or 0),
-            imageUrl=(
-                f"{BACKEND_URL}/media/image/{row['image_public_id']}"
-                if row["image_public_id"]
-                else None
+            imageUrl=await Image.get_internal_image_url_by_public_id_async(
+                session=session, public_id=row["image_public_id"]
             ),
             dateStarted=row["date_started"],
             dateEnded=row["date_ended"],
@@ -85,7 +84,9 @@ class DownloadBrowser:
             return Result(code=preview.code(), message=preview.message())
         items: dict[int, list[DownloadItemResponse]] = {}
         for row in preview.result():
-            items.setdefault(row["download_group_id"], []).append(DownloadBrowser.item(row=row))
+            items.setdefault(row["download_group_id"], []).append(
+                await DownloadBrowser.item_async(session=session, row=row)
+            )
         groups: list[DownloadBrowseGroupResponse] = []
         for row in visible:
             source_type = MEDIA_TYPE_NAMES.get(row["media_type_key"])
@@ -122,9 +123,9 @@ class DownloadBrowser:
                         else ""
                     ),
                     imageUrl=(
-                        f"{BACKEND_URL}/media/image/{row['image_public_id']}"
-                        if row["image_public_id"]
-                        else None
+                        await Image.get_internal_image_url_by_public_id_async(
+                            session=session, public_id=row["image_public_id"]
+                        )
                     ),
                     provider=row["provider"] or "",
                     providerUrl=provider_url,
@@ -186,7 +187,9 @@ class DownloadBrowser:
             code=ResultCode.OK,
             message="OK",
             result=DownloadItemsPageResponse(
-                items=[DownloadBrowser.item(row=row) for row in rows[:48]],
+                items=[
+                    await DownloadBrowser.item_async(session=session, row=row) for row in rows[:48]
+                ],
                 offset=offset,
                 total=count.result(),
                 hasMore=len(rows) > 48,

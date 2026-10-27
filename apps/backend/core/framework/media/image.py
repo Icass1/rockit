@@ -285,6 +285,26 @@ class Image:
         return await Storage.get_presigned_url_async(storage_object)
 
     @staticmethod
+    async def get_internal_image_url_by_public_id_async(
+        session: AsyncSession, public_id: str | None
+    ) -> str | None:
+        """Resolve an image public ID to its short-lived S3 URL."""
+
+        if not public_id:
+            return None
+        a_result_image = await Image.get_image_from_public_id_async(
+            session=session, public_id=public_id
+        )
+        if a_result_image.is_not_ok():
+            logger.error(f"Error resolving image public id {public_id}. {a_result_image.info()}")
+            return None
+        a_result_url = await Image.get_internal_image_url_async(image=a_result_image.result())
+        if a_result_url.is_not_ok():
+            logger.error(f"Error resolving S3 URL for image {public_id}. {a_result_url.info()}")
+            return None
+        return a_result_url.result()
+
+    @staticmethod
     async def delete_image_async(session: AsyncSession, id: int) -> ResultCode:
         """Delete an image row and its underlying storage object and bytes."""
 

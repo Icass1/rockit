@@ -19,7 +19,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import ColumnElement, Select
 from sqlalchemy.sql.selectable import CTE, Subquery
 
-from constants import BACKEND_URL
 from core.access.adminSearchAccess import AdminSearchAccess
 from core.access.collectionSources import collection_sources
 from core.access.db.shared_metadata import shared_metadata
@@ -203,11 +202,7 @@ class CollectionAccess:
                     dominantColor=r.get("image_color") or "",
                     url=f"/user/{r['public_id']}",
                     providerUrl="",
-                    imageUrl=(
-                        f"{BACKEND_URL}/media/image/{r['image_public_id']}"
-                        if r["image_public_id"]
-                        else ""
-                    ),
+                    image_public_id=r["image_public_id"],
                 )
                 for r in owner_rows
             }
@@ -251,11 +246,7 @@ class CollectionAccess:
                         dominantColor="",
                         url=f"/artist/{row['public_id']}",
                         providerUrl="",
-                        imageUrl=(
-                            f"{BACKEND_URL}/media/image/{row['image_public_id']}"
-                            if row["image_public_id"]
-                            else ""
-                        ),
+                        image_public_id=row["image_public_id"],
                     )
                 )
         for source in collection_sources:

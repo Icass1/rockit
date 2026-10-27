@@ -31,8 +31,17 @@ if TYPE_CHECKING:
 logger: Logger = getLogger(__name__)
 
 
+from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
+
+
 class BaseMediaProvider(BaseProvider):
     """Shared contract for media providers."""
+
+    async def get_audio_bounds_async(
+        self, session: AsyncSession, media_id: int
+    ) -> AResult[AudioBoundsResponse]:
+        """Optional capability for seekable local songs; unsupported sources play normally."""
+        return AResult(code=AResultCode.OK, message="OK", result=AudioBoundsResponse())
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None

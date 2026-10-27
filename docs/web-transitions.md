@@ -11,7 +11,7 @@ In **Settings → Audio**, enable **Song transitions (experimental)**, then star
 the next song. Settings are saved on this browser/device, independently of the
 old server crossfade setting (which did not drive a mixing engine).
 
-- Maximum overlap: 0.8, 2 or 3.5 seconds. The actual overlap may be shorter.
+- Maximum overlap: a numeric duration in seconds. Actual overlap is bounded by the available material and buffering.
 - Keep endings within the same album: enabled by default. This skips overlap
   between songs with the same known album ID, preserving interludes conservatively.
   Disable it to test mixes between the supplied Twenty One Pilots album tracks.
@@ -27,13 +27,11 @@ their existing playback paths. The Expo player is unchanged.
 
 ## How it works
 
-The player reads a 512-sample analyser at most five times per second, storing at
-most 128 timestamped energy samples from the last 24 seconds. It compares a
-reference window 20–12 seconds before the end with the recent four seconds. A
-quiet tail selects up to 3.5 seconds, a moderate tail 2 seconds, and a strong or
-insufficiently observed tail 0.8 seconds. This is a live approximation of the
-offline excerpt heuristic, not a vocal/phrase/interlude detector. It never seeks
-past the incoming intro, fetches PCM windows, or decodes whole files for analysis.
+The player uses the configured overlap duration without an energy-history heuristic.
+Optional cached boundary metadata skips confirmed quiet at prepared track entries
+and schedules the outgoing fade against its audible end. See
+[audio-silence-analysis.md](audio-silence-analysis.md) for resource limits,
+conservative detection, cold-cache fallback and verification evidence.
 
 Two persistent audio elements use native streaming and one mixer AudioContext.
 Each deck has a fourth-order Linkwitz–Riley split at 180 Hz; mids/highs cross
@@ -63,7 +61,7 @@ keepalive context, audio session and Media Session actions remain independent.
 
 ## Validation and remaining device testing
 
-Automated tests cover energy decisions, two successive deck promotions, server
+Automated tests cover configured durations, two successive deck promotions, server
 grants/revocation, late acknowledgement, outgoing-end deduplication, pause/seek/
 skip/disable, initial waiting and stalls, insufficient buffering, album protection,
 repeat-one, native retry and the native video-audio path. Existing iOS playback

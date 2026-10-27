@@ -82,6 +82,10 @@ export {
     type ArtistSearchResultsItem,
 } from "./artistSearchResultsItem";
 export {
+    AudioBoundsResponseSchema,
+    type AudioBoundsResponse,
+} from "./audioBoundsResponse";
+export {
     BaseAlbumWithSongsResponseSchema,
     type BaseAlbumWithSongsResponse,
 } from "./baseAlbumWithSongsResponse";

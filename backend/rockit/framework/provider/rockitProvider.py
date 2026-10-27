@@ -36,10 +36,27 @@ from backend.rockit.framework.rockit import Rockit
 from backend.core.responses.artistPageResponse import ArtistCatalogResponse
 from backend.rockit.access.artistCatalogAccess import ArtistCatalogAccess
 
+from backend.core.framework.audio.silence import request_bounds
+from backend.core.responses.audioBoundsResponse import AudioBoundsResponse
+
 logger: Logger = getLogger(__name__)
 
 
 class RockItProvider(BaseMediaProvider, BaseUploadProvider):
+    async def get_audio_bounds_async(
+        self, session: AsyncSession, media_id: int
+    ) -> AResult[AudioBoundsResponse]:
+        """Resolve this source's local song without exposing paths to clients."""
+        result = await RockitAccess.get_songs_async(
+            session=session, song_ids=[media_id]
+        )
+        if result.is_not_ok():
+            logger.error(f"Could not resolve audio source. {result.info()}")
+            return AResult(code=result.code(), message=result.message())
+        songs = result.result()
+        bounds = await request_bounds(path=songs[0].file_path if songs else None)
+        return AResult(code=AResultCode.OK, message="OK", result=bounds)
+
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None
     ) -> AResult[ArtistCatalogResponse]:

@@ -1,3 +1,4 @@
+import type { AudioBoundsResponse } from "@/dto";
 import {
     BaseMediaPlayerManager,
     createAtom,
@@ -12,6 +13,7 @@ import {
     type TPlayableMedia,
 } from "@rockit/shared";
 import type { WebTransitionSettings } from "@/models/types/transitions";
+import { fetchAudioBounds } from "@/lib/audio/bounds";
 import {
     DEFAULT_TRANSITIONS,
     transitionDuration,
@@ -60,6 +62,68 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _blendTimer?: ReturnType<typeof setTimeout>;
     private _preloadGeneration = 0;
     private _settingsInitialized = false;
+    private _bounds = new Map<string, AudioBoundsResponse>();
+    private _boundsPending = new Set<string>();
+    private _freshAudioSource = false;
+    private _outgoingEnd?: number;
+
+    private _audioBounds(
+        publicId: string,
+        duration: number
+    ): AudioBoundsResponse | undefined {
+        const bounds = this._bounds.get(publicId);
+        return bounds?.status === "ready" &&
+            bounds.duration !== null &&
+            bounds.end !== null &&
+            Number.isFinite(bounds.start) &&
+            Number.isFinite(bounds.end) &&
+            bounds.start >= 0 &&
+            bounds.start < bounds.end &&
+            bounds.end <= duration + 0.1 &&
+            Math.abs(bounds.duration - duration) < 0.25
+            ? bounds
+            : undefined;
+    }
+
+    private async _prepareBounds(publicId: string): Promise<void> {
+        if (
+            !this._transitionSettings.get().enabled ||
+            this._boundsPending.has(publicId)
+        )
+            return;
+        this._boundsPending.add(publicId);
+        try {
+            for (let attempt = 0; attempt < 6; attempt++) {
+                const queue = getRockIt().queueManager;
+                const next = queue.peekNextQueueItem();
+                if (
+                    !this._transitionSettings.get().enabled ||
+                    (queue.currentMedia?.publicId !== publicId &&
+                        next?.media.publicId !== publicId)
+                )
+                    return;
+                const bounds = await fetchAudioBounds(publicId);
+                if (!bounds || bounds.status === "unavailable") return;
+                if (bounds.status === "ready") {
+                    // Keep only metadata for the current pair; no unbounded browser cache.
+                    for (const key of this._bounds.keys()) {
+                        if (
+                            key !== queue.currentMedia?.publicId &&
+                            key !== next?.media.publicId
+                        )
+                            this._bounds.delete(key);
+                    }
+                    this._bounds.set(publicId, bounds);
+                    return;
+                }
+                await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+            }
+        } catch {
+            // Optional metadata, including offline: preserve ordinary playback.
+        } finally {
+            this._boundsPending.delete(publicId);
+        }
+    }
 
     constructor() {
         super();
@@ -378,6 +442,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _cancelTransition(): void {
         const old = this._outgoing;
         this._outgoing = undefined;
+        this._outgoingEnd = undefined;
         this._promotionQueueId = undefined;
         this._promotionUri = undefined;
         this._blendStarted = false;
@@ -399,7 +464,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             current = this._audio;
         if (!old || !current || this._blendStarted) return;
         this._blendStarted = true;
-        const remaining = old.duration - old.currentTime;
+        const remaining = (this._outgoingEnd ?? old.duration) - old.currentTime;
         if (!this._mixer.blend(old, current, remaining)) {
             this._cancelTransition();
             return;
@@ -435,7 +500,9 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             if (this._outgoing.ended) this._cancelTransition();
             return;
         }
-        const remaining = duration - time;
+        const bounds = this._audioBounds(media.publicId, duration);
+        const audibleEnd = bounds?.end ?? duration;
+        const remaining = audibleEnd - time;
         if (remaining > settings.maxSeconds || remaining < 0.15) return;
         const queue = getRockIt().queueManager;
         const next = queue.peekNextQueueItem();
@@ -454,9 +521,14 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         }
         const incoming = this._preloadAudio;
         if (!incoming || !Number.isFinite(incoming.duration)) return;
+        const nextBounds = this._audioBounds(
+            next.media.publicId,
+            incoming.duration
+        );
+        const intro = nextBounds?.start ?? 0;
         const seconds = transitionDuration(
-            duration,
-            incoming.duration,
+            audibleEnd - (bounds?.start ?? 0),
+            (nextBounds?.end ?? incoming.duration) - intro,
             settings.maxSeconds
         );
         if (
@@ -468,13 +540,22 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         )
             return;
         // Do not promote an element that would immediately stall on its intro.
-        if (
-            !incoming.buffered.length ||
-            incoming.buffered.start(0) > 0.05 ||
-            incoming.buffered.end(0) <
-                Math.min(Math.max(4, seconds), incoming.duration)
-        )
-            return;
+        let buffered = false;
+        for (let i = 0; i < incoming.buffered.length; i++) {
+            if (
+                incoming.buffered.start(i) <= intro + 0.05 &&
+                incoming.buffered.end(i) >=
+                    Math.min(intro + Math.max(4, seconds), incoming.duration)
+            )
+                buffered = true;
+        }
+        if (!buffered) return;
+        if (Math.abs(incoming.currentTime - intro) > 0.05) {
+            incoming.currentTime = intro;
+            return; // Wait for the actual seek and data before promotion.
+        }
+        if (incoming.seeking) return;
+        this._outgoingEnd = audibleEnd;
         this._outgoing = audio;
         this._promotionQueueId = next.queueMediaId;
         this._promotionUri = this._preloadedUri;
@@ -611,6 +692,8 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     getRockIt().queueManager.currentQueueMediaId &&
                 uri === this._promotionUri;
             if (promotion) return;
+            this._freshAudioSource = true;
+            if (eligible && media) void this._prepareBounds(media.publicId);
             this._cancelTransition();
             if (this._audio && this._mixer.has(this._audio) && !eligible) {
                 this._audio.pause();
@@ -728,8 +811,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             kind === "audio" &&
             this._promotionQueueId ===
                 getRockIt().queueManager.currentQueueMediaId &&
-            sec === 0 &&
-            el.currentTime < 0.05
+            sec === 0
         )
             return;
         if (
@@ -739,6 +821,22 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 getRockIt().queueManager.currentQueueMediaId
         )
             this._cancelTransition();
+        if (kind === "audio" && this._freshAudioSource) {
+            this._freshAudioSource = false;
+            const media = getRockIt().queueManager.currentMedia;
+            if (
+                sec === 0 &&
+                media &&
+                isSong(media) &&
+                this._syncOwner &&
+                this._transitionSettings.get().enabled &&
+                getRockIt().userManager.repeatModeAtom.get() !== "ONE"
+            ) {
+                sec =
+                    this._audioBounds(media.publicId, el.duration)?.start ??
+                    sec;
+            }
+        }
         el.currentTime = sec;
         if (kind === "audio") this._syncVideoPicture();
     }
@@ -829,6 +927,11 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._preloadAudio.load();
         this._preloadedUri = uri;
         this._preloadedForQueueMediaId = next.queueMediaId;
+        if (isSong(next.media) && this._transitionSettings.get().enabled) {
+            // Refresh source identity on each preparation, including after redownload.
+            this._bounds.delete(next.media.publicId);
+            void this._prepareBounds(next.media.publicId);
+        }
     }
 
     private _retryPlayOnGesture(kind: TMediaKind): void {

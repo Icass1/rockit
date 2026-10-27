@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.userRequest import UserRequestRow
 from core.access.requestAccess import RequestAccess
-from core.aResult import AResult, AResultCode
 from core.enums.requestStatusEnum import RequestStatusEnum
 from core.enums.requestTypeEnum import RequestTypeEnum
 from core.responses.userRequestResponse import (
@@ -13,13 +12,14 @@ from core.responses.userRequestResponse import (
     UserRequestResponse,
 )
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
 
 async def _map_request_to_response(
     session: AsyncSession, row: UserRequestRow
-) -> AResult[UserRequestResponse]:
+) -> Result[UserRequestResponse]:
 
     a_result_public_id = await RequestAccess.get_media_public_id_from_id_async(
         session=session, media_id=row.media_id
@@ -36,8 +36,8 @@ async def _map_request_to_response(
         user_name = user.username
         user_image = user.image.public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=UserRequestResponse(
             publicId=row.public_id,
@@ -64,13 +64,13 @@ class UserRequest:
         proposed_value: str,
         media_public_id: str,
         comment: str | None = None,
-    ) -> AResult[UserRequestResponse]:
+    ) -> Result[UserRequestResponse]:
         a_result_media = await RequestAccess.get_media_id_from_public_id_async(
             session=session, public_id=media_public_id
         )
         if a_result_media.is_not_ok():
             logger.error(f"Media not found. {a_result_media.info()}")
-            return AResult(
+            return Result(
                 code=a_result_media.code(),
                 message=a_result_media.message(),
             )
@@ -87,7 +87,7 @@ class UserRequest:
         )
         if a_result.is_not_ok():
             logger.error(f"Error creating request. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         return await _map_request_to_response(session=session, row=a_result.result())
 
@@ -97,13 +97,13 @@ class UserRequest:
         status: RequestStatusEnum | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> AResult[UserRequestListResponse]:
+    ) -> Result[UserRequestListResponse]:
         a_result = await RequestAccess.get_all_requests_async(
             session=session, status=status, limit=limit, offset=offset
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting requests. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         responses: list[UserRequestResponse] = []
         for row in a_result.result():
@@ -111,8 +111,8 @@ class UserRequest:
             if a_result_resp.is_ok():
                 responses.append(a_result_resp.result())
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=UserRequestListResponse(requests=responses),
         )
@@ -123,13 +123,13 @@ class UserRequest:
         user_id: int,
         limit: int = 50,
         offset: int = 0,
-    ) -> AResult[UserRequestListResponse]:
+    ) -> Result[UserRequestListResponse]:
         a_result = await RequestAccess.get_user_requests_async(
             session=session, user_id=user_id, limit=limit, offset=offset
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting user requests. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         responses: list[UserRequestResponse] = []
         for row in a_result.result():
@@ -137,8 +137,8 @@ class UserRequest:
             if a_result_resp.is_ok():
                 responses.append(a_result_resp.result())
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=UserRequestListResponse(requests=responses),
         )
@@ -150,13 +150,13 @@ class UserRequest:
         reviewer_id: int,
         status: RequestStatusEnum,
         review_comment: str | None = None,
-    ) -> AResult[UserRequestResponse]:
+    ) -> Result[UserRequestResponse]:
         a_result_request = await RequestAccess.get_request_by_public_id_async(
             session=session, public_id=public_id
         )
         if a_result_request.is_not_ok():
             logger.error(f"Request not found. {a_result_request.info()}")
-            return AResult(code=a_result_request.code(), message=a_result_request.message())
+            return Result(code=a_result_request.code(), message=a_result_request.message())
 
         request_row = a_result_request.result()
         a_result = await RequestAccess.update_request_status_async(
@@ -168,18 +168,18 @@ class UserRequest:
         )
         if a_result.is_not_ok():
             logger.error(f"Error updating request. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         return await _map_request_to_response(session=session, row=a_result.result())
 
     @staticmethod
     async def get_stats_async(
         session: AsyncSession,
-    ) -> AResult[AdminRequestStatsResponse]:
+    ) -> Result[AdminRequestStatsResponse]:
         a_result_total = await RequestAccess.get_total_count_async(session=session)
         if a_result_total.is_not_ok():
             logger.error(f"Error getting total. {a_result_total.info()}")
-            return AResult(
+            return Result(
                 code=a_result_total.code(),
                 message=a_result_total.message(),
             )
@@ -189,7 +189,7 @@ class UserRequest:
         )
         if a_result_pending.is_not_ok():
             logger.error(f"Error getting pending. {a_result_pending.info()}")
-            return AResult(
+            return Result(
                 code=a_result_pending.code(),
                 message=a_result_pending.message(),
             )
@@ -199,7 +199,7 @@ class UserRequest:
         )
         if a_result_accepted.is_not_ok():
             logger.error(f"Error getting accepted. {a_result_accepted.info()}")
-            return AResult(
+            return Result(
                 code=a_result_accepted.code(),
                 message=a_result_accepted.message(),
             )
@@ -209,13 +209,13 @@ class UserRequest:
         )
         if a_result_rejected.is_not_ok():
             logger.error(f"Error getting rejected. {a_result_rejected.info()}")
-            return AResult(
+            return Result(
                 code=a_result_rejected.code(),
                 message=a_result_rejected.message(),
             )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=AdminRequestStatsResponse(
                 total=a_result_total.result(),

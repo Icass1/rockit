@@ -8,7 +8,6 @@ from core.access.recommendationPrefetchAccess import (
     AUTOPLAY_DOWNLOAD_TITLE,
     RecommendationPrefetchAccess,
 )
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.downloader import Downloader
 from core.framework.media.media import Media
 from core.framework.models.recommendation import ExternalSuggestion, SeedTrack
@@ -17,6 +16,7 @@ from core.framework.recommendationRanking import RecommendationRanking
 from core.responses.searchResponse import BaseSearchResultsItem
 from core.responses.songListResponse import SongListResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -30,7 +30,7 @@ class RecommendationPrefetch:
     _failed_until: dict[tuple[str, str], float] = {}
 
     @staticmethod
-    async def admit_async(session: AsyncSession, public_id: str | None = None) -> AResult[bool]:
+    async def admit_async(session: AsyncSession, public_id: str | None = None) -> Result[bool]:
         """Admission policy shared by every playback owner and worker."""
         state = await RecommendationPrefetchAccess.get_state_async(
             session=session,
@@ -39,14 +39,14 @@ class RecommendationPrefetch:
         )
         if state.is_not_ok():
             logger.error(f"Could not read prefetch admission state. {state.info()}")
-            return AResult(code=state.code(), message=state.message())
+            return Result(code=state.code(), message=state.message())
         value = state.result()
         allowed = (
             value.locked
             and value.pending_count < RECOMMENDATION_PREFETCH_MAX_PENDING
             and not value.media_pending
         )
-        return AResult(code=AResultCode.OK, message="OK", result=allowed)
+        return Result(code=ResultCode.OK, message="OK", result=allowed)
 
     @staticmethod
     async def prepare_async(
@@ -54,7 +54,7 @@ class RecommendationPrefetch:
         user_id: int,
         public_ids: list[str],
         discover: list[SeedTrack],
-    ) -> AResult[SongListResponse]:
+    ) -> Result[SongListResponse]:
         public_ids = list(dict.fromkeys(public_ids))[:2]
         songs = await Media.resolve_songs_from_public_ids_async(
             session=session, public_ids=public_ids
@@ -147,8 +147,8 @@ class RecommendationPrefetch:
                     )
                     if started.is_not_ok():
                         logger.error(f"Could not download discovery suggestion. {started.info()}")
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=SongListResponse(songs=songs, discover=discoveries),
         )

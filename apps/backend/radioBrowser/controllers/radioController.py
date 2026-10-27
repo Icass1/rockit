@@ -3,13 +3,13 @@ from logging import Logger
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.searchResponse import SearchResultsResponse
 from logger import getLogger
 from radioBrowser.framework.radio import Radio
+from result import Result
 
 logger: Logger = getLogger(__name__)
 
@@ -26,7 +26,7 @@ async def get_station(request: Request, public_id: str) -> BaseStationResponse:
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result: AResult[BaseStationResponse] = await Radio.get_station_from_public_id_async(
+    a_result: Result[BaseStationResponse] = await Radio.get_station_from_public_id_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -46,7 +46,7 @@ async def get_stations_with_geo(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result: AResult[list[BaseStationResponse]] = await Radio.get_stations_with_geo_async(
+    a_result: Result[list[BaseStationResponse]] = await Radio.get_stations_with_geo_async(
         session=session, limit=limit, offset=offset
     )
     if a_result.is_not_ok():
@@ -65,7 +65,7 @@ async def get_stations_by_country(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result: AResult[list[BaseStationResponse]] = await Radio.get_stations_by_country_async(
+    a_result: Result[list[BaseStationResponse]] = await Radio.get_stations_by_country_async(
         session=session,
         country=country,
     )

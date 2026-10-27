@@ -7,7 +7,7 @@ from PIL import Image as PillowImage, ImageOps, UnidentifiedImageError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import IMAGES_PATH
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 from core.access.userAccess import UserAccess
 from core.framework.media.image import Image
 from logger import getLogger
@@ -44,10 +44,10 @@ async def _remove_failed_image(path: Path) -> None:
 
 async def upload_profile_image_async(
     session: AsyncSession, user_id: int, data: bytes
-) -> AResult[bool]:
+) -> Result[bool]:
     if not data or len(data) > MAX_PROFILE_IMAGE_BYTES:
-        return AResult(
-            code=AResultCode.BAD_REQUEST,
+        return Result(
+            code=ResultCode.BAD_REQUEST,
             message="Image must be between 1 byte and 5 MB",
         )
     try:
@@ -59,7 +59,7 @@ async def upload_profile_image_async(
         PillowImage.DecompressionBombError,
     ):
         logger.warning("Invalid profile image for user %s", user_id)
-        return AResult(code=AResultCode.BAD_REQUEST, message="Invalid profile image")
+        return Result(code=ResultCode.BAD_REQUEST, message="Invalid profile image")
 
     relative = f"avatars/{uuid4().hex}.webp"
     destination = Path(IMAGES_PATH) / relative
@@ -70,7 +70,7 @@ async def upload_profile_image_async(
         if image.is_not_ok():
             logger.error("Cannot create profile image: %s", image.info())
             await _remove_failed_image(destination)
-            return AResult(code=image.code(), message=image.message())
+            return Result(code=image.code(), message=image.message())
         result = await UserAccess.update_user_image_async(
             session, user_id, image.result().id
         )
@@ -81,6 +81,6 @@ async def upload_profile_image_async(
     except Exception:
         logger.exception("Cannot save profile image for user %s", user_id)
         await _remove_failed_image(destination)
-        return AResult(
-            code=AResultCode.GENERAL_ERROR, message="Cannot save profile image"
+        return Result(
+            code=ResultCode.GENERAL_ERROR, message="Cannot save profile image"
         )

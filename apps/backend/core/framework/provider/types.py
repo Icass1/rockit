@@ -10,7 +10,7 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.baseVideoResponse import BaseVideoResponse
 
-AddFromUrlAResult = (
+AddFromUrlResult = (
     BaseSongWithAlbumResponse
     | BaseVideoResponse
     | BaseStationResponse

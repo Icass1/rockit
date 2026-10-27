@@ -11,12 +11,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
 from core.access.providerStorage import ProviderStorage, provider_storage
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.downloader.downloadsManager import DownloadsManager
 from core.framework.media.media import Media
 from core.framework.models.media import MediaModel
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
+from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
 
@@ -98,8 +98,8 @@ async def test_playlist_operations_route_to_the_owning_provider(
 ) -> None:
     provider = BaseMediaProvider()
     provider.set_info(501, "Custom playlists")
-    add = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=True))
-    expand = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=True))
+    add = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=True))
+    expand = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=True))
     monkeypatch.setattr(provider, "add_media_to_playlist_async", add)
     monkeypatch.setattr(provider, "set_media_expanded_async", expand)
     monkeypatch.setattr(providers, "_providers", [provider])
@@ -107,8 +107,8 @@ async def test_playlist_operations_route_to_the_owning_provider(
         Media,
         "get_media_from_public_id_async",
         AsyncMock(
-            return_value=AResult(
-                code=AResultCode.OK,
+            return_value=Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=MediaModel(id=5, public_id="list", provider_id=501),
             )
@@ -136,8 +136,8 @@ async def test_missing_or_read_only_playlist_provider_is_handled(
         Media,
         "get_media_from_public_id_async",
         AsyncMock(
-            return_value=AResult(
-                code=AResultCode.OK,
+            return_value=Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=MediaModel(id=5, public_id="list", provider_id=501),
             )
@@ -146,12 +146,12 @@ async def test_missing_or_read_only_playlist_provider_is_handled(
     session = AsyncMock(spec=AsyncSession)
     monkeypatch.setattr(providers, "_providers", [])
     result = await providers.add_media_to_playlist_async(session, "list", 9, "song")
-    assert result.code() == AResultCode.NOT_FOUND
+    assert result.code() == ResultCode.NOT_FOUND
     provider = BaseMediaProvider()
     provider.set_info(501, "Read only")
     monkeypatch.setattr(providers, "_providers", [provider])
     result = await providers.add_media_to_playlist_async(session, "list", 9, "song")
-    assert result.code() == AResultCode.NOT_IMPLEMENTED
+    assert result.code() == ResultCode.NOT_IMPLEMENTED
 
 
 async def test_provider_controls_concurrency_without_a_known_name(
@@ -176,8 +176,8 @@ async def test_storage_mutations_are_batched_and_failures_stop_dispatch() -> Non
 
     storage = ProviderStorage()
     metadata = Mock()
-    first = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=["a"]))
-    failure = AsyncMock(return_value=AResult(code=AResultCode.BAD_REQUEST, message="Cannot detach"))
+    first = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=["a"]))
+    failure = AsyncMock(return_value=Result(code=ResultCode.BAD_REQUEST, message="Cannot detach"))
     skipped = AsyncMock()
     storage.register(
         MediaStorage(key="opaque key", metadata_statement=metadata, clear_files_async=first),
@@ -191,7 +191,7 @@ async def test_storage_mutations_are_batched_and_failures_stop_dispatch() -> Non
     first.assert_not_awaited()
     ids = list(range(500))
     result = await storage.clear_files_async(session=session, media_ids=ids)
-    assert result.code() == AResultCode.BAD_REQUEST
+    assert result.code() == ResultCode.BAD_REQUEST
     first.assert_awaited_once_with(session, ids)
     failure.assert_awaited_once_with(session, ids)
     skipped.assert_not_awaited()
@@ -214,11 +214,11 @@ async def test_downloader_health_is_checked_without_an_active_youtube_provider(
     }
     module = import_module(f"{source}.framework.provider.{module_names[source]}")
     check = AsyncMock(
-        return_value=AResult(code=AResultCode.CONFIGURATION_ERROR, message="Missing runtime")
+        return_value=Result(code=ResultCode.CONFIGURATION_ERROR, message="Missing runtime")
     )
     monkeypatch.setattr(PotProvider, "check_health_async", check)
     monkeypatch.setattr(providers, "_providers", [])
     health = await module.provider.check_health_async()
-    assert health.code() == AResultCode.CONFIGURATION_ERROR
+    assert health.code() == ResultCode.CONFIGURATION_ERROR
     assert health.message() == "Missing runtime"
     check.assert_awaited_once_with(max_age_seconds=30.0)

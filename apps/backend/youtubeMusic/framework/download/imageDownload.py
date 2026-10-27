@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import IMAGES_PATH
 from core.access.db.ormModels.image import ImageRow
-from core.aResult import AResult, AResultCode
 from core.framework.media.image import Image
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -22,11 +22,11 @@ class ImageDownload:
     async def download_and_create_internal_image_async(
         session: AsyncSession,
         url: str,
-    ) -> AResult[ImageRow]:
+    ) -> Result[ImageRow]:
         try:
             response = req.get(url, timeout=10)
             if response.status_code != 200:
-                return AResult(code=AResultCode.GENERAL_ERROR, message="Image download failed")
+                return Result(code=ResultCode.GENERAL_ERROR, message="Image download failed")
 
             temp_filename = str(uuid.uuid4()) + ".jpg"
             temp_path = os.path.join(IMAGES_PATH, "youtubeMusic", temp_filename)
@@ -94,14 +94,14 @@ class ImageDownload:
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error creating image: {a_result_image.info()}")
-                return AResult(code=a_result_image.code(), message=a_result_image.message())
+                return Result(code=a_result_image.code(), message=a_result_image.message())
 
             db_image = a_result_image.result()
             logger.debug(f"Image created: {db_image.public_id} from url {url} saved to {path}")
-            return AResult(code=AResultCode.OK, message="OK", result=db_image)
+            return Result(code=ResultCode.OK, message="OK", result=db_image)
         except Exception as e:
             logger.error(f"Failed to download/create internal image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to download/Create internal image: {e}",
             )

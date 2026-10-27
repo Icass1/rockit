@@ -9,10 +9,10 @@ from core.access.mediaInfoCte import (
     get_media_info_cte,
     get_recommendation_playlist_edges_cte,
 )
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.models.recommendation import LocalCandidate
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -48,7 +48,7 @@ class RecommendationAccess:
         exclude_media_ids: list[int],
         limit: int = LOCAL_CANDIDATE_LIMIT,
         user_id: int = 0,
-    ) -> AResult[list[LocalCandidate]]:
+    ) -> Result[list[LocalCandidate]]:
         """Songs related to the seed songs, with the raw signals the ranking
         layer scores them by. Everything comes from Rockit's own data:
           - playlist co-occurrence: playlists shared with a seed song
@@ -64,7 +64,7 @@ class RecommendationAccess:
         """
 
         if not seed_media_ids or limit <= 0:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         try:
             sql = text(f"""
@@ -213,8 +213,8 @@ class RecommendationAccess:
                 )
             ).fetchall()
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[
                     LocalCandidate(
@@ -235,8 +235,8 @@ class RecommendationAccess:
             )
         except Exception as e:
             logger.error(f"Error in get_local_candidates_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to compute local candidates: {e}",
             )
 
@@ -246,14 +246,14 @@ class RecommendationAccess:
         exclude_media_ids: list[int],
         limit: int = LOCAL_CANDIDATE_LIMIT,
         rotation_key: str = "",
-    ) -> AResult[list[LocalCandidate]]:
+    ) -> Result[list[LocalCandidate]]:
         """Cold-start candidates for users (or seeds) with little or no
         history: a stable rotating sample when rotation_key is supplied,
         otherwise the most played and newest songs. Ranking and diversity
         remain in the framework layer. Returns [] on an empty library."""
 
         if limit <= 0:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         try:
             sql = text(f"""
@@ -316,8 +316,8 @@ class RecommendationAccess:
                 )
             ).fetchall()
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[
                     LocalCandidate(
@@ -332,8 +332,8 @@ class RecommendationAccess:
             )
         except Exception as e:
             logger.error(f"Error in get_fallback_candidates_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to compute fallback candidates: {e}",
             )
 
@@ -341,7 +341,7 @@ class RecommendationAccess:
     async def get_discover_song_candidates_async(
         session: AsyncSession,
         artists_and_tracks: list[tuple[str, str]],
-    ) -> AResult[dict[int, list[str]]]:
+    ) -> Result[dict[int, list[str]]]:
         """Return up to three artist/title matches per suggestion in one batch.
 
         Availability is deliberately not decided here: each media provider
@@ -350,7 +350,7 @@ class RecommendationAccess:
         """
 
         if not artists_and_tracks:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         from core.framework import providers
 
@@ -358,7 +358,7 @@ class RecommendationAccess:
         fragments = [f for f in fragments if f]
 
         if not fragments:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         search_index_cte = "\n\nUNION ALL\n\n".join(fragments)
 
@@ -421,14 +421,14 @@ class RecommendationAccess:
             candidates: dict[int, list[str]] = {}
             for row in rows:
                 candidates.setdefault(int(row[0]), []).append(str(row[1]))
-            return AResult(code=AResultCode.OK, message="OK", result=candidates)
+            return Result(code=ResultCode.OK, message="OK", result=candidates)
         except Exception as e:
             logger.error(
                 f"Error matching discover suggestions to the library: {e}",
                 exc_info=True,
             )
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to match discover suggestions: {e}",
             )
 
@@ -437,7 +437,7 @@ class RecommendationAccess:
         session: AsyncSession,
         exclude_media_ids: list[int],
         limit: int = 15,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Top songs by total play count across all users."""
 
         try:
@@ -465,15 +465,15 @@ class RecommendationAccess:
                 )
             ).fetchall()
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[str(r.public_id) for r in rows],
             )
         except Exception as e:
             logger.error(f"Error in get_community_top_song_ids_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to compute community top songs: {e}",
             )
 
@@ -483,7 +483,7 @@ class RecommendationAccess:
         user_id: int,
         exclude_media_ids: list[int],
         limit: int = 12,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Random songs from the user's top genres (by recent listens).
 
         Only providers that contribute genre data (through
@@ -529,14 +529,14 @@ class RecommendationAccess:
                 )
             ).fetchall()
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[str(r.public_id) for r in rows],
             )
         except Exception as e:
             logger.error(f"Error in get_mood_song_ids_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to compute mood songs: {e}",
             )

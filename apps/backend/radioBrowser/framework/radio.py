@@ -8,7 +8,6 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import IMAGES_PATH
-from core.aResult import AResult, AResultCode
 from core.framework.media.image import Image
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.responses.baseStationResponse import BaseStationResponse
@@ -22,6 +21,7 @@ from radioBrowser.framework.radioBrowserApi import RadioBrowserApi
 from radioBrowser.responses.radioBrowserStation import (
     RadioBrowserStationResponse,
 )
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -34,17 +34,17 @@ class Radio:
     async def get_station_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[BaseStationResponse]:
+    ) -> Result[BaseStationResponse]:
         """Get a station by public_id and return a response."""
 
-        a_result_station: AResult[StationRow] = await RadioAccess.get_station_from_public_id_async(
+        a_result_station: Result[StationRow] = await RadioAccess.get_station_from_public_id_async(
             session=session, public_id=public_id
         )
         if a_result_station.is_not_ok():
             logger.error(
                 f"Error getting station from public id {public_id}. {a_result_station.info()}"
             )
-            return AResult(code=a_result_station.code(), message=a_result_station.message())
+            return Result(code=a_result_station.code(), message=a_result_station.message())
 
         station: StationRow = a_result_station.result()
 
@@ -55,21 +55,21 @@ class Radio:
         session: AsyncSession,
         limit: int = 1000,
         offset: int = 0,
-    ) -> AResult[list[BaseStationResponse]]:
+    ) -> Result[list[BaseStationResponse]]:
         """Get stations with geo coordinates."""
 
-        a_result: AResult[list[StationRow]] = await RadioAccess.get_stations_with_geo_async(
+        a_result: Result[list[StationRow]] = await RadioAccess.get_stations_with_geo_async(
             session=session, limit=limit, offset=offset
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting stations with geo. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         stations: list[BaseStationResponse] = [
             Radio._build_station_response_raw(station) for station in a_result.result()
         ]
 
-        return AResult(code=AResultCode.OK, message="OK", result=stations)
+        return Result(code=ResultCode.OK, message="OK", result=stations)
 
     @staticmethod
     def _raw_to_station_data(
@@ -102,20 +102,20 @@ class Radio:
         session: AsyncSession,
         query: str,
         limit: int = 15,
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         """Search radio stations via Radio Browser API and persist them."""
 
         a_result_api = await RadioBrowserApi.search_stations_async(query=query, limit=limit)
         if a_result_api.is_not_ok():
-            return AResult(code=a_result_api.code(), message=a_result_api.message())
+            return Result(code=a_result_api.code(), message=a_result_api.message())
 
         raw_stations: list[RadioBrowserStationResponse] = a_result_api.result()
         if not raw_stations:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_provider_id = Radio.provider.get_id()
         if a_result_provider_id.is_not_ok():
-            return AResult(code=AResultCode.GENERAL_ERROR, message="No provider ID")
+            return Result(code=ResultCode.GENERAL_ERROR, message="No provider ID")
         provider_id: int = a_result_provider_id.result()
 
         stations_data: list[dict[str, Any]] = [
@@ -127,7 +127,7 @@ class Radio:
         )
         if a_batch.is_not_ok():
             logger.error(f"Batch station creation failed: {a_batch.info()}")
-            return AResult(code=a_batch.code(), message=a_batch.message())
+            return Result(code=a_batch.code(), message=a_batch.message())
 
         station_map: dict[str, StationRow] = a_batch.result()
 
@@ -152,26 +152,26 @@ class Radio:
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @staticmethod
     async def get_stations_by_country_async(
         session: AsyncSession,
         country: str,
-    ) -> AResult[list[BaseStationResponse]]:
+    ) -> Result[list[BaseStationResponse]]:
         """Get radio stations by country via Radio Browser API."""
 
         a_result_api = await RadioBrowserApi.get_stations_by_country_async(country=country)
         if a_result_api.is_not_ok():
-            return AResult(code=a_result_api.code(), message=a_result_api.message())
+            return Result(code=a_result_api.code(), message=a_result_api.message())
 
         raw_stations: list[RadioBrowserStationResponse] = a_result_api.result()
         if not raw_stations:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_provider_id = Radio.provider.get_id()
         if a_result_provider_id.is_not_ok():
-            return AResult(code=AResultCode.GENERAL_ERROR, message="No provider ID")
+            return Result(code=ResultCode.GENERAL_ERROR, message="No provider ID")
         provider_id: int = a_result_provider_id.result()
 
         stations_data: list[dict[str, Any]] = [
@@ -183,7 +183,7 @@ class Radio:
         )
         if a_batch.is_not_ok():
             logger.error(f"Batch station creation failed: {a_batch.info()}")
-            return AResult(code=a_batch.code(), message=a_batch.message())
+            return Result(code=a_batch.code(), message=a_batch.message())
 
         station_map: dict[str, StationRow] = a_batch.result()
 
@@ -197,18 +197,18 @@ class Radio:
                 continue
             results.append(Radio._build_station_response_known(station, public_id))
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @staticmethod
     async def add_from_url_async(
         session: AsyncSession,
         radio_uuid: str,
-    ) -> AResult[BaseStationResponse]:
+    ) -> Result[BaseStationResponse]:
         """Add a station from a Radio Browser UUID."""
 
         a_result_api = await RadioBrowserApi.get_station_by_uuid_async(uuid=radio_uuid)
         if a_result_api.is_not_ok():
-            return AResult(code=a_result_api.code(), message=a_result_api.message())
+            return Result(code=a_result_api.code(), message=a_result_api.message())
 
         raw: RadioBrowserStationResponse = a_result_api.result()
 
@@ -219,7 +219,7 @@ class Radio:
 
         a_result_provider_id = Radio.provider.get_id()
         if a_result_provider_id.is_not_ok():
-            return AResult(
+            return Result(
                 code=a_result_provider_id.code(),
                 message=a_result_provider_id.message(),
             )
@@ -246,7 +246,7 @@ class Radio:
             language_codes=language_codes_list,
         )
         if a_result_station.is_not_ok():
-            return AResult(
+            return Result(
                 code=a_result_station.code(),
                 message=a_result_station.message(),
             )
@@ -254,8 +254,8 @@ class Radio:
         station: StationRow = a_result_station.result()
         public_id = station.core_station.public_id if station.core_station else ""
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=Radio._build_station_response_known(station, public_id),
         )
@@ -264,13 +264,13 @@ class Radio:
     async def _download_and_create_internal_image_async(
         session: AsyncSession,
         url: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         """Download a favicon, store internally, and return the new path."""
 
         try:
             if not url:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message="No image URL provided",
                 )
 
@@ -279,8 +279,8 @@ class Radio:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(url)
                 if response.status_code != 200:
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR,
+                    return Result(
+                        code=ResultCode.GENERAL_ERROR,
                         message="Image download failed",
                     )
 
@@ -298,21 +298,21 @@ class Radio:
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error creating image: {a_result_image.info()}")
-                return AResult(
+                return Result(
                     code=a_result_image.code(),
                     message=a_result_image.message(),
                 )
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=path,
             )
 
         except Exception as e:
             logger.error(f"Failed to download/create internal image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to download/create internal image: {e}",
             )
 
@@ -362,11 +362,11 @@ class Radio:
     def _build_station_response(
         station: StationRow,
         public_id: str,
-    ) -> AResult[BaseStationResponse]:
+    ) -> Result[BaseStationResponse]:
         """Build a BaseStationResponse from a StationRow."""
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=Radio._build_station_response_known(station, public_id),
         )

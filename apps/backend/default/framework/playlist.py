@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
 from core.access.userAccess import UserAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from core.framework.media.image import Image
@@ -53,6 +52,7 @@ from default.framework.models.playlist import (
 )
 from default.framework.models.playlistMediaItem import PlaylistMediaItem
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -66,7 +66,7 @@ class Playlist:
         offset: int = 0,
         limit: int = 100,
         query: str = "",
-    ) -> AResult[BasePlaylistWithMediasResponse]:
+    ) -> Result[BasePlaylistWithMediasResponse]:
         """Return a bounded default playlist response without expanding children."""
         from core.framework.media.collection import Collection
 
@@ -80,16 +80,16 @@ class Playlist:
         )
         if result.is_not_ok():
             logger.error(f"Error loading playlist page. {result.info()}")
-            return AResult(code=result.code(), message=result.message())
+            return Result(code=result.code(), message=result.message())
         page = result.result()
         if (
             not isinstance(page.collection, BasePlaylistWithMediasResponse)
             or page.collection.provider != Default.provider_name
         ):
             logger.warning("Requested default playlist not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
-        return AResult(
-            code=AResultCode.OK,
+            return Result(code=ResultCode.NOT_FOUND, message="Playlist not found")
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=page.collection.model_copy(
                 update=dict(
@@ -103,17 +103,17 @@ class Playlist:
         )
 
     @staticmethod
-    async def _get_media_info(session: AsyncSession, media_id: int) -> AResult[MediaInfoModel]:
+    async def _get_media_info(session: AsyncSession, media_id: int) -> Result[MediaInfoModel]:
         try:
             a_result = await MediaAccess.get_media_from_id_async(session=session, id=media_id)
             if a_result.is_not_ok():
-                return AResult(code=a_result.code(), message=a_result.message())
+                return Result(code=a_result.code(), message=a_result.message())
 
             media = a_result.result()
             media_type = MediaTypeEnum(media.media_type_key)
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=MediaInfoModel(
                     media_type=media_type,
@@ -123,7 +123,7 @@ class Playlist:
             )
         except Exception as e:
             logger.error(f"Error getting media info: {e}", exc_info=True)
-            return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))
+            return Result(code=ResultCode.GENERAL_ERROR, message=str(e))
 
     @staticmethod
     async def create_playlist_async(
@@ -132,12 +132,12 @@ class Playlist:
         owner_id: int,
         description: str | None = None,
         is_public: bool = True,
-    ) -> AResult[PlaylistModel]:
+    ) -> Result[PlaylistModel]:
 
-        a_result_provider_id: AResult[int] = Default.provider.get_id()
+        a_result_provider_id: Result[int] = Default.provider.get_id()
         if a_result_provider_id.is_not_ok():
             logger.error(f"Error getting provider id. {a_result_provider_id.info()}")
-            return AResult(code=a_result_provider_id.code(), message=a_result_provider_id.message())
+            return Result(code=a_result_provider_id.code(), message=a_result_provider_id.message())
 
         a_result_playlist = await PlaylistAccess.create_playlist_async(
             session=session,
@@ -149,7 +149,7 @@ class Playlist:
         )
         if a_result_playlist.is_not_ok():
             logger.error(f"Error creating playlist. {a_result_playlist.info()}")
-            return AResult(
+            return Result(
                 code=a_result_playlist.code(),
                 message=a_result_playlist.message(),
             )
@@ -171,15 +171,19 @@ class Playlist:
             message=PlaylistCreatedMessage(publicId=playlist.core_playlist.public_id),
         )
 
-        return AResult(
-            code=AResultCode.OK,
+        result_image_url: Result[str] = await Image.get_internal_image_url_async(playlist.image)
+        if result_image_url.is_not_ok():
+            return Result[PlaylistModel].from_result(result_image_url)
+
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=PlaylistModel(
                 id=playlist.id,
                 public_id=playlist.core_playlist.public_id,
                 name=playlist.name,
                 description=playlist.description,
-                image_url=Image.get_internal_image_url(playlist.image),
+                image_url=result_image_url.result(),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
                 date_added=playlist.date_added,
@@ -193,15 +197,15 @@ class Playlist:
         playlist_public_id: str,
         user_id: int | None = None,
         include_medias: bool = True,
-    ) -> AResult[PlaylistWithDetailsModel]:
-        a_result_playlist: AResult[
+    ) -> Result[PlaylistWithDetailsModel]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
             logger.error(f"Error getting playlist. {a_result_playlist.info()}")
-            return AResult(
+            return Result(
                 code=a_result_playlist.code(),
                 message=a_result_playlist.message(),
             )
@@ -209,20 +213,20 @@ class Playlist:
         playlist: PlaylistRow = a_result_playlist.result()
 
         if not playlist.is_public and user_id:
-            a_result_role: AResult[int] = await PlaylistAccess.get_user_role_in_playlist_async(
+            a_result_role: Result[int] = await PlaylistAccess.get_user_role_in_playlist_async(
                 session=session, playlist_id=playlist.id, user_id=user_id
             )
             if a_result_role.is_not_ok():
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found.")
+                return Result(code=ResultCode.NOT_FOUND, message="Playlist not found.")
 
-        a_result_medias: AResult[list[PlaylistMediaRow]] = (
+        a_result_medias: Result[list[PlaylistMediaRow]] = (
             await PlaylistAccess.get_playlist_medias_async(session=session, playlist_id=playlist.id)
             if include_medias
-            else AResult(code=AResultCode.OK, message="OK", result=[])
+            else Result(code=ResultCode.OK, message="OK", result=[])
         )
         if a_result_medias.is_not_ok():
             logger.error(f"Error getting playlist medias. {a_result_medias.info()}")
-            return AResult(
+            return Result(
                 code=a_result_medias.code(),
                 message=a_result_medias.message(),
             )
@@ -230,7 +234,7 @@ class Playlist:
         medias: list[PlaylistMediaRow] = a_result_medias.result()
         disabled_media_ids: list[int] = []
         if user_id:
-            a_result_disabled: AResult[
+            a_result_disabled: Result[
                 list[int]
             ] = await PlaylistAccess.get_user_disabled_medias_async(
                 session=session, user_id=user_id, playlist_id=playlist.id
@@ -243,11 +247,11 @@ class Playlist:
                 session=session, ids=[m.media_id for m in medias]
             )
             if medias
-            else AResult(code=AResultCode.OK, message="OK", result=[])
+            else Result(code=ResultCode.OK, message="OK", result=[])
         )
         if a_result_media_rows.is_not_ok():
             logger.error(f"Error getting playlist media metadata. {a_result_media_rows.info()}")
-            return AResult(code=a_result_media_rows.code(), message=a_result_media_rows.message())
+            return Result(code=a_result_media_rows.code(), message=a_result_media_rows.message())
         media_rows = {row.id: row for row in a_result_media_rows.result()}
         disabled_ids = set(disabled_media_ids)
         visible_medias: list[PlaylistMediaModel] = [
@@ -262,7 +266,7 @@ class Playlist:
             if membership.id not in disabled_ids and membership.media_id in media_rows
         ]
 
-        a_result_contributors: AResult[
+        a_result_contributors: Result[
             list[PlaylistContributorRow]
         ] = await PlaylistAccess.get_contributors_async(session=session, playlist_id=playlist.id)
         contributors: list[PlaylistContributorModel] = []
@@ -275,15 +279,19 @@ class Playlist:
                     )
                 )
 
-        return AResult(
-            code=AResultCode.OK,
+        result_image_url: Result[str] = await Image.get_internal_image_url_async(playlist.image)
+        if result_image_url.is_not_ok():
+            return Result[PlaylistWithDetailsModel].from_result(result_image_url)
+
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=PlaylistWithDetailsModel(
                 id=playlist.id,
                 public_id=playlist.core_playlist.public_id,
                 name=playlist.name,
                 description=playlist.description,
-                image_url=Image.get_internal_image_url(playlist.image),
+                image_url=result_image_url.result(),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
                 date_added=playlist.date_added,
@@ -296,13 +304,13 @@ class Playlist:
     @staticmethod
     async def get_user_playlists_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[PlaylistModel]]:
-        a_result_playlists: AResult[
+    ) -> Result[list[PlaylistModel]]:
+        a_result_playlists: Result[
             list[PlaylistRow]
         ] = await PlaylistAccess.get_user_playlists_async(session=session, user_id=user_id)
         if a_result_playlists.is_not_ok():
             logger.error(f"Error getting user playlists. {a_result_playlists.info()}")
-            return AResult(
+            return Result(
                 code=a_result_playlists.code(),
                 message=a_result_playlists.message(),
             )
@@ -310,13 +318,17 @@ class Playlist:
         playlists: list[PlaylistRow] = a_result_playlists.result()
         result_playlists: list[PlaylistModel] = []
         for p in playlists:
+            result_image_url: Result[str] = await Image.get_internal_image_url_async(p.image)
+            if result_image_url.is_not_ok():
+                return Result[list[PlaylistModel]].from_result(result_image_url)
+
             result_playlists.append(
                 PlaylistModel(
                     id=p.id,
                     public_id=p.core_playlist.public_id,
                     name=p.name,
                     description=p.description,
-                    image_url=Image.get_internal_image_url(p.image),
+                    image_url=result_image_url.result(),
                     is_public=p.is_public,
                     owner_id=p.owner_id,
                     date_added=p.date_added,
@@ -324,8 +336,8 @@ class Playlist:
                 )
             )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=result_playlists,
         )
@@ -338,15 +350,15 @@ class Playlist:
         name: str | None = None,
         description: str | None = None,
         is_public: bool | None = None,
-    ) -> AResult[PlaylistModel]:
-        a_result_playlist: AResult[
+    ) -> Result[PlaylistModel]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
@@ -356,8 +368,8 @@ class Playlist:
             session=session, playlist_id=playlist_id, user_id=user_id
         )
         if a_result_role.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
@@ -366,9 +378,9 @@ class Playlist:
             PlaylistContributorRoleEnum.OWNER,
             PlaylistContributorRoleEnum.EDITOR,
         ]:
-            return AResult(code=AResultCode.BAD_REQUEST, message="Insufficient permissions.")
+            return Result(code=ResultCode.BAD_REQUEST, message="Insufficient permissions.")
 
-        a_result_playlist: AResult[PlaylistRow] = await PlaylistAccess.update_playlist_async(
+        a_result_playlist: Result[PlaylistRow] = await PlaylistAccess.update_playlist_async(
             session=session,
             playlist_id=playlist_id,
             name=name,
@@ -377,7 +389,7 @@ class Playlist:
         )
         if a_result_playlist.is_not_ok():
             logger.error(f"Error updating playlist. {a_result_playlist.info()}")
-            return AResult(
+            return Result(
                 code=a_result_playlist.code(),
                 message=a_result_playlist.message(),
             )
@@ -393,15 +405,19 @@ class Playlist:
                 ),
             )
 
-        return AResult(
-            code=AResultCode.OK,
+        result_image_url: Result[str] = await Image.get_internal_image_url_async(playlist.image)
+        if result_image_url.is_not_ok():
+            return Result[PlaylistModel].from_result(result_image_url)
+
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=PlaylistModel(
                 id=playlist.id,
                 public_id=playlist.core_playlist.public_id,
                 name=playlist.name,
                 description=playlist.description,
-                image_url=Image.get_internal_image_url(playlist.image),
+                image_url=result_image_url.result(),
                 is_public=playlist.is_public,
                 owner_id=playlist.owner_id,
                 date_added=playlist.date_added,
@@ -412,40 +428,40 @@ class Playlist:
     @staticmethod
     async def delete_playlist_async(
         session: AsyncSession, playlist_public_id: str, user_id: int
-    ) -> AResult[bool]:
-        a_result_playlist: AResult[
+    ) -> Result[bool]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
         playlist_id: int = a_result_playlist.result().id
-        a_result_role: AResult[int] = await PlaylistAccess.get_user_role_in_playlist_async(
+        a_result_role: Result[int] = await PlaylistAccess.get_user_role_in_playlist_async(
             session=session, playlist_id=playlist_id, user_id=user_id
         )
         if a_result_role.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
         role = PlaylistContributorRoleEnum(a_result_role.result())
         if role != PlaylistContributorRoleEnum.OWNER:
-            return AResult(code=AResultCode.BAD_REQUEST, message="Only owner can delete playlist.")
+            return Result(code=ResultCode.BAD_REQUEST, message="Only owner can delete playlist.")
 
         playlist_public_id_to_delete: str = a_result_playlist.result().core_playlist.public_id
 
-        a_result: AResult[bool] = await PlaylistAccess.delete_playlist_async(
+        a_result: Result[bool] = await PlaylistAccess.delete_playlist_async(
             session=session, playlist_id=playlist_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error deleting playlist. {a_result.info()}")
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
@@ -455,7 +471,7 @@ class Playlist:
             message=PlaylistDeletedMessage(publicId=playlist_public_id_to_delete),
         )
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def add_media_to_playlist_async(
@@ -463,25 +479,25 @@ class Playlist:
         playlist_public_id: str,
         user_id: int,
         media_public_id: str,
-    ) -> AResult[PlaylistMediaAddModel]:
-        a_result_playlist: AResult[
+    ) -> Result[PlaylistMediaAddModel]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
         playlist_id: int = a_result_playlist.result().id
-        a_result_role: AResult[int] = await PlaylistAccess.get_user_role_in_playlist_async(
+        a_result_role: Result[int] = await PlaylistAccess.get_user_role_in_playlist_async(
             session=session, playlist_id=playlist_id, user_id=user_id
         )
         if a_result_role.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
@@ -491,7 +507,7 @@ class Playlist:
             PlaylistContributorRoleEnum.OWNER,
             PlaylistContributorRoleEnum.EDITOR,
         ]:
-            return AResult(code=AResultCode.BAD_REQUEST, message="Insufficient permissions.")
+            return Result(code=ResultCode.BAD_REQUEST, message="Insufficient permissions.")
 
         a_result_media = await MediaAccess.get_media_from_public_id_async(
             session=session,
@@ -499,26 +515,26 @@ class Playlist:
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
         media_row = a_result_media.result()
 
         # Prevent adding a playlist to itself
         media_type_enum = MediaTypeEnum(media_row.media_type_key)
         if media_type_enum == MediaTypeEnum.PLAYLIST and media_public_id == playlist_public_id:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Cannot add a playlist to itself.",
             )
 
-        a_result: AResult[PlaylistMediaRow] = await PlaylistAccess.add_media_to_playlist_async(
+        a_result: Result[PlaylistMediaRow] = await PlaylistAccess.add_media_to_playlist_async(
             session=session,
             playlist_id=playlist_id,
             media_id=media_row.id,
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding media to playlist. {a_result.info()}")
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
@@ -526,7 +542,7 @@ class Playlist:
         playlist_media = a_result.result()
         media_type = MediaTypeEnum(media_row.media_type_key)
 
-        a_result_contributors: AResult[
+        a_result_contributors: Result[
             list[PlaylistContributorRow]
         ] = await PlaylistAccess.get_contributors_async(session=session, playlist_id=playlist_id)
         if a_result_contributors.is_ok():
@@ -538,8 +554,8 @@ class Playlist:
             for contributor in a_result_contributors.result():
                 await SendToUser.send_to_user(user_id=contributor.user_id, message=message)
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=PlaylistMediaAddModel(
                 id=playlist_media.id,
@@ -556,26 +572,26 @@ class Playlist:
         playlist_public_id: str,
         media_public_id: str,
         user_id: int,
-    ) -> AResult[bool]:
-        a_result_playlist: AResult[
+    ) -> Result[bool]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
         playlist_id: int = a_result_playlist.result().id
 
-        a_result_role: AResult[int] = await PlaylistAccess.get_user_role_in_playlist_async(
+        a_result_role: Result[int] = await PlaylistAccess.get_user_role_in_playlist_async(
             session=session, playlist_id=playlist_id, user_id=user_id
         )
         if a_result_role.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
@@ -585,7 +601,7 @@ class Playlist:
             PlaylistContributorRoleEnum.OWNER,
             PlaylistContributorRoleEnum.EDITOR,
         ]:
-            return AResult(code=AResultCode.BAD_REQUEST, message="Insufficient permissions.")
+            return Result(code=ResultCode.BAD_REQUEST, message="Insufficient permissions.")
 
         a_result_media = await MediaAccess.get_media_from_public_id_async(
             session=session,
@@ -593,34 +609,34 @@ class Playlist:
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
         media_row = a_result_media.result()
 
-        a_result_playlist_media: AResult[
+        a_result_playlist_media: Result[
             PlaylistMediaRow
         ] = await PlaylistAccess.get_playlist_media_by_media_id_async(
             session=session, playlist_id=playlist_id, media_id=media_row.id
         )
         if a_result_playlist_media.is_not_ok():
-            return AResult(
+            return Result(
                 code=a_result_playlist_media.code(),
                 message=a_result_playlist_media.message(),
             )
 
         playlist_media_id: int = a_result_playlist_media.result().id
 
-        a_result: AResult[bool] = await PlaylistAccess.remove_media_from_playlist_async(
+        a_result: Result[bool] = await PlaylistAccess.remove_media_from_playlist_async(
             session=session, playlist_media_id=playlist_media_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error removing media from playlist. {a_result.info()}")
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
 
-        a_result_contributors: AResult[
+        a_result_contributors: Result[
             list[PlaylistContributorRow]
         ] = await PlaylistAccess.get_contributors_async(session=session, playlist_id=playlist_id)
         if a_result_contributors.is_ok():
@@ -631,7 +647,7 @@ class Playlist:
             for contributor in a_result_contributors.result():
                 await SendToUser.send_to_user(user_id=contributor.user_id, message=message)
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def add_contributor_async(
@@ -640,15 +656,15 @@ class Playlist:
         owner_id: int,
         new_user_public_id: str,
         role: PlaylistContributorRoleEnum,
-    ) -> AResult[PlaylistContributorAddModel]:
-        a_result_playlist: AResult[
+    ) -> Result[PlaylistContributorAddModel]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
@@ -658,21 +674,21 @@ class Playlist:
             session=session, playlist_id=playlist_id, user_id=owner_id
         )
         if a_result_role.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
         role_enum = PlaylistContributorRoleEnum(a_result_role.result())
         if role_enum != PlaylistContributorRoleEnum.OWNER:
-            return AResult(code=AResultCode.BAD_REQUEST, message="Only owner can add contributors.")
+            return Result(code=ResultCode.BAD_REQUEST, message="Only owner can add contributors.")
 
         a_result_new_user = await UserAccess.get_user_from_public_id_async(
             session=session, public_id=new_user_public_id
         )
         if a_result_new_user.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="User not found.",
             )
 
@@ -686,14 +702,14 @@ class Playlist:
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding contributor. {a_result.info()}")
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
 
         contributor: PlaylistContributorRow = a_result.result()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=PlaylistContributorAddModel(
                 user_id=contributor.user_id,
@@ -707,15 +723,15 @@ class Playlist:
         playlist_public_id: str,
         owner_id: int,
         target_user_public_id: str,
-    ) -> AResult[bool]:
-        a_result_playlist: AResult[
+    ) -> Result[bool]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
@@ -725,15 +741,15 @@ class Playlist:
             session=session, playlist_id=playlist_id, user_id=owner_id
         )
         if a_result_role.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found or access denied.",
             )
 
         role = PlaylistContributorRoleEnum(a_result_role.result())
         if role != PlaylistContributorRoleEnum.OWNER:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Only owner can remove contributors.",
             )
 
@@ -741,8 +757,8 @@ class Playlist:
             session=session, public_id=target_user_public_id
         )
         if a_result_target_user.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="User not found.",
             )
 
@@ -753,12 +769,12 @@ class Playlist:
         )
         if a_result.is_not_ok():
             logger.error(f"Error removing contributor. {a_result.info()}")
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def disable_media_for_user_async(
@@ -766,15 +782,15 @@ class Playlist:
         playlist_public_id: str,
         user_id: int,
         playlist_media_public_id: str,
-    ) -> AResult[bool]:
-        a_result_playlist: AResult[
+    ) -> Result[bool]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found.",
             )
 
@@ -786,11 +802,11 @@ class Playlist:
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
         media_row = a_result_media.result()
 
-        a_result_playlist_media: AResult[
+        a_result_playlist_media: Result[
             PlaylistMediaRow
         ] = await PlaylistAccess.get_playlist_media_by_media_id_async(
             session=session,
@@ -799,7 +815,7 @@ class Playlist:
         )
         if a_result_playlist_media.is_not_ok():
             logger.error(f"Error getting playlist media. {a_result_playlist_media.info()}")
-            return AResult(
+            return Result(
                 code=a_result_playlist_media.code(),
                 message=a_result_playlist_media.message(),
             )
@@ -811,12 +827,12 @@ class Playlist:
         )
         if a_result.is_not_ok():
             logger.error(f"Error disabling media. {a_result.info()}")
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def enable_media_for_user_async(
@@ -824,15 +840,15 @@ class Playlist:
         playlist_public_id: str,
         user_id: int,
         playlist_media_public_id: str,
-    ) -> AResult[bool]:
-        a_result_playlist: AResult[
+    ) -> Result[bool]:
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found.",
             )
 
@@ -844,11 +860,11 @@ class Playlist:
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
         media_row = a_result_media.result()
 
-        a_result_playlist_media: AResult[
+        a_result_playlist_media: Result[
             PlaylistMediaRow
         ] = await PlaylistAccess.get_playlist_media_by_media_id_async(
             session=session,
@@ -857,7 +873,7 @@ class Playlist:
         )
         if a_result_playlist_media.is_not_ok():
             logger.error(f"Error getting playlist media. {a_result_playlist_media.info()}")
-            return AResult(
+            return Result(
                 code=a_result_playlist_media.code(),
                 message=a_result_playlist_media.message(),
             )
@@ -869,12 +885,12 @@ class Playlist:
         )
         if a_result.is_not_ok():
             logger.error(f"Error enabling media. {a_result.info()}")
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def build_playlist_response_async(
@@ -883,7 +899,7 @@ class Playlist:
         owner: BaseArtistResponse,
         user_id: int,
         _visited_playlist_ids: set[str] | None = None,
-    ) -> AResult[BasePlaylistWithMediasResponse]:
+    ) -> Result[BasePlaylistWithMediasResponse]:
         """Build a BasePlaylistResponse from a PlaylistWithDetailsModel."""
 
         from core.framework import providers as provider_utils
@@ -895,7 +911,7 @@ class Playlist:
             _visited_playlist_ids = _visited_playlist_ids | {playlist.public_id}
 
         # Fetch expanded states for this user + playlist
-        a_result_expanded: AResult[
+        a_result_expanded: Result[
             dict[int, bool]
         ] = await PlaylistAccess.get_user_media_expanded_map_async(
             session=session, user_id=user_id, playlist_id=playlist.id
@@ -1044,8 +1060,8 @@ class Playlist:
                 )
             )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=BasePlaylistWithMediasResponse(
                 type="playlist",
@@ -1069,37 +1085,37 @@ class Playlist:
         playlist_public_id: str,
         media_public_id: str,
         is_expanded: bool,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Set expanded state for a playlist media item."""
 
         # Look up playlist internal id
-        a_result_playlist: AResult[
+        a_result_playlist: Result[
             PlaylistRow
         ] = await PlaylistAccess.get_playlist_by_public_id_async(
             session=session, public_id=playlist_public_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist not found.",
             )
         playlist: PlaylistRow = a_result_playlist.result()
 
         # Look up media internal id
-        a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+        a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
             session=session,
             public_id=media_public_id,
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Media not found.",
             )
         media: CoreMediaRow = a_result_media.result()
 
         # Look up playlist_media.id
-        a_result_pm: AResult[
+        a_result_pm: Result[
             PlaylistMediaRow
         ] = await PlaylistAccess.get_playlist_media_by_media_id_async(
             session=session,
@@ -1107,8 +1123,8 @@ class Playlist:
             media_id=media.id,
         )
         if a_result_pm.is_not_ok():
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Playlist media not found.",
             )
         playlist_media: PlaylistMediaRow = a_result_pm.result()

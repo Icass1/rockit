@@ -9,11 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
 from constants import MEDIA_PATH
-from core.aResult import AResult, AResultCode
 from core.framework.media.stream import MediaStream
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.framework.youtube import YouTube
 from youtube.responses.channelResponse import YoutubeChannelResponse
 from youtube.responses.videoResponse import YoutubeVideoResponse
@@ -33,7 +33,7 @@ async def stream_video_async(request: Request, youtube_id: str) -> Response:
     """Stream video."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+    a_result: Result[YoutubeVideoResponse] = await YouTube.get_video_async(
         session=session, youtube_id=youtube_id
     )
     if a_result.is_not_ok():
@@ -115,7 +115,7 @@ async def stream_audio_async(request: Request, youtube_id: str) -> Response:
     """Stream audio from video using ffmpeg with seeking support."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+    a_result: Result[YoutubeVideoResponse] = await YouTube.get_video_async(
         session=session, youtube_id=youtube_id
     )
     if a_result.is_not_ok():
@@ -128,7 +128,7 @@ async def stream_audio_async(request: Request, youtube_id: str) -> Response:
 
     video_path: str = os.path.join(MEDIA_PATH, video_response.video_path)
 
-    a_result_stream: AResult[StreamingResponse] = await MediaStream.stream_audio_from_video_async(
+    a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_from_video_async(
         video_path=video_path, range_header=request.headers.get("range")
     )
     if a_result_stream.is_not_ok():
@@ -146,7 +146,7 @@ async def get_youtube_video_async(request: Request, youtube_id: str) -> YoutubeV
     """TODO"""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+    a_result: Result[YoutubeVideoResponse] = await YouTube.get_video_async(
         session=session, youtube_id=youtube_id
     )
     if a_result.is_not_ok():
@@ -160,8 +160,8 @@ async def get_youtube_video_async(request: Request, youtube_id: str) -> YoutubeV
 async def get_chanel_async(request: Request, youtube_id: str) -> YoutubeChannelResponse:
     """TODO"""
 
-    a_result = AResultCode(
-        code=AResultCode.NOT_IMPLEMENTED, message="get_chanel_async is not implemented."
+    a_result = ResultCode(
+        code=ResultCode.NOT_IMPLEMENTED, message="get_chanel_async is not implemented."
     )
 
     raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())

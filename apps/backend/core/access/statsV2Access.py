@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from core.responses.statsInsightsResponse import StatsInsightsResponse
@@ -13,6 +12,7 @@ from core.responses.statsRankedItemResponse import StatsRankedItemResponse
 from core.utils.safeAsyncCall import safe_async
 from core.utils.statsLabels import DAY_NAMES, MONTH_NAMES
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -124,7 +124,7 @@ class StatsV2Access:
         start_date: datetime,
         end_date: datetime,
         timezone_offset_minutes: int,
-    ) -> AResult[StatsInsightsResponse]:
+    ) -> Result[StatsInsightsResponse]:
         """Aggregate listening habits and library activity for a date range."""
 
         sql = text(f"""
@@ -263,8 +263,8 @@ class StatsV2Access:
             "Sunday",
         ]
         peak_day = day_names[int(row.peak_day)] if row.peak_day is not None else None
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=StatsInsightsResponse(
                 activeDays=int(row.active_days or 0),
@@ -292,7 +292,7 @@ class StatsV2Access:
         user_id: int,
         start_date: datetime,
         end_date: datetime,
-    ) -> AResult[StatsV2SummaryData]:
+    ) -> Result[StatsV2SummaryData]:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         interval_listens AS (
@@ -365,8 +365,8 @@ class StatsV2Access:
         ).fetchone()
 
         if row is None:
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=StatsV2SummaryData(
                     unique_medias_listened=0,
@@ -378,8 +378,8 @@ class StatsV2Access:
                     avg_play_time_per_media_ms=0.0,
                 ),
             )
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=StatsV2SummaryData(
                 unique_medias_listened=int(row.medias_listened or 0),
@@ -399,7 +399,7 @@ class StatsV2Access:
         start_date: datetime,
         end_date: datetime,
         group_by: str,
-    ) -> AResult[list[StatsMinutesEntryResponse]]:
+    ) -> Result[list[StatsMinutesEntryResponse]]:
         pg_period = {
             "hour": "hour",
             "day": "day",
@@ -510,7 +510,7 @@ class StatsV2Access:
                 )
                 cur = nxt
 
-        return AResult(code=AResultCode.OK, message="OK", result=entries)
+        return Result(code=ResultCode.OK, message="OK", result=entries)
 
     @staticmethod
     async def get_top_songs_async(
@@ -519,7 +519,7 @@ class StatsV2Access:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         {_get_artist_info_cte()},
@@ -559,8 +559,8 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -582,7 +582,7 @@ class StatsV2Access:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         {_get_artist_info_cte()},
@@ -622,8 +622,8 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -645,7 +645,7 @@ class StatsV2Access:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_artist_info_cte()},
         artist_durations AS (
@@ -680,8 +680,8 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -703,7 +703,7 @@ class StatsV2Access:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_album_info_cte()},
         album_durations AS (
@@ -740,8 +740,8 @@ class StatsV2Access:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -763,7 +763,7 @@ class StatsV2Access:
         start_date: datetime,
         end_date: datetime,
         timezone_offset_minutes: int = 0,
-    ) -> AResult[list[StatsHeatmapCellResponse]]:
+    ) -> Result[list[StatsHeatmapCellResponse]]:
         sql = text("""
         SELECT EXTRACT(HOUR FROM umli.date_added - (:timezone_offset_minutes * INTERVAL
         '1 minute'))::int AS hour,
@@ -799,13 +799,13 @@ class StatsV2Access:
             for day in range(7)
             for hour in range(HEATMAP_HOURS_START, HEATMAP_HOURS_END)
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=cells)
+        return Result(code=ResultCode.OK, message="OK", result=cells)
 
     @staticmethod
     async def get_first_listen_date_async(
         session: AsyncSession,
         user_id: int,
-    ) -> AResult[datetime | None]:
+    ) -> Result[datetime | None]:
         sql = text("""
         SELECT MIN(date_added) AS first_date
         FROM   core.user_media_listen_interval
@@ -813,15 +813,15 @@ class StatsV2Access:
         """)
         row = (await session.execute(sql, {"user_id": user_id})).fetchone()
         if row is None or row.first_date is None:
-            return AResult(code=AResultCode.OK, message="OK", result=None)
-        return AResult(code=AResultCode.OK, message="OK", result=_utc(row.first_date))
+            return Result(code=ResultCode.OK, message="OK", result=None)
+        return Result(code=ResultCode.OK, message="OK", result=_utc(row.first_date))
 
     @staticmethod
     async def get_current_streak_async(
         session: AsyncSession,
         user_id: int,
         timezone_offset_minutes: int = 0,
-    ) -> AResult[int]:
+    ) -> Result[int]:
         sql = text("""
         SELECT DISTINCT DATE(date_added - (:timezone_offset_minutes * INTERVAL '1 minute')) AS
         listen_date
@@ -841,13 +841,13 @@ class StatsV2Access:
         dates = [r.listen_date for r in rows]
 
         if not dates:
-            return AResult(code=AResultCode.OK, message="OK", result=0)
+            return Result(code=ResultCode.OK, message="OK", result=0)
 
         today = (datetime.now(UTC) - timedelta(minutes=timezone_offset_minutes)).date()
         yesterday = today - timedelta(days=1)
 
         if dates[0] < yesterday:
-            return AResult(code=AResultCode.OK, message="OK", result=0)
+            return Result(code=ResultCode.OK, message="OK", result=0)
 
         streak = 0
         expected = dates[0]
@@ -858,4 +858,4 @@ class StatsV2Access:
             else:
                 break
 
-        return AResult(code=AResultCode.OK, message="OK", result=streak)
+        return Result(code=ResultCode.OK, message="OK", result=streak)

@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import BACKEND_URL, MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.media.image import Image
 from core.framework.media.stream import MediaStream
@@ -32,6 +31,7 @@ from core.responses.searchResponse import (
 )
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from youtubeMusic.access.youtubeMusicAccess import YoutubeMusicAccess
 from youtubeMusic.framework.download.imageDownload import ImageDownload
 from youtubeMusic.framework.download.youtubeMusicDownload import (
@@ -63,18 +63,18 @@ class YoutubeMusic:
     provider_name: str
 
     @staticmethod
-    async def get_provider_id() -> AResult[int]:
-        a_result: AResult[int] = YoutubeMusic.provider.get_id()
+    async def get_provider_id() -> Result[int]:
+        a_result: Result[int] = YoutubeMusic.provider.get_id()
         if a_result.is_not_ok():
             logger.error(f"Error getting provider id. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
         return a_result
 
     @staticmethod
     async def get_or_create_image_async(
         session: AsyncSession,
         url: str,
-    ) -> AResult[ImageRow]:
+    ) -> Result[ImageRow]:
         return await ImageDownload.download_and_create_internal_image_async(
             session=session, url=url
         )
@@ -117,7 +117,7 @@ class YoutubeMusic:
         session: AsyncSession,
         raw: "YoutubeMusicArtist",
         provider_id: int,
-    ) -> AResult["ArtistRow"]:
+    ) -> Result["ArtistRow"]:
         a_result_img = await ImageDownload.download_and_create_internal_image_async(
             session=session, url=raw.thumbnail_url
         )
@@ -132,7 +132,7 @@ class YoutubeMusic:
                 image_id = a_result_image.result().id
             else:
                 logger.error(f"Error getting placeholder image: {a_result_image.info()}")
-                return AResult(code=a_result_image.code(), message=a_result_image.message())
+                return Result(code=a_result_image.code(), message=a_result_image.message())
 
         return await YoutubeMusicAccess.get_or_create_artist_with_image_id_async(
             session=session,
@@ -147,13 +147,13 @@ class YoutubeMusic:
         raw: "YoutubeMusicAlbum",
         artist_map: dict[str, "ArtistRow"],
         provider_id: int,
-    ) -> AResult["AlbumRow"]:
+    ) -> Result["AlbumRow"]:
         a_result_img = await ImageDownload.download_and_create_internal_image_async(
             session=session, url=raw.thumbnail_url
         )
         if a_result_img.is_not_ok():
             logger.error(f"Error creating image: {a_result_img.info()}")
-            return AResult(code=a_result_img.code(), message=a_result_img.message())
+            return Result(code=a_result_img.code(), message=a_result_img.message())
         image_id = a_result_img.result().id
 
         return await YoutubeMusicAccess.get_or_create_album_with_image_id_async(
@@ -171,13 +171,13 @@ class YoutubeMusic:
         artist_map: dict[str, "ArtistRow"],
         album_row: "AlbumRow",
         provider_id: int,
-    ) -> AResult["TrackRow"]:
+    ) -> Result["TrackRow"]:
         a_result_img = await ImageDownload.download_and_create_internal_image_async(
             session=session, url=raw.thumbnail_url
         )
         if a_result_img.is_not_ok():
             logger.error(f"Error creating image: {a_result_img.info()}")
-            return AResult(code=a_result_img.code(), message=a_result_img.message())
+            return Result(code=a_result_img.code(), message=a_result_img.message())
         image_id = a_result_img.result().id
 
         return await YoutubeMusicAccess.get_or_create_track_with_image_id_async(
@@ -193,7 +193,7 @@ class YoutubeMusic:
     async def add_track_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[BaseSongWithAlbumResponse]:
+    ) -> Result[BaseSongWithAlbumResponse]:
         """Add a track from youtube_id. If not in DB, fetch from API and populate."""
         a_result_db_track = await YoutubeMusicAccess.get_track_by_youtube_id_async(
             session=session, youtube_id=youtube_id
@@ -206,25 +206,25 @@ class YoutubeMusic:
                 session=session, db_track=db_track, public_id=core_media.public_id
             )
 
-        if a_result_db_track.code() != AResultCode.NOT_FOUND:
+        if a_result_db_track.code() != ResultCode.NOT_FOUND:
             logger.error(f"Error getting track from DB. {a_result_db_track.info()}")
-            return AResult(code=a_result_db_track.code(), message=a_result_db_track.message())
+            return Result(code=a_result_db_track.code(), message=a_result_db_track.message())
 
         a_result_track_api = await YoutubeMusicApi.get_track_info_async(youtube_id=youtube_id)
         if a_result_track_api.is_not_ok():
             logger.error(f"Error getting track from API. {a_result_track_api.info()}")
-            return AResult(code=a_result_track_api.code(), message=a_result_track_api.message())
+            return Result(code=a_result_track_api.code(), message=a_result_track_api.message())
 
         track_api: YoutubeMusicTrack = a_result_track_api.result()
 
-        a_result_album_api: AResult[YoutubeMusicAlbum]
+        a_result_album_api: Result[YoutubeMusicAlbum]
         if track_api.album_youtube_id:
             a_result_album_api = await YoutubeMusicApi.get_album_info_async(
                 youtube_id=track_api.album_youtube_id
             )
             if a_result_album_api.is_not_ok():
                 logger.error(f"Error getting album from API. {a_result_album_api.info()}")
-                return AResult(code=a_result_album_api.code(), message=a_result_album_api.message())
+                return Result(code=a_result_album_api.code(), message=a_result_album_api.message())
             album_api: YoutubeMusicAlbum = a_result_album_api.result()
         else:
             logger.info(
@@ -240,7 +240,7 @@ class YoutubeMusic:
 
         a_result_provider_id = await YoutubeMusic.get_provider_id()
         if a_result_provider_id.is_not_ok():
-            return AResult(code=a_result_provider_id.code(), message=a_result_provider_id.message())
+            return Result(code=a_result_provider_id.code(), message=a_result_provider_id.message())
         provider_id = a_result_provider_id.result()
 
         artist_map: dict[str, ArtistRow] = {}
@@ -263,7 +263,7 @@ class YoutubeMusic:
             provider_id=provider_id,
         )
         if a_result_album.is_not_ok():
-            return AResult(code=a_result_album.code(), message=a_result_album.message())
+            return Result(code=a_result_album.code(), message=a_result_album.message())
         album_row = a_result_album.result()
 
         a_result_track = await YoutubeMusic.get_or_create_track_async(
@@ -274,7 +274,7 @@ class YoutubeMusic:
             provider_id=provider_id,
         )
         if a_result_track.is_not_ok():
-            return AResult(code=a_result_track.code(), message=a_result_track.message())
+            return Result(code=a_result_track.code(), message=a_result_track.message())
         db_track = a_result_track.result()
 
         core_media = db_track.core_song
@@ -286,7 +286,7 @@ class YoutubeMusic:
     async def add_album_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[BaseAlbumWithSongsResponse]:
+    ) -> Result[BaseAlbumWithSongsResponse]:
         """Add an album from youtube_id. If not in DB, fetch from API and populate."""
         a_result_db_album = await YoutubeMusicAccess.get_album_by_youtube_id_async(
             session=session, youtube_id=youtube_id
@@ -299,14 +299,14 @@ class YoutubeMusic:
                 session=session, db_album=db_album, public_id=core_media.public_id
             )
 
-        if a_result_db_album.code() != AResultCode.NOT_FOUND:
+        if a_result_db_album.code() != ResultCode.NOT_FOUND:
             logger.error(f"Error getting album from DB. {a_result_db_album.info()}")
-            return AResult(code=a_result_db_album.code(), message=a_result_db_album.message())
+            return Result(code=a_result_db_album.code(), message=a_result_db_album.message())
 
         a_result_album_api = await YoutubeMusicApi.get_album_info_async(youtube_id=youtube_id)
         if a_result_album_api.is_not_ok():
             logger.error(f"Error getting album from API. {a_result_album_api.info()}")
-            return AResult(code=a_result_album_api.code(), message=a_result_album_api.message())
+            return Result(code=a_result_album_api.code(), message=a_result_album_api.message())
 
         album_api: YoutubeMusicAlbum = a_result_album_api.result()
 
@@ -315,7 +315,7 @@ class YoutubeMusic:
         )
         if a_result_album_tracks_api.is_not_ok():
             logger.error(f"Error getting album tracks from API. {a_result_album_tracks_api.info()}")
-            return AResult(
+            return Result(
                 code=a_result_album_tracks_api.code(),
                 message=a_result_album_tracks_api.message(),
             )
@@ -324,7 +324,7 @@ class YoutubeMusic:
 
         a_result_provider_id = await YoutubeMusic.get_provider_id()
         if a_result_provider_id.is_not_ok():
-            return AResult(code=a_result_provider_id.code(), message=a_result_provider_id.message())
+            return Result(code=a_result_provider_id.code(), message=a_result_provider_id.message())
         provider_id = a_result_provider_id.result()
 
         artist_map: dict[str, ArtistRow] = {}
@@ -347,7 +347,7 @@ class YoutubeMusic:
             provider_id=provider_id,
         )
         if a_result_album.is_not_ok():
-            return AResult(code=a_result_album.code(), message=a_result_album.message())
+            return Result(code=a_result_album.code(), message=a_result_album.message())
         album_row = a_result_album.result()
 
         for track_api in tracks_api:
@@ -368,7 +368,7 @@ class YoutubeMusic:
     async def add_artist_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[BaseArtistResponse]:
+    ) -> Result[BaseArtistResponse]:
         """Add an artist from youtube_id. If not in DB, fetch from API and populate."""
         a_result_db_artist = await YoutubeMusicAccess.get_artist_by_youtube_id_async(
             session=session, youtube_id=youtube_id
@@ -381,14 +381,14 @@ class YoutubeMusic:
                 session=session, db_artist=db_artist, public_id=core_media.public_id
             )
 
-        if a_result_db_artist.code() != AResultCode.NOT_FOUND:
+        if a_result_db_artist.code() != ResultCode.NOT_FOUND:
             logger.error(f"Error getting artist from DB. {a_result_db_artist.info()}")
-            return AResult(code=a_result_db_artist.code(), message=a_result_db_artist.message())
+            return Result(code=a_result_db_artist.code(), message=a_result_db_artist.message())
 
         a_result_artist_api = await YoutubeMusicApi.get_artist_info_async(youtube_id=youtube_id)
         if a_result_artist_api.is_not_ok():
             logger.error(f"Error getting artist from API. {a_result_artist_api.info()}")
-            return AResult(code=a_result_artist_api.code(), message=a_result_artist_api.message())
+            return Result(code=a_result_artist_api.code(), message=a_result_artist_api.message())
 
         artist_api: YoutubeMusicArtist = a_result_artist_api.result()
 
@@ -406,14 +406,14 @@ class YoutubeMusic:
 
         a_result_provider_id = await YoutubeMusic.get_provider_id()
         if a_result_provider_id.is_not_ok():
-            return AResult(code=a_result_provider_id.code(), message=a_result_provider_id.message())
+            return Result(code=a_result_provider_id.code(), message=a_result_provider_id.message())
         provider_id = a_result_provider_id.result()
 
         a_result_artist = await YoutubeMusic.get_or_create_artist_async(
             session=session, raw=artist_api, provider_id=provider_id
         )
         if a_result_artist.is_not_ok():
-            return AResult(code=a_result_artist.code(), message=a_result_artist.message())
+            return Result(code=a_result_artist.code(), message=a_result_artist.message())
         artist_row = a_result_artist.result()
 
         album_artist_map: dict[str, AlbumRow] = {}
@@ -456,14 +456,14 @@ class YoutubeMusic:
     async def get_track_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[BaseSongWithAlbumResponse]:
+    ) -> Result[BaseSongWithAlbumResponse]:
         try:
             a_result_db_track = await YoutubeMusicAccess.get_track_by_public_id_async(
                 session=session, public_id=public_id
             )
             if a_result_db_track.is_not_ok():
                 logger.error(f"Error getting track from DB. {a_result_db_track.info()}")
-                return AResult(
+                return Result(
                     code=a_result_db_track.code(),
                     message=a_result_db_track.message(),
                 )
@@ -525,12 +525,12 @@ class YoutubeMusic:
                 dominantColor=dominant_color,
             )
 
-            return AResult(code=AResultCode.OK, message="OK", result=response)
+            return Result(code=ResultCode.OK, message="OK", result=response)
 
         except Exception as e:
             logger.error(f"Failed to get track: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get track: {e}",
             )
 
@@ -539,7 +539,7 @@ class YoutubeMusic:
     async def get_album_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[BaseAlbumWithSongsResponse]:
+    ) -> Result[BaseAlbumWithSongsResponse]:
         try:
             a_result_youtube_id = (
                 await YoutubeMusicAccess.get_album_youtube_id_from_public_id_async(
@@ -548,7 +548,7 @@ class YoutubeMusic:
             )
             if a_result_youtube_id.is_not_ok():
                 logger.error(f"Error getting youtube_id. {a_result_youtube_id.info()}")
-                return AResult(
+                return Result(
                     code=a_result_youtube_id.code(),
                     message=a_result_youtube_id.message(),
                 )
@@ -566,9 +566,9 @@ class YoutubeMusic:
                     session=session, db_album=db_album, public_id=public_id
                 )
 
-            if a_result_db_album.code() != AResultCode.NOT_FOUND:
+            if a_result_db_album.code() != ResultCode.NOT_FOUND:
                 logger.error(f"Error getting album from DB. {a_result_db_album.info()}")
-                return AResult(
+                return Result(
                     code=a_result_db_album.code(),
                     message=a_result_db_album.message(),
                 )
@@ -578,8 +578,8 @@ class YoutubeMusic:
 
         except Exception as e:
             logger.error(f"Failed to get album: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get album: {e}",
             )
 
@@ -587,7 +587,7 @@ class YoutubeMusic:
     async def get_artist_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[BaseArtistResponse]:
+    ) -> Result[BaseArtistResponse]:
         try:
             a_result_youtube_id = (
                 await YoutubeMusicAccess.get_artist_youtube_id_from_public_id_async(
@@ -596,7 +596,7 @@ class YoutubeMusic:
             )
             if a_result_youtube_id.is_not_ok():
                 logger.error(f"Error getting youtube_id. {a_result_youtube_id.info()}")
-                return AResult(
+                return Result(
                     code=a_result_youtube_id.code(),
                     message=a_result_youtube_id.message(),
                 )
@@ -614,9 +614,9 @@ class YoutubeMusic:
                     session=session, db_artist=db_artist, public_id=public_id
                 )
 
-            if a_result_db_artist.code() != AResultCode.NOT_FOUND:
+            if a_result_db_artist.code() != ResultCode.NOT_FOUND:
                 logger.error(f"Error getting artist from DB. {a_result_db_artist.info()}")
-                return AResult(
+                return Result(
                     code=a_result_db_artist.code(),
                     message=a_result_db_artist.message(),
                 )
@@ -626,8 +626,8 @@ class YoutubeMusic:
 
         except Exception as e:
             logger.error(f"Failed to get artist: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get artist: {e}",
             )
 
@@ -638,7 +638,7 @@ class YoutubeMusic:
         query: str,
         limit: int = 15,
         media_type: str | None = None,
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         """Search YouTube Music and return songs, artists, albums and playlists."""
 
         (
@@ -650,22 +650,22 @@ class YoutubeMusic:
             (
                 YoutubeMusicApi.search_track_async(query=query, max_results=limit)
                 if media_type in (None, "song")
-                else asyncio.sleep(0, result=AResult(code=AResultCode.OK, message="OK", result=[]))
+                else asyncio.sleep(0, result=Result(code=ResultCode.OK, message="OK", result=[]))
             ),
             (
                 YoutubeMusicApi.search_artists_async(query=query, max_results=limit)
                 if media_type in (None, "artist")
-                else asyncio.sleep(0, result=AResult(code=AResultCode.OK, message="OK", result=[]))
+                else asyncio.sleep(0, result=Result(code=ResultCode.OK, message="OK", result=[]))
             ),
             (
                 YoutubeMusicApi.search_albums_async(query=query, max_results=limit)
                 if media_type in (None, "album")
-                else asyncio.sleep(0, result=AResult(code=AResultCode.OK, message="OK", result=[]))
+                else asyncio.sleep(0, result=Result(code=ResultCode.OK, message="OK", result=[]))
             ),
             (
                 YoutubeMusicApi.search_playlists_async(query=query, max_results=limit)
                 if media_type in (None, "playlist")
-                else asyncio.sleep(0, result=AResult(code=AResultCode.OK, message="OK", result=[]))
+                else asyncio.sleep(0, result=Result(code=ResultCode.OK, message="OK", result=[]))
             ),
         )
 
@@ -673,7 +673,7 @@ class YoutubeMusic:
 
         if a_tracks.is_ok():
             tracks = a_tracks.result()
-            downloaded_a: AResult[dict[str, str]] = (
+            downloaded_a: Result[dict[str, str]] = (
                 await YoutubeMusicAccess.get_downloaded_youtube_public_ids_async(
                     session=session,
                     youtube_ids=[t.youtube_id for t in tracks],
@@ -706,7 +706,7 @@ class YoutubeMusic:
 
         if a_artists.is_ok():
             artists_result = a_artists.result()
-            artist_a: AResult[
+            artist_a: Result[
                 dict[str, str]
             ] = await YoutubeMusicAccess.get_artist_public_ids_by_youtube_ids_async(
                 session=session,
@@ -739,7 +739,7 @@ class YoutubeMusic:
 
         if a_albums.is_ok():
             albums_result = a_albums.result()
-            album_a: AResult[
+            album_a: Result[
                 dict[str, str]
             ] = await YoutubeMusicAccess.get_album_public_ids_by_youtube_ids_async(
                 session=session,
@@ -774,7 +774,7 @@ class YoutubeMusic:
 
         if a_playlists.is_ok():
             playlists_result = a_playlists.result()
-            playlist_a: AResult[
+            playlist_a: Result[
                 dict[str, str]
             ] = await YoutubeMusicAccess.get_playlist_public_ids_by_youtube_ids_async(
                 session=session,
@@ -810,21 +810,21 @@ class YoutubeMusic:
             logger.error(f"YouTube Music playlist search error: {a_playlists.info()}")
 
         if not result:
-            return AResult(code=AResultCode.NOT_FOUND, message="No results found")
+            return Result(code=ResultCode.NOT_FOUND, message="No results found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=result)
+        return Result(code=ResultCode.OK, message="OK", result=result)
 
     @staticmethod
     @time_it
     async def get_artists_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[BaseArtistResponse]]:
+    ) -> Result[list[BaseArtistResponse]]:
         """Get YouTube Music artists by public_ids."""
 
         results: list[BaseArtistResponse] = []
         for public_id in public_ids:
-            a_result: AResult[BaseArtistResponse] = await YoutubeMusic.get_artist_async(
+            a_result: Result[BaseArtistResponse] = await YoutubeMusic.get_artist_async(
                 session=session, public_id=public_id
             )
             if a_result.is_not_ok():
@@ -834,16 +834,16 @@ class YoutubeMusic:
             results.append(a_result.result())
 
         if not results:
-            return AResult(code=AResultCode.NOT_FOUND, message="Artists not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Artists not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @staticmethod
     async def _get_or_create_playlist_track_async(
         session: AsyncSession,
         raw_track: "YoutubeMusicPlaylistTrack",
         provider_id: int,
-    ) -> AResult["TrackRow"]:
+    ) -> Result["TrackRow"]:
         """Persist a single playlist track (with synthesized album/artists) if missing."""
 
         a_result_existing = await YoutubeMusicAccess.get_track_by_youtube_id_async(
@@ -852,9 +852,9 @@ class YoutubeMusic:
         if a_result_existing.is_ok():
             return a_result_existing
 
-        if a_result_existing.code() != AResultCode.NOT_FOUND:
+        if a_result_existing.code() != ResultCode.NOT_FOUND:
             logger.error(f"Error getting track from DB. {a_result_existing.info()}")
-            return AResult(code=a_result_existing.code(), message=a_result_existing.message())
+            return Result(code=a_result_existing.code(), message=a_result_existing.message())
 
         artist_map: dict[str, ArtistRow] = {}
         for artist_name in raw_track.artists:
@@ -883,7 +883,7 @@ class YoutubeMusic:
             provider_id=provider_id,
         )
         if a_result_album.is_not_ok():
-            return AResult(code=a_result_album.code(), message=a_result_album.message())
+            return Result(code=a_result_album.code(), message=a_result_album.message())
         album_row = a_result_album.result()
 
         track_api = YoutubeMusicTrack(
@@ -907,7 +907,7 @@ class YoutubeMusic:
     async def _persist_playlist_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult["PlaylistRow"]:
+    ) -> Result["PlaylistRow"]:
         """Return the playlist row from DB, fetching from the API and persisting it if missing."""
 
         a_result_db = await YoutubeMusicAccess.get_playlist_by_youtube_id_async(
@@ -916,20 +916,20 @@ class YoutubeMusic:
         if a_result_db.is_ok():
             return a_result_db
 
-        if a_result_db.code() != AResultCode.NOT_FOUND:
+        if a_result_db.code() != ResultCode.NOT_FOUND:
             logger.error(f"Error getting playlist from DB. {a_result_db.info()}")
-            return AResult(code=a_result_db.code(), message=a_result_db.message())
+            return Result(code=a_result_db.code(), message=a_result_db.message())
 
         a_result_api = await YoutubeMusicApi.get_playlist_info_async(playlist_id=youtube_id)
         if a_result_api.is_not_ok():
             logger.error(f"Error getting playlist from API. {a_result_api.info()}")
-            return AResult(code=a_result_api.code(), message=a_result_api.message())
+            return Result(code=a_result_api.code(), message=a_result_api.message())
 
         raw_playlist: YoutubeMusicPlaylist = a_result_api.result()
 
         a_result_provider_id = await YoutubeMusic.get_provider_id()
         if a_result_provider_id.is_not_ok():
-            return AResult(
+            return Result(
                 code=a_result_provider_id.code(),
                 message=a_result_provider_id.message(),
             )
@@ -960,7 +960,7 @@ class YoutubeMusic:
         )
         if a_result_created.is_not_ok():
             logger.error(f"Error persisting playlist. {a_result_created.info()}")
-            return AResult(code=a_result_created.code(), message=a_result_created.message())
+            return Result(code=a_result_created.code(), message=a_result_created.message())
 
         # Re-fetch from DB so relationships are eagerly loaded for response building.
         return await YoutubeMusicAccess.get_playlist_by_youtube_id_async(
@@ -971,14 +971,14 @@ class YoutubeMusic:
     async def add_playlist_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[BasePlaylistWithMediasResponse]:
+    ) -> Result[BasePlaylistWithMediasResponse]:
         """Add a playlist from youtube_id. If not in DB, fetch from API and populate."""
 
         a_result_playlist = await YoutubeMusic._persist_playlist_async(
             session=session, youtube_id=youtube_id
         )
         if a_result_playlist.is_not_ok():
-            return AResult(code=a_result_playlist.code(), message=a_result_playlist.message())
+            return Result(code=a_result_playlist.code(), message=a_result_playlist.message())
 
         return await YoutubeMusic._build_playlist_with_medias_response(
             session=session, playlist_row=a_result_playlist.result()
@@ -988,7 +988,7 @@ class YoutubeMusic:
     async def get_playlists_from_db(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[list["PlaylistRow"]]:
+    ) -> Result[list["PlaylistRow"]]:
         """Get playlists from the database by their youtube_ids."""
 
         return await YoutubeMusicAccess.get_playlists_by_youtube_ids_async(
@@ -999,11 +999,11 @@ class YoutubeMusic:
     async def get_playlists_async(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[list["PlaylistRow"]]:
+    ) -> Result[list["PlaylistRow"]]:
         """Ensure each playlist is persisted (DB-first, API only if missing) and return rows."""
 
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_existing = await YoutubeMusic.get_playlists_from_db(
             session=session, youtube_ids=youtube_ids
@@ -1032,28 +1032,28 @@ class YoutubeMusic:
         session: AsyncSession,
         user_id: int,
         public_ids: list[str],
-    ) -> AResult[list[BasePlaylistWithMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithMediasResponse]]:
         """Get YouTube Music playlists (with medias) by public_ids, from DB."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_mapping = await YoutubeMusicAccess.get_playlists_youtube_id_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_mapping.is_not_ok():
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         public_id_to_youtube_id: dict[str, str] = a_result_mapping.result()
         youtube_ids = list(public_id_to_youtube_id.values())
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_playlists = await YoutubeMusic.get_playlists_async(
             session=session, youtube_ids=youtube_ids
         )
         if a_result_playlists.is_not_ok():
-            return AResult(code=a_result_playlists.code(), message=a_result_playlists.message())
+            return Result(code=a_result_playlists.code(), message=a_result_playlists.message())
 
         playlist_by_public_id: dict[str, BasePlaylistWithMediasResponse] = {}
         for playlist_row in a_result_playlists.result():
@@ -1066,7 +1066,7 @@ class YoutubeMusic:
         ordered: list[BasePlaylistWithMediasResponse] = [
             playlist_by_public_id[pid] for pid in public_ids if pid in playlist_by_public_id
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=ordered)
+        return Result(code=ResultCode.OK, message="OK", result=ordered)
 
     @staticmethod
     @time_it
@@ -1074,28 +1074,28 @@ class YoutubeMusic:
         session: AsyncSession,
         user_id: int,
         public_ids: list[str],
-    ) -> AResult[list[BasePlaylistWithoutMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithoutMediasResponse]]:
         """Get YouTube Music playlists (without medias) by public_ids, from DB."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_mapping = await YoutubeMusicAccess.get_playlists_youtube_id_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_mapping.is_not_ok():
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         public_id_to_youtube_id: dict[str, str] = a_result_mapping.result()
         youtube_ids = list(public_id_to_youtube_id.values())
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_playlists = await YoutubeMusic.get_playlists_async(
             session=session, youtube_ids=youtube_ids
         )
         if a_result_playlists.is_not_ok():
-            return AResult(code=a_result_playlists.code(), message=a_result_playlists.message())
+            return Result(code=a_result_playlists.code(), message=a_result_playlists.message())
 
         playlist_by_public_id: dict[str, BasePlaylistWithoutMediasResponse] = {}
         for playlist_row in a_result_playlists.result():
@@ -1108,13 +1108,13 @@ class YoutubeMusic:
         ordered: list[BasePlaylistWithoutMediasResponse] = [
             playlist_by_public_id[pid] for pid in public_ids if pid in playlist_by_public_id
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=ordered)
+        return Result(code=ResultCode.OK, message="OK", result=ordered)
 
     @staticmethod
     async def _build_playlist_with_medias_response(
         session: AsyncSession,
         playlist_row: "PlaylistRow",
-    ) -> AResult[BasePlaylistWithMediasResponse]:
+    ) -> Result[BasePlaylistWithMediasResponse]:
         """Build a playlist-with-medias response from the database only."""
 
         a_result_links = await YoutubeMusicAccess.get_playlist_track_links_async(
@@ -1158,8 +1158,8 @@ class YoutubeMusic:
         public_id = playlist_row.core_playlist.public_id
         image_url = Image.get_internal_image_url(playlist_row.image) if playlist_row.image else ""
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=BasePlaylistWithMediasResponse(
                 type="playlist",
@@ -1188,14 +1188,14 @@ class YoutubeMusic:
     async def _build_playlist_without_medias_response(
         session: AsyncSession,
         playlist_row: "PlaylistRow",
-    ) -> AResult[BasePlaylistWithoutMediasResponse]:
+    ) -> Result[BasePlaylistWithoutMediasResponse]:
         """Build a playlist-without-medias response from the database only."""
 
         public_id = playlist_row.core_playlist.public_id
         image_url = Image.get_internal_image_url(playlist_row.image) if playlist_row.image else ""
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=BasePlaylistWithoutMediasResponse(
                 type="playlist",
@@ -1226,17 +1226,17 @@ class YoutubeMusic:
         download_id: int,
         download_group_id: int,
         user_id: int,
-    ) -> AResult[BaseDownload]:
+    ) -> Result[BaseDownload]:
         """Create a YoutubeMusicDownload for the given track public_id."""
 
-        a_result: AResult[str] = await YoutubeMusicAccess.get_track_youtube_id_from_public_id_async(
+        a_result: Result[str] = await YoutubeMusicAccess.get_track_youtube_id_from_public_id_async(
             session=session, public_id=public_id
         )
         if a_result.is_not_ok():
             logger.error(
                 f"Error getting youtube_id for public_id {public_id}: {a_result.message()}"
             )
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         youtube_id: str = a_result.result()
 
@@ -1247,12 +1247,12 @@ class YoutubeMusic:
             logger.error(
                 f"Error getting track row for youtube_id {youtube_id}: {a_result_track.message()}"
             )
-            return AResult(code=a_result_track.code(), message=a_result_track.message())
+            return Result(code=a_result_track.code(), message=a_result_track.message())
 
         track = a_result_track.result()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=YoutubeMusicDownload(
                 public_id=public_id,
@@ -1266,14 +1266,14 @@ class YoutubeMusic:
         )
 
     @staticmethod
-    async def get_media_duration_ms_async(session: AsyncSession, public_id: str) -> AResult[int]:
+    async def get_media_duration_ms_async(session: AsyncSession, public_id: str) -> Result[int]:
         """Get the duration of a YouTube Music track in milliseconds."""
 
-        a_result: AResult[str] = await YoutubeMusicAccess.get_track_youtube_id_from_public_id_async(
+        a_result: Result[str] = await YoutubeMusicAccess.get_track_youtube_id_from_public_id_async(
             session=session, public_id=public_id
         )
         if a_result.is_not_ok():
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         youtube_id: str = a_result.result()
 
@@ -1281,15 +1281,15 @@ class YoutubeMusic:
             session=session, youtube_id=youtube_id
         )
         if a_result_track.is_not_ok():
-            return AResult(code=a_result_track.code(), message=a_result_track.message())
+            return Result(code=a_result_track.code(), message=a_result_track.message())
 
         track = a_result_track.result()
         duration_ms = track.duration_ms or 0
 
-        return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+        return Result(code=ResultCode.OK, message="OK", result=duration_ms)
 
     @staticmethod
-    async def delete_media_async(session: AsyncSession, public_id: str) -> AResultCode:
+    async def delete_media_async(session: AsyncSession, public_id: str) -> ResultCode:
         """Remove the media file for a YouTube Music track and reset its path in the database."""
 
         a_result_track = await YoutubeMusicAccess.get_track_by_public_id_async(
@@ -1297,7 +1297,7 @@ class YoutubeMusic:
         )
         if a_result_track.is_not_ok():
             logger.error(f"Error getting track for public id {public_id}. {a_result_track.info()}")
-            return AResultCode(code=a_result_track.code(), message=a_result_track.message())
+            return ResultCode(code=a_result_track.code(), message=a_result_track.message())
 
         track = a_result_track.result()
 
@@ -1305,14 +1305,14 @@ class YoutubeMusic:
             full_path: str = os.path.join(MEDIA_PATH, track.path)
             YoutubeMusic._rename_file_to_backup(file_path=full_path)
 
-        a_result_clear: AResultCode = await YoutubeMusicAccess.update_track_path_async(
+        a_result_clear: ResultCode = await YoutubeMusicAccess.update_track_path_async(
             session=session, track_id=track.id, path=None
         )
         if a_result_clear.is_not_ok():
             logger.error(f"Error clearing track path. {a_result_clear.info()}")
-            return AResultCode(code=a_result_clear.code(), message=a_result_clear.message())
+            return ResultCode(code=a_result_clear.code(), message=a_result_clear.message())
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     def _rename_file_to_backup(file_path: str) -> None:
@@ -1335,7 +1335,7 @@ class YoutubeMusic:
         session: AsyncSession,
         db_track: "TrackRow",
         public_id: str,
-    ) -> AResult[BaseSongWithAlbumResponse]:
+    ) -> Result[BaseSongWithAlbumResponse]:
         # Build response from database only - no API call needed
         artists = await YoutubeMusicAccess.get_artists_from_track_async(
             session=session, track=db_track
@@ -1392,14 +1392,14 @@ class YoutubeMusic:
             dominantColor=dominant_color,
         )
 
-        return AResult(code=AResultCode.OK, message="OK", result=response)
+        return Result(code=ResultCode.OK, message="OK", result=response)
 
     @staticmethod
     async def _build_album_response(
         session: AsyncSession,
         db_album: "AlbumRow",
         public_id: str,
-    ) -> AResult[BaseAlbumWithSongsResponse]:
+    ) -> Result[BaseAlbumWithSongsResponse]:
         # Build response from database only - no API call needed
         a_result_artists = await YoutubeMusicAccess.get_artists_from_album_async(
             session=session, album=db_album
@@ -1503,14 +1503,14 @@ class YoutubeMusic:
             youtubeId=db_album.youtube_id,
         )
 
-        return AResult(code=AResultCode.OK, message="OK", result=response)
+        return Result(code=ResultCode.OK, message="OK", result=response)
 
     @staticmethod
     async def _build_artist_response(
         session: AsyncSession,
         db_artist: "ArtistRow",
         public_id: str,
-    ) -> AResult[BaseArtistResponse]:
+    ) -> Result[BaseArtistResponse]:
         # Build response from database only - no API call needed
         a_result_tracks = await YoutubeMusicAccess.get_tracks_from_artist_id_async(
             session=session, artist_id=db_artist.id
@@ -1602,24 +1602,24 @@ class YoutubeMusic:
             youtubeId=db_artist.youtube_id,
         )
 
-        return AResult(code=AResultCode.OK, message="OK", result=response)
+        return Result(code=ResultCode.OK, message="OK", result=response)
 
     @staticmethod
     @time_it
     async def get_tracks_batch_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Batch fetch multiple tracks by public_ids efficiently."""
         a_result_tracks = await YoutubeMusicAccess.get_tracks_by_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_tracks.is_not_ok():
-            return AResult(code=a_result_tracks.code(), message=a_result_tracks.message())
+            return Result(code=a_result_tracks.code(), message=a_result_tracks.message())
 
         db_tracks = a_result_tracks.result()
         if not db_tracks:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         track_ids = [t.id for t in db_tracks]
         a_result_artists_map = await YoutubeMusicAccess.get_artists_for_tracks_batch_async(
@@ -1692,24 +1692,24 @@ class YoutubeMusic:
             track_by_public_id[pid] for pid in public_ids if pid in track_by_public_id
         ]
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @staticmethod
     @time_it
     async def get_albums_batch_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[BaseAlbumWithSongsResponse]]:
+    ) -> Result[list[BaseAlbumWithSongsResponse]]:
         """Batch fetch multiple albums by public_ids efficiently."""
         a_result_albums = await YoutubeMusicAccess.get_albums_by_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_albums.is_not_ok():
-            return AResult(code=a_result_albums.code(), message=a_result_albums.message())
+            return Result(code=a_result_albums.code(), message=a_result_albums.message())
 
         db_albums = a_result_albums.result()
         if not db_albums:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         album_ids = [a.id for a in db_albums]
         a_result_tracks = await YoutubeMusicAccess.get_tracks_by_album_ids_async(
@@ -1837,25 +1837,25 @@ class YoutubeMusic:
             album_by_public_id[pid] for pid in public_ids if pid in album_by_public_id
         ]
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @staticmethod
     async def get_audio_with_range_async(
         session: AsyncSession, public_id: str, request: Request
-    ) -> AResult[StreamingResponse]:
+    ) -> Result[StreamingResponse]:
         """Stream the existing audio file with exact HTTP byte ranges."""
         a_result_track = await YoutubeMusicAccess.get_track_by_public_id_async(
             session=session, public_id=public_id
         )
         if a_result_track.is_not_ok():
             logger.error(f"Error getting track. {a_result_track.info()}")
-            return AResult(code=a_result_track.code(), message=a_result_track.message())
+            return Result(code=a_result_track.code(), message=a_result_track.message())
 
         track_row = a_result_track.result()
 
         if not track_row.path:
             logger.error(f"Track {public_id} has no audio file downloaded.")
-            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not downloaded")
+            return Result(code=ResultCode.NOT_FOUND, message="Audio file not downloaded")
 
         full_path: str = os.path.join(MEDIA_PATH, track_row.path)
         return await MediaStream.stream_audio_file_async(

@@ -14,7 +14,6 @@ from constants import MEDIA_PATH
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.user import UserRow
 from core.access.mediaAccess import MediaAccess
-from core.aResult import AResult
 from core.framework import providers
 from core.framework.media.stream import MediaStream
 from core.framework.notification import Notification
@@ -29,6 +28,7 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.uploadResponse import UploadResponse
 from core.utils.createId import create_id
 from logger import getLogger
+from result import Result
 from rockit.access.db.ormModels.song import RockitSongRow
 from rockit.access.db.ormModels.video import RockitVideoRow
 from rockit.access.rockitAccess import RockitAccess
@@ -67,7 +67,7 @@ async def upload_rockit_song(
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(),
@@ -94,7 +94,7 @@ async def upload_rockit_song(
         trackNumber=trackNumber,
     )
 
-    a_result: AResult[UploadResponse] = await provider.upload_song_async(
+    a_result: Result[UploadResponse] = await provider.upload_song_async(
         session=session,
         request=upload_request,
         file_path=file_path,
@@ -137,7 +137,7 @@ async def upload_rockit_album(
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(),
@@ -216,7 +216,7 @@ async def upload_rockit_album(
         releaseDate=release_date,
     )
 
-    a_result: AResult[UploadResponse] = await provider.upload_album_async(
+    a_result: Result[UploadResponse] = await provider.upload_album_async(
         session=session,
         request=upload_request,
         cover_path=cover_path,
@@ -258,7 +258,7 @@ async def get_rockit_song(
     if provider is None:
         raise HTTPException(status_code=500, detail="RockIt media provider not found")
 
-    a_result: AResult[list[BaseSongWithAlbumResponse]] = await provider.get_songs_async(
+    a_result: Result[list[BaseSongWithAlbumResponse]] = await provider.get_songs_async(
         session=session, public_ids=[public_id]
     )
     if a_result.is_not_ok():
@@ -288,7 +288,7 @@ async def get_rockit_album(
     if provider is None:
         raise HTTPException(status_code=500, detail="RockIt media provider not found")
 
-    a_result: AResult[list[BaseAlbumWithSongsResponse]] = await provider.get_albums_async(
+    a_result: Result[list[BaseAlbumWithSongsResponse]] = await provider.get_albums_async(
         session=session, public_ids=[public_id]
     )
     if a_result.is_not_ok():
@@ -313,7 +313,7 @@ async def serve_rockit_audio(
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+    a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
         session=session, public_id=public_id, media_type_keys=None
     )
     if a_result_media.is_not_ok():
@@ -322,7 +322,7 @@ async def serve_rockit_audio(
 
     media: CoreMediaRow = a_result_media.result()
 
-    a_result_songs: AResult[list[RockitSongRow]] = await RockitAccess.get_songs_async(
+    a_result_songs: Result[list[RockitSongRow]] = await RockitAccess.get_songs_async(
         session=session, song_ids=[media.id]
     )
     if a_result_songs.is_not_ok() or not a_result_songs.result():
@@ -407,7 +407,7 @@ async def serve_rockit_video(
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+    a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
         session=session, public_id=public_id, media_type_keys=None
     )
     if a_result_media.is_not_ok():
@@ -415,7 +415,7 @@ async def serve_rockit_video(
 
     media: CoreMediaRow = a_result_media.result()
 
-    a_result_videos: AResult[list[RockitVideoRow]] = await RockitAccess.get_videos_async(
+    a_result_videos: Result[list[RockitVideoRow]] = await RockitAccess.get_videos_async(
         session=session, video_ids=[media.id]
     )
     if a_result_videos.is_not_ok() or not a_result_videos.result():
@@ -498,7 +498,7 @@ async def serve_rockit_video_audio(
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+    a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
         session=session, public_id=public_id, media_type_keys=None
     )
     if a_result_media.is_not_ok():
@@ -506,7 +506,7 @@ async def serve_rockit_video_audio(
 
     media: CoreMediaRow = a_result_media.result()
 
-    a_result_videos: AResult[list[RockitVideoRow]] = await RockitAccess.get_videos_async(
+    a_result_videos: Result[list[RockitVideoRow]] = await RockitAccess.get_videos_async(
         session=session, video_ids=[media.id]
     )
     if a_result_videos.is_not_ok() or not a_result_videos.result():
@@ -516,7 +516,7 @@ async def serve_rockit_video_audio(
     if not video.file_path or not os.path.exists(video.file_path):
         raise HTTPException(status_code=404, detail="Video file not found")
 
-    a_result_stream: AResult[StreamingResponse] = await MediaStream.stream_audio_from_video_async(
+    a_result_stream: Result[StreamingResponse] = await MediaStream.stream_audio_from_video_async(
         video_path=video.file_path, range_header=request.headers.get("range")
     )
     if a_result_stream.is_not_ok():

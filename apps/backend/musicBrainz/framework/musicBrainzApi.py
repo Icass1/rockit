@@ -9,10 +9,10 @@ from typing import Any, cast
 import httpx
 
 from core.access.db import db_context
-from core.aResult import AResult, AResultCode
 from core.responses.metadataResponse import MetadataResponse
 from logger import getLogger
 from musicBrainz.access.metadataAccess import MetadataAccess
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 BASE_URL = "https://musicbrainz.org/ws/2"
@@ -20,8 +20,8 @@ USER_AGENT = os.environ.get(
     "MUSICBRAINZ_USER_AGENT", "Rockit/1.0 (https://github.com/Icass1/rockit)"
 )
 INTERVAL_SECONDS = 1.1
-_inflight: set[asyncio.Task[AResult[MetadataResponse]]] = set()
-_pending: dict[str, asyncio.Task[AResult[MetadataResponse]]] = {}
+_inflight: set[asyncio.Task[Result[MetadataResponse]]] = set()
+_pending: dict[str, asyncio.Task[Result[MetadataResponse]]] = {}
 
 
 def retry_delay(value: str | None) -> float:
@@ -46,7 +46,7 @@ class MusicBrainzApi:
         entity: str,
         external_id: str | None = None,
         refresh: bool = False,
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         """Keep an independent transaction alive even if the HTTP caller disconnects.
 
         This protects the shared cooldown and cache commit after an outbound
@@ -67,7 +67,7 @@ class MusicBrainzApi:
             _pending[request_key] = task
             _inflight.add(task)
 
-            def completed(done: asyncio.Task[AResult[MetadataResponse]]) -> None:
+            def completed(done: asyncio.Task[Result[MetadataResponse]]) -> None:
                 _inflight.discard(done)
                 if _pending.get(request_key) is done:
                     _pending.pop(request_key, None)
@@ -82,19 +82,19 @@ class MusicBrainzApi:
         entity: str,
         external_id: str | None,
         refresh: bool,
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         key = hashlib.sha256(json.dumps([path, params], sort_keys=True).encode()).hexdigest()
         try:
             async with db_context.session_scope_async() as session:
                 cached = await MetadataAccess.read_async(session=session, key=key)
                 if cached.is_not_ok():
                     logger.error(f"MusicBrainz cache read failed: {cached.info()}")
-                    return AResult(code=cached.code(), message=cached.message())
+                    return Result(code=cached.code(), message=cached.message())
                 old = cached.result()[0] if cached.result() else None
                 old_stamp = old.fetched_at if old is not None else None
                 if old is not None and not refresh:
-                    return AResult(
-                        code=AResultCode.OK,
+                    return Result(
+                        code=ResultCode.OK,
                         message="OK",
                         result=MetadataResponse(
                             provider="MusicBrainz",
@@ -110,8 +110,8 @@ class MusicBrainzApi:
                 if gate.is_not_ok():
                     logger.error(f"MusicBrainz gate failed: {gate.info()}")
                     if old is not None:
-                        return AResult(
-                            code=AResultCode.OK,
+                        return Result(
+                            code=ResultCode.OK,
                             message="Cached metadata retained",
                             result=MetadataResponse(
                                 provider="MusicBrainz",
@@ -123,20 +123,20 @@ class MusicBrainzApi:
                                 stale=True,
                             ),
                         )
-                    return AResult(code=gate.code(), message=gate.message())
+                    return Result(code=gate.code(), message=gate.message())
                 # Another worker may have populated/refreshed the same key while we waited.
                 latest = await MetadataAccess.read_async(session=session, key=key)
                 if latest.is_not_ok():
                     logger.error(f"MusicBrainz cache recheck failed: {latest.info()}")
-                    return AResult(code=latest.code(), message=latest.message())
+                    return Result(code=latest.code(), message=latest.message())
                 row = latest.result()[0] if latest.result() else None
                 if row is not None and (
                     not refresh
                     or old is None
                     or (old_stamp is not None and row.fetched_at > old_stamp)
                 ):
-                    return AResult(
-                        code=AResultCode.OK,
+                    return Result(
+                        code=ResultCode.OK,
                         message="OK",
                         result=MetadataResponse(
                             provider="MusicBrainz",
@@ -152,7 +152,7 @@ class MusicBrainzApi:
                 failure = f"MusicBrainz cooldown active; retry in {int(delay) + 1}s"
                 if delay > 5.0:
                     logger.info("MusicBrainz upstream request skipped: cooldown %.1fs", delay)
-                failure_code = AResultCode.SERVICE_UNAVAILABLE
+                failure_code = ResultCode.SERVICE_UNAVAILABLE
                 cooldown = INTERVAL_SECONDS
                 if delay <= 5.0:
                     await asyncio.sleep(delay)
@@ -173,11 +173,11 @@ class MusicBrainzApi:
                         if response.status_code in (429, 503):
                             cooldown = retry_delay(response.headers.get("Retry-After"))
                         if response.status_code == 429:
-                            failure_code = AResultCode.RATE_LIMITED
+                            failure_code = ResultCode.RATE_LIMITED
                         elif response.status_code == 404:
-                            failure_code = AResultCode.NOT_FOUND
+                            failure_code = ResultCode.NOT_FOUND
                         elif 400 <= response.status_code < 500:
-                            failure_code = AResultCode.BAD_REQUEST
+                            failure_code = ResultCode.BAD_REQUEST
                         if response.is_success:
                             raw: Any = response.json()
                             if isinstance(raw, dict):
@@ -191,16 +191,16 @@ class MusicBrainzApi:
                     )
                     if postponed.is_not_ok():
                         logger.error(f"MusicBrainz cooldown write failed: {postponed.info()}")
-                        return AResult(code=postponed.code(), message=postponed.message())
+                        return Result(code=postponed.code(), message=postponed.message())
                 if payload is not None:
                     saved = await MetadataAccess.save_async(
                         session=session, key=key, payload=payload
                     )
                     if saved.is_not_ok():
                         logger.error(f"MusicBrainz cache write failed: {saved.info()}")
-                        return AResult(code=saved.code(), message=saved.message())
-                    return AResult(
-                        code=AResultCode.OK,
+                        return Result(code=saved.code(), message=saved.message())
+                    return Result(
+                        code=ResultCode.OK,
                         message="OK",
                         result=MetadataResponse(
                             provider="MusicBrainz",
@@ -213,8 +213,8 @@ class MusicBrainzApi:
                     )
                 logger.warning(failure)
                 if row is not None:
-                    return AResult(
-                        code=AResultCode.OK,
+                    return Result(
+                        code=ResultCode.OK,
                         message="Cached metadata retained",
                         result=MetadataResponse(
                             provider="MusicBrainz",
@@ -226,10 +226,10 @@ class MusicBrainzApi:
                             stale=True,
                         ),
                     )
-                return AResult(code=failure_code, message=failure)
+                return Result(code=failure_code, message=failure)
         except Exception:
             logger.exception("MusicBrainz metadata request failed")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="MusicBrainz metadata unavailable",
             )

@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.friend.vibeAccess import VibeAccess
-from core.aResult import AResult, AResultCode
 from core.models.friend.vibeModels import VibeResult
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -12,13 +12,13 @@ class Vibe:
     @staticmethod
     async def get_vibe_score_async(
         session: AsyncSession, user_id: int, friend_user_id: int
-    ) -> AResult[VibeResult]:
+    ) -> Result[VibeResult]:
         a_stats = await VibeAccess.get_shared_artist_stats_async(
             session=session, user_id=user_id, friend_user_id=friend_user_id
         )
         if a_stats.is_not_ok():
             logger.error(f"Error getting shared artist stats. {a_stats.info()}", exc_info=True)
-            return AResult(code=a_stats.code(), message=a_stats.message())
+            return Result(code=a_stats.code(), message=a_stats.message())
 
         my_count, friend_count, shared_count = a_stats.result()
         total = my_count + friend_count
@@ -36,8 +36,8 @@ class Vibe:
         else:
             descriptor = "DIFFERENT_WAVELENGTHS"
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=VibeResult(
                 score=score,

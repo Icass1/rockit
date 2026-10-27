@@ -8,10 +8,10 @@ from core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.provider import ProviderRow
 from core.access.providerStorage import provider_storage
-from core.aResult import AResult, AResultCode
 from core.framework.models.downloadCandidate import DownloadCandidate
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
+from result import Result, ResultCode
 
 
 class DownloadReuseAccess:
@@ -19,7 +19,7 @@ class DownloadReuseAccess:
     @safe_async
     async def candidates_async(
         session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[DownloadCandidate]]:
+    ) -> Result[list[DownloadCandidate]]:
         """Read playable IDs and their stored file paths in one local batch query."""
         paths = provider_storage.files()
         rows = (
@@ -41,8 +41,8 @@ class DownloadReuseAccess:
                 )
             )
         ).all()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 DownloadCandidate(
@@ -64,7 +64,7 @@ class DownloadReuseAccess:
         group: DownloadGroupRow,
         candidates: list[DownloadCandidate],
         existing_ids: set[int],
-    ) -> AResult[list[DownloadRow]]:
+    ) -> Result[list[DownloadRow]]:
         """Give each source its own records, marking reused files complete without queueing."""
         now = datetime.now(UTC)
         rows = [
@@ -84,4 +84,4 @@ class DownloadReuseAccess:
         group.status_key = 3 if rows and len(existing_ids) == len(rows) else 1
         group.date_ended = now if group.status_key == 3 else None
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=rows)
+        return Result(code=ResultCode.OK, message="OK", result=rows)

@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult, AResultCode
 from core.enums.platformEnum import PlatformEnum
 from core.framework.auth.password import Password
 from core.framework.auth.register import Register
@@ -20,6 +19,7 @@ from core.responses.okResponse import OkResponse
 from core.responses.registerResponse import RegisterResponse
 from core.responses.sessionIdResponse import SessionIdResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 ph = PasswordHasher(
     time_cost=2,
@@ -34,14 +34,14 @@ router = APIRouter(prefix="/auth", tags=["Core", "Auth"])
 @router.post("/login")
 async def login(request: Request, response: Response, payload: LoginRequest) -> LoginResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = await Password.login_user_async(
+    a_result_user: Result[UserRow] = await Password.login_user_async(
         session=session,
         username=payload.username,
         password=payload.password,
         platform=payload.platform,
     )
 
-    if a_result_user.code() == AResultCode.NOT_FOUND:
+    if a_result_user.code() == ResultCode.NOT_FOUND:
         raise HTTPException(status_code=400, detail="Invalid credentials.")
 
     if a_result_user.is_not_ok():
@@ -52,14 +52,14 @@ async def login(request: Request, response: Response, payload: LoginRequest) -> 
 
     user: UserRow = a_result_user.result()
 
-    a_result_ip: AResult[str] = RequestLogMiddleware.get_current_ip(request)
+    a_result_ip: Result[str] = RequestLogMiddleware.get_current_ip(request)
     ip: str | None = None
     if a_result_ip.is_not_ok():
         logger.error(f"Error getting user ip. {a_result_ip.info()}")
     else:
         ip = a_result_ip.result()
 
-    a_result_session: AResult[str] = await Session.create_session_async(
+    a_result_session: Result[str] = await Session.create_session_async(
         session=session,
         response=response,
         user_id=user.id,
@@ -87,7 +87,7 @@ async def register(
 ) -> RegisterResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = await Register.register_user_async(
+    a_result_user: Result[UserRow] = await Register.register_user_async(
         session=session, username=payload.username, password=payload.password
     )
     if a_result_user.is_not_ok():
@@ -98,7 +98,7 @@ async def register(
 
     user: UserRow = a_result_user.result()
 
-    a_result_ip: AResult[str] = RequestLogMiddleware.get_current_ip(request)
+    a_result_ip: Result[str] = RequestLogMiddleware.get_current_ip(request)
     ip: str | None = None
     if a_result_ip.is_not_ok():
         logger.error(f"Error getting user ip. {a_result_ip.info()}")
@@ -106,7 +106,7 @@ async def register(
     else:
         ip = a_result_ip.result()
 
-    a_result_session: AResult[str] = await Session.create_session_async(
+    a_result_session: Result[str] = await Session.create_session_async(
         session=session,
         response=response,
         user_id=user.id,
@@ -135,7 +135,7 @@ async def get_session_id(
 ) -> SessionIdResponse:
     """Return the current session ID for mobile WebSocket authentication."""
 
-    a_result: AResult[str] = AuthMiddleware.get_current_session_id(request=request)
+    a_result: Result[str] = AuthMiddleware.get_current_session_id(request=request)
     if a_result.is_not_ok():
         logger.error(f"Error getting session id. {a_result.info()}")
         raise HTTPException(
@@ -150,7 +150,7 @@ async def get_session_id(
 async def logout_user(
     request: Request, _: None = Depends(AuthMiddleware.auth_dependency)
 ) -> OkResponse:
-    a_result_session_id: AResult[str] = AuthMiddleware.get_current_session_id(request=request)
+    a_result_session_id: Result[str] = AuthMiddleware.get_current_session_id(request=request)
 
     if a_result_session_id.is_not_ok():
         logger.error("Error getting current session id.")
@@ -160,7 +160,7 @@ async def logout_user(
         )
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_code: AResultCode = await Session.end_session_async(
+    a_result_code: ResultCode = await Session.end_session_async(
         session=session, session_id=a_result_session_id.result()
     )
     if a_result_code.is_not_ok():

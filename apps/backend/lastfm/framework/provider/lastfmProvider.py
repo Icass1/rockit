@@ -3,7 +3,6 @@ from typing import Any
 import httpx
 
 from constants import RECOMMENDATION_EXTERNAL_TIMEOUT_SECONDS
-from core.aResult import AResult, AResultCode
 from core.framework.externalRecommendation.httpRequest import (
     as_json_list,
     as_json_object,
@@ -20,6 +19,7 @@ from core.framework.provider.baseExternalRecommendationProvider import (
 from core.framework.recommendationRanking import RecommendationRanking
 from lastfm.constants import LASTFM_API_KEY
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -81,12 +81,12 @@ class LastfmProvider(BaseExternalRecommendationProvider):
 
     async def get_suggestions_async(
         self, context: ExternalRecommendationContext, limit: int
-    ) -> AResult[list[ExternalSuggestion]]:
+    ) -> Result[list[ExternalSuggestion]]:
         """Tracks Last.fm considers similar to the context's seed."""
 
         seed = context.seed
         if seed is None:
-            return AResult(code=AResultCode.BAD_REQUEST, message="No seed track")
+            return Result(code=ResultCode.BAD_REQUEST, message="No seed track")
 
         try:
             async with httpx.AsyncClient(
@@ -112,10 +112,10 @@ class LastfmProvider(BaseExternalRecommendationProvider):
                 )
         except Exception as e:
             logger.error(f"Unexpected Last.fm error: {e}", exc_info=True)
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Unexpected Last.fm error")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Unexpected Last.fm error")
 
         if a_response.is_not_ok():
-            return AResult(code=a_response.code(), message=a_response.message())
+            return Result(code=a_response.code(), message=a_response.message())
 
         response = a_response.result()
         try:
@@ -127,29 +127,29 @@ class LastfmProvider(BaseExternalRecommendationProvider):
             error_code: Any = data.get("error")
             if error_code == LASTFM_ERROR_NOT_FOUND:
                 # Unknown track: a valid "nothing similar" answer.
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
             if error_code == LASTFM_ERROR_RATE_LIMIT:
                 self._limiter.update_from_response(status_code=429, headers={})
-                return AResult(
-                    code=AResultCode.RATE_LIMITED,
+                return Result(
+                    code=ResultCode.RATE_LIMITED,
                     message="Last.fm rate limit exceeded",
                 )
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Last.fm returned error {error_code}",
             )
 
         if response.status_code != 200 or data is None:
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Last.fm returned HTTP {response.status_code}",
             )
 
         similar = as_json_object(data.get("similartracks"))
         raw_tracks = as_json_list(similar.get("track")) if similar else None
         if raw_tracks is None:
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Last.fm returned an invalid similar-tracks payload",
             )
 
@@ -159,7 +159,7 @@ class LastfmProvider(BaseExternalRecommendationProvider):
             if suggestion is not None:
                 suggestions.append(suggestion)
 
-        return AResult(code=AResultCode.OK, message="OK", result=suggestions)
+        return Result(code=ResultCode.OK, message="OK", result=suggestions)
 
     @staticmethod
     def _parse_track(value: object) -> ExternalSuggestion | None:

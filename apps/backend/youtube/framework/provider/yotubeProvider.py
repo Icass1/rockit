@@ -6,11 +6,10 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import MEDIA_PATH
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
-from core.framework.provider.types import AddFromUrlAResult
+from core.framework.provider.types import AddFromUrlResult
 from core.responses.baseVideoResponse import BaseVideoResponse
 from core.responses.searchResponse import (
     ArtistSearchResultsItem,
@@ -18,6 +17,7 @@ from core.responses.searchResponse import (
 )
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.access.db.ormModels.video import VideoRow
 from youtube.access.youtubeAccess import YouTubeAccess
 from youtube.framework.download.youtubeDownload import YoutubeDownload
@@ -67,11 +67,11 @@ class YoutubeProvider(BaseMediaProvider):
 
         return youtube_gate.cooldown_remaining()
 
-    async def check_health_async(self) -> AResultCode:
+    async def check_health_async(self) -> ResultCode:
         from youtube.framework.potProvider import PotProvider
 
         health = await PotProvider.check_health_async(max_age_seconds=30.0)
-        return AResultCode(code=health.code(), message=health.message())
+        return ResultCode(code=health.code(), message=health.message())
 
     def can_manage_downloads(self) -> bool:
         return True
@@ -95,15 +95,15 @@ class YoutubeProvider(BaseMediaProvider):
     @time_it
     async def search_media_async(
         self, session: AsyncSession, query: str
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         """Search YouTube for videos matching the query string."""
 
-        a_result: AResult[list[RawYoutubeSearchResult]] = await youtube_api.search_videos_async(
+        a_result: Result[list[RawYoutubeSearchResult]] = await youtube_api.search_videos_async(
             query=query, max_results=10
         )
         if a_result.is_not_ok():
             logger.error(f"YouTube search error: {a_result.info()}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="OK")
+            return Result(code=ResultCode.GENERAL_ERROR, message="OK")
 
         videos: list[RawYoutubeSearchResult] = a_result.result()
 
@@ -131,7 +131,7 @@ class YoutubeProvider(BaseMediaProvider):
             for v in videos
         ]
 
-        return AResult(code=AResultCode.OK, message="OK", result=result)
+        return Result(code=ResultCode.OK, message="OK", result=result)
 
     def match_url(self, url: str) -> str | None:
         """Check if the URL is a YouTube URL and return the internal path."""
@@ -143,7 +143,7 @@ class YoutubeProvider(BaseMediaProvider):
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[AddFromUrlAResult]:
+    ) -> Result[AddFromUrlResult]:
         """Add a YouTube video from URL to the database."""
         video_id: str | None = None
         for up in YOUTUBE_URL_PATTERNS:
@@ -153,24 +153,24 @@ class YoutubeProvider(BaseMediaProvider):
                 break
 
         if not video_id:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Invalid YouTube URL",
             )
 
-        a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+        a_result: Result[YoutubeVideoResponse] = await YouTube.get_video_async(
             session=session, youtube_id=video_id
         )
         if a_result.is_not_ok():
-            return AResult(
+            return Result(
                 code=a_result.code(),
                 message=a_result.message(),
             )
 
         youtube_video: YoutubeVideoResponse = a_result.result()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=BaseVideoResponse(
                 provider=youtube_video.provider,
@@ -194,18 +194,18 @@ class YoutubeProvider(BaseMediaProvider):
         download_id: int,
         download_group_id: int,
         user_id: int,
-    ) -> AResult[BaseDownload]:
+    ) -> Result[BaseDownload]:
         """Start a download for a YouTube video identified by its public ID."""
 
-        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+        a_result_video: Result[VideoRow] = await Video.get_video_from_public_id_async(
             session=session, public_id=public_id
         )
         if a_result_video.is_not_ok():
             logger.error(f"Error getting video from public id {public_id}")
-            return AResult(code=a_result_video.code(), message=a_result_video.message())
+            return Result(code=a_result_video.code(), message=a_result_video.message())
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=YoutubeDownload(
                 public_id=public_id,
@@ -232,12 +232,12 @@ class YoutubeProvider(BaseMediaProvider):
     @time_it
     async def get_videos_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseVideoResponse]]:
+    ) -> Result[list[BaseVideoResponse]]:
         """Get videos by public_ids."""
 
         results: list[BaseVideoResponse] = []
         for public_id in public_ids:
-            a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+            a_result_video: Result[VideoRow] = await Video.get_video_from_public_id_async(
                 session=session, public_id=public_id
             )
             if a_result_video.is_not_ok():
@@ -246,7 +246,7 @@ class YoutubeProvider(BaseMediaProvider):
 
             video: VideoRow = a_result_video.result()
 
-            a_result: AResult[YoutubeVideoResponse] = await YouTube.get_video_async(
+            a_result: Result[YoutubeVideoResponse] = await YouTube.get_video_async(
                 session=session, youtube_id=video.youtube_id
             )
             if a_result.is_not_ok():
@@ -271,7 +271,7 @@ class YoutubeProvider(BaseMediaProvider):
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     def get_stats_media_info_cte_fragment(self) -> str | None:
         from core.enums.mediaTypeEnum import MediaTypeEnum
@@ -350,28 +350,28 @@ class YoutubeProvider(BaseMediaProvider):
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Get the duration of a YouTube video in milliseconds."""
-        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+        a_result_video: Result[VideoRow] = await Video.get_video_from_public_id_async(
             session=session, public_id=public_id
         )
         if a_result_video.is_not_ok():
-            return AResult(code=a_result_video.code(), message=a_result_video.message())
+            return Result(code=a_result_video.code(), message=a_result_video.message())
 
         video: VideoRow = a_result_video.result()
         duration_ms = video.real_duration_ms if video.real_duration_ms else video.duration_ms or 0
 
-        return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+        return Result(code=ResultCode.OK, message="OK", result=duration_ms)
 
-    async def delete_media_async(self, session: AsyncSession, public_id: str) -> AResultCode:
+    async def delete_media_async(self, session: AsyncSession, public_id: str) -> ResultCode:
         """Remove the media files for a YouTube video and reset its paths in the database."""
 
-        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+        a_result_video: Result[VideoRow] = await Video.get_video_from_public_id_async(
             session=session, public_id=public_id
         )
         if a_result_video.is_not_ok():
             logger.error(f"Error getting video for public id {public_id}. {a_result_video.info()}")
-            return AResultCode(code=a_result_video.code(), message=a_result_video.message())
+            return ResultCode(code=a_result_video.code(), message=a_result_video.message())
 
         video: VideoRow = a_result_video.result()
 
@@ -379,36 +379,36 @@ class YoutubeProvider(BaseMediaProvider):
             full_video_path: str = os.path.join(MEDIA_PATH, video.video_path)
             self._rename_file_to_backup(full_video_path)
 
-        a_result_clear: AResultCode = await Video.clear_video_paths_async(
+        a_result_clear: ResultCode = await Video.clear_video_paths_async(
             session=session, video_id=video.id
         )
         if a_result_clear.is_not_ok():
             logger.error(f"Error clearing video paths. {a_result_clear.info()}")
-            return AResultCode(code=a_result_clear.code(), message=a_result_clear.message())
+            return ResultCode(code=a_result_clear.code(), message=a_result_clear.message())
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     async def get_frame_async(
         self,
         session: AsyncSession,
         public_id: str,
         timestamp_ms: float,
-    ) -> AResult[bytes]:
+    ) -> Result[bytes]:
         """Extract a single frame from a YouTube video at the given timestamp (ms)."""
 
-        a_result_video: AResult[VideoRow] = await Video.get_video_from_public_id_async(
+        a_result_video: Result[VideoRow] = await Video.get_video_from_public_id_async(
             session=session, public_id=public_id
         )
         if a_result_video.is_not_ok():
             logger.error(f"Error getting video for public id {public_id}. {a_result_video.info()}")
-            return AResult(code=a_result_video.code(), message=a_result_video.message())
+            return Result(code=a_result_video.code(), message=a_result_video.message())
 
         video: VideoRow = a_result_video.result()
 
         if not video.video_path:
             logger.error(f"Video {public_id} has no downloaded file.")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Video has not been downloaded yet",
             )
 

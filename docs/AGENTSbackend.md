@@ -90,10 +90,10 @@ class RepeatModeEnumRow(CoreBase, TableAutoincrementKey):
     __tablename__ = "repeat_mode_enum"
 ```
 
-## AResult Pattern
+## Result Pattern
 
 ```python
-class AResultCode:
+class ResultCode:
     OK = 0x1
     GENERAL_ERROR = 0x2
     NOT_FOUND = 0x3
@@ -106,16 +106,16 @@ class AResultCode:
 Usage:
 
 ```python
-async def get_user_async(session, user_id) -> AResult[UserRow]:
+async def get_user_async(session, user_id) -> Result[UserRow]:
     a_result = await UserAccess.get_user(session, user_id)
     if a_result.is_not_ok():
         logger.error(f"Error. {a_result.info()}")
-        return AResult(code=a_result.code(), message=a_result.message())
+        return Result(code=a_result.code(), message=a_result.message())
 
-    return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+    return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 ```
 
-| AResultCode     | HTTP |
+| ResultCode      | HTTP |
 | --------------- | ---- |
 | OK              | 200  |
 | ALREADY_EXISTS  | 200  |
@@ -145,12 +145,12 @@ Base provider interface:
 
 ```python
 class BaseProvider:
-    async def search_async(self, query) -> AResult[List[BaseSearchResultsItem]]
-    async def get_song_async(self, session, public_id) -> AResult[BaseSongWithAlbumResponse]
-    async def get_album_async(self, session, public_id) -> AResult[BaseAlbumWithSongsResponse]
-    async def get_artist_async(self, session, public_id) -> AResult[BaseArtistResponse]
-    async def get_playlist_async(self, session, user_id, public_id) -> AResult[BasePlaylistResponse]
-    async def get_video_async(self, session, public_id) -> AResult[BaseVideoResponse]
+    async def search_async(self, query) -> Result[List[BaseSearchResultsItem]]
+    async def get_song_async(self, session, public_id) -> Result[BaseSongWithAlbumResponse]
+    async def get_album_async(self, session, public_id) -> Result[BaseAlbumWithSongsResponse]
+    async def get_artist_async(self, session, public_id) -> Result[BaseArtistResponse]
+    async def get_playlist_async(self, session, user_id, public_id) -> Result[BasePlaylistResponse]
+    async def get_video_async(self, session, public_id) -> Result[BaseVideoResponse]
     async def start_download_async(self, session, public_id, download_id, download_group_id, user_id)
     def match_url(self, url) -> str | None
 ```
@@ -233,7 +233,7 @@ Typing: always strict
 ```python
 user_id: int
 results: List[str]
-a_result: AResult[UserRow]
+a_result: Result[UserRow]
 session: AsyncSession
 ```
 
@@ -253,7 +253,7 @@ Everything async.
 Docstring:
 
 ```python
-async def get_user_async(session, user_id) -> AResult[UserRow]:
+async def get_user_async(session, user_id) -> Result[UserRow]:
     """Get user by ID."""
 ```
 
@@ -261,9 +261,9 @@ Run black after editing: `.uv run ruff format <file>`
 
 ## Key Files
 
-| File                                                  | Purpose                         |
-| ----------------------------------------------------- | ------------------------------- |
-| apps/backend/app/main.py                                  | FastAPI entry, router discovery |
+| File                                                       | Purpose                         |
+| ---------------------------------------------------------- | ------------------------------- |
+| apps/backend/app/main.py                                   | FastAPI entry, router discovery |
 | apps/backend/core/aResult.py                               | Result wrapper                  |
 | apps/backend/core/access/db/database.py                    | DB connection                   |
 | apps/backend/core/access/db/ormModels/user.py              | User ORM                        |

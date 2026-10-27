@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants import BACKEND_URL, MEDIA_PATH
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
-from core.aResult import AResult, AResultCode
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.enums.mediaTypeEnum import MEDIA_TYPE_NAMES
 from core.framework import providers
@@ -22,6 +21,7 @@ from core.responses.downloadBrowseResponse import (
 )
 from core.responses.downloadsResponse import DownloadItemResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -56,7 +56,7 @@ class DownloadBrowser:
         status: str,
         kind: str,
         query: str,
-    ) -> AResult[DownloadBrowseResponse]:
+    ) -> Result[DownloadBrowseResponse]:
         """Read a bounded page with six preview tiles per group and global counters."""
         result = await DownloadBrowseAccess.groups_async(
             session=session,
@@ -70,7 +70,7 @@ class DownloadBrowser:
         if result.is_not_ok() or totals.is_not_ok():
             failure = result if result.is_not_ok() else totals
             logger.error(f"Error browsing downloads: {failure.info()}")
-            return AResult(code=failure.code(), message=failure.message())
+            return Result(code=failure.code(), message=failure.message())
         rows = result.result()
         visible = rows[:12]
         preview = await DownloadBrowseAccess.items_async(
@@ -82,7 +82,7 @@ class DownloadBrowser:
         )
         if preview.is_not_ok():
             logger.error(f"Error loading download previews: {preview.info()}")
-            return AResult(code=preview.code(), message=preview.message())
+            return Result(code=preview.code(), message=preview.message())
         items: dict[int, list[DownloadItemResponse]] = {}
         for row in preview.result():
             items.setdefault(row["download_group_id"], []).append(DownloadBrowser.item(row=row))
@@ -134,8 +134,8 @@ class DownloadBrowser:
                     canManage=row["active"] == 0 and row["manageable"],
                 )
             )
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=DownloadBrowseResponse(
                 groups=groups,
@@ -153,17 +153,17 @@ class DownloadBrowser:
         offset: int,
         status: str,
         query: str = "",
-    ) -> AResult[DownloadItemsPageResponse]:
+    ) -> Result[DownloadItemsPageResponse]:
         """Authorize a group before loading at most forty-eight additional tracks."""
         group = await DownloadAccess.get_download_group_by_public_id(
             session=session, user_id=user_id, public_id=public_id
         )
         if group.is_not_ok():
             logger.error(f"Error loading group: {group.info()}")
-            return AResult(code=group.code(), message=group.message())
+            return Result(code=group.code(), message=group.message())
         if group.result().seen:
             logger.warning("Requested hidden download group")
-            return AResult(code=AResultCode.NOT_FOUND, message="Download group not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Download group not found")
         result = await DownloadBrowseAccess.items_async(
             session=session,
             group_ids=[group.result().id],
@@ -174,16 +174,16 @@ class DownloadBrowser:
         )
         if result.is_not_ok():
             logger.error(f"Error loading group items: {result.info()}")
-            return AResult(code=result.code(), message=result.message())
+            return Result(code=result.code(), message=result.message())
         rows = result.result()
         count = await DownloadBrowseAccess.item_count_async(
             session=session, group_id=group.result().id, status=status, query=query
         )
         if count.is_not_ok():
             logger.error(f"Error counting group items: {count.info()}")
-            return AResult(code=count.code(), message=count.message())
-        return AResult(
-            code=AResultCode.OK,
+            return Result(code=count.code(), message=count.message())
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=DownloadItemsPageResponse(
                 items=[DownloadBrowser.item(row=row) for row in rows[:48]],
@@ -196,24 +196,24 @@ class DownloadBrowser:
     @staticmethod
     async def group_action_async(
         session: AsyncSession, user_id: int, public_id: str, action: str
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Apply a complete group action with bounded provider batches and deferred workers."""
         found = await DownloadAccess.get_download_group_by_public_id(
             session=session, user_id=user_id, public_id=public_id, lock=True
         )
         if found.is_not_ok():
             logger.error(f"Error finding action group: {found.info()}")
-            return AResult(code=found.code(), message=found.message())
+            return Result(code=found.code(), message=found.message())
         group = found.result()
         result = await DownloadBrowseAccess.group_rows_async(session=session, group_id=group.id)
         if result.is_not_ok():
             logger.error(f"Error reading action targets: {result.info()}")
-            return AResult(code=result.code(), message=result.message())
+            return Result(code=result.code(), message=result.message())
         rows = result.result()
         if action == "library":
             if group.seen or not rows:
                 logger.warning("Cannot save a hidden or empty download group")
-                return AResult(code=AResultCode.NOT_FOUND, message="Download group not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Download group not found")
             public_ids = (
                 [group.source_public_id]
                 if group.source_public_id
@@ -224,20 +224,20 @@ class DownloadBrowser:
             )
             if saved.is_not_ok():
                 logger.error(f"Could not save download group to library: {saved.info()}")
-                return AResult(code=saved.code(), message=saved.message())
-            return AResult(code=AResultCode.OK, message="OK", result=True)
+                return Result(code=saved.code(), message=saved.message())
+            return Result(code=ResultCode.OK, message="OK", result=True)
         if group.seen or not rows or any(row.status_key not in {3, 4} for row, _ in rows):
             logger.warning("Group is hidden, empty, or still has active downloads")
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Wait for the active downloads to finish",
             )
         for _, media in rows:
             provider = providers.find_media_provider(provider_id=media.provider_id)
             if provider is None or not provider.can_manage_downloads():
                 logger.warning("Group contains media that cannot be downloaded again")
-                return AResult(
-                    code=AResultCode.BAD_REQUEST,
+                return Result(
+                    code=ResultCode.BAD_REQUEST,
                     message="This group contains media that cannot be managed as a download",
                 )
         active = await DownloadBrowseAccess.has_other_active_async(
@@ -247,11 +247,11 @@ class DownloadBrowser:
         )
         if active.is_not_ok():
             logger.error(f"Error checking concurrent downloads: {active.info()}")
-            return AResult(code=active.code(), message=active.message())
+            return Result(code=active.code(), message=active.message())
         if active.result():
             logger.warning("Another group is downloading one of these files")
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="A track is still downloading in another group",
             )
         cleared = await DownloadBrowseAccess.clear_files_async(
@@ -259,7 +259,7 @@ class DownloadBrowser:
         )
         if cleared.is_not_ok():
             logger.error(f"Could not clear download paths: {cleared.info()}")
-            return AResult(code=cleared.code(), message=cleared.message())
+            return Result(code=cleared.code(), message=cleared.message())
         archived: list[tuple[Path, Path]] = []
 
         def archive() -> None:
@@ -298,8 +298,8 @@ class DownloadBrowser:
                 if backup.exists() and not path.exists():
                     backup.rename(path)
             logger.error(f"Download group action failed: {error}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Could not complete the group action",
             )
         if action == "retry":
@@ -312,4 +312,4 @@ class DownloadBrowser:
                 )
                 task.provider_id = media.provider_id
                 downloads_manager.add_download(task)
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)

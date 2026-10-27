@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult
 from core.framework.admin.userRequest import UserRequest
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -15,6 +14,7 @@ from core.responses.userRequestResponse import (
 )
 from core.utils.createId import create_id
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(__name__)
 
@@ -33,7 +33,7 @@ async def create_request(
     """Submit a new suggestion/request."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
@@ -71,7 +71,7 @@ async def get_my_requests(
     """Get current user's requests."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(

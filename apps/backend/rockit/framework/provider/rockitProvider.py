@@ -3,11 +3,10 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
-from core.framework.provider.types import AddFromUrlAResult
+from core.framework.provider.types import AddFromUrlResult
 from core.requests.uploadAlbumRequest import UploadAlbumRequest
 from core.requests.uploadSongRequest import UploadSongRequest
 from core.requests.uploadVideoRequest import UploadVideoRequest
@@ -25,6 +24,7 @@ from core.responses.baseVideoResponse import BaseVideoResponse
 from core.responses.searchResponse import BaseSearchResultsItem
 from core.responses.uploadResponse import UploadResponse
 from logger import getLogger
+from result import Result, ResultCode
 from rockit.access.artistCatalogAccess import ArtistCatalogAccess
 from rockit.access.db.ormModels.video import RockitVideoRow
 from rockit.access.rockitAccess import RockitAccess
@@ -73,7 +73,7 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None
-    ) -> AResult[ArtistCatalogResponse]:
+    ) -> Result[ArtistCatalogResponse]:
         """Expose this provider's indexed artist catalog to Core."""
         return await ArtistCatalogAccess.get_async(session=session, name=name, public_id=public_id)
 
@@ -92,87 +92,87 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
 
     async def search_media_async(
         self, session: AsyncSession, query: str
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         """Search RockIt uploaded media by name."""
 
         return await Rockit.search_async(session=session, query=query)
 
     async def get_songs_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Get RockIt songs by public IDs."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         return await Rockit.get_songs_responses_async(session=session, public_ids=public_ids)
 
     async def get_albums_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseAlbumWithSongsResponse]]:
+    ) -> Result[list[BaseAlbumWithSongsResponse]]:
         """Get RockIt albums by public IDs."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         return await Rockit.get_albums_responses_async(session=session, public_ids=public_ids)
 
     async def get_artists_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseArtistResponse]]:
+    ) -> Result[list[BaseArtistResponse]]:
         """Get RockIt artists. RockIt stores artist name as a string on songs/albums.
 
         Returns a simple artist response for each public_id.
         """
 
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message="RockIt provider does not support standalone artist queries.",
         )
 
     async def get_playlists_without_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithoutMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithoutMediasResponse]]:
         """RockIt does not support playlists."""
 
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message="RockIt provider does not support playlists.",
         )
 
     async def get_playlists_with_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithMediasResponse]]:
         """RockIt does not support playlists."""
 
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message="RockIt provider does not support playlists.",
         )
 
     async def get_videos_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseVideoResponse]]:
+    ) -> Result[list[BaseVideoResponse]]:
         """Get RockIt videos by public IDs."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         return await Rockit.get_videos_responses_async(session=session, public_ids=public_ids)
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[AddFromUrlAResult]:
+    ) -> Result[AddFromUrlResult]:
         """RockIt does not support adding media from external URLs."""
 
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message="RockIt provider does not support adding from URLs.",
         )
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Get the duration of a RockIt song in milliseconds."""
 
         return await Rockit.get_media_duration_ms_async(session=session, public_id=public_id)
@@ -184,11 +184,11 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         download_id: int,
         download_group_id: int,
         user_id: int,
-    ) -> AResult[BaseDownload]:
+    ) -> Result[BaseDownload]:
         """RockIt files are already stored locally — no download needed."""
 
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message="RockIt files are already stored locally.",
         )
 
@@ -198,12 +198,12 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         request: UploadSongRequest,
         file_path: str,
         image_path: str | None = None,
-    ) -> AResult[UploadResponse]:
+    ) -> Result[UploadResponse]:
         """Upload a song file to the RockIt provider."""
 
         if image_path is None:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Image data is required for song upload.",
             )
 
@@ -223,12 +223,12 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         request: UploadAlbumRequest,
         cover_path: str | None,
         song_paths: dict[str, str],
-    ) -> AResult[UploadResponse]:
+    ) -> Result[UploadResponse]:
         """Upload an album with songs to the RockIt provider."""
 
         if cover_path is None:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Cover image data is required for album upload.",
             )
 
@@ -247,19 +247,19 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         session: AsyncSession,
         public_id: str,
         timestamp_ms: float,
-    ) -> AResult[bytes]:
+    ) -> Result[bytes]:
         """Extract a single frame from a RockIt video at the given timestamp (ms)."""
 
-        a_result_videos: AResult[
+        a_result_videos: Result[
             list[RockitVideoRow]
         ] = await RockitAccess.get_videos_from_public_ids_async(
             session=session, public_ids=[public_id]
         )
         if a_result_videos.is_not_ok() or not a_result_videos.result():
             logger.error(f"Error getting video for public id {public_id}. {a_result_videos.info()}")
-            return AResult(
+            return Result(
                 code=(
-                    a_result_videos.code() if a_result_videos.is_not_ok() else AResultCode.NOT_FOUND
+                    a_result_videos.code() if a_result_videos.is_not_ok() else ResultCode.NOT_FOUND
                 ),
                 message=(
                     a_result_videos.message() if a_result_videos.is_not_ok() else "Video not found"
@@ -270,8 +270,8 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
 
         if not video.file_path:
             logger.error(f"Video {public_id} has no file path.")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Video has no file path",
             )
 
@@ -287,12 +287,12 @@ class RockItProvider(BaseMediaProvider, BaseUploadProvider):
         request: UploadVideoRequest,
         file_path: str,
         image_path: str | None = None,
-    ) -> AResult[UploadResponse]:
+    ) -> Result[UploadResponse]:
         """Upload a video file to the RockIt provider."""
 
         if image_path is None:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Image data is required for video upload.",
             )
 

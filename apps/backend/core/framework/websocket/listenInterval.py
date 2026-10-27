@@ -6,7 +6,6 @@ from core.access.db import db_context
 from core.access.db.ormModels.user_media_listen_interval import (
     UserMediaListenIntervalRow,
 )
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.media.media import Media
 from core.framework.models.media import MediaModel
@@ -19,6 +18,7 @@ from core.framework.websocket.playbackState import (
 from core.framework.websocket.sendToUser import SendToUser
 from core.responses.mediaListenedMessage import MediaListenedMessage
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -50,7 +50,7 @@ async def close_listen_interval_async(
 
     if playback_state.active_interval_db_id is not None:
         logger.debug("Updating media listen interval.")
-        a_result_update: AResultCode = await User.update_media_listen_interval_end_async(
+        a_result_update: ResultCode = await User.update_media_listen_interval_end_async(
             session=session,
             interval_id=playback_state.active_interval_db_id,
             time_ms_end=time_ms_end,
@@ -64,7 +64,7 @@ async def close_listen_interval_async(
             )
     else:
         logger.debug("Creating new media listen interval.")
-        a_result_insert_close: AResult[
+        a_result_insert_close: Result[
             UserMediaListenIntervalRow
         ] = await User.record_media_listen_interval_async(
             session=session,
@@ -97,7 +97,7 @@ async def start_listen_interval_async(
 ) -> None:
     """Start tracking a new listen interval in state (no DB write yet)."""
 
-    a_result_media: AResult[MediaModel] = await Media.get_media_from_public_id_async(
+    a_result_media: Result[MediaModel] = await Media.get_media_from_public_id_async(
         session=session,
         public_id=media_public_id,
         media_type_keys=None,
@@ -139,7 +139,7 @@ async def check_and_record_listen_threshold_async(
     # )
 
     async with db_context.session_scope_async() as duration_session:
-        a_result_medias: AResult[list[MediaModel]] = await Media.get_medias_from_public_ids_async(
+        a_result_medias: Result[list[MediaModel]] = await Media.get_medias_from_public_ids_async(
             session=duration_session,
             public_ids=[media_public_id],
             media_type_keys=None,
@@ -162,7 +162,7 @@ async def check_and_record_listen_threshold_async(
             )
             return
 
-        a_result_duration: AResult[int] = await provider.get_media_duration_ms_async(
+        a_result_duration: Result[int] = await provider.get_media_duration_ms_async(
             session=duration_session,
             public_id=media_public_id,
         )
@@ -202,7 +202,7 @@ async def check_and_record_listen_threshold_async(
         )
         playback_state.has_reached_listen_threshold = True
 
-        a_result_listened: AResult[bool] = await User.add_user_media_listened_async(
+        a_result_listened: Result[bool] = await User.add_user_media_listened_async(
             session=duration_session,
             user_id=user_id,
             media_id=media_item.id,
@@ -274,7 +274,7 @@ async def maybe_flush_listen_interval_async(
         if elapsed < FLUSH_INTERVAL_SECONDS:
             return
 
-        a_result_insert: AResult[
+        a_result_insert: Result[
             UserMediaListenIntervalRow
         ] = await User.record_media_listen_interval_async(
             session=session,
@@ -300,7 +300,7 @@ async def maybe_flush_listen_interval_async(
         ):
             return
 
-        a_result_update: AResultCode = await User.update_media_listen_interval_end_async(
+        a_result_update: ResultCode = await User.update_media_listen_interval_end_async(
             session=session,
             interval_id=playback_state.active_interval_db_id,
             time_ms_end=current_time_ms,

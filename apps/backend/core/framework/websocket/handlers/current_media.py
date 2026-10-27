@@ -6,7 +6,7 @@ from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from logger import getLogger
-from core.aResult import AResult
+from result import Result
 from core.framework.user.user import User
 from core.framework.websocket.playbackState import UserPlaybackState
 from core.framework.websocket.listenInterval import close_listen_interval_async
@@ -14,6 +14,8 @@ from core.framework.websocket.webSocketRouter import websocket_router
 from core.framework.friend.listeningRewards import ListeningRewards
 from core.requests.wsMessages import CurrentMediaMessageRequest
 from core.responses.currentMediaMessage import CurrentMediaMessage
+from logger import getLogger
+from result import Result
 
 if TYPE_CHECKING:
     from core.framework.websocket.webSocketManager import WebSocketManager
@@ -49,7 +51,7 @@ async def handle_current_media(
             )
         return
 
-    a_result: AResult[bool] = await User.update_user_current_media(
+    a_result: Result[bool] = await User.update_user_current_media(
         session=session,
         user_id=user_id,
         queue_id=current_media_msg.queueMediaId,

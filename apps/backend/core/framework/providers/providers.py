@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db import db_context
 from core.access.db.ormModels.provider import ProviderRow
 from core.access.providerAccess import ProviderAccess
-from core.aResult import AResult, AResultCode
 from core.framework.provider.baseExternalRecommendationProvider import (
     BaseExternalRecommendationProvider,
 )
@@ -20,8 +19,9 @@ from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.baseMetadataProvider import BaseMetadataProvider
 from core.framework.provider.baseProvider import BaseProvider
 from core.framework.provider.baseUploadProvider import BaseUploadProvider
-from core.framework.provider.types import AddFromUrlAResult
+from core.framework.provider.types import AddFromUrlResult
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -88,7 +88,7 @@ class Providers:
         return None
 
     async def async_init(self, session: AsyncSession) -> None:
-        a_result_search_providers: AResultCode = await self.search_providers(session=session)
+        a_result_search_providers: ResultCode = await self.search_providers(session=session)
         if a_result_search_providers.is_not_ok():
             logger.error(f"Error searching providers. {a_result_search_providers.info()}")
 
@@ -96,7 +96,7 @@ class Providers:
         """Find a provider instance matching a database provider ID."""
 
         for p in self._providers:
-            a_result_id: AResult[int] = p.get_id()
+            a_result_id: Result[int] = p.get_id()
             if a_result_id.is_ok() and a_result_id.result() == provider_id:
                 return p
 
@@ -106,7 +106,7 @@ class Providers:
         """Find a provider instance matching a database provider ID."""
 
         for p in self._providers:
-            a_result_id: AResult[int] = p.get_id()
+            a_result_id: Result[int] = p.get_id()
             if (
                 a_result_id.is_ok()
                 and a_result_id.result() == provider_id
@@ -126,27 +126,27 @@ class Providers:
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[AddFromUrlAResult]:
+    ) -> Result[AddFromUrlResult]:
         """Try all providers to add media from a URL."""
         for provider in self.get_media_providers():
             a_result = await provider.add_from_url_async(session=session, url=url)
             if a_result.is_ok():
                 return a_result
-        return AResult(
-            code=AResultCode.NOT_FOUND,
+        return Result(
+            code=ResultCode.NOT_FOUND,
             message="No provider could handle this URL",
         )
 
-    async def search_providers(self, session: AsyncSession) -> AResultCode:
+    async def search_providers(self, session: AsyncSession) -> ResultCode:
         logger.info("Searching providers...")
 
-        a_result_providers_in_db: AResult[list[ProviderRow]] = await ProviderAccess.get_providers(
+        a_result_providers_in_db: Result[list[ProviderRow]] = await ProviderAccess.get_providers(
             session
         )
 
         if a_result_providers_in_db.is_not_ok():
             logger.error(f"Error getting providers in database. {a_result_providers_in_db.info()}")
-            return AResultCode(
+            return ResultCode(
                 code=a_result_providers_in_db.code(),
                 message=a_result_providers_in_db.message(),
             )
@@ -246,7 +246,7 @@ class Providers:
         for provider_data in new_providers:
             self._providers.append(provider_data.provider)
 
-            a_result_provider: AResult[ProviderRow] = await ProviderAccess.add_provider(
+            a_result_provider: Result[ProviderRow] = await ProviderAccess.add_provider(
                 session, name=provider_data.name, module=provider_data.module_path
             )
 
@@ -261,11 +261,11 @@ class Providers:
 
         await db_context.after_all_providers_tables_init()
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     async def _playlist_provider_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[BaseMediaProvider]:
+    ) -> Result[BaseMediaProvider]:
         from core.enums.mediaTypeEnum import MediaTypeEnum
         from core.framework.media.media import Media
 
@@ -276,12 +276,12 @@ class Providers:
         )
         if media.is_not_ok():
             logger.error(f"Error finding playlist provider: {media.info()}")
-            return AResult(code=media.code(), message=media.message())
+            return Result(code=media.code(), message=media.message())
         provider = self.find_media_provider(media.result().provider_id)
         if provider is None:
             logger.error("Playlist provider is unavailable")
-            return AResult(code=AResultCode.NOT_FOUND, message="Playlist provider unavailable")
-        return AResult(code=AResultCode.OK, message="OK", result=provider)
+            return Result(code=ResultCode.NOT_FOUND, message="Playlist provider unavailable")
+        return Result(code=ResultCode.OK, message="OK", result=provider)
 
     async def add_media_to_playlist_async(
         self,
@@ -289,11 +289,11 @@ class Providers:
         playlist_public_id: str,
         user_id: int,
         media_public_id: str,
-    ) -> AResult[Any]:
+    ) -> Result[Any]:
         found = await self._playlist_provider_async(session, playlist_public_id)
         if found.is_not_ok():
             logger.error(f"Cannot add playlist item: {found.info()}")
-            return AResult(code=found.code(), message=found.message())
+            return Result(code=found.code(), message=found.message())
         return await found.result().add_media_to_playlist_async(
             session=session,
             playlist_public_id=playlist_public_id,
@@ -308,11 +308,11 @@ class Providers:
         playlist_public_id: str,
         media_public_id: str,
         is_expanded: bool,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         found = await self._playlist_provider_async(session, playlist_public_id)
         if found.is_not_ok():
             logger.error(f"Cannot set expanded playlist item: {found.info()}")
-            return AResult(code=found.code(), message=found.message())
+            return Result(code=found.code(), message=found.message())
         return await found.result().set_media_expanded_async(
             session=session,
             user_id=user_id,

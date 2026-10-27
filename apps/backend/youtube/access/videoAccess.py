@@ -1,14 +1,15 @@
 from logging import Logger
 
-from sqlalchemy import Result as DBResult, Select, and_
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.access.db.ormModels.video import VideoRow
 
 logger: Logger = getLogger(__name__)
@@ -19,14 +20,14 @@ class VideoAccess:
     @safe_async
     async def update_video_path_async(
         session: AsyncSession, video_id: int, video_path: str
-    ) -> AResultCode:
+    ) -> ResultCode:
 
         video: VideoRow | None = await session.get(entity=VideoRow, ident=video_id)
 
         if not video:
             logger.error(f"Video with id {video_id} not found.")
-            return AResultCode(
-                code=AResultCode.NOT_FOUND,
+            return ResultCode(
+                code=ResultCode.NOT_FOUND,
                 message=f"Video with id {video_id} not found.",
             )
 
@@ -35,20 +36,20 @@ class VideoAccess:
         await session.flush()
         await session.commit()
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def update_video_real_duration_async(
         session: AsyncSession, video_id: int, real_duration_ms: int | None
-    ) -> AResultCode:
+    ) -> ResultCode:
 
         video: VideoRow | None = await session.get(entity=VideoRow, ident=video_id)
 
         if not video:
             logger.error(f"Video with id {video_id} not found.")
-            return AResultCode(
-                code=AResultCode.NOT_FOUND,
+            return ResultCode(
+                code=ResultCode.NOT_FOUND,
                 message=f"Video with id {video_id} not found.",
             )
 
@@ -57,18 +58,18 @@ class VideoAccess:
         await session.flush()
         await session.commit()
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
-    async def clear_video_paths_async(session: AsyncSession, video_id: int) -> AResultCode:
+    async def clear_video_paths_async(session: AsyncSession, video_id: int) -> ResultCode:
 
         video: VideoRow | None = await session.get(entity=VideoRow, ident=video_id)
 
         if not video:
             logger.error(f"Video with id {video_id} not found.")
-            return AResultCode(
-                code=AResultCode.NOT_FOUND,
+            return ResultCode(
+                code=ResultCode.NOT_FOUND,
                 message=f"Video with id {video_id} not found.",
             )
 
@@ -77,13 +78,13 @@ class VideoAccess:
         await session.flush()
         await session.commit()
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def get_video_from_public_id_async(
         session: AsyncSession, public_id: str
-    ) -> AResult[VideoRow]:
+    ) -> Result[VideoRow]:
         stmt: Select[tuple[VideoRow]] = (
             select(VideoRow)
             .join(
@@ -100,20 +101,20 @@ class VideoAccess:
 
         if not video:
             logger.error(f"Video with public id {public_id} not found.")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=f"Video with public id {public_id} not found.",
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=video)
+        return Result(code=ResultCode.OK, message="OK", result=video)
 
     @staticmethod
     @safe_async
     async def get_all_videos_async(
         session: AsyncSession,
-    ) -> AResult[list[VideoRow]]:
+    ) -> Result[list[VideoRow]]:
         stmt: Select[tuple[VideoRow]] = select(VideoRow)
         result: DBResult[tuple[VideoRow]] = await session.execute(stmt)
         videos: list[VideoRow] = list(result.scalars().all())
 
-        return AResult(code=AResultCode.OK, message="OK", result=videos)
+        return Result(code=ResultCode.OK, message="OK", result=videos)

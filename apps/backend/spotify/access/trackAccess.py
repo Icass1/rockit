@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 from spotify.access.db.ormModels.track import TrackRow
 
 logger = getLogger(__name__)
@@ -14,7 +14,7 @@ class TrackAccess:
     async def get_track_by_spotify_id_async(
         session: AsyncSession,
         spotify_id: str,
-    ) -> AResult[TrackRow]:
+    ) -> Result[TrackRow]:
         try:
             stmt = select(TrackRow).where(TrackRow.spotify_id == spotify_id)
             result = await session.execute(stmt)
@@ -22,19 +22,19 @@ class TrackAccess:
 
             if not track:
                 logger.error(f"Track with spotify_id {spotify_id} not found.")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Track not found.",
                     result=None,
                 )
 
             session.expunge(track)
-            return AResult(code=AResultCode.OK, message="OK", result=track)
+            return Result(code=ResultCode.OK, message="OK", result=track)
 
         except Exception as e:
             logger.error(f"Failed to get track by spotify_id: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get track: {e}",
                 result=None,
             )
@@ -43,7 +43,7 @@ class TrackAccess:
     async def get_track_by_id_async(
         session: AsyncSession,
         track_id: int,
-    ) -> AResult[TrackRow]:
+    ) -> Result[TrackRow]:
         try:
             stmt = (
                 select(TrackRow)
@@ -55,19 +55,19 @@ class TrackAccess:
 
             if not track:
                 logger.error(f"Track with id {track_id} not found.")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Track not found.",
                     result=None,
                 )
 
             session.expunge(track)
-            return AResult(code=AResultCode.OK, message="OK", result=track)
+            return Result(code=ResultCode.OK, message="OK", result=track)
 
         except Exception as e:
             logger.error(f"Failed to get track by id: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get track: {e}",
                 result=None,
             )
@@ -76,7 +76,7 @@ class TrackAccess:
     async def clear_track_path_async(
         session: AsyncSession,
         track_id: int,
-    ) -> AResultCode:
+    ) -> ResultCode:
         """Set the track's path to None so it can be re-downloaded."""
 
         try:
@@ -86,7 +86,7 @@ class TrackAccess:
 
             if not track:
                 logger.error(f"Track with id {track_id} not found.")
-                return AResultCode(code=AResultCode.NOT_FOUND, message="Track not found.")
+                return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
 
             track.path = None
 
@@ -95,12 +95,12 @@ class TrackAccess:
             await session.refresh(track)
             session.expunge(track)
 
-            return AResultCode(code=AResultCode.OK, message="Track path cleared.")
+            return ResultCode(code=ResultCode.OK, message="Track path cleared.")
 
         except Exception as e:
             logger.error(f"Failed to clear track path: {e}")
-            return AResultCode(
-                code=AResultCode.GENERAL_ERROR,
+            return ResultCode(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to clear track path: {e}",
             )
 
@@ -110,7 +110,7 @@ class TrackAccess:
         track_id: int,
         path: str | None,
         download_url: str | None,
-    ) -> AResultCode:
+    ) -> ResultCode:
         try:
             # Fetch the track
             stmt = select(TrackRow).where(TrackRow.id == track_id)
@@ -119,7 +119,7 @@ class TrackAccess:
 
             if not track:
                 logger.error(f"Track with id {track_id} not found.")
-                return AResultCode(code=AResultCode.NOT_FOUND, message="Track not found.")
+                return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found.")
 
             # Update fields
             track.path = path
@@ -132,10 +132,8 @@ class TrackAccess:
             await session.refresh(track)
             session.expunge(track)
 
-            return AResultCode(code=AResultCode.OK, message="Track updated.")
+            return ResultCode(code=ResultCode.OK, message="Track updated.")
 
         except Exception as e:
             logger.error(f"Failed to update track path: {e}")
-            return AResultCode(
-                code=AResultCode.GENERAL_ERROR, message=f"Failed to update track: {e}"
-            )
+            return ResultCode(code=ResultCode.GENERAL_ERROR, message=f"Failed to update track: {e}")

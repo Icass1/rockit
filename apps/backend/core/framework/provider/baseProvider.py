@@ -4,8 +4,8 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -21,19 +21,19 @@ class BaseProvider:
     async def async_init(self, session: AsyncSession) -> None:
         logger.debug(f"Provider {self} does not implement async_init")
 
-    def get_id(self) -> AResult[int]:
+    def get_id(self) -> Result[int]:
         try:
-            return AResult(code=AResultCode.OK, message="OK", result=self._id)
+            return Result(code=ResultCode.OK, message="OK", result=self._id)
         except Exception:
             logger.error("Error getting provider id.")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting provider id")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error getting provider id")
 
     def get_name(self) -> str:
         return self._name
 
-    async def check_health_async(self) -> AResultCode:
+    async def check_health_async(self) -> ResultCode:
         """Check optional provider prerequisites without preventing API startup."""
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     def download_concurrency_limit(self) -> int:
         return 2

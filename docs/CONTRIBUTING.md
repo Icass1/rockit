@@ -26,7 +26,7 @@ Frontend:
 
 Backend:
 
-- every function return AResult (never raise)
+- every function return Result (never raise)
 - static classes + @staticmethod
 - everything async
 - session scope for DB

@@ -2,7 +2,6 @@ from typing import TypeVar
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from core.aResult import AResult
 from core.framework.notification import Notification
 from core.middlewares.authMiddleware import AuthMiddleware as AuthDependency
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
@@ -17,7 +16,7 @@ from result import Result
 T = TypeVar("T")
 
 
-def value_or_error[T](result: Result[T] | AResult[T]) -> T:
+def value_or_error[T](result: Result[T] | Result[T]) -> T:
     """Translate a terminal service result into an HTTP response."""
     if result.is_not_ok():
         if isinstance(result, Result):

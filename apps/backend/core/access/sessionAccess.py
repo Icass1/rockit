@@ -1,14 +1,15 @@
 from datetime import datetime
 from logging import Logger
 
-from sqlalchemy import Result as DBResult, Select, Update, update
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, Update, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from core.access.db.ormModels.session import SessionRow
-from core.aResult import AResult, AResultCode
 from core.enums.platformEnum import PlatformEnum
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(name=__name__)
 
@@ -22,7 +23,7 @@ class SessionAccess:
         platform: PlatformEnum,
         expires_at: datetime,
         ip: str | None,
-    ) -> AResult[SessionRow]:
+    ) -> Result[SessionRow]:
         try:
             session_row = SessionRow(
                 session_id=session_id,
@@ -36,19 +37,19 @@ class SessionAccess:
             await session.commit()
             await session.refresh(session_row)
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="Session created successfully",
                 result=session_row,
             )
 
         except Exception as e:
-            return AResult(code=AResultCode.GENERAL_ERROR, message=f"Failed to create session: {e}")
+            return Result(code=ResultCode.GENERAL_ERROR, message=f"Failed to create session: {e}")
 
     @staticmethod
     async def get_session_from_id_async(
         session: AsyncSession, session_id: str
-    ) -> AResult[SessionRow]:
+    ) -> Result[SessionRow]:
         try:
             stmt: Select[tuple[SessionRow]] = select(SessionRow).where(
                 SessionRow.session_id == session_id
@@ -59,22 +60,22 @@ class SessionAccess:
 
             if not session_row:
                 logger.error("Session not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Session not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Session not found")
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="Session retrieved successfully.",
                 result=session_row,
             )
 
         except Exception as e:
             logger.error(f"Failed to get session: {e}.")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Failed to get session.")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Failed to get session.")
 
     @staticmethod
     async def disable_session_from_session_id_async(
         session: AsyncSession, session_id: str
-    ) -> AResultCode:
+    ) -> ResultCode:
         try:
             stmt: Update = (
                 update(SessionRow).where(SessionRow.session_id == session_id).values(disabled=True)
@@ -83,13 +84,13 @@ class SessionAccess:
             result = await session.execute(stmt)
 
             if result.rowcount == 0:
-                return AResultCode(code=AResultCode.NOT_FOUND, message="Session not found")
+                return ResultCode(code=ResultCode.NOT_FOUND, message="Session not found")
 
             await session.commit()
-            return AResultCode(code=AResultCode.OK, message="Session disabled")
+            return ResultCode(code=ResultCode.OK, message="Session disabled")
 
         except Exception as e:
-            return AResultCode(
-                code=AResultCode.GENERAL_ERROR,
+            return ResultCode(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to disable session: {e}",
             )

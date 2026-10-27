@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult
 from core.framework.user.user import User
 from core.framework.websocket.listenInterval import (
     check_and_record_listen_threshold_async,
@@ -19,6 +18,8 @@ from core.framework.websocket.webSocketRouter import websocket_router
 from core.framework.friend.listeningRewards import ListeningRewards
 from core.requests.wsMessages import CurrentTimeMessageRequest
 from core.responses.currentTimeMessage import CurrentTimeMessage
+from logger import getLogger
+from result import Result
 
 if TYPE_CHECKING:
     from core.framework.websocket.webSocketManager import WebSocketManager
@@ -120,7 +121,7 @@ async def handle_current_time(
         current_time_ms=current_time,
     )
 
-    a_result: AResult[bool] = await User.update_user_current_time(
+    a_result: Result[bool] = await User.update_user_current_time(
         session=session,
         user_id=user_id,
         current_time_ms=current_time,

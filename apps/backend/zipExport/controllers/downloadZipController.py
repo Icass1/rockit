@@ -5,10 +5,10 @@ from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from logger import getLogger
+from result import Result
 from zipExport.framework.downloadZip import DownloadZip
 from zipExport.requests.downloadZipRequest import DownloadZipRequest
 
@@ -24,7 +24,7 @@ router = APIRouter(
 async def download_zip(request: Request, payload: DownloadZipRequest) -> FileResponse:
     """Create and return a ZIP containing downloaded requested media."""
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Error authenticating ZIP export. {a_result_user.info()}")
         raise HTTPException(

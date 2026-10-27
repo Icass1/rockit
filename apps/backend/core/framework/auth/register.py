@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
 from core.access.userAccess import UserAccess
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(name=__name__)
 
@@ -15,13 +15,13 @@ class Register:
     @staticmethod
     async def register_user_async(
         session: AsyncSession, username: str, password: str
-    ) -> AResult[UserRow]:
-        a_result_existing_user: AResult[UserRow] = await UserAccess.get_user_from_username_async(
+    ) -> Result[UserRow]:
+        a_result_existing_user: Result[UserRow] = await UserAccess.get_user_from_username_async(
             session, username=username
         )
 
         if (
-            a_result_existing_user.code() != AResultCode.NOT_FOUND
+            a_result_existing_user.code() != ResultCode.NOT_FOUND
             and a_result_existing_user.is_not_ok()
         ):
             logger.info(f"Error getting existing user in database. {a_result_existing_user.info()}")
@@ -30,7 +30,7 @@ class Register:
                 detail=a_result_existing_user.message(),
             )
 
-        a_result_user: AResult[UserRow] = await UserAccess.create_user_async(
+        a_result_user: Result[UserRow] = await UserAccess.create_user_async(
             session, username=username, password=password
         )
         if a_result_user.is_not_ok():

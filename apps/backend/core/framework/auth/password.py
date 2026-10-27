@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
 from core.access.userAccess import UserAccess
-from core.aResult import AResult, AResultCode
 from core.enums.platformEnum import PlatformEnum
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -20,23 +20,23 @@ class Password:
     @staticmethod
     async def login_user_async(
         session: AsyncSession, username: str, password: str, platform: PlatformEnum
-    ) -> AResult[UserRow]:
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_username_async(
+    ) -> Result[UserRow]:
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_username_async(
             session, username
         )
 
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user from username {username}. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         user: UserRow = a_result_user.result()
 
         if not user.password_hash:
-            return AResult(code=AResultCode.BAD_REQUEST, message="Password has is None.")
+            return Result(code=ResultCode.BAD_REQUEST, message="Password has is None.")
 
         if not await Password.verify_password(password, user.password_hash):
-            return AResult(code=AResultCode.BAD_REQUEST, message="Invalid credentials")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid credentials")
 
         logger.info(f"User {username} logged in successfully from {platform.name}.")
 
-        return AResult(code=AResultCode.OK, message="OK", result=user)
+        return Result(code=ResultCode.OK, message="OK", result=user)

@@ -9,7 +9,6 @@ from core.access.recommendationAccess import (
 )
 from core.access.statsAccess import StatsAccess
 from core.access.userLikedMediaAccess import UserLikedMediaAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.externalRecommendation.externalRecommendations import (
     ExternalRecommendations,
@@ -34,6 +33,7 @@ from core.responses.searchResponse import (
 )
 from core.responses.songListResponse import SongListResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -149,22 +149,22 @@ class Recommendation:
     @staticmethod
     async def _get_media_ids_async(
         session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[int]]:
+    ) -> Result[list[int]]:
         """Internal ids for songs/videos, in no particular order."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
-        a_medias: AResult[list[MediaModel]] = await Media.get_medias_from_public_ids_async(
+        a_medias: Result[list[MediaModel]] = await Media.get_medias_from_public_ids_async(
             session=session,
             public_ids=list(dict.fromkeys(public_ids)),
             media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
         )
         if a_medias.is_not_ok():
             logger.error(f"Error resolving media ids. {a_medias.info()}")
-            return AResult(code=a_medias.code(), message=a_medias.message())
+            return Result(code=a_medias.code(), message=a_medias.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=[m.id for m in a_medias.result()])
+        return Result(code=ResultCode.OK, message="OK", result=[m.id for m in a_medias.result()])
 
     @staticmethod
     async def _rank_local_async(
@@ -175,7 +175,7 @@ class Recommendation:
         limit: int,
         rotation_key: str = "",
         user_id: int = 0,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Ranked local public_ids: related candidates first, then, if
         history is too sparse to fill the list, the rotating cold-start fallback. An empty
         library yields [].
@@ -192,7 +192,7 @@ class Recommendation:
             )
             if a_candidates.is_not_ok():
                 logger.error(f"Error loading local candidates. {a_candidates.info()}")
-                return AResult(code=a_candidates.code(), message=a_candidates.message())
+                return Result(code=a_candidates.code(), message=a_candidates.message())
             candidates = a_candidates.result()
 
         ranked = RecommendationRanking.rank_local_candidates(
@@ -202,7 +202,7 @@ class Recommendation:
             rotation_key=rotation_key,
         )
         if len(ranked) >= limit:
-            return AResult(code=AResultCode.OK, message="OK", result=ranked)
+            return Result(code=ResultCode.OK, message="OK", result=ranked)
 
         a_fallback = await RecommendationAccess.get_fallback_candidates_async(
             session=session,
@@ -213,7 +213,7 @@ class Recommendation:
         if a_fallback.is_not_ok():
             # The personalized part is still valid; serve it alone.
             logger.warning(f"Fallback candidates unavailable. {a_fallback.info()}")
-            return AResult(code=AResultCode.OK, message="OK", result=ranked)
+            return Result(code=ResultCode.OK, message="OK", result=ranked)
 
         ranked += RecommendationRanking.rank_local_candidates(
             candidates=a_fallback.result(),
@@ -221,7 +221,7 @@ class Recommendation:
             exclude_public_ids=exclude_public_ids | set(ranked),
             rotation_key=rotation_key,
         )
-        return AResult(code=AResultCode.OK, message="OK", result=ranked)
+        return Result(code=ResultCode.OK, message="OK", result=ranked)
 
     @staticmethod
     async def _get_local_songs_async(
@@ -231,7 +231,7 @@ class Recommendation:
         exclude_media_ids: list[int],
         exclude_public_ids: set[str],
         limit: int,
-    ) -> AResult[list[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Ranked local songs, served from the short-lived cache when
         possible. Songs are always re-resolved so download state is fresh."""
 
@@ -247,7 +247,7 @@ class Recommendation:
                 user_id=cache_key[1] if cache_key else 0,
             )
             if a_ranked.is_not_ok():
-                return AResult(code=a_ranked.code(), message=a_ranked.message())
+                return Result(code=a_ranked.code(), message=a_ranked.message())
             ranked = a_ranked.result()
             if cache_key:
                 _local_result_cache.set(cache_key, ranked)
@@ -256,7 +256,7 @@ class Recommendation:
             session=session,
             public_ids=[pid for pid in ranked if pid not in exclude_public_ids],
         )
-        return AResult(code=AResultCode.OK, message="OK", result=songs)
+        return Result(code=ResultCode.OK, message="OK", result=songs)
 
     @staticmethod
     def build_discover_item(
@@ -366,7 +366,7 @@ class Recommendation:
         public_id: str,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         include_external: bool = True,
-    ) -> AResult[RecommendationResult]:
+    ) -> Result[RecommendationResult]:
         """Songs similar to one seed song or video (excluding the seed
         itself), plus optional external suggestions seeded on it."""
 
@@ -374,14 +374,14 @@ class Recommendation:
 
         # Videos are queueable too, so they must be able to seed suggestions —
         # otherwise the queue silently shows nothing while one is playing.
-        a_media: AResult[MediaModel] = await Media.get_media_from_public_id_async(
+        a_media: Result[MediaModel] = await Media.get_media_from_public_id_async(
             session=session,
             public_id=public_id,
             media_type_keys=[MediaTypeEnum.SONG, MediaTypeEnum.VIDEO],
         )
         if a_media.is_not_ok():
             logger.error(f"Error resolving seed media {public_id}. {a_media.info()}")
-            return AResult(code=a_media.code(), message=a_media.message())
+            return Result(code=a_media.code(), message=a_media.message())
 
         seed_id: int = a_media.result().id
 
@@ -395,7 +395,7 @@ class Recommendation:
         )
         if a_songs.is_not_ok():
             logger.error(f"Error computing related songs for {public_id}. {a_songs.info()}")
-            return AResult(code=a_songs.code(), message=a_songs.message())
+            return Result(code=a_songs.code(), message=a_songs.message())
         songs = a_songs.result()
 
         seed = await Recommendation._resolve_seed_track_async(session=session, public_id=public_id)
@@ -406,8 +406,8 @@ class Recommendation:
             include_external=include_external,
         )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=RecommendationResult(
                 songs=songs,
@@ -423,7 +423,7 @@ class Recommendation:
         user_id: int,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         include_external: bool = True,
-    ) -> AResult[RecommendationResult]:
+    ) -> Result[RecommendationResult]:
         """Personalized recommendations from the user's own profile.
 
         Seeds on recent plays and likes, excludes the last five listens, and
@@ -436,12 +436,12 @@ class Recommendation:
 
         limit = Recommendation.clamp_limit(limit)
 
-        a_recent: AResult[list[str]] = await StatsAccess.get_recently_played_songs_async(
+        a_recent: Result[list[str]] = await StatsAccess.get_recently_played_songs_async(
             session=session, user_id=user_id, limit=PROFILE_SEED_LIMIT
         )
         recent_ids: list[str] = a_recent.result() if a_recent.is_ok() else []
 
-        a_liked: AResult[
+        a_liked: Result[
             list[str]
         ] = await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
             session=session, user_id=user_id
@@ -457,12 +457,12 @@ class Recommendation:
         )
         if a_seed_ids.is_not_ok():
             logger.error(f"Error resolving seed songs for user {user_id}. {a_seed_ids.info()}")
-            return AResult(code=a_seed_ids.code(), message=a_seed_ids.message())
+            return Result(code=a_seed_ids.code(), message=a_seed_ids.message())
         seed_ids = a_seed_ids.result()
 
         # Exclude the most recent listens while retaining older familiar
         # music as fallback, especially on smaller self-hosted libraries.
-        a_all_played: AResult[list[str]] = await StatsAccess.get_recently_played_songs_async(
+        a_all_played: Result[list[str]] = await StatsAccess.get_recently_played_songs_async(
             session=session, user_id=user_id, limit=PROFILE_EXCLUDE_LIMIT
         )
         played_ids: list[str] = a_all_played.result() if a_all_played.is_ok() else []
@@ -483,7 +483,7 @@ class Recommendation:
         )
         if a_songs.is_not_ok():
             logger.error(f"Error computing recommendations for user {user_id}. {a_songs.info()}")
-            return AResult(code=a_songs.code(), message=a_songs.message())
+            return Result(code=a_songs.code(), message=a_songs.message())
         songs = a_songs.result()
 
         top_seed_public_id = next(iter(recent_ids[:1] or liked_ids[:1]), None)
@@ -501,8 +501,8 @@ class Recommendation:
             include_external=include_external,
         )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=RecommendationResult(
                 songs=songs,
@@ -519,7 +519,7 @@ class Recommendation:
         playlist_public_id: str,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         include_external: bool = True,
-    ) -> AResult[RecommendationResult]:
+    ) -> Result[RecommendationResult]:
         """Songs to add to a playlist, related to everything already in it,
         plus optional external suggestions seeded on its first song. Not
         cached: playlists change right after a suggestion is added."""
@@ -531,7 +531,7 @@ class Recommendation:
         )
         if a_playlist.is_not_ok():
             logger.error(f"Error resolving playlist {playlist_public_id}. {a_playlist.info()}")
-            return AResult(code=a_playlist.code(), message=a_playlist.message())
+            return Result(code=a_playlist.code(), message=a_playlist.message())
 
         # Playlists can hold videos alongside songs; both are valid seeds.
         seed_public_ids: list[str] = [
@@ -540,8 +540,8 @@ class Recommendation:
             if isinstance(item.item, (BaseSongWithAlbumResponse, BaseVideoResponse))
         ]
         if not seed_public_ids:
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=RecommendationResult(songs=[], discover=[]),
             )
@@ -553,7 +553,7 @@ class Recommendation:
             logger.error(
                 f"Error resolving playlist songs for {playlist_public_id}. {a_seed_ids.info()}"
             )
-            return AResult(code=a_seed_ids.code(), message=a_seed_ids.message())
+            return Result(code=a_seed_ids.code(), message=a_seed_ids.message())
         seed_ids = a_seed_ids.result()
 
         a_songs = await Recommendation._get_local_songs_async(
@@ -569,7 +569,7 @@ class Recommendation:
                 f"Error computing recommendations for playlist {playlist_public_id}. "
                 f"{a_songs.info()}"
             )
-            return AResult(code=a_songs.code(), message=a_songs.message())
+            return Result(code=a_songs.code(), message=a_songs.message())
         songs = a_songs.result()
 
         seed = await Recommendation._resolve_seed_track_async(
@@ -582,8 +582,8 @@ class Recommendation:
             include_external=include_external,
         )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=RecommendationResult(
                 songs=songs,

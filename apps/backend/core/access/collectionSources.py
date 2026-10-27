@@ -9,7 +9,7 @@ from sqlalchemy import Table
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import ColumnElement, Select
 
-from core.aResult import AResult
+from result import Result
 
 if TYPE_CHECKING:
     from core.framework.models.collection import (
@@ -26,10 +26,10 @@ class CollectionSource(Protocol):
         session: AsyncSession,
         records: dict[int, CollectionRecord],
         collection_ids: list[int],
-    ) -> Awaitable[AResult[bool]]: ...
+    ) -> Awaitable[Result[bool]]: ...
     def expanded_async(
         self, session: AsyncSession, entries: list[CollectionEntry], user_id: int
-    ) -> Awaitable[AResult[dict[tuple[int, int], bool]]]: ...
+    ) -> Awaitable[Result[dict[tuple[int, int], bool]]]: ...
 
 
 collection_sources: list[CollectionSource] = []

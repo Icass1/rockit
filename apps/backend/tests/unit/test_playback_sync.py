@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, patch
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.websocket.handlers.current_media import handle_current_media
 from core.framework.websocket.handlers.current_time import handle_current_time
 from core.framework.websocket.handlers.media_ended import handle_media_ended
 from core.framework.websocket.handlers.seek import handle_seek
 from core.framework.websocket.playbackState import UserPlaybackState
 from core.framework.websocket.webSocketManager import WebSocketManager
+from result import Result, ResultCode
 
 
 class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
@@ -75,7 +75,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_song_change_resets_position_and_transfers_ownership(self) -> None:
         module = "core.framework.websocket.handlers.current_media"
-        ok = AResult(code=AResultCode.OK, message="OK", result=True)
+        ok = Result(code=ResultCode.OK, message="OK", result=True)
         with (
             patch(f"{module}.User.update_user_current_media", new=AsyncMock(return_value=ok)),
             patch(
@@ -148,7 +148,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_owner_progress_is_relayed_with_complete_identity(self) -> None:
         module = "core.framework.websocket.handlers.current_time"
-        ok = AResult(code=AResultCode.OK, message="OK", result=True)
+        ok = Result(code=ResultCode.OK, message="OK", result=True)
         with (
             patch(f"{module}.User.update_user_current_time", new=AsyncMock(return_value=ok)),
             patch(f"{module}.start_listen_interval_async", new_callable=AsyncMock),
@@ -176,8 +176,8 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_remote_seek_preserves_owner_and_relays_once(self) -> None:
         module = "core.framework.websocket.handlers.seek"
-        ok = AResult(code=AResultCode.OK, message="OK", result=True)
-        media_result = AResult(code=AResultCode.OK, message="OK", result=SimpleNamespace(id=5))
+        ok = Result(code=ResultCode.OK, message="OK", result=True)
+        media_result = Result(code=ResultCode.OK, message="OK", result=SimpleNamespace(id=5))
         with (
             patch(
                 f"{module}.Media.get_media_from_public_id_async",
@@ -228,7 +228,7 @@ class PlaybackSyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_last_accepted_play_request_wins(self) -> None:
         module = "core.framework.websocket.handlers.current_media"
-        ok = AResult(code=AResultCode.OK, message="OK", result=True)
+        ok = Result(code=ResultCode.OK, message="OK", result=True)
         with (
             patch(f"{module}.User.update_user_current_media", new=AsyncMock(return_value=ok)),
             patch(f"{module}.User.update_user_current_time", new=AsyncMock(return_value=ok)),

@@ -2,7 +2,8 @@ import os
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import Result as DBResult, Select, and_
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -11,7 +12,6 @@ from sqlalchemy.orm import selectinload
 from constants import MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.media.image import Image
 from core.framework.models.localSong import LocalSong
@@ -19,6 +19,7 @@ from core.utils.safeAsyncCall import safe_async
 from core.utils.createId import create_id
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from spotify.access.db.associationTables.album_artists import album_artists
 from spotify.access.db.associationTables.album_copyrights import (
     album_copyrights,
@@ -99,7 +100,7 @@ class SpotifyAccess:
     async def get_album_public_id_async(
         session: AsyncSession,
         spotify_id: str,
-    ) -> AResult[AlbumRow]:
+    ) -> Result[AlbumRow]:
         try:
             stmt: Select[tuple[AlbumRow]] = (
                 select(AlbumRow)
@@ -117,15 +118,15 @@ class SpotifyAccess:
 
             if not album:
                 logger.error("Album not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Album not found")
 
             # Detach from session BEFORE closing session.
-            return AResult(code=AResultCode.OK, message="OK", result=album)
+            return Result(code=ResultCode.OK, message="OK", result=album)
 
         except Exception as e:
             logger.error(f"Failed to get album from id {spotify_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get album from id {spotify_id}: {e}",
             )
 
@@ -134,7 +135,7 @@ class SpotifyAccess:
     async def get_album_id_async(
         session: AsyncSession,
         id: int,
-    ) -> AResult[AlbumRow]:
+    ) -> Result[AlbumRow]:
         try:
             stmt: Select[tuple[AlbumRow]] = select(AlbumRow).where(AlbumRow.id == id)
             result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
@@ -142,15 +143,15 @@ class SpotifyAccess:
 
             if not album:
                 logger.error("Album not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Album not found")
 
             # Detach from session BEFORE closing session.
-            return AResult(code=AResultCode.OK, message="OK", result=album)
+            return Result(code=ResultCode.OK, message="OK", result=album)
 
         except Exception as e:
             logger.error(f"Failed to get album from id {id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get album from id {id}: {e}",
             )
 
@@ -159,7 +160,7 @@ class SpotifyAccess:
     async def get_album_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         try:
             stmt: Select[tuple[AlbumRow]] = (
                 select(AlbumRow)
@@ -177,14 +178,14 @@ class SpotifyAccess:
 
             if not album:
                 logger.error("Album not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Album not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=album.spotify_id)
+            return Result(code=ResultCode.OK, message="OK", result=album.spotify_id)
 
         except Exception as e:
             logger.error(f"Failed to get spotify_id from public_id {public_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get spotify_id from public_id {public_id}: {e}",
             )
 
@@ -193,7 +194,7 @@ class SpotifyAccess:
     async def get_track_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         try:
             stmt: Select[tuple[TrackRow]] = (
                 select(TrackRow)
@@ -211,14 +212,14 @@ class SpotifyAccess:
 
             if not track:
                 logger.error("Track not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=track.spotify_id)
+            return Result(code=ResultCode.OK, message="OK", result=track.spotify_id)
 
         except Exception as e:
             logger.error(f"Failed to get spotify_id from public_id {public_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get spotify_id from public_id {public_id}: {e}",
             )
 
@@ -227,7 +228,7 @@ class SpotifyAccess:
     async def get_artist_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         try:
             stmt: Select[tuple[ArtistRow]] = (
                 select(ArtistRow)
@@ -245,14 +246,14 @@ class SpotifyAccess:
 
             if not artist:
                 logger.error("Artist not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Artist not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=artist.spotify_id)
+            return Result(code=ResultCode.OK, message="OK", result=artist.spotify_id)
 
         except Exception as e:
             logger.error(f"Failed to get spotify_id from public_id {public_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get spotify_id from public_id {public_id}: {e}",
             )
 
@@ -261,7 +262,7 @@ class SpotifyAccess:
     async def get_playlist_spotify_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         try:
             stmt: Select[tuple[PlaylistRow]] = (
                 select(PlaylistRow)
@@ -279,14 +280,14 @@ class SpotifyAccess:
 
             if not artist:
                 logger.error("Playlist not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Playlist not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=artist.spotify_id)
+            return Result(code=ResultCode.OK, message="OK", result=artist.spotify_id)
 
         except Exception as e:
             logger.error(f"Failed to get spotify_id from public_id {public_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get spotify_id from public_id {public_id}: {e}",
             )
 
@@ -295,7 +296,7 @@ class SpotifyAccess:
     async def get_track_spotify_id_async(
         session: AsyncSession,
         spotify_id: str,
-    ) -> AResult[TrackRow]:
+    ) -> Result[TrackRow]:
         try:
             stmt = (
                 select(TrackRow)
@@ -307,14 +308,14 @@ class SpotifyAccess:
 
             if not track:
                 logger.warning(f"Track not found for spotify_id: {spotify_id}")
-                return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=track)
+            return Result(code=ResultCode.OK, message="OK", result=track)
 
         except Exception as e:
             logger.error(f"Failed to get track from spotify_id {spotify_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get track from spotify_id {spotify_id}: {e}",
             )
 
@@ -323,7 +324,7 @@ class SpotifyAccess:
     async def get_track_id_async(
         session: AsyncSession,
         id: int,
-    ) -> AResult[TrackRow]:
+    ) -> Result[TrackRow]:
         try:
             stmt = select(TrackRow).where(TrackRow.id == id)
             result = await session.execute(stmt)
@@ -331,14 +332,14 @@ class SpotifyAccess:
 
             if not track:
                 logger.error(f"Track not found for id: {id}")
-                return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=track)
+            return Result(code=ResultCode.OK, message="OK", result=track)
 
         except Exception as e:
             logger.error(f"Failed to get track from id {id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get track from id {id}: {e}",
             )
 
@@ -347,7 +348,7 @@ class SpotifyAccess:
     async def get_artist_public_id_async(
         session: AsyncSession,
         spotify_id: str,
-    ) -> AResult[ArtistRow]:
+    ) -> Result[ArtistRow]:
         try:
             stmt = select(ArtistRow).where(ArtistRow.spotify_id == spotify_id)
             result = await session.execute(stmt)
@@ -355,14 +356,14 @@ class SpotifyAccess:
 
             if not artist:
                 logger.error("Artist not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Artist not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=artist)
+            return Result(code=ResultCode.OK, message="OK", result=artist)
 
         except Exception as e:
             logger.error(f"Failed to get artist from spotify_id {spotify_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get artist from spotify_id {spotify_id}: {e}",
             )
 
@@ -371,7 +372,7 @@ class SpotifyAccess:
     async def get_playlist_public_id_async(
         session: AsyncSession,
         spotify_id: str,
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         try:
             stmt = select(PlaylistRow).where(PlaylistRow.spotify_id == spotify_id)
             result = await session.execute(stmt)
@@ -379,14 +380,14 @@ class SpotifyAccess:
 
             if not playlist:
                 logger.error("Playlist not found")
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Playlist not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=playlist)
+            return Result(code=ResultCode.OK, message="OK", result=playlist)
 
         except Exception as e:
             logger.error(f"Failed to get playlist from id {id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist from id {id}: {e}",
             )
 
@@ -399,17 +400,17 @@ class SpotifyAccess:
         url: str,
         width: int | None,
         height: int | None,
-    ) -> AResult[ExternalImageRow]:
+    ) -> Result[ExternalImageRow]:
         try:
             stmt = select(ExternalImageRow).where(ExternalImageRow.url == url)
             result = await session.execute(stmt)
             row: ExternalImageRow | None = result.scalar_one_or_none()
             if row:
-                return AResult(code=AResultCode.OK, message="OK", result=row)
+                return Result(code=ResultCode.OK, message="OK", result=row)
             row = ExternalImageRow(public_id=create_id(32), url=url, width=width, height=height)
             session.add(row)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.OK, message="OK", result=row)
         except IntegrityError:
             logger.warning(
                 f"IntegrityError in _get_or_create_external_image for {url}, "
@@ -421,16 +422,16 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             row = result.scalar_one_or_none()
             if row:
-                return AResult(code=AResultCode.OK, message="OK", result=row)
+                return Result(code=ResultCode.OK, message="OK", result=row)
             logger.error(f"External image {url} not found after IntegrityError rollback")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Failed to get or create external image after conflict",
             )
         except Exception as e:
             logger.error(f"Failed to get/create external image: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create external image: {e}",
             )
 
@@ -439,17 +440,17 @@ class SpotifyAccess:
     async def _get_or_create_genre(
         session: AsyncSession,
         name: str,
-    ) -> AResult[GenreRow]:
+    ) -> Result[GenreRow]:
         try:
             stmt = select(GenreRow).where(GenreRow.name == name)
             result = await session.execute(stmt)
             row: GenreRow | None = result.scalar_one_or_none()
             if row:
-                return AResult(code=AResultCode.OK, message="OK", result=row)
+                return Result(code=ResultCode.OK, message="OK", result=row)
             row = GenreRow(name=name)
             session.add(row)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.OK, message="OK", result=row)
         except IntegrityError:
             logger.warning(
                 f"IntegrityError in _get_or_create_genre for {name}, rolling "
@@ -461,16 +462,16 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             row = result.scalar_one_or_none()
             if row:
-                return AResult(code=AResultCode.OK, message="OK", result=row)
+                return Result(code=ResultCode.OK, message="OK", result=row)
             logger.error(f"Genre {name} not found after IntegrityError rollback")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Failed to get or create genre after conflict",
             )
         except Exception as e:
             logger.error(f"Failed to get/create genre: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create genre: {e}",
             )
 
@@ -483,7 +484,7 @@ class SpotifyAccess:
         raw: RawSpotifyApiArtist,
         provider_id: int,
         image_id: int | None = None,
-    ) -> AResult[ArtistRow]:
+    ) -> Result[ArtistRow]:
         try:
             stmt = (
                 select(ArtistRow)
@@ -499,18 +500,18 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             existing: ArtistRow | None = result.scalar_one_or_none()
             if existing:
-                return AResult(code=AResultCode.OK, message="OK", result=existing)
+                return Result(code=ResultCode.OK, message="OK", result=existing)
 
             if image_id is None:
-                a_result_image: AResult[ImageRow] = await Image.get_image_from_path_async(
+                a_result_image: Result[ImageRow] = await Image.get_image_from_path_async(
                     session=session, path="album-placeholder.png"
                 )
                 if a_result_image.is_ok():
                     image_id = a_result_image.result().id
                 else:
                     logger.error(f"Error getting placeholder image: {a_result_image.info()}")
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR,
+                    return Result(
+                        code=ResultCode.GENERAL_ERROR,
                         message="Failed to get placeholder image",
                     )
 
@@ -556,7 +557,7 @@ class SpotifyAccess:
                             artist_row.external_images.add(a_ext.result())  # type: ignore[arg-type]
 
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=artist_row)
+            return Result(code=ResultCode.OK, message="OK", result=artist_row)
 
         except IntegrityError as e:
             logger.warning(
@@ -569,17 +570,17 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:
-                return AResult(code=AResultCode.OK, message="OK", result=existing)
+                return Result(code=ResultCode.OK, message="OK", result=existing)
             logger.error(f"Artist {raw.id} not found after IntegrityError rollback")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Failed to get or create artist after conflict",
             )
 
         except Exception as e:
             logger.error(f"Failed to get/create artist: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create artist: {e}",
             )
 
@@ -591,7 +592,7 @@ class SpotifyAccess:
         artist_map: dict[str, ArtistRow],
         provider_id: int,
         image_id: int | None = None,
-    ) -> AResult[AlbumRow]:
+    ) -> Result[AlbumRow]:
         try:
             stmt = (
                 select(AlbumRow)
@@ -607,7 +608,7 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             existing: AlbumRow | None = result.scalar_one_or_none()
             if existing:
-                return AResult(code=AResultCode.OK, message="OK", result=existing)
+                return Result(code=ResultCode.OK, message="OK", result=existing)
 
             # disc_count
             disc_count = 1
@@ -615,8 +616,8 @@ class SpotifyAccess:
                 disc_count = max((item.disc_number or 1) for item in raw.tracks.items)
 
             if image_id is None:
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message="Failed to create internal image for album",
                 )
 
@@ -667,7 +668,7 @@ class SpotifyAccess:
                             album_row.external_images.add(a_ext.result())  # type: ignore[arg-type]
 
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=album_row)
+            return Result(code=ResultCode.OK, message="OK", result=album_row)
 
         except IntegrityError:
             logger.warning(
@@ -690,17 +691,17 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             existing = result.scalar_one_or_none()
             if existing:
-                return AResult(code=AResultCode.OK, message="OK", result=existing)
+                return Result(code=ResultCode.OK, message="OK", result=existing)
             logger.error(f"Album {raw.id} not found after IntegrityError rollback")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Failed to get or create album after conflict",
             )
 
         except Exception as e:
             logger.error(f"Failed to get/create album: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create album: {e}",
             )
 
@@ -712,7 +713,7 @@ class SpotifyAccess:
         artist_map: dict[str, ArtistRow],
         album_row: AlbumRow,
         provider_id: int,
-    ) -> AResult[tuple[TrackRow, CoreMediaRow]]:
+    ) -> Result[tuple[TrackRow, CoreMediaRow]]:
         try:
             stmt = (
                 select(TrackRow)
@@ -730,11 +731,11 @@ class SpotifyAccess:
             if existing:
                 existing_core = await session.get(CoreMediaRow, existing.id)
                 if existing_core is None:
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR,
+                    return Result(
+                        code=ResultCode.GENERAL_ERROR,
                         message="CoreMediaRow not found for existing track",
                     )
-                return AResult(code=AResultCode.OK, message="OK", result=(existing, existing_core))
+                return Result(code=ResultCode.OK, message="OK", result=(existing, existing_core))
 
             isrc = ""
             if raw.external_ids and raw.external_ids.isrc:
@@ -770,12 +771,12 @@ class SpotifyAccess:
                         track_row.artists.add(artist_map[a.id])  # type: ignore[arg-type]
 
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=(track_row, core_song))
+            return Result(code=ResultCode.OK, message="OK", result=(track_row, core_song))
 
         except Exception as e:
             logger.error(f"Failed to get/create track: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create track: {e}",
             )
 
@@ -787,7 +788,7 @@ class SpotifyAccess:
         track_row_map: dict[str, TrackRow],
         provider_id: int,
         image_id: int | None = None,
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         try:
             stmt = (
                 select(PlaylistRow)
@@ -803,7 +804,7 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             existing: PlaylistRow | None = result.scalar_one_or_none()
             if existing:
-                return AResult(code=AResultCode.OK, message="OK", result=existing)
+                return Result(code=ResultCode.OK, message="OK", result=existing)
 
             owner = ""
             if raw.owner:
@@ -864,12 +865,12 @@ class SpotifyAccess:
                     session.add(pt)
 
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=playlist_row)
+            return Result(code=ResultCode.OK, message="OK", result=playlist_row)
 
         except Exception as e:
             logger.error(f"Failed to get/create playlist: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create playlist: {e}",
             )
 
@@ -878,7 +879,7 @@ class SpotifyAccess:
     async def get_artists_from_track_row_async(
         session: AsyncSession,
         track_row: TrackRow,
-    ) -> AResult[list[ArtistRow]]:
+    ) -> Result[list[ArtistRow]]:
         try:
             stmt: Select[tuple[list[ArtistRow]]] = track_row.artists.select()
             result: DBResult[tuple[list[ArtistRow]]] = await session.execute(stmt)
@@ -886,17 +887,17 @@ class SpotifyAccess:
 
             if not artists:
                 logger.error(f"Error getting artists from track row {track_row.id}.")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message=f"Error getting artists from track row. {track_row.id}",
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=artists)
+            return Result(code=ResultCode.OK, message="OK", result=artists)
 
         except Exception as e:
             logger.error(f"Failed to get artists from track row: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get artists from track row: {e}",
             )
 
@@ -905,7 +906,7 @@ class SpotifyAccess:
     async def get_artists_from_album_id_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[list[ArtistRow]]:
+    ) -> Result[list[ArtistRow]]:
         try:
             stmt = (
                 select(ArtistRow).join(album_artists).join(AlbumRow).filter(AlbumRow.id == album_id)
@@ -915,17 +916,17 @@ class SpotifyAccess:
 
             if not artists_list:
                 logger.error(f"No artists found for album id {album_id}")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="No artists found for this album.",
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=artists_list)
+            return Result(code=ResultCode.OK, message="OK", result=artists_list)
 
         except Exception as e:
             logger.error(f"Failed to get artists from album id {album_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get artists from album id {album_id}: {e}",
             )
 
@@ -934,7 +935,7 @@ class SpotifyAccess:
     async def get_tracks_from_album_id_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[list[TrackRow]]:
+    ) -> Result[list[TrackRow]]:
         try:
             stmt = select(TrackRow).where(TrackRow.album_id == album_id)
             result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
@@ -942,17 +943,17 @@ class SpotifyAccess:
 
             if not tracks_list:
                 logger.error(f"No tracks found for album id {album_id}")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="No tracks found for this album.",
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=tracks_list)
+            return Result(code=ResultCode.OK, message="OK", result=tracks_list)
 
         except Exception as e:
             logger.error(f"Failed to get tracks from album id {album_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get tracks from album id {album_id}: {e}",
             )
 
@@ -961,7 +962,7 @@ class SpotifyAccess:
     async def get_external_images_from_album_id_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[list[ExternalImageRow]]:
+    ) -> Result[list[ExternalImageRow]]:
         try:
             stmt = (
                 select(ExternalImageRow)
@@ -974,12 +975,12 @@ class SpotifyAccess:
                 list[ExternalImageRow], result.scalars().all()
             )
 
-            return AResult(code=AResultCode.OK, message="OK", result=images_list)
+            return Result(code=ResultCode.OK, message="OK", result=images_list)
 
         except Exception as e:
             logger.error(f"Failed to get external images from album id {album_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get external images from album id {album_id}: {e}",
             )
 
@@ -988,7 +989,7 @@ class SpotifyAccess:
     async def get_tracks_with_core_song_from_album_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[list[TrackWithCoreMedia]]:
+    ) -> Result[list[TrackWithCoreMedia]]:
         try:
             stmt = (
                 select(TrackRow, CoreMediaRow)
@@ -1010,12 +1011,12 @@ class SpotifyAccess:
                     TrackWithCoreMedia(track=track_row, core_media=core_song_row)
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=tracks_with_core)
+            return Result(code=ResultCode.OK, message="OK", result=tracks_with_core)
 
         except Exception as e:
             logger.error(f"Failed to get tracks with core song from album id {album_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get tracks with core song from album id {album_id}: {e}",
             )
 
@@ -1024,7 +1025,7 @@ class SpotifyAccess:
     async def get_genres_from_artist_id_async(
         session: AsyncSession,
         artist_id: int,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         try:
             stmt = (
                 select(GenreRow)
@@ -1036,12 +1037,12 @@ class SpotifyAccess:
             genres: list[GenreRow] = cast(list[GenreRow], result.scalars().all())
 
             genre_names: list[str] = [g.name for g in genres]
-            return AResult(code=AResultCode.OK, message="OK", result=genre_names)
+            return Result(code=ResultCode.OK, message="OK", result=genre_names)
 
         except Exception as e:
             logger.error(f"Failed to get genres from artist id {artist_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get genres from artist id {artist_id}: {e}",
             )
 
@@ -1050,7 +1051,7 @@ class SpotifyAccess:
     async def get_genres_from_artist_async(
         session: AsyncSession,
         artist: ArtistRow,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         try:
             stmt = (
                 select(GenreRow).join(artist_genres).filter(artist_genres.c.artist_id == artist.id)
@@ -1059,12 +1060,12 @@ class SpotifyAccess:
             genres: list[GenreRow] = cast(list[GenreRow], result.scalars().all())
 
             genre_names: list[str] = [g.name for g in genres]
-            return AResult(code=AResultCode.OK, message="OK", result=genre_names)
+            return Result(code=ResultCode.OK, message="OK", result=genre_names)
 
         except Exception as e:
             logger.error(f"Failed to get genres from artist: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get genres from artist: {e}",
             )
 
@@ -1073,7 +1074,7 @@ class SpotifyAccess:
     async def get_playlist_track_links_async(
         session: AsyncSession,
         playlist_id: int,
-    ) -> AResult[list[PlaylistTrackLink]]:
+    ) -> Result[list[PlaylistTrackLink]]:
         try:
             stmt: Select[tuple[PlaylistTrackRow]] = select(PlaylistTrackRow).where(
                 PlaylistTrackRow.playlist_id == playlist_id
@@ -1095,12 +1096,12 @@ class SpotifyAccess:
                 if track_row:
                     track_links.append(PlaylistTrackLink(playlist_track=ptr, track=track_row))
 
-            return AResult(code=AResultCode.OK, message="OK", result=track_links)
+            return Result(code=ResultCode.OK, message="OK", result=track_links)
 
         except Exception as e:
             logger.error(f"Failed to get playlist track links: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist track links: {e}",
             )
 
@@ -1110,11 +1111,11 @@ class SpotifyAccess:
     async def get_album_rows_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[AlbumRow]]:
+    ) -> Result[list[AlbumRow]]:
         """Fetch AlbumRows for multiple public_ids in one query."""
         try:
             if not public_ids:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             stmt = (
                 select(AlbumRow)
@@ -1129,12 +1130,12 @@ class SpotifyAccess:
             )
             result = await session.execute(stmt)
             albums: list[AlbumRow] = list(result.scalars().all())
-            return AResult(code=AResultCode.OK, message="OK", result=albums)
+            return Result(code=ResultCode.OK, message="OK", result=albums)
 
         except Exception as e:
             logger.error(f"Failed to get album rows from public_ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get album rows from public_ids: {e}",
             )
 
@@ -1143,10 +1144,10 @@ class SpotifyAccess:
     async def get_albums_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: list[str],
-    ) -> AResult[list[AlbumRow]]:
+    ) -> Result[list[AlbumRow]]:
         try:
             if not spotify_ids:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             stmt = (
                 select(AlbumRow)
@@ -1162,12 +1163,12 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             albums: list[AlbumRow] = list(result.scalars().all())
 
-            return AResult(code=AResultCode.OK, message="OK", result=albums)
+            return Result(code=ResultCode.OK, message="OK", result=albums)
 
         except Exception as e:
             logger.error(f"Failed to get albums by spotify ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get albums by spotify ids: {e}",
             )
 
@@ -1176,10 +1177,10 @@ class SpotifyAccess:
     async def get_tracks_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: list[str],
-    ) -> AResult[list[TrackRow]]:
+    ) -> Result[list[TrackRow]]:
         try:
             if not spotify_ids:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             stmt = (
                 select(TrackRow)
@@ -1195,12 +1196,12 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             tracks: list[TrackRow] = list(result.scalars().all())
 
-            return AResult(code=AResultCode.OK, message="OK", result=tracks)
+            return Result(code=ResultCode.OK, message="OK", result=tracks)
 
         except Exception as e:
             logger.error(f"Failed to get tracks by spotify ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get tracks by spotify ids: {e}",
             )
 
@@ -1209,10 +1210,10 @@ class SpotifyAccess:
     async def get_artists_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: list[str],
-    ) -> AResult[list[ArtistRow]]:
+    ) -> Result[list[ArtistRow]]:
         try:
             if not spotify_ids:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             stmt = (
                 select(ArtistRow)
@@ -1228,12 +1229,12 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             artists: list[ArtistRow] = list(result.scalars().all())
 
-            return AResult(code=AResultCode.OK, message="OK", result=artists)
+            return Result(code=ResultCode.OK, message="OK", result=artists)
 
         except Exception as e:
             logger.error(f"Failed to get artists by spotify ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get artists by spotify ids: {e}",
             )
 
@@ -1242,10 +1243,10 @@ class SpotifyAccess:
     async def get_playlists_by_spotify_ids_async(
         session: AsyncSession,
         spotify_ids: list[str],
-    ) -> AResult[list[PlaylistRow]]:
+    ) -> Result[list[PlaylistRow]]:
         try:
             if not spotify_ids:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             stmt = (
                 select(PlaylistRow)
@@ -1261,12 +1262,12 @@ class SpotifyAccess:
             result = await session.execute(stmt)
             playlists: list[PlaylistRow] = list(result.scalars().all())
 
-            return AResult(code=AResultCode.OK, message="OK", result=playlists)
+            return Result(code=ResultCode.OK, message="OK", result=playlists)
 
         except Exception as e:
             logger.error(f"Failed to get playlists by spotify ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlists by spotify ids: {e}",
             )
 
@@ -1277,12 +1278,12 @@ class SpotifyAccess:
     async def get_tracks_spotify_id_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Bulk-resolve public_ids to spotify_ids for tracks in one query."""
 
         try:
             if not public_ids:
-                return AResult(code=AResultCode.OK, message="OK", result={})
+                return Result(code=ResultCode.OK, message="OK", result={})
 
             stmt = (
                 select(CoreMediaRow.public_id, TrackRow.spotify_id)
@@ -1294,12 +1295,12 @@ class SpotifyAccess:
             )
             result = await session.execute(stmt)
             mapping: dict[str, str] = {row.public_id: row.spotify_id for row in result.all()}
-            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+            return Result(code=ResultCode.OK, message="OK", result=mapping)
 
         except Exception as e:
             logger.error(f"Failed to bulk-resolve track public_ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to bulk-resolve track public_ids: {e}",
             )
 
@@ -1308,12 +1309,12 @@ class SpotifyAccess:
     async def get_artists_spotify_id_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Bulk-resolve public_ids to spotify_ids for artists in one query."""
 
         try:
             if not public_ids:
-                return AResult(code=AResultCode.OK, message="OK", result={})
+                return Result(code=ResultCode.OK, message="OK", result={})
 
             stmt = (
                 select(CoreMediaRow.public_id, ArtistRow.spotify_id)
@@ -1325,12 +1326,12 @@ class SpotifyAccess:
             )
             result = await session.execute(stmt)
             mapping: dict[str, str] = {row.public_id: row.spotify_id for row in result.all()}
-            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+            return Result(code=ResultCode.OK, message="OK", result=mapping)
 
         except Exception as e:
             logger.error(f"Failed to bulk-resolve artist public_ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to bulk-resolve artist public_ids: {e}",
             )
 
@@ -1339,12 +1340,12 @@ class SpotifyAccess:
     async def get_playlists_spotify_id_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Bulk-resolve public_ids to spotify_ids for playlists in one query."""
 
         try:
             if not public_ids:
-                return AResult(code=AResultCode.OK, message="OK", result={})
+                return Result(code=ResultCode.OK, message="OK", result={})
 
             stmt = (
                 select(CoreMediaRow.public_id, PlaylistRow.spotify_id)
@@ -1356,12 +1357,12 @@ class SpotifyAccess:
             )
             result = await session.execute(stmt)
             mapping: dict[str, str] = {row.public_id: row.spotify_id for row in result.all()}
-            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+            return Result(code=ResultCode.OK, message="OK", result=mapping)
 
         except Exception as e:
             logger.error(f"Failed to bulk-resolve playlist public_ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to bulk-resolve playlist public_ids: {e}",
             )
 
@@ -1370,12 +1371,12 @@ class SpotifyAccess:
     async def get_albums_spotify_id_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Bulk-resolve public_ids to spotify_ids for albums in one query."""
 
         try:
             if not public_ids:
-                return AResult(code=AResultCode.OK, message="OK", result={})
+                return Result(code=ResultCode.OK, message="OK", result={})
 
             stmt = (
                 select(CoreMediaRow.public_id, AlbumRow.spotify_id)
@@ -1387,12 +1388,12 @@ class SpotifyAccess:
             )
             result = await session.execute(stmt)
             mapping: dict[str, str] = {row.public_id: row.spotify_id for row in result.all()}
-            return AResult(code=AResultCode.OK, message="OK", result=mapping)
+            return Result(code=ResultCode.OK, message="OK", result=mapping)
 
         except Exception as e:
             logger.error(f"Failed to bulk-resolve album public_ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to bulk-resolve album public_ids: {e}",
             )
 
@@ -1404,7 +1405,7 @@ class SpotifyAccess:
         session: AsyncSession,
         album_id: int,
         external_image_id: int,
-    ) -> AResult[None]:
+    ) -> Result[None]:
         try:
             stmt = album_external_images.insert().values(
                 album_id=album_id,
@@ -1412,12 +1413,12 @@ class SpotifyAccess:
             )
             await session.execute(stmt)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=None)
+            return Result(code=ResultCode.OK, message="OK", result=None)
 
         except Exception as e:
             logger.warning(f"Failed to link album external image (may already exist): {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to link album external image: {e}",
             )
 
@@ -1427,7 +1428,7 @@ class SpotifyAccess:
         session: AsyncSession,
         artist_id: int,
         external_image_id: int,
-    ) -> AResult[None]:
+    ) -> Result[None]:
         try:
             stmt = artist_external_images.insert().values(
                 artist_id=artist_id,
@@ -1435,12 +1436,12 @@ class SpotifyAccess:
             )
             await session.execute(stmt)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=None)
+            return Result(code=ResultCode.OK, message="OK", result=None)
 
         except Exception as e:
             logger.warning(f"Failed to link artist external image (may already exist): {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to link artist external image: {e}",
             )
 
@@ -1450,7 +1451,7 @@ class SpotifyAccess:
         session: AsyncSession,
         track_id: int,
         artist_ids: list[int],
-    ) -> AResult[None]:
+    ) -> Result[None]:
         try:
             for artist_id in artist_ids:
                 stmt = song_artists.insert().values(
@@ -1459,12 +1460,12 @@ class SpotifyAccess:
                 )
                 await session.execute(stmt)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=None)
+            return Result(code=ResultCode.OK, message="OK", result=None)
 
         except Exception as e:
             logger.warning(f"Failed to link track artists (may already exist): {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to link track artists: {e}",
             )
 
@@ -1474,7 +1475,7 @@ class SpotifyAccess:
         session: AsyncSession,
         album_id: int,
         artist_ids: list[int],
-    ) -> AResult[None]:
+    ) -> Result[None]:
         try:
             for artist_id in artist_ids:
                 stmt = album_artists.insert().values(
@@ -1483,12 +1484,12 @@ class SpotifyAccess:
                 )
                 await session.execute(stmt)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=None)
+            return Result(code=ResultCode.OK, message="OK", result=None)
 
         except Exception as e:
             logger.warning(f"Failed to link album artists (may already exist): {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to link album artists: {e}",
             )
 
@@ -1498,7 +1499,7 @@ class SpotifyAccess:
         session: AsyncSession,
         artist_id: int,
         genre_ids: list[int],
-    ) -> AResult[None]:
+    ) -> Result[None]:
         try:
             for genre_id in genre_ids:
                 stmt = artist_genres.insert().values(
@@ -1507,12 +1508,12 @@ class SpotifyAccess:
                 )
                 await session.execute(stmt)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=None)
+            return Result(code=ResultCode.OK, message="OK", result=None)
 
         except Exception as e:
             logger.warning(f"Failed to link artist genres (may already exist): {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to link artist genres: {e}",
             )
 
@@ -1522,7 +1523,7 @@ class SpotifyAccess:
         session: AsyncSession,
         album_id: int,
         copyright_ids: list[int],
-    ) -> AResult[None]:
+    ) -> Result[None]:
         try:
             for copyright_id in copyright_ids:
                 stmt = album_copyrights.insert().values(
@@ -1531,11 +1532,11 @@ class SpotifyAccess:
                 )
                 await session.execute(stmt)
             await session.flush()
-            return AResult(code=AResultCode.OK, message="OK", result=None)
+            return Result(code=ResultCode.OK, message="OK", result=None)
 
         except Exception as e:
             logger.warning(f"Failed to link album copyrights (may already exist): {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to link album copyrights: {e}",
             )

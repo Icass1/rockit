@@ -13,7 +13,6 @@ from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from core.access.providerAccess import ProviderAccess
 from core.access.userAccess import UserAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from core.framework.media.image import Image
@@ -24,21 +23,22 @@ from default.access.db.ormModels.playlist_contributor import (
 )
 from default.access.db.ormModels.playlist_media import PlaylistMediaRow
 from logger import getLogger
+from result import Result, ResultCode
 from spotify.access.db.ormModels.track import TrackRow
 
 logger: Logger = getLogger(__name__)
 
 
-async def _get_default_provider_id(session: AsyncSession) -> AResult[int]:
+async def _get_default_provider_id(session: AsyncSession) -> Result[int]:
     a_result = await ProviderAccess.get_providers(session=session)
     if a_result.is_not_ok():
-        return AResult(code=a_result.code(), message=a_result.message())
+        return Result(code=a_result.code(), message=a_result.message())
 
     for provider in a_result.result():
         if provider.name == "Default" and not provider.disabled:
-            return AResult(code=AResultCode.OK, message="OK", result=provider.id)
+            return Result(code=ResultCode.OK, message="OK", result=provider.id)
 
-    return AResult(code=AResultCode.NOT_FOUND, message="Default provider not found in database")
+    return Result(code=ResultCode.NOT_FOUND, message="Default provider not found in database")
 
 
 async def migrate_playlist_async(

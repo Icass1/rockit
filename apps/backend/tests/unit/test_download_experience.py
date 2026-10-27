@@ -9,19 +9,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.downloadAccess import DownloadAccess
 from core.access.mediaAccess import MediaAccess
 from core.access.userAccess import UserAccess
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.downloader import Downloader
 from core.framework.media.media import Media
 from core.framework.user.user import User
 from core.framework.websocket.sendToUser import SendToUser
+from result import Result, ResultCode
 
 T = TypeVar("T")
 
 pytestmark = pytest.mark.unit
 
 
-def ok[T](value: T) -> AResult[T]:
-    return AResult(code=AResultCode.OK, message="OK", result=value)
+def ok[T](value: T) -> Result[T]:
+    return Result(code=ResultCode.OK, message="OK", result=value)
 
 
 async def test_playlist_download_preserves_root_and_saves_root_once(
@@ -36,7 +36,7 @@ async def test_playlist_download_preserves_root_and_saves_root_once(
     monkeypatch.setattr(
         Media,
         "get_media_from_public_id_async",
-        AsyncMock(return_value=AResult(code=AResultCode.NOT_FOUND, message="Container")),
+        AsyncMock(return_value=Result(code=ResultCode.NOT_FOUND, message="Container")),
     )
     monkeypatch.setattr(
         Downloader,
@@ -72,7 +72,7 @@ async def test_library_failure_prevents_queueing(
         User,
         "add_medias_to_library_async",
         AsyncMock(
-            return_value=AResult(code=AResultCode.GENERAL_ERROR, message="Database unavailable")
+            return_value=Result(code=ResultCode.GENERAL_ERROR, message="Database unavailable")
         ),
     )
     queue = AsyncMock(return_value=ok(True))
@@ -109,7 +109,7 @@ async def test_active_download_cannot_be_deleted(
     result = await Downloader.delete_download_async(
         session=AsyncMock(spec=AsyncSession), user_id=7, public_id="download"
     )
-    assert result.code() == AResultCode.BAD_REQUEST
+    assert result.code() == ResultCode.BAD_REQUEST
     delete.assert_not_awaited()
     hide.assert_not_awaited()
 
@@ -128,7 +128,7 @@ async def test_delete_failure_keeps_history_visible(
         AsyncMock(return_value=ok(SimpleNamespace(public_id="media"))),
     )
     delete = AsyncMock(
-        return_value=AResultCode(code=AResultCode.GENERAL_ERROR, message="Disk unavailable")
+        return_value=ResultCode(code=ResultCode.GENERAL_ERROR, message="Disk unavailable")
     )
     hide = AsyncMock()
     monkeypatch.setattr(Media, "delete_media_file_async", delete)
@@ -232,7 +232,7 @@ async def test_url_library_failure_is_reported_before_download_starts(
         User,
         "add_media_to_library",
         AsyncMock(
-            return_value=AResult(code=AResultCode.GENERAL_ERROR, message="Cannot save to library")
+            return_value=Result(code=ResultCode.GENERAL_ERROR, message="Cannot save to library")
         ),
     )
     queue = AsyncMock(return_value=ok(True))

@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.responses import StreamingResponse
 
-from core.aResult import AResult, AResultCode
 from core.framework.media import stream
 from core.framework.media.stream import MediaStream
+from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
 
@@ -51,7 +51,7 @@ async def test_exact_audio_byte_ranges(
     monkeypatch.setattr(
         MediaStream,
         "_prepare_audio_async",
-        AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=str(audio))),
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=str(audio))),
     )
     result = await MediaStream.stream_audio_from_video_async(
         video_path="source", range_header=header

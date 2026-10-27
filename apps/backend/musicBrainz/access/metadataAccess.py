@@ -6,10 +6,10 @@ from sqlalchemy import func, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.utils.safeAsyncCall import safe_async
 from musicBrainz.access.db.ormModels.metadataCache import MetadataCacheRow
 from musicBrainz.access.db.ormModels.requestGate import RequestGateRow
+from result import Result, ResultCode
 
 # One transaction lock for every MusicBrainz request across all backend workers.
 GATE_LOCK = 725983461
@@ -18,18 +18,18 @@ GATE_LOCK = 725983461
 class MetadataAccess:
     @staticmethod
     @safe_async
-    async def read_async(session: AsyncSession, key: str) -> AResult[list[MetadataCacheRow]]:
+    async def read_async(session: AsyncSession, key: str) -> Result[list[MetadataCacheRow]]:
         """Read durable source JSON; there is deliberately no automatic expiry."""
         row = await session.scalar(
             select(MetadataCacheRow)
             .where(MetadataCacheRow.key == key)
             .execution_options(populate_existing=True)
         )
-        return AResult(code=AResultCode.OK, message="OK", result=[row] if row is not None else [])
+        return Result(code=ResultCode.OK, message="OK", result=[row] if row is not None else [])
 
     @staticmethod
     @safe_async
-    async def lock_async(session: AsyncSession) -> AResult[float]:
+    async def lock_async(session: AsyncSession) -> Result[float]:
         """Serialize workers and return seconds remaining on the shared gate."""
         # Waiting indefinitely here keeps a database connection occupied and
         # can exhaust the shared pool during a burst of metadata requests.
@@ -41,8 +41,8 @@ class MetadataAccess:
             if acquired:
                 break
             if asyncio.get_running_loop().time() >= deadline:
-                return AResult(
-                    code=AResultCode.SERVICE_UNAVAILABLE,
+                return Result(
+                    code=ResultCode.SERVICE_UNAVAILABLE,
                     message="MusicBrainz request queue busy; retry later",
                 )
             await asyncio.sleep(0.1)
@@ -56,11 +56,11 @@ class MetadataAccess:
                 func.extract("epoch", RequestGateRow.available_at - func.clock_timestamp())
             ).where(RequestGateRow.id == 1)
         )
-        return AResult(code=AResultCode.OK, message="OK", result=max(0.0, float(remaining or 0)))
+        return Result(code=ResultCode.OK, message="OK", result=max(0.0, float(remaining or 0)))
 
     @staticmethod
     @safe_async
-    async def postpone_async(session: AsyncSession, seconds: float) -> AResultCode:
+    async def postpone_async(session: AsyncSession, seconds: float) -> ResultCode:
         """Persist a deadline using the database clock, including Retry-After."""
         await session.execute(
             update(RequestGateRow)
@@ -68,13 +68,13 @@ class MetadataAccess:
             .values(available_at=func.clock_timestamp() + text("make_interval(secs => :seconds)")),
             {"seconds": seconds},
         )
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def save_async(
         session: AsyncSession, key: str, payload: dict[str, Any]
-    ) -> AResult[datetime]:
+    ) -> Result[datetime]:
         """Atomically replace a complete response; failed fetches never erase data."""
         stmt = insert(MetadataCacheRow).values(
             key=key, payload=payload, fetched_at=func.clock_timestamp()
@@ -89,4 +89,4 @@ class MetadataAccess:
             ).returning(MetadataCacheRow.fetched_at)
         )
         assert stamp is not None
-        return AResult(code=AResultCode.OK, message="OK", result=stamp)
+        return Result(code=ResultCode.OK, message="OK", result=stamp)

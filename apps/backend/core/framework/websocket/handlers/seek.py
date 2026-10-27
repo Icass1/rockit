@@ -7,7 +7,7 @@ from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from logger import getLogger
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 from core.framework.media.media import Media
 from core.framework.models.media import MediaModel
 from core.framework.user.user import User
@@ -36,7 +36,7 @@ async def handle_seek(
     if not manager.matches_playback(user_id=user_id, message=seek_msg):
         return
 
-    a_result_media: AResult[MediaModel] = await Media.get_media_from_public_id_async(
+    a_result_media: Result[MediaModel] = await Media.get_media_from_public_id_async(
         session=session,
         public_id=seek_msg.mediaPublicId,
         media_type_keys=None,
@@ -47,7 +47,7 @@ async def handle_seek(
         )
         return
 
-    a_result: AResultCode = await User.add_user_current_time_seek_async(
+    a_result: ResultCode = await User.add_user_current_time_seek_async(
         session=session,
         user_id=user_id,
         media_id=a_result_media.result().id,

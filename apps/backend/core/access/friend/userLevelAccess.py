@@ -7,9 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db.ormModels.friend.levelConfig import LevelConfigRow
 from core.access.db.ormModels.friend.userLevel import UserLevelRow
 from core.access.db.ormModels.user_media_listened import UserMediaListenedRow
-from core.aResult import AResult, AResultCode
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -19,26 +19,26 @@ class UserLevelAccess:
     @safe_async
     async def get_or_create_user_level_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[UserLevelRow]:
+    ) -> Result[UserLevelRow]:
         levels = await UserLevelAccess.get_user_levels_async(session, [user_id])
         if levels.is_not_ok():
             logger.error(f"Error calculating user level. {levels.info()}")
-            return AResult(code=levels.code(), message=levels.message())
+            return Result(code=levels.code(), message=levels.message())
         rows = levels.result()
         if not rows:
-            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
-        return AResult(code=AResultCode.OK, message="OK", result=rows[0])
+            return Result(code=ResultCode.NOT_FOUND, message="User not found")
+        return Result(code=ResultCode.OK, message="OK", result=rows[0])
 
     @staticmethod
     @safe_async
     async def add_xp_async(
         session: AsyncSession, user_id: int, xp_amount: int
-    ) -> AResult[UserLevelRow]:
+    ) -> Result[UserLevelRow]:
         a_result = await UserLevelAccess.get_or_create_user_level_async(
             session=session, user_id=user_id
         )
         if a_result.is_not_ok():
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
         level_row = a_result.result()
         level_row.xp += xp_amount
         a_config = await UserLevelAccess.get_level_configs_async(session=session)
@@ -49,13 +49,13 @@ class UserLevelAccess:
                     level_row.level = config.level
         await session.flush()
         await session.refresh(level_row)
-        return AResult(code=AResultCode.OK, message="OK", result=level_row)
+        return Result(code=ResultCode.OK, message="OK", result=level_row)
 
     @staticmethod
     @safe_async
     async def get_level_configs_async(
         session: AsyncSession,
-    ) -> AResult[list[LevelConfigRow]]:
+    ) -> Result[list[LevelConfigRow]]:
         defaults = [
             {"level": level, "xp_required": threshold, "title": title}
             for level, threshold, title in [
@@ -74,41 +74,41 @@ class UserLevelAccess:
         stmt = select(LevelConfigRow).order_by(LevelConfigRow.level)
         result = await session.execute(stmt)
         rows: Sequence[LevelConfigRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
     async def get_leaderboard_async(
         session: AsyncSession, limit: int = 50
-    ) -> AResult[list[UserLevelRow]]:
+    ) -> Result[list[UserLevelRow]]:
         stmt = select(UserLevelRow).order_by(desc(UserLevelRow.xp)).limit(limit)
         result = await session.execute(stmt)
         rows: Sequence[UserLevelRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
     async def get_user_level_by_user_id_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[UserLevelRow | None]:
+    ) -> Result[UserLevelRow | None]:
         stmt = select(UserLevelRow).where(UserLevelRow.user_id == user_id)
         result = await session.execute(stmt)
         row: UserLevelRow | None = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def get_user_levels_async(
         session: AsyncSession, user_ids: list[int]
-    ) -> AResult[list[UserLevelRow]]:
+    ) -> Result[list[UserLevelRow]]:
         if not user_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
         configs = await UserLevelAccess.get_level_configs_async(session)
         if configs.is_not_ok():
             logger.error(f"Error getting level thresholds. {configs.info()}")
-            return AResult(code=configs.code(), message=configs.message())
+            return Result(code=configs.code(), message=configs.message())
         counts = await session.execute(
             select(UserMediaListenedRow.user_id, func.count().label("plays"))
             .where(UserMediaListenedRow.user_id.in_(user_ids))
@@ -129,4 +129,4 @@ class UserLevelAccess:
             .where(UserLevelRow.user_id.in_(user_ids))
             .execution_options(populate_existing=True)
         )
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows.scalars()))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows.scalars()))

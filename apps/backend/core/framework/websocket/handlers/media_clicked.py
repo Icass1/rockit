@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Any
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult
 from core.framework.user.user import User
 from core.framework.websocket.webSocketRouter import websocket_router
 from core.requests.wsMessages import MediaClickedMessageRequest
 from logger import getLogger
+from result import Result
 
 if TYPE_CHECKING:
     from core.framework.websocket.webSocketManager import WebSocketManager
@@ -28,7 +28,7 @@ async def handle_media_clicked(
     media_clicked_msg = MediaClickedMessageRequest(**data)
     logger.info(f"User {user_id} media clicked: {media_clicked_msg.mediaPublicId}")
 
-    a_result: AResult[bool] = await User.add_user_media_clicked_async(
+    a_result: Result[bool] = await User.add_user_media_clicked_async(
         session=session,
         user_id=user_id,
         media_public_id=media_clicked_msg.mediaPublicId,

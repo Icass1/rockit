@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
 from core.access.statsAccess import StatsAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers as provider_utils
 from core.framework.core import Core
@@ -19,6 +18,7 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.baseVideoResponse import BaseVideoResponse
 from core.types.playlistMediaTypes import PlaylistResponseItem
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -26,15 +26,15 @@ logger: Logger = getLogger(__name__)
 async def _resolve_medias(
     session: AsyncSession,
     public_ids: list[str],
-) -> AResult[
+) -> Result[
     list[PlaylistResponseItem[BaseSongWithAlbumResponse] | PlaylistResponseItem[BaseVideoResponse]]
 ]:
     """Resolve a list of song and video public_ids into PlaylistResponseItems."""
 
     if not public_ids:
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
-    a_result_medias: AResult[
+    a_result_medias: Result[
         list[CoreMediaRow]
     ] = await MediaAccess.get_medias_from_public_ids_async(
         session=session,
@@ -43,7 +43,7 @@ async def _resolve_medias(
     )
     if a_result_medias.is_not_ok():
         logger.error(f"Error getting medias. {a_result_medias.info()}")
-        return AResult(code=a_result_medias.code(), message=a_result_medias.message())
+        return Result(code=a_result_medias.code(), message=a_result_medias.message())
 
     rows: list[CoreMediaRow] = a_result_medias.result()
 
@@ -70,7 +70,7 @@ async def _resolve_medias(
             logger.error(f"Provider not found for provider_id {provider_id}")
             continue
 
-        a_result_songs: AResult[list[BaseSongWithAlbumResponse]] = await provider.get_songs_async(
+        a_result_songs: Result[list[BaseSongWithAlbumResponse]] = await provider.get_songs_async(
             session=session, public_ids=ids
         )
         if a_result_songs.is_not_ok():
@@ -87,7 +87,7 @@ async def _resolve_medias(
             logger.error(f"Provider not found for provider_id {provider_id}")
             continue
 
-        a_result_videos: AResult[list[BaseVideoResponse]] = await provider.get_videos_async(
+        a_result_videos: Result[list[BaseVideoResponse]] = await provider.get_videos_async(
             session=session, public_ids=ids
         )
         if a_result_videos.is_not_ok():
@@ -122,35 +122,35 @@ async def _resolve_medias(
                 )
             )
 
-    return AResult(code=AResultCode.OK, message="OK", result=items)
+    return Result(code=ResultCode.OK, message="OK", result=items)
 
 
 async def get_liked_playlist_async(
     session: AsyncSession,
     user_id: int,
-) -> AResult[BasePlaylistWithMediasResponse]:
+) -> Result[BasePlaylistWithMediasResponse]:
     from core.framework.user.user import User
 
-    a_result_ids: AResult[list[str]] = await User.get_user_liked_media_public_ids(
+    a_result_ids: Result[list[str]] = await User.get_user_liked_media_public_ids(
         session=session, user_id=user_id
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting liked media. {a_result_ids.info()}")
-        return AResult(code=a_result_ids.code(), message=a_result_ids.message())
+        return Result(code=a_result_ids.code(), message=a_result_ids.message())
 
     public_ids: list[str] = a_result_ids.result()
 
-    a_result_items: AResult[
+    a_result_items: Result[
         list[
             PlaylistResponseItem[BaseSongWithAlbumResponse]
             | PlaylistResponseItem[BaseVideoResponse]
         ]
     ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
-        return AResult(code=a_result_items.code(), message=a_result_items.message())
+        return Result(code=a_result_items.code(), message=a_result_items.message())
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
             description=None,
@@ -178,13 +178,13 @@ async def get_liked_playlist_async(
 async def get_most_listened_playlist_async(
     session: AsyncSession,
     user_id: int,
-) -> AResult[BasePlaylistWithMediasResponse]:
+) -> Result[BasePlaylistWithMediasResponse]:
     from datetime import timedelta
 
     end_date = datetime.now(UTC)
     start_date = end_date - timedelta(days=365 * 10)
 
-    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+    a_result_ids: Result[list[str]] = await StatsAccess.get_top_media_public_ids_async(
         session=session,
         user_id=user_id,
         start_date=start_date,
@@ -193,21 +193,21 @@ async def get_most_listened_playlist_async(
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
-        return AResult(code=a_result_ids.code(), message=a_result_ids.message())
+        return Result(code=a_result_ids.code(), message=a_result_ids.message())
 
     public_ids: list[str] = a_result_ids.result()
 
-    a_result_items: AResult[
+    a_result_items: Result[
         list[
             PlaylistResponseItem[BaseSongWithAlbumResponse]
             | PlaylistResponseItem[BaseVideoResponse]
         ]
     ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
-        return AResult(code=a_result_items.code(), message=a_result_items.message())
+        return Result(code=a_result_items.code(), message=a_result_items.message())
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
             type="playlist",
@@ -236,13 +236,13 @@ async def get_most_listened_playlist_async(
 async def get_recent_mix_playlist_async(
     session: AsyncSession,
     user_id: int,
-) -> AResult[BasePlaylistWithMediasResponse]:
+) -> Result[BasePlaylistWithMediasResponse]:
     from datetime import timedelta
 
     end_date = datetime.now(UTC)
     start_date = end_date - timedelta(days=14)
 
-    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+    a_result_ids: Result[list[str]] = await StatsAccess.get_top_media_public_ids_async(
         session=session,
         user_id=user_id,
         start_date=start_date,
@@ -251,21 +251,21 @@ async def get_recent_mix_playlist_async(
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting recent media. {a_result_ids.info()}")
-        return AResult(code=a_result_ids.code(), message=a_result_ids.message())
+        return Result(code=a_result_ids.code(), message=a_result_ids.message())
 
     public_ids: list[str] = a_result_ids.result()
 
-    a_result_items: AResult[
+    a_result_items: Result[
         list[
             PlaylistResponseItem[BaseSongWithAlbumResponse]
             | PlaylistResponseItem[BaseVideoResponse]
         ]
     ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
-        return AResult(code=a_result_items.code(), message=a_result_items.message())
+        return Result(code=a_result_items.code(), message=a_result_items.message())
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
             type="playlist",
@@ -294,13 +294,13 @@ async def get_recent_mix_playlist_async(
 async def get_last_month_playlist_async(
     session: AsyncSession,
     user_id: int,
-) -> AResult[BasePlaylistWithMediasResponse]:
+) -> Result[BasePlaylistWithMediasResponse]:
     from datetime import timedelta
 
     end_date = datetime.now(UTC)
     start_date = end_date - timedelta(days=30)
 
-    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+    a_result_ids: Result[list[str]] = await StatsAccess.get_top_media_public_ids_async(
         session=session,
         user_id=user_id,
         start_date=start_date,
@@ -309,24 +309,24 @@ async def get_last_month_playlist_async(
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
-        return AResult(code=a_result_ids.code(), message=a_result_ids.message())
+        return Result(code=a_result_ids.code(), message=a_result_ids.message())
 
     public_ids: list[str] = a_result_ids.result()
 
-    a_result_items: AResult[
+    a_result_items: Result[
         list[
             PlaylistResponseItem[BaseSongWithAlbumResponse]
             | PlaylistResponseItem[BaseVideoResponse]
         ]
     ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
-        return AResult(code=a_result_items.code(), message=a_result_items.message())
+        return Result(code=a_result_items.code(), message=a_result_items.message())
 
     last_month_date = end_date - timedelta(days=30)
     last_month_name = last_month_date.strftime("%B").lower()
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
             type="playlist",
@@ -355,14 +355,14 @@ async def get_last_month_playlist_async(
 async def get_year_recap_playlist_async(
     session: AsyncSession,
     user_id: int,
-) -> AResult[BasePlaylistWithMediasResponse]:
+) -> Result[BasePlaylistWithMediasResponse]:
 
     now = datetime.now(UTC)
     last_year = now.year - 1
     start_date = datetime(year=last_year, month=1, day=1, tzinfo=UTC)
     end_date = datetime(year=last_year + 1, month=1, day=1, tzinfo=UTC)
 
-    a_result_ids: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+    a_result_ids: Result[list[str]] = await StatsAccess.get_top_media_public_ids_async(
         session=session,
         user_id=user_id,
         start_date=start_date,
@@ -371,21 +371,21 @@ async def get_year_recap_playlist_async(
     )
     if a_result_ids.is_not_ok():
         logger.error(f"Error getting top media. {a_result_ids.info()}")
-        return AResult(code=a_result_ids.code(), message=a_result_ids.message())
+        return Result(code=a_result_ids.code(), message=a_result_ids.message())
 
     public_ids: list[str] = a_result_ids.result()
 
-    a_result_items: AResult[
+    a_result_items: Result[
         list[
             PlaylistResponseItem[BaseSongWithAlbumResponse]
             | PlaylistResponseItem[BaseVideoResponse]
         ]
     ] = await _resolve_medias(session=session, public_ids=public_ids)
     if a_result_items.is_not_ok():
-        return AResult(code=a_result_items.code(), message=a_result_items.message())
+        return Result(code=a_result_items.code(), message=a_result_items.message())
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
             type="playlist",

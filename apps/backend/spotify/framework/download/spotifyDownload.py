@@ -5,9 +5,9 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import MEDIA_PATH
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from logger import getLogger
+from result import Result, ResultCode
 from spotify.access.db.ormModels.artist import ArtistRow
 from spotify.access.db.ormModels.track import TrackRow
 from spotify.access.spotifyAccess import SpotifyAccess
@@ -45,33 +45,33 @@ class SpotifyDownload(BaseDownload):
         self.track_spotify_id = track_spotify_id
         self.download_url = download_url
 
-    async def download_method_async(self, session: AsyncSession) -> AResultCode:
+    async def download_method_async(self, session: AsyncSession) -> ResultCode:
         """Download the Spotify track asynchronously."""
 
         logger.info(f"Downloading Spotify track with ID: {self.track_spotify_id}")
 
         try:
-            a_result_track: AResult[TrackRow] = await TrackAccess.get_track_by_id_async(
+            a_result_track: Result[TrackRow] = await TrackAccess.get_track_by_id_async(
                 session=session, track_id=self.track_spotify_id
             )
             if a_result_track.is_not_ok():
                 logger.error(f"Error getting track: {a_result_track.message()}")
-                return AResultCode(
+                return ResultCode(
                     code=a_result_track.code(),
                     message=f"Error getting track: {a_result_track.message()}",
                 )
 
             track: TrackRow = a_result_track.result()
 
-            a_result_artists: AResult[
+            a_result_artists: Result[
                 list[ArtistRow]
             ] = await SpotifyAccess.get_artists_from_track_row_async(
                 session=session, track_row=track
             )
             if a_result_artists.is_not_ok():
                 logger.error(f"Error getting artists: {a_result_artists.message()}")
-                return AResultCode(
-                    code=AResultCode.GENERAL_ERROR,
+                return ResultCode(
+                    code=ResultCode.GENERAL_ERROR,
                     message=f"Error getting artists: {a_result_artists.message()}",
                 )
 
@@ -86,7 +86,7 @@ class SpotifyDownload(BaseDownload):
             alternative_urls: list[str] = []
 
             if not youtube_url:
-                a_result_youtube: AResult[list[str]] = await YoutubeSearch.find_video_urls_async(
+                a_result_youtube: Result[list[str]] = await YoutubeSearch.find_video_urls_async(
                     song=YoutubeSongQuery(
                         title=track.name,
                         artists=artist_names,
@@ -99,7 +99,7 @@ class SpotifyDownload(BaseDownload):
                     logger.error(f"YouTube search failed: {a_result_youtube.info()}")
                     # Propagate the search result code so a song that simply
                     # has no match is not retried like a transient failure.
-                    return AResultCode(
+                    return ResultCode(
                         code=a_result_youtube.code(),
                         message=f"YouTube search failed: {a_result_youtube.message()}",
                     )
@@ -118,7 +118,7 @@ class SpotifyDownload(BaseDownload):
 
             filename: str = f"{track.spotify_id}_{self.download_id}"
 
-            a_result_download: AResult[
+            a_result_download: Result[
                 dict[str, Any]
             ] = await YouTubeDownloader.download_as_mp3_async(
                 youtube_url=youtube_url,
@@ -133,7 +133,7 @@ class SpotifyDownload(BaseDownload):
 
             if a_result_download.is_not_ok():
                 logger.error(f"Download failed: {a_result_download.message()}")
-                return AResultCode(
+                return ResultCode(
                     code=a_result_download.code(),
                     message=f"Download failed: {a_result_download.message()}",
                 )
@@ -164,13 +164,13 @@ class SpotifyDownload(BaseDownload):
 
             if a_result_update.is_not_ok():
                 logger.error(f"Error updating track: {a_result_update.message()}")
-                return AResultCode(
-                    code=AResultCode.GENERAL_ERROR,
+                return ResultCode(
+                    code=ResultCode.GENERAL_ERROR,
                     message=f"Error updating track: {a_result_update.message()}",
                 )
 
-            return AResultCode(code=AResultCode.OK, message="Download completed.")
+            return ResultCode(code=ResultCode.OK, message="Download completed.")
 
         except Exception as e:
             logger.error(f"Error in download_method_async: {e}", exc_info=True)
-            return AResultCode(code=AResultCode.GENERAL_ERROR, message=f"Download error: {e}")
+            return ResultCode(code=ResultCode.GENERAL_ERROR, message=f"Download error: {e}")

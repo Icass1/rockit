@@ -4,9 +4,9 @@ from typing import Any, cast
 
 from yt_dlp import YoutubeDL
 
-from core.aResult import AResult, AResultCode
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 
 
 def _create_youtube_dl(opts: dict[str, Any]) -> YoutubeDL:
@@ -94,7 +94,7 @@ class YoutubeMusicApi:
     @staticmethod
     async def search_track_async(
         query: str, max_results: int = 15
-    ) -> AResult[list[YoutubeMusicTrack]]:
+    ) -> Result[list[YoutubeMusicTrack]]:
         try:
             import asyncio
 
@@ -117,8 +117,8 @@ class YoutubeMusicApi:
 
             if not results:
                 logger.error(f"No results found for query: {query}")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="No results found",
                 )
 
@@ -181,24 +181,24 @@ class YoutubeMusicApi:
 
             if not tracks:
                 logger.error(f"No valid tracks found for query: {query}")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="No valid tracks found",
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=tracks)
+            return Result(code=ResultCode.OK, message="OK", result=tracks)
 
         except Exception as e:
             logger.error(f"Failed to search tracks: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to search tracks: {e}",
             )
 
     @staticmethod
     async def search_artists_async(
         query: str, max_results: int = 15
-    ) -> AResult[list[YoutubeMusicArtistResult]]:
+    ) -> Result[list[YoutubeMusicArtistResult]]:
         try:
             import asyncio
 
@@ -218,7 +218,7 @@ class YoutubeMusicApi:
             results: Any = await loop.run_in_executor(None, _search)
 
             if not results:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             artists: list[YoutubeMusicArtistResult] = []
             for entry in results[:max_results]:
@@ -255,19 +255,19 @@ class YoutubeMusicApi:
                     logger.debug(f"Skipping artist entry due to error: {entry}")
                     continue
 
-            return AResult(code=AResultCode.OK, message="OK", result=artists)
+            return Result(code=ResultCode.OK, message="OK", result=artists)
 
         except Exception as e:
             logger.error(f"Failed to search artists: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to search artists: {e}",
             )
 
     @staticmethod
     async def search_albums_async(
         query: str, max_results: int = 15
-    ) -> AResult[list[YoutubeMusicAlbumResult]]:
+    ) -> Result[list[YoutubeMusicAlbumResult]]:
         try:
             import asyncio
 
@@ -287,7 +287,7 @@ class YoutubeMusicApi:
             results: Any = await loop.run_in_executor(None, _search)
 
             if not results:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             albums: list[YoutubeMusicAlbumResult] = []
             for entry in results[:max_results]:
@@ -331,19 +331,19 @@ class YoutubeMusicApi:
                     logger.debug(f"Skipping album entry due to error: {entry}")
                     continue
 
-            return AResult(code=AResultCode.OK, message="OK", result=albums)
+            return Result(code=ResultCode.OK, message="OK", result=albums)
 
         except Exception as e:
             logger.error(f"Failed to search albums: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to search albums: {e}",
             )
 
     @staticmethod
     async def search_playlists_async(
         query: str, max_results: int = 15
-    ) -> AResult[list[YoutubeMusicPlaylistResult]]:
+    ) -> Result[list[YoutubeMusicPlaylistResult]]:
         try:
             import asyncio
 
@@ -363,7 +363,7 @@ class YoutubeMusicApi:
             results: Any = await loop.run_in_executor(None, _search)
 
             if not results:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             playlists: list[YoutubeMusicPlaylistResult] = []
             for entry in results[:max_results]:
@@ -402,19 +402,19 @@ class YoutubeMusicApi:
                     logger.debug(f"Skipping playlist entry due to error: {entry}")
                     continue
 
-            return AResult(code=AResultCode.OK, message="OK", result=playlists)
+            return Result(code=ResultCode.OK, message="OK", result=playlists)
 
         except Exception as e:
             logger.error(f"Failed to search playlists: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to search playlists: {e}",
             )
 
     @staticmethod
     async def get_track_info_async(
         youtube_id: str,
-    ) -> AResult[YoutubeMusicTrack]:
+    ) -> Result[YoutubeMusicTrack]:
         try:
             ydl_opts: dict[str, Any] = {
                 "quiet": True,
@@ -440,8 +440,8 @@ class YoutubeMusicApi:
             info: Any = await loop.run_in_executor(None, _get_info)
 
             if not info:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Track not found",
                 )
 
@@ -483,12 +483,12 @@ class YoutubeMusicApi:
                 release_year=release_year,
             )
 
-            return AResult(code=AResultCode.OK, message="OK", result=track)
+            return Result(code=ResultCode.OK, message="OK", result=track)
 
         except Exception as e:
             logger.error(f"Failed to get track info: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get track info: {e}",
             )
 
@@ -496,7 +496,7 @@ class YoutubeMusicApi:
     @time_it
     async def get_album_info_async(
         youtube_id: str,
-    ) -> AResult[YoutubeMusicAlbum]:
+    ) -> Result[YoutubeMusicAlbum]:
         try:
             import asyncio
 
@@ -517,8 +517,8 @@ class YoutubeMusicApi:
             info: Any = await loop.run_in_executor(None, _get_info)
 
             if not info:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Album not found",
                 )
 
@@ -553,19 +553,19 @@ class YoutubeMusicApi:
                 thumbnail_url=thumbnail,
             )
 
-            return AResult(code=AResultCode.OK, message="OK", result=album)
+            return Result(code=ResultCode.OK, message="OK", result=album)
 
         except Exception as e:
             logger.error(f"Failed to get album info: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get album info: {e}",
             )
 
     @staticmethod
     async def get_album_tracks_async(
         youtube_id: str,
-    ) -> AResult[list[YoutubeMusicTrack]]:
+    ) -> Result[list[YoutubeMusicTrack]]:
         try:
             import asyncio
 
@@ -585,8 +585,8 @@ class YoutubeMusicApi:
             info: Any = await loop.run_in_executor(None, _get_info)
 
             if not info:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Album not found",
                 )
 
@@ -604,7 +604,7 @@ class YoutubeMusicApi:
 
             entries = info_dict.get("tracks", [])
             if not entries:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             tracks: list[YoutubeMusicTrack] = []
             for i, entry in enumerate(entries, start=1):
@@ -646,19 +646,19 @@ class YoutubeMusicApi:
                 )
                 tracks.append(track)
 
-            return AResult(code=AResultCode.OK, message="OK", result=tracks)
+            return Result(code=ResultCode.OK, message="OK", result=tracks)
 
         except Exception as e:
             logger.error(f"Failed to get album tracks: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get album tracks: {e}",
             )
 
     @staticmethod
     async def get_artist_top_songs_async(
         youtube_id: str,
-    ) -> AResult[list[YoutubeMusicTrack]]:
+    ) -> Result[list[YoutubeMusicTrack]]:
         try:
             ydl_opts: dict[str, Any] = {
                 "quiet": True,
@@ -685,8 +685,8 @@ class YoutubeMusicApi:
             info: Any = await loop.run_in_executor(None, _get_info)
 
             if not info:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Artist not found",
                 )
 
@@ -694,7 +694,7 @@ class YoutubeMusicApi:
 
             entries = info_dict.get("tracks", [])
             if not entries:
-                return AResult(code=AResultCode.OK, message="OK", result=[])
+                return Result(code=ResultCode.OK, message="OK", result=[])
 
             tracks: list[YoutubeMusicTrack] = []
             for entry in entries:
@@ -733,19 +733,19 @@ class YoutubeMusicApi:
                 )
                 tracks.append(track)
 
-            return AResult(code=AResultCode.OK, message="OK", result=tracks)
+            return Result(code=ResultCode.OK, message="OK", result=tracks)
 
         except Exception as e:
             logger.error(f"Failed to get artist top songs: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get artist top songs: {e}",
             )
 
     @staticmethod
     async def get_artist_info_async(
         youtube_id: str,
-    ) -> AResult[YoutubeMusicArtist]:
+    ) -> Result[YoutubeMusicArtist]:
         try:
             from ytmusicapi import YTMusic
 
@@ -764,8 +764,8 @@ class YoutubeMusicApi:
             info: Any = await loop.run_in_executor(None, _get_info)
 
             if not info:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Artist not found",
                 )
 
@@ -785,19 +785,19 @@ class YoutubeMusicApi:
                 thumbnail_url=thumbnail,
             )
 
-            return AResult(code=AResultCode.OK, message="OK", result=artist)
+            return Result(code=ResultCode.OK, message="OK", result=artist)
 
         except Exception as e:
             logger.error(f"Failed to get artist info: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get artist info: {e}",
             )
 
     @staticmethod
     async def get_playlist_info_async(
         playlist_id: str,
-    ) -> AResult[YoutubeMusicPlaylist]:
+    ) -> Result[YoutubeMusicPlaylist]:
         try:
             ydl_opts: dict[str, Any] = {
                 "quiet": True,
@@ -824,8 +824,8 @@ class YoutubeMusicApi:
             info: Any = await loop.run_in_executor(None, _get_info)
 
             if not info:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Playlist not found",
                 )
 
@@ -882,12 +882,12 @@ class YoutubeMusicApi:
                 tracks=tracks,
             )
 
-            return AResult(code=AResultCode.OK, message="OK", result=playlist)
+            return Result(code=ResultCode.OK, message="OK", result=playlist)
 
         except Exception as e:
             logger.error(f"Failed to get playlist info: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist info: {e}",
             )
 

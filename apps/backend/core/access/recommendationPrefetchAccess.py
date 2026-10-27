@@ -6,12 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db.ormModels.download import DownloadRow
 from core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.framework.models.recommendationPrefetch import (
     RecommendationPrefetchState,
 )
 from core.utils.safeAsyncCall import safe_async
+from result import Result, ResultCode
 
 AUTOPLAY_DOWNLOAD_TITLE = "Autoplay"
 _ACTIVE = [
@@ -31,15 +31,15 @@ class RecommendationPrefetchAccess:
     @safe_async
     async def get_state_async(
         session: AsyncSession, failed_since: datetime, public_id: str | None = None
-    ) -> AResult[RecommendationPrefetchState]:
+    ) -> Result[RecommendationPrefetchState]:
         """Serialize automatic admissions across workers until the downloader
         commits its records. Manual downloads retain their existing limits.
         Do not wait behind another prefetch request; playback uses local files.
         """
         acquired = await session.scalar(text("SELECT pg_try_advisory_xact_lock(724193, 1)"))
         if not acquired:
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="Prefetch busy",
                 result=RecommendationPrefetchState(locked=False),
             )
@@ -67,8 +67,8 @@ class RecommendationPrefetchAccess:
                 .limit(1)
             )
             media_pending = existing is not None
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=RecommendationPrefetchState(
                 locked=True, pending_count=pending or 0, media_pending=media_pending

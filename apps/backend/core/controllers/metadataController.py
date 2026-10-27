@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from core.aResult import AResultCode
 from core.framework.metadata.metadata import Metadata
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.responses.metadataResponse import MetadataResponse
 from logger import getLogger
+from result import ResultCode
 
 logger = getLogger(__name__)
 router = APIRouter(prefix="/metadata", tags=["Metadata"])
@@ -40,7 +40,7 @@ async def search_artists(
         logger.error(f"Artist metadata search failed: {result.info()}")
         headers = (
             {"Retry-After": "60"}
-            if result.code() in (AResultCode.SERVICE_UNAVAILABLE, AResultCode.RATE_LIMITED)
+            if result.code() in (ResultCode.SERVICE_UNAVAILABLE, ResultCode.RATE_LIMITED)
             else None
         )
         raise HTTPException(
@@ -76,7 +76,7 @@ async def get_metadata(
         logger.error(f"Metadata lookup failed: {result.info()}")
         headers = (
             {"Retry-After": "60"}
-            if result.code() in (AResultCode.SERVICE_UNAVAILABLE, AResultCode.RATE_LIMITED)
+            if result.code() in (ResultCode.SERVICE_UNAVAILABLE, ResultCode.RATE_LIMITED)
             else None
         )
         raise HTTPException(

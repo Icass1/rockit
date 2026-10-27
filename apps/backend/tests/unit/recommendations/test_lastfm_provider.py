@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 
 import tests  # noqa: F401  # pyright: ignore[reportUnusedImport]  (test env setup)
-from core.aResult import AResult, AResultCode
 from core.framework.models.recommendation import (
     ERecommendationContextKind,
     ExternalRecommendationContext,
@@ -15,6 +14,7 @@ from core.framework.models.recommendation import (
 from lastfm.framework.provider.lastfmProvider import (
     LastfmProvider,
 )
+from result import Result, ResultCode
 from tests.unit.recommendations.helpers import FakeClock, RecordingTransport, make_limiter
 
 SEED_CONTEXT = ExternalRecommendationContext(
@@ -84,7 +84,7 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
             lambda _: httpx.Response(200, json={"error": 29, "message": "slow down"})
         )
         a_result = await provider.get_suggestions_async(SEED_CONTEXT, limit=10)
-        self.assertEqual(a_result.code(), AResultCode.RATE_LIMITED)
+        self.assertEqual(a_result.code(), ResultCode.RATE_LIMITED)
         # And the provider backs off instead of sending again right away.
         await provider.get_suggestions_async(SEED_CONTEXT, limit=10)
         self.assertEqual(len(transport.requests), 1)
@@ -154,12 +154,12 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
             patch.object(
                 ProviderAccess,
                 "get_providers",
-                AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=[])),
+                AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[])),
             ),
             patch.object(
                 ProviderAccess,
                 "add_provider",
-                AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=row)),
+                AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=row)),
             ),
             patch.object(db_context, "after_all_providers_tables_init", AsyncMock()),
             patch("lastfm.framework.provider.lastfmProvider.provider", integration),
@@ -200,7 +200,7 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
             patch.object(
                 ProviderAccess,
                 "get_providers",
-                AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=[row])),
+                AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[row])),
             ),
             patch.object(db_context, "after_all_providers_tables_init", AsyncMock()),
         ):

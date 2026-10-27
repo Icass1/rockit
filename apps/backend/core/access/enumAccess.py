@@ -1,7 +1,8 @@
 from collections.abc import Sequence
 from enum import Enum
 
-from sqlalchemy import Result as DBResult, Select, asc, select
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, asc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormEnums.baseEnum import BaseEnumRow

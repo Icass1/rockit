@@ -6,9 +6,9 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from core.access.db.ormModels.requestLog import RequestLogRow
-from core.aResult import AResult, AResultCode
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -76,9 +76,9 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         return response
 
     @staticmethod
-    def get_current_ip(request: Request) -> AResult[str]:
+    def get_current_ip(request: Request) -> Result[str]:
         try:
-            return AResult(code=AResultCode.OK, message="OK", result=request.state.request_ip)
+            return Result(code=ResultCode.OK, message="OK", result=request.state.request_ip)
         except Exception:
             logger.error("IP not in request state")
-            return AResult(AResultCode.GENERAL_ERROR, message="IP not in request state")
+            return Result(ResultCode.GENERAL_ERROR, message="IP not in request state")

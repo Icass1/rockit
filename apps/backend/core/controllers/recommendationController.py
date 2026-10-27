@@ -2,7 +2,6 @@ from logging import Logger
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from core.aResult import AResult
 from core.framework.models.recommendation import SeedTrack
 from core.framework.recommendation import Recommendation, RecommendationResult
 from core.framework.recommendationPrefetch import RecommendationPrefetch
@@ -13,6 +12,7 @@ from core.requests.prepareRecommendationsRequest import (
 )
 from core.responses.songListResponse import SongListResponse
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -36,7 +36,7 @@ async def get_recommendations_for_you(
         logger.warning(f"Unauthenticated recommendation request. {a_result_user.info()}")
         raise HTTPException(status_code=401, detail="User not authenticated")
 
-    a_result: AResult[
+    a_result: Result[
         RecommendationResult
     ] = await Recommendation.get_recommendations_for_user_async(
         session=session,
@@ -66,7 +66,7 @@ async def get_recommendations_for_playlist(
         logger.warning(f"Unauthenticated recommendation request. {a_result_user.info()}")
         raise HTTPException(status_code=401, detail="User not authenticated")
 
-    a_result: AResult[
+    a_result: Result[
         RecommendationResult
     ] = await Recommendation.get_recommendations_for_playlist_async(
         session=session,

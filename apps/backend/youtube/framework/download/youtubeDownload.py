@@ -5,9 +5,9 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import MEDIA_PATH
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.framework.video import Video
 from youtube.framework.youtubeDownloader import YouTubeDownloader
 
@@ -41,7 +41,7 @@ class YoutubeDownload(BaseDownload):
         self.youtube_video_id = youtube_video_id
         self.video_id = video_id
 
-    async def download_method_async(self, session: AsyncSession) -> AResultCode:
+    async def download_method_async(self, session: AsyncSession) -> ResultCode:
         """Download the Youtube video asynchronously."""
 
         logger.info(f"Downloading Youtube video with URL: {self.youtube_url}")
@@ -68,7 +68,7 @@ class YoutubeDownload(BaseDownload):
             self.artist = video_artist
             filename: str = f"{self.youtube_video_id}_{self.download_id}"
 
-            a_result_download: AResult[
+            a_result_download: Result[
                 dict[str, Any]
             ] = await YouTubeDownloader.download_as_mp4_async(
                 youtube_url=self.youtube_url,
@@ -82,7 +82,7 @@ class YoutubeDownload(BaseDownload):
 
             if a_result_download.is_not_ok():
                 logger.error(f"Download failed: {a_result_download.message()}")
-                return AResultCode(
+                return ResultCode(
                     code=a_result_download.code(),
                     message=f"Download failed: {a_result_download.message()}",
                 )
@@ -105,7 +105,7 @@ class YoutubeDownload(BaseDownload):
             shutil.move(downloaded_filename, final_path)
 
             try:
-                a_result_update: AResultCode = await Video.update_video_path_async(
+                a_result_update: ResultCode = await Video.update_video_path_async(
                     session=session,
                     video_id=self.video_id,
                     video_path=final_relative_path,
@@ -117,7 +117,7 @@ class YoutubeDownload(BaseDownload):
                     )
 
                 if real_duration_ms is not None:
-                    a_result_duration: AResultCode = await Video.update_video_real_duration_async(
+                    a_result_duration: ResultCode = await Video.update_video_real_duration_async(
                         session=session,
                         video_id=self.video_id,
                         real_duration_ms=real_duration_ms,
@@ -130,8 +130,8 @@ class YoutubeDownload(BaseDownload):
             except Exception as e:
                 logger.warning(f"Could not update video in DB: {e}")
 
-            return AResultCode(code=AResultCode.OK, message="Download completed.")
+            return ResultCode(code=ResultCode.OK, message="Download completed.")
 
         except Exception as e:
             logger.error(f"Error in download_method_async: {e}", exc_info=True)
-            return AResultCode(code=AResultCode.GENERAL_ERROR, message=f"Download error: {e}")
+            return ResultCode(code=ResultCode.GENERAL_ERROR, message=f"Download error: {e}")

@@ -9,10 +9,10 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db import db_context
-from core.aResult import AResult, AResultCode
 from core.framework.provider.baseMetadataProvider import BaseMetadataProvider
 from core.responses.metadataResponse import MetadataResponse
 from logger import getLogger
+from result import Result, ResultCode
 from wikimedia.access.metadataAccess import MetadataAccess
 from wikimedia.framework.models.image import (
     ArtistImage,
@@ -35,12 +35,12 @@ class WikimediaProvider(BaseMetadataProvider):
         offset: int = 0,
         limit: int = 100,
         refresh: bool = False,
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         """Resolve an exact Wikidata entity to a durable Commons portrait."""
         global _retry_at
         if entity != "artist-image" or not re.fullmatch(r"Q[1-9][0-9]*", external_id):
             logger.warning("Invalid Wikimedia image identifier")
-            return AResult(code=AResultCode.BAD_REQUEST, message="Invalid image identifier")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid image identifier")
         # Serialize cold lookups. Read and commit independently of the caller's
         # transaction; artwork is global rather than owned by a user's session.
         async with _lock:
@@ -49,7 +49,7 @@ class WikimediaProvider(BaseMetadataProvider):
                     cached = await MetadataAccess.read_async(session=cache_session, key=external_id)
                     if cached.is_not_ok():
                         logger.error("Wikimedia cache read failed: %s", cached.info())
-                        return AResult(code=cached.code(), message=cached.message())
+                        return Result(code=cached.code(), message=cached.message())
                     rows = cached.result()
                     old = rows[0] if rows else None
                     if (
@@ -72,8 +72,8 @@ class WikimediaProvider(BaseMetadataProvider):
                                 True,
                             )
                         logger.warning("Wikimedia cooldown active")
-                        return AResult(
-                            code=AResultCode.SERVICE_UNAVAILABLE,
+                        return Result(
+                            code=ResultCode.SERVICE_UNAVAILABLE,
                             message="Image provider temporarily unavailable",
                         )
                     try:
@@ -82,11 +82,11 @@ class WikimediaProvider(BaseMetadataProvider):
                         )
                         if gate.is_not_ok():
                             logger.error("Wikimedia cache lock failed: %s", gate.info())
-                            return AResult(code=gate.code(), message=gate.message())
+                            return Result(code=gate.code(), message=gate.message())
                         if not gate.result():
                             logger.info("Wikimedia image lookup already running")
-                            return AResult(
-                                code=AResultCode.SERVICE_UNAVAILABLE,
+                            return Result(
+                                code=ResultCode.SERVICE_UNAVAILABLE,
                                 message="Image lookup already running",
                             )
                         latest = await MetadataAccess.read_async(
@@ -94,7 +94,7 @@ class WikimediaProvider(BaseMetadataProvider):
                         )
                         if latest.is_not_ok():
                             logger.error("Wikimedia cache recheck failed: %s", latest.info())
-                            return AResult(code=latest.code(), message=latest.message())
+                            return Result(code=latest.code(), message=latest.message())
                         if (
                             latest.result()
                             and not refresh
@@ -139,8 +139,8 @@ class WikimediaProvider(BaseMetadataProvider):
                                 old.fetched_at,
                                 True,
                             )
-                        return AResult(
-                            code=AResultCode.SERVICE_UNAVAILABLE,
+                        return Result(
+                            code=ResultCode.SERVICE_UNAVAILABLE,
                             message="Image provider temporarily unavailable",
                         )
                     # Successful empty results are cached too; unavailable images
@@ -152,22 +152,22 @@ class WikimediaProvider(BaseMetadataProvider):
                     )
                     if saved.is_not_ok():
                         logger.error("Wikimedia cache write failed: %s", saved.info())
-                        return AResult(code=saved.code(), message=saved.message())
+                        return Result(code=saved.code(), message=saved.message())
                     return self._response(external_id, image, saved.result(), False)
             except Exception:
                 logger.exception("Wikimedia image cache unavailable")
-                return AResult(
-                    code=AResultCode.SERVICE_UNAVAILABLE,
+                return Result(
+                    code=ResultCode.SERVICE_UNAVAILABLE,
                     message="Image provider temporarily unavailable",
                 )
 
     @staticmethod
     def _response(
         external_id: str, image: ArtistImage, stamp: datetime, cached: bool
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         """Expose a neutral image result without leaking source payloads."""
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=MetadataResponse(
                 provider="Wikimedia",

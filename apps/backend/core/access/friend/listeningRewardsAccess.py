@@ -8,7 +8,7 @@ from core.enums.friend.friendStatusEnum import FriendStatusEnum
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 from core.access.db.ormModels.friend.listeningProgress import (
     ListeningProgressRow,
 )
@@ -38,7 +38,7 @@ class ListeningRewardsAccess:
         playback_id: str,
         position_ms: int,
         now: datetime,
-    ) -> AResult[ListeningProgressRow]:
+    ) -> Result[ListeningProgressRow]:
         """Create the cursor once and serialize concurrent reward writes by user."""
         created = await session.execute(
             insert(ListeningProgressRow)
@@ -61,7 +61,7 @@ class ListeningRewardsAccess:
             )
             if initialized.is_not_ok():
                 logger.error("Cannot preserve existing XP: %s", initialized.info())
-                return AResult(code=initialized.code(), message=initialized.message())
+                return Result(code=initialized.code(), message=initialized.message())
             # Freeze legacy credit before this user's first timed session starts.
             plays = await session.scalar(
                 select(func.count())
@@ -92,10 +92,10 @@ class ListeningRewardsAccess:
             .execution_options(populate_existing=True)
         )
         if row is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND, message="Listening progress unavailable"
+            return Result(
+                code=ResultCode.NOT_FOUND, message="Listening progress unavailable"
             )
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
@@ -104,7 +104,7 @@ class ListeningRewardsAccess:
         user_id: int,
         progress: ListeningProgressUpdate,
         awards: list[ListeningXpAward],
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Persist cursor, unique XP events and wallet changes in one transaction."""
         await session.execute(
             update(ListeningProgressRow)
@@ -156,16 +156,16 @@ class ListeningRewardsAccess:
                 .where(UserLevelRow.user_id == user_id)
                 .values(level=func.coalesce(level, 1))
             )
-        return AResult(code=AResultCode.OK, message="OK", result=added_xp > 0)
+        return Result(code=ResultCode.OK, message="OK", result=added_xp > 0)
 
     @staticmethod
     @safe_async
     async def get_summaries_async(
         session: AsyncSession, user_ids: list[int], active_after: datetime
-    ) -> AResult[dict[int, ListeningRewardSummary]]:
+    ) -> Result[dict[int, ListeningRewardSummary]]:
         """Fetch verified duration and real play counts in four batch queries."""
         if not user_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
         cursors = (
             await session.scalars(
                 select(ListeningProgressRow).where(
@@ -242,4 +242,4 @@ class ListeningRewardsAccess:
                 friends=friends.get(user_id, 0),
                 videos=plays.get(user_id, (0, 0, 0))[2],
             )
-        return AResult(code=AResultCode.OK, message="OK", result=result)
+        return Result(code=ResultCode.OK, message="OK", result=result)

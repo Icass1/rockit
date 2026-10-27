@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from core.models.lyrics import DynamicLyricsData, LyricsData
 from lrclib.framework.lrclib import Lrclib
+from result import Result, ResultCode
 
 
 class LrclibProvider(BaseLyricsProvider):
@@ -16,10 +16,10 @@ class LrclibProvider(BaseLyricsProvider):
 
     async def get_lyrics_async(
         self, session: AsyncSession, media_ids: list[int]
-    ) -> AResult[dict[int, LyricsData]]:
+    ) -> Result[dict[int, LyricsData]]:
         a_result = await Lrclib.get_lyrics_by_media_ids_async(session=session, media_ids=media_ids)
         if a_result.is_not_ok():
-            return AResult[dict[int, LyricsData]](code=a_result.code(), message=a_result.message())
+            return Result[dict[int, LyricsData]](code=a_result.code(), message=a_result.message())
 
         result_map = a_result.result()
         lyrics_map: dict[int, LyricsData] = {}
@@ -27,14 +27,14 @@ class LrclibProvider(BaseLyricsProvider):
             if lyrics is not None:
                 lyrics_map[media_id] = LyricsData(public_id=public_id, lines=lyrics)
 
-        return AResult[dict[int, LyricsData]](code=AResultCode.OK, message="OK", result=lyrics_map)
+        return Result[dict[int, LyricsData]](code=ResultCode.OK, message="OK", result=lyrics_map)
 
     async def get_dynamic_lyrics_async(
         self, session: AsyncSession, media_ids: list[int]
-    ) -> AResult[dict[int, DynamicLyricsData]]:
+    ) -> Result[dict[int, DynamicLyricsData]]:
         a_result = await Lrclib.get_lyrics_by_media_ids_async(session=session, media_ids=media_ids)
         if a_result.is_not_ok():
-            return AResult[dict[int, DynamicLyricsData]](
+            return Result[dict[int, DynamicLyricsData]](
                 code=a_result.code(), message=a_result.message()
             )
 
@@ -44,8 +44,8 @@ class LrclibProvider(BaseLyricsProvider):
             if dynamic_data is not None:
                 dynamic_map[media_id] = dynamic_data
 
-        return AResult[dict[int, DynamicLyricsData]](
-            code=AResultCode.OK, message="OK", result=dynamic_map
+        return Result[dict[int, DynamicLyricsData]](
+            code=ResultCode.OK, message="OK", result=dynamic_map
         )
 
 

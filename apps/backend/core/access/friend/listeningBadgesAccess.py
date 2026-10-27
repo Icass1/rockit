@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import func, select, bindparam, column, Integer, String, true
 from sqlalchemy.dialects.postgresql import insert, JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 from core.access.db.ormModels.friend.listeningBadge import ListeningBadgeRow
 from core.utils.safeAsyncCall import safe_async
 
@@ -12,10 +12,10 @@ class ListeningBadgesAccess:
     @safe_async
     async def award_async(
         session: AsyncSession, user_id: int, badge_keys: list[str]
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Unlock each collectible at most once per user, without awarding extra XP."""
         if not badge_keys:
-            return AResult(code=AResultCode.OK, message="OK", result=False)
+            return Result(code=ResultCode.OK, message="OK", result=False)
         result = await session.execute(
             insert(ListeningBadgeRow)
             .values([{"user_id": user_id, "badge_key": key} for key in badge_keys])
@@ -24,18 +24,18 @@ class ListeningBadgesAccess:
             )
             .returning(ListeningBadgeRow.badge_key)
         )
-        return AResult(
-            code=AResultCode.OK, message="OK", result=bool(result.scalars().all())
+        return Result(
+            code=ResultCode.OK, message="OK", result=bool(result.scalars().all())
         )
 
     @staticmethod
     @safe_async
     async def award_many_async(
         session: AsyncSession, awards: list[tuple[int, str]]
-    ) -> AResult[dict[int, dict[str, datetime]]]:
+    ) -> Result[dict[int, dict[str, datetime]]]:
         """Backfill qualifying collections in one statement with bounded bind count."""
         if not awards:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
         payload = [{"user_id": user_id, "badge_key": key} for user_id, key in awards]
         source = (
             func.jsonb_to_recordset(bindparam("badge_awards", payload, type_=JSONB))
@@ -60,16 +60,16 @@ class ListeningBadgesAccess:
         earned: dict[int, dict[str, datetime]] = {}
         for row in result:
             earned.setdefault(row.user_id, {})[row.badge_key] = row.date_added
-        return AResult(code=AResultCode.OK, message="OK", result=earned)
+        return Result(code=ResultCode.OK, message="OK", result=earned)
 
     @staticmethod
     @safe_async
     async def get_for_users_async(
         session: AsyncSession, user_ids: list[int]
-    ) -> AResult[dict[int, dict[str, datetime]]]:
+    ) -> Result[dict[int, dict[str, datetime]]]:
         """Load the whole comparison's earned collection in one batch."""
         if not user_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
         rows = (
             await session.scalars(
                 select(ListeningBadgeRow).where(ListeningBadgeRow.user_id.in_(user_ids))
@@ -78,4 +78,4 @@ class ListeningBadgesAccess:
         result: dict[int, dict[str, datetime]] = {}
         for row in rows:
             result.setdefault(row.user_id, {})[row.badge_key] = row.date_added
-        return AResult(code=AResultCode.OK, message="OK", result=result)
+        return Result(code=ResultCode.OK, message="OK", result=result)

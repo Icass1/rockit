@@ -7,7 +7,6 @@ from sqlalchemy.orm import selectinload
 from constants import BACKEND_URL
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
-from core.aResult import AResult, AResultCode
 from core.framework.media.image import Image
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
@@ -26,6 +25,7 @@ from core.responses.baseSongWithoutAlbumResponse import (
 )
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from spotify.access.db.associationTables.album_external_images import (
     album_external_images,
 )
@@ -52,18 +52,18 @@ async def get_artist_response_async(
     session: AsyncSession,
     provider_name: str,
     artist_row: ArtistRow,
-) -> AResult[SpotifyArtistResponse]:
+) -> Result[SpotifyArtistResponse]:
     """Convert an ArtistRow to a SpotifyArtistResponse including genres."""
 
-    a_result_genres: AResult[list[str]] = await SpotifyAccess.get_genres_from_artist_async(
+    a_result_genres: Result[list[str]] = await SpotifyAccess.get_genres_from_artist_async(
         session=session, artist=artist_row
     )
     genres: list[str] = a_result_genres.result() if a_result_genres.is_ok() else []
 
     public_id: str = artist_row.core_artist.public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=SpotifyArtistResponse(
             provider=provider_name,
@@ -116,21 +116,21 @@ async def get_track_response_async(
     session: AsyncSession,
     provider_name: str,
     track_row: TrackRow,
-) -> AResult[SpotifyTrackResponse]:
+) -> Result[SpotifyTrackResponse]:
     """Convert a TrackRow to a SpotifyTrackResponse including artists and album."""
 
-    a_result_artists: AResult[
+    a_result_artists: Result[
         list[ArtistRow]
     ] = await SpotifyAccess.get_artists_from_track_row_async(session=session, track_row=track_row)
     if a_result_artists.is_not_ok():
         logger.error(
             f"Error getting artists for track {track_row.spotify_id}. {a_result_artists.info()}"
         )
-        return AResult(code=a_result_artists.code(), message=a_result_artists.message())
+        return Result(code=a_result_artists.code(), message=a_result_artists.message())
 
     artist_responses: list[SpotifyArtistResponse] = []
     for artist_row in a_result_artists.result():
-        a_result_artist: AResult[SpotifyArtistResponse] = await get_artist_response_async(
+        a_result_artist: Result[SpotifyArtistResponse] = await get_artist_response_async(
             session=session, provider_name=provider_name, artist_row=artist_row
         )
         if a_result_artist.is_ok():
@@ -143,8 +143,8 @@ async def get_track_response_async(
 
     public_id: str = track_row.core_song.public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=SpotifyTrackResponse(
             provider=provider_name,
@@ -172,10 +172,10 @@ async def get_album_with_songs_response_async(
     session: AsyncSession,
     provider_name: str,
     album_row: AlbumRow,
-) -> AResult[SpotifyAlbumResponse]:
+) -> Result[SpotifyAlbumResponse]:
     """Convert an AlbumRow to a SpotifyAlbumResponse with all songs and external images."""
 
-    a_result_tracks: AResult[
+    a_result_tracks: Result[
         list[TrackWithCoreMedia]
     ] = await SpotifyAccess.get_tracks_with_core_song_from_album_async(
         session=session, album_id=album_row.id
@@ -184,7 +184,7 @@ async def get_album_with_songs_response_async(
         a_result_tracks.result() if a_result_tracks.is_ok() else []
     )
 
-    a_result_external_images: AResult[
+    a_result_external_images: Result[
         list[ExternalImageRow]
     ] = await SpotifyAccess.get_external_images_from_album_id_async(
         session=session, album_id=album_row.id
@@ -209,7 +209,7 @@ async def get_album_with_songs_response_async(
     song_responses: list[BaseSongWithoutAlbumResponse] = []
     for twc in tracks_with_core:
         track_row = twc.track
-        a_result_track_artists: AResult[
+        a_result_track_artists: Result[
             list[ArtistRow]
         ] = await SpotifyAccess.get_artists_from_track_row_async(
             session=session, track_row=track_row
@@ -218,7 +218,7 @@ async def get_album_with_songs_response_async(
         track_artist_responses: list[SpotifyArtistResponse] = []
         if a_result_track_artists.is_ok():
             for artist_row in a_result_track_artists.result():
-                a_result_artist: AResult[SpotifyArtistResponse] = await get_artist_response_async(
+                a_result_artist: Result[SpotifyArtistResponse] = await get_artist_response_async(
                     session=session,
                     provider_name=provider_name,
                     artist_row=artist_row,
@@ -257,8 +257,8 @@ async def get_album_with_songs_response_async(
 
     public_id: str = album_row.core_album.public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=SpotifyAlbumResponse(
             provider=provider_name,
@@ -281,10 +281,10 @@ async def get_playlist_without_medias_response_async(
     session: AsyncSession,
     provider_name: str,
     playlist_row: PlaylistRow,
-) -> AResult[BasePlaylistWithoutMediasResponse]:
+) -> Result[BasePlaylistWithoutMediasResponse]:
     """Convert a PlaylistRow to a BasePlaylistResponse with all songs."""
 
-    a_result_core_playlist: AResult[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
+    a_result_core_playlist: Result[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
         session=session, id=playlist_row.id
     )
     if a_result_core_playlist.is_not_ok():
@@ -292,12 +292,12 @@ async def get_playlist_without_medias_response_async(
             f"Error getting core media for playlist {playlist_row.id}. "
             f"{a_result_core_playlist.info()}"
         )
-        return AResult(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
+        return Result(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
 
     public_id: str = a_result_core_playlist.result().public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithoutMediasResponse(
             type="playlist",
@@ -326,10 +326,10 @@ async def get_playlist_with_medias_response_async(
     session: AsyncSession,
     provider_name: str,
     playlist_row: PlaylistRow,
-) -> AResult[BasePlaylistWithMediasResponse]:
+) -> Result[BasePlaylistWithMediasResponse]:
     """Convert a PlaylistRow to a BasePlaylistResponse with all songs."""
 
-    a_result_track_links: AResult[
+    a_result_track_links: Result[
         list[PlaylistTrackLink]
     ] = await SpotifyAccess.get_playlist_track_links_async(
         session=session, playlist_id=playlist_row.id
@@ -342,7 +342,7 @@ async def get_playlist_with_medias_response_async(
     for ptl in playlist_track_links:
         track_row = ptl.track
         playlist_track_row = ptl.playlist_track
-        a_result_track: AResult[SpotifyTrackResponse] = await get_track_response_async(
+        a_result_track: Result[SpotifyTrackResponse] = await get_track_response_async(
             session=session, provider_name=provider_name, track_row=track_row
         )
         if a_result_track.is_not_ok():
@@ -372,7 +372,7 @@ async def get_playlist_with_medias_response_async(
             )
         )
 
-    a_result_core_playlist: AResult[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
+    a_result_core_playlist: Result[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
         session=session, id=playlist_row.id
     )
     if a_result_core_playlist.is_not_ok():
@@ -380,12 +380,12 @@ async def get_playlist_with_medias_response_async(
             f"Error getting core media for playlist {playlist_row.id}. "
             f"{a_result_core_playlist.info()}"
         )
-        return AResult(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
+        return Result(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
 
     public_id: str = a_result_core_playlist.result().public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
             type="playlist",
@@ -416,11 +416,11 @@ async def get_tracks_responses_async(
     session: AsyncSession,
     provider_name: str,
     track_rows: list[TrackRow],
-) -> AResult[list[SpotifyTrackResponse]]:
+) -> Result[list[SpotifyTrackResponse]]:
     """Build SpotifyTrackResponse for many tracks using batched queries (~3 queries total)."""
 
     if not track_rows:
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     try:
         track_ids = [t.id for t in track_rows]
@@ -525,11 +525,11 @@ async def get_tracks_responses_async(
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=responses)
+        return Result(code=ResultCode.OK, message="OK", result=responses)
 
     except Exception as e:
         logger.error(f"Error building bulk track responses: {e}")
-        return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))
+        return Result(code=ResultCode.GENERAL_ERROR, message=str(e))
 
 
 @time_it
@@ -537,11 +537,11 @@ async def get_artists_responses_async(
     session: AsyncSession,
     provider_name: str,
     artist_rows: list[ArtistRow],
-) -> AResult[list[SpotifyArtistResponse]]:
+) -> Result[list[SpotifyArtistResponse]]:
     """Build SpotifyArtistResponse for many artists using batched queries."""
 
     if not artist_rows:
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     try:
         artist_ids = [a.id for a in artist_rows]
@@ -571,22 +571,22 @@ async def get_artists_responses_async(
             for artist_row in artist_rows
         ]
 
-        return AResult(code=AResultCode.OK, message="OK", result=responses)
+        return Result(code=ResultCode.OK, message="OK", result=responses)
 
     except Exception as e:
         logger.error(f"Error building bulk artist responses: {e}")
-        return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))
+        return Result(code=ResultCode.GENERAL_ERROR, message=str(e))
 
 
 async def get_albums_with_songs_responses_async(
     session: AsyncSession,
     provider_name: str,
     album_rows: list[AlbumRow],
-) -> AResult[list[SpotifyAlbumResponse]]:
+) -> Result[list[SpotifyAlbumResponse]]:
     """Build SpotifyAlbumResponse for many albums using ~6 queries total regardless of count."""
 
     if not album_rows:
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     try:
         album_ids = [a.id for a in album_rows]
@@ -752,8 +752,8 @@ async def get_albums_with_songs_responses_async(
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=responses)
+        return Result(code=ResultCode.OK, message="OK", result=responses)
 
     except Exception as e:
         logger.error(f"Error building bulk album responses: {e}")
-        return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))
+        return Result(code=ResultCode.GENERAL_ERROR, message=str(e))

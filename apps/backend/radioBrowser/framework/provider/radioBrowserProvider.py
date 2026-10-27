@@ -5,14 +5,14 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
-from core.framework.provider.types import AddFromUrlAResult
+from core.framework.provider.types import AddFromUrlResult
 from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.searchResponse import BaseSearchResultsItem
 from logger import getLogger
 from radioBrowser.framework.radio import Radio
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -41,7 +41,7 @@ class RadioBrowserProvider(BaseMediaProvider):
         query: str,
         limit: int = 15,
         media_type: str | None = None,
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         return await Radio.search_media_async(session=session, query=query, limit=limit)
 
     def search_page_size(self) -> int:
@@ -49,12 +49,12 @@ class RadioBrowserProvider(BaseMediaProvider):
 
     async def search_media_async(
         self, session: AsyncSession, query: str
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         return await Radio.search_media_async(session=session, query=query)
 
     async def get_stations_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseStationResponse]]:
+    ) -> Result[list[BaseStationResponse]]:
         results: list[BaseStationResponse] = []
 
         for public_id in public_ids:
@@ -64,7 +64,7 @@ class RadioBrowserProvider(BaseMediaProvider):
             if a_result.is_ok():
                 results.append(a_result.result())
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     def match_url(self, url: str) -> str | None:
         for up in RADIO_URL_PATTERNS:
@@ -75,18 +75,18 @@ class RadioBrowserProvider(BaseMediaProvider):
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[AddFromUrlAResult]:
+    ) -> Result[AddFromUrlResult]:
         path: str | None = self.match_url(url)
         if path is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="URL does not match radio pattern",
             )
 
         parts = path.split("/")
         if len(parts) < 3:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Invalid radio URL path",
             )
 
@@ -94,13 +94,13 @@ class RadioBrowserProvider(BaseMediaProvider):
 
         a_result = await Radio.add_from_url_async(session=session, radio_uuid=radio_uuid)
         if a_result.is_ok():
-            return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
-        return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=ResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=a_result.code(), message=a_result.message())
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[int]:
-        return AResult(code=AResultCode.OK, message="OK", result=0)
+    ) -> Result[int]:
+        return Result(code=ResultCode.OK, message="OK", result=0)
 
     def get_search_index_cte_fragment(self) -> str | None:
         from core.enums.mediaTypeEnum import MediaTypeEnum

@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from yt_dlp import YoutubeDL
 
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 from spotify.framework.download.spotifyDownload import SpotifyDownload
 from youtube.enums.ytdlpFailureEnum import YtdlpFailureEnum
 from youtube.framework import potProvider, youtubeDownloader, ytdlpStrategies
@@ -72,10 +72,10 @@ def test_failure_classification(message: str, kind: YtdlpFailureEnum) -> None:
 
 
 def test_configuration_errors_do_not_retry_and_forbidden_uses_long_backoff() -> None:
-    config = AResultCode(code=AResultCode.CONFIGURATION_ERROR, message="Rebuild")
+    config = ResultCode(code=ResultCode.CONFIGURATION_ERROR, message="Rebuild")
     assert not config.is_retryable()
     assert config.get_http_code() == 503
-    forbidden = AResultCode(
+    forbidden = ResultCode(
         code=youtubeDownloader._FAILURE_RESULT_CODES[  # pyright: ignore[reportPrivateUsage]
             YtdlpFailureEnum.MEDIA_FORBIDDEN
         ],
@@ -102,7 +102,7 @@ async def test_download_wrappers_preserve_error_codes(
         monkeypatch.setattr(
             module.Video,
             "get_video_from_public_id_async",
-            AsyncMock(return_value=AResult(code=AResultCode.NOT_FOUND, message="missing")),
+            AsyncMock(return_value=Result(code=ResultCode.NOT_FOUND, message="missing")),
         )
     else:
         item.track_spotify_id = 1
@@ -114,22 +114,22 @@ async def test_download_wrappers_preserve_error_codes(
         monkeypatch.setattr(
             module.TrackAccess,
             "get_track_by_id_async",
-            AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=track)),
+            AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=track)),
         )
         monkeypatch.setattr(
             module.SpotifyAccess,
             "get_artists_from_track_row_async",
-            AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=[])),
+            AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[])),
         )
     for code in (
-        AResultCode.RATE_LIMITED,
-        AResultCode.CONFIGURATION_ERROR,
-        AResultCode.NOT_FOUND,
+        ResultCode.RATE_LIMITED,
+        ResultCode.CONFIGURATION_ERROR,
+        ResultCode.NOT_FOUND,
     ):
         monkeypatch.setattr(
             module.YouTubeDownloader,
             ("download_as_mp4_async" if wrapper is YoutubeDownload else "download_as_mp3_async"),
-            AsyncMock(return_value=AResult(code=code, message="failed")),
+            AsyncMock(return_value=Result(code=code, message="failed")),
         )
         result = await item.download_method_async(session=AsyncMock())
         assert result.code() == code
@@ -233,8 +233,8 @@ async def test_provider_health_cache_and_recovery(
     )
     check = AsyncMock(
         side_effect=[
-            AResult(code=AResultCode.GENERAL_ERROR, message="unreachable"),
-            AResult(code=AResultCode.OK, message="OK", result="2.0.2"),
+            Result(code=ResultCode.GENERAL_ERROR, message="unreachable"),
+            Result(code=ResultCode.OK, message="OK", result="2.0.2"),
         ]
     )
     monkeypatch.setattr(potProvider.PotProvider, "_check_provider_async", check)
@@ -251,16 +251,16 @@ async def test_missing_runtime_stops_downloads_without_retry(
     monkeypatch.setattr(potProvider.PotProvider, "_last_result", None)
     monkeypatch.setattr(potProvider.shutil, "which", Mock(return_value=None))
     result = await potProvider.PotProvider.check_health_async()
-    assert result.code() == AResultCode.CONFIGURATION_ERROR and not result.is_retryable()
+    assert result.code() == ResultCode.CONFIGURATION_ERROR and not result.is_retryable()
 
 
 @pytest.mark.parametrize(
     "plugin,reachable,server,code",
     [
-        (None, True, "2.0.2", AResultCode.CONFIGURATION_ERROR),
-        ("2.0.2", True, "1.3.2", AResultCode.CONFIGURATION_ERROR),
-        ("2.0.2", False, "connection refused", AResultCode.GENERAL_ERROR),
-        ("2.0.2", True, "2.0.2", AResultCode.OK),
+        (None, True, "2.0.2", ResultCode.CONFIGURATION_ERROR),
+        ("2.0.2", True, "1.3.2", ResultCode.CONFIGURATION_ERROR),
+        ("2.0.2", False, "connection refused", ResultCode.GENERAL_ERROR),
+        ("2.0.2", True, "2.0.2", ResultCode.OK),
     ],
 )
 async def test_provider_readiness_distinguishes_configuration_and_outages(
@@ -303,13 +303,13 @@ async def test_partial_file_cannot_be_reported_as_completed(
     monkeypatch.setattr(
         youtubeDownloader.PotProvider,
         "check_health_async",
-        AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result="2.0.2")),
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result="2.0.2")),
     )
     row = SimpleNamespace(public_id="download", date_started=datetime.now(UTC))
     monkeypatch.setattr(
         youtubeDownloader.DownloadAccess,
         "get_download_by_id",
-        AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=row)),
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=row)),
     )
     monkeypatch.setattr(youtubeDownloader, "TEMP_PATH", str(tmp_path))
     monkeypatch.setattr(youtubeDownloader, "_insert_and_broadcast", AsyncMock())
@@ -329,7 +329,7 @@ async def test_partial_file_cannot_be_reported_as_completed(
         filename="check",
         format_type="mp4",
     )
-    assert result.is_not_ok() and result.code() == AResultCode.GENERAL_ERROR
+    assert result.is_not_ok() and result.code() == ResultCode.GENERAL_ERROR
 
 
 def test_logger_preserves_provider_diagnostics_without_verbose_secrets(

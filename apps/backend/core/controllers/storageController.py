@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.storageObject import StorageObjectRow
-from core.aResult import AResult as Result
 from core.framework.storage import Storage
 from core.middlewares.authMiddleware import AuthMiddleware as AuthDependency
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.responses.okResponse import OkResponse
 from core.responses.storageResponses import StorageObjectResponse
 from logger import logger
+from result import Result as Result
 
 storage_object_router = APIRouter(prefix="/storage-object", tags=["StorageController"])
 

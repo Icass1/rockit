@@ -4,11 +4,11 @@ from logging import Logger
 import aiosqlite
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.models.lyrics import DynamicLyrics, Lyrics
 from logger import getLogger
 from lrclib.access.lyricsAccess import LyricsAccess
 from lrclib.framework.lrclib import Lrclib
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -43,7 +43,7 @@ async def import_lrc_lib_from_dump_async(sqlite_path: str, session: AsyncSession
 
     all_media_ids: list[int] = [t.id for t in tracks]
 
-    a_result_existing: AResult[set[int]] = await LyricsAccess.get_existing_lyrics_media_ids_async(
+    a_result_existing: Result[set[int]] = await LyricsAccess.get_existing_lyrics_media_ids_async(
         session=session, media_ids=all_media_ids
     )
     existing_media_ids: set[int] = (
@@ -66,7 +66,7 @@ async def import_lrc_lib_from_dump_async(sqlite_path: str, session: AsyncSession
                 a_result = await _process_track_async(db=db, session=session, track=track)
                 if a_result.is_ok():
                     imported += 1
-                elif a_result.code() == AResultCode.NOT_FOUND:
+                elif a_result.code() == ResultCode.NOT_FOUND:
                     no_match += 1
                 else:
                     errors += 1
@@ -90,7 +90,7 @@ async def _process_track_async(
     db: aiosqlite.Connection,
     session: AsyncSession,
     track: TrackInfo,
-) -> AResult[bool]:
+) -> Result[bool]:
     """Process a single Spotify track: find match in LRCLIB and import lyrics."""
 
     duration_s: float = track.duration_ms / 1000.0
@@ -104,7 +104,7 @@ async def _process_track_async(
     )
 
     if match is None:
-        return AResult(code=AResultCode.NOT_FOUND, message="No match in LRCLIB")
+        return Result(code=ResultCode.NOT_FOUND, message="No match in LRCLIB")
 
     plain_lyrics_raw, synced_lyrics_raw = match
 
@@ -135,12 +135,12 @@ async def _process_track_async(
         logger.error(
             f"Error saving lyrics for track {track.id} ({track.name}): {save_result.message()}"
         )
-        return AResult(
-            code=AResultCode.GENERAL_ERROR,
+        return Result(
+            code=ResultCode.GENERAL_ERROR,
             message=save_result.message(),
         )
 
-    return AResult(code=AResultCode.OK, message="OK", result=True)
+    return Result(code=ResultCode.OK, message="OK", result=True)
 
 
 async def _find_match_async(

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResultCode
 from logger import getLogger
+from result import ResultCode
 
 logger = getLogger(__name__)
 
@@ -43,7 +43,7 @@ class BaseDownload:
     #     message = f"{status}: {progress:.1f}%"
 
     #     async with db_context.session_scope_async() as session:
-    #         a_result: AResult[DownloadStatusRow] = (
+    #         a_result: Result[DownloadStatusRow] = (
     #             await DownloadAccess.create_download_status(
     #                 session=session,
     #                 download_id=self.download_id,
@@ -66,10 +66,10 @@ class BaseDownload:
     #         message=message,
     #     )
 
-    async def download_method_async(self, session: AsyncSession) -> AResultCode:
+    async def download_method_async(self, session: AsyncSession) -> ResultCode:
         """Return a descriptive thread name for this download."""
 
-        return AResultCode(
-            AResultCode.NOT_IMPLEMENTED,
+        return ResultCode(
+            ResultCode.NOT_IMPLEMENTED,
             f"download_method_async not implemented in {self}",
         )

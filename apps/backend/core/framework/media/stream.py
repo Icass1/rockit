@@ -10,8 +10,8 @@ import aiofiles
 from fastapi.responses import StreamingResponse
 
 from constants import TEMP_PATH
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(name=__name__)
 CHUNK_SIZE = 64 * 1024
@@ -22,7 +22,7 @@ class MediaStream:
     @staticmethod
     async def stream_audio_from_video_async(
         video_path: str, range_header: str | None
-    ) -> AResult[StreamingResponse]:
+    ) -> Result[StreamingResponse]:
         """Serve a stable MP3 representation with exact HTTP byte ranges.
 
         Safari probes bytes 0-1 before playback. Starting a fresh encoder at an
@@ -32,7 +32,7 @@ class MediaStream:
         a_result = await MediaStream._prepare_audio_async(video_path=video_path)
         if a_result.is_not_ok():
             logger.error(f"Error preparing video audio. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         return await MediaStream.stream_audio_file_async(
             audio_path=a_result.result(), range_header=range_header
@@ -41,19 +41,19 @@ class MediaStream:
     @staticmethod
     async def stream_audio_file_async(
         audio_path: str, range_header: str | None
-    ) -> AResult[StreamingResponse]:
+    ) -> Result[StreamingResponse]:
         """Stream an existing audio file in bounded chunks without making a copy."""
         try:
             file_stat = await asyncio.to_thread(os.stat, audio_path)
         except FileNotFoundError:
             logger.error("Audio file not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Audio file not found")
         except OSError:
             logger.error("Could not inspect audio file", exc_info=True)
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Audio unavailable")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Audio unavailable")
         if not stat.S_ISREG(file_stat.st_mode):
             logger.error("Audio path is not a regular file")
-            return AResult(code=AResultCode.NOT_FOUND, message="Audio file not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Audio file not found")
         size = file_stat.st_size
         start, end = 0, size - 1
         status = 200
@@ -75,8 +75,8 @@ class MediaStream:
                 valid = False
             if not valid:
                 logger.warning("Invalid audio byte range requested")
-                return AResult(
-                    code=AResultCode.OK,
+                return Result(
+                    code=ResultCode.OK,
                     message="Range not satisfiable",
                     result=StreamingResponse(
                         content=iter(()),
@@ -103,8 +103,8 @@ class MediaStream:
                     remaining -= len(chunk)
                     yield chunk
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=StreamingResponse(
                 content=iter_audio(),
@@ -115,7 +115,7 @@ class MediaStream:
         )
 
     @staticmethod
-    async def _prepare_audio_async(video_path: str) -> AResult[str]:
+    async def _prepare_audio_async(video_path: str) -> Result[str]:
         """Serialize probes and seeks for one source without retaining idle locks."""
         source = os.path.abspath(video_path)
         lock = _audio_locks.setdefault(source, asyncio.Lock())
@@ -123,7 +123,7 @@ class MediaStream:
             return await MediaStream._encode_audio_async(video_path=source)
 
     @staticmethod
-    async def _encode_audio_async(video_path: str) -> AResult[str]:
+    async def _encode_audio_async(video_path: str) -> Result[str]:
         """Cache an encoding keyed by source identity, size and modification time."""
         temporary_path: str | None = None
         process: asyncio.subprocess.Process | None = None
@@ -135,7 +135,7 @@ class MediaStream:
             os.makedirs(name=directory, exist_ok=True)
             audio_path = os.path.join(directory, f"{key}.mp3")
             if os.path.isfile(audio_path) and os.path.getsize(audio_path) > 0:
-                return AResult(code=AResultCode.OK, message="OK", result=audio_path)
+                return Result(code=ResultCode.OK, message="OK", result=audio_path)
 
             # Separate temporary names also make concurrent worker processes safe.
             # Readers never observe a partially encoded representation.
@@ -168,25 +168,25 @@ class MediaStream:
                 await asyncio.wait_for(process.communicate(), timeout=600)
             except TimeoutError:
                 logger.error("Timed out preparing video audio")
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message="Audio preparation timed out",
                 )
             if process.returncode != 0 or os.path.getsize(temporary_path) == 0:
                 logger.error("ffmpeg could not prepare the video's audio track")
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message="Could not prepare video audio",
                 )
             os.replace(src=temporary_path, dst=audio_path)
             temporary_path = None
-            return AResult(code=AResultCode.OK, message="OK", result=audio_path)
+            return Result(code=ResultCode.OK, message="OK", result=audio_path)
         except FileNotFoundError:
             logger.error("Video file or ffmpeg executable not found", exc_info=True)
-            return AResult(code=AResultCode.NOT_FOUND, message="Video file or encoder not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Video file or encoder not found")
         except Exception:
             logger.error("Error preparing video audio", exc_info=True)
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Could not prepare video audio")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Could not prepare video audio")
         finally:
             if process is not None and process.returncode is None:
                 process.kill()

@@ -5,13 +5,13 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
 from core.access.languageAccess import LanguageAccess
-from core.aResult import AResult, AResultCode
 from core.framework.vocabulary import Vocabulary
 from core.middlewares.authMiddleware import AuthMiddleware
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.responses.languagesResponse import LanguageItem, LanguagesResponse
 from core.responses.vocabularyResponse import VocabularyResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -27,7 +27,7 @@ async def get_user_vocabulary(
 ) -> VocabularyResponse:
     """Get vocabulary for the authenticated user's language."""
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
@@ -39,7 +39,7 @@ async def get_user_vocabulary(
 
     user: UserRow = a_result_user.result()
 
-    a_result_vocabulary: AResult[dict[str, str]] = await Vocabulary.get_vocabulary_by_lang_id(
+    a_result_vocabulary: Result[dict[str, str]] = await Vocabulary.get_vocabulary_by_lang_id(
         session=session, lang_id=user.lang_id
     )
 
@@ -86,11 +86,11 @@ async def get_vocabulary_by_code(request: Request, lang_code: str) -> Vocabulary
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
     resolved_lang_code = lang_code
 
-    a_result_vocabulary: AResult[dict[str, str]] = await Vocabulary.get_vocabulary_by_lang_code(
+    a_result_vocabulary: Result[dict[str, str]] = await Vocabulary.get_vocabulary_by_lang_code(
         session=session, lang_code=lang_code
     )
 
-    if a_result_vocabulary.is_not_ok() and a_result_vocabulary.code() == AResultCode.NOT_FOUND:
+    if a_result_vocabulary.is_not_ok() and a_result_vocabulary.code() == ResultCode.NOT_FOUND:
         logger.warning(
             f"Language code '{lang_code}' not found, falling back to 'en'. "
             f"{a_result_vocabulary.info()}"

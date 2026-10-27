@@ -4,7 +4,6 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult
 from core.framework.downloader.downloadBrowser import DownloadBrowser
 from core.framework.downloader.downloader import Downloader
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -24,6 +23,7 @@ from core.responses.startDownloadFromUrlResponse import (
 )
 from core.responses.startDownloadResponse import StartDownloadResponse
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(name=__name__)
 router = APIRouter(
@@ -39,7 +39,7 @@ async def start_download(request: Request, payload: StartDownloadRequest) -> Sta
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -47,7 +47,7 @@ async def start_download(request: Request, payload: StartDownloadRequest) -> Sta
 
     user: UserRow = a_result_user.result()
 
-    a_result: AResult[StartDownloadResponse] = await Downloader.download_multiple_medias_async(
+    a_result: Result[StartDownloadResponse] = await Downloader.download_multiple_medias_async(
         session=session,
         user_id=user.id,
         title=payload.title,
@@ -69,7 +69,7 @@ async def start_download_from_url(
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -77,9 +77,7 @@ async def start_download_from_url(
 
     user: UserRow = a_result_user.result()
 
-    a_result: AResult[
-        StartDownloadFromUrlResponse
-    ] = await Downloader.start_download_from_url_async(
+    a_result: Result[StartDownloadFromUrlResponse] = await Downloader.start_download_from_url_async(
         session=session,
         user_id=user.id,
         url=payload.url,
@@ -107,7 +105,7 @@ async def start_download_from_search(
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -115,7 +113,7 @@ async def start_download_from_search(
 
     user: UserRow = a_result_user.result()
 
-    a_result: AResult[
+    a_result: Result[
         StartDownloadFromUrlResponse
     ] = await Downloader.start_download_from_search_async(
         session=session,
@@ -139,7 +137,7 @@ async def get_downloads(request: Request) -> DownloadsResponse:
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -147,7 +145,7 @@ async def get_downloads(request: Request) -> DownloadsResponse:
 
     user: UserRow = a_result_user.result()
 
-    a_result: AResult[DownloadsResponse] = await Downloader.get_downloads_async(
+    a_result: Result[DownloadsResponse] = await Downloader.get_downloads_async(
         session=session, user_id=user.id
     )
     if a_result.is_not_ok():
@@ -162,7 +160,7 @@ async def retry_download(request: Request, public_id: str) -> OkResponse:
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -170,7 +168,7 @@ async def retry_download(request: Request, public_id: str) -> OkResponse:
 
     user: UserRow = a_result_user.result()
 
-    a_result: AResult[bool] = await Downloader.retry_download_async(
+    a_result: Result[bool] = await Downloader.retry_download_async(
         session=session, user_id=user.id, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -185,7 +183,7 @@ async def mark_download_seen(request: Request, public_id: str) -> OkResponse:
 
     session = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -193,7 +191,7 @@ async def mark_download_seen(request: Request, public_id: str) -> OkResponse:
 
     user: UserRow = a_result_user.result()
 
-    a_result: AResult[bool] = await Downloader.mark_download_seen_async(
+    a_result: Result[bool] = await Downloader.mark_download_seen_async(
         session=session, user_id=user.id, public_id=public_id
     )
     if a_result.is_not_ok():

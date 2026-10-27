@@ -10,9 +10,9 @@ from sqlalchemy.sql import ColumnElement, Select
 
 from core.access.collectionSources import collection_sources
 from core.access.db.shared_metadata import shared_metadata
-from core.aResult import AResult, AResultCode
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from core.utils.safeAsyncCall import safe_async
+from result import Result, ResultCode
 
 if TYPE_CHECKING:
     from core.framework.models.collection import (
@@ -61,7 +61,7 @@ class DefaultCollectionSource:
         session: AsyncSession,
         records: dict[int, CollectionRecord],
         collection_ids: list[int],
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         users = shared_metadata.tables["core.user"]
         contributors = shared_metadata.tables["default_schema.playlist_contributor"]
         rows = (
@@ -88,13 +88,13 @@ class DefaultCollectionSource:
                     role=PlaylistContributorRoleEnum(row["role_key"]),
                 )
             )
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     @safe_async
     async def expanded_async(
         session: AsyncSession, entries: list[CollectionEntry], user_id: int
-    ) -> AResult[dict[tuple[int, int], bool]]:
+    ) -> Result[dict[tuple[int, int], bool]]:
         membership = shared_metadata.tables["default_schema.playlist_media"]
         expanded = shared_metadata.tables["default_schema.user_playlist_media_expanded"]
         values = (
@@ -112,7 +112,7 @@ class DefaultCollectionSource:
             )
         ).all()
         expanded_map = {(pid, position): value for pid, position, value in values}
-        return AResult(code=AResultCode.OK, message="OK", result=expanded_map)
+        return Result(code=ResultCode.OK, message="OK", result=expanded_map)
 
 
 collection_sources.append(DefaultCollectionSource())

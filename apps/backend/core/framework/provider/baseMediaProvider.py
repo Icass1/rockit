@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.provider.baseProvider import BaseProvider
-from core.framework.provider.types import AddFromUrlAResult
+from core.framework.provider.types import AddFromUrlResult
 from core.responses.artistPageResponse import ArtistCatalogResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
@@ -23,6 +22,7 @@ from core.responses.baseStationResponse import BaseStationResponse
 from core.responses.baseVideoResponse import BaseVideoResponse
 from core.responses.searchResponse import BaseSearchResultsItem
 from logger import getLogger
+from result import Result, ResultCode
 
 if TYPE_CHECKING:
     from core.framework.downloader.baseDownload import BaseDownload
@@ -59,14 +59,14 @@ class BaseMediaProvider(BaseProvider):
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None
-    ) -> AResult[ArtistCatalogResponse]:
+    ) -> Result[ArtistCatalogResponse]:
         """Return locally indexed references. Unsupported sources contribute nothing."""
-        return AResult(code=AResultCode.OK, message="OK", result=ArtistCatalogResponse())
+        return Result(code=ResultCode.OK, message="OK", result=ArtistCatalogResponse())
 
-    def start_download(self, publicId: str) -> AResult[BaseDownload]:
+    def start_download(self, publicId: str) -> Result[BaseDownload]:
         logger.warning(f"Provider '{self._name} doesn't implement start_download method.'")
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement start_download method.'",
         )
 
@@ -77,19 +77,19 @@ class BaseMediaProvider(BaseProvider):
         download_id: int,
         download_group_id: int,
         user_id: int,
-    ) -> AResult[BaseDownload]:
+    ) -> Result[BaseDownload]:
         logger.warning(f"Provider '{self._name}' doesn't implement start_download_async method.")
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement start_download_async method.",
         )
 
     async def search_media_async(
         self, session: AsyncSession, query: str
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         logger.warning(f"Provider '{self._name} doesn't implement search_media_async method.'")
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name} doesn't implement search_media_async method.'",
         )
 
@@ -99,7 +99,7 @@ class BaseMediaProvider(BaseProvider):
         query: str,
         limit: int = 15,
         media_type: str | None = None,
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         """Providers without pagination return their complete supported result set."""
         return await self.search_media_async(session=session, query=query)
 
@@ -118,83 +118,83 @@ class BaseMediaProvider(BaseProvider):
 
     async def get_songs_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseSongWithAlbumResponse]]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_songs_async.",
         )
 
     async def get_albums_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseAlbumWithSongsResponse]]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[list[BaseAlbumWithSongsResponse]]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_albums_async.",
         )
 
     async def get_artists_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseArtistResponse]]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[list[BaseArtistResponse]]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_artists_async.",
         )
 
     async def get_playlists_without_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithoutMediasResponse]]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[list[BasePlaylistWithoutMediasResponse]]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_playlists_async.",
         )
 
     async def get_playlists_with_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithMediasResponse]]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[list[BasePlaylistWithMediasResponse]]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_playlists_async.",
         )
 
     async def get_videos_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseVideoResponse]]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[list[BaseVideoResponse]]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_videos_async.",
         )
 
     async def get_stations_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseStationResponse]]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[list[BaseStationResponse]]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_stations_async.",
         )
 
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[AddFromUrlAResult]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[AddFromUrlResult]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement add_from_url_async.",
         )
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[int]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[int]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_media_duration_ms_async.",
         )
 
-    async def delete_media_async(self, session: AsyncSession, public_id: str) -> AResultCode:
+    async def delete_media_async(self, session: AsyncSession, public_id: str) -> ResultCode:
         """Remove the audio file for a media item and reset its path in the database
         so it can be downloaded again."""
 
         logger.warning(f"Provider '{self._name}' doesn't implement delete_media_async method.")
-        return AResultCode(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return ResultCode(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement delete_media_async method.",
         )
 
@@ -203,15 +203,15 @@ class BaseMediaProvider(BaseProvider):
         session: AsyncSession,
         public_id: str,
         timestamp_ms: float,
-    ) -> AResult[bytes]:
+    ) -> Result[bytes]:
         """Extract a single frame from a video at the given timestamp in miliseconds.
 
         Returns the image data as bytes (WEBP).
         """
 
         logger.warning(f"Provider '{self._name}' doesn't implement get_frame_async method.")
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message=f"Provider '{self._name}' doesn't implement get_frame_async method.",
         )
 
@@ -297,9 +297,9 @@ class BaseMediaProvider(BaseProvider):
         playlist_public_id: str,
         user_id: int,
         media_public_id: str,
-    ) -> AResult[Any]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[Any]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message="This provider does not support playlist editing",
         )
 
@@ -310,8 +310,8 @@ class BaseMediaProvider(BaseProvider):
         playlist_public_id: str,
         media_public_id: str,
         is_expanded: bool,
-    ) -> AResult[bool]:
-        return AResult(
-            code=AResultCode.NOT_IMPLEMENTED,
+    ) -> Result[bool]:
+        return Result(
+            code=ResultCode.NOT_IMPLEMENTED,
             message="This provider does not support expanded playlist items",
         )

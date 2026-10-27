@@ -23,7 +23,6 @@ from core.access.mediaAccess import MediaAccess
 from core.access.userAccess import UserAccess
 from core.access.userLikedMediaAccess import UserLikedMediaAccess
 from core.access.userQueueAccess import UserQueueAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.enums.skipDirectionEnum import SkipDirectionEnum
@@ -41,31 +40,32 @@ from core.responses.queueResponse import QueueResponse, QueueResponseItem
 from core.types.libraryMediaTypes import LibraryMediaItem, LibraryResponseItem
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
 
 class User:
     @staticmethod
-    async def get_user_queue_async(session: AsyncSession, user_id: int) -> AResult[QueueResponse]:
+    async def get_user_queue_async(session: AsyncSession, user_id: int) -> Result[QueueResponse]:
         """Get the user's queue with all songs."""
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         user: UserRow = a_result_user.result()
         current_queue_id: int | None = user.current_queue_id
 
-        a_result_queue: AResult[list[UserQueueRow]] = await UserQueueAccess.get_all_user_queues(
+        a_result_queue: Result[list[UserQueueRow]] = await UserQueueAccess.get_all_user_queues(
             session=session, user_id=user_id
         )
         if a_result_queue.is_not_ok():
             logger.error(f"Error getting user queue. {a_result_queue.info()}")
-            return AResult(code=a_result_queue.code(), message=a_result_queue.message())
+            return Result(code=a_result_queue.code(), message=a_result_queue.message())
 
         queue_items: list[UserQueueRow] = a_result_queue.result()
 
@@ -78,7 +78,7 @@ class User:
         identifiers = await CollectionAccess.public_ids_async(session=session, ids=list(ids))
         if identifiers.is_not_ok():
             logger.error(f"Error resolving queue identifiers. {identifiers.info()}")
-            return AResult(code=identifiers.code(), message=identifiers.message())
+            return Result(code=identifiers.code(), message=identifiers.message())
         public_ids = identifiers.result()
         records = await CollectionAccess.records_async(
             session=session,
@@ -87,14 +87,14 @@ class User:
         )
         if records.is_not_ok():
             logger.error(f"Error resolving queue metadata. {records.info()}")
-            return AResult(code=records.code(), message=records.message())
+            return Result(code=records.code(), message=records.message())
         hydrated = await Collection.hydrate_async(session=session, records=records.result())
         if hydrated.is_not_ok():
             logger.error(f"Error hydrating queue. {hydrated.info()}")
-            return AResult(code=hydrated.code(), message=hydrated.message())
+            return Result(code=hydrated.code(), message=hydrated.message())
         medias = hydrated.result()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=QueueResponse(
                 currentQueueMediaId=current_queue_id,
@@ -121,15 +121,15 @@ class User:
     @time_it
     async def get_user_library_medias(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[LibraryMediaItem]]:
+    ) -> Result[list[LibraryMediaItem]]:
         """Get all media in user's library."""
-        a_result_medias: AResult[
+        a_result_medias: Result[
             list[tuple[UserLibraryMediaRow, CoreMediaRow, ProviderRow]]
         ] = await UserAccess.get_user_library_medias(session=session, user_id=user_id)
 
         if a_result_medias.is_not_ok():
             logger.error(f"Error getting user media. {a_result_medias.info()}")
-            return AResult(code=a_result_medias.code(), message=a_result_medias.message())
+            return Result(code=a_result_medias.code(), message=a_result_medias.message())
 
         items = a_result_medias.result()
         logger.debug(f"Found {len(items)} media items in user library.")
@@ -211,7 +211,7 @@ class User:
 
         # Provider calls share one transaction: AsyncSession is not concurrency safe.
         if tasks:
-            results: list[AResult[Any] | BaseException] = []
+            results: list[Result[Any] | BaseException] = []
             for task in tasks:
                 try:
                     results.append(await task.coroutine)
@@ -225,7 +225,7 @@ class User:
                     )
                     continue
 
-                a_result: AResult[Any] = result
+                a_result: Result[Any] = result
                 if a_result.is_not_ok():
                     logger.error(
                         f"Error getting {task.media_type} from provider "
@@ -241,127 +241,127 @@ class User:
                         )
                     )
 
-        return AResult(code=AResultCode.OK, message="OK", result=library_medias)
+        return Result(code=ResultCode.OK, message="OK", result=library_medias)
 
     @staticmethod
     async def add_medias_to_library_async(
         session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Save download roots (including whole playlists) with bounded DB queries."""
         found = await MediaAccess.get_medias_from_public_ids_async(
             session=session, public_ids=public_ids, media_type_keys=None
         )
         if found.is_not_ok():
             logger.error(f"Error resolving library media. {found.info()}")
-            return AResult(code=found.code(), message=found.message())
+            return Result(code=found.code(), message=found.message())
         medias = found.result()
         if len({media.public_id for media in medias}) != len(set(public_ids)):
             logger.warning("Some requested library media were not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Media not found")
         saved = await UserAccess.add_user_library_medias_async(
             session=session, user_id=user_id, media_ids=[media.id for media in medias]
         )
         if saved.is_not_ok():
             logger.error(f"Error saving library media. {saved.info()}")
-            return AResult(code=saved.code(), message=saved.message())
+            return Result(code=saved.code(), message=saved.message())
         for media in medias:
             await SendToUser.send_to_user(
                 user_id=user_id,
                 message=LibraryMediaAddedMessage(publicId=media.public_id),
             )
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def add_media_to_library(
         session: AsyncSession, user_id: int, media_public_id: str
-    ) -> AResult[UserLibraryMediaRow]:
+    ) -> Result[UserLibraryMediaRow]:
         """Add any media to user's library by public_id."""
 
-        a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+        a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
             session=session,
             public_id=media_public_id,
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
             logger.error(f"Error getting media. {a_result_media.info()}")
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
-        a_result_user_media: AResult[UserLibraryMediaRow] = await UserAccess.add_user_library_media(
+        a_result_user_media: Result[UserLibraryMediaRow] = await UserAccess.add_user_library_media(
             session=session, user_id=user_id, media_id=a_result_media.result().id
         )
         if a_result_user_media.is_not_ok():
             logger.error(f"Error adding media to library. {a_result_user_media.info()}")
-            return AResult(code=a_result_user_media.code(), message=a_result_user_media.message())
+            return Result(code=a_result_user_media.code(), message=a_result_user_media.message())
 
         await SendToUser.send_to_user(
             user_id=user_id,
             message=LibraryMediaAddedMessage(publicId=media_public_id),
         )
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result_user_media.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result_user_media.result())
 
     @staticmethod
     async def remove_media_from_library(
         session: AsyncSession, user_id: int, media_public_id: str
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Remove media from user's library by public_id."""
 
-        a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+        a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
             session=session,
             public_id=media_public_id,
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
             logger.error(f"Error getting media. {a_result_media.info()}")
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
-        a_result_removed: AResult[bool] = await UserAccess.remove_user_library_media(
+        a_result_removed: Result[bool] = await UserAccess.remove_user_library_media(
             session=session, user_id=user_id, media_id=a_result_media.result().id
         )
         if a_result_removed.is_not_ok():
             logger.error(f"Error removing media from library. {a_result_removed.info()}")
-            return AResult(code=a_result_removed.code(), message=a_result_removed.message())
+            return Result(code=a_result_removed.code(), message=a_result_removed.message())
 
         await SendToUser.send_to_user(
             user_id=user_id,
             message=LibraryMediaRemovedMessage(publicId=media_public_id),
         )
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result_removed.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result_removed.result())
 
     @staticmethod
     async def unlike_media(
         session: AsyncSession, user_id: int, media_public_id: str
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Unlike a single song by public_id."""
 
-        a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+        a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
             session=session,
             public_id=media_public_id,
             media_type_keys=[MediaTypeEnum.SONG],
         )
         if a_result_media.is_not_ok():
             logger.error(f"Error getting song media. {a_result_media.info()}")
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
         media: CoreMediaRow = a_result_media.result()
 
-        a_result: AResult[bool] = await UserLikedMediaAccess.remove_like_async(
+        a_result: Result[bool] = await UserLikedMediaAccess.remove_like_async(
             session=session, user_id=user_id, media_id=media.id
         )
         if a_result.is_not_ok():
             logger.error(f"Error unliking song. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
     async def like_album(
         session: AsyncSession, user_id: int, album_public_id: str
-    ) -> AResult[list[UserLikedMediaRow]]:
+    ) -> Result[list[UserLikedMediaRow]]:
         """Like all songs in an album by public_id."""
 
-        a_result_album_media: AResult[
+        a_result_album_media: Result[
             CoreMediaRow
         ] = await MediaAccess.get_media_from_public_id_async(
             session=session,
@@ -370,27 +370,27 @@ class User:
         )
         if a_result_album_media.is_not_ok():
             logger.error(f"Error getting album media. {a_result_album_media.info()}")
-            return AResult(code=a_result_album_media.code(), message=a_result_album_media.message())
+            return Result(code=a_result_album_media.code(), message=a_result_album_media.message())
 
         album_media: CoreMediaRow = a_result_album_media.result()
 
         provider: BaseMediaProvider | None = providers.find_media_provider(album_media.provider_id)
         if provider is None:
             logger.error(f"No provider found for provider_id {album_media.provider_id}.")
-            return AResult(code=AResultCode.NOT_FOUND, message="Provider not found for album")
+            return Result(code=ResultCode.NOT_FOUND, message="Provider not found for album")
 
-        a_result_album: AResult[list[BaseAlbumWithSongsResponse]] = await provider.get_albums_async(
+        a_result_album: Result[list[BaseAlbumWithSongsResponse]] = await provider.get_albums_async(
             session=session, public_ids=[album_public_id]
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from provider. {a_result_album.info()}")
-            return AResult(code=a_result_album.code(), message=a_result_album.message())
+            return Result(code=a_result_album.code(), message=a_result_album.message())
 
         album: BaseAlbumWithSongsResponse = a_result_album.result()[0]
         liked_songs: list[UserLikedMediaRow] = []
 
         for song in album.songs:
-            a_result_song_media: AResult[
+            a_result_song_media: Result[
                 CoreMediaRow
             ] = await MediaAccess.get_media_from_public_id_async(
                 session=session,
@@ -403,21 +403,21 @@ class User:
 
             song_media: CoreMediaRow = a_result_song_media.result()
 
-            a_result_like: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like_async(
+            a_result_like: Result[UserLikedMediaRow] = await UserLikedMediaAccess.add_like_async(
                 session=session, user_id=user_id, media_id=song_media.id
             )
             if a_result_like.is_ok():
                 liked_songs.append(a_result_like.result())
 
-        return AResult(code=AResultCode.OK, message="OK", result=liked_songs)
+        return Result(code=ResultCode.OK, message="OK", result=liked_songs)
 
     @staticmethod
     async def unlike_album(
         session: AsyncSession, user_id: int, album_public_id: str
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Unlike all songs in an album by public_id."""
 
-        a_result_album_media: AResult[
+        a_result_album_media: Result[
             CoreMediaRow
         ] = await MediaAccess.get_media_from_public_id_async(
             session=session,
@@ -426,27 +426,27 @@ class User:
         )
         if a_result_album_media.is_not_ok():
             logger.error(f"Error getting album media. {a_result_album_media.info()}")
-            return AResult(code=a_result_album_media.code(), message=a_result_album_media.message())
+            return Result(code=a_result_album_media.code(), message=a_result_album_media.message())
 
         album_media: CoreMediaRow = a_result_album_media.result()
 
         provider: BaseMediaProvider | None = providers.find_media_provider(album_media.provider_id)
         if provider is None:
             logger.error(f"No provider found for provider_id {album_media.provider_id}.")
-            return AResult(code=AResultCode.NOT_FOUND, message="Provider not found for album")
+            return Result(code=ResultCode.NOT_FOUND, message="Provider not found for album")
 
-        a_result_album: AResult[list[BaseAlbumWithSongsResponse]] = await provider.get_albums_async(
+        a_result_album: Result[list[BaseAlbumWithSongsResponse]] = await provider.get_albums_async(
             session=session, public_ids=[album_public_id]
         )
         if a_result_album.is_not_ok():
             logger.error(f"Error getting album from provider. {a_result_album.info()}")
-            return AResult(code=a_result_album.code(), message=a_result_album.message())
+            return Result(code=a_result_album.code(), message=a_result_album.message())
 
         album: BaseAlbumWithSongsResponse = a_result_album.result()[0]
         unliked_count: int = 0
 
         for song in album.songs:
-            a_result_song_media: AResult[
+            a_result_song_media: Result[
                 CoreMediaRow
             ] = await MediaAccess.get_media_from_public_id_async(
                 session=session,
@@ -459,26 +459,24 @@ class User:
 
             song_media: CoreMediaRow = a_result_song_media.result()
 
-            a_result_unlike: AResult[bool] = await UserLikedMediaAccess.remove_like_async(
+            a_result_unlike: Result[bool] = await UserLikedMediaAccess.remove_like_async(
                 session=session, user_id=user_id, media_id=song_media.id
             )
             if a_result_unlike.is_ok():
                 unliked_count += 1
 
-        return AResult(code=AResultCode.OK, message="OK", result=unliked_count)
+        return Result(code=ResultCode.OK, message="OK", result=unliked_count)
 
     @staticmethod
     async def like_media_async(
         session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[UserLikedMediaRow]]:
+    ) -> Result[list[UserLikedMediaRow]]:
         """Like multiple songs by public_ids."""
 
         liked_media: list[UserLikedMediaRow] = []
 
         for media_public_id in public_ids:
-            a_result_media: AResult[
-                CoreMediaRow
-            ] = await MediaAccess.get_media_from_public_id_async(
+            a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
                 session=session, public_id=media_public_id, media_type_keys=None
             )
             if a_result_media.is_not_ok():
@@ -487,26 +485,24 @@ class User:
 
             media: CoreMediaRow = a_result_media.result()
 
-            a_result: AResult[UserLikedMediaRow] = await UserLikedMediaAccess.add_like_async(
+            a_result: Result[UserLikedMediaRow] = await UserLikedMediaAccess.add_like_async(
                 session=session, user_id=user_id, media_id=media.id
             )
             if a_result.is_ok():
                 liked_media.append(a_result.result())
 
-        return AResult(code=AResultCode.OK, message="OK", result=liked_media)
+        return Result(code=ResultCode.OK, message="OK", result=liked_media)
 
     @staticmethod
     async def unlike_songs(
         session: AsyncSession, user_id: int, song_public_ids: list[str]
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Unlike multiple songs by public_ids."""
 
         unliked_count: int = 0
 
         for song_public_id in song_public_ids:
-            a_result_media: AResult[
-                CoreMediaRow
-            ] = await MediaAccess.get_media_from_public_id_async(
+            a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
                 session=session,
                 public_id=song_public_id,
                 media_type_keys=[MediaTypeEnum.SONG],
@@ -517,30 +513,30 @@ class User:
 
             media: CoreMediaRow = a_result_media.result()
 
-            a_result: AResult[bool] = await UserLikedMediaAccess.remove_like_async(
+            a_result: Result[bool] = await UserLikedMediaAccess.remove_like_async(
                 session=session, user_id=user_id, media_id=media.id
             )
             if a_result.is_ok():
                 unliked_count += 1
 
-        return AResult(code=AResultCode.OK, message="OK", result=unliked_count)
+        return Result(code=ResultCode.OK, message="OK", result=unliked_count)
 
     @staticmethod
     async def get_user_liked_media_public_ids(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Get all liked song public IDs for a user."""
 
-        a_result: AResult[
+        a_result: Result[
             list[str]
         ] = await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
             session=session, user_id=user_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting liked songs. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
     async def update_user_current_media(
@@ -548,10 +544,10 @@ class User:
         user_id: int,
         queue_id: int,
         media_public_id: str,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Update user's current queue media after validating the public ID matches."""
 
-        a_result_queue_item: AResult[
+        a_result_queue_item: Result[
             UserQueueRow
         ] = await UserQueueAccess.get_queue_item_by_queue_id(
             session=session,
@@ -560,7 +556,7 @@ class User:
         )
         if a_result_queue_item.is_not_ok():
             logger.error(f"Error getting queue item. {a_result_queue_item.info()}")
-            return AResult(code=a_result_queue_item.code(), message=a_result_queue_item.message())
+            return Result(code=a_result_queue_item.code(), message=a_result_queue_item.message())
 
         queue_item: UserQueueRow = a_result_queue_item.result()
 
@@ -569,14 +565,14 @@ class User:
                 f"Media public ID mismatch. Expected "
                 f"{queue_item.media.public_id}, got {media_public_id}"
             )
-            return AResult(code=AResultCode.VALIDATION_ERROR, message="Media public ID mismatch")
+            return Result(code=ResultCode.VALIDATION_ERROR, message="Media public ID mismatch")
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         return await UserAccess.update_user_current_queue_id_async(
             session=session, user_id=user_id, queue_id=queue_id
@@ -585,15 +581,15 @@ class User:
     @staticmethod
     async def update_user_current_time(
         session: AsyncSession, user_id: int, current_time_ms: int, media_public_id: str
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Update user's current playback time."""
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         return await UserAccess.update_user_current_time_async(
             session=session, user_id=user_id, current_time_ms=current_time_ms
@@ -606,8 +602,8 @@ class User:
         media_id: int,
         time_from: float,
         time_to: float,
-    ) -> AResultCode:
-        a_result: AResult[UserSeeksRow] = await UserAccess.add_user_current_time_seek_async(
+    ) -> ResultCode:
+        a_result: Result[UserSeeksRow] = await UserAccess.add_user_current_time_seek_async(
             session=session,
             user_id=user_id,
             media_id=media_id,
@@ -616,26 +612,26 @@ class User:
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding user current time seek. {a_result.info()}")
-            return AResultCode(code=a_result.code(), message=a_result.message())
+            return ResultCode(code=a_result.code(), message=a_result.message())
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     async def save_user_queue_async(
         session: AsyncSession,
         user_id: int,
         queue_items: list[QueueItem],
-    ) -> AResultCode:
+    ) -> ResultCode:
         # The queue is replaced below. If the stored current queue id does not
         # exist in the new queue, the reference is stale (queue ids are reused
         # across plays), which would make a later restart resume the wrong song.
         # The reset is performed atomically with the save.
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResultCode(code=a_result_user.code(), message=a_result_user.message())
+            return ResultCode(code=a_result_user.code(), message=a_result_user.message())
 
         current_queue_id: int | None = a_result_user.result().current_queue_id
         valid_queue_ids: list[int] = [item.queue_id for item in queue_items]
@@ -643,7 +639,7 @@ class User:
             current_queue_id is not None and current_queue_id not in valid_queue_ids
         )
 
-        a_result: AResult[bool] = await UserQueueAccess.save_user_queue_async(
+        a_result: Result[bool] = await UserQueueAccess.save_user_queue_async(
             session=session,
             user_id=user_id,
             queue_items=queue_items,
@@ -653,7 +649,7 @@ class User:
 
         if a_result.is_not_ok():
             logger.error(f"Error saving user queue. {a_result.info()}")
-            return AResultCode(code=a_result.code(), message=a_result.message())
+            return ResultCode(code=a_result.code(), message=a_result.message())
 
         if reset_current_queue_id:
             logger.warning(
@@ -661,27 +657,27 @@ class User:
                 f"resetting current queue id."
             )
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     async def update_lang_async(
         session: AsyncSession, user_id: int, lang_code: str
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Update the user's language by language code."""
 
-        a_result_lang: AResult[LanguageRow] = await LanguageAccess.get_language_from_code(
+        a_result_lang: Result[LanguageRow] = await LanguageAccess.get_language_from_code(
             session=session, lang_code=lang_code
         )
         if a_result_lang.is_not_ok():
             logger.error(f"Error getting language. {a_result_lang.info()}")
-            return AResult(code=AResultCode.BAD_REQUEST, message="Invalid language code")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid language code")
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         return await UserAccess.update_user_lang_async(
             session=session, user_id=user_id, lang_id=a_result_lang.result().id
@@ -690,15 +686,15 @@ class User:
     @staticmethod
     async def update_crossfade_async(
         session: AsyncSession, user_id: int, crossfade_ms: int
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Update the user's crossfade setting."""
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         return await UserAccess.update_user_crossfade_async(
             session=session, user_id=user_id, crossfade_ms=crossfade_ms
@@ -707,15 +703,15 @@ class User:
     @staticmethod
     async def update_password_async(
         session: AsyncSession, user_id: int, password_hash: str
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Update the user's password hash."""
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         return await UserAccess.update_user_password_async(
             session=session, user_id=user_id, password_hash=password_hash
@@ -724,30 +720,30 @@ class User:
     @staticmethod
     async def update_queue_type_async(
         session: AsyncSession, user_id: int, queue_type: QueueTypeEnum
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Set the user's queue type directly."""
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         return await UserAccess.update_user_queue_type_async(
             session=session, user_id=user_id, queue_type_key=queue_type.value
         )
 
     @staticmethod
-    async def toggle_random_queue_async(session: AsyncSession, user_id: int) -> AResult[bool]:
+    async def toggle_random_queue_async(session: AsyncSession, user_id: int) -> Result[bool]:
         """Toggle the user's random queue mode."""
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         new_queue_type_key = 2 if a_result_user.result().queue_type_key == 1 else 1
         return await UserAccess.update_user_queue_type_async(
@@ -755,15 +751,15 @@ class User:
         )
 
     @staticmethod
-    async def cycle_repeat_mode_async(session: AsyncSession, user_id: int) -> AResult[bool]:
+    async def cycle_repeat_mode_async(session: AsyncSession, user_id: int) -> Result[bool]:
         """Cycle the user's repeat mode."""
 
-        a_result_user: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
         )
         if a_result_user.is_not_ok():
             logger.error(f"Error getting user. {a_result_user.info()}")
-            return AResult(code=a_result_user.code(), message=a_result_user.message())
+            return Result(code=a_result_user.code(), message=a_result_user.message())
 
         current_mode: int = a_result_user.result().repeat_mode_key
         new_repeat_mode_key = 1 if current_mode >= 3 else current_mode + 1
@@ -774,28 +770,28 @@ class User:
     @staticmethod
     async def add_user_media_clicked_async(
         session: AsyncSession, user_id: int, media_public_id: str
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Record that a user clicked on a media item."""
 
-        a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+        a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
             session=session,
             public_id=media_public_id,
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
             logger.error(f"Error getting media. {a_result_media.info()}")
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
-        a_result: AResult[UserMediaClickedRow] = await UserAccess.add_user_media_clicked_async(
+        a_result: Result[UserMediaClickedRow] = await UserAccess.add_user_media_clicked_async(
             session=session,
             user_id=user_id,
             media_id=a_result_media.result().id,
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding media click. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def add_user_skipped_media_async(
@@ -803,19 +799,19 @@ class User:
         user_id: int,
         media_public_id: str,
         direction: SkipDirectionEnum,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Record that a user skipped a media item."""
 
-        a_result_media: AResult[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
+        a_result_media: Result[CoreMediaRow] = await MediaAccess.get_media_from_public_id_async(
             session=session,
             public_id=media_public_id,
             media_type_keys=None,
         )
         if a_result_media.is_not_ok():
             logger.error(f"Error getting media. {a_result_media.info()}")
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
-        a_result: AResult[UserSkippedMediaRow] = await UserAccess.add_user_skipped_media_async(
+        a_result: Result[UserSkippedMediaRow] = await UserAccess.add_user_skipped_media_async(
             session=session,
             user_id=user_id,
             media_id=a_result_media.result().id,
@@ -823,24 +819,24 @@ class User:
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding media skip. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def add_user_media_listened_async(
         session: AsyncSession, user_id: int, media_id: int
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Record that a user has listened to a media item (>=90% of song)."""
 
-        a_result: AResult[UserMediaListenedRow] = await UserAccess.add_user_media_listened_async(
+        a_result: Result[UserMediaListenedRow] = await UserAccess.add_user_media_listened_async(
             session=session,
             user_id=user_id,
             media_id=media_id,
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding media listened. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         from core.framework.friend.listeningBadges import ListeningBadges
 
@@ -849,8 +845,8 @@ class User:
         )
         if rewards.is_not_ok():
             logger.error("Error awarding listen emblems: %s", rewards.info())
-            return AResult(code=rewards.code(), message=rewards.message())
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=rewards.code(), message=rewards.message())
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def record_media_listen_interval_async(
@@ -859,10 +855,10 @@ class User:
         media_id: int,
         time_ms_start: int,
         time_ms_end: int,
-    ) -> AResult[UserMediaListenIntervalRow]:
+    ) -> Result[UserMediaListenIntervalRow]:
         """Insert a new listen interval and return the created row."""
 
-        a_result: AResult[
+        a_result: Result[
             UserMediaListenIntervalRow
         ] = await UserAccess.add_user_media_listen_interval_async(
             session=session,
@@ -873,25 +869,25 @@ class User:
         )
         if a_result.is_not_ok():
             logger.error(f"Error recording listen interval. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
     async def update_media_listen_interval_end_async(
         session: AsyncSession,
         interval_id: int,
         time_ms_end: int,
-    ) -> AResultCode:
+    ) -> ResultCode:
         """Update the end time of an existing open listen interval."""
 
-        a_result: AResultCode = await UserAccess.update_user_media_listen_interval_end_async(
+        a_result: ResultCode = await UserAccess.update_user_media_listen_interval_end_async(
             session=session,
             interval_id=interval_id,
             time_ms_end=time_ms_end,
         )
         if a_result.is_not_ok():
             logger.error(f"Error updating listen interval end. {a_result.info()}")
-            return AResultCode(code=a_result.code(), message=a_result.message())
+            return ResultCode(code=a_result.code(), message=a_result.message())
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")

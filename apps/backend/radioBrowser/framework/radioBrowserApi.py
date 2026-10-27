@@ -9,12 +9,12 @@ from urllib.parse import quote
 
 import httpx
 
-from core.aResult import AResult, AResultCode
 from core.utils.timeIt import time_it
 from logger import getLogger
 from radioBrowser.responses.radioBrowserStation import (
     RadioBrowserStationResponse,
 )
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -56,7 +56,7 @@ class RadioBrowserApi:
     @staticmethod
     async def _request(
         url: str, params: dict[str, Any] | None = None
-    ) -> AResult[list[dict[str, Any]]]:
+    ) -> Result[list[dict[str, Any]]]:
         """Make an HTTP GET request with rate limiting and User-Agent."""
 
         headers: dict[str, str] = {"User-Agent": USER_AGENT}
@@ -78,7 +78,7 @@ class RadioBrowserApi:
                     response.raise_for_status()
                     raw_data: list[dict[str, Any]] = response.json()
                     RadioBrowserApi._preferred_server = server
-                    return AResult(code=AResultCode.OK, message="OK", result=raw_data)
+                    return Result(code=ResultCode.OK, message="OK", result=raw_data)
                 except (httpx.ConnectError, httpx.TimeoutException) as error:
                     RadioBrowserApi._unavailable_until[server] = (
                         loop.time() + SERVER_COOLDOWN_SECONDS
@@ -109,18 +109,18 @@ class RadioBrowserApi:
                         error.response.status_code,
                         server,
                     )
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR,
+                    return Result(
+                        code=ResultCode.GENERAL_ERROR,
                         message=f"Radio Browser HTTP {error.response.status_code}",
                     )
                 except Exception as error:
                     logger.error("Radio Browser API error at %s", server, exc_info=True)
-                    return AResult(
-                        code=AResultCode.GENERAL_ERROR,
+                    return Result(
+                        code=ResultCode.GENERAL_ERROR,
                         message=f"Radio Browser API error: {error}",
                     )
-        return AResult(
-            code=AResultCode.GENERAL_ERROR,
+        return Result(
+            code=ResultCode.GENERAL_ERROR,
             message="Unable to connect to Radio Browser servers",
         )
 
@@ -137,11 +137,11 @@ class RadioBrowserApi:
     async def search_stations_async(
         query: str,
         limit: int = SEARCH_LIMIT,
-    ) -> AResult[list[RadioBrowserStationResponse]]:
+    ) -> Result[list[RadioBrowserStationResponse]]:
         """Search stations by name via Radio Browser API."""
 
         if not query.strip():
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         url = f"{RADIO_BROWSER_BASE}/stations/byname/{quote(query)}"
         params: dict[str, Any] = {
@@ -154,14 +154,14 @@ class RadioBrowserApi:
 
         a_result = await RadioBrowserApi._request(url=url, params=params)
         if a_result.is_not_ok():
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         raw_data: list[dict[str, Any]] = a_result.result()
         if not raw_data:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=RadioBrowserApi._parse_stations(raw_data),
         )
@@ -170,11 +170,11 @@ class RadioBrowserApi:
     @time_it
     async def get_stations_by_country_async(
         country: str,
-    ) -> AResult[list[RadioBrowserStationResponse]]:
+    ) -> Result[list[RadioBrowserStationResponse]]:
         """Get stations by country via Radio Browser API."""
 
         if not country.strip():
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         url = f"{RADIO_BROWSER_BASE}/stations/bycountry/{quote(country)}"
         params: dict[str, Any] = {
@@ -187,14 +187,14 @@ class RadioBrowserApi:
 
         a_result = await RadioBrowserApi._request(url=url, params=params)
         if a_result.is_not_ok():
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         raw_data: list[dict[str, Any]] = a_result.result()
         if not raw_data:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=RadioBrowserApi._parse_stations(raw_data),
         )
@@ -203,24 +203,24 @@ class RadioBrowserApi:
     @time_it
     async def get_station_by_uuid_async(
         uuid: str,
-    ) -> AResult[RadioBrowserStationResponse]:
+    ) -> Result[RadioBrowserStationResponse]:
         """Get a station by its Radio Browser UUID."""
 
         url = f"{RADIO_BROWSER_BASE}/stations/byuuid/{uuid}"
 
         a_result = await RadioBrowserApi._request(url=url)
         if a_result.is_not_ok():
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         raw_data: list[dict[str, Any]] = a_result.result()
         if not raw_data:
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Station not found on Radio Browser",
             )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=RadioBrowserStationResponse.model_validate(raw_data[0]),
         )

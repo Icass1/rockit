@@ -13,9 +13,9 @@ import pytest
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.media.stream import CHUNK_SIZE, MediaStream
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
 
@@ -72,8 +72,8 @@ async def test_provider_audio_http_ranges(
     controller = importlib.import_module(f"{provider}.controllers.{provider}Controller")
     monkeypatch.setattr(module, "MEDIA_PATH", str(tmp_path))
     track_lookup = AsyncMock(
-        return_value=AResult(
-            code=AResultCode.OK,
+        return_value=Result(
+            code=ResultCode.OK,
             message="OK",
             result=SimpleNamespace(path=audio.name),
         )
@@ -104,8 +104,8 @@ async def test_provider_audio_http_ranges(
         missing = await client.get(f"/{prefix}/audio/track")
         assert missing.status_code == 404
         # Metadata without a downloaded path also remains not-found.
-        track_lookup.return_value = AResult(
-            code=AResultCode.OK, message="OK", result=SimpleNamespace(path=None)
+        track_lookup.return_value = Result(
+            code=ResultCode.OK, message="OK", result=SimpleNamespace(path=None)
         )
         unavailable = await client.get(f"/{prefix}/audio/track")
         assert unavailable.status_code == 404

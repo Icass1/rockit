@@ -1,11 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.downloadReuseAccess import DownloadReuseAccess
-from core.aResult import AResultCode
 from core.framework import providers
 from core.framework.downloader.baseDownload import BaseDownload
 from core.utils.downloadFiles import DownloadFiles
 from logger import getLogger
+from result import ResultCode
 
 logger = getLogger(__name__)
 
@@ -13,26 +13,26 @@ logger = getLogger(__name__)
 class DeferredDownload(BaseDownload):
     """Resolve provider-specific work only when a download worker has capacity."""
 
-    async def download_method_async(self, session: AsyncSession) -> AResultCode:
+    async def download_method_async(self, session: AsyncSession) -> ResultCode:
         found = await DownloadReuseAccess.candidates_async(
             session=session, public_ids=[self.public_id]
         )
         if found.is_not_ok():
             logger.error(f"Could not check queued download file: {found.info()}")
-            return AResultCode(code=found.code(), message=found.message())
+            return ResultCode(code=found.code(), message=found.message())
         candidates = found.result()
         if not candidates:
             logger.warning("Queued media no longer exists")
-            return AResultCode(code=AResultCode.NOT_FOUND, message="Download media unavailable")
+            return ResultCode(code=ResultCode.NOT_FOUND, message="Download media unavailable")
         self.title = candidates[0].name or self.public_id
         self.artist = candidates[0].provider
         existing = await DownloadFiles.existing_ids_async(candidates=candidates)
         if existing:
-            return AResultCode(code=AResultCode.OK, message="Existing file reused")
+            return ResultCode(code=ResultCode.OK, message="Existing file reused")
         provider = providers.find_media_provider(provider_id=self.provider_id)
         if provider is None:
             logger.error("Queued download provider is unavailable")
-            return AResultCode(code=AResultCode.NOT_FOUND, message="Provider unavailable")
+            return ResultCode(code=ResultCode.NOT_FOUND, message="Provider unavailable")
         result = await provider.start_download_async(
             session=session,
             public_id=self.public_id,
@@ -42,7 +42,7 @@ class DeferredDownload(BaseDownload):
         )
         if result.is_not_ok():
             logger.error(f"Could not prepare queued download: {result.info()}")
-            return AResultCode(code=result.code(), message=result.message())
+            return ResultCode(code=result.code(), message=result.message())
         task = result.result()
         self.title = task.title
         self.artist = task.artist

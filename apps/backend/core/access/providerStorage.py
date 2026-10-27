@@ -13,8 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 from sqlalchemy.sql.selectable import Subquery
 
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -34,7 +34,7 @@ class MediaStorage:
     metadata_statement: Callable[[bool], Select[Any]]
     files_statement: Callable[[], Select[Any]] | None = None
     audio_tags_statement: Callable[[list[int]], Select[Any]] | None = None
-    clear_files_async: Callable[[AsyncSession, list[int]], Awaitable[AResult[list[str]]]] | None = (
+    clear_files_async: Callable[[AsyncSession, list[int]], Awaitable[Result[list[str]]]] | None = (
         None
     )
 
@@ -79,20 +79,20 @@ class ProviderStorage:
 
     async def clear_files_async(
         self, session: AsyncSession, media_ids: list[int]
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Dispatch batch mutations; the caller owns the shared transaction."""
         paths: list[str] = []
         if not media_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=paths)
+            return Result(code=ResultCode.OK, message="OK", result=paths)
         for source in self.sources.values():
             if source.clear_files_async is None:
                 continue
             result = await source.clear_files_async(session, media_ids)
             if result.is_not_ok():
                 logger.error(f"Could not clear local files for {source.key}: {result.info()}")
-                return AResult(code=result.code(), message=result.message())
+                return Result(code=result.code(), message=result.message())
             paths.extend(result.result())
-        return AResult(code=AResultCode.OK, message="OK", result=paths)
+        return Result(code=ResultCode.OK, message="OK", result=paths)
 
 
 provider_storage = ProviderStorage()

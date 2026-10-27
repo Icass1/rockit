@@ -2,10 +2,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.responses.artistPageResponse import ArtistCatalogResponse
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 from spotify.access.db.ormModels.album import AlbumRow as Album
 from spotify.access.db.ormModels.artist import ArtistRow as Artist
 from spotify.access.db.ormModels.track import TrackRow as Track
@@ -18,7 +18,7 @@ class ArtistCatalogAccess:
     @safe_async
     async def get_async(
         session: AsyncSession, name: str, public_id: str | None = None
-    ) -> AResult[ArtistCatalogResponse]:
+    ) -> Result[ArtistCatalogResponse]:
         """Match case/whitespace variants; use source IDs to resolve name collisions.
 
         Keep punctuation and accents significant. These are catalog candidates,
@@ -39,8 +39,8 @@ class ArtistCatalogAccess:
         # records with different source identities still need an explicit ID.
         ambiguous = len({row.name for row in matches}) < len(matches)
         if not matches or (ambiguous and not public_id):
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=ArtistCatalogResponse(ambiguous=ambiguous),
             )
@@ -62,8 +62,8 @@ class ArtistCatalogAccess:
             )
             .order_by(CoreMediaRow.public_id)
         )
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=ArtistCatalogResponse(
                 songIds=list((await session.execute(songs)).scalars()),

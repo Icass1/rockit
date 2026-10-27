@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 from core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
 from core.framework.friend.listeningBadgeCatalog import LISTENING_BADGES
 from core.framework.friend.notifications import notify_after_commit
@@ -32,7 +32,7 @@ def badge_current(
 
 class ListeningBadges:
     @staticmethod
-    async def refresh_user_async(session: AsyncSession, user_id: int) -> AResult[bool]:
+    async def refresh_user_async(session: AsyncSession, user_id: int) -> Result[bool]:
         """Evaluate recorded-listen, discovery, streak and sharing milestones on writes."""
         from core.access.friend.listeningRewardsAccess import (
             ListeningRewardsAccess,
@@ -50,7 +50,7 @@ class ListeningBadges:
         for result in (summaries, streaks):
             if result.is_not_ok():
                 logger.error("Cannot refresh emblems: %s", result.info())
-                return AResult(code=result.code(), message=result.message())
+                return Result(code=result.code(), message=result.message())
         refreshed = await ListeningBadges.synchronize_async(
             session=session,
             user_ids=[user_id],
@@ -59,8 +59,8 @@ class ListeningBadges:
         )
         if refreshed.is_not_ok():
             logger.error("Cannot refresh emblem collection: %s", refreshed.info())
-            return AResult(code=refreshed.code(), message=refreshed.message())
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=refreshed.code(), message=refreshed.message())
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def synchronize_async(
@@ -68,14 +68,14 @@ class ListeningBadges:
         user_ids: list[int],
         summaries: dict[int, ListeningRewardSummary],
         streaks: dict[int, int],
-    ) -> AResult[dict[int, dict[str, datetime]]]:
+    ) -> Result[dict[int, dict[str, datetime]]]:
         """Unlock new families and historical lower tiers without rewriting earned dates."""
         loaded = await ListeningBadgesAccess.get_for_users_async(
             session=session, user_ids=user_ids
         )
         if loaded.is_not_ok():
             logger.error("Cannot load emblem collections: %s", loaded.info())
-            return AResult(code=loaded.code(), message=loaded.message())
+            return Result(code=loaded.code(), message=loaded.message())
         earned = loaded.result()
         awards: list[tuple[int, str]] = []
         for user_id in user_ids:
@@ -107,9 +107,9 @@ class ListeningBadges:
         )
         if granted.is_not_ok():
             logger.error("Cannot unlock emblem collection: %s", granted.info())
-            return AResult(code=granted.code(), message=granted.message())
+            return Result(code=granted.code(), message=granted.message())
         for user_id, new_badges in granted.result().items():
             earned.setdefault(user_id, {}).update(new_badges)
         if granted.result():
             notify_after_commit(session=session, user_ids=list(granted.result()))
-        return AResult(code=AResultCode.OK, message="OK", result=earned)
+        return Result(code=ResultCode.OK, message="OK", result=earned)

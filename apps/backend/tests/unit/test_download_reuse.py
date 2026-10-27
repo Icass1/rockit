@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from core.access.downloadReuseAccess import DownloadReuseAccess
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.downloader import downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
@@ -17,14 +16,15 @@ from core.framework.downloader.downloader import Downloader
 from core.framework.models.downloadCandidate import DownloadCandidate
 from core.utils import downloadFiles
 from core.utils.downloadFiles import DownloadFiles
+from result import Result, ResultCode
 
 T = TypeVar("T")
 
 pytestmark = pytest.mark.unit
 
 
-def ok[T](value: T) -> AResult[T]:
-    return AResult(code=AResultCode.OK, message="OK", result=value)
+def ok[T](value: T) -> Result[T]:
+    return Result(code=ResultCode.OK, message="OK", result=value)
 
 
 def make_group() -> DownloadGroupRow:
@@ -145,7 +145,7 @@ async def test_missing_metadata_does_not_silently_create_an_incomplete_playlist(
         group=make_group(),
         user_id=7,
     )
-    assert result.code() == AResultCode.NOT_FOUND
+    assert result.code() == ResultCode.NOT_FOUND
     queue.assert_not_called()
 
 

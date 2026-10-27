@@ -57,7 +57,7 @@ Access CRUD SQLAlchemy, retorna ORM
 5 negocios: core, default, spotify, youtube, rockit — NADA de otros negocios en core.
 Patrones clave:
 
-- Toda función retorna AResult (nunca raise). HTTPException solo en controllers.
+- Toda función retorna Result (nunca raise). HTTPException solo en controllers.
 - Sesión DB por request via DBSessionMiddleware.
 - public_id (UUID) para el cliente, nunca el id interno.
 - Providers: sistema extensible (Spotify, YouTube, Rockit) con BaseProvider.
@@ -236,7 +236,7 @@ Instructions
 - Follow all project conventions from the docs (AGENTSfrontend.md, AGENTSbackend.md, Rules.md, etc.)
   Discoveries
   Project Architecture
-- Backend: FastAPI (async), SQLAlchemy, PostgreSQL, 3-layer architecture (controllers → framework → access), AResult pattern, 5 businesses (core, default, spotify, youtube, rockit), providers system
+- Backend: FastAPI (async), SQLAlchemy, PostgreSQL, 3-layer architecture (controllers → framework → access), Result pattern, 5 businesses (core, default, spotify, youtube, rockit), providers system
 - Frontend Web: Next.js 16 App Router, TypeScript, Nanostores, Zod, Tailwind CSS v4, pnpm monorepo
 - Frontend Mobile: Expo (React Native), separate app at apps/mobile/
 - Key rule: page.tsx NEVER has "use client" — Server Components only. Client logic in \*Client.tsx

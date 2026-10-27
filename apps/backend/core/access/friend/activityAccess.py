@@ -2,9 +2,9 @@ from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.statsAccess import get_media_info_cte
-from core.aResult import AResult, AResultCode
 from core.responses.friend.friendActivityResponse import FriendActivityItem
 from core.utils.safeAsyncCall import safe_async
+from result import Result, ResultCode
 
 
 class ActivityAccess:
@@ -12,9 +12,9 @@ class ActivityAccess:
     @safe_async
     async def get_friends_activity_async(
         session: AsyncSession, friend_ids: list[int], limit: int = 30
-    ) -> AResult[list[FriendActivityItem]]:
+    ) -> Result[list[FriendActivityItem]]:
         if not friend_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
         sql = text(f"""
             WITH {get_media_info_cte()}
             SELECT u.public_id AS "userPublicId", u.username,
@@ -29,8 +29,8 @@ class ActivityAccess:
             ORDER BY uml.date_added DESC, uml.id DESC LIMIT :limit
         """).bindparams(bindparam("friend_ids", expanding=True))
         rows = await session.execute(sql, {"friend_ids": friend_ids, "limit": limit})
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[FriendActivityItem.model_validate(dict(row)) for row in rows.mappings()],
         )
@@ -38,5 +38,5 @@ class ActivityAccess:
     @staticmethod
     async def get_user_activity_async(
         session: AsyncSession, user_id: int, limit: int = 10
-    ) -> AResult[list[FriendActivityItem]]:
+    ) -> Result[list[FriendActivityItem]]:
         return await ActivityAccess.get_friends_activity_async(session, [user_id], limit)

@@ -7,11 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import BUILDS_PATH
 from core.access.db.ormModels.appVersion import AppVersionRow
-from core.aResult import AResult
 from core.framework.version import Version
 from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.responses.latestVersionResponse import LatestVersionResponse
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(__name__)
 
@@ -55,7 +55,7 @@ async def download_apk(request: Request, filename: str) -> FileResponse:
 async def download_latest_apk(request: Request) -> FileResponse:
     """Endpoint to download the latest APK file."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[AppVersionRow] = await Version.get_latest_version_path_async(session=session)
+    a_result: Result[AppVersionRow] = await Version.get_latest_version_path_async(session=session)
     if a_result.is_not_ok():
         logger.error(f"Error fetching latest version. {a_result.info()}")
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())

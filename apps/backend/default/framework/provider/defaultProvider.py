@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
 from core.access.userAccess import UserAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from core.framework.core import Core
@@ -27,6 +26,7 @@ from default.framework.default import Default
 from default.framework.models.playlist import PlaylistWithDetailsModel
 from default.framework.playlist import Playlist
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -41,7 +41,7 @@ class DefaultProvider(BaseMediaProvider):
         playlist_public_id: str,
         user_id: int,
         media_public_id: str,
-    ) -> AResult[Any]:
+    ) -> Result[Any]:
         return await Playlist.add_media_to_playlist_async(
             session=session,
             playlist_public_id=playlist_public_id,
@@ -56,7 +56,7 @@ class DefaultProvider(BaseMediaProvider):
         playlist_public_id: str,
         media_public_id: str,
         is_expanded: bool,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         return await Playlist.set_media_expanded_async(
             session=session,
             user_id=user_id,
@@ -88,12 +88,12 @@ class DefaultProvider(BaseMediaProvider):
         user_id: int,
         public_ids: list[str],
         _visited_playlist_ids: set[str] | None = None,
-    ) -> AResult[list[BasePlaylistWithMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithMediasResponse]]:
         """Get default playlists by public_ids with medias."""
 
         results: list[BasePlaylistWithMediasResponse] = []
         for public_id in public_ids:
-            a_result_media: AResult[MediaModel] = await Media.get_media_from_public_id_async(
+            a_result_media: Result[MediaModel] = await Media.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
                 media_type_keys=[MediaTypeEnum.PLAYLIST],
@@ -102,9 +102,7 @@ class DefaultProvider(BaseMediaProvider):
                 logger.error(f"Error getting media. {a_result_media.info()}")
                 continue
 
-            a_result_playlist: AResult[
-                PlaylistWithDetailsModel
-            ] = await Playlist.get_playlist_async(
+            a_result_playlist: Result[PlaylistWithDetailsModel] = await Playlist.get_playlist_async(
                 session=session,
                 playlist_public_id=a_result_media.result().public_id,
                 user_id=user_id,
@@ -115,7 +113,7 @@ class DefaultProvider(BaseMediaProvider):
 
             playlist: PlaylistWithDetailsModel = a_result_playlist.result()
 
-            a_result_owner: AResult[UserRow] = await UserAccess.get_user_from_id(
+            a_result_owner: Result[UserRow] = await UserAccess.get_user_from_id(
                 session=session, user_id=playlist.owner_id
             )
             if a_result_owner.is_not_ok():
@@ -125,7 +123,7 @@ class DefaultProvider(BaseMediaProvider):
             owner = a_result_owner.result()
             owner_name: str = owner.username
 
-            a_result_response: AResult[
+            a_result_response: Result[
                 BasePlaylistWithMediasResponse
             ] = await Playlist.build_playlist_response_async(
                 session=session,
@@ -148,17 +146,17 @@ class DefaultProvider(BaseMediaProvider):
 
             results.append(a_result_response.result())
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @time_it
     async def get_playlists_without_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithoutMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithoutMediasResponse]]:
         """Get default playlists by public_ids without medias."""
 
         results: list[BasePlaylistWithoutMediasResponse] = []
         for public_id in public_ids:
-            a_result_media: AResult[MediaModel] = await Media.get_media_from_public_id_async(
+            a_result_media: Result[MediaModel] = await Media.get_media_from_public_id_async(
                 session=session,
                 public_id=public_id,
                 media_type_keys=[MediaTypeEnum.PLAYLIST],
@@ -167,9 +165,7 @@ class DefaultProvider(BaseMediaProvider):
                 logger.error(f"Error getting media. {a_result_media.info()}")
                 continue
 
-            a_result_playlist: AResult[
-                PlaylistWithDetailsModel
-            ] = await Playlist.get_playlist_async(
+            a_result_playlist: Result[PlaylistWithDetailsModel] = await Playlist.get_playlist_async(
                 session=session,
                 playlist_public_id=a_result_media.result().public_id,
                 user_id=user_id,
@@ -181,7 +177,7 @@ class DefaultProvider(BaseMediaProvider):
 
             playlist: PlaylistWithDetailsModel = a_result_playlist.result()
 
-            a_result_owner: AResult[UserRow] = await UserAccess.get_user_from_id(
+            a_result_owner: Result[UserRow] = await UserAccess.get_user_from_id(
                 session=session, user_id=playlist.owner_id
             )
             if a_result_owner.is_not_ok():
@@ -230,13 +226,13 @@ class DefaultProvider(BaseMediaProvider):
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Get the duration of a default playlist in milliseconds."""
-        return AResult(code=AResultCode.OK, message="OK", result=0)
+        return Result(code=ResultCode.OK, message="OK", result=0)
 
     def get_recommendation_playlist_edges_cte_fragment(self) -> str | None:
         return RecommendationAccess.playlist_edges_cte_fragment()

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.aResult import AResult
+from result import Result
 from core.access.friend.listeningRewardsAccess import ListeningRewardsAccess
 from core.access.friend.listeningBadgesAccess import ListeningBadgesAccess
 from core.framework.friend.listeningPolicy import LISTENING_BADGES
@@ -30,7 +30,7 @@ class ListeningRewards:
         playback_id: str,
         position_ms: int,
         baseline: bool = False,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Credit advancing audio positions bounded by server elapsed time, never seeks."""
         now = datetime.now(timezone.utc)
         loaded = await ListeningRewardsAccess.get_locked_async(
@@ -42,7 +42,7 @@ class ListeningRewards:
         )
         if loaded.is_not_ok():
             logger.error("Cannot load listening rewards: %s", loaded.info())
-            return AResult(code=loaded.code(), message=loaded.message())
+            return Result(code=loaded.code(), message=loaded.message())
         row = loaded.result()
         new_session = (now - row.active_at).total_seconds() > SESSION_BREAK_SECONDS
         session_id = str(uuid4()) if new_session else row.session_id
@@ -94,7 +94,7 @@ class ListeningRewards:
             )
             if unlocked.is_not_ok():
                 logger.error("Cannot persist listening emblems: %s", unlocked.info())
-                return AResult(code=unlocked.code(), message=unlocked.message())
+                return Result(code=unlocked.code(), message=unlocked.message())
             unlocked_any = unlocked.result()
         if saved.is_ok() and (
             saved.result()

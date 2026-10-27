@@ -10,7 +10,6 @@ from constants import MEDIA_PATH
 from core.access.db.ormModels.pendingUpload import PendingUploadRow
 from core.access.db.ormModels.user import UserRow
 from core.access.pendingUploadAccess import PendingUploadAccess
-from core.aResult import AResult
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework import providers
 from core.framework.notification import Notification
@@ -25,6 +24,7 @@ from core.responses.startUploadResponse import StartUploadResponse
 from core.responses.uploadResponse import UploadResponse
 from core.utils.createId import create_id
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -61,7 +61,7 @@ def _get_upload_provider() -> BaseUploadProvider:
 def _get_user(request: Request) -> UserRow:
     """Get current user from request or raise 401."""
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Failed to get current user. {a_result_user.info()}")
         raise HTTPException(

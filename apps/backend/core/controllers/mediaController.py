@@ -12,13 +12,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants import IMAGES_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.media.artist import Artist
 from core.framework.media.collection import Collection
 from core.framework.media.media import Media
 from core.framework.media.search import provider_search
-from core.framework.provider.types import AddFromUrlAResult
+from core.framework.provider.types import AddFromUrlResult
 from core.framework.recommendation import Recommendation, RecommendationResult
 from core.framework.user.user import User
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -46,6 +45,7 @@ from core.responses.searchResponse import SearchResultsResponse
 from core.responses.songListResponse import SongListResponse
 from core.responses.urlMatchResponse import UrlMatchResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -80,7 +80,7 @@ async def get_song(request: Request, public_id: str) -> BaseSongWithAlbumRespons
     """Get a song by its public_id."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BaseSongWithAlbumResponse] = await Media.get_song_async(
+    a_result: Result[BaseSongWithAlbumResponse] = await Media.get_song_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -101,14 +101,14 @@ async def get_related_songs(
     suggestions for songs not downloaded here yet."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[RecommendationResult] = await Recommendation.get_related_songs_async(
+    a_result: Result[RecommendationResult] = await Recommendation.get_related_songs_async(
         session=session,
         user_id=a_result_user.result().id,
         public_id=public_id,
@@ -167,7 +167,7 @@ async def get_artist(request: Request, public_id: str) -> BaseArtistResponse:
     """Get an artist by its public_id."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BaseArtistResponse] = await Media.get_artist_async(
+    a_result: Result[BaseArtistResponse] = await Media.get_artist_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -221,7 +221,7 @@ async def get_video_async(request: Request, public_id: str) -> BaseVideoResponse
     """Get a video by its public_id."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BaseVideoResponse] = await Media.get_video_async(
+    a_result: Result[BaseVideoResponse] = await Media.get_video_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -235,7 +235,7 @@ async def get_frame_async(request: Request, public_id: str, timestamp_ms: float)
     """Extract a single frame from a video at the given timestamp (ms)."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[bytes] = await Media.get_frame_async(
+    a_result: Result[bytes] = await Media.get_frame_async(
         session=session, public_id=public_id, timestamp_ms=timestamp_ms
     )
     if a_result.is_not_ok():
@@ -256,7 +256,7 @@ async def get_station_async(request: Request, public_id: str) -> BaseStationResp
     """Get a station by its public_id."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[BaseStationResponse] = await Media.get_station_async(
+    a_result: Result[BaseStationResponse] = await Media.get_station_async(
         session=session, public_id=public_id
     )
     if a_result.is_not_ok():
@@ -296,7 +296,7 @@ async def search_async(
     """Search all providers and return aggregated results."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[SearchResultsResponse] = await Media.search_async(
+    a_result: Result[SearchResultsResponse] = await Media.search_async(
         session=session, query=payload.query
     )
     if a_result.is_not_ok():
@@ -317,7 +317,7 @@ async def get_media_async(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -325,7 +325,7 @@ async def get_media_async(
 
     user_id: int = a_result_user.result().id
 
-    a_result: AResult[MediaResponse] = await Media.get_media_async(
+    a_result: Result[MediaResponse] = await Media.get_media_async(
         session=session, public_id=public_id, user_id=user_id
     )
     if a_result.is_not_ok():
@@ -341,7 +341,7 @@ async def get_media_image_async(request: Request, public_id: str) -> FileRespons
     logger.debug(f"Getting image with public_id: {public_id}")
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[ImageRow] = await Media.get_image_async(session=session, public_id=public_id)
+    a_result: Result[ImageRow] = await Media.get_image_async(session=session, public_id=public_id)
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
@@ -363,7 +363,7 @@ async def generate_image_async(request: Request, public_id: str) -> Response:
     """TODO"""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResult[ImageRow] = await Media.get_image_async(session=session, public_id=public_id)
+    a_result: Result[ImageRow] = await Media.get_image_async(session=session, public_id=public_id)
     if a_result.is_not_ok():
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
@@ -426,9 +426,7 @@ async def delete_media_file_async(request: Request, public_id: str) -> OkRespons
     """Delete the media file for a media item so it can be downloaded again."""
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result: AResultCode = await Media.delete_media_file_async(
-        session=session, public_id=public_id
-    )
+    a_result: ResultCode = await Media.delete_media_file_async(session=session, public_id=public_id)
     if a_result.is_not_ok():
         logger.error(f"Error deleting media with public_id {public_id}. {a_result.info()}")
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
@@ -457,16 +455,16 @@ async def add_from_url_async(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result: AResult[AddFromUrlAResult] = await providers.add_from_url_async(
+    a_result: Result[AddFromUrlResult] = await providers.add_from_url_async(
         session=session, url=payload.url
     )
     if a_result.is_not_ok():
         logger.error(f"Error adding media from URL '{payload.url}'. {a_result.info()}")
         raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
 
-    media: AddFromUrlAResult = a_result.result()
+    media: AddFromUrlResult = a_result.result()
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(

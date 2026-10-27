@@ -8,10 +8,10 @@ from sqlalchemy.orm import aliased
 from core.access.db.ormModels.friend.friend import FriendRow
 from core.access.db.ormModels.friend.friendRequest import FriendRequestRow
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult, AResultCode
 from core.enums.friend.friendStatusEnum import FriendStatusEnum
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 class FriendAccess:
     @staticmethod
     @safe_async
-    async def get_friends_async(session: AsyncSession, user_id: int) -> AResult[list[FriendRow]]:
+    async def get_friends_async(session: AsyncSession, user_id: int) -> Result[list[FriendRow]]:
         reverse = aliased(FriendRow)
         stmt = select(FriendRow).where(
             FriendRow.user_id == user_id,
@@ -34,24 +34,24 @@ class FriendAccess:
         )
         result = await session.execute(stmt)
         rows: Sequence[FriendRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
-    async def get_friend_ids_async(session: AsyncSession, user_id: int) -> AResult[list[int]]:
-        rows: AResult[list[FriendRow]] = await FriendAccess.get_friends_async(
+    async def get_friend_ids_async(session: AsyncSession, user_id: int) -> Result[list[int]]:
+        rows: Result[list[FriendRow]] = await FriendAccess.get_friends_async(
             session=session, user_id=user_id
         )
         if rows.is_not_ok():
-            return AResult(code=rows.code(), message=rows.message())
+            return Result(code=rows.code(), message=rows.message())
         friend_ids: list[int] = [r.friend_user_id for r in rows.result()]
-        return AResult(code=AResultCode.OK, message="OK", result=friend_ids)
+        return Result(code=ResultCode.OK, message="OK", result=friend_ids)
 
     @staticmethod
     @safe_async
     async def get_friend_relationship_async(
         session: AsyncSession, user_id: int, friend_user_id: int
-    ) -> AResult[FriendRow | None]:
+    ) -> Result[FriendRow | None]:
         stmt = select(FriendRow).where(
             FriendRow.user_id == user_id,
             FriendRow.friend_user_id == friend_user_id,
@@ -59,8 +59,8 @@ class FriendAccess:
         result = await session.execute(stmt)
         row: FriendRow | None = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
@@ -69,7 +69,7 @@ class FriendAccess:
         user_id: int,
         friend_user_id: int,
         status: FriendStatusEnum = FriendStatusEnum.ACCEPTED,
-    ) -> AResult[FriendRow]:
+    ) -> Result[FriendRow]:
         row = FriendRow(
             user_id=user_id,
             friend_user_id=friend_user_id,
@@ -78,30 +78,30 @@ class FriendAccess:
         session.add(row)
         await session.flush()
         await session.refresh(row)
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def update_friend_status_async(
         session: AsyncSession, friend_row: FriendRow, status: FriendStatusEnum
-    ) -> AResult[FriendRow]:
+    ) -> Result[FriendRow]:
         friend_row.status_key = status.value
         await session.flush()
         await session.refresh(friend_row)
-        return AResult(code=AResultCode.OK, message="OK", result=friend_row)
+        return Result(code=ResultCode.OK, message="OK", result=friend_row)
 
     @staticmethod
     @safe_async
-    async def delete_friend_async(session: AsyncSession, friend_row: FriendRow) -> AResultCode:
+    async def delete_friend_async(session: AsyncSession, friend_row: FriendRow) -> ResultCode:
         await session.delete(friend_row)
         await session.flush()
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def search_users_async(
         session: AsyncSession, query: str, current_user_id: int, limit: int = 20
-    ) -> AResult[list[UserRow]]:
+    ) -> Result[list[UserRow]]:
         stmt = (
             select(UserRow)
             .where(
@@ -127,13 +127,13 @@ class FriendAccess:
         )
         result = await session.execute(stmt)
         rows: Sequence[UserRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
     async def create_friend_request_async(
         session: AsyncSession, from_user_id: int, to_user_id: int, message: str | None
-    ) -> AResult[FriendRequestRow]:
+    ) -> Result[FriendRequestRow]:
         row = FriendRequestRow(
             public_id=str(uuid.uuid4()),
             from_user_id=from_user_id,
@@ -143,39 +143,39 @@ class FriendAccess:
         session.add(row)
         await session.flush()
         await session.refresh(row)
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def get_pending_requests_for_user_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[FriendRequestRow]]:
+    ) -> Result[list[FriendRequestRow]]:
         stmt = select(FriendRequestRow).where(
             FriendRequestRow.to_user_id == user_id,
             FriendRequestRow.status_key == FriendStatusEnum.PENDING.value,
         )
         result = await session.execute(stmt)
         rows: Sequence[FriendRequestRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
     async def get_sent_requests_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[FriendRequestRow]]:
+    ) -> Result[list[FriendRequestRow]]:
         stmt = select(FriendRequestRow).where(
             FriendRequestRow.from_user_id == user_id,
             FriendRequestRow.status_key == FriendStatusEnum.PENDING.value,
         )
         result = await session.execute(stmt)
         rows: Sequence[FriendRequestRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
     async def get_friend_request_by_public_id_async(
         session: AsyncSession, public_id: str
-    ) -> AResult[FriendRequestRow]:
+    ) -> Result[FriendRequestRow]:
         stmt = (
             select(FriendRequestRow)
             .where(FriendRequestRow.public_id == public_id)
@@ -185,35 +185,33 @@ class FriendAccess:
         row: FriendRequestRow | None = result.scalars().first()
         if row is None:
             logger.error("Friend request not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Friend request not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Friend request not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def update_friend_request_status_async(
         session: AsyncSession, request_row: FriendRequestRow, status_key: int
-    ) -> AResult[FriendRequestRow]:
+    ) -> Result[FriendRequestRow]:
         request_row.status_key = status_key
         await session.flush()
         await session.refresh(request_row)
-        return AResult(code=AResultCode.OK, message="OK", result=request_row)
+        return Result(code=ResultCode.OK, message="OK", result=request_row)
 
     @staticmethod
     @safe_async
-    async def get_user_by_public_id_async(
-        session: AsyncSession, public_id: str
-    ) -> AResult[UserRow]:
+    async def get_user_by_public_id_async(session: AsyncSession, public_id: str) -> Result[UserRow]:
         stmt = select(UserRow).where(UserRow.public_id == public_id)
         result = await session.execute(stmt)
         row: UserRow | None = result.scalars().first()
         if row is None:
             logger.error("User not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="User not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="User not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
-    async def lock_users_async(session: AsyncSession, user_ids: list[int]) -> AResultCode:
+    async def lock_users_async(session: AsyncSession, user_ids: list[int]) -> ResultCode:
         # Lock in a stable order: serialize request/accept/block without deadlocks.
         await session.execute(
             select(UserRow.id)
@@ -221,13 +219,13 @@ class FriendAccess:
             .order_by(UserRow.id)
             .with_for_update()
         )
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def get_pending_between_async(
         session: AsyncSession, first: int, second: int
-    ) -> AResult[FriendRequestRow | None]:
+    ) -> Result[FriendRequestRow | None]:
         result = await session.execute(
             select(FriendRequestRow).where(
                 FriendRequestRow.from_user_id.in_([first, second]),
@@ -237,14 +235,14 @@ class FriendAccess:
         )
         row = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def disconnect_async(
         session: AsyncSession, first: int, second: int, block: bool = False
-    ) -> AResultCode:
+    ) -> ResultCode:
         from sqlalchemy import delete, update
 
         from core.access.db.ormModels.friend.listenTogether import (
@@ -293,28 +291,28 @@ class FriendAccess:
                     )
                 )
         await session.flush()
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
-    async def get_users_async(session: AsyncSession, user_ids: list[int]) -> AResult[list[UserRow]]:
+    async def get_users_async(session: AsyncSession, user_ids: list[int]) -> Result[list[UserRow]]:
         result = await session.execute(select(UserRow).where(UserRow.id.in_(user_ids)))
-        return AResult(code=AResultCode.OK, message="OK", result=list(result.scalars()))
+        return Result(code=ResultCode.OK, message="OK", result=list(result.scalars()))
 
     @staticmethod
     @safe_async
-    async def get_blocked_async(session: AsyncSession, user_id: int) -> AResult[list[FriendRow]]:
+    async def get_blocked_async(session: AsyncSession, user_id: int) -> Result[list[FriendRow]]:
         rows = await session.execute(
             select(FriendRow).where(
                 FriendRow.user_id == user_id,
                 FriendRow.status_key == FriendStatusEnum.BLOCKED.value,
             )
         )
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows.scalars()))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows.scalars()))
 
     @staticmethod
     @safe_async
-    async def are_friends_async(session: AsyncSession, first: int, second: int) -> AResult[bool]:
+    async def are_friends_async(session: AsyncSession, first: int, second: int) -> Result[bool]:
         rows = list(
             await session.execute(
                 select(FriendRow.user_id, FriendRow.status_key).where(
@@ -332,8 +330,8 @@ class FriendAccess:
             )
         )
         accepted = {owner for owner, status in rows if status == FriendStatusEnum.ACCEPTED.value}
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=accepted == {first, second}
             and all(status == FriendStatusEnum.ACCEPTED.value for _, status in rows),

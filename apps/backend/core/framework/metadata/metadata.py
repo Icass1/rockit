@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.provider.baseMetadataProvider import BaseMetadataProvider
 from core.responses.metadataResponse import MetadataResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -30,12 +30,12 @@ class Metadata:
         offset: int,
         limit: int,
         refresh: bool = False,
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         """Delegate identity discovery to the selected provider."""
         source = Metadata._provider(name=provider)
         if source is None:
             logger.warning("Metadata provider unavailable: %s", provider)
-            return AResult(code=AResultCode.NOT_FOUND, message="Metadata provider unavailable")
+            return Result(code=ResultCode.NOT_FOUND, message="Metadata provider unavailable")
         return await source.search_artists_async(
             session=session, name=name, offset=offset, limit=limit, refresh=refresh
         )
@@ -49,12 +49,12 @@ class Metadata:
         offset: int,
         limit: int,
         refresh: bool,
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         """Core only dispatches; source identity, caching and HTTP stay in providers."""
         source = Metadata._provider(name=provider)
         if source is None:
             logger.warning("Metadata provider unavailable: %s", provider)
-            return AResult(code=AResultCode.NOT_FOUND, message="Metadata provider unavailable")
+            return Result(code=ResultCode.NOT_FOUND, message="Metadata provider unavailable")
         return await source.get_metadata_async(
             session=session,
             entity=entity,

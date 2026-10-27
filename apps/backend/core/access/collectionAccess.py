@@ -23,10 +23,10 @@ from constants import BACKEND_URL
 from core.access.adminSearchAccess import AdminSearchAccess
 from core.access.collectionSources import collection_sources
 from core.access.db.shared_metadata import shared_metadata
-from core.aResult import AResult, AResultCode
 from core.framework.models.collection import CollectionEntry, CollectionRecord
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -114,7 +114,7 @@ class CollectionAccess:
     @safe_async
     async def records_async(
         session: AsyncSession, public_ids: list[str], user_id: int
-    ) -> AResult[list[CollectionRecord]]:
+    ) -> Result[list[CollectionRecord]]:
         """Fetch metadata and collection summaries in batches, without contents."""
         media = shared_metadata.tables["core.media"]
         names = CollectionAccess._names()
@@ -144,7 +144,7 @@ class CollectionAccess:
         }
         collection_ids = [r.id for r in records.values() if r.media_type_key in (2, 3)]
         if not collection_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=list(records.values()))
+            return Result(code=ResultCode.OK, message="OK", result=list(records.values()))
         image = shared_metadata.tables["core.image"]
         for table in shared_metadata.tables.values():
             if table.schema == "core" or table.name not in {"playlist", "album"} or not records:
@@ -262,8 +262,8 @@ class CollectionAccess:
             enriched = await source.enrich_async(session, records, collection_ids)
             if enriched.is_not_ok():
                 logger.error(f"Error loading collection details: {enriched.info()}")
-                return AResult(code=enriched.code(), message=enriched.message())
-        return AResult(code=AResultCode.OK, message="OK", result=list(records.values()))
+                return Result(code=enriched.code(), message=enriched.message())
+        return Result(code=ResultCode.OK, message="OK", result=list(records.values()))
 
     @staticmethod
     @safe_async
@@ -275,7 +275,7 @@ class CollectionAccess:
         limit: int = 100,
         query: str = "",
         recursive: bool = False,
-    ) -> AResult[tuple[list[CollectionEntry], int]]:
+    ) -> Result[tuple[list[CollectionEntry], int]]:
         """Apply search, permissions, count, and pagination in SQL before hydration."""
         edges = CollectionAccess._edges(user_id=user_id)
         media = shared_metadata.tables["core.media"]
@@ -301,7 +301,7 @@ class CollectionAccess:
         if query.strip():
             fragment = AdminSearchAccess.get_search_index_fragment()
             if not fragment:
-                return AResult(code=AResultCode.OK, message="OK", result=([], 0))
+                return Result(code=ResultCode.OK, message="OK", result=([], 0))
             index = (
                 text(fragment)
                 .columns(
@@ -345,26 +345,26 @@ class CollectionAccess:
                 result = await source.expanded_async(session, entries, user_id)
                 if result.is_not_ok():
                     logger.error(f"Error loading expanded collection items: {result.info()}")
-                    return AResult(code=result.code(), message=result.message())
+                    return Result(code=result.code(), message=result.message())
                 expanded_map.update(result.result())
             for entry in entries:
                 entry.expanded = expanded_map.get((entry.parent_id, entry.position), False)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=(entries, total),
         )
 
     @staticmethod
     @safe_async
-    async def public_ids_async(session: AsyncSession, ids: list[int]) -> AResult[dict[int, str]]:
+    async def public_ids_async(session: AsyncSession, ids: list[int]) -> Result[dict[int, str]]:
         """Map internal identifiers in one query."""
         media = shared_metadata.tables["core.media"]
         rows = await session.execute(
             select(media.c.id, media.c.public_id).where(media.c.id.in_(ids))
         )
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={row[0]: row[1] for row in rows.all()},
         )
@@ -378,7 +378,7 @@ class CollectionAccess:
         ordered_ids: list[int],
         random_indexes: dict[int, int],
         start: int,
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Serialize replacement per user and commit queue and selection atomically."""
         users = shared_metadata.tables["core.user"]
         queue = shared_metadata.tables["core.user_queue"]
@@ -407,4 +407,4 @@ class CollectionAccess:
             .values(current_queue_id=start, current_time_ms=0)
         )
         await session.commit()
-        return AResult(code=AResultCode.OK, message="OK", result=queue_type)
+        return Result(code=ResultCode.OK, message="OK", result=queue_type)

@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from pydantic import ValidationError
 
 import tests  # noqa: F401  # pyright: ignore[reportUnusedImport]
-from core.aResult import AResult, AResultCode
 from core.framework.models.recommendation import SeedTrack
 from core.framework.recommendationPrefetch import RecommendationPrefetch
 from core.requests.prepareRecommendationsRequest import (
@@ -13,13 +12,14 @@ from core.requests.prepareRecommendationsRequest import (
     RecommendationTrackRequest,
 )
 from core.responses.songListResponse import SongListResponse
+from result import Result, ResultCode
 from tests.unit.recommendations.test_recommendation_framework import make_song
 
 T = TypeVar("T")
 
 
-def ok[T](value: T) -> AResult[T]:
-    return AResult(code=AResultCode.OK, message="OK", result=value)
+def ok[T](value: T) -> Result[T]:
+    return Result(code=ResultCode.OK, message="OK", result=value)
 
 
 class PrefetchTests(unittest.IsolatedAsyncioTestCase):
@@ -41,7 +41,7 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
             ),
             patch(
                 "core.framework.recommendationPrefetch.Downloader.resolve_search_song_async",
-                AsyncMock(return_value=AResult(code=AResultCode.NOT_FOUND, message="No match")),
+                AsyncMock(return_value=Result(code=ResultCode.NOT_FOUND, message="No match")),
             ),
         ]
         cache_patch = patch.object(
@@ -55,7 +55,7 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
 
     async def prepare(
         self, payload: PrepareRecommendationsRequest | None = None
-    ) -> AResult[SongListResponse]:
+    ) -> Result[SongListResponse]:
         payload = payload or PrepareRecommendationsRequest(publicIds=["next"])
         return await RecommendationPrefetch.prepare_async(
             session=self.session,
@@ -88,7 +88,7 @@ class PrefetchTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_database_failure_keeps_existing_recommendations(self) -> None:
         self.song.downloaded = False
-        self.admit.return_value = AResult(code=AResultCode.GENERAL_ERROR, message="offline")
+        self.admit.return_value = Result(code=ResultCode.GENERAL_ERROR, message="offline")
         result = await self.prepare()
         self.assertTrue(result.is_ok())
         self.assertEqual(result.result().songs[0].publicId, "next")

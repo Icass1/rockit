@@ -6,15 +6,15 @@ from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.utils.safeAsyncCall import safe_async
+from result import Result, ResultCode
 from wikimedia.access.db.ormModels.metadataCache import MetadataCacheRow
 
 
 class MetadataAccess:
     @staticmethod
     @safe_async
-    async def lock_async(session: AsyncSession, key: str) -> AResult[bool]:
+    async def lock_async(session: AsyncSession, key: str) -> Result[bool]:
         """Deduplicate cold lookups across workers without waiting for a connection."""
         lock_id = int.from_bytes(
             hashlib.sha256(f"wikimedia:{key}".encode()).digest()[:8], signed=True
@@ -22,24 +22,24 @@ class MetadataAccess:
         acquired = await session.scalar(
             text("SELECT pg_try_advisory_xact_lock(:key)"), {"key": lock_id}
         )
-        return AResult(code=AResultCode.OK, message="OK", result=bool(acquired))
+        return Result(code=ResultCode.OK, message="OK", result=bool(acquired))
 
     @staticmethod
     @safe_async
-    async def read_async(session: AsyncSession, key: str) -> AResult[list[MetadataCacheRow]]:
+    async def read_async(session: AsyncSession, key: str) -> Result[list[MetadataCacheRow]]:
         """Read durable source JSON; there is deliberately no automatic expiry."""
         row = await session.scalar(
             select(MetadataCacheRow)
             .where(MetadataCacheRow.key == key)
             .execution_options(populate_existing=True)
         )
-        return AResult(code=AResultCode.OK, message="OK", result=[row] if row is not None else [])
+        return Result(code=ResultCode.OK, message="OK", result=[row] if row is not None else [])
 
     @staticmethod
     @safe_async
     async def save_async(
         session: AsyncSession, key: str, payload: dict[str, Any]
-    ) -> AResult[datetime]:
+    ) -> Result[datetime]:
         """Atomically replace a complete response; failed fetches never erase data."""
         stmt = insert(MetadataCacheRow).values(
             key=key, payload=payload, fetched_at=func.clock_timestamp()
@@ -54,4 +54,4 @@ class MetadataAccess:
             ).returning(MetadataCacheRow.fetched_at)
         )
         assert stamp is not None
-        return AResult(code=AResultCode.OK, message="OK", result=stamp)
+        return Result(code=ResultCode.OK, message="OK", result=stamp)

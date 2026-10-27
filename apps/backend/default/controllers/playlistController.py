@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult
 from core.framework.core import Core
 from core.framework.media.image import Image
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -27,6 +26,7 @@ from default.requests.createPlaylistRequest import CreatePlaylistRequest
 from default.requests.updatePlaylistRequest import UpdatePlaylistRequest
 from default.responses.userPlaylistsResponse import UserPlaylistsResponse
 from logger import getLogger
+from result import Result
 
 
 async def get_playlist_list_response(
@@ -39,7 +39,7 @@ async def get_playlist_list_response(
 
     result: list[BasePlaylistWithMediasResponse] = []
     for p in playlists:
-        a_result_owner: AResult[UserRow] = await UserAccess.get_user_from_id(
+        a_result_owner: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=p.owner_id
         )
         if a_result_owner.is_not_ok():
@@ -97,7 +97,7 @@ async def create_playlist_async(
         logger.error(f"Error getting current user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[PlaylistModel] = await Playlist.create_playlist_async(
+    a_result: Result[PlaylistModel] = await Playlist.create_playlist_async(
         session=session,
         name=create_request.name,
         owner_id=user.result().id,
@@ -142,7 +142,7 @@ async def get_user_playlists_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[list[PlaylistModel]] = await Playlist.get_user_playlists_async(
+    a_result: Result[list[PlaylistModel]] = await Playlist.get_user_playlists_async(
         session=session, user_id=user.result().id
     )
     if a_result.is_not_ok():
@@ -193,7 +193,7 @@ async def update_playlist_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[PlaylistModel] = await Playlist.update_playlist_async(
+    a_result: Result[PlaylistModel] = await Playlist.update_playlist_async(
         session=session,
         playlist_public_id=playlist_public_id,
         user_id=user.result().id,
@@ -222,7 +222,7 @@ async def delete_playlist_async(request: Request, playlist_public_id: str) -> Ok
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[bool] = await Playlist.delete_playlist_async(
+    a_result: Result[bool] = await Playlist.delete_playlist_async(
         session=session, playlist_public_id=playlist_public_id, user_id=user.result().id
     )
     if a_result.is_not_ok():
@@ -242,7 +242,7 @@ async def add_media_to_playlist_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[PlaylistMediaAddModel] = await Playlist.add_media_to_playlist_async(
+    a_result: Result[PlaylistMediaAddModel] = await Playlist.add_media_to_playlist_async(
         session=session,
         playlist_public_id=playlist_public_id,
         user_id=user.result().id,
@@ -267,7 +267,7 @@ async def remove_media_from_playlist_async(
 
     from default.framework.playlist import Playlist
 
-    a_result: AResult[bool] = await Playlist.remove_media_from_playlist_async(
+    a_result: Result[bool] = await Playlist.remove_media_from_playlist_async(
         session=session,
         playlist_public_id=playlist_public_id,
         media_public_id=playlist_media_public_id,
@@ -293,7 +293,7 @@ async def add_contributor_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[PlaylistContributorAddModel] = await Playlist.add_contributor_async(
+    a_result: Result[PlaylistContributorAddModel] = await Playlist.add_contributor_async(
         session=session,
         playlist_public_id=playlist_public_id,
         owner_id=user.result().id,
@@ -320,7 +320,7 @@ async def remove_contributor_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[bool] = await Playlist.remove_contributor_async(
+    a_result: Result[bool] = await Playlist.remove_contributor_async(
         session=session,
         playlist_public_id=playlist_public_id,
         owner_id=user.result().id,
@@ -346,7 +346,7 @@ async def disable_media_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[bool] = await Playlist.disable_media_for_user_async(
+    a_result: Result[bool] = await Playlist.disable_media_for_user_async(
         session=session,
         playlist_public_id=playlist_public_id,
         user_id=user.result().id,
@@ -372,7 +372,7 @@ async def enable_media_async(
         logger.error(f"Error getting user from session. {user.info()}")
         raise HTTPException(status_code=user.get_http_code(), detail=user.message())
 
-    a_result: AResult[bool] = await Playlist.enable_media_for_user_async(
+    a_result: Result[bool] = await Playlist.enable_media_for_user_async(
         session=session,
         playlist_public_id=playlist_public_id,
         user_id=user.result().id,

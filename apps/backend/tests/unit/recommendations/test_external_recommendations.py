@@ -5,7 +5,6 @@ from typing import Any
 from unittest import mock
 
 import tests  # noqa: F401  # pyright: ignore[reportUnusedImport]  (test env setup)
-from core.aResult import AResult, AResultCode
 from core.framework.externalRecommendation.externalRecommendations import (
     ExternalRecommendations,
 )
@@ -21,6 +20,7 @@ from core.framework.provider.baseExternalRecommendationProvider import (
     BaseExternalRecommendationProvider,
 )
 from core.framework.recommendationRanking import RecommendationRanking
+from result import Result, ResultCode
 from tests.unit.recommendations.helpers import FakeClock
 
 CACHE_ACCESS = (
@@ -38,7 +38,7 @@ class FakeProvider(BaseExternalRecommendationProvider):
     def __init__(
         self,
         key: str,
-        result: AResult[list[ExternalSuggestion]] | None = None,
+        result: Result[list[ExternalSuggestion]] | None = None,
         delay: float = 0.0,
         raises: bool = False,
         configured: bool = True,
@@ -64,7 +64,7 @@ class FakeProvider(BaseExternalRecommendationProvider):
 
     async def get_suggestions_async(
         self, context: ExternalRecommendationContext, limit: int
-    ) -> AResult[list[ExternalSuggestion]]:
+    ) -> Result[list[ExternalSuggestion]]:
         self.calls += 1
         if self._delay:
             await asyncio.sleep(self._delay)
@@ -74,16 +74,16 @@ class FakeProvider(BaseExternalRecommendationProvider):
         return self._result
 
 
-def ok(*tracks: tuple[str, str]) -> AResult[list[ExternalSuggestion]]:
-    return AResult(
-        code=AResultCode.OK,
+def ok(*tracks: tuple[str, str]) -> Result[list[ExternalSuggestion]]:
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=[ExternalSuggestion(artist_name=a, track_name=t) for a, t in tracks],
     )
 
 
-def failure(code: int = AResultCode.GENERAL_ERROR) -> AResult[list[ExternalSuggestion]]:
-    return AResult(code=code, message="boom")
+def failure(code: int = ResultCode.GENERAL_ERROR) -> Result[list[ExternalSuggestion]]:
+    return Result(code=code, message="boom")
 
 
 class ExternalRecommendationsTests(unittest.IsolatedAsyncioTestCase):
@@ -93,20 +93,20 @@ class ExternalRecommendationsTests(unittest.IsolatedAsyncioTestCase):
 
         async def get_cached(
             session: object, cache_key: str
-        ) -> AResult[tuple[list[dict[str, Any]], timedelta]]:
+        ) -> Result[tuple[list[dict[str, Any]], timedelta]]:
             if cache_key not in self.cache:
-                return AResult(code=AResultCode.NOT_FOUND, message="miss")
-            return AResult(
-                code=AResultCode.OK,
+                return Result(code=ResultCode.NOT_FOUND, message="miss")
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=(self.cache[cache_key], self.cache_age),
             )
 
         async def set_cached(
             session: object, cache_key: str, suggestions: list[dict[str, Any]]
-        ) -> AResult[bool]:
+        ) -> Result[bool]:
             self.cache[cache_key] = suggestions
-            return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=ResultCode.OK, message="OK", result=True)
 
         patcher = mock.patch(CACHE_ACCESS)
         self.cache_access = patcher.start()
@@ -147,8 +147,8 @@ class ExternalRecommendationsTests(unittest.IsolatedAsyncioTestCase):
     async def test_every_failure_kind_falls_back_to_the_next_provider(self) -> None:
         failing_providers = {
             "http error": FakeProvider("bad", failure()),
-            "rate limited": FakeProvider("bad", failure(AResultCode.RATE_LIMITED)),
-            "not found": FakeProvider("bad", failure(AResultCode.NOT_FOUND)),
+            "rate limited": FakeProvider("bad", failure(ResultCode.RATE_LIMITED)),
+            "not found": FakeProvider("bad", failure(ResultCode.NOT_FOUND)),
             "raises": FakeProvider("bad", raises=True),
             "timeout": FakeProvider("bad", ok(("X", "Late")), delay=5),
         }
@@ -233,7 +233,7 @@ class ExternalRecommendationsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(provider.calls, 2)
 
     async def test_cache_errors_do_not_break_suggestions(self) -> None:
-        db_down: AResult[Any] = AResult(code=AResultCode.GENERAL_ERROR, message="db down")
+        db_down: Result[Any] = Result(code=ResultCode.GENERAL_ERROR, message="db down")
         self.cache_access.get_cached_async = mock.AsyncMock(return_value=db_down)
         self.cache_access.set_cached_async = mock.AsyncMock(return_value=db_down)
         result = await self.run_orchestrator(self.orchestrator(FakeProvider("a", ok(("A", "One")))))

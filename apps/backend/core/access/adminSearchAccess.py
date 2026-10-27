@@ -3,10 +3,10 @@ from logging import Logger
 from sqlalchemy import Float, Integer, String, bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.models.searchIndex import SearchIndexEntry
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -30,7 +30,7 @@ class AdminSearchAccess:
     @safe_async
     async def search_media_index_async(
         session: AsyncSession, query: str, limit: int
-    ) -> AResult[list[SearchIndexEntry]]:
+    ) -> Result[list[SearchIndexEntry]]:
         """Search every searchable media item (song, album, artist, video, playlist,
         radio station, ...) across all providers that contribute a search index
         fragment.
@@ -44,7 +44,7 @@ class AdminSearchAccess:
 
         search_index_cte = AdminSearchAccess.get_search_index_fragment()
         if not search_index_cte:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         query_id = int(query) if query.isdigit() else None
 
@@ -95,8 +95,8 @@ class AdminSearchAccess:
         )
         rows = result.fetchall()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 SearchIndexEntry(

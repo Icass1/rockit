@@ -3,7 +3,6 @@ from logging import Logger
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult
 from core.enums.queueTypeEnum import QueueTypeEnum
 from core.framework.media.media import Media
 from core.framework.models.queue import QueueItem as FrameworkQueueItem
@@ -19,6 +18,7 @@ from core.responses.baseVideoResponse import BaseVideoResponse
 from core.responses.queueResponse import QueueResponse, QueueResponseItem
 from featured.framework import featured
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -35,7 +35,7 @@ async def get_featured_liked(
     """Get the user's liked songs as a playlist."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(status_code=401, detail="User not authenticated")
 
@@ -56,7 +56,7 @@ async def get_featured_most_listened(
     """Get the user's most listened songs as a playlist."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(status_code=401, detail="User not authenticated")
 
@@ -77,7 +77,7 @@ async def get_featured_recent_mix(
     """Get the user's recently played songs as a playlist."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(status_code=401, detail="User not authenticated")
 
@@ -98,7 +98,7 @@ async def get_featured_last_month(
     """Get the user's last month top songs as a playlist."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(status_code=401, detail="User not authenticated")
 
@@ -119,7 +119,7 @@ async def get_featured_year_recap(
     """Get the user's last year top songs as a playlist."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         raise HTTPException(status_code=401, detail="User not authenticated")
 
@@ -139,7 +139,7 @@ async def create_featured_queue(
 ) -> QueueResponse:
     """Replace the user's queue with the current contents of a featured list."""
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Featured queue authentication failed: {a_result_user.info()}")
         raise HTTPException(status_code=401, detail="User not authenticated")

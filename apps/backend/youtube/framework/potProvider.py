@@ -10,8 +10,8 @@ from importlib import metadata, util
 from typing import Any
 
 from constants import YTDLP_POT_PROVIDER_URL
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.utils.ytdlpLog import sanitize_ytdlp_message
 
 logger = getLogger(__name__)
@@ -32,7 +32,7 @@ class PotProvider:
     """
 
     _last_check_at: float = 0.0
-    _last_result: AResult[str] | None = None
+    _last_result: Result[str] | None = None
 
     @staticmethod
     def _plugin_version() -> str | None:
@@ -68,7 +68,7 @@ class PotProvider:
             return False, f"{e.__class__.__name__}: {e}"
 
     @staticmethod
-    async def _check_provider_async() -> AResult[str]:
+    async def _check_provider_async() -> Result[str]:
         """Verify the PO token provider is installed, reachable and version matched."""
 
         base_url: str | None = YTDLP_POT_PROVIDER_URL
@@ -78,8 +78,8 @@ class PotProvider:
                 "PO-token-free clients, which cover a fraction of the music "
                 "catalogue. See docs/YOUTUBE_DOWNLOADS.md"
             )
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="Using fallback clients without PO tokens",
                 result="disabled",
             )
@@ -93,8 +93,8 @@ class PotProvider:
                 f"format is not available'. Rebuild the backend image so "
                 f"requirements.txt is reinstalled"
             )
-            return AResult(
-                code=AResultCode.CONFIGURATION_ERROR,
+            return Result(
+                code=ResultCode.CONFIGURATION_ERROR,
                 message="PO token plugin not installed",
             )
 
@@ -113,8 +113,8 @@ class PotProvider:
                 f"that the pot-provider service is running and on the same "
                 f"docker network as the backend"
             )
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"PO token provider unreachable: {detail}",
             )
 
@@ -125,8 +125,8 @@ class PotProvider:
                 f"refuses to use a mismatched server, so no PO token will be "
                 f"fetched. Pin both to the same version"
             )
-            return AResult(
-                code=AResultCode.CONFIGURATION_ERROR,
+            return Result(
+                code=ResultCode.CONFIGURATION_ERROR,
                 message=f"PO token version mismatch: {plugin_version} vs {detail}",
             )
 
@@ -141,10 +141,10 @@ class PotProvider:
             f"PO token provider ready at [configured endpoint] "
             f"(plugin {plugin_version}, server {detail})"
         )
-        return AResult(code=AResultCode.OK, message="OK", result=detail)
+        return Result(code=ResultCode.OK, message="OK", result=detail)
 
     @staticmethod
-    async def check_health_async(max_age_seconds: float = 0.0) -> AResult[str]:
+    async def check_health_async(max_age_seconds: float = 0.0) -> Result[str]:
         """Check runtime prerequisites and cache readiness briefly between downloads."""
 
         if (
@@ -188,8 +188,8 @@ class PotProvider:
                 "YouTube downloads require Node.js >=22 and the pinned "
                 "yt-dlp-ejs package; rebuild the backend"
             )
-            result = AResult[str](
-                code=AResultCode.CONFIGURATION_ERROR,
+            result = Result[str](
+                code=ResultCode.CONFIGURATION_ERROR,
                 message="YouTube runtime or EJS package missing; rebuild the backend",
             )
         else:

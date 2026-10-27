@@ -14,8 +14,8 @@ from core.access.db.ormModels.media import CoreMediaRow
 from core.access.db.ormModels.provider import ProviderRow
 from core.access.db.ormModels.user_library_media import UserLibraryMediaRow
 from core.access.providerStorage import provider_storage
-from core.aResult import AResult, AResultCode
 from core.utils.safeAsyncCall import safe_async
+from result import Result, ResultCode
 
 
 class DownloadBrowseAccess:
@@ -69,7 +69,7 @@ class DownloadBrowseAccess:
 
     @staticmethod
     @safe_async
-    async def totals_async(session: AsyncSession, user_id: int) -> AResult[dict[str, Any]]:
+    async def totals_async(session: AsyncSession, user_id: int) -> Result[dict[str, Any]]:
         """Compute counters across the entire history, independent of loaded pages."""
         row = (
             (
@@ -107,8 +107,8 @@ class DownloadBrowseAccess:
             .group_by(func.date(DownloadRow.date_ended))
         )
         daily = {date: count for date, count in daily_rows}
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={
                 **dict(row),
@@ -125,7 +125,7 @@ class DownloadBrowseAccess:
         status: str,
         kind: str,
         query: str,
-    ) -> AResult[list[dict[str, Any]]]:
+    ) -> Result[list[dict[str, Any]]]:
         """Fetch twelve group headers plus one sentinel; no item histories are loaded."""
         meta = DownloadBrowseAccess.metadata()
         counts = (
@@ -227,7 +227,7 @@ class DownloadBrowseAccess:
             .mappings()
             .all()
         )
-        return AResult(code=AResultCode.OK, message="OK", result=[dict(row) for row in rows])
+        return Result(code=ResultCode.OK, message="OK", result=[dict(row) for row in rows])
 
     @staticmethod
     @safe_async
@@ -238,7 +238,7 @@ class DownloadBrowseAccess:
         offset: int = 0,
         limit: int = 48,
         query: str = "",
-    ) -> AResult[list[dict[str, Any]]]:
+    ) -> Result[list[dict[str, Any]]]:
         """Window each requested group before joining metadata; read only its latest progress."""
         ranked = (
             select(
@@ -285,13 +285,13 @@ class DownloadBrowseAccess:
             .order_by(ranked.c.download_group_id, ranked.c.ordinal)
         )
         rows = (await session.execute(stmt)).mappings().all()
-        return AResult(code=AResultCode.OK, message="OK", result=[dict(row) for row in rows])
+        return Result(code=ResultCode.OK, message="OK", result=[dict(row) for row in rows])
 
     @staticmethod
     @safe_async
     async def group_rows_async(
         session: AsyncSession, group_id: int
-    ) -> AResult[list[tuple[DownloadRow, CoreMediaRow]]]:
+    ) -> Result[list[tuple[DownloadRow, CoreMediaRow]]]:
         """
         Fetch the complete action target set once, with rows locked against concurrent
         actions.
@@ -308,11 +308,11 @@ class DownloadBrowseAccess:
                 .with_for_update(of=DownloadRow)
             )
         ).all()
-        return AResult(code=AResultCode.OK, message="OK", result=[(row[0], row[1]) for row in rows])
+        return Result(code=ResultCode.OK, message="OK", result=[(row[0], row[1]) for row in rows])
 
     @staticmethod
     @safe_async
-    async def clear_files_async(session: AsyncSession, media_ids: list[int]) -> AResult[list[str]]:
+    async def clear_files_async(session: AsyncSession, media_ids: list[int]) -> Result[list[str]]:
         """Clear paths in provider batches, returning files for the framework to archive."""
         return await provider_storage.clear_files_async(session=session, media_ids=media_ids)
 
@@ -320,7 +320,7 @@ class DownloadBrowseAccess:
     @safe_async
     async def reset_group_async(
         session: AsyncSession, group: DownloadGroupRow, download_ids: list[int]
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Reset terminal children together, retaining their source grouping."""
         await session.execute(
             update(DownloadRow)
@@ -333,13 +333,13 @@ class DownloadBrowseAccess:
         group.fail = 0
         group.seen = False
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     @safe_async
     async def item_count_async(
         session: AsyncSession, group_id: int, status: str, query: str = ""
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Count the matching tracks without materializing any of them."""
         value = await session.scalar(
             select(func.count())
@@ -351,13 +351,13 @@ class DownloadBrowseAccess:
                 DownloadBrowseAccess.search_predicate(query=query),
             )
         )
-        return AResult(code=AResultCode.OK, message="OK", result=value or 0)
+        return Result(code=ResultCode.OK, message="OK", result=value or 0)
 
     @staticmethod
     @safe_async
     async def has_other_active_async(
         session: AsyncSession, group_id: int, media_ids: list[int]
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Do not change a file while another group is still downloading it."""
         value = await session.scalar(
             select(
@@ -370,4 +370,4 @@ class DownloadBrowseAccess:
                 )
             )
         )
-        return AResult(code=AResultCode.OK, message="OK", result=bool(value))
+        return Result(code=ResultCode.OK, message="OK", result=bool(value))

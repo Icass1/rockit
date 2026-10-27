@@ -20,9 +20,9 @@ from spotify_scraper.models.search import SearchResults as ScraperSearchResults
 from spotify_scraper.models.track import Track as ScraperTrack
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from spotifyScrapper.framework.models.spotifyScrapperApi import (
     ScrappedAlbum,
     ScrappedArtist,
@@ -128,9 +128,9 @@ class SpotifyScrapperApi:
     @time_it
     async def get_albums_async(
         self, session: AsyncSession, ids: list[str]
-    ) -> AResult[list[ScrappedAlbum]]:
+    ) -> Result[list[ScrappedAlbum]]:
         if not ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         try:
             async with AsyncSpotifyClient(timeout=15.0) as client:
@@ -143,20 +143,20 @@ class SpotifyScrapperApi:
                         albums.append(_album_to_scrapped(item.result))
                     except Exception as e:
                         logger.error(f"Error converting album: {e}")
-                return AResult(code=AResultCode.OK, message="OK", result=albums)
+                return Result(code=ResultCode.OK, message="OK", result=albums)
         except Exception as e:
             logger.error(f"Failed to fetch albums from Spotify scraper: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to fetch albums from Spotify: {e}",
             )
 
     @time_it
     async def get_tracks_async(
         self, session: AsyncSession, ids: list[str]
-    ) -> AResult[list[ScrappedTrack]]:
+    ) -> Result[list[ScrappedTrack]]:
         if not ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         try:
             async with AsyncSpotifyClient(timeout=15.0) as client:
@@ -169,20 +169,20 @@ class SpotifyScrapperApi:
                         tracks.append(_track_to_scrapped(item.result))
                     except Exception as e:
                         logger.error(f"Error converting track: {e}")
-                return AResult(code=AResultCode.OK, message="OK", result=tracks)
+                return Result(code=ResultCode.OK, message="OK", result=tracks)
         except Exception as e:
             logger.error(f"Failed to fetch tracks from Spotify scraper: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to fetch tracks from Spotify: {e}",
             )
 
     @time_it
     async def get_artists_async(
         self, session: AsyncSession, ids: list[str]
-    ) -> AResult[list[ScrappedArtist]]:
+    ) -> Result[list[ScrappedArtist]]:
         if not ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         try:
             async with AsyncSpotifyClient(timeout=15.0) as client:
@@ -195,40 +195,40 @@ class SpotifyScrapperApi:
                         artists.append(_artist_to_scrapped(item.result))
                     except Exception as e:
                         logger.error(f"Error converting artist: {e}")
-                return AResult(code=AResultCode.OK, message="OK", result=artists)
+                return Result(code=ResultCode.OK, message="OK", result=artists)
         except Exception as e:
             logger.error(f"Failed to fetch artists from Spotify scraper: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to fetch artists from Spotify: {e}",
             )
 
-    async def get_playlist_async(self, session: AsyncSession, id: str) -> AResult[ScrappedPlaylist]:
+    async def get_playlist_async(self, session: AsyncSession, id: str) -> Result[ScrappedPlaylist]:
         try:
             async with AsyncSpotifyClient(timeout=15.0) as client:
                 playlist = await client.get_playlist(id, max_tracks=None)
                 result = _playlist_to_scrapped(playlist)
-                return AResult(code=AResultCode.OK, message="OK", result=result)
+                return Result(code=ResultCode.OK, message="OK", result=result)
         except Exception as e:
             logger.error(f"Error fetching playlist {id}: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Error fetching playlist {id}: {e}",
             )
 
-    async def search_async(self, query: str, limit: int = 10) -> AResult[ScrappedSearchResults]:
+    async def search_async(self, query: str, limit: int = 10) -> Result[ScrappedSearchResults]:
         try:
             async with AsyncSpotifyClient(timeout=15.0) as client:
                 results = await client.search(query, limit=limit)
-                return AResult(
-                    code=AResultCode.OK,
+                return Result(
+                    code=ResultCode.OK,
                     message="OK",
                     result=_search_results_to_scrapped(results),
                 )
         except Exception as e:
             logger.error(f"Error searching Spotify: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Error searching Spotify: {e}",
             )
 

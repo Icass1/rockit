@@ -7,8 +7,8 @@ from typing import Any
 from yt_dlp import YoutubeDL
 from ytmusicapi import YTMusic
 
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.framework.youtubeApi import RawYoutubeSearchResult, youtube_api
 from youtube.framework.youtubeGate import youtube_gate
 
@@ -223,7 +223,7 @@ class YoutubeSearch:
     @staticmethod
     async def _search_ytmusic_async(
         song: YoutubeSongQuery,
-    ) -> AResult[list[YoutubeCandidate]]:
+    ) -> Result[list[YoutubeCandidate]]:
         """Search YouTube Music. Free, unauthenticated, and knows about albums."""
 
         query: str = YoutubeSearch.build_query(song=song)
@@ -237,7 +237,7 @@ class YoutubeSearch:
             )
         except Exception as e:
             logger.warning(f"YouTube Music search failed for '{query}': {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message=f"ytmusicapi search failed: {e}")
+            return Result(code=ResultCode.GENERAL_ERROR, message=f"ytmusicapi search failed: {e}")
 
         candidates: list[YoutubeCandidate] = []
         for item in raw:
@@ -261,12 +261,12 @@ class YoutubeSearch:
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=candidates)
+        return Result(code=ResultCode.OK, message="OK", result=candidates)
 
     @staticmethod
     async def _search_ytdlp_async(
         song: YoutubeSongQuery,
-    ) -> AResult[list[YoutubeCandidate]]:
+    ) -> Result[list[YoutubeCandidate]]:
         """Search through yt-dlp's own ytsearch. Also free, but hits youtube.com."""
 
         query: str = YoutubeSearch.build_query(song=song)
@@ -291,7 +291,7 @@ class YoutubeSearch:
             )
         except Exception as e:
             logger.warning(f"yt-dlp search failed for '{query}': {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message=f"yt-dlp search failed: {e}")
+            return Result(code=ResultCode.GENERAL_ERROR, message=f"yt-dlp search failed: {e}")
 
         entries: list[dict[str, Any]] = (info or {}).get("entries") or []
         candidates: list[YoutubeCandidate] = []
@@ -311,22 +311,22 @@ class YoutubeSearch:
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=candidates)
+        return Result(code=ResultCode.OK, message="OK", result=candidates)
 
     @staticmethod
     async def _search_data_api_async(
         song: YoutubeSongQuery,
-    ) -> AResult[list[YoutubeCandidate]]:
+    ) -> Result[list[YoutubeCandidate]]:
         """Search through the YouTube Data API. Costs 100 quota units per call."""
 
         query: str = YoutubeSearch.build_query(song=song)
 
-        a_result: AResult[list[RawYoutubeSearchResult]] = await youtube_api.search_videos_async(
+        a_result: Result[list[RawYoutubeSearchResult]] = await youtube_api.search_videos_async(
             query=query, max_results=15
         )
         if a_result.is_not_ok():
             logger.warning(f"YouTube Data API search failed. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         candidates: list[YoutubeCandidate] = []
         for video in a_result.result():
@@ -343,7 +343,7 @@ class YoutubeSearch:
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=candidates)
+        return Result(code=ResultCode.OK, message="OK", result=candidates)
 
     @staticmethod
     def _score_all(candidates: list[YoutubeCandidate], song: YoutubeSongQuery) -> None:
@@ -358,17 +358,17 @@ class YoutubeSearch:
             )
 
     @staticmethod
-    async def find_best_video_url_async(song: YoutubeSongQuery) -> AResult[str]:
+    async def find_best_video_url_async(song: YoutubeSongQuery) -> Result[str]:
         """Find the single best YouTube URL for a song."""
 
-        a_result: AResult[list[str]] = await YoutubeSearch.find_video_urls_async(song=song)
+        a_result: Result[list[str]] = await YoutubeSearch.find_video_urls_async(song=song)
         if a_result.is_not_ok():
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result()[0])
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result()[0])
 
     @staticmethod
-    async def find_video_urls_async(song: YoutubeSongQuery, limit: int = 3) -> AResult[list[str]]:
+    async def find_video_urls_async(song: YoutubeSongQuery, limit: int = 3) -> Result[list[str]]:
         """Find ranked YouTube URLs for a song, cheapest search backend first.
 
         More than one is returned on purpose. YouTube gates individual videos
@@ -391,7 +391,7 @@ class YoutubeSearch:
         scored: list[YoutubeCandidate] = []
 
         for backend_name, backend in backends:
-            a_result: AResult[list[YoutubeCandidate]] = await backend(song)
+            a_result: Result[list[YoutubeCandidate]] = await backend(song)
             if a_result.is_not_ok():
                 continue
 
@@ -426,8 +426,8 @@ class YoutubeSearch:
 
         if not usable:
             logger.error(f"No suitable YouTube video found for '{song.title}'")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="No suitable YouTube video found",
             )
 
@@ -438,8 +438,8 @@ class YoutubeSearch:
                 f"({', '.join(candidate.reasons) or 'no_match'})"
             )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 f"https://www.youtube.com/watch?v={candidate.video_id}" for candidate in usable

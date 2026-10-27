@@ -52,32 +52,32 @@ utils/
 - everything async
 - everything type strict
 
-- every function return AResult, NEVER raise exception
+- every function return Result, NEVER raise exception
 - HTTPException ONLY in controller or middleware
 
 Log:
 
 ```python
 from utils.logger import getLogger
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
 
 class ClassInsideFramework:
     @staticmethod
-    async def function() -> AResult[str]:
+    async def function() -> Result[str]:
         """..."""
 
         a_result = await method()
         if a_result.is_not_ok():
             logger.error(f"Error. {a_result.info()}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message=a_result.message())
+            return Result(code=ResultCode.GENERAL_ERROR, message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 ```
 
-Check every AResult. Use result() after checking:
+Check every Result. Use result() after checking:
 
 ```python
 user: UserRow = a_result_user.result()

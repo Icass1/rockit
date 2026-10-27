@@ -7,7 +7,6 @@ from sqlalchemy.orm import selectinload
 from constants import BACKEND_URL
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
-from core.aResult import AResult, AResultCode
 from core.framework.media.image import Image
 from core.responses.baseAlbumWithoutSongsResponse import (
     BaseAlbumWithoutSongsResponse,
@@ -26,6 +25,7 @@ from core.responses.baseSongWithoutAlbumResponse import (
 )
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from spotifyScrapper.access.db.associationTables.album_external_images import (
     album_external_images,
 )
@@ -66,16 +66,16 @@ async def get_artist_response_async(
     session: AsyncSession,
     provider_name: str,
     artist_row: ArtistRow,
-) -> AResult[SpotifyScrapperArtistResponse]:
-    a_result_genres: AResult[list[str]] = await SpotifyScrapperAccess.get_genres_from_artist_async(
+) -> Result[SpotifyScrapperArtistResponse]:
+    a_result_genres: Result[list[str]] = await SpotifyScrapperAccess.get_genres_from_artist_async(
         session=session, artist=artist_row
     )
     genres: list[str] = a_result_genres.result() if a_result_genres.is_ok() else []
 
     public_id: str = artist_row.core_artist.public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=SpotifyScrapperArtistResponse(
             provider=provider_name,
@@ -127,8 +127,8 @@ async def get_track_response_async(
     session: AsyncSession,
     provider_name: str,
     track_row: TrackRow,
-) -> AResult[SpotifyScrapperTrackResponse]:
-    a_result_artists: AResult[
+) -> Result[SpotifyScrapperTrackResponse]:
+    a_result_artists: Result[
         list[ArtistRow]
     ] = await SpotifyScrapperAccess.get_artists_from_track_row_async(
         session=session, track_row=track_row
@@ -137,11 +137,11 @@ async def get_track_response_async(
         logger.error(
             f"Error getting artists for track {track_row.spotify_id}. {a_result_artists.info()}"
         )
-        return AResult(code=a_result_artists.code(), message=a_result_artists.message())
+        return Result(code=a_result_artists.code(), message=a_result_artists.message())
 
     artist_responses: list[SpotifyScrapperArtistResponse] = []
     for artist_row in a_result_artists.result():
-        a_result_artist: AResult[SpotifyScrapperArtistResponse] = await get_artist_response_async(
+        a_result_artist: Result[SpotifyScrapperArtistResponse] = await get_artist_response_async(
             session=session, provider_name=provider_name, artist_row=artist_row
         )
         if a_result_artist.is_ok():
@@ -154,7 +154,7 @@ async def get_track_response_async(
 
     public_id: str = track_row.core_song.public_id
 
-    a_result_album_artists: AResult[
+    a_result_album_artists: Result[
         list[ArtistRow]
     ] = await SpotifyScrapperAccess.get_artists_from_album_id_async(
         session=session, album_id=track_row.album_id
@@ -163,8 +163,8 @@ async def get_track_response_async(
         a_result_album_artists.result() if a_result_album_artists.is_ok() else []
     )
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=SpotifyScrapperTrackResponse(
             provider=provider_name,
@@ -194,8 +194,8 @@ async def get_album_with_songs_response_async(
     session: AsyncSession,
     provider_name: str,
     album_row: AlbumRow,
-) -> AResult[SpotifyScrapperAlbumResponse]:
-    a_result_tracks: AResult[
+) -> Result[SpotifyScrapperAlbumResponse]:
+    a_result_tracks: Result[
         list[TrackWithCoreMedia]
     ] = await SpotifyScrapperAccess.get_tracks_with_core_song_from_album_async(
         session=session, album_id=album_row.id
@@ -204,7 +204,7 @@ async def get_album_with_songs_response_async(
         a_result_tracks.result() if a_result_tracks.is_ok() else []
     )
 
-    a_result_external_images: AResult[
+    a_result_external_images: Result[
         list[ExternalImageRow]
     ] = await SpotifyScrapperAccess.get_external_images_from_album_id_async(
         session=session, album_id=album_row.id
@@ -213,7 +213,7 @@ async def get_album_with_songs_response_async(
         a_result_external_images.result() if a_result_external_images.is_ok() else []
     )
 
-    a_result_album_artists: AResult[
+    a_result_album_artists: Result[
         list[ArtistRow]
     ] = await SpotifyScrapperAccess.get_artists_from_album_id_async(
         session=session, album_id=album_row.id
@@ -238,7 +238,7 @@ async def get_album_with_songs_response_async(
     song_responses: list[BaseSongWithoutAlbumResponse] = []
     for twc in tracks_with_core:
         track_row = twc.track
-        a_result_track_artists: AResult[
+        a_result_track_artists: Result[
             list[ArtistRow]
         ] = await SpotifyScrapperAccess.get_artists_from_track_row_async(
             session=session, track_row=track_row
@@ -247,7 +247,7 @@ async def get_album_with_songs_response_async(
         track_artist_responses: list[SpotifyScrapperArtistResponse] = []
         if a_result_track_artists.is_ok():
             for artist_row in a_result_track_artists.result():
-                a_result_artist: AResult[
+                a_result_artist: Result[
                     SpotifyScrapperArtistResponse
                 ] = await get_artist_response_async(
                     session=session,
@@ -288,8 +288,8 @@ async def get_album_with_songs_response_async(
 
     public_id: str = album_row.core_album.public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=SpotifyScrapperAlbumResponse(
             provider=provider_name,
@@ -312,8 +312,8 @@ async def get_playlist_without_medias_response_async(
     session: AsyncSession,
     provider_name: str,
     playlist_row: PlaylistRow,
-) -> AResult[BasePlaylistWithoutMediasResponse]:
-    a_result_core_playlist: AResult[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
+) -> Result[BasePlaylistWithoutMediasResponse]:
+    a_result_core_playlist: Result[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
         session=session, id=playlist_row.id
     )
     if a_result_core_playlist.is_not_ok():
@@ -321,12 +321,12 @@ async def get_playlist_without_medias_response_async(
             f"Error getting core media for playlist {playlist_row.id}. "
             f"{a_result_core_playlist.info()}"
         )
-        return AResult(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
+        return Result(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
 
     public_id: str = a_result_core_playlist.result().public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithoutMediasResponse(
             type="playlist",
@@ -355,8 +355,8 @@ async def get_playlist_with_medias_response_async(
     session: AsyncSession,
     provider_name: str,
     playlist_row: PlaylistRow,
-) -> AResult[BasePlaylistWithMediasResponse]:
-    a_result_track_links: AResult[
+) -> Result[BasePlaylistWithMediasResponse]:
+    a_result_track_links: Result[
         list[PlaylistTrackLink]
     ] = await SpotifyScrapperAccess.get_playlist_track_links_async(
         session=session, playlist_id=playlist_row.id
@@ -369,7 +369,7 @@ async def get_playlist_with_medias_response_async(
     for ptl in playlist_track_links:
         track_row = ptl.track
         playlist_track_row = ptl.playlist_track
-        a_result_track: AResult[SpotifyScrapperTrackResponse] = await get_track_response_async(
+        a_result_track: Result[SpotifyScrapperTrackResponse] = await get_track_response_async(
             session=session, provider_name=provider_name, track_row=track_row
         )
         if a_result_track.is_not_ok():
@@ -399,7 +399,7 @@ async def get_playlist_with_medias_response_async(
             )
         )
 
-    a_result_core_playlist: AResult[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
+    a_result_core_playlist: Result[CoreMediaRow] = await MediaAccess.get_media_from_id_async(
         session=session, id=playlist_row.id
     )
     if a_result_core_playlist.is_not_ok():
@@ -407,12 +407,12 @@ async def get_playlist_with_medias_response_async(
             f"Error getting core media for playlist {playlist_row.id}. "
             f"{a_result_core_playlist.info()}"
         )
-        return AResult(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
+        return Result(code=a_result_core_playlist.code(), message=a_result_core_playlist.message())
 
     public_id: str = a_result_core_playlist.result().public_id
 
-    return AResult(
-        code=AResultCode.OK,
+    return Result(
+        code=ResultCode.OK,
         message="OK",
         result=BasePlaylistWithMediasResponse(
             type="playlist",
@@ -443,9 +443,9 @@ async def get_tracks_responses_async(
     session: AsyncSession,
     provider_name: str,
     track_rows: list[TrackRow],
-) -> AResult[list[SpotifyScrapperTrackResponse]]:
+) -> Result[list[SpotifyScrapperTrackResponse]]:
     if not track_rows:
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     try:
         track_ids = [t.id for t in track_rows]
@@ -547,11 +547,11 @@ async def get_tracks_responses_async(
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=responses)
+        return Result(code=ResultCode.OK, message="OK", result=responses)
 
     except Exception as e:
         logger.error(f"Error building bulk track responses: {e}")
-        return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))
+        return Result(code=ResultCode.GENERAL_ERROR, message=str(e))
 
 
 @time_it
@@ -559,9 +559,9 @@ async def get_artists_responses_async(
     session: AsyncSession,
     provider_name: str,
     artist_rows: list[ArtistRow],
-) -> AResult[list[SpotifyScrapperArtistResponse]]:
+) -> Result[list[SpotifyScrapperArtistResponse]]:
     if not artist_rows:
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     try:
         artist_ids = [a.id for a in artist_rows]
@@ -590,11 +590,11 @@ async def get_artists_responses_async(
             for artist_row in artist_rows
         ]
 
-        return AResult(code=AResultCode.OK, message="OK", result=responses)
+        return Result(code=ResultCode.OK, message="OK", result=responses)
 
     except Exception as e:
         logger.error(f"Error building bulk artist responses: {e}")
-        return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))
+        return Result(code=ResultCode.GENERAL_ERROR, message=str(e))
 
 
 @time_it
@@ -602,9 +602,9 @@ async def get_albums_with_songs_responses_async(
     session: AsyncSession,
     provider_name: str,
     album_rows: list[AlbumRow],
-) -> AResult[list[SpotifyScrapperAlbumResponse]]:
+) -> Result[list[SpotifyScrapperAlbumResponse]]:
     if not album_rows:
-        return AResult(code=AResultCode.OK, message="OK", result=[])
+        return Result(code=ResultCode.OK, message="OK", result=[])
 
     try:
         album_ids = [a.id for a in album_rows]
@@ -768,8 +768,8 @@ async def get_albums_with_songs_responses_async(
                 )
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=responses)
+        return Result(code=ResultCode.OK, message="OK", result=responses)
 
     except Exception as e:
         logger.error(f"Error building bulk album responses: {e}")
-        return AResult(code=AResultCode.GENERAL_ERROR, message=str(e))
+        return Result(code=ResultCode.GENERAL_ERROR, message=str(e))

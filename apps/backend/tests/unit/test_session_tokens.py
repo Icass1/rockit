@@ -8,9 +8,9 @@ from fastapi import Response
 from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.enums.platformEnum import PlatformEnum
 from core.framework.auth.session import Session
+from result import Result, ResultCode
 
 
 class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
@@ -33,7 +33,7 @@ class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
             expires_at=datetime.now(tz=UTC) + timedelta(hours=1),
         )
         self.lookup = AsyncMock(
-            return_value=AResult(code=AResultCode.OK, message="OK", result=self.row)
+            return_value=Result(code=ResultCode.OK, message="OK", result=self.row)
         )
         lookup_patch = patch(
             f"{self.module}.SessionAccess.get_session_from_id_async", new=self.lookup
@@ -56,7 +56,7 @@ class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
         return jwt.encode(claims=claims, key=self.secret, algorithm="HS256")
 
     async def test_creation_metadata_cookies_and_remember_me(self) -> None:
-        create = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=self.row))
+        create = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=self.row))
         with patch(f"{self.module}.SessionAccess.create_session_async", new=create):
             for platform, remember, ip, duration in [
                 (PlatformEnum.WEB, False, "192.0.2.1", 3600),
@@ -102,7 +102,7 @@ class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertTrue(result.is_ok())
         self.lookup.assert_awaited_once_with(session=self.session, session_id=token)
-        self.lookup.return_value = AResult(code=AResultCode.NOT_FOUND, message="Session not found")
+        self.lookup.return_value = Result(code=ResultCode.NOT_FOUND, message="Session not found")
         result = await Session.get_user_id_from_session_async(
             session=self.session, session_id=token
         )
@@ -176,7 +176,7 @@ class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_logout_revokes_token(self) -> None:
         token = self.token()
-        disable = AsyncMock(return_value=AResultCode(code=AResultCode.OK, message="OK"))
+        disable = AsyncMock(return_value=ResultCode(code=ResultCode.OK, message="OK"))
         with patch(
             f"{self.module}.SessionAccess.disable_session_from_session_id_async",
             new=disable,
@@ -187,7 +187,7 @@ class SessionTokenTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_database_failure_does_not_set_cookie(self) -> None:
         create = AsyncMock(
-            return_value=AResult(code=AResultCode.GENERAL_ERROR, message="Database error")
+            return_value=Result(code=ResultCode.GENERAL_ERROR, message="Database error")
         )
         response = Response()
         with patch(f"{self.module}.SessionAccess.create_session_async", new=create):

@@ -1,13 +1,13 @@
 from logging import Logger
 
-from sqlalchemy import Result as DBResult, Select, delete
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql.dml import Delete
 
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.media.image import Image
 from core.utils.createId import create_id
@@ -23,6 +23,7 @@ from default.access.db.ormModels.user_playlist_media_expanded import (
     UserPlaylistMediaExpandedRow,
 )
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -36,15 +37,15 @@ class PlaylistAccess:
         provider_id: int,
         description: str | None = None,
         is_public: bool = True,
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         try:
-            a_result_image: AResult[ImageRow] = await Image.get_image_from_path_async(
+            a_result_image: Result[ImageRow] = await Image.get_image_from_path_async(
                 session=session, path="playlist-placeholder.png"
             )
             if a_result_image.is_not_ok():
                 logger.error(f"Error getting placeholder image: {a_result_image.info()}")
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message="Failed to get placeholder image",
                 )
 
@@ -68,39 +69,39 @@ class PlaylistAccess:
             session.add(instance=playlist)
             await session.commit()
             await session.refresh(instance=playlist)
-            return AResult(code=AResultCode.OK, message="OK", result=playlist)
+            return Result(code=ResultCode.OK, message="OK", result=playlist)
         except Exception as e:
             logger.error(f"Error in create_playlist_async: {e}", exc_info=True)
             await session.rollback()
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to create playlist: {e}",
             )
 
     @staticmethod
     async def get_playlist_by_id_async(
         session: AsyncSession, playlist_id: int
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         try:
             result: PlaylistRow | None = await session.get(entity=PlaylistRow, ident=playlist_id)
             if not result:
                 logger.error(f"Playlist with {playlist_id} not found.")
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message=f"Playlist {playlist_id} not found.",
                 )
-            return AResult(code=AResultCode.OK, message="OK", result=result)
+            return Result(code=ResultCode.OK, message="OK", result=result)
         except Exception as e:
             logger.error(f"Error in get_playlist_by_id_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist: {e}",
             )
 
     @staticmethod
     async def get_playlist_by_public_id_async(
         session: AsyncSession, public_id: str
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         try:
             stmt: Select[tuple[PlaylistRow]] = (
                 select(PlaylistRow)
@@ -110,30 +111,30 @@ class PlaylistAccess:
             result: DBResult[tuple[PlaylistRow]] = await session.execute(statement=stmt)
             playlist: PlaylistRow | None = result.scalar_one_or_none()
             if not playlist:
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found.")
-            return AResult(code=AResultCode.OK, message="OK", result=playlist)
+                return Result(code=ResultCode.NOT_FOUND, message="Playlist not found.")
+            return Result(code=ResultCode.OK, message="OK", result=playlist)
         except Exception as e:
             logger.error(f"Error in get_playlist_by_public_id_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist: {e}",
             )
 
     @staticmethod
     async def get_user_playlists_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[PlaylistRow]]:
+    ) -> Result[list[PlaylistRow]]:
         try:
             stmt: Select[tuple[PlaylistRow]] = select(PlaylistRow).where(
                 PlaylistRow.owner_id == user_id
             )
             result: DBResult[tuple[PlaylistRow]] = await session.execute(statement=stmt)
             playlists: list[PlaylistRow] = list(result.scalars().all())
-            return AResult(code=AResultCode.OK, message="OK", result=playlists)
+            return Result(code=ResultCode.OK, message="OK", result=playlists)
         except Exception as e:
             logger.error(f"Error in get_user_playlists_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlists: {e}",
             )
 
@@ -144,11 +145,11 @@ class PlaylistAccess:
         name: str | None = None,
         description: str | None = None,
         is_public: bool | None = None,
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         try:
             playlist: PlaylistRow | None = await session.get(entity=PlaylistRow, ident=playlist_id)
             if not playlist:
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found.")
+                return Result(code=ResultCode.NOT_FOUND, message="Playlist not found.")
             if name is not None:
                 playlist.name = name
             if description is not None:
@@ -157,27 +158,27 @@ class PlaylistAccess:
                 playlist.is_public = is_public
             await session.commit()
             await session.refresh(instance=playlist)
-            return AResult(code=AResultCode.OK, message="OK", result=playlist)
+            return Result(code=ResultCode.OK, message="OK", result=playlist)
         except Exception as e:
             logger.error(f"Error in update_playlist_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to update playlist: {e}",
             )
 
     @staticmethod
-    async def delete_playlist_async(session: AsyncSession, playlist_id: int) -> AResult[bool]:
+    async def delete_playlist_async(session: AsyncSession, playlist_id: int) -> Result[bool]:
         try:
             playlist: PlaylistRow | None = await session.get(entity=PlaylistRow, ident=playlist_id)
             if not playlist:
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found.")
+                return Result(code=ResultCode.NOT_FOUND, message="Playlist not found.")
             await session.delete(instance=playlist)
             await session.commit()
-            return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=ResultCode.OK, message="OK", result=True)
         except Exception as e:
             logger.error(f"Error in delete_playlist_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to delete playlist: {e}",
             )
 
@@ -186,7 +187,7 @@ class PlaylistAccess:
         session: AsyncSession,
         playlist_id: int,
         media_id: int,
-    ) -> AResult[PlaylistMediaRow]:
+    ) -> Result[PlaylistMediaRow]:
         try:
             stmt: Select[tuple[PlaylistMediaRow]] = (
                 select(PlaylistMediaRow)
@@ -206,24 +207,24 @@ class PlaylistAccess:
             session.add(instance=playlist_media)
             await session.commit()
             await session.refresh(instance=playlist_media)
-            return AResult(code=AResultCode.OK, message="OK", result=playlist_media)
+            return Result(code=ResultCode.OK, message="OK", result=playlist_media)
         except Exception as e:
             logger.error(f"Error in add_media_to_playlist_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to add media to playlist: {e}",
             )
 
     @staticmethod
     async def remove_media_from_playlist_async(
         session: AsyncSession, playlist_media_id: int
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         try:
             playlist_media: PlaylistMediaRow | None = await session.get(
                 entity=PlaylistMediaRow, ident=playlist_media_id
             )
             if not playlist_media:
-                return AResult(code=AResultCode.NOT_FOUND, message="Playlist media not found.")
+                return Result(code=ResultCode.NOT_FOUND, message="Playlist media not found.")
 
             stmt_expanded: Delete[tuple[UserPlaylistMediaExpandedRow]] = delete(
                 UserPlaylistMediaExpandedRow
@@ -237,18 +238,18 @@ class PlaylistAccess:
 
             await session.delete(instance=playlist_media)
             await session.commit()
-            return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=ResultCode.OK, message="OK", result=True)
         except Exception as e:
             logger.error(f"Error in remove_media_from_playlist_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to remove media from playlist: {e}",
             )
 
     @staticmethod
     async def get_playlist_medias_async(
         session: AsyncSession, playlist_id: int
-    ) -> AResult[list[PlaylistMediaRow]]:
+    ) -> Result[list[PlaylistMediaRow]]:
         try:
             stmt: Select[tuple[PlaylistMediaRow]] = (
                 select(PlaylistMediaRow)
@@ -257,18 +258,18 @@ class PlaylistAccess:
             )
             result: DBResult[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
             medias: list[PlaylistMediaRow] = list(result.scalars().all())
-            return AResult(code=AResultCode.OK, message="OK", result=medias)
+            return Result(code=ResultCode.OK, message="OK", result=medias)
         except Exception as e:
             logger.error(f"Error in get_playlist_medias_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist medias: {e}",
             )
 
     @staticmethod
     async def get_playlist_media_by_media_id_async(
         session: AsyncSession, playlist_id: int, media_id: int
-    ) -> AResult[PlaylistMediaRow]:
+    ) -> Result[PlaylistMediaRow]:
         try:
             stmt: Select[tuple[PlaylistMediaRow]] = select(PlaylistMediaRow).where(
                 PlaylistMediaRow.playlist_id == playlist_id,
@@ -277,22 +278,22 @@ class PlaylistAccess:
             result: DBResult[tuple[PlaylistMediaRow]] = await session.execute(statement=stmt)
             playlist_media: PlaylistMediaRow | None = result.scalar_one_or_none()
             if not playlist_media:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message="Playlist media not found.",
                 )
-            return AResult(code=AResultCode.OK, message="OK", result=playlist_media)
+            return Result(code=ResultCode.OK, message="OK", result=playlist_media)
         except Exception as e:
             logger.error(f"Error in get_playlist_media_by_media_id_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get playlist media: {e}",
             )
 
     @staticmethod
     async def add_contributor_async(
         session: AsyncSession, playlist_id: int, user_id: int, role_key: int
-    ) -> AResult[PlaylistContributorRow]:
+    ) -> Result[PlaylistContributorRow]:
         try:
             contributor = PlaylistContributorRow(
                 playlist_id=playlist_id, user_id=user_id, role_key=role_key
@@ -300,18 +301,18 @@ class PlaylistAccess:
             session.add(instance=contributor)
             await session.commit()
             await session.refresh(instance=contributor)
-            return AResult(code=AResultCode.OK, message="OK", result=contributor)
+            return Result(code=ResultCode.OK, message="OK", result=contributor)
         except Exception as e:
             logger.error(f"Error in add_contributor_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to add contributor: {e}",
             )
 
     @staticmethod
     async def remove_contributor_async(
         session: AsyncSession, playlist_id: int, user_id: int
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         try:
             stmt: Select[tuple[PlaylistContributorRow]] = select(PlaylistContributorRow).where(
                 PlaylistContributorRow.playlist_id == playlist_id,
@@ -320,39 +321,39 @@ class PlaylistAccess:
             result: DBResult[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
             contributor: PlaylistContributorRow | None = result.scalar_one_or_none()
             if not contributor:
-                return AResult(code=AResultCode.NOT_FOUND, message="Contributor not found.")
+                return Result(code=ResultCode.NOT_FOUND, message="Contributor not found.")
             await session.delete(instance=contributor)
             await session.commit()
-            return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=ResultCode.OK, message="OK", result=True)
         except Exception as e:
             logger.error(f"Error in remove_contributor_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to remove contributor: {e}",
             )
 
     @staticmethod
     async def get_contributors_async(
         session: AsyncSession, playlist_id: int
-    ) -> AResult[list[PlaylistContributorRow]]:
+    ) -> Result[list[PlaylistContributorRow]]:
         try:
             stmt: Select[tuple[PlaylistContributorRow]] = select(PlaylistContributorRow).where(
                 PlaylistContributorRow.playlist_id == playlist_id
             )
             result: DBResult[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
             contributors: list[PlaylistContributorRow] = list(result.scalars().all())
-            return AResult(code=AResultCode.OK, message="OK", result=contributors)
+            return Result(code=ResultCode.OK, message="OK", result=contributors)
         except Exception as e:
             logger.error(f"Error in get_contributors_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get contributors: {e}",
             )
 
     @staticmethod
     async def get_user_role_in_playlist_async(
         session: AsyncSession, playlist_id: int, user_id: int
-    ) -> AResult[int]:
+    ) -> Result[int]:
         try:
             stmt: Select[tuple[PlaylistContributorRow]] = select(PlaylistContributorRow).where(
                 PlaylistContributorRow.playlist_id == playlist_id,
@@ -361,19 +362,19 @@ class PlaylistAccess:
             result: DBResult[tuple[PlaylistContributorRow]] = await session.execute(statement=stmt)
             contributor: PlaylistContributorRow | None = result.scalar_one_or_none()
             if not contributor:
-                return AResult(code=AResultCode.NOT_FOUND, message="User is not a contributor.")
-            return AResult(code=AResultCode.OK, message="OK", result=contributor.role_key)
+                return Result(code=ResultCode.NOT_FOUND, message="User is not a contributor.")
+            return Result(code=ResultCode.OK, message="OK", result=contributor.role_key)
         except Exception as e:
             logger.error(f"Error in get_user_role_in_playlist_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get user role: {e}",
             )
 
     @staticmethod
     async def disable_media_for_user_async(
         session: AsyncSession, user_id: int, playlist_media_id: int
-    ) -> AResult[UserDisabledPlaylistMediaRow]:
+    ) -> Result[UserDisabledPlaylistMediaRow]:
         try:
             disabled_media = UserDisabledPlaylistMediaRow(
                 user_id=user_id, playlist_media_id=playlist_media_id
@@ -381,18 +382,18 @@ class PlaylistAccess:
             session.add(instance=disabled_media)
             await session.commit()
             await session.refresh(instance=disabled_media)
-            return AResult(code=AResultCode.OK, message="OK", result=disabled_media)
+            return Result(code=ResultCode.OK, message="OK", result=disabled_media)
         except Exception as e:
             logger.error(f"Error in disable_media_for_user_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to disable media for user: {e}",
             )
 
     @staticmethod
     async def enable_media_for_user_async(
         session: AsyncSession, user_id: int, playlist_media_id: int
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         try:
             stmt: Select[tuple[UserDisabledPlaylistMediaRow]] = select(
                 UserDisabledPlaylistMediaRow
@@ -405,21 +406,21 @@ class PlaylistAccess:
             )
             disabled_media: UserDisabledPlaylistMediaRow | None = result.scalar_one_or_none()
             if not disabled_media:
-                return AResult(code=AResultCode.NOT_FOUND, message="Disabled media not found.")
+                return Result(code=ResultCode.NOT_FOUND, message="Disabled media not found.")
             await session.delete(instance=disabled_media)
             await session.commit()
-            return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=ResultCode.OK, message="OK", result=True)
         except Exception as e:
             logger.error(f"Error in enable_media_for_user_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to enable media for user: {e}",
             )
 
     @staticmethod
     async def get_user_media_expanded_map_async(
         session: AsyncSession, user_id: int, playlist_id: int
-    ) -> AResult[dict[int, bool]]:
+    ) -> Result[dict[int, bool]]:
         try:
             stmt: Select[tuple[UserPlaylistMediaExpandedRow]] = (
                 select(UserPlaylistMediaExpandedRow)
@@ -437,11 +438,11 @@ class PlaylistAccess:
             )
             rows: list[UserPlaylistMediaExpandedRow] = list(result.scalars().all())
             expanded_map: dict[int, bool] = {r.playlist_media_id: r.is_expanded for r in rows}
-            return AResult(code=AResultCode.OK, message="OK", result=expanded_map)
+            return Result(code=ResultCode.OK, message="OK", result=expanded_map)
         except Exception as e:
             logger.error(f"Error in get_user_media_expanded_map_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get expanded medias: {e}",
             )
 
@@ -452,7 +453,7 @@ class PlaylistAccess:
         playlist_id: int,
         playlist_media_id: int,
         is_expanded: bool,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         try:
             stmt: Select[tuple[UserPlaylistMediaExpandedRow]] = select(
                 UserPlaylistMediaExpandedRow
@@ -477,19 +478,19 @@ class PlaylistAccess:
                 session.add(instance=expanded_row)
 
             await session.commit()
-            return AResult(code=AResultCode.OK, message="OK", result=True)
+            return Result(code=ResultCode.OK, message="OK", result=True)
         except Exception as e:
             logger.error(f"Error in set_user_media_expanded_async: {e}", exc_info=True)
             await session.rollback()
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to set expanded state: {e}",
             )
 
     @staticmethod
     async def get_user_disabled_medias_async(
         session: AsyncSession, user_id: int, playlist_id: int
-    ) -> AResult[list[int]]:
+    ) -> Result[list[int]]:
         try:
             stmt: Select[tuple[UserDisabledPlaylistMediaRow]] = (
                 select(UserDisabledPlaylistMediaRow)
@@ -503,14 +504,14 @@ class PlaylistAccess:
                 statement=stmt
             )
             disabled_medias: list[UserDisabledPlaylistMediaRow] = list(result.scalars().all())
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[dm.playlist_media_id for dm in disabled_medias],
             )
         except Exception as e:
             logger.error(f"Error in get_user_disabled_medias_async: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get disabled medias: {e}",
             )

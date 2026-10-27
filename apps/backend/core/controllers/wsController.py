@@ -7,10 +7,10 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from constants import SESSION_COOKIE
 from core import db_context
 from core.access.db.ormModels.session import SessionRow
-from core.aResult import AResult
 from core.framework.auth.session import Session
 from core.framework.websocket.webSocketManager import ws_manager
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(prefix="/ws", tags=["Core", "WS"])
@@ -23,7 +23,7 @@ async def get_user_id_from_websocket(websocket: WebSocket) -> int:
 
     await db_context.wait_for_session_local_async()
     async with db_context.session_scope_async() as session:
-        a_result_session: AResult[SessionRow] = await Session.get_user_id_from_session_async(
+        a_result_session: Result[SessionRow] = await Session.get_user_id_from_session_async(
             session=session, session_id=session_id
         )
         if a_result_session.is_not_ok():

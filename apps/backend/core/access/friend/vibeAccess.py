@@ -2,9 +2,9 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.statsAccess import get_artist_info_cte
-from core.aResult import AResult, AResultCode
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -14,7 +14,7 @@ class VibeAccess:
     @safe_async
     async def get_shared_artist_stats_async(
         session: AsyncSession, user_id: int, friend_user_id: int
-    ) -> AResult[tuple[int, int, int]]:
+    ) -> Result[tuple[int, int, int]]:
         sql_shared = text(f"""
         WITH {get_artist_info_cte()}, my_artists AS (
             SELECT DISTINCT ai.artist_name
@@ -44,8 +44,8 @@ class VibeAccess:
         my_count = int(row.my_count or 0)
         friend_count = int(row.friend_count or 0)
         shared_count = int(row.shared_count or 0)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=(my_count, friend_count, shared_count),
         )

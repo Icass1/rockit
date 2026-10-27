@@ -10,20 +10,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.downloadAccess import DownloadAccess
 from core.access.downloadBrowseAccess import DownloadBrowseAccess
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.downloader import downloadBrowser, downloads_manager
 from core.framework.downloader.deferredDownload import DeferredDownload
 from core.framework.downloader.downloadBrowser import DownloadBrowser
 from core.framework.user.user import User
+from result import Result, ResultCode
 
 T = TypeVar("T")
 
 pytestmark = pytest.mark.unit
 
 
-def ok[T](value: T) -> AResult[T]:
-    return AResult(code=AResultCode.OK, message="OK", result=value)
+def ok[T](value: T) -> Result[T]:
+    return Result(code=ResultCode.OK, message="OK", result=value)
 
 
 async def test_browse_limits_headers_and_previews_before_loading_metadata(
@@ -96,7 +96,7 @@ async def test_group_item_page_checks_ownership_before_loading_tracks(
     monkeypatch.setattr(
         DownloadAccess,
         "get_download_group_by_public_id",
-        AsyncMock(return_value=AResult(code=AResultCode.NOT_FOUND, message="Not found")),
+        AsyncMock(return_value=Result(code=ResultCode.NOT_FOUND, message="Not found")),
     )
     tracks = AsyncMock()
     monkeypatch.setattr(DownloadBrowseAccess, "items_async", tracks)
@@ -107,7 +107,7 @@ async def test_group_item_page_checks_ownership_before_loading_tracks(
         offset=0,
         status="all",
     )
-    assert result.code() == AResultCode.NOT_FOUND
+    assert result.code() == ResultCode.NOT_FOUND
     tracks.assert_not_awaited()
 
 
@@ -206,7 +206,7 @@ async def test_active_group_actions_do_not_touch_files_or_queue(
         public_id="group",
         action="delete",
     )
-    assert result.code() == AResultCode.BAD_REQUEST
+    assert result.code() == ResultCode.BAD_REQUEST
     group_action.clear.assert_not_awaited()
     group_action.queue.assert_not_called()
 
@@ -223,7 +223,7 @@ async def test_another_active_group_prevents_file_changes(
         public_id="group",
         action="retry",
     )
-    assert result.code() == AResultCode.BAD_REQUEST
+    assert result.code() == ResultCode.BAD_REQUEST
     group_action.clear.assert_not_awaited()
 
 
@@ -263,9 +263,7 @@ async def test_deferred_download_prepares_only_inside_worker(
         artist="Artist",
         provider_id=0,
         retry_count=0,
-        download_method_async=AsyncMock(
-            return_value=AResultCode(code=AResultCode.OK, message="OK")
-        ),
+        download_method_async=AsyncMock(return_value=ResultCode(code=ResultCode.OK, message="OK")),
     )
     provider.start_download_async = AsyncMock(return_value=ok(task))
     monkeypatch.setattr(providers, "find_media_provider", Mock(return_value=provider))
@@ -349,20 +347,20 @@ async def test_library_group_rejects_hidden_group_and_propagates_save_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     group_action.group.source_public_id = None
-    save = AsyncMock(return_value=AResult(code=AResultCode.GENERAL_ERROR, message="Save failed"))
+    save = AsyncMock(return_value=Result(code=ResultCode.GENERAL_ERROR, message="Save failed"))
     monkeypatch.setattr(User, "add_medias_to_library_async", save)
     group_action.group.seen = True
     session = AsyncMock(spec=AsyncSession)
     result = await DownloadBrowser.group_action_async(
         session=session, user_id=1, public_id="group", action="library"
     )
-    assert result.code() == AResultCode.NOT_FOUND
+    assert result.code() == ResultCode.NOT_FOUND
     save.assert_not_awaited()
     group_action.group.seen = False
     result = await DownloadBrowser.group_action_async(
         session=session, user_id=1, public_id="group", action="library"
     )
-    assert result.code() == AResultCode.GENERAL_ERROR
+    assert result.code() == ResultCode.GENERAL_ERROR
     assert result.message() == "Save failed"
 
 
@@ -378,6 +376,6 @@ async def test_group_action_rejects_provider_without_download_management(
         public_id="group",
         action="retry",
     )
-    assert result.code() == AResultCode.BAD_REQUEST
+    assert result.code() == ResultCode.BAD_REQUEST
     group_action.clear.assert_not_awaited()
     group_action.queue.assert_not_called()

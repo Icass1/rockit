@@ -1,14 +1,15 @@
 from collections.abc import Sequence
 
-from sqlalchemy import Result as DBResult, Select, select
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.bookmark import BookmarkRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -18,19 +19,19 @@ class BookmarkAccess:
     @safe_async
     async def get_bookmarks_by_user_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[BookmarkRow]]:
+    ) -> Result[list[BookmarkRow]]:
         """Get all bookmarks for a user."""
 
         stmt: Select[tuple[BookmarkRow]] = select(BookmarkRow).where(BookmarkRow.user_id == user_id)
         result: DBResult[tuple[BookmarkRow]] = await session.execute(stmt)
         rows: Sequence[BookmarkRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
     async def get_bookmarks_by_user_and_media_async(
         session: AsyncSession, user_id: int, media_id: int
-    ) -> AResult[list[BookmarkRow]]:
+    ) -> Result[list[BookmarkRow]]:
         """Get all bookmarks for a user filtered by media."""
 
         stmt: Select[tuple[BookmarkRow]] = select(BookmarkRow).where(
@@ -39,13 +40,13 @@ class BookmarkAccess:
         )
         result: DBResult[tuple[BookmarkRow]] = await session.execute(stmt)
         rows: Sequence[BookmarkRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
     async def get_bookmark_by_public_id_async(
         session: AsyncSession, public_id: str, user_id: int
-    ) -> AResult[BookmarkRow]:
+    ) -> Result[BookmarkRow]:
         """Get a single bookmark by its public_id, scoped to a user."""
 
         stmt: Select[tuple[BookmarkRow]] = select(BookmarkRow).where(
@@ -55,8 +56,8 @@ class BookmarkAccess:
         result: DBResult[tuple[BookmarkRow]] = await session.execute(stmt)
         row: BookmarkRow | None = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Bookmark not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Bookmark not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
@@ -67,7 +68,7 @@ class BookmarkAccess:
         timestamp: float,
         mode_key: int,
         description: str | None,
-    ) -> AResult[BookmarkRow]:
+    ) -> Result[BookmarkRow]:
         """Create a new bookmark."""
 
         row = BookmarkRow(
@@ -81,7 +82,7 @@ class BookmarkAccess:
         session.add(row)
         await session.flush()
         await session.refresh(row)
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
@@ -91,7 +92,7 @@ class BookmarkAccess:
         timestamp: float | None,
         mode_key: int | None,
         description: str | None,
-    ) -> AResult[BookmarkRow]:
+    ) -> Result[BookmarkRow]:
         """Update mutable fields of a bookmark."""
 
         if timestamp is not None:
@@ -102,22 +103,22 @@ class BookmarkAccess:
             bookmark.description = description
         await session.flush()
         await session.refresh(bookmark)
-        return AResult(code=AResultCode.OK, message="OK", result=bookmark)
+        return Result(code=ResultCode.OK, message="OK", result=bookmark)
 
     @staticmethod
     @safe_async
-    async def delete_bookmark_async(session: AsyncSession, bookmark: BookmarkRow) -> AResult[None]:
+    async def delete_bookmark_async(session: AsyncSession, bookmark: BookmarkRow) -> Result[None]:
         """Delete a bookmark."""
 
         await session.delete(bookmark)
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK")
+        return Result(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def get_media_by_public_id_async(
         session: AsyncSession, media_public_id: str
-    ) -> AResult[CoreMediaRow]:
+    ) -> Result[CoreMediaRow]:
         """Resolve a media public_id to its internal row."""
 
         stmt: Select[tuple[CoreMediaRow]] = select(CoreMediaRow).where(
@@ -126,5 +127,5 @@ class BookmarkAccess:
         result: DBResult[tuple[CoreMediaRow]] = await session.execute(stmt)
         row: CoreMediaRow | None = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Media not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)

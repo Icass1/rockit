@@ -4,11 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.languageAccess import LanguageAccess
 from core.access.vocabularyAccess import VocabularyAccess
-from core.aResult import AResult, AResultCode
 from core.framework.models.vocabulary import (
     VocabularyImportData,
 )
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -17,7 +17,7 @@ class Vocabulary:
     @staticmethod
     async def get_vocabulary_by_lang_id(
         session: AsyncSession, lang_id: int
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Get vocabulary for a specific language."""
 
         a_result_vocabulary = await VocabularyAccess.get_vocabulary_dict_by_lang_id(
@@ -26,10 +26,10 @@ class Vocabulary:
 
         if a_result_vocabulary.is_not_ok():
             logger.error(f"Error getting vocabulary. {a_result_vocabulary.info()}")
-            return AResult(code=a_result_vocabulary.code(), message=a_result_vocabulary.message())
+            return Result(code=a_result_vocabulary.code(), message=a_result_vocabulary.message())
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=a_result_vocabulary.result(),
         )
@@ -37,7 +37,7 @@ class Vocabulary:
     @staticmethod
     async def get_vocabulary_by_lang_code(
         session: AsyncSession, lang_code: str
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Get vocabulary for a language by its language code."""
 
         a_result_language = await LanguageAccess.get_language_from_code(
@@ -45,7 +45,7 @@ class Vocabulary:
         )
         if a_result_language.is_not_ok():
             logger.error(f"Unable to get language from code. {a_result_language.info()}")
-            return AResult(code=a_result_language.code(), message=a_result_language.message())
+            return Result(code=a_result_language.code(), message=a_result_language.message())
 
         return await Vocabulary.get_vocabulary_by_lang_id(
             session=session, lang_id=a_result_language.result().id
@@ -55,7 +55,7 @@ class Vocabulary:
     async def import_vocabulary_from_dict(
         session: AsyncSession,
         vocabulary_data: VocabularyImportData,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Import vocabulary from a VocabularyImportData dataclass."""
 
         vocabulary_dict = vocabulary_data.vocabulary
@@ -76,18 +76,18 @@ class Vocabulary:
                 if a_result_upsert.is_not_ok():
                     logger.error(f"Error upserting vocabulary {key}: {a_result_upsert.info()}")
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     async def remove_keys_not_in_import(
         session: AsyncSession, valid_keys: list[str]
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Remove vocabulary keys that exist in database but not in import."""
 
         a_result_keys = await VocabularyAccess.get_all_keys(session=session)
         if a_result_keys.is_not_ok():
             logger.error(f"Error getting keys: {a_result_keys.info()}")
-            return AResult(code=a_result_keys.code(), message=a_result_keys.message())
+            return Result(code=a_result_keys.code(), message=a_result_keys.message())
 
         db_keys = set(a_result_keys.result())
         import_keys = set(valid_keys)
@@ -103,4 +103,4 @@ class Vocabulary:
             else:
                 logger.error(f"Error removing key {key}: {a_result_delete.info()}")
 
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)

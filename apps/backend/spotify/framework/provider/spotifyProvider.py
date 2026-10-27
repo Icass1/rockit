@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import MEDIA_PATH
 from core.access.enumAccess import EnumAccess
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
@@ -25,6 +24,7 @@ from core.responses.basePlaylistWithoutMediasResponse import (
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from spotify.access.artistCatalogAccess import ArtistCatalogAccess
 from spotify.access.db.ormEnums.copyrightTypeEnum import CopyrightTypeEnumRow
 from spotify.access.trackAccess import TrackAccess
@@ -118,7 +118,7 @@ class SpotifyProvider(BaseMediaProvider):
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None
-    ) -> AResult[ArtistCatalogResponse]:
+    ) -> Result[ArtistCatalogResponse]:
         """Expose this provider's indexed artist catalog to Core."""
         return await ArtistCatalogAccess.get_async(session=session, name=name, public_id=public_id)
 
@@ -127,12 +127,12 @@ class SpotifyProvider(BaseMediaProvider):
 
         return youtube_gate.cooldown_remaining()
 
-    async def check_health_async(self) -> AResultCode:
+    async def check_health_async(self) -> ResultCode:
         """Check the downloader used by this provider even if its source is disabled."""
         from youtube.framework.potProvider import PotProvider
 
         health = await PotProvider.check_health_async(max_age_seconds=30.0)
-        return AResultCode(code=health.code(), message=health.message())
+        return ResultCode(code=health.code(), message=health.message())
 
     def can_manage_downloads(self) -> bool:
         return True
@@ -160,27 +160,27 @@ class SpotifyProvider(BaseMediaProvider):
     @time_it
     async def get_songs_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Get Spotify tracks by public_ids — bulk with minimal DB queries."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_mapping = await Spotify.get_tracks_spotify_id_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_mapping.is_not_ok():
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         public_id_to_spotify_id: dict[str, str] = a_result_mapping.result()
         spotify_ids = list(public_id_to_spotify_id.values())
 
         if not spotify_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_all = await Spotify.get_tracks_async(session=session, spotify_ids=spotify_ids)
         if a_result_all.is_not_ok():
-            return AResult(code=a_result_all.code(), message=a_result_all.message())
+            return Result(code=a_result_all.code(), message=a_result_all.message())
         a_result_tracks = a_result_all
 
         a_result_responses = await get_tracks_responses_async(
@@ -189,7 +189,7 @@ class SpotifyProvider(BaseMediaProvider):
             track_rows=a_result_tracks.result(),
         )
         if a_result_responses.is_not_ok():
-            return AResult(code=a_result_responses.code(), message=a_result_responses.message())
+            return Result(code=a_result_responses.code(), message=a_result_responses.message())
 
         track_by_public_id: dict[str, BaseSongWithAlbumResponse] = {
             r.publicId: r for r in a_result_responses.result()
@@ -198,23 +198,23 @@ class SpotifyProvider(BaseMediaProvider):
         results: list[BaseSongWithAlbumResponse] = [
             track_by_public_id[pid] for pid in public_ids if pid in track_by_public_id
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @time_it
     async def get_albums_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseAlbumWithSongsResponse]]:
+    ) -> Result[list[BaseAlbumWithSongsResponse]]:
         """Get Spotify albums by public_ids — batched to minimise DB round-trips."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_rows = await Spotify.get_album_rows_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_rows.is_not_ok():
             logger.error(f"Error batch-fetching album rows. {a_result_rows.info()}")
-            return AResult(code=a_result_rows.code(), message=a_result_rows.message())
+            return Result(code=a_result_rows.code(), message=a_result_rows.message())
 
         album_rows = a_result_rows.result()
 
@@ -238,13 +238,13 @@ class SpotifyProvider(BaseMediaProvider):
             get_albums_with_songs_responses_async,
         )
 
-        a_result: AResult[list[SpotifyAlbumResponse]] = await get_albums_with_songs_responses_async(
+        a_result: Result[list[SpotifyAlbumResponse]] = await get_albums_with_songs_responses_async(
             session=session,
             provider_name=Spotify.provider_name,
             album_rows=album_rows,
         )
         if a_result.is_not_ok():
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         album_by_public_id: dict[str, BaseAlbumWithSongsResponse] = {
             r.publicId: r for r in a_result.result()
@@ -253,28 +253,28 @@ class SpotifyProvider(BaseMediaProvider):
         results: list[BaseAlbumWithSongsResponse] = [
             album_by_public_id[pid] for pid in public_ids if pid in album_by_public_id
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @time_it
     async def get_artists_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseArtistResponse]]:
+    ) -> Result[list[BaseArtistResponse]]:
         """Get Spotify artists by public_ids — bulk with minimal DB queries."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_mapping = await Spotify.get_artists_spotify_id_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_mapping.is_not_ok():
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         public_id_to_spotify_id: dict[str, str] = a_result_mapping.result()
         spotify_ids = list(public_id_to_spotify_id.values())
 
         if not spotify_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         await Spotify.get_artists_async(session=session, spotify_ids=spotify_ids)
 
@@ -282,7 +282,7 @@ class SpotifyProvider(BaseMediaProvider):
             session=session, spotify_ids=spotify_ids
         )
         if a_result_artists.is_not_ok():
-            return AResult(code=a_result_artists.code(), message=a_result_artists.message())
+            return Result(code=a_result_artists.code(), message=a_result_artists.message())
 
         a_result_responses = await get_artists_responses_async(
             session=session,
@@ -290,7 +290,7 @@ class SpotifyProvider(BaseMediaProvider):
             artist_rows=a_result_artists.result(),
         )
         if a_result_responses.is_not_ok():
-            return AResult(code=a_result_responses.code(), message=a_result_responses.message())
+            return Result(code=a_result_responses.code(), message=a_result_responses.message())
 
         artist_by_public_id: dict[str, BaseArtistResponse] = {
             r.publicId: r for r in a_result_responses.result()
@@ -299,28 +299,28 @@ class SpotifyProvider(BaseMediaProvider):
         results: list[BaseArtistResponse] = [
             artist_by_public_id[pid] for pid in public_ids if pid in artist_by_public_id
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=results)
+        return Result(code=ResultCode.OK, message="OK", result=results)
 
     @time_it
     async def get_playlists_with_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithMediasResponse]]:
         """Get Spotify playlists by public_ids with medias — bulk."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_mapping = await Spotify.get_playlists_spotify_id_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_mapping.is_not_ok():
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         public_id_to_spotify_id: dict[str, str] = a_result_mapping.result()
         spotify_ids = list(public_id_to_spotify_id.values())
 
         if not spotify_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         await Spotify.get_playlists_async(session=session, spotify_ids=spotify_ids)
 
@@ -328,7 +328,7 @@ class SpotifyProvider(BaseMediaProvider):
             session=session, spotify_ids=spotify_ids
         )
         if a_result_playlists.is_not_ok():
-            return AResult(code=a_result_playlists.code(), message=a_result_playlists.message())
+            return Result(code=a_result_playlists.code(), message=a_result_playlists.message())
 
         results: list[BasePlaylistWithMediasResponse] = []
         for playlist_row in a_result_playlists.result():
@@ -347,28 +347,28 @@ class SpotifyProvider(BaseMediaProvider):
         ordered: list[BasePlaylistWithMediasResponse] = [
             playlist_by_public_id[pid] for pid in public_ids if pid in playlist_by_public_id
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=ordered)
+        return Result(code=ResultCode.OK, message="OK", result=ordered)
 
     @time_it
     async def get_playlists_without_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithoutMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithoutMediasResponse]]:
         """Get Spotify playlists by public_ids without medias — bulk."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         a_result_mapping = await Spotify.get_playlists_spotify_id_from_public_ids_async(
             session=session, public_ids=public_ids
         )
         if a_result_mapping.is_not_ok():
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         public_id_to_spotify_id: dict[str, str] = a_result_mapping.result()
         spotify_ids = list(public_id_to_spotify_id.values())
 
         if not spotify_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         await Spotify.get_playlists_async(session=session, spotify_ids=spotify_ids)
 
@@ -376,7 +376,7 @@ class SpotifyProvider(BaseMediaProvider):
             session=session, spotify_ids=spotify_ids
         )
         if a_result_playlists.is_not_ok():
-            return AResult(code=a_result_playlists.code(), message=a_result_playlists.message())
+            return Result(code=a_result_playlists.code(), message=a_result_playlists.message())
 
         results: list[BasePlaylistWithoutMediasResponse] = []
         for playlist_row in a_result_playlists.result():
@@ -395,7 +395,7 @@ class SpotifyProvider(BaseMediaProvider):
         ordered: list[BasePlaylistWithoutMediasResponse] = [
             playlist_by_public_id[pid] for pid in public_ids if pid in playlist_by_public_id
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=ordered)
+        return Result(code=ResultCode.OK, message="OK", result=ordered)
 
     async def start_download_async(
         self,
@@ -404,7 +404,7 @@ class SpotifyProvider(BaseMediaProvider):
         download_id: int,
         download_group_id: int,
         user_id: int,
-    ) -> AResult[BaseDownload]:
+    ) -> Result[BaseDownload]:
         """Create a SpotifyDownload for the given track public_id."""
 
         a_result_mapping = await Spotify.get_tracks_spotify_id_from_public_ids_async(
@@ -412,23 +412,23 @@ class SpotifyProvider(BaseMediaProvider):
         )
         if a_result_mapping.is_not_ok():
             logger.error(f"Error resolving public_id. {a_result_mapping.info()}")
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         mapping = a_result_mapping.result()
         spotify_id = mapping.get(public_id)
         if not spotify_id:
-            return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
         a_result_tracks = await Spotify.get_tracks_from_db(
             session=session, spotify_ids=[spotify_id]
         )
         if a_result_tracks.is_not_ok() or not a_result_tracks.result():
             logger.error(f"Error getting track for download. {a_result_tracks.info()}")
-            return AResult(code=a_result_tracks.code(), message=a_result_tracks.message())
+            return Result(code=a_result_tracks.code(), message=a_result_tracks.message())
 
         track = a_result_tracks.result()[0]
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=SpotifyDownload(
                 public_id=public_id,
@@ -544,30 +544,30 @@ class SpotifyProvider(BaseMediaProvider):
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Get the duration of a Spotify track in milliseconds."""
 
         a_result_mapping = await Spotify.get_tracks_spotify_id_from_public_ids_async(
             session=session, public_ids=[public_id]
         )
         if a_result_mapping.is_not_ok():
-            return AResult(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return Result(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         mapping = a_result_mapping.result()
         spotify_id = mapping.get(public_id)
         if not spotify_id:
-            return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
         a_result_tracks = await Spotify.get_tracks_from_db(
             session=session, spotify_ids=[spotify_id]
         )
         if a_result_tracks.is_not_ok() or not a_result_tracks.result():
-            return AResult(code=a_result_tracks.code(), message=a_result_tracks.message())
+            return Result(code=a_result_tracks.code(), message=a_result_tracks.message())
 
         duration_ms = a_result_tracks.result()[0].duration_ms or 0
-        return AResult(code=AResultCode.OK, message="OK", result=duration_ms)
+        return Result(code=ResultCode.OK, message="OK", result=duration_ms)
 
-    async def delete_media_async(self, session: AsyncSession, public_id: str) -> AResultCode:
+    async def delete_media_async(self, session: AsyncSession, public_id: str) -> ResultCode:
         """Remove the media file for a Spotify track and reset its path in the database."""
 
         a_result_mapping = await Spotify.get_tracks_spotify_id_from_public_ids_async(
@@ -575,20 +575,20 @@ class SpotifyProvider(BaseMediaProvider):
         )
         if a_result_mapping.is_not_ok():
             logger.error(f"Error resolving public_id. {a_result_mapping.info()}")
-            return AResultCode(code=a_result_mapping.code(), message=a_result_mapping.message())
+            return ResultCode(code=a_result_mapping.code(), message=a_result_mapping.message())
 
         mapping = a_result_mapping.result()
         spotify_id = mapping.get(public_id)
         if not spotify_id:
             logger.error(f"No spotify_id found for public_id {public_id}")
-            return AResultCode(code=AResultCode.NOT_FOUND, message="Track not found")
+            return ResultCode(code=ResultCode.NOT_FOUND, message="Track not found")
 
         a_result_tracks = await Spotify.get_tracks_from_db(
             session=session, spotify_ids=[spotify_id]
         )
         if a_result_tracks.is_not_ok() or not a_result_tracks.result():
             logger.error(f"Error getting track from DB. {a_result_tracks.info()}")
-            return AResultCode(code=a_result_tracks.code(), message=a_result_tracks.message())
+            return ResultCode(code=a_result_tracks.code(), message=a_result_tracks.message())
 
         track = a_result_tracks.result()[0]
 
@@ -601,9 +601,9 @@ class SpotifyProvider(BaseMediaProvider):
         )
         if a_result_clear.is_not_ok():
             logger.error(f"Error clearing track path. {a_result_clear.info()}")
-            return AResultCode(code=a_result_clear.code(), message=a_result_clear.message())
+            return ResultCode(code=a_result_clear.code(), message=a_result_clear.message())
 
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
 
 provider = SpotifyProvider()

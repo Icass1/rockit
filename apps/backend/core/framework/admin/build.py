@@ -12,8 +12,8 @@ from core.access.adminVersionAccess import AdminVersionAccess
 from core.access.buildUploadSessionAccess import BuildUploadSessionAccess
 from core.access.db.ormModels.appVersion import AppVersionRow
 from core.access.db.ormModels.buildUploadSession import BuildUploadSessionRow
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -44,14 +44,14 @@ class AdminBuild:
     @staticmethod
     async def get_all_versions_async(
         session: AsyncSession,
-    ) -> AResult[list[AppVersionRow]]:
+    ) -> Result[list[AppVersionRow]]:
         """Get all build versions."""
 
         a_result = await AdminVersionAccess.get_all_versions_async(session=session)
         if a_result.is_not_ok():
             logger.error(f"Error fetching builds. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+            return Result(code=a_result.code(), message=a_result.message())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
     async def add_version_async(
@@ -59,7 +59,7 @@ class AdminBuild:
         version: str,
         apk_filename: str,
         description: str | None = None,
-    ) -> AResult[AppVersionRow]:
+    ) -> Result[AppVersionRow]:
         """Add a new build version."""
 
         a_result = await AdminVersionAccess.add_version_async(
@@ -70,8 +70,8 @@ class AdminBuild:
         )
         if a_result.is_not_ok():
             logger.error(f"Error adding build. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+            return Result(code=a_result.code(), message=a_result.message())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 
     @staticmethod
     async def start_chunked_upload_async(
@@ -81,7 +81,7 @@ class AdminBuild:
         total_size: int,
         version: str,
         description: str | None,
-    ) -> AResult[StartChunkedUploadResult]:
+    ) -> Result[StartChunkedUploadResult]:
         """Initialize a chunked APK upload session."""
 
         os.makedirs(BUILDS_PATH, exist_ok=True)
@@ -91,8 +91,8 @@ class AdminBuild:
         file_path = os.path.join(BUILDS_PATH, version_filename)
 
         if os.path.exists(file_path):
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message=f"A build with filename '{version_filename}' already exists.",
             )
 
@@ -116,10 +116,10 @@ class AdminBuild:
         if a_result.is_not_ok():
             os.remove(file_path)
             logger.error(f"Error creating upload session. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=StartChunkedUploadResult(
                 uploadId=public_id,
@@ -135,7 +135,7 @@ class AdminBuild:
         chunk_index: int,
         chunk_data: str,
         total_chunks: int,
-    ) -> AResult[UploadChunkResult]:
+    ) -> Result[UploadChunkResult]:
         """Upload a single chunk for a chunked upload session."""
 
         a_result = await BuildUploadSessionAccess.get_by_public_id_async(
@@ -144,24 +144,24 @@ class AdminBuild:
 
         if a_result.is_not_ok():
             logger.error(f"Upload session not found. {a_result.info()}")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=a_result.message(),
             )
 
         upload: BuildUploadSessionRow = a_result.result()
 
         if chunk_index >= total_chunks:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Invalid chunk index.",
             )
 
         try:
             decoded = base64.b64decode(chunk_data)
         except Exception:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Invalid base64 chunk data.",
             )
 
@@ -174,12 +174,12 @@ class AdminBuild:
 
         if a_result.is_not_ok():
             logger.error(f"Error incrementing chunk count. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         upload = a_result.result()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=UploadChunkResult(
                 uploadId=upload_id,
@@ -193,7 +193,7 @@ class AdminBuild:
     async def complete_chunked_upload_async(
         session: AsyncSession,
         upload_id: str,
-    ) -> AResult[CompleteUploadResult]:
+    ) -> Result[CompleteUploadResult]:
         """Finalize a chunked upload and persist the build record."""
 
         a_result = await BuildUploadSessionAccess.get_by_public_id_async(
@@ -202,8 +202,8 @@ class AdminBuild:
 
         if a_result.is_not_ok():
             logger.error(f"Upload session not found. {a_result.info()}")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=a_result.message(),
             )
 
@@ -214,8 +214,8 @@ class AdminBuild:
             await BuildUploadSessionAccess.delete_by_public_id_async(
                 session=session, public_id=upload_id
             )
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message=(
                     f"Incomplete upload. Expected {upload.total_chunks} chunks, got "
                     f"{upload.chunks_received}."
@@ -235,14 +235,14 @@ class AdminBuild:
                 session=session, public_id=upload_id
             )
             logger.error(f"Error adding build. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
         await BuildUploadSessionAccess.delete_by_public_id_async(
             session=session, public_id=upload_id
         )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=CompleteUploadResult(
                 message="BUILD_UPLOAD_SUCCESS",
@@ -259,7 +259,7 @@ class AdminBuild:
         file_content: str,
         version: str,
         description: str | None,
-    ) -> AResult[CompleteUploadResult]:
+    ) -> Result[CompleteUploadResult]:
         """Upload an APK file in a single request (non-chunked)."""
 
         os.makedirs(BUILDS_PATH, exist_ok=True)
@@ -269,16 +269,16 @@ class AdminBuild:
         file_path = os.path.join(BUILDS_PATH, version_filename)
 
         if os.path.exists(file_path):
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message=f"A build with filename '{version_filename}' already exists.",
             )
 
         try:
             decoded = base64.b64decode(file_content)
         except Exception:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Invalid base64 content.",
             )
 
@@ -295,10 +295,10 @@ class AdminBuild:
         if a_result.is_not_ok():
             os.remove(file_path)
             logger.error(f"Error adding build. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=CompleteUploadResult(
                 message="BUILD_UPLOAD_SUCCESS",

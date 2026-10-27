@@ -3,13 +3,13 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.adminSearchAccess import AdminSearchAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MEDIA_TYPE_NAMES
 from core.responses.adminSearchResponse import (
     AdminSearchResponse,
     AdminSearchResultItem,
 )
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -18,7 +18,7 @@ class AdminMediaSearch:
     @staticmethod
     async def search_async(
         session: AsyncSession, query: str, limit: int = 50
-    ) -> AResult[AdminSearchResponse]:
+    ) -> Result[AdminSearchResponse]:
         """Typo-tolerant search across every media type and provider, for admin use.
 
         Matches by exact internal id, exact/prefix public id, or fuzzy name
@@ -29,14 +29,14 @@ class AdminMediaSearch:
         query = query.strip()
         if not query:
             logger.error("Error searching media. Query is empty.")
-            return AResult(code=AResultCode.BAD_REQUEST, message="Query is empty.")
+            return Result(code=ResultCode.BAD_REQUEST, message="Query is empty.")
 
         a_result_index = await AdminSearchAccess.search_media_index_async(
             session=session, query=query, limit=limit
         )
         if a_result_index.is_not_ok():
             logger.error(f"Error searching media index. {a_result_index.info()}")
-            return AResult(code=a_result_index.code(), message=a_result_index.message())
+            return Result(code=a_result_index.code(), message=a_result_index.message())
 
         results: list[AdminSearchResultItem] = []
         for entry in a_result_index.result():
@@ -60,8 +60,8 @@ class AdminMediaSearch:
                 )
             )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=AdminSearchResponse(results=results),
         )

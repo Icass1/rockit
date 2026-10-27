@@ -9,10 +9,10 @@ from constants import IMAGES_PATH, MEDIA_PATH
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.providerStorage import provider_storage
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 from zipExport.models.exportFile import AudioTags, ExportFile
 
 logger: Logger = getLogger(name=__name__)
@@ -23,11 +23,11 @@ class DownloadZipAccess:
     @safe_async
     async def get_container_public_ids_async(
         session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Return the subset of public IDs that are albums or playlists."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         result = await session.execute(
             select(CoreMediaRow.public_id).where(
@@ -38,8 +38,8 @@ class DownloadZipAccess:
             )
         )
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[public_id for (public_id,) in result.all()],
         )
@@ -48,10 +48,10 @@ class DownloadZipAccess:
     @safe_async
     async def get_export_files_async(
         session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[ExportFile]]:
+    ) -> Result[list[ExportFile]]:
         """Resolve files and provider-owned audio tags with a fixed query count."""
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         media_ids = list(
             (
@@ -61,7 +61,7 @@ class DownloadZipAccess:
             ).scalars()
         )
         if not media_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
         files = provider_storage.files()
         statements = [
             source.audio_tags_statement(media_ids)
@@ -100,8 +100,8 @@ class DownloadZipAccess:
                     cover_path=os.path.join(IMAGES_PATH, cover) if cover else "",
                 )
             exported[row["public_id"]] = ExportFile(name=row["name"], path=path, tags=metadata)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[exported[key] for key in dict.fromkeys(public_ids) if key in exported],
         )

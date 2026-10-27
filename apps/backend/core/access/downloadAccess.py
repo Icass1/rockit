@@ -9,11 +9,11 @@ from core.access.db.ormModels.download import DownloadRow
 from core.access.db.ormModels.downloadGroup import DownloadGroupRow
 from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -26,7 +26,7 @@ class DownloadAccess:
         user_id: int,
         title: str,
         source_public_id: str | None = None,
-    ) -> AResult[DownloadGroupRow]:
+    ) -> Result[DownloadGroupRow]:
         """Create a new download group row and flush so its id is available."""
 
         row: DownloadGroupRow = DownloadGroupRow(
@@ -38,7 +38,7 @@ class DownloadAccess:
         row.source_public_id = source_public_id
         session.add(row)
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
@@ -46,7 +46,7 @@ class DownloadAccess:
         session: AsyncSession,
         download_group_id: int,
         media_id: int,
-    ) -> AResult[DownloadRow]:
+    ) -> Result[DownloadRow]:
         """Create a new download row for a single song and flush so its id is available."""
 
         result = await session.execute(
@@ -56,7 +56,7 @@ class DownloadAccess:
         )
         existing = result.scalar_one_or_none()
         if existing:
-            return AResult(code=AResultCode.OK, message="OK", result=existing)
+            return Result(code=ResultCode.OK, message="OK", result=existing)
 
         # result_any = await session.execute(
         #     select(DownloadRow)
@@ -65,8 +65,8 @@ class DownloadAccess:
         # )
         # existing_completed = result_any.scalar_one_or_none()
         # if existing_completed:
-        #     return AResult(
-        #         code=AResultCode.ALREADY_EXISTS,
+        #     return Result(
+        #         code=ResultCode.ALREADY_EXISTS,
         #         message="Download already exists for this media",
         #         result=existing_completed,
         #     )
@@ -79,7 +79,7 @@ class DownloadAccess:
         )
         session.add(row)
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
@@ -88,7 +88,7 @@ class DownloadAccess:
         download_id: int,
         completed: float,
         message: str,
-    ) -> AResult[DownloadStatusRow]:
+    ) -> Result[DownloadStatusRow]:
         """Insert a new row in DownloadStatusRow and flush so its id is available."""
 
         row: DownloadStatusRow = DownloadStatusRow(
@@ -99,14 +99,14 @@ class DownloadAccess:
         session.add(row)
         await session.flush()
 
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def update_download_group_completion(
         session: AsyncSession,
         download_group_id: int,
-    ) -> AResult[DownloadGroupRow]:
+    ) -> Result[DownloadGroupRow]:
         """Update download group with success/fail counts and date_ended."""
 
         result = await session.execute(
@@ -127,8 +127,8 @@ class DownloadAccess:
         )
         group: DownloadGroupRow | None = result_group.scalar_one_or_none()
         if group is None:
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Download group {download_group_id} not found",
             )
 
@@ -141,7 +141,7 @@ class DownloadAccess:
         else:
             group.status_key = DownloadStatusEnum.COMPLETED.value
 
-        return AResult(code=AResultCode.OK, message="OK", result=group)
+        return Result(code=ResultCode.OK, message="OK", result=group)
 
     @staticmethod
     @safe_async
@@ -149,7 +149,7 @@ class DownloadAccess:
         session: AsyncSession,
         download_id: int,
         status_key: int,
-    ) -> AResult[DownloadRow]:
+    ) -> Result[DownloadRow]:
         """Set status_key and date_ended on a download, then commit."""
 
         result = await session.execute(
@@ -159,15 +159,15 @@ class DownloadAccess:
         )
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Download {download_id} not found",
             )
 
         download.status_key = status_key
         download.date_ended = datetime.now(UTC)
         await session.commit()
-        return AResult(code=AResultCode.OK, message="OK", result=download)
+        return Result(code=ResultCode.OK, message="OK", result=download)
 
     @staticmethod
     @safe_async
@@ -175,26 +175,26 @@ class DownloadAccess:
         session: AsyncSession,
         download_id: int,
         status_key: int,
-    ) -> AResult[DownloadRow]:
+    ) -> Result[DownloadRow]:
         """Update the status_key of a download row."""
 
         result = await session.execute(select(DownloadRow).where(DownloadRow.id == download_id))
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Download {download_id} not found",
             )
 
         download.status_key = status_key
-        return AResult(code=AResultCode.OK, message="OK", result=download)
+        return Result(code=ResultCode.OK, message="OK", result=download)
 
     @staticmethod
     @safe_async
     async def get_download_groups_by_user_id(
         session: AsyncSession,
         user_id: int,
-    ) -> AResult[list[DownloadGroupRow]]:
+    ) -> Result[list[DownloadGroupRow]]:
         """Get all download groups for a user, ordered by most recent first."""
 
         result = await session.execute(
@@ -203,41 +203,41 @@ class DownloadAccess:
             .order_by(DownloadGroupRow.date_started.desc())
         )
         groups: list[DownloadGroupRow] = list(result.scalars().all())
-        return AResult(code=AResultCode.OK, message="OK", result=groups)
+        return Result(code=ResultCode.OK, message="OK", result=groups)
 
     @staticmethod
     @safe_async
     async def mark_download_group_seen(
         session: AsyncSession,
         group: DownloadGroupRow,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Mark a download group as seen."""
 
         await session.execute(
             update(DownloadGroupRow).where(DownloadGroupRow.id == group.id).values(seen=True)
         )
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     @safe_async
     async def get_downloads_by_group_id(
         session: AsyncSession,
         download_group_id: int,
-    ) -> AResult[list[DownloadRow]]:
+    ) -> Result[list[DownloadRow]]:
         """Get all download rows for a download group."""
 
         result = await session.execute(
             select(DownloadRow).where(DownloadRow.download_group_id == download_group_id)
         )
         downloads: list[DownloadRow] = list(result.scalars().all())
-        return AResult(code=AResultCode.OK, message="OK", result=downloads)
+        return Result(code=ResultCode.OK, message="OK", result=downloads)
 
     @staticmethod
     @safe_async
     async def get_downloads_by_group_ids(
         session: AsyncSession,
         download_group_ids: list[int],
-    ) -> AResult[list[DownloadRow]]:
+    ) -> Result[list[DownloadRow]]:
         """Get all download rows for multiple download groups in a single query.
 
         Uses selectinload to eager load the download status list and avoids the
@@ -253,7 +253,7 @@ class DownloadAccess:
             )
         )
         downloads: list[DownloadRow] = list(result.scalars().all())
-        return AResult(code=AResultCode.OK, message="OK", result=downloads)
+        return Result(code=ResultCode.OK, message="OK", result=downloads)
 
     @staticmethod
     @safe_async
@@ -262,7 +262,7 @@ class DownloadAccess:
         public_id: str,
         user_id: int,
         lock: bool = False,
-    ) -> AResult[DownloadGroupRow]:
+    ) -> Result[DownloadGroupRow]:
         """Get a download group by public_id, scoped to a user."""
 
         stmt = select(DownloadGroupRow).where(
@@ -273,18 +273,18 @@ class DownloadAccess:
         result = await session.execute(stmt)
         group: DownloadGroupRow | None = result.scalar_one_or_none()
         if group is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="Download group not found",
             )
-        return AResult(code=AResultCode.OK, message="OK", result=group)
+        return Result(code=ResultCode.OK, message="OK", result=group)
 
     @staticmethod
     @safe_async
     async def delete_download_group_with_downloads(
         session: AsyncSession,
         group: DownloadGroupRow,
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Delete a download group and all its child downloads."""
 
         result = await session.execute(
@@ -295,14 +295,14 @@ class DownloadAccess:
             await session.delete(download)
 
         await session.delete(group)
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)
 
     @staticmethod
     @safe_async
     async def get_download_by_id(
         session: AsyncSession,
         download_id: int,
-    ) -> AResult[DownloadRow]:
+    ) -> Result[DownloadRow]:
         """Get a download row by its id."""
 
         result = await session.execute(
@@ -312,52 +312,52 @@ class DownloadAccess:
         )
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=f"Download {download_id} not found",
             )
-        return AResult(code=AResultCode.OK, message="OK", result=download)
+        return Result(code=ResultCode.OK, message="OK", result=download)
 
     @staticmethod
     @safe_async
     async def increment_retry_count(
         session: AsyncSession,
         download_id: int,
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Increment the retry_count for a download and return the new count."""
 
         result = await session.execute(select(DownloadRow).where(DownloadRow.id == download_id))
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=f"Download {download_id} not found",
             )
 
         download.retry_count += 1
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=download.retry_count)
+        return Result(code=ResultCode.OK, message="OK", result=download.retry_count)
 
     @staticmethod
     @safe_async
     async def reset_download_for_retry(
         session: AsyncSession,
         download_id: int,
-    ) -> AResult[DownloadRow]:
+    ) -> Result[DownloadRow]:
         """Reset a download row to PENDING status with retry_count=0."""
 
         result = await session.execute(select(DownloadRow).where(DownloadRow.id == download_id))
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=f"Download {download_id} not found",
             )
 
         download.status_key = DownloadStatusEnum.PENDING.value
         download.retry_count = 0
         download.date_ended = None
-        return AResult(code=AResultCode.OK, message="OK", result=download)
+        return Result(code=ResultCode.OK, message="OK", result=download)
 
     @staticmethod
     @safe_async
@@ -365,7 +365,7 @@ class DownloadAccess:
         session: AsyncSession,
         media_public_id: str,
         user_id: int,
-    ) -> AResult[DownloadRow]:
+    ) -> Result[DownloadRow]:
         """Get the latest download row for a given media public_id and user."""
 
         result = await session.execute(
@@ -384,16 +384,16 @@ class DownloadAccess:
         )
         download: DownloadRow | None = result.scalar_one_or_none()
         if download is None:
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=f"No download found for media {media_public_id}",
             )
-        return AResult(code=AResultCode.OK, message="OK", result=download)
+        return Result(code=ResultCode.OK, message="OK", result=download)
 
     @staticmethod
     @safe_async
-    async def dismiss_download_async(session: AsyncSession, download: DownloadRow) -> AResult[bool]:
+    async def dismiss_download_async(session: AsyncSession, download: DownloadRow) -> Result[bool]:
         """Hide a terminal download without removing rows used by the worker."""
         download.seen = True
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=True)
+        return Result(code=ResultCode.OK, message="OK", result=True)

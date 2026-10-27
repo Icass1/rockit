@@ -9,7 +9,6 @@ import unittest
 from unittest import mock
 
 import tests  # noqa: F401  # pyright: ignore[reportUnusedImport]  (test env setup)
-from core.aResult import AResult, AResultCode
 from core.framework import recommendation as recommendation_module
 from core.framework.externalRecommendation.externalRecommendations import (
     ExternalRecommendations,
@@ -28,6 +27,7 @@ from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.searchResponse import BaseSearchResultsItem
 from core.responses.songListResponse import SongListResponse
+from result import Result, ResultCode
 from tests.unit.recommendations.test_external_recommendations import FakeProvider, failure, ok
 
 MODULE = "core.framework.recommendation"
@@ -74,8 +74,8 @@ def make_song(public_id: str, artist: str = "Artist") -> BaseSongWithAlbumRespon
     )
 
 
-def ok_result[T](value: T) -> AResult[T]:
-    return AResult(code=AResultCode.OK, message="OK", result=value)
+def ok_result[T](value: T) -> Result[T]:
+    return Result(code=ResultCode.OK, message="OK", result=value)
 
 
 class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
@@ -95,15 +95,15 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         self.in_library: dict[int, str] = {}
         self.missing_audio: set[str] = set()
 
-        async def recently_played(session: object, user_id: int, limit: int) -> AResult[list[str]]:
+        async def recently_played(session: object, user_id: int, limit: int) -> Result[list[str]]:
             return ok_result(list(self.recent))
 
-        async def liked(session: object, user_id: int) -> AResult[list[str]]:
+        async def liked(session: object, user_id: int) -> Result[list[str]]:
             return ok_result(list(self.liked))
 
         async def medias(
             session: object, public_ids: list[str], media_type_keys: list[int] | None
-        ) -> AResult[list[MediaModel]]:
+        ) -> Result[list[MediaModel]]:
             return ok_result(
                 [
                     MediaModel(public_id=pid, id=1000 + i, provider_id=1)
@@ -119,16 +119,16 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
                 song.downloaded = song.publicId not in self.missing_audio
             return songs
 
-        async def candidates(session: object, **kwargs: object) -> AResult[list[LocalCandidate]]:
+        async def candidates(session: object, **kwargs: object) -> Result[list[LocalCandidate]]:
             self.candidate_calls += 1
             return ok_result(list(self.candidates))
 
-        async def fallback(session: object, **kwargs: object) -> AResult[list[LocalCandidate]]:
+        async def fallback(session: object, **kwargs: object) -> Result[list[LocalCandidate]]:
             return ok_result(list(self.fallback))
 
         async def in_library(
             session: object, artists_and_tracks: object
-        ) -> AResult[dict[int, list[str]]]:
+        ) -> Result[dict[int, list[str]]]:
             return ok_result({idx: [pid] for idx, pid in self.in_library.items()})
 
         async def seed_track(session: object, public_id: str) -> SeedTrack | None:
@@ -159,7 +159,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         cache = cache_patcher.start()
         self.addCleanup(cache_patcher.stop)
         cache.get_cached_async = mock.AsyncMock(
-            return_value=AResult(code=AResultCode.NOT_FOUND, message="miss")
+            return_value=Result(code=ResultCode.NOT_FOUND, message="miss")
         )
         cache.set_cached_async = mock.AsyncMock(return_value=ok_result(True))
 
@@ -218,7 +218,7 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         local_only = ["rec-1", "rec-2", "popular-1"]
         for name, provider in {
             "http error": FakeProvider("primary", failure()),
-            "rate limited": FakeProvider("primary", failure(AResultCode.RATE_LIMITED)),
+            "rate limited": FakeProvider("primary", failure(ResultCode.RATE_LIMITED)),
             "raises": FakeProvider("primary", raises=True),
             "timeout": FakeProvider("primary", ok(("X", "Late")), delay=5),
             "empty": FakeProvider("primary", ok()),

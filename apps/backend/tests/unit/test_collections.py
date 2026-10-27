@@ -4,10 +4,10 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.collectionAccess import CollectionAccess
-from core.aResult import AResult, AResultCode
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
 from core.framework.media.collection import Collection
 from core.framework.models.collection import CollectionEntry, CollectionRecord
+from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
 
@@ -46,8 +46,8 @@ async def test_nested_playlist_preserves_contributor_roles(
 async def test_access_failure_is_propagated_without_loading_items(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    failure: AResult[list[CollectionRecord]] = AResult(
-        code=AResultCode.GENERAL_ERROR, message="Unavailable"
+    failure: Result[list[CollectionRecord]] = Result(
+        code=ResultCode.GENERAL_ERROR, message="Unavailable"
     )
     monkeypatch.setattr(CollectionAccess, "records_async", AsyncMock(return_value=failure))
     entries = AsyncMock()
@@ -66,28 +66,26 @@ async def test_empty_queue_does_not_replace_existing_queue(
     monkeypatch.setattr(
         CollectionAccess,
         "records_async",
-        AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=[root])),
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[root])),
     )
     monkeypatch.setattr(
         CollectionAccess,
         "entries_async",
         AsyncMock(
-            return_value=AResult[tuple[list[CollectionEntry], int]](
-                code=AResultCode.OK, message="OK", result=([], 0)
+            return_value=Result[tuple[list[CollectionEntry], int]](
+                code=ResultCode.OK, message="OK", result=([], 0)
             )
         ),
     )
     monkeypatch.setattr(
         CollectionAccess,
         "public_ids_async",
-        AsyncMock(
-            return_value=AResult[dict[int, str]](code=AResultCode.OK, message="OK", result={})
-        ),
+        AsyncMock(return_value=Result[dict[int, str]](code=ResultCode.OK, message="OK", result={})),
     )
     save = AsyncMock()
     monkeypatch.setattr(CollectionAccess, "save_queue_async", save)
     result = await Collection.queue_async(
         session=AsyncMock(spec=AsyncSession), public_id="list", user_id=1
     )
-    assert result.code() == AResultCode.BAD_REQUEST
+    assert result.code() == ResultCode.BAD_REQUEST
     save.assert_not_awaited()

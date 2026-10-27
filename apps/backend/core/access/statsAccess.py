@@ -13,13 +13,13 @@ from core.access.mediaInfoCte import (
 from core.access.mediaInfoCte import (
     get_media_info_cte as _get_media_info_cte,
 )
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
 from core.responses.statsRankedItemResponse import StatsRankedItemResponse
 from core.utils.statsLabels import DAY_NAMES, MONTH_NAMES
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -46,7 +46,7 @@ class StatsAccess:
     @staticmethod
     async def get_recently_clicked_media_public_ids_async(
         session: AsyncSession, user_id: int, limit: int = 12
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Rank recently clicked media, with a small boost for repeat interest."""
         try:
             result = await session.execute(
@@ -67,15 +67,15 @@ class StatsAccess:
                 """),
                 {"user_id": user_id, "limit": limit},
             )
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[row[0] for row in result.all()],
             )
         except Exception as e:
             logger.error(f"Error getting recently clicked media: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Failed to get recently clicked media",
             )
 
@@ -85,7 +85,7 @@ class StatsAccess:
         user_id: int,
         start_date: datetime,
         end_date: datetime,
-    ) -> AResult[dict[str, Any]]:
+    ) -> Result[dict[str, Any]]:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         listens AS (
@@ -123,8 +123,8 @@ class StatsAccess:
         ).fetchone()
 
         if row is None:
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result={
                     "medias_listened": 0,
@@ -134,8 +134,8 @@ class StatsAccess:
                     "avg_minutes": 0.0,
                 },
             )
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={
                 "medias_listened": int(row.medias_listened or 0),
@@ -153,7 +153,7 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
         group_by: str,
-    ) -> AResult[list[StatsMinutesEntryResponse]]:
+    ) -> Result[list[StatsMinutesEntryResponse]]:
         pg_period = {
             "hour": "hour",
             "day": "day",
@@ -262,7 +262,7 @@ class StatsAccess:
                 )
                 cur = nxt
 
-        return AResult(code=AResultCode.OK, message="OK", result=entries)
+        return Result(code=ResultCode.OK, message="OK", result=entries)
 
     @staticmethod
     async def get_top_songs_async(
@@ -271,7 +271,7 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         {_get_artist_info_cte()},
@@ -310,8 +310,8 @@ class StatsAccess:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -333,7 +333,7 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_media_info_cte()},
         {_get_artist_info_cte()},
@@ -372,8 +372,8 @@ class StatsAccess:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -395,7 +395,7 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_artist_info_cte()},
         artist_plays AS (
@@ -430,8 +430,8 @@ class StatsAccess:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -453,7 +453,7 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
         limit: int = 3,
-    ) -> AResult[list[StatsRankedItemResponse]]:
+    ) -> Result[list[StatsRankedItemResponse]]:
         sql = text(f"""
         WITH {_get_album_info_cte()},
         album_plays AS (
@@ -490,8 +490,8 @@ class StatsAccess:
                 },
             )
         ).fetchall()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[
                 StatsRankedItemResponse(
@@ -512,7 +512,7 @@ class StatsAccess:
         user_id: int,
         start_date: datetime,
         end_date: datetime,
-    ) -> AResult[list[StatsHeatmapCellResponse]]:
+    ) -> Result[list[StatsHeatmapCellResponse]]:
         sql = text(f"""
         WITH {_get_media_info_cte()}
         SELECT EXTRACT(HOUR FROM uml.date_added)::int            AS hour,
@@ -547,14 +547,14 @@ class StatsAccess:
             for day in range(7)
             for hour in range(HEATMAP_HOURS_START, HEATMAP_HOURS_END + 1)
         ]
-        return AResult(code=AResultCode.OK, message="OK", result=cells)
+        return Result(code=ResultCode.OK, message="OK", result=cells)
 
     @staticmethod
     @staticmethod
     async def get_first_listen_date_async(
         session: AsyncSession,
         user_id: int,
-    ) -> AResult[datetime | None]:
+    ) -> Result[datetime | None]:
         sql = text("""
         SELECT MIN(date_added) AS first_date
         FROM   core.user_media_listened
@@ -562,14 +562,14 @@ class StatsAccess:
         """)
         row = (await session.execute(sql, {"user_id": user_id})).fetchone()
         if row is None or row.first_date is None:
-            return AResult(code=AResultCode.OK, message="OK", result=None)
-        return AResult(code=AResultCode.OK, message="OK", result=_utc(row.first_date))
+            return Result(code=ResultCode.OK, message="OK", result=None)
+        return Result(code=ResultCode.OK, message="OK", result=_utc(row.first_date))
 
     @staticmethod
     async def get_current_streak_async(
         session: AsyncSession,
         user_id: int,
-    ) -> AResult[int]:
+    ) -> Result[int]:
         sql = text("""
         SELECT DISTINCT DATE(date_added) AS listen_date
         FROM   core.user_media_listened
@@ -580,13 +580,13 @@ class StatsAccess:
         dates = [r.listen_date for r in rows]
 
         if not dates:
-            return AResult(code=AResultCode.OK, message="OK", result=0)
+            return Result(code=ResultCode.OK, message="OK", result=0)
 
         today = datetime.now(UTC).date()
         yesterday = today - timedelta(days=1)
 
         if dates[0] < yesterday:
-            return AResult(code=AResultCode.OK, message="OK", result=0)
+            return Result(code=ResultCode.OK, message="OK", result=0)
 
         streak = 0
         expected = dates[0]
@@ -597,14 +597,14 @@ class StatsAccess:
             else:
                 break
 
-        return AResult(code=AResultCode.OK, message="OK", result=streak)
+        return Result(code=ResultCode.OK, message="OK", result=streak)
 
     @staticmethod
     async def get_recently_played_songs_async(
         session: AsyncSession,
         user_id: int,
         limit: int = 50,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Get recently played song public_ids ordered by date_added DESC."""
 
         sql = text(f"""
@@ -628,8 +628,8 @@ class StatsAccess:
             )
         ).fetchall()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
@@ -640,7 +640,7 @@ class StatsAccess:
         user_id: int,
         since_date: datetime,
         limit: int = 500,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Get song public_ids played after since_date, ordered by most recent first."""
 
         sql = text(f"""
@@ -666,8 +666,8 @@ class StatsAccess:
             )
         ).fetchall()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
@@ -679,7 +679,7 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
         limit: int = 50,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Get top songs and videos public_ids by play count."""
 
         limit_clause = f"LIMIT {limit}" if limit > 0 else ""
@@ -714,8 +714,8 @@ class StatsAccess:
             )
         ).fetchall()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
@@ -725,7 +725,7 @@ class StatsAccess:
         session: AsyncSession,
         user_id: int,
         limit: int = 50,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Get recently played songs and videos public_ids ordered by date_added DESC."""
 
         sql = text(f"""
@@ -749,8 +749,8 @@ class StatsAccess:
             )
         ).fetchall()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
@@ -760,7 +760,7 @@ class StatsAccess:
         session: AsyncSession,
         user_id: int,
         limit: int = 12,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Get song public_ids ordered by oldest last-played date ASC."""
 
         sql = text(f"""
@@ -784,8 +784,8 @@ class StatsAccess:
             )
         ).fetchall()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
@@ -797,7 +797,7 @@ class StatsAccess:
         start_date: datetime,
         end_date: datetime,
         limit: int = 30,
-    ) -> AResult[list[str]]:
+    ) -> Result[list[str]]:
         """Get a random selection of songs listened to in the given date range."""
 
         sql = text(f"""
@@ -825,8 +825,8 @@ class StatsAccess:
             )
         ).fetchall()
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=[str(r.public_id) for r in rows],
         )
@@ -844,14 +844,14 @@ def get_artist_info_cte() -> str:
 
 async def get_streaks_for_users_async(
     session: AsyncSession, user_ids: list[int]
-) -> AResult[dict[int, int]]:
+) -> Result[dict[int, int]]:
     """Calculate friend streaks in one query, including listeners with no history."""
     from sqlalchemy import bindparam
 
     from core.utils.safeAsyncCall import safe_async
 
     @safe_async
-    async def query(session: AsyncSession) -> AResult[dict[int, int]]:
+    async def query(session: AsyncSession) -> Result[dict[int, int]]:
         sql = text("""SELECT DISTINCT user_id, DATE(date_added) AS day
             FROM core.user_media_listened WHERE user_id IN :user_ids
             ORDER BY user_id, day DESC""").bindparams(bindparam("user_ids", expanding=True))
@@ -865,6 +865,6 @@ async def get_streaks_for_users_async(
             if day == expected[user_id]:
                 streaks[user_id] += 1
                 expected[user_id] = day - timedelta(days=1)
-        return AResult(code=AResultCode.OK, message="OK", result=streaks)
+        return Result(code=ResultCode.OK, message="OK", result=streaks)
 
     return await query(session)

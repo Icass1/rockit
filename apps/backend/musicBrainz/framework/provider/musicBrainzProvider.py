@@ -5,7 +5,6 @@ from uuid import UUID
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.provider.baseMetadataProvider import BaseMetadataProvider
 from core.responses.artistMetadataResponse import (
     ArtistImageSource,
@@ -23,6 +22,7 @@ from musicBrainz.framework.models.metadata import (
     SourceCatalog,
 )
 from musicBrainz.framework.musicBrainzApi import MusicBrainzApi
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -35,7 +35,7 @@ class MusicBrainzProvider(BaseMetadataProvider):
         offset: int = 0,
         limit: int = 25,
         refresh: bool = False,
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         """Return candidates and aliases, never silently merge similar names.
 
         Escape Lucene syntax so user names remain literal search terms. Preserve
@@ -44,7 +44,7 @@ class MusicBrainzProvider(BaseMetadataProvider):
         normalized = " ".join(unicodedata.normalize("NFC", name).split()).casefold()
         if not normalized or len(normalized) > 200 or offset < 0 or not 1 <= limit <= 100:
             logger.warning("Invalid MusicBrainz artist search")
-            return AResult(code=AResultCode.BAD_REQUEST, message="Invalid artist search")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid artist search")
         escaped = re.sub(r'([+\-!(){}\[\]^"~*?:\\/&|])', r"\\\1", normalized)
         result = await MusicBrainzApi.fetch_async(
             path="artist",
@@ -65,8 +65,8 @@ class MusicBrainzProvider(BaseMetadataProvider):
             artists = SourceArtistSearch.model_validate(response.data).artists
         except ValidationError:
             logger.exception("Invalid MusicBrainz artist search response")
-            return AResult(
-                code=AResultCode.SERVICE_UNAVAILABLE,
+            return Result(
+                code=ResultCode.SERVICE_UNAVAILABLE,
                 message="Invalid metadata response",
             )
         candidates = ArtistMetadataCandidates(
@@ -87,8 +87,8 @@ class MusicBrainzProvider(BaseMetadataProvider):
                 for artist in sorted(artists, key=lambda artist: artist.score, reverse=True)
             ]
         )
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=response.model_copy(
                 update={
@@ -108,16 +108,16 @@ class MusicBrainzProvider(BaseMetadataProvider):
         offset: int = 0,
         limit: int = 100,
         refresh: bool = False,
-    ) -> AResult[MetadataResponse]:
+    ) -> Result[MetadataResponse]:
         """Fetch one entity/page only; full provider JSON is preserved in PostgreSQL."""
         try:
             mbid = str(UUID(external_id))
         except ValueError:
             logger.warning("Invalid MusicBrainz external identifier")
-            return AResult(code=AResultCode.BAD_REQUEST, message="Invalid external identifier")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid external identifier")
         if offset < 0 or not 1 <= limit <= 100:
             logger.warning("Invalid MusicBrainz pagination")
-            return AResult(code=AResultCode.BAD_REQUEST, message="Invalid pagination")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid pagination")
         presentation = entity
         entity = {
             "artist-profile": "artist",
@@ -149,7 +149,7 @@ class MusicBrainzProvider(BaseMetadataProvider):
                 params["release-group-status"] = "website-default"
         else:
             logger.warning("Unsupported metadata entity: %s", entity)
-            return AResult(code=AResultCode.BAD_REQUEST, message="Unsupported metadata entity")
+            return Result(code=ResultCode.BAD_REQUEST, message="Unsupported metadata entity")
         result = await MusicBrainzApi.fetch_async(
             path=path, params=params, entity=entity, external_id=mbid, refresh=refresh
         )
@@ -160,11 +160,11 @@ class MusicBrainzProvider(BaseMetadataProvider):
             projected = self._project_artist_metadata(response, presentation, offset)
         except ValidationError:
             logger.exception("Invalid MusicBrainz %s response", presentation)
-            return AResult(
-                code=AResultCode.SERVICE_UNAVAILABLE,
+            return Result(
+                code=ResultCode.SERVICE_UNAVAILABLE,
                 message="Invalid metadata response",
             )
-        return AResult(code=AResultCode.OK, message="OK", result=projected)
+        return Result(code=ResultCode.OK, message="OK", result=projected)
 
     @staticmethod
     def _project_artist_metadata(

@@ -1,12 +1,12 @@
 from typing import Any
 
-from sqlalchemy import Result as DBResult, Select, and_, select
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, and_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.utils.createId import create_id
 from core.utils.timeIt import time_it
@@ -23,6 +23,7 @@ from radioBrowser.access.db.ormModels.stationLanguageCode import (
 )
 from radioBrowser.access.db.ormModels.stationTag import StationTagRow
 from radioBrowser.access.db.ormModels.tag import TagRow
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -32,7 +33,7 @@ class RadioAccess:
     async def get_station_from_radio_id_async(
         session: AsyncSession,
         radio_id: str,
-    ) -> AResult[StationRow]:
+    ) -> Result[StationRow]:
         """Get a station by its Radio Browser UUID."""
 
         try:
@@ -52,14 +53,14 @@ class RadioAccess:
             station: StationRow | None = result.scalar_one_or_none()
 
             if not station:
-                return AResult(code=AResultCode.NOT_FOUND, message="Station not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Station not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=station)
+            return Result(code=ResultCode.OK, message="OK", result=station)
 
         except Exception as e:
             logger.error(f"Failed to get station from radio_id {radio_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get station from radio_id {radio_id}: {e}",
             )
 
@@ -67,7 +68,7 @@ class RadioAccess:
     async def get_station_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[StationRow]:
+    ) -> Result[StationRow]:
         """Get a station by its public_id."""
 
         try:
@@ -94,14 +95,14 @@ class RadioAccess:
             station: StationRow | None = result.scalar_one_or_none()
 
             if not station:
-                return AResult(code=AResultCode.NOT_FOUND, message="Station not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Station not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=station)
+            return Result(code=ResultCode.OK, message="OK", result=station)
 
         except Exception as e:
             logger.error(f"Failed to get station from public_id {public_id}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get station from public_id {public_id}: {e}",
             )
 
@@ -109,7 +110,7 @@ class RadioAccess:
     async def get_stations_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[StationRow]]:
+    ) -> Result[list[StationRow]]:
         """Get stations by public_ids."""
 
         try:
@@ -135,12 +136,12 @@ class RadioAccess:
             result: DBResult[tuple[StationRow]] = await session.execute(stmt)
             stations: list[StationRow] = list(result.scalars().all())
 
-            return AResult(code=AResultCode.OK, message="OK", result=stations)
+            return Result(code=ResultCode.OK, message="OK", result=stations)
 
         except Exception as e:
             logger.error(f"Failed to get stations from public_ids {public_ids}: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get stations from public_ids {public_ids}: {e}",
             )
 
@@ -149,7 +150,7 @@ class RadioAccess:
         session: AsyncSession,
         limit: int = 1000,
         offset: int = 0,
-    ) -> AResult[list[StationRow]]:
+    ) -> Result[list[StationRow]]:
         """Get stations that have geo coordinates."""
 
         try:
@@ -182,12 +183,12 @@ class RadioAccess:
             result: DBResult[tuple[StationRow]] = await session.execute(stmt)
             stations: list[StationRow] = list(result.scalars().all())
 
-            return AResult(code=AResultCode.OK, message="OK", result=stations)
+            return Result(code=ResultCode.OK, message="OK", result=stations)
 
         except Exception as e:
             logger.error(f"Failed to get stations with geo: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get stations with geo: {e}",
             )
 
@@ -195,21 +196,21 @@ class RadioAccess:
     async def batch_get_existing_radio_ids_async(
         session: AsyncSession,
         radio_ids: list[str],
-    ) -> AResult[set[str]]:
+    ) -> Result[set[str]]:
         """Given a list of radio_ids, return the subset that already exist in DB."""
 
         if not radio_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=set())
+            return Result(code=ResultCode.OK, message="OK", result=set())
 
         try:
             stmt = select(StationRow.radio_id).where(StationRow.radio_id.in_(radio_ids))
             result = await session.execute(stmt)
             existing: set[str] = {row[0] for row in result.all()}
-            return AResult(code=AResultCode.OK, message="OK", result=existing)
+            return Result(code=ResultCode.OK, message="OK", result=existing)
         except Exception as e:
             logger.error(f"Failed to batch-check existing radio_ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to batch-check existing radio_ids: {e}",
             )
 
@@ -217,11 +218,11 @@ class RadioAccess:
     async def batch_get_stations_by_radio_ids_async(
         session: AsyncSession,
         radio_ids: list[str],
-    ) -> AResult[dict[str, StationRow]]:
+    ) -> Result[dict[str, StationRow]]:
         """Load multiple stations by their radio_ids in a single query."""
 
         if not radio_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         try:
             stmt = (
@@ -238,11 +239,11 @@ class RadioAccess:
             )
             result = await session.execute(stmt)
             stations: dict[str, StationRow] = {s.radio_id: s for s in result.scalars().all()}
-            return AResult(code=AResultCode.OK, message="OK", result=stations)
+            return Result(code=ResultCode.OK, message="OK", result=stations)
         except Exception as e:
             logger.error(f"Failed to batch-get stations by radio_ids: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to batch-get stations by radio_ids: {e}",
             )
 
@@ -251,7 +252,7 @@ class RadioAccess:
         session: AsyncSession,
         stations_data: list[dict[str, Any]],
         provider_id: int,
-    ) -> AResult[dict[str, StationRow]]:
+    ) -> Result[dict[str, StationRow]]:
         """Batch get or create multiple stations at once.
 
         1. Single query to find which radio_ids already exist
@@ -260,7 +261,7 @@ class RadioAccess:
         """
 
         if not stations_data:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         try:
             radio_ids: list[str] = [sd["radio_id"] for sd in stations_data]
@@ -269,7 +270,7 @@ class RadioAccess:
                 session=session, radio_ids=radio_ids
             )
             if a_existing.is_not_ok():
-                return AResult(code=a_existing.code(), message=a_existing.message())
+                return Result(code=a_existing.code(), message=a_existing.message())
             existing_ids: set[str] = a_existing.result()
 
             result_map: dict[str, StationRow] = {}
@@ -284,7 +285,7 @@ class RadioAccess:
             new_data = [sd for sd in stations_data if sd["radio_id"] not in existing_ids]
 
             if not new_data:
-                return AResult(code=AResultCode.OK, message="OK", result=result_map)
+                return Result(code=ResultCode.OK, message="OK", result=result_map)
 
             await RadioAccess._batch_create_new_stations_async(
                 session=session,
@@ -293,12 +294,12 @@ class RadioAccess:
                 result_map=result_map,
             )
 
-            return AResult(code=AResultCode.OK, message="OK", result=result_map)
+            return Result(code=ResultCode.OK, message="OK", result=result_map)
 
         except Exception as e:
             logger.error(f"Failed to batch get-or-create stations: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to batch get-or-create stations: {e}",
             )
 
@@ -399,7 +400,7 @@ class RadioAccess:
     async def get_or_create_tag_async(
         session: AsyncSession,
         tag_name: str,
-    ) -> AResult[TagRow]:
+    ) -> Result[TagRow]:
         """Get an existing tag or create a new one."""
 
         try:
@@ -408,29 +409,29 @@ class RadioAccess:
             tag_row: TagRow | None = result.scalar_one_or_none()
 
             if tag_row:
-                return AResult(code=AResultCode.OK, message="OK", result=tag_row)
+                return Result(code=ResultCode.OK, message="OK", result=tag_row)
 
             tag_row = TagRow(tag=tag_name)
             session.add(tag_row)
             await session.flush()
 
-            return AResult(code=AResultCode.OK, message="OK", result=tag_row)
+            return Result(code=ResultCode.OK, message="OK", result=tag_row)
 
         except IntegrityError:
             stmt = select(TagRow).where(TagRow.tag == tag_name)
             result = await session.execute(stmt)
             tag_row = result.scalar_one_or_none()
             if tag_row:
-                return AResult(code=AResultCode.OK, message="OK", result=tag_row)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+                return Result(code=ResultCode.OK, message="OK", result=tag_row)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create tag: {tag_name}",
             )
 
         except Exception as e:
             logger.error(f"Failed to get/create tag: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create tag: {e}",
             )
 
@@ -439,7 +440,7 @@ class RadioAccess:
     async def get_or_create_language_code_async(
         session: AsyncSession,
         language_code: str,
-    ) -> AResult[LanguageCodeRow]:
+    ) -> Result[LanguageCodeRow]:
         """Get an existing language code or create a new one."""
 
         try:
@@ -448,29 +449,29 @@ class RadioAccess:
             lc_row: LanguageCodeRow | None = result.scalar_one_or_none()
 
             if lc_row:
-                return AResult(code=AResultCode.OK, message="OK", result=lc_row)
+                return Result(code=ResultCode.OK, message="OK", result=lc_row)
 
             lc_row = LanguageCodeRow(language_code=language_code)
             session.add(lc_row)
             await session.flush()
 
-            return AResult(code=AResultCode.OK, message="OK", result=lc_row)
+            return Result(code=ResultCode.OK, message="OK", result=lc_row)
 
         except IntegrityError:
             stmt = select(LanguageCodeRow).where(LanguageCodeRow.language_code == language_code)
             result = await session.execute(stmt)
             lc_row = result.scalar_one_or_none()
             if lc_row:
-                return AResult(code=AResultCode.OK, message="OK", result=lc_row)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+                return Result(code=ResultCode.OK, message="OK", result=lc_row)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create language code: {language_code}",
             )
 
         except Exception as e:
             logger.error(f"Failed to get/create language code: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create language code: {e}",
             )
 
@@ -480,7 +481,7 @@ class RadioAccess:
         session: AsyncSession,
         name: str,
         country_code: str,
-    ) -> AResult[CountryRow]:
+    ) -> Result[CountryRow]:
         """Get an existing country or create a new one."""
 
         try:
@@ -489,29 +490,29 @@ class RadioAccess:
             country_row: CountryRow | None = result.scalar_one_or_none()
 
             if country_row:
-                return AResult(code=AResultCode.OK, message="OK", result=country_row)
+                return Result(code=ResultCode.OK, message="OK", result=country_row)
 
             country_row = CountryRow(name=name, country_code=country_code)
             session.add(country_row)
             await session.flush()
 
-            return AResult(code=AResultCode.OK, message="OK", result=country_row)
+            return Result(code=ResultCode.OK, message="OK", result=country_row)
 
         except IntegrityError:
             stmt = select(CountryRow).where(CountryRow.name == name)
             result = await session.execute(stmt)
             country_row = result.scalar_one_or_none()
             if country_row:
-                return AResult(code=AResultCode.OK, message="OK", result=country_row)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+                return Result(code=ResultCode.OK, message="OK", result=country_row)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create country: {name}",
             )
 
         except Exception as e:
             logger.error(f"Failed to get/create country: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create country: {e}",
             )
 
@@ -521,7 +522,7 @@ class RadioAccess:
         session: AsyncSession,
         name: str,
         country_id: int | None = None,
-    ) -> AResult[StateRow]:
+    ) -> Result[StateRow]:
         """Get an existing state or create a new one."""
 
         try:
@@ -535,13 +536,13 @@ class RadioAccess:
             state_row: StateRow | None = result.scalar_one_or_none()
 
             if state_row:
-                return AResult(code=AResultCode.OK, message="OK", result=state_row)
+                return Result(code=ResultCode.OK, message="OK", result=state_row)
 
             state_row = StateRow(name=name, country_id=country_id)
             session.add(state_row)
             await session.flush()
 
-            return AResult(code=AResultCode.OK, message="OK", result=state_row)
+            return Result(code=ResultCode.OK, message="OK", result=state_row)
 
         except IntegrityError:
             stmt = select(StateRow).where(
@@ -553,16 +554,16 @@ class RadioAccess:
             result = await session.execute(stmt)
             state_row = result.scalar_one_or_none()
             if state_row:
-                return AResult(code=AResultCode.OK, message="OK", result=state_row)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+                return Result(code=ResultCode.OK, message="OK", result=state_row)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create state: {name}",
             )
 
         except Exception as e:
             logger.error(f"Failed to get/create state: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create state: {e}",
             )
 
@@ -571,7 +572,7 @@ class RadioAccess:
     async def get_or_create_codec_async(
         session: AsyncSession,
         name: str,
-    ) -> AResult[CodecRow]:
+    ) -> Result[CodecRow]:
         """Get an existing codec or create a new one."""
 
         try:
@@ -580,29 +581,29 @@ class RadioAccess:
             codec_row: CodecRow | None = result.scalar_one_or_none()
 
             if codec_row:
-                return AResult(code=AResultCode.OK, message="OK", result=codec_row)
+                return Result(code=ResultCode.OK, message="OK", result=codec_row)
 
             codec_row = CodecRow(name=name)
             session.add(codec_row)
             await session.flush()
 
-            return AResult(code=AResultCode.OK, message="OK", result=codec_row)
+            return Result(code=ResultCode.OK, message="OK", result=codec_row)
 
         except IntegrityError:
             stmt = select(CodecRow).where(CodecRow.name == name)
             result = await session.execute(stmt)
             codec_row = result.scalar_one_or_none()
             if codec_row:
-                return AResult(code=AResultCode.OK, message="OK", result=codec_row)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+                return Result(code=ResultCode.OK, message="OK", result=codec_row)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create codec: {name}",
             )
 
         except Exception as e:
             logger.error(f"Failed to get/create codec: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create codec: {e}",
             )
 
@@ -701,7 +702,7 @@ class RadioAccess:
         geo_long: float | None = None,
         tags: list[str] | None = None,
         language_codes: list[str] | None = None,
-    ) -> AResult[StationRow]:
+    ) -> Result[StationRow]:
         """Get an existing station or create a new one."""
 
         try:
@@ -709,8 +710,8 @@ class RadioAccess:
                 session=session, radio_id=radio_id
             )
             if a_result_existing.is_ok():
-                return AResult(
-                    code=AResultCode.OK,
+                return Result(
+                    code=ResultCode.OK,
                     message="OK",
                     result=a_result_existing.result(),
                 )
@@ -819,21 +820,21 @@ class RadioAccess:
                     session=session, radio_id=radio_id
                 )
                 if a_result_existing.is_ok():
-                    return AResult(
-                        code=AResultCode.OK,
+                    return Result(
+                        code=ResultCode.OK,
                         message="OK",
                         result=a_result_existing.result(),
                     )
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message="Failed to get/create station after concurrent insert",
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=station_row)
+            return Result(code=ResultCode.OK, message="OK", result=station_row)
 
         except Exception as e:
             logger.error(f"Failed to get/create station: {e}")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Failed to get/create station: {e}",
             )

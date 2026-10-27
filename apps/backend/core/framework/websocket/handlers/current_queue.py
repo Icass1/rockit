@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult
 from core.framework.media.media import Media
 from core.framework.models.media import MediaModel
 from core.framework.models.queue import QueueItem
@@ -14,6 +13,7 @@ from core.framework.websocket.webSocketRouter import websocket_router
 from core.requests.wsMessages import CurrentQueueMessageRequest
 from core.responses.currentQueueMessage import CurrentQueueMessage
 from logger import getLogger
+from result import Result
 
 if TYPE_CHECKING:
     from core.framework.websocket.webSocketManager import WebSocketManager
@@ -31,7 +31,7 @@ async def handle_current_queue(
 ) -> None:
     current_queue_msg = CurrentQueueMessageRequest(**data)
 
-    a_result_medias: AResult[list[MediaModel]] = await Media.get_medias_from_public_ids_async(
+    a_result_medias: Result[list[MediaModel]] = await Media.get_medias_from_public_ids_async(
         session=session,
         public_ids=[item.mediaPublicId for item in current_queue_msg.queue]
         + [item.listPublicId for item in current_queue_msg.queue if item.listPublicId],

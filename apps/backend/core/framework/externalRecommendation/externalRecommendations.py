@@ -14,7 +14,6 @@ from constants import (
 from core.access.externalRecommendationCacheAccess import (
     ExternalRecommendationCacheAccess,
 )
-from core.aResult import AResult
 from core.framework.models.recommendation import (
     EExternalStatus,
     ExternalRecommendationContext,
@@ -26,6 +25,7 @@ from core.framework.provider.baseExternalRecommendationProvider import (
 )
 from core.framework.recommendationRanking import RecommendationRanking
 from logger import getLogger
+from result import Result
 
 logger = getLogger(__name__)
 
@@ -149,7 +149,7 @@ class ExternalRecommendations:
             return None
 
         try:
-            a_fresh: AResult[list[ExternalSuggestion]] = await asyncio.wait_for(
+            a_fresh: Result[list[ExternalSuggestion]] = await asyncio.wait_for(
                 provider.get_suggestions_async(context=context, limit=EXTERNAL_CANDIDATE_POOL),
                 timeout=self._deadline,
             )

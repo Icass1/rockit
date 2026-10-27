@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.collectionAccess import CollectionAccess
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.media.collection import Collection
 from core.framework.media.media import Media
@@ -11,6 +10,7 @@ from core.responses.baseAlbumWithoutSongsResponse import (
 )
 from core.responses.baseArtistResponse import BaseArtistResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -24,7 +24,7 @@ class Artist:
         name: str = "",
         offset: int = 0,
         limit: int = 100,
-    ) -> AResult[ArtistPageResponse]:
+    ) -> Result[ArtistPageResponse]:
         """Compose bounded local catalogs through provider contracts only.
 
         Name matching supplies a view, never changes provider IDs. Relationships
@@ -35,12 +35,12 @@ class Artist:
             result = await Media.get_artist_async(session=session, public_id=public_id)
             if result.is_not_ok():
                 logger.error(f"Artist lookup failed: {result.info()}")
-                return AResult(code=result.code(), message=result.message())
+                return Result(code=result.code(), message=result.message())
             anchor = result.result()
             name = anchor.name
         if not name.strip():
             logger.warning("Artist name is empty")
-            return AResult(code=AResultCode.BAD_REQUEST, message="Artist name required")
+            return Result(code=ResultCode.BAD_REQUEST, message="Artist name required")
         page = ArtistPageResponse(
             artist=anchor
             or BaseArtistResponse(
@@ -105,4 +105,4 @@ class Artist:
         page.totalSongs = song_position
         page.totalAlbums = album_position
         page.hasMore = max(song_position, album_position) > offset + limit
-        return AResult(code=AResultCode.OK, message="OK", result=page)
+        return Result(code=ResultCode.OK, message="OK", result=page)

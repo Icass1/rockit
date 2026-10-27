@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
-from core.aResult import AResult
 from core.framework.models.recommendation import (
     ExternalRecommendationContext,
     ExternalSuggestion,
 )
 from core.framework.provider.baseProvider import BaseProvider
+from result import Result
 
 
 class BaseExternalRecommendationProvider(BaseProvider, ABC):
@@ -18,7 +18,7 @@ class BaseExternalRecommendationProvider(BaseProvider, ABC):
 
     Contract for get_suggestions_async:
       - OK with a (possibly empty) list when the service answered;
-      - a non-OK AResult for anything else (HTTP error, timeout, rate limit,
+      - a non-OK Result for anything else (HTTP error, timeout, rate limit,
         invalid data). It must not raise.
     """
 
@@ -43,5 +43,5 @@ class BaseExternalRecommendationProvider(BaseProvider, ABC):
     @abstractmethod
     async def get_suggestions_async(
         self, context: ExternalRecommendationContext, limit: int
-    ) -> AResult[list[ExternalSuggestion]]:
+    ) -> Result[list[ExternalSuggestion]]:
         """Fetch suggestions from the service (see class docstring)."""

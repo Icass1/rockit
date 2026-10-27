@@ -3,7 +3,6 @@ from logging import Logger
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from core.access.db.ormModels.user import UserRow
-from core.aResult import AResult
 from core.enums.bookmarkModeEnum import BookmarkModeEnum
 from core.framework.bookmark.bookmark import Bookmark
 from core.middlewares.authMiddleware import AuthMiddleware
@@ -15,6 +14,7 @@ from core.responses.bookmarkListResponse import BookmarkListResponse
 from core.responses.bookmarkResponse import BookmarkResponse
 from core.responses.okResponse import OkResponse
 from logger import getLogger
+from result import Result
 
 logger: Logger = getLogger(__name__)
 router = APIRouter(
@@ -32,7 +32,7 @@ async def get_bookmarks(
     """Get bookmarks for the current user, optionally filtered by media."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Unauthorized bookmark fetch. {a_result_user.info()}")
         raise HTTPException(status_code=401)
@@ -71,7 +71,7 @@ async def create_bookmark(
     """Create a new bookmark."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Unauthorized bookmark create. {a_result_user.info()}")
         raise HTTPException(status_code=401)
@@ -110,7 +110,7 @@ async def update_bookmark(
     """Update an existing bookmark."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Unauthorized bookmark update. {a_result_user.info()}")
         raise HTTPException(status_code=401)
@@ -148,7 +148,7 @@ async def delete_bookmark(
     """Delete a bookmark."""
 
     session = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request=request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request=request)
     if a_result_user.is_not_ok():
         logger.error(f"Unauthorized bookmark delete. {a_result_user.info()}")
         raise HTTPException(status_code=401)

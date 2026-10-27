@@ -8,13 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
 from core.access.mediaAccess import MediaAccess
-from core.aResult import AResult, AResultCode
 from core.framework.media.media import Media
 from core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from logger import getLogger
 from lrclib.access.lyricsAccess import LyricsAccess
 from lrclib.models.api import LyricsResponse
+from result import Result, ResultCode
 
 if TYPE_CHECKING:
     from lrclib.framework.provider.lrclibProvider import LrclibProvider
@@ -29,7 +29,7 @@ class Lrclib:
     @staticmethod
     async def get_lyrics_by_media_ids_async(
         session: AsyncSession, media_ids: list[int]
-    ) -> AResult[dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]]]:
+    ) -> Result[dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]]]:
         """Get lyrics for multiple media IDs. Checks DB first, then fetches missing from API.
         Returns dict mapping media_id -> (lyrics_public_id, plain_lyrics, dynamic_lyrics_data).
         """
@@ -61,8 +61,8 @@ class Lrclib:
                 for media_id, lyrics_data in a_result_fetched.result().items():
                     result_map[media_id] = lyrics_data
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=result_map,
         )
@@ -71,16 +71,16 @@ class Lrclib:
     async def _fetch_and_save_lyrics_batch_async(
         session: AsyncSession,
         media_ids: list[int],
-    ) -> AResult[dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]]]:
+    ) -> Result[dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]]]:
         """Fetch lyrics from API for media IDs not in the database, save them, and return.
         Returns dict mapping media_id -> (lyrics_public_id, plain_lyrics, dynamic_lyrics_data).
         """
 
-        a_result_medias: AResult[list[CoreMediaRow]] = await MediaAccess.get_medias_from_ids_async(
+        a_result_medias: Result[list[CoreMediaRow]] = await MediaAccess.get_medias_from_ids_async(
             session=session, ids=media_ids
         )
         if a_result_medias.is_not_ok():
-            return AResult(
+            return Result(
                 code=a_result_medias.code(),
                 message=a_result_medias.message(),
             )
@@ -92,29 +92,29 @@ class Lrclib:
             media_id: int,
         ) -> tuple[
             int,
-            AResult[tuple[list[Lyrics] | None, DynamicLyricsData | None]],
+            Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]],
         ]:
             media_row = media_map.get(media_id)
             if media_row is None:
                 logger.error(f"Media {media_id} not found.")
-                return media_id, AResult(
-                    code=AResultCode.NOT_FOUND,
+                return media_id, Result(
+                    code=ResultCode.NOT_FOUND,
                     message=f"Media {media_id} not found",
                 )
 
-            a_result_song: AResult[BaseSongWithAlbumResponse] = await Media.get_song_async(
+            a_result_song: Result[BaseSongWithAlbumResponse] = await Media.get_song_async(
                 session=session, public_id=media_row.public_id
             )
             if a_result_song.is_not_ok():
                 logger.warning(f"Song with id {media_id} not found. {a_result_song.info()}")
-                return media_id, AResult(code=a_result_song.code(), message=a_result_song.message())
+                return media_id, Result(code=a_result_song.code(), message=a_result_song.message())
 
             song: BaseSongWithAlbumResponse = a_result_song.result()
 
             if len(song.artists) == 0:
                 logger.warning(f"Song {song.name} from {song.provider} doesn't have artists.")
-                return media_id, AResult[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
-                    code=AResultCode.BAD_REQUEST,
+                return media_id, Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
+                    code=ResultCode.BAD_REQUEST,
                     message=f"Song {song.name} from {song.provider} doesn't have artists.",
                 )
 
@@ -137,7 +137,7 @@ class Lrclib:
         fetched_map: dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]] = {}
 
         for media_id, a_result in results:
-            if a_result.code() == AResultCode.NOT_FOUND:
+            if a_result.code() == ResultCode.NOT_FOUND:
                 logger.warning(f"Lyrics for media {media_id}. {a_result.info()} not found.")
                 continue
 
@@ -164,8 +164,8 @@ class Lrclib:
 
             fetched_map[media_id] = (lyrics_public_id, lyrics, dynamic_data)
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=fetched_map,
         )
@@ -173,7 +173,7 @@ class Lrclib:
     @staticmethod
     async def fetch_lyrics_async(
         artist_name: str, track_name: str, album_name: str, duration: float
-    ) -> AResult[tuple[list[Lyrics] | None, DynamicLyricsData | None]]:
+    ) -> Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]]:
         """Get lyrics for the given media IDs.
 
         Args:
@@ -202,16 +202,16 @@ class Lrclib:
                 response = await client.get(request_url, params=params, timeout=10)
                 if response.status_code == 404:
                     logger.warning(f"Lyrics for params {params=} not found")
-                    return AResult[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
-                        code=AResultCode.NOT_FOUND,
+                    return Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
+                        code=ResultCode.NOT_FOUND,
                         message=f"Lyrics for params {params=} not found",
                     )
                 response.raise_for_status()
 
         except httpx.HTTPError as e:
             logger.error(f"Error while making request to Lrclib {params=}: {e}")
-            return AResult[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
-                code=AResultCode.GENERAL_ERROR,
+            return Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Error while making request to Lrclib: {e}",
             )
 
@@ -253,14 +253,14 @@ class Lrclib:
             DynamicLyricsData(lines=dynamicLyrics) if dynamicLyrics else None
         )
 
-        return AResult[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
-            code=AResultCode.OK,
+        return Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
+            code=ResultCode.OK,
             message="Lyrics retrieved successfully.",
             result=(lyrics, dynamic_data),
         )
 
     @staticmethod
-    def parse_timestamp(line: str) -> AResult[tuple[float, str]]:
+    def parse_timestamp(line: str) -> Result[tuple[float, str]]:
         """
         Parses a line and returns the timestamp and the clean text.
         Example: line="[00:15.72] My interior world needs to sanitize"
@@ -274,15 +274,15 @@ class Lrclib:
             seconds = float(match.group(2))
             total_seconds = round(minutes * 60 + seconds, 2)
             clean_text = line[match.end() :].strip()
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=(total_seconds, clean_text),
             )
         else:
             logger.error(f"Unable to get timestamp from {line}.")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Unable to get timestamp from {line}.",
             )
 
@@ -291,7 +291,7 @@ class Lrclib:
         session: AsyncSession,
         media_id: int,
         timestamps: list[tuple[int, float]],
-    ) -> AResult[bool]:
+    ) -> Result[bool]:
         """Update timestamps for specific lines of dynamic lyrics."""
 
         for line_number, new_timestamp_s in timestamps:
@@ -304,4 +304,4 @@ class Lrclib:
             if a_result.is_not_ok():
                 return a_result
 
-        return AResult(code=AResultCode.OK, message="Timestamps updated", result=True)
+        return Result(code=ResultCode.OK, message="Timestamps updated", result=True)

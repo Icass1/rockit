@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from logger import getLogger
 from core.utils.backendUtils import time_it
 
-from core.aResult import AResult
+from result import Result
 
 from core.types.libraryMediaTypes import LibraryResponseItem
 
@@ -77,6 +77,7 @@ from core.responses.userSettingsResponse import UserSettingsResponse
 from core.types.libraryMediaTypes import LibraryResponseItem
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result
 
 ph = PasswordHasher(
     time_cost=2,
@@ -96,7 +97,7 @@ router = APIRouter(
 async def get_user(request: Request) -> UserSettingsResponse:
     """Get user settings."""
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -116,7 +117,7 @@ async def get_user(request: Request) -> UserSettingsResponse:
 async def upload_profile_image(
     request: Request, file: UploadFile = File(...)
 ) -> OkResponse:
-    current_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    current_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if current_user.is_not_ok():
         logger.error("Cannot identify profile image owner: %s", current_user.info())
         raise HTTPException(
@@ -145,7 +146,7 @@ async def get_notification_events() -> list[NotificationEventResponse]:
 async def get_notification_subscriptions(request: Request) -> NotificationSubscriptionsResponse:
     """Get notification preferences for the authenticated user."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
@@ -166,7 +167,7 @@ async def set_notification_subscriptions(
 ) -> NotificationSubscriptionsResponse:
     """Update notification preferences for the authenticated user."""
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
@@ -188,7 +189,7 @@ async def set_notification_subscriptions(
 async def get_session(request: Request) -> SessionResponse:
     """TODO"""
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error("Error getting current user.")
         raise HTTPException(
@@ -211,7 +212,7 @@ async def get_session(request: Request) -> SessionResponse:
 async def get_queue(request: Request) -> QueueResponse:
     """TODO"""
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
@@ -219,7 +220,7 @@ async def get_queue(request: Request) -> QueueResponse:
         )
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
-    a_result_queue: AResult[QueueResponse] = await User.get_user_queue_async(
+    a_result_queue: Result[QueueResponse] = await User.get_user_queue_async(
         session=session, user_id=a_result_user.result().id
     )
     if a_result_queue.is_not_ok():
@@ -240,7 +241,7 @@ async def get_user_library_medias(
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
@@ -297,14 +298,14 @@ async def add_media_to_library(request: Request, media_public_id: str) -> OkResp
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[UserLibraryMediaRow] = await User.add_media_to_library(
+    a_result: Result[UserLibraryMediaRow] = await User.add_media_to_library(
         session=session,
         user_id=a_result_user.result().id,
         media_public_id=media_public_id,
@@ -322,14 +323,14 @@ async def remove_media_from_library(request: Request, media_public_id: str) -> O
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[bool] = await User.remove_media_from_library(
+    a_result: Result[bool] = await User.remove_media_from_library(
         session=session,
         user_id=a_result_user.result().id,
         media_public_id=media_public_id,
@@ -347,14 +348,14 @@ async def get_liked_media(request: Request) -> LikedMediaResponse:
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[list[str]] = await User.get_user_liked_media_public_ids(
+    a_result: Result[list[str]] = await User.get_user_liked_media_public_ids(
         session=session, user_id=a_result_user.result().id
     )
     if a_result.is_not_ok():
@@ -370,7 +371,7 @@ async def unlike_media(request: Request, media_public_id: str) -> OkResponse:
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
@@ -395,14 +396,14 @@ async def like_media_async(request: Request, payload: LikeMediaRequest) -> OkRes
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         logger.error(f"Error getting current user. {a_result_user.info()}")
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[list[UserLikedMediaRow]] = await User.like_media_async(
+    a_result: Result[list[UserLikedMediaRow]] = await User.like_media_async(
         session=session,
         user_id=a_result_user.result().id,
         public_ids=payload.publicIds,
@@ -419,13 +420,13 @@ async def update_lang(request: Request, payload: UpdateLangRequest) -> OkRespons
     """Update user language."""
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[bool] = await User.update_lang_async(
+    a_result: Result[bool] = await User.update_lang_async(
         session=session,
         user_id=a_result_user.result().id,
         lang_code=payload.lang,
@@ -439,7 +440,7 @@ async def update_lang(request: Request, payload: UpdateLangRequest) -> OkRespons
 @router.post("/crossfade")
 async def update_crossfade(request: Request, payload: UpdateCrossfadeRequest) -> OkResponse:
     """Update user crossfade."""
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -451,7 +452,7 @@ async def update_crossfade(request: Request, payload: UpdateCrossfadeRequest) ->
 
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result: AResult[bool] = await User.update_crossfade_async(
+    a_result: Result[bool] = await User.update_crossfade_async(
         session=session,
         user_id=a_result_user.result().id,
         crossfade_ms=crossfade,
@@ -467,7 +468,7 @@ async def update_password(request: Request, payload: UpdatePasswordRequest) -> O
     """Update user password."""
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
@@ -479,7 +480,7 @@ async def update_password(request: Request, payload: UpdatePasswordRequest) -> O
 
     password_hash = ph.hash(new_password)
 
-    a_result: AResult[bool] = await User.update_password_async(
+    a_result: Result[bool] = await User.update_password_async(
         session=session,
         user_id=a_result_user.result().id,
         password_hash=password_hash,
@@ -495,13 +496,13 @@ async def cycle_repeat_mode(request: Request) -> OkResponse:
     """Cycle repeat mode."""
     session: AsyncSession = DBSessionMiddleware.get_session(request)
 
-    a_result_user: AResult[UserRow] = AuthMiddleware.get_current_user(request)
+    a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
         raise HTTPException(
             status_code=a_result_user.get_http_code(), detail=a_result_user.message()
         )
 
-    a_result: AResult[bool] = await User.cycle_repeat_mode_async(
+    a_result: Result[bool] = await User.cycle_repeat_mode_async(
         session=session, user_id=a_result_user.result().id
     )
     if a_result.is_not_ok():

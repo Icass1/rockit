@@ -5,8 +5,8 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.friend.streakBattle import StreakBattleRow
-from core.aResult import AResult, AResultCode
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -15,10 +15,10 @@ class StreakBattle:
     @staticmethod
     async def challenge_async(
         session: AsyncSession, challenger_id: int, challenged_id: int
-    ) -> AResult[dict[str, Any]]:
+    ) -> Result[dict[str, Any]]:
         if challenger_id == challenged_id:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Cannot challenge yourself",
             )
         row = StreakBattleRow(
@@ -29,8 +29,8 @@ class StreakBattle:
         session.add(row)
         await session.flush()
         await session.refresh(row)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={"publicId": row.public_id},
         )
@@ -56,7 +56,7 @@ class StreakBattle:
         return streak
 
     @staticmethod
-    async def get_streak_for_user_async(session: AsyncSession, user_id: int) -> AResult[int]:
+    async def get_streak_for_user_async(session: AsyncSession, user_id: int) -> Result[int]:
         from core.access.statsAccess import StatsAccess as sa
 
         return await sa.get_current_streak_async(session=session, user_id=user_id)

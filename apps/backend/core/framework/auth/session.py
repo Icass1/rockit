@@ -18,10 +18,10 @@ from constants import (
 )
 from core.access.db.ormModels.session import SessionRow
 from core.access.sessionAccess import SessionAccess
-from core.aResult import AResult, AResultCode
 from core.enums.platformEnum import PlatformEnum
 from core.framework.models.sessionTokenClaims import SessionTokenClaims
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(name=__name__)
 
@@ -36,7 +36,7 @@ class Session:
         user_public_id: str,
         rembember_me: bool,
         ip: str | None,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         """Create a signed JWT and persist it for session revocation."""
 
         session_duration = SESSION_DURATION
@@ -62,12 +62,12 @@ class Session:
             )
         except (JOSEError, ValidationError):
             logger.error("Failed to create session token.")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Failed to create session token.",
             )
 
-        a_result_sesion: AResult[SessionRow] = await SessionAccess.create_session_async(
+        a_result_sesion: Result[SessionRow] = await SessionAccess.create_session_async(
             session=session,
             session_id=session_id,
             user_id=user_id,
@@ -77,7 +77,7 @@ class Session:
         )
         if a_result_sesion.is_not_ok():
             logger.error(f"Error creating session {a_result_sesion.info()}")
-            return AResult(
+            return Result(
                 code=a_result_sesion.code(),
                 message=a_result_sesion.message(),
             )
@@ -88,8 +88,8 @@ class Session:
             secure = True
         else:
             logger.error("Invalid session environment configuration.")
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message="Invalid session environment configuration.",
             )
 
@@ -110,12 +110,12 @@ class Session:
             domain=domain,
         )
 
-        return AResult(code=AResultCode.OK, message="OK", result=session_id)
+        return Result(code=ResultCode.OK, message="OK", result=session_id)
 
     @staticmethod
     async def get_user_id_from_session_async(
         session: AsyncSession, session_id: str
-    ) -> AResult[SessionRow]:
+    ) -> Result[SessionRow]:
         """Validate signed or legacy sessions for HTTP and WebSocket clients."""
 
         try:
@@ -136,39 +136,39 @@ class Session:
                 now = int(datetime.now(tz=UTC).timestamp())
                 if claims.iat > now or claims.exp <= now or claims.exp <= claims.iat:
                     logger.warning("Invalid session token timestamps.")
-                    return AResult(code=AResultCode.NOT_FOUND, message="Invalid session.")
+                    return Result(code=ResultCode.NOT_FOUND, message="Invalid session.")
             else:
                 # Existing UUID sessions remain valid until expiry or revocation.
                 uuid.UUID(hex=session_id)
         except (JOSEError, ValidationError, ValueError, TypeError):
             logger.warning("Invalid or expired session token.")
-            return AResult(code=AResultCode.NOT_FOUND, message="Invalid session.")
+            return Result(code=ResultCode.NOT_FOUND, message="Invalid session.")
 
-        a_result_session: AResult[SessionRow] = await SessionAccess.get_session_from_id_async(
+        a_result_session: Result[SessionRow] = await SessionAccess.get_session_from_id_async(
             session=session, session_id=session_id
         )
 
         if a_result_session.is_not_ok():
             logger.error(f"Error getting session. {a_result_session.info()}")
-            return AResult[SessionRow](
+            return Result[SessionRow](
                 code=a_result_session.code(), message=a_result_session.message()
             )
 
         session_row = a_result_session.result()
         if session_row.disabled or session_row.expires_at <= datetime.now(tz=UTC):
             logger.warning("Session is disabled or expired.")
-            return AResult(code=AResultCode.NOT_FOUND, message="Invalid session.")
+            return Result(code=ResultCode.NOT_FOUND, message="Invalid session.")
 
-        return AResult[SessionRow](
-            code=AResultCode.OK,
+        return Result[SessionRow](
+            code=ResultCode.OK,
             message=a_result_session.message(),
             result=session_row,
         )
 
     @staticmethod
-    async def end_session_async(session: AsyncSession, session_id: str) -> AResultCode:
+    async def end_session_async(session: AsyncSession, session_id: str) -> ResultCode:
         """Revoke the stored session, including signed tokens."""
-        a_result_code: AResultCode = await SessionAccess.disable_session_from_session_id_async(
+        a_result_code: ResultCode = await SessionAccess.disable_session_from_session_id_async(
             session=session, session_id=session_id
         )
 

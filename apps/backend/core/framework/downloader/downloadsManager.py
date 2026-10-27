@@ -8,7 +8,6 @@ from constants import DOWNLOAD_THREADS
 from core.access.db import db_context
 from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.downloadAccess import DownloadAccess
-from core.aResult import AResultCode
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.framework import providers
 from core.framework.downloader.baseDownload import BaseDownload
@@ -16,6 +15,7 @@ from core.framework.models.ongoingDownload import OngoingDownload
 from core.framework.notification import Notification
 from core.framework.websocket.webSocketManager import ws_manager
 from logger import getLogger
+from result import ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -147,11 +147,11 @@ class DownloadsManager:
                     download: BaseDownload = self.queue.pop(0)
                     logger.info(f"Starting new async download: {download.public_id}")
 
-                    async def run_download(d: BaseDownload) -> AResultCode:
+                    async def run_download(d: BaseDownload) -> ResultCode:
                         sem: asyncio.Semaphore = self._get_provider_semaphore(d.provider_id)
                         async with sem:
                             async with db_context.session_scope_async() as session:
-                                a_result: AResultCode = await d.download_method_async(session)
+                                a_result: ResultCode = await d.download_method_async(session)
 
                                 if a_result.is_not_ok() and a_result.is_retryable():
                                     a_result_retry = await DownloadAccess.increment_retry_count(
@@ -197,7 +197,7 @@ class DownloadsManager:
                                                 date_ended=None,
                                                 retry_count=retry_count,
                                             )
-                                            return AResultCode(
+                                            return ResultCode(
                                                 code=a_result.code(),
                                                 message=a_result.message(),
                                             )
@@ -224,7 +224,7 @@ class DownloadsManager:
                                     logger.error(
                                         f"Error finalizing download. {a_result_download_row.info()}"
                                     )
-                                    return AResultCode(
+                                    return ResultCode(
                                         code=a_result_download_row.code(),
                                         message=a_result_download_row.message(),
                                     )
@@ -283,9 +283,9 @@ class DownloadsManager:
                                         f"Download {d.public_id} failed with error: "
                                         f"{a_result.message()}"
                                     )
-                                return AResultCode(code=a_result.code(), message=a_result.message())
+                                return ResultCode(code=a_result.code(), message=a_result.message())
 
-                    task: asyncio.Task[AResultCode] = asyncio.create_task(run_download(download))
+                    task: asyncio.Task[ResultCode] = asyncio.create_task(run_download(download))
                     od = OngoingDownload(task=task, download=download)
                     group_tasks[download.download_group_id].append(od)
                     ongoing.append(od)

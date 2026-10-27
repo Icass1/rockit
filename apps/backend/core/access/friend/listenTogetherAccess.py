@@ -8,12 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.db.ormModels.friend.listenTogether import (
     ListenTogetherSessionRow,
 )
-from core.aResult import AResult, AResultCode
 from core.enums.friend.listenTogetherStatusEnum import (
     ListenTogetherStatusEnum,
 )
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -25,7 +25,7 @@ class ListenTogetherAccess:
         session: AsyncSession,
         host_user_id: int,
         guest_user_id: int,
-    ) -> AResult[ListenTogetherSessionRow]:
+    ) -> Result[ListenTogetherSessionRow]:
         row = ListenTogetherSessionRow(
             public_id=str(uuid.uuid4()),
             host_user_id=host_user_id,
@@ -35,17 +35,17 @@ class ListenTogetherAccess:
         session.add(row)
         await session.flush()
         await session.refresh(row)
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def get_session_by_public_id_async(
         session: AsyncSession, public_id: str
-    ) -> AResult[ListenTogetherSessionRow]:
+    ) -> Result[ListenTogetherSessionRow]:
         expired = await ListenTogetherAccess.expire_async(session)
         if expired.is_not_ok():
             logger.error(f"Error expiring sessions. {expired.info()}")
-            return AResult(code=expired.code(), message=expired.message())
+            return Result(code=expired.code(), message=expired.message())
         stmt = (
             select(ListenTogetherSessionRow)
             .where(ListenTogetherSessionRow.public_id == public_id)
@@ -55,14 +55,14 @@ class ListenTogetherAccess:
         result = await session.execute(stmt)
         row: ListenTogetherSessionRow | None = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Listen together session not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Listen together session not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def get_active_session_for_users_async(
         session: AsyncSession, user_id_1: int, user_id_2: int
-    ) -> AResult[ListenTogetherSessionRow | None]:
+    ) -> Result[ListenTogetherSessionRow | None]:
         stmt = select(ListenTogetherSessionRow).where(
             ListenTogetherSessionRow.status_key.in_(
                 [
@@ -82,18 +82,18 @@ class ListenTogetherAccess:
         result = await session.execute(stmt)
         row: ListenTogetherSessionRow | None = result.scalars().first()
         if row is None:
-            return AResult(code=AResultCode.NOT_FOUND, message="Not found")
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.NOT_FOUND, message="Not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
 
     @staticmethod
     @safe_async
     async def get_active_sessions_for_user_async(
         session: AsyncSession, user_id: int
-    ) -> AResult[list[ListenTogetherSessionRow]]:
+    ) -> Result[list[ListenTogetherSessionRow]]:
         expired = await ListenTogetherAccess.expire_async(session)
         if expired.is_not_ok():
             logger.error(f"Error expiring sessions. {expired.info()}")
-            return AResult(code=expired.code(), message=expired.message())
+            return Result(code=expired.code(), message=expired.message())
         stmt = (
             select(ListenTogetherSessionRow)
             .where(
@@ -110,7 +110,7 @@ class ListenTogetherAccess:
         )
         result = await session.execute(stmt)
         rows: Sequence[ListenTogetherSessionRow] = result.scalars().all()
-        return AResult(code=AResultCode.OK, message="OK", result=list(rows))
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))
 
     @staticmethod
     @safe_async
@@ -121,7 +121,7 @@ class ListenTogetherAccess:
         current_time_ms: int | None = None,
         is_playing: bool | None = None,
         queue_json: str | None = None,
-    ) -> AResult[ListenTogetherSessionRow]:
+    ) -> Result[ListenTogetherSessionRow]:
         session_row.current_media_id = current_media_id
         session_row.date_updated = datetime.now(UTC)
         if current_time_ms is not None:
@@ -132,30 +132,30 @@ class ListenTogetherAccess:
             session_row.queue_json = queue_json
         await session.flush()
         await session.refresh(session_row)
-        return AResult(code=AResultCode.OK, message="OK", result=session_row)
+        return Result(code=ResultCode.OK, message="OK", result=session_row)
 
     @staticmethod
     @safe_async
     async def end_session_async(
         session: AsyncSession, session_row: ListenTogetherSessionRow
-    ) -> AResultCode:
+    ) -> ResultCode:
         session_row.status_key = ListenTogetherStatusEnum.ENDED.value
         await session.flush()
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def join_session_async(
         session: AsyncSession, session_row: ListenTogetherSessionRow
-    ) -> AResult[ListenTogetherSessionRow]:
+    ) -> Result[ListenTogetherSessionRow]:
         session_row.date_updated = datetime.now(UTC)
         session_row.status = ListenTogetherStatusEnum.ACTIVE
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=session_row)
+        return Result(code=ResultCode.OK, message="OK", result=session_row)
 
     @staticmethod
     @safe_async
-    async def expire_async(session: AsyncSession) -> AResultCode:
+    async def expire_async(session: AsyncSession) -> ResultCode:
         now = datetime.now(UTC)
         await session.execute(
             update(ListenTogetherSessionRow)
@@ -175,4 +175,4 @@ class ListenTogetherAccess:
             )
             .values(status_key=ListenTogetherStatusEnum.ENDED.value)
         )
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")

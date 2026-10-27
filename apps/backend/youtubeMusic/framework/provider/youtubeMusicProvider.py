@@ -6,11 +6,10 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
-from core.framework.provider.types import AddFromUrlAResult
+from core.framework.provider.types import AddFromUrlResult
 from core.responses.artistPageResponse import ArtistCatalogResponse
 from core.responses.baseAlbumWithSongsResponse import BaseAlbumWithSongsResponse
 from core.responses.baseArtistResponse import BaseArtistResponse
@@ -24,6 +23,7 @@ from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from core.responses.searchResponse import BaseSearchResultsItem
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from youtubeMusic.access.artistCatalogAccess import ArtistCatalogAccess
 from youtubeMusic.framework.youtubeMusic import YoutubeMusic, youtube_music
 
@@ -120,7 +120,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
 
     async def get_artist_catalog_async(
         self, session: AsyncSession, name: str, public_id: str | None = None
-    ) -> AResult[ArtistCatalogResponse]:
+    ) -> Result[ArtistCatalogResponse]:
         """Expose this provider's indexed artist catalog to Core."""
         return await ArtistCatalogAccess.get_async(session=session, name=name, public_id=public_id)
 
@@ -132,12 +132,12 @@ class YoutubeMusicProvider(BaseMediaProvider):
 
         return youtube_gate.cooldown_remaining()
 
-    async def check_health_async(self) -> AResultCode:
+    async def check_health_async(self) -> ResultCode:
         """Check the downloader used by this provider even if its source is disabled."""
         from youtube.framework.potProvider import PotProvider
 
         health = await PotProvider.check_health_async(max_age_seconds=30.0)
-        return AResultCode(code=health.code(), message=health.message())
+        return ResultCode(code=health.code(), message=health.message())
 
     def can_manage_downloads(self) -> bool:
         return True
@@ -157,7 +157,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
         query: str,
         limit: int = 15,
         media_type: str | None = None,
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         return await youtube_music.search_media_async(
             session=session, query=query, limit=limit, media_type=media_type
         )
@@ -171,7 +171,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     @time_it
     async def search_media_async(
         self, session: AsyncSession, query: str
-    ) -> AResult[list[BaseSearchResultsItem]]:
+    ) -> Result[list[BaseSearchResultsItem]]:
         """Search YouTube Music and return songs, artists, albums and playlists."""
 
         return await youtube_music.search_media_async(session=session, query=query)
@@ -179,7 +179,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     @time_it
     async def get_playlists_with_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithMediasResponse]]:
         """Get YouTube Music playlists (with medias) by public_ids."""
 
         return await youtube_music.get_playlists_with_medias_async(
@@ -189,7 +189,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     @time_it
     async def get_playlists_without_medias_async(
         self, session: AsyncSession, user_id: int, public_ids: list[str]
-    ) -> AResult[list[BasePlaylistWithoutMediasResponse]]:
+    ) -> Result[list[BasePlaylistWithoutMediasResponse]]:
         """Get YouTube Music playlists (without medias) by public_ids."""
 
         return await youtube_music.get_playlists_without_medias_async(
@@ -199,7 +199,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     @time_it
     async def get_songs_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseSongWithAlbumResponse]]:
+    ) -> Result[list[BaseSongWithAlbumResponse]]:
         """Get YouTube Music tracks by public_ids."""
 
         return await youtube_music.get_tracks_batch_async(session=session, public_ids=public_ids)
@@ -207,7 +207,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     @time_it
     async def get_albums_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseAlbumWithSongsResponse]]:
+    ) -> Result[list[BaseAlbumWithSongsResponse]]:
         """Get YouTube Music albums by public_ids."""
 
         return await youtube_music.get_albums_batch_async(session=session, public_ids=public_ids)
@@ -215,7 +215,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
     @time_it
     async def get_artists_async(
         self, session: AsyncSession, public_ids: list[str]
-    ) -> AResult[list[BaseArtistResponse]]:
+    ) -> Result[list[BaseArtistResponse]]:
         """Get YouTube Music artists by public_ids."""
 
         return await youtube_music.get_artists_async(session=session, public_ids=public_ids)
@@ -223,90 +223,90 @@ class YoutubeMusicProvider(BaseMediaProvider):
     @time_it
     async def add_from_url_async(
         self, session: AsyncSession, url: str
-    ) -> AResult[AddFromUrlAResult]:
+    ) -> Result[AddFromUrlResult]:
         """Add a YouTube Music track/album/artist/playlist from URL to the database."""
 
         internal_path: str | None = self.match_url(url)
         if not internal_path:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Invalid YouTube Music URL",
             )
 
         parts = internal_path.strip("/").split("/")
         if len(parts) < 2:
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Invalid YouTube Music URL path",
             )
 
         resource_id = parts[2]
 
         if "youtube-music/track" in internal_path:
-            a_result_song: AResult[BaseSongWithAlbumResponse] = await YoutubeMusic.add_track_async(
+            a_result_song: Result[BaseSongWithAlbumResponse] = await YoutubeMusic.add_track_async(
                 session=session, youtube_id=resource_id
             )
             if a_result_song.is_not_ok():
                 logger.error(f"Error adding YouTube Music track from URL. {a_result_song.info()}")
-                return AResult(code=a_result_song.code(), message=a_result_song.message())
+                return Result(code=a_result_song.code(), message=a_result_song.message())
 
-            return AResult[AddFromUrlAResult](
+            return Result[AddFromUrlResult](
                 code=a_result_song.code(),
                 message="OK",
                 result=a_result_song.result(),
             )
 
         elif "youtube-music/album" in internal_path:
-            a_result_album: AResult[
-                BaseAlbumWithSongsResponse
-            ] = await YoutubeMusic.add_album_async(session=session, youtube_id=resource_id)
+            a_result_album: Result[BaseAlbumWithSongsResponse] = await YoutubeMusic.add_album_async(
+                session=session, youtube_id=resource_id
+            )
             if a_result_album.is_not_ok():
                 logger.error(f"Error adding YouTube Music album from URL. {a_result_album.info()}")
-                return AResult(code=a_result_album.code(), message=a_result_album.message())
+                return Result(code=a_result_album.code(), message=a_result_album.message())
 
-            return AResult[AddFromUrlAResult](
+            return Result[AddFromUrlResult](
                 code=a_result_album.code(),
                 message="OK",
                 result=a_result_album.result(),
             )
 
         elif "youtube-music/artist" in internal_path:
-            a_result_artist: AResult[BaseArtistResponse] = await YoutubeMusic.add_artist_async(
+            a_result_artist: Result[BaseArtistResponse] = await YoutubeMusic.add_artist_async(
                 session=session, youtube_id=resource_id
             )
             if a_result_artist.is_not_ok():
                 logger.error(
                     f"Error adding YouTube Music artist from URL. {a_result_artist.info()}"
                 )
-                return AResult(code=a_result_artist.code(), message=a_result_artist.message())
+                return Result(code=a_result_artist.code(), message=a_result_artist.message())
 
-            return AResult[AddFromUrlAResult](
+            return Result[AddFromUrlResult](
                 code=a_result_artist.code(),
                 message="OK",
                 result=a_result_artist.result(),
             )
 
         elif "youtube-music/playlist" in internal_path:
-            a_result_playlist: AResult[
+            a_result_playlist: Result[
                 BasePlaylistWithMediasResponse
             ] = await YoutubeMusic.add_playlist_async(session=session, youtube_id=resource_id)
             if a_result_playlist.is_not_ok():
                 logger.error(
                     f"Error adding YouTube Music playlist from URL. {a_result_playlist.info()}"
                 )
-                return AResult(
+                return Result(
                     code=a_result_playlist.code(),
                     message=a_result_playlist.message(),
                 )
 
-            return AResult[AddFromUrlAResult](
+            return Result[AddFromUrlResult](
                 code=a_result_playlist.code(),
                 message="OK",
                 result=a_result_playlist.result(),
             )
 
-        return AResult(
-            code=AResultCode.BAD_REQUEST,
+        return Result(
+            code=ResultCode.BAD_REQUEST,
             message="Unsupported YouTube Music resource type",
         )
 
@@ -318,7 +318,7 @@ class YoutubeMusicProvider(BaseMediaProvider):
         download_id: int,
         download_group_id: int,
         user_id: int,
-    ) -> AResult[BaseDownload]:
+    ) -> Result[BaseDownload]:
         """Create a YoutubeMusicDownload for the given track public_id."""
 
         return await youtube_music.start_download_async(
@@ -438,12 +438,12 @@ class YoutubeMusicProvider(BaseMediaProvider):
 
     async def get_media_duration_ms_async(
         self, session: AsyncSession, public_id: str
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Get the duration of a YouTube Music track in milliseconds."""
 
         return await youtube_music.get_media_duration_ms_async(session=session, public_id=public_id)
 
-    async def delete_media_async(self, session: AsyncSession, public_id: str) -> AResultCode:
+    async def delete_media_async(self, session: AsyncSession, public_id: str) -> ResultCode:
         """Remove the media file for a YouTube Music track and reset its path in the database."""
 
         return await youtube_music.delete_media_async(session=session, public_id=public_id)

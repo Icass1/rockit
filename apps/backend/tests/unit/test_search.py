@@ -8,10 +8,10 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework.media import search
 from core.requests.searchProviderRequest import SearchProviderRequest
 from core.responses.searchResponse import BaseSearchResultsItem
+from result import Result, ResultCode
 
 # pyright: reportPrivateUsage=false
 
@@ -22,8 +22,8 @@ T = TypeVar("T")
 SearchSetup = tuple[search.ProviderSearch, Mock, list[AsyncMock]]
 
 
-def ok[T](value: T) -> AResult[T]:
-    return AResult(code=AResultCode.OK, message="OK", result=value)
+def ok[T](value: T) -> Result[T]:
+    return Result(code=ResultCode.OK, message="OK", result=value)
 
 
 def item(
@@ -106,8 +106,8 @@ async def test_failures_cool_down_provider_even_for_different_queries(
     setup: SearchSetup,
 ) -> None:
     service, provider, sessions = setup
-    provider.search_page_async.return_value = AResult(
-        code=AResultCode.GENERAL_ERROR, message="rate limited"
+    provider.search_page_async.return_value = Result(
+        code=ResultCode.GENERAL_ERROR, message="rate limited"
     )
     assert (await service.search_async("test", "first")).is_not_ok()
     assert (await service.search_async("test", "different")).is_not_ok()
@@ -137,7 +137,7 @@ async def test_concurrency_is_bounded_and_sessions_are_independent(
     service, provider, sessions = setup
     active = peak = 0
 
-    async def slow(**kwargs: object) -> AResult[list[BaseSearchResultsItem]]:
+    async def slow(**kwargs: object) -> Result[list[BaseSearchResultsItem]]:
         nonlocal active, peak
         active += 1
         peak = max(peak, active)
@@ -158,7 +158,7 @@ async def test_disconnected_client_does_not_cancel_shared_work(
     service, provider, _ = setup
     started, finish = asyncio.Event(), asyncio.Event()
 
-    async def slow(**kwargs: object) -> AResult[list[BaseSearchResultsItem]]:
+    async def slow(**kwargs: object) -> Result[list[BaseSearchResultsItem]]:
         started.set()
         await finish.wait()
         return ok([])
@@ -180,7 +180,7 @@ async def test_timeout_returns_failure_and_cleans_pending(setup: SearchSetup) ->
     service, provider, _ = setup
     service.TIMEOUT = 0.001
 
-    async def slow(**kwargs: object) -> AResult[list[BaseSearchResultsItem]]:
+    async def slow(**kwargs: object) -> Result[list[BaseSearchResultsItem]]:
         await asyncio.sleep(1)
         return ok([])
 
@@ -238,7 +238,7 @@ def test_catalog_marks_costly_providers_as_on_demand(
     class Searchable(BaseMediaProvider):
         async def search_media_async(
             self, session: AsyncSession, query: str
-        ) -> AResult[list[BaseSearchResultsItem]]:
+        ) -> Result[list[BaseSearchResultsItem]]:
             return ok([])
 
         def search_on_demand(self) -> bool:
@@ -259,8 +259,8 @@ async def test_empty_provider_results_do_not_trigger_failure_cooldown(
     setup: SearchSetup,
 ) -> None:
     service, provider, _ = setup
-    provider.search_page_async.return_value = AResult(
-        code=AResultCode.NOT_FOUND, message="No matches"
+    provider.search_page_async.return_value = Result(
+        code=ResultCode.NOT_FOUND, message="No matches"
     )
     result = await service.search_async("test", "missing")
     assert result.is_ok() and result.result().results == []

@@ -3,7 +3,6 @@ from logging import Logger
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.models.adminStats import (
     CodeDistribution,
     DailyStat,
@@ -17,6 +16,7 @@ from core.models.adminStats import (
 )
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 
 logger: Logger = getLogger(__name__)
 
@@ -26,21 +26,21 @@ class RequestLogAccess:
     @safe_async
     async def get_total_requests_async(
         session: AsyncSession,
-    ) -> AResult[int]:
+    ) -> Result[int]:
         result = await session.execute(text("SELECT COUNT(*) from core.request_log"))
         count = result.scalar() or 0
-        return AResult(AResultCode.OK, "OK", int(count))
+        return Result(ResultCode.OK, "OK", int(count))
 
     @staticmethod
     @safe_async
     async def get_average_time_ms_async(
         session: AsyncSession,
-    ) -> AResult[float]:
+    ) -> Result[float]:
         result = await session.execute(
             text("SELECT COALESCE(AVG(time_taken_ms), 0) from core.request_log")
         )
         avg = float(result.scalar() or 0)
-        return AResult(AResultCode.OK, "OK", round(avg, 2))
+        return Result(ResultCode.OK, "OK", round(avg, 2))
 
     @staticmethod
     @safe_async
@@ -48,7 +48,7 @@ class RequestLogAccess:
         session: AsyncSession,
         group_by: str = "hour",
         limit: int = 168,
-    ) -> AResult[list[TimeSeriesPoint]]:
+    ) -> Result[list[TimeSeriesPoint]]:
         if group_by == "hour":
             query = text("""
                 SELECT
@@ -86,8 +86,8 @@ class RequestLogAccess:
 
         result = await session.execute(query, {"limit": limit})
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [
                 TimeSeriesPoint(
@@ -104,7 +104,7 @@ class RequestLogAccess:
     async def get_route_stats_async(
         session: AsyncSession,
         limit: int = 50,
-    ) -> AResult[list[RouteStat]]:
+    ) -> Result[list[RouteStat]]:
         result = await session.execute(
             text("""
                 SELECT
@@ -123,8 +123,8 @@ class RequestLogAccess:
             {"limit": limit, "replacement": "/<id>"},
         )
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [
                 RouteStat(
@@ -144,7 +144,7 @@ class RequestLogAccess:
     async def get_top_ips_async(
         session: AsyncSession,
         limit: int = 20,
-    ) -> AResult[list[TopIp]]:
+    ) -> Result[list[TopIp]]:
         result = await session.execute(
             text("""
                 SELECT ip, COUNT(*) AS count
@@ -157,8 +157,8 @@ class RequestLogAccess:
             {"limit": limit},
         )
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [TopIp(ip=row[0], count=int(row[1])) for row in rows],
         )
@@ -167,7 +167,7 @@ class RequestLogAccess:
     @safe_async
     async def get_code_distribution_async(
         session: AsyncSession,
-    ) -> AResult[list[CodeDistribution]]:
+    ) -> Result[list[CodeDistribution]]:
         result = await session.execute(
             text("""
                 SELECT response_code, COUNT(*) AS count
@@ -177,8 +177,8 @@ class RequestLogAccess:
                 """)
         )
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [CodeDistribution(code=int(row[0]), count=int(row[1])) for row in rows],
         )
@@ -187,7 +187,7 @@ class RequestLogAccess:
     @safe_async
     async def get_method_distribution_async(
         session: AsyncSession,
-    ) -> AResult[list[MethodDistribution]]:
+    ) -> Result[list[MethodDistribution]]:
         result = await session.execute(
             text("""
                 SELECT
@@ -200,8 +200,8 @@ class RequestLogAccess:
                 """)
         )
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [
                 MethodDistribution(
@@ -218,7 +218,7 @@ class RequestLogAccess:
     async def get_user_activity_async(
         session: AsyncSession,
         limit: int = 20,
-    ) -> AResult[list[UserActivity]]:
+    ) -> Result[list[UserActivity]]:
         result = await session.execute(
             text("""
                 SELECT
@@ -236,8 +236,8 @@ class RequestLogAccess:
             {"limit": limit},
         )
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [
                 UserActivity(
@@ -254,7 +254,7 @@ class RequestLogAccess:
     @safe_async
     async def get_hourly_stats_async(
         session: AsyncSession,
-    ) -> AResult[list[HourlyStat]]:
+    ) -> Result[list[HourlyStat]]:
         result = await session.execute(
             text("""
                 SELECT
@@ -267,8 +267,8 @@ class RequestLogAccess:
                 """)
         )
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [
                 HourlyStat(
@@ -285,7 +285,7 @@ class RequestLogAccess:
     async def get_daily_stats_async(
         session: AsyncSession,
         limit: int = 30,
-    ) -> AResult[list[DailyStat]]:
+    ) -> Result[list[DailyStat]]:
         result = await session.execute(
             text("""
                 SELECT
@@ -300,8 +300,8 @@ class RequestLogAccess:
             {"limit": limit},
         )
         rows = result.fetchall()
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             [
                 DailyStat(
@@ -317,7 +317,7 @@ class RequestLogAccess:
     @safe_async
     async def get_latency_percentiles_async(
         session: AsyncSession,
-    ) -> AResult[LatencyPercentiles]:
+    ) -> Result[LatencyPercentiles]:
         result = await session.execute(
             text("""
                 SELECT
@@ -333,8 +333,8 @@ class RequestLogAccess:
         p90 = row[1] if row else 0
         p95 = row[2] if row else 0
         p99 = row[3] if row else 0
-        return AResult(
-            AResultCode.OK,
+        return Result(
+            ResultCode.OK,
             "OK",
             LatencyPercentiles(
                 p50Ms=int(p50),
@@ -348,7 +348,7 @@ class RequestLogAccess:
     @safe_async
     async def get_average_requests_per_day_async(
         session: AsyncSession,
-    ) -> AResult[float]:
+    ) -> Result[float]:
         result = await session.execute(
             text("""
                 SELECT
@@ -361,4 +361,4 @@ class RequestLogAccess:
                 """)
         )
         avg = float(result.scalar() or 0)
-        return AResult(AResultCode.OK, "OK", round(avg, 2))
+        return Result(ResultCode.OK, "OK", round(avg, 2))

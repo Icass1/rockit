@@ -3,7 +3,6 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.statsV2Access import StatsV2Access, StatsV2SummaryData
-from core.aResult import AResult, AResultCode
 from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
 from core.responses.statsInsightsResponse import StatsInsightsResponse
 from core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
@@ -12,6 +11,7 @@ from core.responses.statsV2SummaryResponse import StatsV2SummaryResponse
 from core.responses.userStatsV2Response import UserStatsV2Response
 from core.utils.statsRange import get_group_by, parse_range
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -25,7 +25,7 @@ class StatsV2:
         custom_start: datetime | None = None,
         custom_end: datetime | None = None,
         timezone_offset_minutes: int = 0,
-    ) -> AResult[UserStatsV2Response]:
+    ) -> Result[UserStatsV2Response]:
         start_date, end_date = parse_range(range_value, custom_start, custom_end)
         group_by: str = get_group_by(range_value, start_date, end_date)
 
@@ -39,7 +39,7 @@ class StatsV2:
                     start_date = first_date
 
         try:
-            summary_result: AResult[StatsV2SummaryData] = await StatsV2Access.get_summary_async(
+            summary_result: Result[StatsV2SummaryData] = await StatsV2Access.get_summary_async(
                 session=session,
                 user_id=user_id,
                 start_date=start_date,
@@ -47,11 +47,11 @@ class StatsV2:
             )
             if summary_result.is_not_ok():
                 logger.error(f"Error getting v2 stats summary: {summary_result.info()}")
-                return AResult(code=summary_result.code(), message=summary_result.message())
+                return Result(code=summary_result.code(), message=summary_result.message())
 
             s: StatsV2SummaryData = summary_result.result()
 
-            minutes_result: AResult[
+            minutes_result: Result[
                 list[StatsMinutesEntryResponse]
             ] = await StatsV2Access.get_minutes_by_period_async(
                 session=session,
@@ -60,7 +60,7 @@ class StatsV2:
                 end_date=end_date,
                 group_by=group_by,
             )
-            top_songs_result: AResult[
+            top_songs_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsV2Access.get_top_songs_async(
                 session=session,
@@ -69,7 +69,7 @@ class StatsV2:
                 end_date=end_date,
                 limit=25,
             )
-            top_videos_result: AResult[
+            top_videos_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsV2Access.get_top_videos_async(
                 session=session,
@@ -78,7 +78,7 @@ class StatsV2:
                 end_date=end_date,
                 limit=25,
             )
-            top_artists_result: AResult[
+            top_artists_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsV2Access.get_top_artists_async(
                 session=session,
@@ -87,7 +87,7 @@ class StatsV2:
                 end_date=end_date,
                 limit=25,
             )
-            top_albums_result: AResult[
+            top_albums_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsV2Access.get_top_albums_async(
                 session=session,
@@ -96,7 +96,7 @@ class StatsV2:
                 end_date=end_date,
                 limit=25,
             )
-            heatmap_result: AResult[
+            heatmap_result: Result[
                 list[StatsHeatmapCellResponse]
             ] = await StatsV2Access.get_heatmap_async(
                 session=session,
@@ -105,7 +105,7 @@ class StatsV2:
                 end_date=end_date,
                 timezone_offset_minutes=timezone_offset_minutes,
             )
-            streak_result: AResult[int] = await StatsV2Access.get_current_streak_async(
+            streak_result: Result[int] = await StatsV2Access.get_current_streak_async(
                 session=session,
                 user_id=user_id,
                 timezone_offset_minutes=timezone_offset_minutes,
@@ -122,13 +122,11 @@ class StatsV2:
             for result_name, dependent_result in dependent_results:
                 if dependent_result.is_not_ok():
                     logger.error(f"Error getting v2 stats {result_name}: {dependent_result.info()}")
-                    return AResult(
+                    return Result(
                         code=dependent_result.code(),
                         message=dependent_result.message(),
                     )
-            insights_result: AResult[
-                StatsInsightsResponse
-            ] = await StatsV2Access.get_insights_async(
+            insights_result: Result[StatsInsightsResponse] = await StatsV2Access.get_insights_async(
                 session=session,
                 user_id=user_id,
                 start_date=start_date,
@@ -137,10 +135,10 @@ class StatsV2:
             )
             if insights_result.is_not_ok():
                 logger.error(f"Error getting v2 stats insights: {insights_result.info()}")
-                return AResult(code=insights_result.code(), message=insights_result.message())
+                return Result(code=insights_result.code(), message=insights_result.message())
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=UserStatsV2Response(
                     summary=StatsV2SummaryResponse(
@@ -164,7 +162,7 @@ class StatsV2:
             )
         except Exception as e:
             logger.error(f"Error getting v2 user stats: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Error getting v2 user stats: {str(e)}",
             )

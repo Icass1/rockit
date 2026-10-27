@@ -1,14 +1,15 @@
 from typing import cast
 
-from sqlalchemy import Result as DBResult, and_, select
+from sqlalchemy import Result as DBResult
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -19,7 +20,7 @@ class MediaAccess:
         session: AsyncSession,
         public_ids: list[str],
         media_type_keys: list[MediaTypeEnum] | None,
-    ) -> AResult[list[CoreMediaRow]]:
+    ) -> Result[list[CoreMediaRow]]:
         """Get CoreMediaRow entries by public_ids and optional media_type."""
 
         try:
@@ -38,27 +39,27 @@ class MediaAccess:
             rows: list[CoreMediaRow] = cast(list[CoreMediaRow], result.scalars().all())
 
             if not rows:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message=(
                         f"Media not found for public ids: {public_ids} with media type "
                         f"key {media_type_keys}"
                     ),
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=rows)
+            return Result(code=ResultCode.OK, message="OK", result=rows)
 
         except Exception as e:
             logger.error(f"Error getting media: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting media")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error getting media")
 
     @staticmethod
     async def get_media_from_public_id_async(
         session: AsyncSession,
         public_id: str,
         media_type_keys: list[MediaTypeEnum] | None,
-    ) -> AResult[CoreMediaRow]:
-        a_result_media: AResult[
+    ) -> Result[CoreMediaRow]:
+        a_result_media: Result[
             list[CoreMediaRow]
         ] = await MediaAccess.get_medias_from_public_ids_async(
             session=session, public_ids=[public_id], media_type_keys=media_type_keys
@@ -69,28 +70,28 @@ class MediaAccess:
                 f"Error getting medias from public id {public_id} with media "
                 f"type {media_type_keys}."
             )
-            return AResult(code=a_result_media.code(), message=a_result_media.message())
+            return Result(code=a_result_media.code(), message=a_result_media.message())
 
         if len(a_result_media.result()) != 1:
             logger.error(
                 f"get_medias_from_public_ids_async returned "
                 f"{len(a_result_media.result())} rows instead of 1."
             )
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=(
                     f"get_medias_from_public_ids_async returned "
                     f"{len(a_result_media.result())} rows instead of 1."
                 ),
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result_media.result()[0])
+        return Result(code=ResultCode.OK, message="OK", result=a_result_media.result()[0])
 
     @staticmethod
     async def get_media_from_id_async(
         session: AsyncSession,
         id: int,
-    ) -> AResult[CoreMediaRow]:
+    ) -> Result[CoreMediaRow]:
         """Get a CoreMediaRow by id."""
 
         try:
@@ -99,19 +100,19 @@ class MediaAccess:
             row: CoreMediaRow | None = result.scalar_one_or_none()
 
             if row is None:
-                return AResult(code=AResultCode.NOT_FOUND, message="Media not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Media not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting media: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting media")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error getting media")
 
     @staticmethod
     async def get_medias_from_ids_async(
         session: AsyncSession,
         ids: list[int],
-    ) -> AResult[list[CoreMediaRow]]:
+    ) -> Result[list[CoreMediaRow]]:
         """Get CoreMediaRow entries by internal IDs."""
 
         try:
@@ -120,22 +121,22 @@ class MediaAccess:
             rows: list[CoreMediaRow] = cast(list[CoreMediaRow], result.scalars().all())
 
             if not rows:
-                return AResult(
-                    code=AResultCode.NOT_FOUND,
+                return Result(
+                    code=ResultCode.NOT_FOUND,
                     message=f"Media not found for ids: {ids}",
                 )
 
-            return AResult(code=AResultCode.OK, message="OK", result=rows)
+            return Result(code=ResultCode.OK, message="OK", result=rows)
 
         except Exception as e:
             logger.error(f"Error getting media by ids: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting media")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error getting media")
 
     @staticmethod
     async def get_image_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[ImageRow]:
+    ) -> Result[ImageRow]:
         """Get an ImageRow by public_id."""
 
         try:
@@ -144,19 +145,19 @@ class MediaAccess:
             row: ImageRow | None = result.scalar_one_or_none()
 
             if row is None:
-                return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Image not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting image: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting image")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error getting image")
 
     @staticmethod
     async def get_image_from_id_async(
         session: AsyncSession,
         id: int,
-    ) -> AResult[ImageRow]:
+    ) -> Result[ImageRow]:
         """Get an ImageRow by id."""
 
         try:
@@ -165,10 +166,10 @@ class MediaAccess:
             row: ImageRow | None = result.scalar_one_or_none()
 
             if row is None:
-                return AResult(code=AResultCode.NOT_FOUND, message="Image not found")
+                return Result(code=ResultCode.NOT_FOUND, message="Image not found")
 
-            return AResult(code=AResultCode.OK, message="OK", result=row)
+            return Result(code=ResultCode.OK, message="OK", result=row)
 
         except Exception as e:
             logger.error(f"Error getting image: {e}")
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error getting image")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error getting image")

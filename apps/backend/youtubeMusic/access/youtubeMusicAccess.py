@@ -2,20 +2,21 @@ import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
-from sqlalchemy import Result as DBResult, Select, and_
+from sqlalchemy import Result as DBResult
+from sqlalchemy import Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from constants import MEDIA_PATH
 from core.access.db.ormModels.media import CoreMediaRow
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.models.localSong import LocalSong
 from core.utils.createId import create_id
 from core.utils.safeAsyncCall import safe_async
 from core.utils.timeIt import time_it
 from logger import getLogger
+from result import Result, ResultCode
 from youtubeMusic.access.db.associationTables.track_album_artists import (
     album_artists,
     track_artists,
@@ -71,7 +72,7 @@ class YoutubeMusicAccess:
     async def get_track_youtube_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         stmt: Select[tuple[TrackRow]] = (
             select(TrackRow)
             .join(
@@ -88,9 +89,9 @@ class YoutubeMusicAccess:
 
         if not track:
             logger.error("Track not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=track.youtube_id)
+        return Result(code=ResultCode.OK, message="OK", result=track.youtube_id)
 
     @staticmethod
     @safe_async
@@ -111,7 +112,7 @@ class YoutubeMusicAccess:
     async def get_track_by_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[TrackRow]:
+    ) -> Result[TrackRow]:
         stmt: Select[tuple[TrackRow]] = (
             select(TrackRow)
             .join(
@@ -133,16 +134,16 @@ class YoutubeMusicAccess:
 
         if not track:
             logger.error("Track not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Track not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Track not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=track)
+        return Result(code=ResultCode.OK, message="OK", result=track)
 
     @staticmethod
     @safe_async
     async def get_track_by_youtube_id_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[TrackRow]:
+    ) -> Result[TrackRow]:
         stmt: Select[tuple[TrackRow]] = (
             select(TrackRow)
             .where(TrackRow.youtube_id == youtube_id)
@@ -157,41 +158,41 @@ class YoutubeMusicAccess:
 
         if not track:
             logger.warning(f"Track {youtube_id} not found")
-            return AResult(code=AResultCode.NOT_FOUND, message=f"Track {youtube_id} not found")
+            return Result(code=ResultCode.NOT_FOUND, message=f"Track {youtube_id} not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=track)
+        return Result(code=ResultCode.OK, message="OK", result=track)
 
     @staticmethod
     @safe_async
     async def get_album_by_youtube_id_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[AlbumRow]:
+    ) -> Result[AlbumRow]:
         stmt: Select[tuple[AlbumRow]] = select(AlbumRow).where(AlbumRow.youtube_id == youtube_id)
         result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
         album: AlbumRow | None = result.scalar_one_or_none()
 
         if not album:
             logger.error(f"Album {youtube_id} not found")
-            return AResult(code=AResultCode.NOT_FOUND, message=f"Album {youtube_id} not found")
+            return Result(code=ResultCode.NOT_FOUND, message=f"Album {youtube_id} not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=album)
+        return Result(code=ResultCode.OK, message="OK", result=album)
 
     @staticmethod
     @safe_async
     async def get_artist_by_youtube_id_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[ArtistRow]:
+    ) -> Result[ArtistRow]:
         stmt: Select[tuple[ArtistRow]] = select(ArtistRow).where(ArtistRow.youtube_id == youtube_id)
         result: DBResult[tuple[ArtistRow]] = await session.execute(stmt)
         artist: ArtistRow | None = result.scalar_one_or_none()
 
         if not artist:
             logger.error("Artist not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Artist not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=artist)
+        return Result(code=ResultCode.OK, message="OK", result=artist)
 
     @staticmethod
     @safe_async
@@ -199,7 +200,7 @@ class YoutubeMusicAccess:
     async def get_album_youtube_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         stmt: Select[tuple[AlbumRow]] = (
             select(AlbumRow)
             .join(
@@ -216,16 +217,16 @@ class YoutubeMusicAccess:
 
         if not album:
             logger.error("Album not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Album not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Album not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=album.youtube_id)
+        return Result(code=ResultCode.OK, message="OK", result=album.youtube_id)
 
     @staticmethod
     @safe_async
     async def get_artist_youtube_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         stmt: Select[tuple[ArtistRow]] = (
             select(ArtistRow)
             .join(
@@ -242,16 +243,16 @@ class YoutubeMusicAccess:
 
         if not artist:
             logger.error("Artist not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Artist not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Artist not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=artist.youtube_id)
+        return Result(code=ResultCode.OK, message="OK", result=artist.youtube_id)
 
     @staticmethod
     @safe_async
     async def get_tracks_from_album_id_async(
         session: AsyncSession,
         album_id: int,
-    ) -> AResult[list[TrackRow]]:
+    ) -> Result[list[TrackRow]]:
         stmt: Select[tuple[TrackRow]] = (
             select(TrackRow)
             .where(TrackRow.album_id == album_id)
@@ -262,12 +263,12 @@ class YoutubeMusicAccess:
 
         if not tracks_list:
             logger.error(f"No tracks found for album id {album_id}")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="No tracks found for this album.",
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=tracks_list)
+        return Result(code=ResultCode.OK, message="OK", result=tracks_list)
 
     @staticmethod
     @safe_async
@@ -275,7 +276,7 @@ class YoutubeMusicAccess:
     async def get_artists_from_track_async(
         session: AsyncSession,
         track: TrackRow,
-    ) -> AResult[list[ArtistRow]]:
+    ) -> Result[list[ArtistRow]]:
         stmt: Select[tuple[ArtistRow]] = select(ArtistRow).where(
             ArtistRow.tracks.any(TrackRow.id == track.id)
         )
@@ -284,33 +285,33 @@ class YoutubeMusicAccess:
 
         if not artists:
             logger.warning(f"Artists not found from track row {track.id}.")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message=f"Error getting artists from track row. {track.id}",
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=artists)
+        return Result(code=ResultCode.OK, message="OK", result=artists)
 
     @staticmethod
     @safe_async
     async def get_artists_from_album_async(
         session: AsyncSession,
         album: AlbumRow,
-    ) -> AResult[list[ArtistRow]]:
+    ) -> Result[list[ArtistRow]]:
         stmt: Select[tuple[ArtistRow]] = select(ArtistRow).where(
             ArtistRow.albums.any(AlbumRow.id == album.id)
         )
         result = await session.execute(stmt)
         artists: list[ArtistRow] = cast(list[ArtistRow], result.scalars().all())
 
-        return AResult(code=AResultCode.OK, message="OK", result=artists)
+        return Result(code=ResultCode.OK, message="OK", result=artists)
 
     @staticmethod
     @safe_async
     async def get_tracks_from_artist_id_async(
         session: AsyncSession,
         artist_id: int,
-    ) -> AResult[list[TrackRow]]:
+    ) -> Result[list[TrackRow]]:
         stmt: Select[tuple[TrackRow]] = (
             select(TrackRow)
             .where(TrackRow.artists.any(ArtistRow.id == artist_id))
@@ -325,19 +326,19 @@ class YoutubeMusicAccess:
 
         if not tracks_list:
             logger.error(f"No tracks found for artist id {artist_id}")
-            return AResult(
-                code=AResultCode.NOT_FOUND,
+            return Result(
+                code=ResultCode.NOT_FOUND,
                 message="No tracks found for this artist.",
             )
 
-        return AResult(code=AResultCode.OK, message="OK", result=tracks_list)
+        return Result(code=ResultCode.OK, message="OK", result=tracks_list)
 
     @staticmethod
     @safe_async
     async def get_playlist_youtube_id_from_public_id_async(
         session: AsyncSession,
         public_id: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         stmt: Select[tuple[PlaylistRow]] = (
             select(PlaylistRow)
             .join(
@@ -354,16 +355,16 @@ class YoutubeMusicAccess:
 
         if not playlist:
             logger.error("Playlist not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Playlist not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=playlist.youtube_id)
+        return Result(code=ResultCode.OK, message="OK", result=playlist.youtube_id)
 
     @staticmethod
     @safe_async
     async def get_playlist_by_youtube_id_async(
         session: AsyncSession,
         youtube_id: str,
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         stmt: Select[tuple[PlaylistRow]] = select(PlaylistRow).where(
             PlaylistRow.youtube_id == youtube_id
         )
@@ -372,9 +373,9 @@ class YoutubeMusicAccess:
 
         if not playlist:
             logger.error("Playlist not found")
-            return AResult(code=AResultCode.NOT_FOUND, message="Playlist not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Playlist not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=playlist)
+        return Result(code=ResultCode.OK, message="OK", result=playlist)
 
     @staticmethod
     @safe_async
@@ -382,26 +383,26 @@ class YoutubeMusicAccess:
         session: AsyncSession,
         track_id: int,
         path: str | None,
-    ) -> AResultCode:
+    ) -> ResultCode:
         stmt: Select[tuple[TrackRow]] = select(TrackRow).where(TrackRow.id == track_id)
         result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         track_row: TrackRow | None = result.scalar_one_or_none()
         if not track_row:
             logger.warning(f"Could not find track {track_id} to update path")
-            return AResultCode(
-                code=AResultCode.NOT_FOUND,
+            return ResultCode(
+                code=ResultCode.NOT_FOUND,
                 message=f"Track {track_id} not found",
             )
         track_row.path = path
         await session.commit()
-        return AResultCode(code=AResultCode.OK, message="OK")
+        return ResultCode(code=ResultCode.OK, message="OK")
 
     @staticmethod
     @safe_async
     async def get_playlist_track_links_async(
         session: AsyncSession,
         playlist_id: int,
-    ) -> AResult[list[PlaylistTrackLink]]:
+    ) -> Result[list[PlaylistTrackLink]]:
         stmt: Select[tuple[PlaylistTrackRow]] = select(PlaylistTrackRow).where(
             PlaylistTrackRow.playlist_id == playlist_id
         )
@@ -426,7 +427,7 @@ class YoutubeMusicAccess:
             if track:
                 track_links.append(PlaylistTrackLink(playlist_track=ptr, track=track))
 
-        return AResult(code=AResultCode.OK, message="OK", result=track_links)
+        return Result(code=ResultCode.OK, message="OK", result=track_links)
 
     @staticmethod
     @safe_async
@@ -435,12 +436,12 @@ class YoutubeMusicAccess:
         raw: "YoutubeMusicArtist",
         provider_id: int,
         image_id: int,
-    ) -> AResult[ArtistRow]:
+    ) -> Result[ArtistRow]:
         stmt = select(ArtistRow).where(ArtistRow.youtube_id == raw.youtube_id)
         result = await session.execute(stmt)
         existing: ArtistRow | None = result.scalar_one_or_none()
         if existing:
-            return AResult(code=AResultCode.OK, message="OK", result=existing)
+            return Result(code=ResultCode.OK, message="OK", result=existing)
 
         core_artist = CoreMediaRow(
             public_id=create_id(32),
@@ -458,7 +459,7 @@ class YoutubeMusicAccess:
         )
         session.add(artist_row)
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=artist_row)
+        return Result(code=ResultCode.OK, message="OK", result=artist_row)
 
     @staticmethod
     @safe_async
@@ -468,7 +469,7 @@ class YoutubeMusicAccess:
         artist_map: dict[str, ArtistRow],
         provider_id: int,
         image_id: int,
-    ) -> AResult[AlbumRow]:
+    ) -> Result[AlbumRow]:
         stmt = (
             select(AlbumRow)
             .where(AlbumRow.youtube_id == raw.youtube_id)
@@ -477,7 +478,7 @@ class YoutubeMusicAccess:
         result = await session.execute(stmt)
         existing: AlbumRow | None = result.scalar_one_or_none()
         if existing:
-            return AResult(code=AResultCode.OK, message="OK", result=existing)
+            return Result(code=ResultCode.OK, message="OK", result=existing)
 
         core_album = CoreMediaRow(
             public_id=create_id(32),
@@ -508,7 +509,7 @@ class YoutubeMusicAccess:
                         break
 
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=album_row)
+        return Result(code=ResultCode.OK, message="OK", result=album_row)
 
     @staticmethod
     @safe_async
@@ -519,7 +520,7 @@ class YoutubeMusicAccess:
         album_row: AlbumRow,
         provider_id: int,
         image_id: int,
-    ) -> AResult[TrackRow]:
+    ) -> Result[TrackRow]:
         stmt = (
             select(TrackRow)
             .where(TrackRow.youtube_id == raw.youtube_id)
@@ -532,7 +533,7 @@ class YoutubeMusicAccess:
         result = await session.execute(stmt)
         existing: TrackRow | None = result.scalar_one_or_none()
         if existing:
-            return AResult(code=AResultCode.OK, message="OK", result=existing)
+            return Result(code=ResultCode.OK, message="OK", result=existing)
 
         core_track = CoreMediaRow(
             public_id=create_id(32),
@@ -567,7 +568,7 @@ class YoutubeMusicAccess:
                     break
 
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=track_row)
+        return Result(code=ResultCode.OK, message="OK", result=track_row)
 
     @staticmethod
     @safe_async
@@ -575,7 +576,7 @@ class YoutubeMusicAccess:
     async def get_tracks_by_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[TrackRow]]:
+    ) -> Result[list[TrackRow]]:
         """Batch fetch tracks by public_ids in a single query."""
         stmt: Select[tuple[TrackRow]] = (
             select(TrackRow)
@@ -596,7 +597,7 @@ class YoutubeMusicAccess:
         result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         tracks: list[TrackRow] = cast(list[TrackRow], result.scalars().all())
 
-        return AResult(code=AResultCode.OK, message="OK", result=tracks)
+        return Result(code=ResultCode.OK, message="OK", result=tracks)
 
     @staticmethod
     @safe_async
@@ -604,7 +605,7 @@ class YoutubeMusicAccess:
     async def get_artists_for_tracks_batch_async(
         session: AsyncSession,
         track_ids: list[int],
-    ) -> AResult[dict[int, list[ArtistRow]]]:
+    ) -> Result[dict[int, list[ArtistRow]]]:
         """Batch fetch artists for multiple tracks in a single query."""
         stmt = (
             select(ArtistRow, track_artists.c.track_id)
@@ -618,7 +619,7 @@ class YoutubeMusicAccess:
         for artist_row, track_id in rows:
             track_artists_map[track_id].append(artist_row)
 
-        return AResult(code=AResultCode.OK, message="OK", result=track_artists_map)
+        return Result(code=ResultCode.OK, message="OK", result=track_artists_map)
 
     @staticmethod
     @safe_async
@@ -626,7 +627,7 @@ class YoutubeMusicAccess:
     async def get_albums_by_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[list[AlbumRow]]:
+    ) -> Result[list[AlbumRow]]:
         """Batch fetch albums by public_ids in a single query."""
         stmt: Select[tuple[AlbumRow]] = (
             select(AlbumRow)
@@ -642,7 +643,7 @@ class YoutubeMusicAccess:
         result: DBResult[tuple[AlbumRow]] = await session.execute(stmt)
         albums: list[AlbumRow] = cast(list[AlbumRow], result.scalars().all())
 
-        return AResult(code=AResultCode.OK, message="OK", result=albums)
+        return Result(code=ResultCode.OK, message="OK", result=albums)
 
     @staticmethod
     @safe_async
@@ -650,7 +651,7 @@ class YoutubeMusicAccess:
     async def get_artists_for_albums_batch_async(
         session: AsyncSession,
         album_ids: list[int],
-    ) -> AResult[dict[int, list[ArtistRow]]]:
+    ) -> Result[dict[int, list[ArtistRow]]]:
         """Batch fetch artists for multiple albums in a single query."""
         stmt = (
             select(ArtistRow, album_artists.c.album_id)
@@ -664,7 +665,7 @@ class YoutubeMusicAccess:
         for artist_row, album_id in rows:
             album_artists_map[album_id].append(artist_row)
 
-        return AResult(code=AResultCode.OK, message="OK", result=album_artists_map)
+        return Result(code=ResultCode.OK, message="OK", result=album_artists_map)
 
     @staticmethod
     @safe_async
@@ -672,7 +673,7 @@ class YoutubeMusicAccess:
     async def get_tracks_by_album_ids_async(
         session: AsyncSession,
         album_ids: list[int],
-    ) -> AResult[list[TrackRow]]:
+    ) -> Result[list[TrackRow]]:
         """Batch fetch tracks by album IDs in a single query."""
         stmt: Select[tuple[TrackRow]] = (
             select(TrackRow)
@@ -686,18 +687,18 @@ class YoutubeMusicAccess:
         result: DBResult[tuple[TrackRow]] = await session.execute(stmt)
         tracks: list[TrackRow] = cast(list[TrackRow], result.scalars().all())
 
-        return AResult(code=AResultCode.OK, message="OK", result=tracks)
+        return Result(code=ResultCode.OK, message="OK", result=tracks)
 
     @staticmethod
     @safe_async
     async def get_artist_public_ids_by_youtube_ids_async(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Return a mapping of youtube_id → public_id for artists in the database."""
 
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         stmt: Select[tuple[str, str]] = (
             select(ArtistRow.youtube_id, CoreMediaRow.public_id)
@@ -705,8 +706,8 @@ class YoutubeMusicAccess:
             .where(ArtistRow.youtube_id.in_(youtube_ids))
         )
         result: DBResult[tuple[str, str]] = await session.execute(stmt)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={row[0]: row[1] for row in result.all()},
         )
@@ -716,11 +717,11 @@ class YoutubeMusicAccess:
     async def get_album_public_ids_by_youtube_ids_async(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Return a mapping of youtube_id → public_id for albums in the database."""
 
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         stmt: Select[tuple[str, str]] = (
             select(AlbumRow.youtube_id, CoreMediaRow.public_id)
@@ -728,8 +729,8 @@ class YoutubeMusicAccess:
             .where(AlbumRow.youtube_id.in_(youtube_ids))
         )
         result: DBResult[tuple[str, str]] = await session.execute(stmt)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={row[0]: row[1] for row in result.all()},
         )
@@ -739,11 +740,11 @@ class YoutubeMusicAccess:
     async def get_playlist_public_ids_by_youtube_ids_async(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Return a mapping of youtube_id → public_id for playlists in the database."""
 
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         stmt: Select[tuple[str, str]] = (
             select(PlaylistRow.youtube_id, CoreMediaRow.public_id)
@@ -751,8 +752,8 @@ class YoutubeMusicAccess:
             .where(PlaylistRow.youtube_id.in_(youtube_ids))
         )
         result: DBResult[tuple[str, str]] = await session.execute(stmt)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={row[0]: row[1] for row in result.all()},
         )
@@ -762,11 +763,11 @@ class YoutubeMusicAccess:
     async def get_playlists_youtube_id_from_public_ids_async(
         session: AsyncSession,
         public_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Bulk-resolve public_ids to youtube_ids for playlists in one query."""
 
         if not public_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         stmt: Select[tuple[str, str]] = (
             select(CoreMediaRow.public_id, PlaylistRow.youtube_id)
@@ -777,8 +778,8 @@ class YoutubeMusicAccess:
             )
         )
         result: DBResult[tuple[str, str]] = await session.execute(stmt)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={row[0]: row[1] for row in result.all()},
         )
@@ -788,11 +789,11 @@ class YoutubeMusicAccess:
     async def get_playlists_by_youtube_ids_async(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[list[PlaylistRow]]:
+    ) -> Result[list[PlaylistRow]]:
         """Batch fetch playlists by their youtube_ids in a single query."""
 
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=[])
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
         stmt: Select[tuple[PlaylistRow]] = (
             select(PlaylistRow)
@@ -807,7 +808,7 @@ class YoutubeMusicAccess:
         )
         result: DBResult[tuple[PlaylistRow]] = await session.execute(stmt)
         playlists: list[PlaylistRow] = list(result.scalars().all())
-        return AResult(code=AResultCode.OK, message="OK", result=playlists)
+        return Result(code=ResultCode.OK, message="OK", result=playlists)
 
     @staticmethod
     @safe_async
@@ -817,7 +818,7 @@ class YoutubeMusicAccess:
         track_row_map: dict[str, TrackRow],
         provider_id: int,
         image_id: int | None = None,
-    ) -> AResult[PlaylistRow]:
+    ) -> Result[PlaylistRow]:
         """Create a playlist and its track links in the database if it does not exist."""
 
         stmt = (
@@ -834,7 +835,7 @@ class YoutubeMusicAccess:
         result = await session.execute(stmt)
         existing: PlaylistRow | None = result.scalar_one_or_none()
         if existing:
-            return AResult(code=AResultCode.OK, message="OK", result=existing)
+            return Result(code=ResultCode.OK, message="OK", result=existing)
 
         core_playlist = CoreMediaRow(
             public_id=create_id(32),
@@ -873,36 +874,36 @@ class YoutubeMusicAccess:
             position += 1
 
         await session.flush()
-        return AResult(code=AResultCode.OK, message="OK", result=playlist_row)
+        return Result(code=ResultCode.OK, message="OK", result=playlist_row)
 
     @staticmethod
     @safe_async
     async def get_downloaded_youtube_ids_async(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[set[str]]:
+    ) -> Result[set[str]]:
         """Return the subset of youtube_ids whose path is not null."""
 
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result=set())
+            return Result(code=ResultCode.OK, message="OK", result=set())
 
         stmt: Select[tuple[str]] = select(TrackRow.youtube_id).where(
             TrackRow.youtube_id.in_(youtube_ids),
             TrackRow.path.isnot(None),
         )
         result: DBResult[tuple[str]] = await session.execute(stmt)
-        return AResult(code=AResultCode.OK, message="OK", result={row[0] for row in result.all()})
+        return Result(code=ResultCode.OK, message="OK", result={row[0] for row in result.all()})
 
     @staticmethod
     @safe_async
     async def get_downloaded_youtube_public_ids_async(
         session: AsyncSession,
         youtube_ids: list[str],
-    ) -> AResult[dict[str, str]]:
+    ) -> Result[dict[str, str]]:
         """Return a mapping of youtube_id → public_id for downloaded tracks."""
 
         if not youtube_ids:
-            return AResult(code=AResultCode.OK, message="OK", result={})
+            return Result(code=ResultCode.OK, message="OK", result={})
 
         stmt: Select[tuple[str, str]] = (
             select(TrackRow.youtube_id, CoreMediaRow.public_id)
@@ -913,8 +914,8 @@ class YoutubeMusicAccess:
             )
         )
         result: DBResult[tuple[str, str]] = await session.execute(stmt)
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result={row[0]: row[1] for row in result.all()},
         )

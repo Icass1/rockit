@@ -5,9 +5,9 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import MEDIA_PATH
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.baseDownload import BaseDownload
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.framework.youtubeDownloader import YouTubeDownloader
 from youtube.framework.youtubeSearch import (
     YoutubeSearch,
@@ -54,7 +54,7 @@ class YoutubeMusicDownload(BaseDownload):
         the primary URL is usually fine on its own.
         """
 
-        a_result: AResult[list[str]] = await YoutubeSearch.find_video_urls_async(
+        a_result: Result[list[str]] = await YoutubeSearch.find_video_urls_async(
             song=YoutubeSongQuery(
                 title=track.title,
                 artists=artist_names,
@@ -75,27 +75,27 @@ class YoutubeMusicDownload(BaseDownload):
         logger.info(f"Found {len(alternatives)} alternative video(s) for {track.title}")
         return alternatives
 
-    async def download_method_async(self, session: AsyncSession) -> AResultCode:
+    async def download_method_async(self, session: AsyncSession) -> ResultCode:
         """Download the YouTube Music track as mp3 asynchronously."""
 
         logger.info(f"Downloading YouTube Music track with ID: {self.youtube_id}")
 
         try:
-            a_result_track: AResult[
+            a_result_track: Result[
                 TrackRow
             ] = await YoutubeMusicAccess.get_track_by_youtube_id_async(
                 session=session, youtube_id=self.youtube_id
             )
             if a_result_track.is_not_ok():
                 logger.error(f"Error getting track: {a_result_track.message()}")
-                return AResultCode(
+                return ResultCode(
                     code=a_result_track.code(),
                     message=f"Error getting track: {a_result_track.message()}",
                 )
 
             track: TrackRow = a_result_track.result()
 
-            a_result_artists: AResult[
+            a_result_artists: Result[
                 list[ArtistRow]
             ] = await YoutubeMusicAccess.get_artists_from_track_async(session=session, track=track)
             artist_names: list[str] = []
@@ -119,7 +119,7 @@ class YoutubeMusicDownload(BaseDownload):
                 track=track, artist_names=artist_names, youtube_url=youtube_url
             )
 
-            a_result_download: AResult[
+            a_result_download: Result[
                 dict[str, Any]
             ] = await YouTubeDownloader.download_as_mp3_async(
                 youtube_url=youtube_url,
@@ -136,7 +136,7 @@ class YoutubeMusicDownload(BaseDownload):
                 logger.error(f"Download failed: {a_result_download.info()}")
                 # Keep the downloader's code: RATE_LIMITED earns the long
                 # backoff, NOT_FOUND stops the retries altogether.
-                return AResultCode(
+                return ResultCode(
                     code=a_result_download.code(),
                     message=f"Download failed: {a_result_download.message()}",
                 )
@@ -158,8 +158,8 @@ class YoutubeMusicDownload(BaseDownload):
                 session=session, track_id=self.track_id, path=final_relative_path
             )
 
-            return AResultCode(code=AResultCode.OK, message="Download completed.")
+            return ResultCode(code=ResultCode.OK, message="Download completed.")
 
         except Exception as e:
             logger.error(f"Error in download_method_async: {e}", exc_info=True)
-            return AResultCode(code=AResultCode.GENERAL_ERROR, message=f"Download error: {e}")
+            return ResultCode(code=ResultCode.GENERAL_ERROR, message=f"Download error: {e}")

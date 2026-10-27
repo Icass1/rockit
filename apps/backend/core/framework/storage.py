@@ -13,10 +13,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.access.storageObjectAccess import StorageObjectAccess
-from core.aResult import AResult as Result
-from core.aResult import AResultCode as ResultCode
 from core.utils.createId import create_id
 from logger import logger
+from result import Result as Result
+from result import ResultCode as ResultCode
 
 if TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client

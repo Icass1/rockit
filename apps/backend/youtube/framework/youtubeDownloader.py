@@ -11,10 +11,10 @@ from constants import TEMP_PATH
 from core.access.db import db_context
 from core.access.db.ormModels.downloadStatus import DownloadStatusRow
 from core.access.downloadAccess import DownloadAccess
-from core.aResult import AResult, AResultCode
 from core.enums.downloadStatusEnum import DownloadStatusEnum
 from core.framework.websocket.webSocketManager import ws_manager
 from logger import getLogger
+from result import Result, ResultCode
 from youtube.enums.ytdlpFailureEnum import YtdlpFailureEnum
 from youtube.framework.potProvider import PotProvider
 from youtube.framework.youtubeGate import youtube_gate
@@ -170,7 +170,7 @@ async def _insert_and_broadcast(
     date_ended: datetime | None,
 ) -> None:
     async with db_context.session_scope_async() as session:
-        a_result: AResult[DownloadStatusRow] = await DownloadAccess.create_download_status(
+        a_result: Result[DownloadStatusRow] = await DownloadAccess.create_download_status(
             session=session,
             download_id=download_id,
             completed=progress,
@@ -260,15 +260,15 @@ async def _download_with_candidates_async(
 _FAILURE_RESULT_CODES: dict[YtdlpFailureEnum, int] = {
     # A block is temporary by nature: back off and let the retry scheduler take
     # another run at it later, ideally once the circuit breaker has closed.
-    YtdlpFailureEnum.BLOCKED: AResultCode.RATE_LIMITED,
-    YtdlpFailureEnum.RATE_LIMITED: AResultCode.RATE_LIMITED,
-    YtdlpFailureEnum.MEDIA_FORBIDDEN: AResultCode.RATE_LIMITED,
-    YtdlpFailureEnum.CONFIGURATION: AResultCode.CONFIGURATION_ERROR,
+    YtdlpFailureEnum.BLOCKED: ResultCode.RATE_LIMITED,
+    YtdlpFailureEnum.RATE_LIMITED: ResultCode.RATE_LIMITED,
+    YtdlpFailureEnum.MEDIA_FORBIDDEN: ResultCode.RATE_LIMITED,
+    YtdlpFailureEnum.CONFIGURATION: ResultCode.CONFIGURATION_ERROR,
     # Nothing we do will make a removed or geo-blocked video downloadable.
-    YtdlpFailureEnum.UNAVAILABLE: AResultCode.NOT_FOUND,
-    YtdlpFailureEnum.TRANSIENT: AResultCode.GENERAL_ERROR,
-    YtdlpFailureEnum.UNKNOWN: AResultCode.GENERAL_ERROR,
-    YtdlpFailureEnum.FORMAT_UNAVAILABLE: AResultCode.GENERAL_ERROR,
+    YtdlpFailureEnum.UNAVAILABLE: ResultCode.NOT_FOUND,
+    YtdlpFailureEnum.TRANSIENT: ResultCode.GENERAL_ERROR,
+    YtdlpFailureEnum.UNKNOWN: ResultCode.GENERAL_ERROR,
+    YtdlpFailureEnum.FORMAT_UNAVAILABLE: ResultCode.GENERAL_ERROR,
 }
 
 
@@ -282,10 +282,10 @@ async def _fail_download_async(
     date_started: datetime,
     failure_kind: YtdlpFailureEnum,
     failure_message: str,
-) -> AResult[dict[str, Any]]:
-    """Broadcast a failed download and map the failure onto an AResult code."""
+) -> Result[dict[str, Any]]:
+    """Broadcast a failed download and map the failure onto an Result code."""
 
-    code: int = _FAILURE_RESULT_CODES.get(failure_kind, AResultCode.GENERAL_ERROR)
+    code: int = _FAILURE_RESULT_CODES.get(failure_kind, ResultCode.GENERAL_ERROR)
 
     logger.error(f"Download {download_public_id} failed ({failure_kind.name}): {failure_message}")
 
@@ -303,7 +303,7 @@ async def _fail_download_async(
         date_ended=datetime.now(UTC),
     )
 
-    return AResult(
+    return Result(
         code=code,
         message=failure_message,
         result=None,
@@ -454,7 +454,7 @@ class YouTubeDownloader:
         artist: str,
         filename: str,
         alternative_urls: list[str] | None = None,
-    ) -> AResult[dict[str, Any]]:
+    ) -> Result[dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             alternative_urls=alternative_urls,
@@ -477,7 +477,7 @@ class YouTubeDownloader:
         artist: str,
         filename: str,
         alternative_urls: list[str] | None = None,
-    ) -> AResult[dict[str, Any]]:
+    ) -> Result[dict[str, Any]]:
         return await YouTubeDownloader._download_async(
             youtube_url=youtube_url,
             alternative_urls=alternative_urls,
@@ -501,7 +501,7 @@ class YouTubeDownloader:
         filename: str,
         format_type: str,
         alternative_urls: list[str] | None = None,
-    ) -> AResult[dict[str, Any]]:
+    ) -> Result[dict[str, Any]]:
         cooldown: float = youtube_gate.cooldown_remaining()
         if cooldown > 0:
             # YouTube is currently rate limiting us. Fail fast with a retryable
@@ -511,23 +511,23 @@ class YouTubeDownloader:
                 f"Skipping download of {youtube_url}: YouTube cooldown active "
                 f"for another {cooldown:.0f}s"
             )
-            return AResult(
-                code=AResultCode.RATE_LIMITED,
+            return Result(
+                code=ResultCode.RATE_LIMITED,
                 message=f"YouTube rate limited, retrying in {cooldown:.0f}s",
             )
 
         provider_health = await PotProvider.check_health_async(max_age_seconds=60.0)
         if provider_health.is_not_ok():
             logger.error(f"YouTube download prerequisites failed: {provider_health.message()}")
-            return AResult(code=provider_health.code(), message=provider_health.message())
+            return Result(code=provider_health.code(), message=provider_health.message())
 
         async with db_context.session_scope_async() as session:
             a_result_row = await DownloadAccess.get_download_by_id(
                 session=session, download_id=download_id
             )
             if a_result_row.is_not_ok():
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message=f"Download row {download_id} not found",
                 )
             download_row = a_result_row.result()
@@ -662,8 +662,8 @@ class YouTubeDownloader:
             if final_path:
                 _log_downloaded_codecs(final_path)
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="Download completed",
                 result={
                     "filepath": final_path,

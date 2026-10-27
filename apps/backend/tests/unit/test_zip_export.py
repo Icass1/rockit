@@ -12,7 +12,7 @@ import pytest
 from mutagen.id3 import ID3, TIT2, TXXX  # pyright: ignore[reportPrivateImportUsage]
 from PIL import Image
 
-from core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 from zipExport.framework import downloadZip
 from zipExport.framework.downloadZip import DownloadZip
 from zipExport.models.exportFile import AudioTags, ExportFile
@@ -158,14 +158,14 @@ async def test_failed_archive_is_removed(tmp_path: Path, monkeypatch: pytest.Mon
     monkeypatch.setattr(
         downloadZip.DownloadZipAccess,
         "get_container_public_ids_async",
-        AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=[])),
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[])),
     )
     monkeypatch.setattr(
         downloadZip.DownloadZipAccess,
         "get_export_files_async",
         AsyncMock(
-            return_value=AResult(
-                code=AResultCode.OK,
+            return_value=Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[ExportFile("Video", str(media))],
             )
@@ -212,14 +212,14 @@ async def test_cancelled_export_removes_zip_after_worker_finishes(
     monkeypatch.setattr(
         downloadZip.DownloadZipAccess,
         "get_container_public_ids_async",
-        AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=[])),
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[])),
     )
     monkeypatch.setattr(
         downloadZip.DownloadZipAccess,
         "get_export_files_async",
         AsyncMock(
-            return_value=AResult(
-                code=AResultCode.OK,
+            return_value=Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=[ExportFile("Video", "source.mp4")],
             )
@@ -277,9 +277,9 @@ async def test_http_route_keeps_contract_and_removes_completed_zip(
     monkeypatch.setattr(
         controller.AuthMiddleware,
         "get_current_user",
-        Mock(return_value=AResult(code=AResultCode.OK, message="OK", result=user)),
+        Mock(return_value=Result(code=ResultCode.OK, message="OK", result=user)),
     )
-    create = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=str(path)))
+    create = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=str(path)))
     monkeypatch.setattr(controller.DownloadZip, "create_async", create)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(

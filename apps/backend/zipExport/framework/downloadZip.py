@@ -6,12 +6,12 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants import TEMP_PATH
-from core.aResult import AResult, AResultCode
 from core.framework.downloader.downloader import Downloader
 from core.framework.notification import ZIP_READY_NOTIFICATION, Notification
 from core.responses.notificationResponses import NotificationDestination, NotificationReplacement
 from core.utils.safeAsyncCall import safe_async
 from logger import getLogger
+from result import Result, ResultCode
 from zipExport.access.downloadZipAccess import DownloadZipAccess
 from zipExport.models.exportFile import ExportFile
 from zipExport.utils.archive import ArchiveTooLarge, build_archive
@@ -40,10 +40,10 @@ class DownloadZip:
         user_id: int,
         public_ids: list[str],
         title: str,
-    ) -> AResult[str]:
+    ) -> Result[str]:
         """Expand containers, package downloaded files and return a temporary ZIP path."""
 
-        a_result_containers: AResult[
+        a_result_containers: Result[
             list[str]
         ] = await DownloadZipAccess.get_container_public_ids_async(
             session=session, public_ids=public_ids
@@ -53,7 +53,7 @@ class DownloadZip:
                 f"Error resolving containers. {a_result_containers.info()}",
                 exc_info=True,
             )
-            return AResult(code=a_result_containers.code(), message=a_result_containers.message())
+            return Result(code=a_result_containers.code(), message=a_result_containers.message())
 
         container_ids: set[str] = set(a_result_containers.result())
         expanded_ids: list[str] = []
@@ -62,7 +62,7 @@ class DownloadZip:
                 expanded_ids.append(public_id)
                 continue
 
-            a_result_expanded: AResult[list[str]] = await Downloader.expand_container_async(
+            a_result_expanded: Result[list[str]] = await Downloader.expand_container_async(
                 session=session, public_id=public_id, user_id=user_id
             )
             if a_result_expanded.is_not_ok():
@@ -73,17 +73,17 @@ class DownloadZip:
 
             expanded_ids.extend(a_result_expanded.result())
 
-        a_result_files: AResult[list[ExportFile]] = await DownloadZipAccess.get_export_files_async(
+        a_result_files: Result[list[ExportFile]] = await DownloadZipAccess.get_export_files_async(
             session=session, public_ids=list(dict.fromkeys(expanded_ids))
         )
         if a_result_files.is_not_ok():
             logger.error(f"Error getting file paths. {a_result_files.info()}", exc_info=True)
-            return AResult(code=a_result_files.code(), message=a_result_files.message())
+            return Result(code=a_result_files.code(), message=a_result_files.message())
 
         files: list[ExportFile] = a_result_files.result()
         if not files:
             logger.warning(f"No downloaded files found for ZIP '{title}'")
-            return AResult(code=AResultCode.NOT_FOUND, message="No downloaded files found")
+            return Result(code=ResultCode.NOT_FOUND, message="No downloaded files found")
 
         os.makedirs(TEMP_PATH, exist_ok=True)
         fd, zip_path = tempfile.mkstemp(prefix="rockit-", suffix=".zip", dir=TEMP_PATH)
@@ -114,19 +114,19 @@ class DownloadZip:
         except ArchiveTooLarge:
             logger.warning(f"ZIP '{title}' exceeds the limit after embedding metadata")
             _remove_quietly(path=zip_path)
-            return AResult(
-                code=AResultCode.BAD_REQUEST,
+            return Result(
+                code=ResultCode.BAD_REQUEST,
                 message="Selection is too large to download as a ZIP. Select fewer items.",
             )
         except Exception as exception:
             logger.error(f"Error writing ZIP file. {exception}", exc_info=True)
             _remove_quietly(path=zip_path)
-            return AResult(code=AResultCode.GENERAL_ERROR, message="Error creating ZIP file")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Error creating ZIP file")
 
         if written == 0:
             logger.warning(f"Every file vanished while building ZIP '{title}'")
             _remove_quietly(path=zip_path)
-            return AResult(code=AResultCode.NOT_FOUND, message="No downloaded files found")
+            return Result(code=ResultCode.NOT_FOUND, message="No downloaded files found")
 
         try:
             notification = await Notification.emit_async(
@@ -141,4 +141,4 @@ class DownloadZip:
             raise
         if notification.is_not_ok():
             logger.error(f"ZIP notification failed: {notification.info()}")
-        return AResult(code=AResultCode.OK, message="OK", result=zip_path)
+        return Result(code=ResultCode.OK, message="OK", result=zip_path)

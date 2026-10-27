@@ -4,17 +4,17 @@ import asyncio
 from collections import Counter, OrderedDict
 from time import monotonic
 
-from backend.core.aResult import AResult, AResultCode
-from backend.core.access.db import rockit_db
-from backend.core.framework import providers
-from backend.core.framework.provider.baseMediaProvider import BaseMediaProvider
-from backend.core.framework.media.localSearch import resolve_local_results
-from backend.core.responses.searchProviderResponse import (
+from core.access.db import db_context
+from core.framework import providers
+from core.framework.media.localSearch import resolve_local_results
+from core.framework.provider.baseMediaProvider import BaseMediaProvider
+from core.responses.searchProviderResponse import (
     SearchProviderInfo,
     SearchProviderResponse,
     SearchProvidersResponse,
 )
-from backend.utils.logger import getLogger
+from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -28,22 +28,19 @@ class ProviderSearch:
     def __init__(self) -> None:
         self._cache: OrderedDict[
             tuple[str, str, int, str | None],
-            tuple[float, AResult[SearchProviderResponse]],
+            tuple[float, Result[SearchProviderResponse]],
         ] = OrderedDict()
         self._pending: dict[
             tuple[str, str, int, str | None],
-            asyncio.Task[AResult[SearchProviderResponse]],
+            asyncio.Task[Result[SearchProviderResponse]],
         ] = {}
         self._slots = asyncio.Semaphore(4)
-        self._cooldowns: dict[str, tuple[float, AResult[SearchProviderResponse]]] = {}
+        self._cooldowns: dict[str, tuple[float, Result[SearchProviderResponse]]] = {}
 
     def catalog(self) -> SearchProvidersResponse:
         entries: list[SearchProviderInfo] = []
         for provider in providers.get_media_providers():
-            if (
-                type(provider).search_media_async
-                is BaseMediaProvider.search_media_async
-            ):
+            if type(provider).search_media_async is BaseMediaProvider.search_media_async:
                 continue
             entries.append(
                 SearchProviderInfo(
@@ -60,13 +57,11 @@ class ProviderSearch:
         query: str,
         limit: int = 15,
         media_type: str | None = None,
-    ) -> AResult[SearchProviderResponse]:
+    ) -> Result[SearchProviderResponse]:
         query = " ".join(query.split())
         if len(query) < 2 or len(query) > 200 or not 15 <= limit <= 100:
             logger.warning("Invalid provider search parameters")
-            return AResult(
-                code=AResultCode.BAD_REQUEST, message="Invalid search parameters"
-            )
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid search parameters")
         provider = next(
             (
                 candidate
@@ -77,7 +72,7 @@ class ProviderSearch:
         )
         if provider is None:
             logger.warning(f"Unknown search provider {provider_id}")
-            return AResult(code=AResultCode.NOT_FOUND, message="Unknown provider")
+            return Result(code=ResultCode.NOT_FOUND, message="Unknown provider")
         category = media_type if provider.search_supports_category() else None
         key = (provider_id, query.casefold(), limit, category)
         cached = self._cache.get(key)
@@ -91,44 +86,24 @@ class ProviderSearch:
         if task is None:
             if len(self._pending) >= self.MAX_PENDING:
                 logger.warning("Provider search queue is full")
-                return AResult(
-                    code=AResultCode.GENERAL_ERROR,
+                return Result(
+                    code=ResultCode.GENERAL_ERROR,
                     message="Search is busy; try again shortly",
                 )
-            task = asyncio.create_task(
-                self._run_async(key, provider, query, limit, category)
-            )
+            task = asyncio.create_task(self._run_async(key, provider, query, limit, category))
             self._pending[key] = task
         # Disconnecting one client must not cancel the request shared by other clients.
-        return await self._with_local_availability(
-            await asyncio.shield(task), media_type
-        )
+        return await self._with_local_availability(await asyncio.shield(task), media_type)
 
     async def _with_local_availability(
-        self, result: AResult[SearchProviderResponse], media_type: str | None
-    ) -> AResult[SearchProviderResponse]:
+        self, result: Result[SearchProviderResponse], media_type: str | None
+    ) -> Result[SearchProviderResponse]:
         filtered = self._filter(result=result, media_type=media_type)
         if filtered.is_not_ok():
             return filtered
         page = filtered.result()
-        return AResult(
-            code=AResultCode.OK,
-            message="OK",
-            result=SearchProviderResponse(
-                results=await resolve_local_results(items=page.results),
-                hasMoreTypes=page.hasMoreTypes,
-            ),
-        )
-
-    async def _with_local_availability(
-        self, result: AResult[SearchProviderResponse], media_type: str | None
-    ) -> AResult[SearchProviderResponse]:
-        filtered = self._filter(result=result, media_type=media_type)
-        if filtered.is_not_ok():
-            return filtered
-        page = filtered.result()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=SearchProviderResponse(
                 results=await resolve_local_results(items=page.results),
@@ -138,16 +113,16 @@ class ProviderSearch:
 
     @staticmethod
     def _filter(
-        result: AResult[SearchProviderResponse], media_type: str | None
-    ) -> AResult[SearchProviderResponse]:
+        result: Result[SearchProviderResponse], media_type: str | None
+    ) -> Result[SearchProviderResponse]:
         if result.is_not_ok():
             logger.error(f"Provider search unavailable. {result.info()}")
             return result
         if media_type is None:
             return result
         page = result.result()
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=SearchProviderResponse(
                 results=[item for item in page.results if item.type == media_type],
@@ -162,59 +137,49 @@ class ProviderSearch:
         query: str,
         limit: int,
         media_type: str | None,
-    ) -> AResult[SearchProviderResponse]:
-        response: AResult[SearchProviderResponse]
+    ) -> Result[SearchProviderResponse]:
+        response: Result[SearchProviderResponse]
         try:
             async with asyncio.timeout(self.TIMEOUT):
                 async with self._slots:
                     # Never share an AsyncSession between concurrent provider calls.
-                    async with rockit_db.session_scope_async() as session:
+                    async with db_context.session_scope_async() as session:
                         result = await provider.search_page_async(
                             session=session,
                             query=query,
                             limit=limit,
                             media_type=media_type,
                         )
-                        if (
-                            result.is_not_ok()
-                            and result.code() == AResultCode.NOT_FOUND
-                        ):
-                            response = AResult(
-                                code=AResultCode.OK,
+                        if result.is_not_ok() and result.code() == ResultCode.NOT_FOUND:
+                            response = Result(
+                                code=ResultCode.OK,
                                 message="OK",
                                 result=SearchProviderResponse(results=[]),
                             )
                         elif result.is_not_ok():
                             logger.error(f"Provider search failed: {result.info()}")
                             await session.rollback()
-                            response = AResult(
-                                code=result.code(), message=result.message()
-                            )
+                            response = Result(code=result.code(), message=result.message())
                         else:
                             items = result.result()
                             if media_type is not None:
-                                items = [
-                                    item for item in items if item.type == media_type
-                                ]
+                                items = [item for item in items if item.type == media_type]
                             counts = Counter(item.type for item in items)
-                            response = AResult(
-                                code=AResultCode.OK,
+                            response = Result(
+                                code=ResultCode.OK,
                                 message="OK",
                                 result=SearchProviderResponse(
                                     results=items,
                                     hasMoreTypes=[
                                         kind
                                         for kind, count in counts.items()
-                                        if count >= limit
-                                        and limit < provider.search_page_size()
+                                        if count >= limit and limit < provider.search_page_size()
                                     ],
                                 ),
                             )
         except Exception as exc:
             logger.error(f"Provider search failed: {exc}", exc_info=True)
-            response = AResult(
-                code=AResultCode.GENERAL_ERROR, message="Provider search unavailable"
-            )
+            response = Result(code=ResultCode.GENERAL_ERROR, message="Provider search unavailable")
         finally:
             self._pending.pop(key, None)
         ttl = self.CACHE_TTL if response.is_ok() else 10

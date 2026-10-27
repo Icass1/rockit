@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.aResult import AResult, AResultCode
 from core.framework import providers
 from core.framework.metadata.metadata import Metadata
 from core.responses.metadataResponse import MetadataResponse
@@ -15,6 +14,7 @@ from musicBrainz.framework.musicBrainzApi import MusicBrainzApi, retry_delay
 from musicBrainz.framework.provider.musicBrainzProvider import (
     MusicBrainzProvider,
 )
+from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
 MBID = "a16d1433-ba89-4f72-a47b-a370add0bb56"
@@ -40,7 +40,7 @@ async def test_invalid_identity_never_reaches_network(
             session=session, entity=entity, external_id=external_id
         )
         assert result.is_not_ok()
-        assert result.code() == AResultCode.BAD_REQUEST
+        assert result.code() == ResultCode.BAD_REQUEST
     fetch.assert_not_awaited()
 
 
@@ -48,8 +48,8 @@ async def test_artist_search_keeps_candidates_and_escapes_query(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     fetch = AsyncMock(
-        return_value=AResult(
-            code=AResultCode.OK,
+        return_value=Result(
+            code=ResultCode.OK,
             message="OK",
             result=MetadataResponse(
                 provider="MusicBrainz",
@@ -82,7 +82,7 @@ async def test_core_dispatches_only_to_metadata_providers(
         cached=True,
         fetchedAt="2026-01-01T00:00:00Z",
     )
-    fetch = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=payload))
+    fetch = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=payload))
     monkeypatch.setattr(source, "get_metadata_async", fetch)
     monkeypatch.setattr(providers, "_providers", [source])
     assert providers.get_media_providers() == []
@@ -127,7 +127,7 @@ async def test_artist_presentations_keep_provider_json_and_pagination(
         fetchedAt="2026-01-01T00:00:00Z",
         stale=True,
     )
-    fetch = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=payload))
+    fetch = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=payload))
     monkeypatch.setattr(MusicBrainzApi, "fetch_async", fetch)
     result = await MusicBrainzProvider().get_metadata_async(
         session=Mock(spec=AsyncSession),
@@ -188,7 +188,7 @@ async def test_artist_profile_projects_members_and_events_with_nullable_area(
         cached=False,
         fetchedAt="2026-01-01T00:00:00Z",
     )
-    fetch = AsyncMock(return_value=AResult(code=AResultCode.OK, message="OK", result=payload))
+    fetch = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=payload))
     monkeypatch.setattr(MusicBrainzApi, "fetch_async", fetch)
     result = await MusicBrainzProvider().get_metadata_async(
         session=Mock(spec=AsyncSession), entity="artist-profile", external_id=MBID

@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.access.recommendationAccess import RecommendationAccess
 from core.access.statsAccess import StatsAccess
 from core.access.userLikedMediaAccess import UserLikedMediaAccess
-from core.aResult import AResult, AResultCode
 from core.enums.mediaTypeEnum import MediaTypeEnum
 from core.framework.media.media import Media
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
@@ -18,6 +17,7 @@ from core.responses.statsRankedItemResponse import StatsRankedItemResponse
 from core.responses.statsSummaryResponse import StatsSummaryResponse
 from core.responses.userStatsResponse import UserStatsResponse
 from logger import getLogger
+from result import Result, ResultCode
 
 logger = getLogger(__name__)
 
@@ -83,7 +83,7 @@ class Stats:
     async def get_home_stats_async(
         session: AsyncSession,
         user_id: int,
-    ) -> AResult[HomeStatsResponse]:
+    ) -> Result[HomeStatsResponse]:
         """Assemble home page sections from real listening data.
 
         Each section uses its own query — no arbitrary slicing or fake data.
@@ -95,13 +95,13 @@ class Stats:
         month_ago: datetime = now - timedelta(days=30)
 
         # --- songsByTimePlayed: recent listens ---
-        a_recent: AResult[list[str]] = await StatsAccess.get_recently_played_songs_async(
+        a_recent: Result[list[str]] = await StatsAccess.get_recently_played_songs_async(
             session=session, user_id=user_id, limit=3
         )
         recent_ids: list[str] = a_recent.result() if a_recent.is_ok() else []
 
         # --- randomSongsLastMonth: random songs from last 30 days ---
-        a_random: AResult[list[str]] = await StatsAccess.get_random_songs_last_month_async(
+        a_random: Result[list[str]] = await StatsAccess.get_random_songs_last_month_async(
             session=session,
             user_id=user_id,
             start_date=month_ago,
@@ -111,7 +111,7 @@ class Stats:
         random_ids: list[str] = a_random.result() if a_random.is_ok() else []
 
         # --- monthlyTop: top songs from last 30 days ---
-        a_top_month: AResult[list[str]] = await StatsAccess.get_top_media_public_ids_async(
+        a_top_month: Result[list[str]] = await StatsAccess.get_top_media_public_ids_async(
             session=session,
             user_id=user_id,
             start_date=month_ago,
@@ -121,7 +121,7 @@ class Stats:
         monthly_ids: list[str] = a_top_month.result() if a_top_month.is_ok() else []
 
         # --- nostalgicMix: songs played longest ago ---
-        a_nostalgic: AResult[list[str]] = await StatsAccess.get_least_recently_played_songs_async(
+        a_nostalgic: Result[list[str]] = await StatsAccess.get_least_recently_played_songs_async(
             session=session, user_id=user_id, limit=6
         )
         nostalgic_ids: list[str] = a_nostalgic.result() if a_nostalgic.is_ok() else []
@@ -129,7 +129,7 @@ class Stats:
         # --- hiddenGems: liked songs not played in the last 90 days ---
         ninety_days_ago: datetime = now - timedelta(days=90)
 
-        a_played_since_90d: AResult[
+        a_played_since_90d: Result[
             list[str]
         ] = await StatsAccess.get_recently_played_songs_since_async(
             session=session,
@@ -140,7 +140,7 @@ class Stats:
             a_played_since_90d.result() if a_played_since_90d.is_ok() else []
         )
 
-        a_liked: AResult[
+        a_liked: Result[
             list[str]
         ] = await UserLikedMediaAccess.get_user_liked_media_public_ids_async(
             session=session, user_id=user_id
@@ -152,7 +152,7 @@ class Stats:
         # --- weekly stats (streak + minutes this week) ---
         week_ago: datetime = now - timedelta(days=7)
 
-        a_weekly_summary: AResult[dict[str, Any]] = await StatsAccess.get_summary_async(
+        a_weekly_summary: Result[dict[str, Any]] = await StatsAccess.get_summary_async(
             session=session,
             user_id=user_id,
             start_date=week_ago,
@@ -162,13 +162,13 @@ class Stats:
             a_weekly_summary.result().get("total_minutes", 0.0) if a_weekly_summary.is_ok() else 0.0
         )
 
-        a_streak: AResult[int] = await StatsAccess.get_current_streak_async(
+        a_streak: Result[int] = await StatsAccess.get_current_streak_async(
             session=session, user_id=user_id
         )
         current_streak: int = a_streak.result() if a_streak.is_ok() else 0
 
         # --- communityTop: top songs by play count across all users ---
-        a_community: AResult[
+        a_community: Result[
             list[str]
         ] = await RecommendationAccess.get_community_top_song_ids_async(
             session=session, exclude_media_ids=[], limit=15
@@ -177,7 +177,7 @@ class Stats:
 
         # --- moodSongs: random songs from the user's top genres, excluding
         # what they've played very recently (where genre data is available) ---
-        a_recently_played_for_mood: AResult[
+        a_recently_played_for_mood: Result[
             list[str]
         ] = await StatsAccess.get_recently_played_songs_async(
             session=session, user_id=user_id, limit=30
@@ -196,7 +196,7 @@ class Stats:
             else []
         )
 
-        a_mood: AResult[list[str]] = await RecommendationAccess.get_mood_song_ids_async(
+        a_mood: Result[list[str]] = await RecommendationAccess.get_mood_song_ids_async(
             session=session,
             user_id=user_id,
             exclude_media_ids=mood_exclude_ids,
@@ -240,8 +240,8 @@ class Stats:
         def lookup(ids: list[str]) -> list[BaseSongWithAlbumResponse]:
             return [resolved[pid] for pid in ids if pid in resolved]
 
-        return AResult(
-            code=AResultCode.OK,
+        return Result(
+            code=ResultCode.OK,
             message="OK",
             result=HomeStatsResponse(
                 songsByTimePlayed=lookup(recent_ids),
@@ -264,7 +264,7 @@ class Stats:
         range_value: str,
         custom_start: datetime | None = None,
         custom_end: datetime | None = None,
-    ) -> AResult[UserStatsResponse]:
+    ) -> Result[UserStatsResponse]:
         start_date, end_date = _parse_range(range_value, custom_start, custom_end)
         group_by: str = _get_group_by(range_value, start_date, end_date)
 
@@ -278,7 +278,7 @@ class Stats:
                     start_date = first_date
 
         try:
-            summary_result: AResult[dict[str, Any]] = await StatsAccess.get_summary_async(
+            summary_result: Result[dict[str, Any]] = await StatsAccess.get_summary_async(
                 session=session,
                 user_id=user_id,
                 start_date=start_date,
@@ -286,11 +286,11 @@ class Stats:
             )
             if summary_result.is_not_ok():
                 logger.error(f"Error getting stats summary: {summary_result.info()}")
-                return AResult(code=summary_result.code(), message=summary_result.message())
+                return Result(code=summary_result.code(), message=summary_result.message())
 
             s = summary_result.result()
 
-            minutes_result: AResult[
+            minutes_result: Result[
                 list[StatsMinutesEntryResponse]
             ] = await StatsAccess.get_minutes_by_period_async(
                 session=session,
@@ -299,7 +299,7 @@ class Stats:
                 end_date=end_date,
                 group_by=group_by,
             )
-            top_songs_result: AResult[
+            top_songs_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsAccess.get_top_songs_async(
                 session=session,
@@ -308,7 +308,7 @@ class Stats:
                 end_date=end_date,
                 limit=25,
             )
-            top_videos_result: AResult[
+            top_videos_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsAccess.get_top_videos_async(
                 session=session,
@@ -317,7 +317,7 @@ class Stats:
                 end_date=end_date,
                 limit=25,
             )
-            top_artists_result: AResult[
+            top_artists_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsAccess.get_top_artists_async(
                 session=session,
@@ -326,7 +326,7 @@ class Stats:
                 end_date=end_date,
                 limit=25,
             )
-            top_albums_result: AResult[
+            top_albums_result: Result[
                 list[StatsRankedItemResponse]
             ] = await StatsAccess.get_top_albums_async(
                 session=session,
@@ -335,7 +335,7 @@ class Stats:
                 end_date=end_date,
                 limit=25,
             )
-            heatmap_result: AResult[
+            heatmap_result: Result[
                 list[StatsHeatmapCellResponse]
             ] = await StatsAccess.get_heatmap_async(
                 session=session,
@@ -343,12 +343,12 @@ class Stats:
                 start_date=start_date,
                 end_date=end_date,
             )
-            streak_result: AResult[int] = await StatsAccess.get_current_streak_async(
+            streak_result: Result[int] = await StatsAccess.get_current_streak_async(
                 session, user_id
             )
 
-            return AResult(
-                code=AResultCode.OK,
+            return Result(
+                code=ResultCode.OK,
                 message="OK",
                 result=UserStatsResponse(
                     summary=StatsSummaryResponse(
@@ -369,8 +369,8 @@ class Stats:
             )
         except Exception as e:
             logger.error(f"Error getting user stats: {e}", exc_info=True)
-            return AResult(
-                code=AResultCode.GENERAL_ERROR,
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
                 message=f"Error getting user stats: {str(e)}",
             )
 
@@ -378,14 +378,14 @@ class Stats:
     async def get_streak_async(
         session: AsyncSession,
         user_id: int,
-    ) -> AResult[int]:
+    ) -> Result[int]:
         """Get current user streak count."""
 
-        a_result: AResult[int] = await StatsAccess.get_current_streak_async(
+        a_result: Result[int] = await StatsAccess.get_current_streak_async(
             session=session, user_id=user_id
         )
         if a_result.is_not_ok():
             logger.error(f"Error getting streak. {a_result.info()}")
-            return AResult(code=a_result.code(), message=a_result.message())
+            return Result(code=a_result.code(), message=a_result.message())
 
-        return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=ResultCode.OK, message="OK", result=a_result.result())

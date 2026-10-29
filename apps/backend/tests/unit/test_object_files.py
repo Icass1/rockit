@@ -37,7 +37,9 @@ def test_configured_prefix_is_applied_once(
     monkeypatch: pytest.MonkeyPatch, prefix: str, key: str, expected: str
 ) -> None:
     monkeypatch.setattr(settings, "S3_PREFIX", prefix)
-    assert ObjectFiles._prefixed_key(key) == expected
+    object_store = FakeObjectStore()
+    monkeypatch.setattr("core.framework.objectFiles.get_s3_client", lambda: object_store)
+    assert ObjectFiles.metadata(key)["Key"] == expected
 
 
 def test_generated_media_keys_include_prefix(monkeypatch: pytest.MonkeyPatch) -> None:

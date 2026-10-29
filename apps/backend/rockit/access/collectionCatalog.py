@@ -52,12 +52,12 @@ def details() -> Select[Any] | CompoundSelect[Any]:
 
 
 def artists() -> Select[Any] | CompoundSelect[Any]:
-    """Project album artist relationships using this provider's schema."""
+    """Local artist IDs are not Core media IDs; expose credits without false identities."""
     links = shared_metadata.tables["rockit.album_artists"]
     artist = shared_metadata.tables["rockit.artist"]
     return select(
         links.c.album_id.label("parent_id"),
-        artist.c.id.label("artist_id"),
+        literal(None, Integer).label("artist_id"),
         artist.c.name.label("name"),
         artist.c.image_id.label("image_id"),
         literal("rockit").label("provider"),

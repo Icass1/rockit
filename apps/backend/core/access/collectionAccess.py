@@ -167,10 +167,10 @@ class CollectionAccess:
                         media.c.public_id,
                         image.c.public_id.label("image_public_id"),
                     )
-                    .join(media, media.c.id == artists.c.artist_id)
+                    .outerjoin(media, media.c.id == artists.c.artist_id)
                     .outerjoin(image, image.c.id == artists.c.image_id)
                     .where(artists.c.parent_id.in_(collection_ids))
-                    .order_by(artists.c.artist_id)
+                    .order_by(artists.c.artist_id, artists.c.name)
                 )
             )
             .mappings()
@@ -180,10 +180,10 @@ class CollectionAccess:
             records[row["parent_id"]].data.setdefault("artists", []).append(
                 dict(
                     provider=row["provider"],
-                    publicId=row["public_id"],
+                    publicId=row["public_id"] or "",
                     name=row["name"],
                     dominantColor="",
-                    url=f"/artist/{row['public_id']}",
+                    url=f"/artist/{row['public_id']}" if row["public_id"] else "",
                     providerUrl="",
                     image_public_id=row["image_public_id"],
                 )

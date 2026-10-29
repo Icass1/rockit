@@ -99,7 +99,6 @@ const nextConfig: NextConfig = {
                 protocol: "https",
                 hostname: "fs-rockit.rockhosting.org",
                 pathname: "/**",
-                search: "",
             },
             ...(s3PublicPattern ? [s3PublicPattern] : []),
         ],

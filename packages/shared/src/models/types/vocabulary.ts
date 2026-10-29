@@ -872,4 +872,6 @@ export interface Vocabulary {
     LIBRARY_DRAGGING: string;
     LIBRARY_DROP_TARGET: string;
     LIBRARY_DROP_SAVING: string;
+    LIBRARY_SONG_SEARCH_HINT: string;
+    LIBRARY_SONG_SEARCH_INCOMPLETE: string;
 }

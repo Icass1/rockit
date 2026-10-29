@@ -110,6 +110,15 @@ class CollectionAccess:
         )
 
     @staticmethod
+    def search_sources(user_id: int) -> tuple[Subquery, CTE, ColumnElement[bool]]:
+        """Expose the shared name index, filtered edges and visibility to Library search."""
+        return (
+            CollectionAccess._names(),
+            CollectionAccess._edges(user_id=user_id),
+            CollectionAccess._visible(user_id=user_id),
+        )
+
+    @staticmethod
     @safe_async
     async def records_async(
         session: AsyncSession, public_ids: list[str], user_id: int

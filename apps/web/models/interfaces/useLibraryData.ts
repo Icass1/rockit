@@ -24,6 +24,7 @@ export type TFilteredLibrary = {
 
 export interface IUseLibraryDataReturn extends TFilteredLibrary {
     loading: boolean;
+    librarySongIds: string[];
     filtered: TFilteredLibrary;
 }
 

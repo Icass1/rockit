@@ -1496,6 +1496,24 @@ export class BaseHttp {
         );
     }
 
+    static async searchLibrarySongsAsync(
+        query: string,
+        offset?: number,
+        limit?: number,
+        sort?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("query", `${query}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (sort !== undefined) queryParams.append("sort", `${sort}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/user/library/songs/search${queryString ? `?${queryString}` : ""}`,
+            dto.LibrarySongSearchResponseSchema
+        );
+    }
+
     static async likeMediaAsync(payload: dto.LikeMediaRequest) {
         return this.apiPostAsync(
             `/user/like/media`,

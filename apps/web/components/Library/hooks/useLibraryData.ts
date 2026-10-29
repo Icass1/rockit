@@ -254,6 +254,7 @@ export function useLibraryData({
 
     const result: IUseLibraryDataReturn = {
         ...filtered,
+        librarySongIds: libraryData?.songs.map((song) => song.publicId) ?? [],
         loading: loading && !libraryData,
         filtered,
     };

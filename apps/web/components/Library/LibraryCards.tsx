@@ -275,7 +275,19 @@ function LibraryCard({
                     </div>
                 ) : (
                     <div
-                        className={`${linkClass} cursor-pointer`}
+                        className={`${linkClass} cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-rockit-pink)`}
+                        role="button"
+                        data-library-drag-handle="true"
+                        tabIndex={selectable ? -1 : 0}
+                        onKeyDown={(event): void => {
+                            if (
+                                event.target === event.currentTarget &&
+                                (event.key === "Enter" || event.key === " ")
+                            ) {
+                                event.preventDefault();
+                                event.currentTarget.click();
+                            }
+                        }}
                         onClick={(event): void => {
                             if (selectable) {
                                 handleSelectionClick(event);
@@ -379,8 +391,12 @@ export function VideoCard({
 /** Square song card — used only inside the masonry "All" view. */
 export function SongCard({
     song: _song,
+    albumName,
+    location = EMediaContextLocation.LIBRARY,
 }: {
     song: BaseSongWithoutAlbumResponse;
+    albumName?: string;
+    location?: EMediaContextLocation;
 }): JSX.Element {
     const $song = useMedia(_song);
     const openMenuRef = useRef<(x: number, y: number) => void>(undefined);
@@ -399,6 +415,7 @@ export function SongCard({
     return (
         <LibraryCard
             media={$song}
+            location={location}
             imageUrl={$song.imageUrl}
             badge="SONG"
             name={$song.name}
@@ -409,10 +426,20 @@ export function SongCard({
                 />
             }
             subtitle={
-                <Artists
-                    artists={$song.artists}
-                    className="text-sm text-gray-400"
-                />
+                <>
+                    <Artists
+                        artists={$song.artists}
+                        className="text-sm text-gray-400"
+                    />
+                    {albumName && (
+                        <p
+                            className="truncate text-sm text-neutral-400"
+                            title={albumName}
+                        >
+                            {albumName}
+                        </p>
+                    )}
+                </>
             }
             onClick={handleClick}
             contentClassName={!downloaded ? "opacity-50" : ""}

@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from core.access.db.ormModels.storageObject import StorageObjectRow
 from core.access.storageObjectAccess import StorageObjectAccess
 from core.framework.objectFiles import ObjectFiles
@@ -24,6 +25,28 @@ def test_local_paths_are_not_storage_keys(key: str) -> None:
         ObjectFiles.key(key)
 
 
+@pytest.mark.parametrize(
+    ("prefix", "key", "expected"),
+    [
+        ("", "images/logo.webp", "images/logo.webp"),
+        ("tenant/one/", "images/logo.webp", "tenant/one/images/logo.webp"),
+        ("tenant/one", "tenant/one/images/logo.webp", "tenant/one/images/logo.webp"),
+    ],
+)
+def test_configured_prefix_is_applied_once(
+    monkeypatch: pytest.MonkeyPatch, prefix: str, key: str, expected: str
+) -> None:
+    monkeypatch.setattr(settings, "S3_PREFIX", prefix)
+    assert ObjectFiles._prefixed_key(key) == expected
+
+
+def test_generated_media_keys_include_prefix(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "S3_PREFIX", "tenant/one/")
+    assert Storage.generate_key("images", "logo.WEBP", public_id="fixed") == (
+        "tenant/one/images/fixed.webp"
+    )
+
+
 async def test_publishing_registers_s3_key_without_moving_the_processing_input(
     object_store: FakeObjectStore,
     tmp_path: Path,
@@ -31,13 +54,16 @@ async def test_publishing_registers_s3_key_without_moving_the_processing_input(
 ) -> None:
     source = tmp_path / "input.mp3"
     source.write_bytes(b"media bytes")
-    row = StorageObjectRow(bucket="rockit-test", key="spotify/song.mp3")
+    row = StorageObjectRow(bucket="rockit-test", key="tenant/one/spotify/song.mp3")
     register = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=row))
     monkeypatch.setattr(Storage, "ensure_bucket_async", AsyncMock())
+    monkeypatch.setattr(settings, "S3_PREFIX", "tenant/one")
     monkeypatch.setattr(StorageObjectAccess, "insert_object_async", register)
     session = cast(AsyncSession, object())
 
-    result = await ObjectFiles.upload_async(session=session, source=str(source), key=row.key)
+    result = await ObjectFiles.upload_async(
+        session=session, source=str(source), key="spotify/song.mp3"
+    )
 
     assert result.is_ok() and result.result() is row
     assert object_store.objects[row.key] == b"media bytes"

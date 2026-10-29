@@ -167,3 +167,64 @@ async def test_catalogue_outage_is_retryable_not_no_match(monkeypatch: pytest.Mo
     api.search.side_effect = RuntimeError("offline")
     result = await YoutubeSearch.find_video_urls_async(song=SONG)
     assert result.code() == ResultCode.GENERAL_ERROR
+
+
+async def test_album_query_miss_retries_identity_without_changing_gates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    api = client(monkeypatch, [])
+    api.search.side_effect = [[], [row("recording01")]]
+    result = await YoutubeSearch.find_video_urls_async(
+        song=replace(SONG, album_title="Collector Edition")
+    )
+    assert result.is_ok(), result.info()
+    assert result.result() == ["https://music.youtube.com/watch?v=recording01"]
+    assert [call.args[0] for call in api.search.call_args_list] == [
+        "my song The Artist Collector Edition",
+        "my song The Artist",
+    ]
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"videoType": "MUSIC_VIDEO_TYPE_OMV"},
+        {"artists": [{"name": "Other Artist"}]},
+        {"duration_seconds": 210},
+        {"title": "My Song (Live)"},
+        {"title": "My Song (Remix)"},
+    ],
+)
+async def test_identity_fallback_cannot_accept_a_different_recording(
+    monkeypatch: pytest.MonkeyPatch,
+    change: dict[str, object],
+) -> None:
+    api = client(monkeypatch, [])
+    api.search.side_effect = [[], [dict(row("recording01"), **change)]]
+    result = await YoutubeSearch.find_video_urls_async(song=replace(SONG, album_title="Edition"))
+    assert result.code() == ResultCode.NOT_FOUND
+
+
+async def test_partial_outage_does_not_report_permanent_no_match(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    api = client(monkeypatch, [])
+    api.search.side_effect = [[], RuntimeError("unavailable")]
+    result = await YoutubeSearch.find_video_urls_async(song=replace(SONG, album_title="Edition"))
+    assert result.code() == ResultCode.GENERAL_ERROR
+
+
+async def test_rejected_candidates_log_metadata_and_reason(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    from youtube.framework import youtubeSearch as search_module
+
+    monkeypatch.setattr(search_module.logger, "propagate", True)
+    client(monkeypatch, [dict(row("recording01"), duration_seconds=220)])
+    result = await YoutubeSearch.find_video_urls_async(song=SONG)
+    assert result.code() == ResultCode.NOT_FOUND
+    assert "different_or_unknown_duration" in caplog.text
+    assert "recording01" in caplog.text
+    assert "duration_ms=180000" in caplog.text
+    assert "duration_s=220" in caplog.text

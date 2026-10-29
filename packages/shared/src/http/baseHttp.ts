@@ -1664,6 +1664,10 @@ export class BaseHttp {
         );
     }
 
+    static getYoutubeMusicAudioURL(publicId: string) {
+        return `${BACKEND_URL}/youtube-music/audio/${encodeURIComponent(publicId)}`;
+    }
+
     static async getChanelAsync(youtubeId: string) {
         return this.apiGetAsync(
             `/youtube/chanel/${encodeURIComponent(youtubeId)}`,

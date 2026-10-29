@@ -5,6 +5,7 @@ import { useStore } from "@nanostores/react";
 import type { PiPLyricsState } from "@/models/types/pip";
 import { usePiPText } from "@/hooks/usePiPText";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
 
 export function PiPLyrics({
     data: lyrics,
@@ -22,13 +23,16 @@ export function PiPLyrics({
         if ($currentTime === null || $currentTime === undefined) return -1;
 
         for (let i = syncedLines.length - 1; i >= 0; i--) {
-            if ($currentTime >= syncedLines[i].timestamp_s) {
+            if (
+                $currentTime >=
+                lyricPlaybackTime(syncedLines[i].timestamp_s, lyrics?.offset)
+            ) {
                 return i;
             }
         }
 
         return -1;
-    }, [syncedLines, $currentTime]);
+    }, [syncedLines, $currentTime, lyrics?.offset]);
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +62,9 @@ export function PiPLyrics({
     const goToLine = (index: number): void => {
         const ts = syncedLines[index]?.timestamp_s;
         if (ts !== undefined) {
-            rockIt.mediaPlayerManager.setCurrentTime(ts);
+            rockIt.mediaPlayerManager.setCurrentTime(
+                lyricSeekTime(ts, lyrics?.offset)
+            );
         }
     };
 

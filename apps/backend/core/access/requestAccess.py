@@ -102,7 +102,7 @@ class RequestAccess:
         public_id: str,
     ) -> Result[UserRequestRow]:
         result = await session.execute(
-            select(UserRequestRow).where(UserRequestRow.public_id == public_id)
+            select(UserRequestRow).where(UserRequestRow.public_id == public_id).with_for_update()
         )
         row = result.scalars().first()
         if row is None:
@@ -129,7 +129,7 @@ class RequestAccess:
         row.reviewed_by = reviewed_by
         if review_comment is not None:
             row.review_comment = review_comment
-        await session.commit()
+        await session.flush()
         await session.refresh(row)
         return Result(code=ResultCode.OK, message="OK", result=row)
 
@@ -200,3 +200,37 @@ class RequestAccess:
         )
         count = len(result.all())
         return Result(code=ResultCode.OK, message="OK", result=count)
+
+    @staticmethod
+    @safe_async
+    async def lock_media_async(session: AsyncSession, media_id: int) -> Result[CoreMediaRow]:
+        row = (
+            await session.execute(
+                select(CoreMediaRow).where(CoreMediaRow.id == media_id).with_for_update()
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            return Result(code=ResultCode.NOT_FOUND, message="Media not found")
+        return Result(code=ResultCode.OK, message="OK", result=row)
+
+    @staticmethod
+    @safe_async
+    async def get_accepted_lyrics_async(
+        session: AsyncSession, media_id: int
+    ) -> Result[list[UserRequestRow]]:
+        rows = (
+            (
+                await session.execute(
+                    select(UserRequestRow)
+                    .where(
+                        UserRequestRow.media_id == media_id,
+                        UserRequestRow.request_type_key == RequestTypeEnum.LYRICS.value,
+                        UserRequestRow.status_key == RequestStatusEnum.ACCEPTED.value,
+                    )
+                    .order_by(UserRequestRow.id.desc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return Result(code=ResultCode.OK, message="OK", result=list(rows))

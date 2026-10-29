@@ -539,6 +539,12 @@ export function LibraryLists({
     }, [fetchStats]);
 
     const showAll = activeType === EContentType.All;
+    const hasGeneralMatches = [
+        filtered.albums,
+        filtered.playlists,
+        filtered.videos,
+        filtered.stations,
+    ].some((items) => items.length > 0);
 
     const handlePlaySongs = async (): Promise<void> => {
         const songs = filtered.songs;
@@ -764,7 +770,7 @@ export function LibraryLists({
                 />
             )}
 
-            {showAll && (
+            {showAll && (!searching || hasGeneralMatches) && (
                 <>
                     <SectionHeader
                         title={$vocabulary.YOUR_ALBUMS_PLAYLISTS}

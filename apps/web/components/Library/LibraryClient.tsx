@@ -262,6 +262,7 @@ export default function LibraryClient(): JSX.Element {
                                         backgroundRepeat: "no-repeat",
                                     }}
                                     type="search"
+                                    maxLength={200}
                                     placeholder={$vocabulary.SEARCH_LIBRARY}
                                     value={searchQuery}
                                     onChange={(e): void =>
@@ -285,6 +286,7 @@ export default function LibraryClient(): JSX.Element {
                                     backgroundRepeat: "no-repeat",
                                 }}
                                 type="search"
+                                maxLength={200}
                                 placeholder={$vocabulary.SEARCH_LIBRARY}
                                 value={searchQuery}
                                 onChange={(e): void =>

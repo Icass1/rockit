@@ -2,21 +2,23 @@
 
 ## To Do
 
-### [LIBRARY] Buscar y reproducir canciones dentro de álbumes
-
-- tags: [frontend, backend, library, search, playback, performance]
-- priority: medium
-- workload: Normal
-    ```md
-    La búsqueda dentro de Library debe encontrar también canciones contenidas en los álbumes de la biblioteca, aunque no estén añadidas como canciones sueltas. Mostrar resultados de canciones identificables por título, artista y álbum, y permitir reproducir solo la canción elegida sin iniciar el resto del álbum. Ejemplo: buscar The Contract y reproducirla directamente desde Breach de twenty one pilots.
-    Resolverlo de forma ligera, evitando cargar todos los álbumes y sus pistas en el cliente o lanzar una petición por álbum en cada búsqueda. Conservar los resultados actuales de álbumes y listas y evitar duplicados de canciones.
-    ```
-
 ## In Progress
 
 ## Idle
 
 ## To Review
+
+### [LIBRARY] Buscar y reproducir canciones dentro de álbumes y playlists
+
+- tags: [frontend, backend, library, search, playback, performance]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado: búsqueda paginada de canciones sueltas y contenidas en álbumes/playlists, incluidas colecciones anidadas, con permisos y desactivaciones, deduplicación y Unicode/acentos. Resultados de canción con portada, artista y álbum; clic/teclado reproduce solo el tema. Debounce, páginas limitadas, respuestas obsoletas y errores/reintento controlados. Regresiones para CI y revisión dirigida en Chromium con HTTP simulado, sin suites locales. Ver docs/LIBRARY_SONG_SEARCH.md. Pendiente de revisión del usuario.
+
+    La búsqueda dentro de Library debe encontrar también canciones contenidas en los álbumes de la biblioteca, aunque no estén añadidas como canciones sueltas. Mostrar resultados de canciones identificables por título, artista y álbum, y permitir reproducir solo la canción elegida sin iniciar el resto del álbum. Ejemplo: buscar The Contract y reproducirla directamente desde Breach de twenty one pilots.
+    Resolverlo de forma ligera, evitando cargar todos los álbumes y sus pistas en el cliente o lanzar una petición por álbum en cada búsqueda. Conservar los resultados actuales de álbumes y listas y evitar duplicados de canciones.
+    ```
 
 ### [LIBRARY] Drag & drop de canciones a listas
 
@@ -24,7 +26,7 @@
 - priority: medium
 - workload: Normal
     ```md
-    Implementado en la vista All: canciones y álbumes se arrastran a playlists propias en tarjetas y filas, con mano cerrada, portada flotante y círculo verde con + blanco sobre destinos válidos. Destino resaltado, autoscroll, cancelación y guardado con feedback. Propiedad revalidada al soltar; un álbum usa la operación existente de colección completa. Sin cambios de almacenamiento ni suites locales; revisión dirigida en Chromium con componentes reales y HTTP simulado. Pendiente de CI y revisión del usuario.
+    Implementado en la vista All: canciones y álbumes se arrastran a playlists propias en tarjetas y filas, con mano cerrada, portada flotante y círculo verde con + blanco sobre destinos válidos. Destino resaltado, autoscroll, cancelación y guardado con feedback. Propiedad revalidada al soltar; un álbum usa la operación existente de colección completa. Sin cambios de almacenamiento ni suites locales; revisión dirigida en Chromium con componentes reales y HTTP simulado. CI verde en PR158; pendiente de revisión del usuario.
 
     Al pinchar y arrastrar canciones en la library hacia las listas, mostrar un "+" y permitir añadirlas.
     ```

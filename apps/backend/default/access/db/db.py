@@ -1,3 +1,4 @@
+from default.access import collectionCatalog as collectionCatalog
 from default.access import collectionSource as collectionSource
 from default.access import downloadStorage as downloadStorage
 from default.access.db.base import DefaultBase

@@ -118,7 +118,7 @@ export function LibraryDragDropProvider({
             return;
         if (
             (event.target as Element).closest(
-                "button,input,textarea,select,[contenteditable=true],[role=checkbox],[role=button],[data-artist-link]"
+                "button,input,textarea,select,[contenteditable=true],[role=checkbox],[role=button]:not([data-library-drag-handle]),[data-artist-link]"
             )
         )
             return;

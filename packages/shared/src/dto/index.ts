@@ -350,6 +350,10 @@ export {
     type LibraryResponseItem,
 } from "./libraryResponseItem";
 export {
+    LibrarySongSearchResponseSchema,
+    type LibrarySongSearchResponse,
+} from "./librarySongSearchResponse";
+export {
     LikeMediaRequestSchema,
     type LikeMediaRequest,
 } from "./likeMediaRequest";
@@ -838,6 +842,7 @@ export {
     YoutubeVideoResponseSchema,
     type YoutubeVideoResponse,
 } from "./youtubeVideoResponse";
+export { LibrarySongSortSchema, type LibrarySongSort } from "./librarySongSort";
 export {
     ListeningBadgeScopeSchema,
     type ListeningBadgeScope,

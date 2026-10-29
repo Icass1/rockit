@@ -1,5 +1,3 @@
-from typing import Any
-
 from sqlalchemy import (
     Integer,
     String,
@@ -12,14 +10,14 @@ from sqlalchemy import (
     or_,
     select,
     text,
-    union_all,
     update,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import ColumnElement, Select
+from sqlalchemy.sql import ColumnElement
 from sqlalchemy.sql.selectable import CTE, Subquery
 
 from core.access.adminSearchAccess import AdminSearchAccess
+from core.access.collectionCatalog import collection_catalog
 from core.access.collectionSources import collection_sources
 from core.access.db.shared_metadata import shared_metadata
 from core.framework.models.collection import CollectionEntry, CollectionRecord
@@ -38,75 +36,27 @@ class CollectionAccess:
 
     @staticmethod
     def _names() -> Subquery:
-        """Build a provider-independent name index without loading ORM relationships."""
-        statements: list[Select[Any]] = []
-        for table in shared_metadata.tables.values():
-            if (
-                table.schema != "core"
-                and table.name
-                in {
-                    "playlist",
-                    "album",
-                    "song",
-                    "track",
-                    "video",
-                    "station",
-                    "artist",
-                    "channel",
-                }
-                and "id" in table.c
-            ):
-                name = table.c.get("name")
-                if name is None:
-                    name = table.c.get("title")
-                if name is not None:
-                    statements.append(select(table.c.id.label("id"), name.label("name")))
-        return union_all(*statements).subquery("collection_names")
+        """Consume registered metadata without knowing provider table layouts."""
+        metadata = collection_catalog.metadata()
+        return select(metadata.c.id, metadata.c.name).subquery("collection_names")
 
     @staticmethod
     def _edges(user_id: int) -> CTE:
-        """Normalize all provider membership tables to a stable ordered edge list."""
-        statements: list[Select[Any]] = []
-        for table in shared_metadata.tables.values():
-            if table.schema == "core":
-                continue
-            if table.name in {"playlist_media", "playlist_track", "playlist_video"}:
-                child = next(
-                    table.c[c] for c in ("media_id", "song_id", "video_id") if c in table.c
-                )
-                position = table.c.get("position")
-                if position is None:
-                    # Imported membership may have no source ordinal.
-                    position = child
-                added = table.c.get("added_at")
-                if added is None:
-                    added = table.c.date_added
-                stmt = select(
-                    table.c.playlist_id.label("parent_id"),
-                    child.label("media_id"),
-                    position.label("position"),
-                    added.label("added_at"),
-                )
-                if "disabled" in table.c:
-                    stmt = stmt.where(table.c.disabled.is_(False))
-                for source in collection_sources:
-                    stmt = source.filter_edges(stmt, table, user_id)
-                statements.append(stmt)
-            elif table.name in {"song", "track"} and "album_id" in table.c:
-                disc = table.c.get("disc_number", literal(0))
-                track = table.c.get("track_number", table.c.id)
-                statements.append(
-                    select(
-                        table.c.album_id.label("parent_id"),
-                        table.c.id.label("media_id"),
-                        (disc * 1000000 + track).label("position"),
-                        table.c.date_added.label("added_at"),
-                    ).where(table.c.album_id.is_not(None))
-                )
+        """Compose provider-owned membership projections for generic traversal."""
+        edges = collection_catalog.edges(user_id=user_id)
         return (
-            union_all(*statements)
+            select(edges)
             .cte("collection_edges")
             .prefix_with("NOT MATERIALIZED", dialect="postgresql")
+        )
+
+    @staticmethod
+    def search_sources(user_id: int) -> tuple[Subquery, CTE, ColumnElement[bool]]:
+        """Expose the shared name index, filtered edges and visibility to Library search."""
+        return (
+            CollectionAccess._names(),
+            CollectionAccess._edges(user_id=user_id),
+            CollectionAccess._visible(user_id=user_id),
         )
 
     @staticmethod
@@ -145,20 +95,18 @@ class CollectionAccess:
         if not collection_ids:
             return Result(code=ResultCode.OK, message="OK", result=list(records.values()))
         image = shared_metadata.tables["core.image"]
-        for table in shared_metadata.tables.values():
-            if table.schema == "core" or table.name not in {"playlist", "album"} or not records:
-                continue
-            stmt = (
-                select(
-                    table,
-                    image.c.public_id.label("image_public_id"),
-                    image.c.dominant_color.label("image_color"),
-                )
-                .outerjoin(image, image.c.id == table.c.image_id)
-                .where(table.c.id.in_(collection_ids))
+        details = collection_catalog.details()
+        statement = (
+            select(
+                details,
+                image.c.public_id.label("image_public_id"),
+                image.c.dominant_color.label("image_color"),
             )
-            for row in (await session.execute(stmt)).mappings():
-                records[row["id"]].data.update(dict(row), provider_schema=table.schema)
+            .outerjoin(image, image.c.id == details.c.image_id)
+            .where(details.c.id.in_(collection_ids))
+        )
+        for row in (await session.execute(statement)).mappings():
+            records[row["id"]].data.update(dict(row))
         edges = CollectionAccess._edges(user_id=user_id)
         counts = (
             await session.execute(
@@ -208,47 +156,38 @@ class CollectionAccess:
             }
             for record in records.values():
                 record.data["owner_info"] = owner_map.get(record.data.get("owner_id"))
-        for association in shared_metadata.tables.values():
-            if association.schema == "core" or association.name not in {
-                "album_artist",
-                "album_artists",
-            }:
-                continue
-            artist = shared_metadata.tables[f"{association.schema}.artist"]
-            artist_name = artist.c.get("name")
-            if artist_name is None:
-                artist_name = artist.c.title
-            rows = (
-                (
-                    await session.execute(
-                        select(
-                            association.c.album_id,
-                            media.c.public_id,
-                            artist_name.label("name"),
-                            image.c.public_id.label("image_public_id"),
-                        )
-                        .join(artist, artist.c.id == association.c.artist_id)
-                        .join(media, media.c.id == artist.c.id)
-                        .outerjoin(image, image.c.id == artist.c.image_id)
-                        .where(association.c.album_id.in_(collection_ids))
-                        .order_by(artist.c.id)
+        artists = collection_catalog.artists()
+        artist_rows = (
+            (
+                await session.execute(
+                    select(
+                        artists.c.parent_id,
+                        artists.c.name,
+                        artists.c.provider,
+                        media.c.public_id,
+                        image.c.public_id.label("image_public_id"),
                     )
+                    .outerjoin(media, media.c.id == artists.c.artist_id)
+                    .outerjoin(image, image.c.id == artists.c.image_id)
+                    .where(artists.c.parent_id.in_(collection_ids))
+                    .order_by(artists.c.artist_id, artists.c.name)
                 )
-                .mappings()
-                .all()
             )
-            for row in rows:
-                records[row["album_id"]].data.setdefault("artists", []).append(
-                    dict(
-                        provider=association.schema,
-                        publicId=row["public_id"],
-                        name=row["name"],
-                        dominantColor="",
-                        url=f"/artist/{row['public_id']}",
-                        providerUrl="",
-                        image_public_id=row["image_public_id"],
-                    )
+            .mappings()
+            .all()
+        )
+        for row in artist_rows:
+            records[row["parent_id"]].data.setdefault("artists", []).append(
+                dict(
+                    provider=row["provider"],
+                    publicId=row["public_id"] or "",
+                    name=row["name"],
+                    dominantColor="",
+                    url=f"/artist/{row['public_id']}" if row["public_id"] else "",
+                    providerUrl="",
+                    image_public_id=row["image_public_id"],
                 )
+            )
         for source in collection_sources:
             enriched = await source.enrich_async(session, records, collection_ids)
             if enriched.is_not_ok():

@@ -222,3 +222,77 @@ async def test_downloader_health_is_checked_without_an_active_youtube_provider(
     assert health.code() == ResultCode.CONFIGURATION_ERROR
     assert health.message() == "Missing runtime"
     check.assert_awaited_once_with(max_age_seconds=30.0)
+
+
+def test_collection_catalog_projections_and_empty_registry() -> None:
+    """Catalog contracts compile with real schemas and with no installed sources."""
+    from core.access.collectionCatalog import CollectionCatalog, collection_catalog
+
+    assert collection_catalog.sources
+    expected = {
+        "metadata": {"id", "name", "image_id"},
+        "edges": {"parent_id", "media_id", "position", "added_at"},
+        "details": {
+            "id",
+            "image_id",
+            "external_id",
+            "release_date",
+            "description",
+            "owner_id",
+            "owner",
+        },
+        "artists": {"parent_id", "artist_id", "name", "image_id", "provider"},
+    }
+    for source in collection_catalog.sources.values():
+        for capability, columns in expected.items():
+            callback = getattr(source, capability)
+            if callback is not None:
+                statement = callback(123) if capability == "edges" else callback()
+                assert set(statement.selected_columns.keys()) == columns
+                statement.compile(dialect=postgresql.dialect())
+    for registry in (collection_catalog, CollectionCatalog()):
+        for capability in expected:
+            projection = getattr(registry, capability)
+            relation = projection(123) if capability == "edges" else projection()
+            assert set(relation.c.keys()) == expected[capability]
+            select(relation).compile(dialect=postgresql.dialect())
+
+
+def test_catalog_keys_and_table_names_are_opaque() -> None:
+    from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine, literal
+
+    from core.access.collectionCatalog import CollectionCatalog, CollectionCatalogSource
+
+    table = Table(
+        "arbitrary_items", MetaData(), Column("identifier", Integer), Column("caption", String)
+    )
+    registry = CollectionCatalog()
+    registry.register(
+        CollectionCatalogSource(
+            key="unrelated-opaque-registration",
+            metadata=lambda: select(
+                table.c.identifier.label("id"),
+                table.c.caption.label("name"),
+                literal(None).label("image_id"),
+            ),
+        )
+    )
+    engine = create_engine("sqlite://")
+    with engine.begin() as connection:
+        table.metadata.create_all(connection)
+        connection.execute(table.insert(), {"identifier": 7, "caption": "Example"})
+        row = connection.execute(select(registry.metadata())).one()
+        assert tuple(row) == (7, "Example", None)
+        assert connection.execute(select(CollectionCatalog().metadata())).all() == []
+    engine.dispose()
+
+
+def test_collection_access_does_not_infer_provider_table_layouts() -> None:
+    backend = Path(__file__).resolve().parents[2]
+    paths = [backend / "core/access/collectionAccess.py"]
+    for path in paths:
+        tree = ast.parse(path.read_text())
+        assert not any(
+            isinstance(node, ast.Attribute) and node.attr == "schema" for node in ast.walk(tree)
+        ), path
+        assert "shared_metadata.tables.values()" not in path.read_text(), path

@@ -1,0 +1,168 @@
+from datetime import datetime
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.access.statsV2Access import StatsV2Access, StatsV2SummaryData
+from core.responses.statsHeatmapCellResponse import StatsHeatmapCellResponse
+from core.responses.statsInsightsResponse import StatsInsightsResponse
+from core.responses.statsMinutesEntryResponse import StatsMinutesEntryResponse
+from core.responses.statsRankedItemResponse import StatsRankedItemResponse
+from core.responses.statsV2SummaryResponse import StatsV2SummaryResponse
+from core.responses.userStatsV2Response import UserStatsV2Response
+from core.utils.statsRange import get_group_by, parse_range
+from logger import getLogger
+from result import Result, ResultCode
+
+logger = getLogger(__name__)
+
+
+class StatsV2:
+    @staticmethod
+    async def get_user_stats_async(
+        session: AsyncSession,
+        user_id: int,
+        range_value: str,
+        custom_start: datetime | None = None,
+        custom_end: datetime | None = None,
+        timezone_offset_minutes: int = 0,
+    ) -> Result[UserStatsV2Response]:
+        start_date, end_date = parse_range(range_value, custom_start, custom_end)
+        group_by: str = get_group_by(range_value, start_date, end_date)
+
+        if range_value == "all":
+            a_first = await StatsV2Access.get_first_listen_date_async(
+                session=session, user_id=user_id
+            )
+            if a_first.is_ok():
+                first_date = a_first.result()
+                if first_date is not None:
+                    start_date = first_date
+
+        try:
+            summary_result: Result[StatsV2SummaryData] = await StatsV2Access.get_summary_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if summary_result.is_not_ok():
+                logger.error(f"Error getting v2 stats summary: {summary_result.info()}")
+                return Result(code=summary_result.code(), message=summary_result.message())
+
+            s: StatsV2SummaryData = summary_result.result()
+
+            minutes_result: Result[
+                list[StatsMinutesEntryResponse]
+            ] = await StatsV2Access.get_minutes_by_period_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                group_by=group_by,
+            )
+            top_songs_result: Result[
+                list[StatsRankedItemResponse]
+            ] = await StatsV2Access.get_top_songs_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                limit=25,
+            )
+            top_videos_result: Result[
+                list[StatsRankedItemResponse]
+            ] = await StatsV2Access.get_top_videos_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                limit=25,
+            )
+            top_artists_result: Result[
+                list[StatsRankedItemResponse]
+            ] = await StatsV2Access.get_top_artists_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                limit=25,
+            )
+            top_albums_result: Result[
+                list[StatsRankedItemResponse]
+            ] = await StatsV2Access.get_top_albums_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                limit=25,
+            )
+            heatmap_result: Result[
+                list[StatsHeatmapCellResponse]
+            ] = await StatsV2Access.get_heatmap_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                timezone_offset_minutes=timezone_offset_minutes,
+            )
+            streak_result: Result[int] = await StatsV2Access.get_current_streak_async(
+                session=session,
+                user_id=user_id,
+                timezone_offset_minutes=timezone_offset_minutes,
+            )
+            dependent_results = (
+                ("minutes", minutes_result),
+                ("top songs", top_songs_result),
+                ("top videos", top_videos_result),
+                ("top artists", top_artists_result),
+                ("top albums", top_albums_result),
+                ("heatmap", heatmap_result),
+                ("streak", streak_result),
+            )
+            for result_name, dependent_result in dependent_results:
+                if dependent_result.is_not_ok():
+                    logger.error(f"Error getting v2 stats {result_name}: {dependent_result.info()}")
+                    return Result(
+                        code=dependent_result.code(),
+                        message=dependent_result.message(),
+                    )
+            insights_result: Result[StatsInsightsResponse] = await StatsV2Access.get_insights_async(
+                session=session,
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                timezone_offset_minutes=timezone_offset_minutes,
+            )
+            if insights_result.is_not_ok():
+                logger.error(f"Error getting v2 stats insights: {insights_result.info()}")
+                return Result(code=insights_result.code(), message=insights_result.message())
+
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=UserStatsV2Response(
+                    summary=StatsV2SummaryResponse(
+                        uniqueMediasListened=s.unique_medias_listened,
+                        uniqueSongsListened=s.unique_songs_listened,
+                        uniqueVideosListened=s.unique_videos_listened,
+                        totalListenSessions=s.total_sessions,
+                        totalPlayTimeMs=s.total_play_time_ms,
+                        totalPlayTimeMinutes=round(s.total_play_time_minutes, 1),
+                        avgPlayTimePerMediaMs=round(s.avg_play_time_per_media_ms, 2),
+                        currentStreak=streak_result.result() or 0,
+                    ),
+                    minutes=minutes_result.result() or [],
+                    topSongs=top_songs_result.result() or [],
+                    topVideos=top_videos_result.result() or [],
+                    topAlbums=top_albums_result.result() or [],
+                    topArtists=top_artists_result.result() or [],
+                    heatmap=heatmap_result.result() or [],
+                    insights=insights_result.result(),
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Error getting v2 user stats: {e}", exc_info=True)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message=f"Error getting v2 user stats: {str(e)}",
+            )

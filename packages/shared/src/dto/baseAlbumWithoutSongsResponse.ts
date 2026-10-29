@@ -1,0 +1,23 @@
+// This file is generated using: python3 -m apps.backend models
+// Do not modify this file manually.
+
+import { z } from "zod";
+import { BaseArtistResponseSchema } from "./baseArtistResponse";
+
+export const BaseAlbumWithoutSongsResponseSchema = z.object({
+    type: z.union([z.literal("album")]).default("album"),
+    provider: z.string(),
+    publicId: z.string(),
+    url: z.string(),
+    providerUrl: z.string(),
+    name: z.string(),
+    artists: z.array(z.lazy(() => BaseArtistResponseSchema)),
+    releaseDate: z.string(),
+    imageUrl: z.string(),
+    dominantColor: z.string(),
+    undownloadedCount: z.number().default(0),
+});
+
+export type BaseAlbumWithoutSongsResponse = z.infer<
+    typeof BaseAlbumWithoutSongsResponseSchema
+>;

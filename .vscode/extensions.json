@@ -8,7 +8,7 @@
         "ms-python.python",
         "ms-python.debugpy",
         "usernamehw.errorlens",
-        "ms-python.black-formatter",
+        "charliermarsh.ruff",
         "yoavbls.pretty-ts-errors",
         "expo.vscode-expo-tools",
         "PKief.material-icon-theme",

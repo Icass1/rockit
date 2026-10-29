@@ -36,12 +36,12 @@ Historical groups have no source ID because the old implementation did not store
 
 ## Validation and performance reproduction
 
-- Web: `npm test`, TypeScript and targeted ESLint in `frontend/apps/web`.
-- Backend: `python -m pytest backend/tests/unit -q`, plus Pyright on changed application modules.
+- Web: `npm test`, TypeScript and targeted ESLint in `apps/web`.
+- Backend: `python -m pytest apps/backend/tests/unit -q`, plus Pyright on changed application modules.
 - Browser checks with fixture API data: 12 groups/72 initial cards; 114 cards with one expanded group; track pagination remains at 114; immediate group deletion; no page errors or horizontal overflow on a 390px viewport.
 - PostgreSQL benchmark, run from the repository root with a migrated development database containing at least one user and image:
 
-  `DOWNLOAD_BENCHMARK_DATABASE_URL=postgresql+asyncpg://... PYTHONPATH=. python backend/tests/performance/download_browse_benchmark.py`
+  `DOWNLOAD_BENCHMARK_DATABASE_URL=postgresql+asyncpg://... PYTHONPATH=. python apps/backend/tests/performance/download_browse_benchmark.py`
 
 The benchmark seeds 10,000 tracks in 200 groups and 200,000 progress rows, verifies pagination, search, counters and ownership, and rolls back the fixtures. It compares the old full-history operation with the new bounded first page. Timing is a local synthetic measurement, not a production latency guarantee; the comparison intentionally contrasts complete history with the first page. Payload and rendered-card limits are independent of history size.
 

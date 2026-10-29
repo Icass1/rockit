@@ -64,7 +64,7 @@ next-env.d.ts
 dist/
 web-build/
 expo-env.d.ts
-frontend/apps/mobile/.gitignore
+apps/mobile/.gitignore
 
 # React Native
 .metro-health-check*
@@ -95,7 +95,7 @@ expo-env.d.ts
 /images/
 /temp/
 /builds/
-/backend/utils/json.json
+/apps/backend/utils/json.json
 
 # Spotify cache
 .spotify
@@ -130,3 +130,10 @@ pyright.txt
 
 # Shared frontend test bundles
 .test-build/
+
+# Share example configuration only.
+!**/.env.example
+!**/.env.test.example
+
+apps/backend/images/
+apps/backend/media/

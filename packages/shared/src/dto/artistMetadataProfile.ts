@@ -1,0 +1,18 @@
+// This file is generated using: python3 -m apps.backend models
+// Do not modify this file manually.
+
+import { z } from "zod";
+import { ArtistImageSourceSchema } from "./artistImageSource";
+import { ArtistMetadataIdentitySchema } from "./artistMetadataIdentity";
+import { ArtistMetadataItemSchema } from "./artistMetadataItem";
+
+export const ArtistMetadataProfileSchema = z.object({
+    name: z.string(),
+    description: z.string(),
+    genres: z.array(z.string()),
+    related: z.array(z.lazy(() => ArtistMetadataIdentitySchema)),
+    events: z.array(z.lazy(() => ArtistMetadataItemSchema)),
+    imageSources: z.array(z.lazy(() => ArtistImageSourceSchema)).default([]),
+});
+
+export type ArtistMetadataProfile = z.infer<typeof ArtistMetadataProfileSchema>;

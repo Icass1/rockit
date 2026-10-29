@@ -87,7 +87,7 @@ anchoring and footer viewability to request subsequent pages.
 Run the shared tree and geometry regression tests with:
 
 ```bash
-pnpm --dir frontend/packages/shared test
+pnpm --dir packages/shared test
 ```
 
 The PR quality job runs these tests and the shared TypeScript check.

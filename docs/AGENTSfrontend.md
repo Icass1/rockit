@@ -169,7 +169,7 @@ Protected layout: if (!user) redirect("/login")
 
 ## DTOs — Zod Validation
 
-Auto-generated from backend: `python3 -m backend models`
+Auto-generated from backend: `uv run --project apps/backend python -m apps.backend models`
 
 NEVER edit manually.
 
@@ -206,7 +206,7 @@ Manager: add method to lib/managers/, use atoms for reactive state
 
 Imports: ALWAYS @/
 
-Models: enums, interfaces, and types must be in `frontend/apps/web/models`, `frontend/packages/shared/src/models` (shared), or `frontend/apps/mobile/models`. Never create them elsewhere — the only exception is component prop types.
+Models: enums, interfaces, and types must be in `apps/web/models`, `packages/shared/src/models` (shared), or `apps/mobile/models`. Never create them elsewhere — the only exception is component prop types.
 
 Naming:
 
@@ -247,7 +247,7 @@ Reactive state: atoms in manager, useStore in component
 Frontend (pnpm monorepo):
 
 ```bash
-cd frontend
+cd .
 pnpm install
 pnpm dev          # all apps
 pnpm --filter frontend dev        # web only

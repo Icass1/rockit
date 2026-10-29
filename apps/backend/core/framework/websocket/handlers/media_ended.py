@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+from fastapi import WebSocket
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.framework.websocket.listenInterval import close_listen_interval_async
+from core.framework.websocket.webSocketRouter import websocket_router
+from core.requests.wsMessages import MediaEndedMessageRequest
+from logger import getLogger
+
+if TYPE_CHECKING:
+    from core.framework.websocket.webSocketManager import WebSocketManager
+
+logger = getLogger(__name__)
+
+
+@websocket_router.message("media_ended")
+async def handle_media_ended(
+    manager: WebSocketManager,
+    session: AsyncSession,
+    user_id: int,
+    data: dict[str, Any],
+    sender_websocket: WebSocket | None = None,
+) -> None:
+    media_ended_msg = MediaEndedMessageRequest(**data)
+    if not manager.matches_playback(user_id=user_id, message=media_ended_msg):
+        return
+    if manager.playback_owners.get(user_id) is not sender_websocket:
+        return
+    logger.info(f"User {user_id} media ended. Media: {media_ended_msg.mediaPublicId}")
+
+    playback_state = manager.user_playback_states.get(user_id)
+    if playback_state and playback_state.active_interval_start_ms is not None:
+        await close_listen_interval_async(
+            session=session,
+            user_id=user_id,
+            playback_state=playback_state,
+            time_ms_end=playback_state.last_time_ms,
+        )

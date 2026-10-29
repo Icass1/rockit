@@ -35,8 +35,8 @@ All three recommendation endpoints return `SongListResponse`:
 
 ## Local engine
 
-Code: `backend/core/access/recommendationAccess.py` (one bounded SQL query
-that collects signals) and `backend/core/framework/recommendationRanking.py`
+Code: `apps/backend/core/access/recommendationAccess.py` (one bounded SQL query
+that collects signals) and `apps/backend/core/framework/recommendationRanking.py`
 (pure Python scoring + diversity, unit tested).
 
 This is transparent heuristic scoring, not machine learning:
@@ -72,14 +72,14 @@ This is transparent heuristic scoring, not machine learning:
 
 ## Last.fm
 
-Last.fm lives in `backend/lastfm/`, with its credentials in `constants.py`
+Last.fm lives in `apps/backend/lastfm/`, with its credentials in `constants.py`
 and its implementation in `framework/provider/lastfmProvider.py`. The existing
 provider registry discovers the exported `provider` and `name` exactly as it
 discovers every other integration. Last.fm is the only external recommendation
 implementation shipped by Rockit.
 
 Core owns `BaseExternalRecommendationProvider` and the generic orchestrator in
-`backend/core/framework/externalRecommendation/`. It requests recommendation
+`apps/backend/core/framework/externalRecommendation/`. It requests recommendation
 capabilities from the registry at call time, after provider startup; it never
 imports, names or instantiates an integration. Adding a future implementation
 requires a module implementing the contract, without editing core.

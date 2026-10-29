@@ -1,0 +1,20 @@
+.flame {
+    flex-shrink: 0;
+    overflow: visible;
+    filter: drop-shadow(0 0 var(--streak-glow-radius) var(--streak-glow-color));
+}
+
+@media (prefers-contrast: more), (forced-colors: active) {
+    .flame {
+        filter: none;
+    }
+
+    .body {
+        fill: currentColor;
+        stroke: currentColor;
+    }
+
+    .core {
+        display: none;
+    }
+}

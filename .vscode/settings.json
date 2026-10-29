@@ -10,7 +10,7 @@
         "editor.formatOnSave": true
     },
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit"
@@ -30,10 +30,10 @@
     "python.analysis.inlayHints.callArgumentNames": "all",
     "python.analysis.functionReturnTypes": true,
     "python.analysis.extraPaths": [
-        "./backend"
+        "./apps/backend"
     ],
     "python.analysis.inlayHints.variableTypes": true,
-    "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/apps/backend/.venv/bin/python",
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "css.lint.unknownAtRules": "ignore",
     "files.associations": {
@@ -47,12 +47,12 @@
     "files.autoSave": "onFocusChange",
     "python-envs.pythonProjects": [
         {
-            "path": "frontend/apps/web/components/RenderList",
+            "path": "apps/web/components/RenderList",
             "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
         },
         {
-            "path": "backend/core/requests/addFromUrlRequest.py",
+            "path": "apps/backend/core/requests/addFromUrlRequest.py",
             "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
         }

@@ -1,0 +1,91 @@
+from logging import Logger
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.middlewares.authMiddleware import AuthMiddleware
+from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
+from core.responses.baseStationResponse import BaseStationResponse
+from core.responses.searchResponse import SearchResultsResponse
+from logger import getLogger
+from radioBrowser.framework.radio import Radio
+from result import Result
+
+logger: Logger = getLogger(__name__)
+
+router = APIRouter(
+    prefix="/radio",
+    dependencies=[Depends(dependency=AuthMiddleware.auth_dependency)],
+    tags=["Radio"],
+)
+
+
+@router.get("/station/{public_id}")
+async def get_station(request: Request, public_id: str) -> BaseStationResponse:
+    """Get a radio station by its public_id."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result: Result[BaseStationResponse] = await Radio.get_station_from_public_id_async(
+        session=session, public_id=public_id
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Radio Browser request failed. {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/stations/geo")
+async def get_stations_with_geo(
+    request: Request,
+    limit: int = Query(default=1000, ge=1, le=10000),
+    offset: int = Query(default=0, ge=0),
+) -> list[BaseStationResponse]:
+    """Get radio stations that have geographic coordinates."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result: Result[list[BaseStationResponse]] = await Radio.get_stations_with_geo_async(
+        session=session, limit=limit, offset=offset
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Radio Browser request failed. {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/stations/by-country/{country}")
+async def get_stations_by_country(
+    request: Request,
+    country: str,
+) -> list[BaseStationResponse]:
+    """Get radio stations by country (fetches from Radio Browser API)."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+
+    a_result: Result[list[BaseStationResponse]] = await Radio.get_stations_by_country_async(
+        session=session,
+        country=country,
+    )
+    if a_result.is_not_ok():
+        logger.error(f"Radio Browser request failed. {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+
+    return a_result.result()
+
+
+@router.get("/search")
+async def search_stations(
+    request: Request,
+    q: str = Query(min_length=2, max_length=120),
+) -> SearchResultsResponse:
+    """Search only radio stations, avoiding unrelated provider requests."""
+
+    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
+    a_result = await Radio.search_media_async(session=session, query=q.strip())
+    if a_result.is_not_ok():
+        logger.error(f"Radio search failed. {a_result.info()}")
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
+    return SearchResultsResponse(results=a_result.result())

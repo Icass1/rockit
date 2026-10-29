@@ -1,0 +1,102 @@
+"""In-memory S3 boundary for service-free storage and media regression tests."""
+
+import hashlib
+import io
+from pathlib import Path
+from typing import Any, BinaryIO
+
+from botocore.exceptions import ClientError
+
+
+class FakeObjectStore:
+    def __init__(self) -> None:
+        self.objects: dict[str, bytes] = {}
+        self.uploads: dict[str, dict[int, bytes]] = {}
+        self.upload_keys: dict[str, str] = {}
+        self.reads: list[str] = []
+
+    def head_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
+        if Key not in self.objects:
+            raise ClientError({"Error": {"Code": "404"}}, "HeadObject")
+        return {
+            "ContentLength": len(self.objects[Key]),
+            "ETag": hashlib.sha256(self.objects[Key]).hexdigest(),
+        }
+
+    def get_object(self, *, Bucket: str, Key: str, Range: str | None = None) -> dict[str, Any]:
+        self.reads.append(Key)
+        data = self.objects[Key]
+        if Range:
+            start, end = Range.removeprefix("bytes=").split("-")
+            data = data[int(start) : int(end) + 1]
+        return {"Body": io.BytesIO(data)}
+
+    def upload_file(
+        self, Filename: str, Bucket: str, Key: str, ExtraArgs: dict[str, str] | None = None
+    ) -> None:
+        self.objects[Key] = Path(Filename).read_bytes()
+
+    def download_file(self, Bucket: str, Key: str, Filename: str) -> None:
+        if Key not in self.objects:
+            raise FileNotFoundError(Key)
+        Path(Filename).write_bytes(self.objects[Key])
+
+    def download_fileobj(self, Bucket: str, Key: str, Fileobj: BinaryIO) -> None:
+        if Key not in self.objects:
+            raise FileNotFoundError(Key)
+        Fileobj.write(self.objects[Key])
+
+    def delete_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
+        self.objects.pop(Key, None)
+        return {}
+
+    def copy_object(self, *, Bucket: str, Key: str, CopySource: dict[str, str]) -> dict[str, str]:
+        self.objects[Key] = self.objects[CopySource["Key"]]
+        return {}
+
+    def create_multipart_upload(self, *, Bucket: str, Key: str, ContentType: str) -> dict[str, str]:
+        upload_id = f"upload-{len(self.uploads)}"
+        self.uploads[upload_id] = {}
+        self.upload_keys[upload_id] = Key
+        return {"UploadId": upload_id}
+
+    def upload_part(
+        self, *, Bucket: str, Key: str, UploadId: str, PartNumber: int, Body: bytes
+    ) -> dict[str, str]:
+        assert self.upload_keys[UploadId] == Key
+        self.uploads[UploadId][PartNumber] = Body
+        return {"ETag": str(PartNumber)}
+
+    def get_paginator(self, name: str) -> "FakePartsPaginator":
+        assert name == "list_parts"
+        return FakePartsPaginator(self)
+
+    def complete_multipart_upload(
+        self, *, Bucket: str, Key: str, UploadId: str, MultipartUpload: dict[str, Any]
+    ) -> dict[str, str]:
+        self.objects[Key] = b"".join(
+            self.uploads[UploadId][part["PartNumber"]] for part in MultipartUpload["Parts"]
+        )
+        del self.uploads[UploadId]
+        del self.upload_keys[UploadId]
+        return {}
+
+    def abort_multipart_upload(self, *, Bucket: str, Key: str, UploadId: str) -> dict[str, str]:
+        del self.uploads[UploadId]
+        del self.upload_keys[UploadId]
+        return {}
+
+
+class FakePartsPaginator:
+    def __init__(self, store: FakeObjectStore) -> None:
+        self.store = store
+
+    def paginate(self, *, Bucket: str, Key: str, UploadId: str) -> list[dict[str, Any]]:
+        return [
+            {
+                "Parts": [
+                    {"PartNumber": number, "ETag": str(number)}
+                    for number in sorted(self.store.uploads[UploadId])
+                ]
+            }
+        ]

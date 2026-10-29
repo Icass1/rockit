@@ -6,7 +6,7 @@
 - SQLAlchemy (async) with PostgreSQL
 - asyncpg as PostgreSQL driver
 - Pydantic for data validation (requests/responses)
-- AResult pattern for error handling
+- Result pattern for error handling
 - Provider abstraction for multiple music sources (Spotify, YouTube, RockIt)
 - Layered architecture: controllers → framework → access
 
@@ -29,34 +29,35 @@ controllers/  →  framework/  →  access/
 
 Folder naming: `controllers/` (plural), `framework/` (singular), `access/` (singular).
 
-### AResult Pattern
+### Result Pattern
 
-All framework and access functions return `AResult`, never raise exceptions internally.
+All framework and access functions return `Result`, never raise exceptions internally.
 
-> **Rule:** You MUST always check `a_result.is_ok()` / `a_result.is_not_ok()` before calling `a_result.result()`. Never call `.result()` on an unchecked `AResult`. When `is_not_ok()`, always log the error with `logger.error(...)` and provide a sensible fallback default or early return.
+> **Rule:** You MUST always check `a_result.is_ok()` / `a_result.is_not_ok()` before calling `a_result.result()`. Never call `.result()` on an unchecked `Result`. When `is_not_ok()`, always log the error with `logger.error(...)` and provide a sensible fallback default or early return.
 
 ```python
-from backend.core.aResult import AResult, AResultCode
+from result import Result, ResultCode
 
-class AResultCode:
-    OK            = 0x1
+
+class ResultCode:
+    OK = 0x1
     GENERAL_ERROR = 0x2
-    NOT_FOUND     = 0x3
-    BAD_REQUEST   = 0x4
+    NOT_FOUND = 0x3
+    BAD_REQUEST = 0x4
     NOT_IMPLEMENTED = 0x5
-    ALREADY_EXISTS  = 0x6
+    ALREADY_EXISTS = 0x6
     VALIDATION_ERROR = 0x7
 ```
 
 **Usage in framework/access:**
 
 ```python
-async def get_user_async(session: AsyncSession, user_id: int) -> AResult[UserRow]:
+async def get_user_async(session: AsyncSession, user_id: int) -> Result[UserRow]:
     a_result = await UserAccess.get_user_from_id_async(session=session, user_id=user_id)
     if a_result.is_not_ok():
         logger.error(f"Error getting user. {a_result.info()}", exc_info=True)
-        return AResult(code=a_result.code(), message=a_result.message())
-    return AResult(code=AResultCode.OK, message="OK", result=a_result.result())
+        return Result(code=a_result.code(), message=a_result.message())
+    return Result(code=ResultCode.OK, message="OK", result=a_result.result())
 ```
 
 **Usage in controller (only place that raises HTTPException):**
@@ -68,14 +69,11 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
     a_result = await UserFramework.get_user_async(session=session, user_id=user_id)
     if a_result.is_not_ok():
         logger.error(f"Error getting user. {a_result.info()}")
-        raise HTTPException(
-            status_code=a_result.get_http_code(),
-            detail=a_result.message()
-        )
+        raise HTTPException(status_code=a_result.get_http_code(), detail=a_result.message())
     return a_result.result()
 ```
 
-| AResultCode     | HTTP |
+| ResultCode      | HTTP |
 | --------------- | ---- |
 | OK              | 200  |
 | ALREADY_EXISTS  | 200  |
@@ -89,12 +87,13 @@ async def get_user(request: Request, user_id: int) -> UserResponse:
 All methods in `access/` files MUST use the `@safe_async` decorator for automatic exception handling and session rollback.
 
 ```python
-from backend.core.utils.safeAsyncCall import safe_async
+from core.utils.safeAsyncCall import safe_async
+
 
 class SomeAccess:
     @staticmethod
     @safe_async
-    async def get_something_async(session: AsyncSession, id: int) -> AResult[SomethingRow]:
+    async def get_something_async(session: AsyncSession, id: int) -> Result[SomethingRow]:
         """Fetch something by id."""
 
         stmt = select(SomethingRow).where(SomethingRow.id == id)
@@ -102,20 +101,21 @@ class SomeAccess:
         row = result.scalar_one_or_none()
 
         if not row:
-            return AResult(code=AResultCode.NOT_FOUND, message="Not found")
+            return Result(code=ResultCode.NOT_FOUND, message="Not found")
 
-        return AResult(code=AResultCode.OK, message="OK", result=row)
+        return Result(code=ResultCode.OK, message="OK", result=row)
 ```
 
 **Rules:**
+
 - `@safe_async` is the **outermost** decorator (above `@time_it` if both are used)
-- No manual `try/except` blocks — the decorator catches exceptions, rolls back the session, and returns an error `AResult`/`AResultCode`
-- All methods must return `AResult[T]` or `AResultCode` — never return raw `dict`, `list`, `set`, or scalar types
-- Early returns (e.g., empty input check) must still wrap the value in `AResult(code=AResultCode.OK, ...)`
+- No manual `try/except` blocks — the decorator catches exceptions, rolls back the session, and returns an error `Result`/`ResultCode`
+- All methods must return `Result[T]` or `ResultCode` — never return raw `dict`, `list`, `set`, or scalar types
+- Early returns (e.g., empty input check) must still wrap the value in `Result(code=ResultCode.OK, ...)`
 
 ### Database
 
-- Connection manager: `backend/core/access/db/rockItDb.py`
+- Connection manager: `apps/backend/core/access/db/database.py`
 - Transaction scope: `async with rockit_db.session_scope_async() as session:`
 - Session per request: `DBSessionMiddleware` injects `request.state.db`
 - Controllers retrieve session: `session = DBSessionMiddleware.get_session(request=request)`
@@ -143,31 +143,31 @@ class UserRow(CoreBase, TableAutoincrementId, TablePublicId, TableDateUpdated, T
 - Session cookie: `session_id` (set on login, destroyed on logout)
 - Middleware: `AuthMiddleware.auth_dependency` for protected endpoints
 - Current user: `AuthMiddleware.get_current_user(request)`
-- Password hashing: `backend/core/framework/auth/password.py`
+- Password hashing: `apps/backend/core/framework/auth/password.py`
 
 ### Providers System
 
 Providers abstract multiple music sources (Spotify, YouTube, RockIt).
 
-**Base provider** (`backend/core/framework/provider/baseProvider.py`):
+**Base provider** (`apps/backend/core/framework/provider/baseProvider.py`):
 
 ```python
 class BaseProvider:
-    async def search_async(self, query: str) -> AResult[List[BaseSearchResultsItem]]
-    async def get_song_async(self, session, public_id: str) -> AResult[BaseSongWithAlbumResponse]
-    async def get_album_async(self, session, public_id: str) -> AResult[BaseAlbumWithSongsResponse]
-    async def get_artist_async(self, session, public_id: str) -> AResult[BaseArtistResponse]
-    async def get_playlist_async(self, session, user_id, public_id) -> AResult[BasePlaylistResponse]
-    async def get_video_async(self, session, public_id: str) -> AResult[BaseVideoResponse]
-    async def start_download_async(self, session, public_id, download_id, download_group_id, user_id) -> AResult[BaseDownload]
+    async def search_async(self, query: str) -> Result[List[BaseSearchResultsItem]]
+    async def get_song_async(self, session, public_id: str) -> Result[BaseSongWithAlbumResponse]
+    async def get_album_async(self, session, public_id: str) -> Result[BaseAlbumWithSongsResponse]
+    async def get_artist_async(self, session, public_id: str) -> Result[BaseArtistResponse]
+    async def get_playlist_async(self, session, user_id, public_id) -> Result[BasePlaylistResponse]
+    async def get_video_async(self, session, public_id: str) -> Result[BaseVideoResponse]
+    async def start_download_async(self, session, public_id, download_id, download_group_id, user_id) -> Result[BaseDownload]
     def match_url(self, url: str) -> str | None  # External URL → internal path
 ```
 
 **To add a provider:**
 
-1. Create `backend/{name}/framework/provider/provider.py` implementing `BaseProvider`
+1. Create `apps/backend/{name}/framework/provider/provider.py` implementing `BaseProvider`
 2. Export `provider = MyProvider()` and `name = "ProviderName"`
-3. Register in `backend/core/framework/provider/providers.py`
+3. Register in `apps/backend/core/framework/provider/providers.py`
 
 ### Code Style
 
@@ -175,7 +175,7 @@ class BaseProvider:
 
 1. Standard library (stdlib)
 2. Backend utils (`backend.utils.*`)
-3. AResult (`backend.core.aResult`)
+3. Result (`backend.core.aResult`)
 4. Access layer (`backend.core.access.*`)
 5. Framework layer (`backend.core.framework.*`)
 6. Middlewares (`backend.core.middlewares.*`)
@@ -200,50 +200,50 @@ No file headers (copyright, etc.) unless required by law.
 4. **NEVER** write raw SQL in framework or controller layers — SQL can only live in `access/` files
 5. **NEVER** return `dict` or raw types from endpoints — always use a Pydantic `BaseModel`
 6. **NEVER** send the internal `id` to the client — always use `public_id`
-7. **ALWAYS** log with `logger.error(...)` or `logger.warning(...)` before raising `HTTPException` or returning a non-OK `AResult`
+7. **ALWAYS** log with `logger.error(...)` or `logger.warning(...)` before raising `HTTPException` or returning a non-OK `Result`
 8. **ALWAYS** use keyword arguments in Python function calls
 9. **ALWAYS** run `black` after every edit
 10. **NEVER** edit files in `packages/shared/src/dto/` manually — they are auto-generated
-11. **ALWAYS** follow the AResult pattern in framework and access layers
-11. **NEVER** make single database queries inside a for/while loop (N+1 problem). Instead, make a single batch query (e.g. `WHERE id IN (...)`) to fetch all data at once, then process the results in memory. The number of DB queries must not depend on the number of items being processed.
+11. **ALWAYS** follow the Result pattern in framework and access layers
+12. **NEVER** make single database queries inside a for/while loop (N+1 problem). Instead, make a single batch query (e.g. `WHERE id IN (...)`) to fetch all data at once, then process the results in memory. The number of DB queries must not depend on the number of items being processed.
 
 ### Key Files
 
-| File                                                    | Purpose                             |
-| ------------------------------------------------------- | ----------------------------------- |
-| `backend/core/main.py`                                  | FastAPI app entry, router discovery |
-| `backend/core/aResult.py`                               | Result wrapper                      |
-| `backend/core/access/db/rockItDb.py`                    | DB connection manager               |
-| `backend/core/access/db/ormModels/user.py`              | User ORM model                      |
-| `backend/core/controllers/authController.py`            | Auth endpoints                      |
-| `backend/core/controllers/mediaController.py`           | Media endpoints                     |
-| `backend/core/controllers/statsController.py`           | Stats endpoints                     |
-| `backend/core/framework/auth/session.py`                | Session management                  |
-| `backend/core/framework/providers/providers.py`         | Provider registry                   |
-| `backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
-| `backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
-| `backend/core/middlewares/authMiddleware.py`            | Authentication                      |
-| `backend/constants.py`                                  | Environment config                  |
-| `backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
-| `backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
+| File                                                         | Purpose                             |
+| ------------------------------------------------------------ | ----------------------------------- |
+| `apps/backend/app/main.py`                                   | FastAPI app entry, router discovery |
+| `apps/backend/core/aResult.py`                               | Result wrapper                      |
+| `apps/backend/core/access/db/database.py`                    | DB connection manager               |
+| `apps/backend/core/access/db/ormModels/user.py`              | User ORM model                      |
+| `apps/backend/core/controllers/authController.py`            | Auth endpoints                      |
+| `apps/backend/core/controllers/mediaController.py`           | Media endpoints                     |
+| `apps/backend/core/controllers/statsController.py`           | Stats endpoints                     |
+| `apps/backend/core/framework/auth/session.py`                | Session management                  |
+| `apps/backend/core/framework/providers/providers.py`         | Provider registry                   |
+| `apps/backend/core/framework/provider/baseProvider.py`       | Base provider interface             |
+| `apps/backend/core/middlewares/dbSessionMiddleware.py`       | Session per request                 |
+| `apps/backend/core/middlewares/authMiddleware.py`            | Authentication                      |
+| `apps/backend/constants.py`                                  | Environment config                  |
+| `apps/backend/spotify/framework/provider/spotifyProvider.py` | Spotify provider                    |
+| `apps/backend/youtube/framework/provider/youtubeProvider.py` | YouTube provider                    |
 
 ### Running the Project
 
 ```bash
-cd backend
+cd apps/backend
 
 # Development server
-uvicorn backend.core.main:app --reload
+uv run uvicorn app.main:app --reload
 
 # Type checking
-.venv/bin/python -m pyright
+.uv run pyright
 
 # Linting / formatting
-.venv/bin/python -m black <file>
+.uv run ruff format <file>
 
 # Initialize database
-python3 -m backend init-db
+uv run --project apps/backend python -m apps.backend init-db
 
 # Generate frontend DTOs from backend responses
-python3 -m backend models
+uv run --project apps/backend python -m apps.backend models
 ```

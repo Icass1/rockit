@@ -4,6 +4,7 @@ import sys
 import threading
 import traceback
 from collections.abc import Mapping
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from types import TracebackType
 from typing import Any
@@ -16,6 +17,26 @@ from constants import CONSOLE_DUMP_LEVEL, LOG_DUMP_LEVEL, LOGS_PATH
 
 
 # Import inspect module
+
+_log_upload_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="log-s3-upload")
+
+
+def _upload_rotated_log(path: str) -> None:
+    """Upload a completed daily log file to the configured S3 bucket."""
+    try:
+        from config import settings
+        from core.framework.storage import get_s3_client
+
+        date = os.path.basename(path).removeprefix("log_").removesuffix(".log")
+        prefix = settings.S3_PREFIX.strip("/")
+        key = f"{prefix}/logs/log_{date}.log" if prefix else f"logs/log_{date}.log"
+        get_s3_client().upload_file(path, settings.S3_BUCKET, key)
+    except Exception:
+        # Use standard logging directly to avoid recursively writing through
+        # the handler that triggered this background upload.
+        logging.getLogger("rockit").error(
+            "Failed to upload rotated log %s to S3", path, exc_info=True
+        )
 
 
 class DailyRotatingFileHandler(logging.FileHandler):
@@ -42,9 +63,12 @@ class DailyRotatingFileHandler(logging.FileHandler):
 
     def rotate(self) -> None:
         """Close the current stream and start a new log file for the new day."""
+        old_filename = self.base_filename
         if self.stream:
             self.stream.close()
             self.stream = None  # type: ignore[assignment]
+        if os.path.isfile(old_filename):
+            _log_upload_executor.submit(_upload_rotated_log, old_filename)
         self.current_date = datetime.now().strftime("%Y-%m-%d")
         self.base_filename = os.path.join(self.directory, f"log_{self.current_date}.log")
         # Remove old log files beyond the limit (10 files)

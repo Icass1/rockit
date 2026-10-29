@@ -396,4 +396,6 @@ class Storage:
 
         object_public_id: str = public_id or create_id(32)
         _name, ext = os.path.splitext(filename)
-        return f"{folder.rstrip('/')}/{object_public_id}{ext.lower()}"
+        key = f"{folder.rstrip('/')}/{object_public_id}{ext.lower()}"
+        prefix = settings.S3_PREFIX.strip("/")
+        return f"{prefix}/{key}" if prefix else key

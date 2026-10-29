@@ -20,6 +20,7 @@ import {
 } from "@/lib/store";
 
 const WS_TIME_SYNC_INTERVAL_MS = 1000;
+const MEDIA_ERROR_SKIP_DELAY_MS = 60_000;
 
 export type TMediaKind = "audio" | "video";
 
@@ -824,8 +825,23 @@ export abstract class BaseMediaPlayerManager {
                 });
             }, 1000);
         } else if (action === EQueueAction.PLAY && nextId !== null) {
-            getRockIt().queueManager.setQueueMediaId(nextId, direction);
-            this.play();
+            // Give a failed stream time to recover before moving on. Keep the
+            // current playback and queue identity so manual navigation or a
+            // queue replacement during the delay takes precedence.
+            const playbackId = this._playbackId;
+            const queueId = currentId;
+            setTimeout((): void => {
+                const queueManager = getRockIt().queueManager;
+                if (
+                    this._playbackId !== playbackId ||
+                    queueManager.queueIdentity !== identity ||
+                    queueManager.currentQueueMediaId !== queueId ||
+                    !this._playRequested
+                )
+                    return;
+                queueManager.setQueueMediaId(nextId, direction);
+                this.play();
+            }, MEDIA_ERROR_SKIP_DELAY_MS);
         } else {
             this.pause();
         }

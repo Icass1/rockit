@@ -17,6 +17,7 @@ import {
     ListPlus,
     ListStart,
     Pencil,
+    Pin,
     Play,
     PlayCircle,
     Radio,
@@ -26,6 +27,7 @@ import {
     X,
 } from "lucide-react";
 import { isSearchResult, type TMediaWithSearch } from "@/models/types/media";
+import { isPinnableMedia } from "@/lib/utils/navigationPins";
 
 export interface ActionDef {
     id: EMediaContextAction;
@@ -41,6 +43,14 @@ export interface ActionDef {
 type BlueprintEntry = EMediaContextAction | "---";
 
 const ACTION_REGISTRY: ActionDef[] = [
+    {
+        id: EMediaContextAction.PinNavigation,
+        type: "action",
+        icon: Pin,
+        labelKey: "NAV_PIN",
+        mediaTypes: [EMediaType.Album, EMediaType.Playlist, EMediaType.Artist],
+        condition: isPinnableMedia,
+    },
     {
         id: EMediaContextAction.Play,
         type: "action",
@@ -401,6 +411,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Album]: [
+        EMediaContextAction.PinNavigation,
         EMediaContextAction.PlayList,
         EMediaContextAction.AddToPlaylist,
         EMediaContextAction.Navigate,
@@ -420,6 +431,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Playlist]: [
+        EMediaContextAction.PinNavigation,
         EMediaContextAction.PlayList,
         EMediaContextAction.AddToPlaylist,
         EMediaContextAction.Navigate,
@@ -436,6 +448,7 @@ const MEDIA_BLUEPRINTS: Partial<Record<EMediaType, BlueprintEntry[]>> = {
         EMediaContextAction.RemoveFromPlaylist,
     ],
     [EMediaType.Artist]: [
+        EMediaContextAction.PinNavigation,
         EMediaContextAction.AddToPlaylist,
         EMediaContextAction.Navigate,
         "---",

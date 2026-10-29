@@ -289,7 +289,10 @@ def test_catalog_keys_and_table_names_are_opaque() -> None:
 
 def test_collection_access_does_not_infer_provider_table_layouts() -> None:
     backend = Path(__file__).resolve().parents[2]
-    paths = [backend / "core/access/collectionAccess.py"]
+    paths = [
+        backend / "core/access/collectionAccess.py",
+        backend / "core/access/navigationPinAccess.py",
+    ]
     for path in paths:
         tree = ast.parse(path.read_text())
         assert not any(

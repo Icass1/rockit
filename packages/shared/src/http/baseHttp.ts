@@ -1537,6 +1537,29 @@ export class BaseHttp {
         );
     }
 
+    static async getNavigationPinsAsync() {
+        return this.apiGetAsync(
+            `/user/navigation/pins`,
+            dto.NavigationPinsResponseSchema
+        );
+    }
+
+    static async pinNavigationMediaAsync(payload: dto.PinNavigationRequest) {
+        return this.apiPostAsync(
+            `/user/navigation/pins`,
+            dto.PinNavigationRequestSchema,
+            dto.NavigationPinsResponseSchema,
+            payload
+        );
+    }
+
+    static async unpinNavigationMediaAsync(publicId: string) {
+        return this.apiDeleteAsync(
+            `/user/navigation/pins/${encodeURIComponent(publicId)}`,
+            dto.NavigationPinsResponseSchema
+        );
+    }
+
     static async getNotificationEvents() {
         return this.apiGetAsync(
             `/user/notification-events`,

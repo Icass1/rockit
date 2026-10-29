@@ -63,16 +63,33 @@ export default function ContextMenuTrigger({
         ): void => {
             if (_contextMenuDivRef?.current?.contains(event.target as Node))
                 return;
+            // Chromium fires contextmenu before the right-button mouseup. That
+            // release belongs to the opening gesture and must not close the menu.
+            if (
+                event.type === "mouseup" &&
+                (event.button !== 0 ||
+                    (longPressFired.current &&
+                        divRef.current?.contains(event.target as Node)))
+            )
+                return;
+            // A new right-click closes other menus, but not the trigger opening it.
+            if (
+                event.type === "contextmenu" &&
+                divRef.current?.contains(event.target as Node)
+            )
+                return;
             _setContextMenuOpen(false);
         };
 
         if (_contextMenuOpen) {
             document.addEventListener("mouseup", closeContextMenu);
             document.addEventListener("wheel", closeContextMenu);
+            document.addEventListener("contextmenu", closeContextMenu);
         }
         return (): void => {
             document.removeEventListener("mouseup", closeContextMenu);
             document.removeEventListener("wheel", closeContextMenu);
+            document.removeEventListener("contextmenu", closeContextMenu);
         };
     }, [_contextMenuOpen, _contextMenuDivRef, _setContextMenuOpen]);
 
@@ -140,19 +157,25 @@ export default function ContextMenuTrigger({
                 longPressFired.current = false;
             }}
             onKeyDown={(event): void => {
+                const contextKey =
+                    event.key === "ContextMenu" ||
+                    (event.shiftKey && event.key === "F10");
                 if (
-                    !openOnLeftClick ||
-                    event.target !== event.currentTarget ||
-                    !["Enter", " "].includes(event.key)
+                    event.defaultPrevented ||
+                    (!contextKey &&
+                        (!openOnLeftClick ||
+                            event.target !== event.currentTarget ||
+                            !["Enter", " "].includes(event.key)))
                 )
                     return;
                 event.preventDefault();
+                event.stopPropagation();
                 const bounds = event.currentTarget.getBoundingClientRect();
                 _setContextMenuPos?.([
                     Math.max(1, bounds.left),
                     Math.max(1, bounds.top),
                 ]);
-                _setContextMenuOpen?.((value) => !value);
+                _setContextMenuOpen?.((value) => contextKey || !value);
             }}
             className={`${className ?? ""} ${openOnLeftClick ? "rounded-lg focus-visible:outline-2 focus-visible:outline-white" : ""}`}
             onTouchCancel={clearLongPress}

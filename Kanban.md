@@ -8,6 +8,17 @@
 
 ## To Review
 
+### [NAVIGATION] Anclar álbumes, playlists y artistas
+
+- tags: [frontend, backend, navigation, pins, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Implementado en feat/navigation-pins: persistencia personal e idempotente con tablas propias creadas por el arranque existente; permisos actuales, resúmenes e imágenes por lotes, sin expandir colecciones. Menús y barra lateral con estados vacíos, teclado, scroll y movimiento reducido. Contratos generados y traducciones en/es/fr en Vocabulary.xlsx. Revisión dirigida en Chromium con 11 comprobaciones y HTTP simulado; regresiones para CI, sin suites locales. Ver docs/NAVIGATION_PINS.md. Revisado según feedback: acciones solo en context menu, nombres Anclados/Anclar/Desanclar, cinco listas dinámicas de Rockit soportadas y tres iniciales solo para usuarios nuevos, sin reponer las que se quitan. Menús con clic derecho, pulsación larga y Mayús+F10; cierre de Chromium corregido. Pendiente de revisión del usuario.
+
+    Anclados por usuario para álbumes, playlists y artistas; no canciones. Acción de anclar/desanclar en menú contextual. Navegación izquierda limpia cuando está vacía; si hay anclados, divisor horizontal recortado, icono Pin de Lucide y accesos con portadas cuadradas redondeadas o avatares circulares para artistas. Al pulsar se abre el elemento sin reproducirlo. Persistencia entre sesiones/dispositivos, permisos y carga ligera por lotes. Textos en Vocabulary.xlsx en todos los idiomas existentes.
+    ```
+
 ### [LIBRARY] Buscar y reproducir canciones dentro de álbumes y playlists
 
 - tags: [frontend, backend, library, search, playback, performance]

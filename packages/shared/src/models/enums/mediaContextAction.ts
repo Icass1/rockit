@@ -1,4 +1,5 @@
 export enum EMediaContextAction {
+    PinNavigation = "pinNavigation",
     Play = "play",
     AddToPlaylist = "addToPlaylist",
     Navigate = "navigate",

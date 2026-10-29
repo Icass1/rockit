@@ -2,14 +2,21 @@
 
 ## To Do
 
-### [LYRICS] Mejorar detección y asignación de lyrics
+### [LIBRARY] Buscar y reproducir canciones dentro de álbumes
 
-- tags: [frontend, backend, lyrics, matching]
-- priority: high
+- tags: [frontend, backend, library, search, playback, performance]
+- priority: medium
 - workload: Normal
     ```md
-    Mejorar la detección o assignment de las lyrics a las canciones para que se detecte mejor la canción que se está reproduciendo.
+    La búsqueda dentro de Library debe encontrar también canciones contenidas en los álbumes de la biblioteca, aunque no estén añadidas como canciones sueltas. Mostrar resultados de canciones identificables por título, artista y álbum, y permitir reproducir solo la canción elegida sin iniciar el resto del álbum. Ejemplo: buscar The Contract y reproducirla directamente desde Breach de twenty one pilots.
+    Resolverlo de forma ligera, evitando cargar todos los álbumes y sus pistas en el cliente o lanzar una petición por álbum en cada búsqueda. Conservar los resultados actuales de álbumes y listas y evitar duplicados de canciones.
     ```
+
+## In Progress
+
+## Idle
+
+## To Review
 
 ### [LIBRARY] Drag & drop de canciones a listas
 
@@ -17,10 +24,21 @@
 - priority: medium
 - workload: Normal
     ```md
+    Implementado en la vista All: canciones y álbumes se arrastran a playlists propias en tarjetas y filas, con mano cerrada, portada flotante y círculo verde con + blanco sobre destinos válidos. Destino resaltado, autoscroll, cancelación y guardado con feedback. Propiedad revalidada al soltar; un álbum usa la operación existente de colección completa. Sin cambios de almacenamiento ni suites locales; revisión dirigida en Chromium con componentes reales y HTTP simulado. Pendiente de CI y revisión del usuario.
+
     Al pinchar y arrastrar canciones en la library hacia las listas, mostrar un "+" y permitir añadirlas.
     ```
 
-## In Progress
+### [LYRICS] Mejorar detección y asignación de lyrics
+
+- tags: [frontend, backend, lyrics, matching]
+- priority: high
+- workload: Normal
+    ```md
+    Implementado: recuperación LRCLIB con fallback Unicode/acentos controlado, prioridad canónica y rechazo de ambigüedades, variantes de consulta y versiones en título/álbum, caché de texto plano ampliable a tiempos sin sobrescribir originales, LRC con offsets/tags repetidos y fallback visible a texto en todos los players. Propuestas de letra/offset con previsualización y revisión admin; overlays en solicitudes existentes, vinculados a revisiones de audio/letra y protegidos contra aprobaciones obsoletas. Reloj y seek compartidos en web, PiP y móvil. Sin migraciones, cambios de S3 ni reescalar tiempos. Ver docs/LYRICS_MATCHING.md. Sin suites locales; regresiones para CI. Pendiente de revisión funcional y medir contra la referencia aproximada del usuario (30% sincronizadas, 40% desincronizadas, 30% ausentes).
+
+    Mejorar la detección o assignment de las lyrics a las canciones para que se detecte mejor la canción que se está reproduciendo.
+    ```
 
 ### [DOWNLOADS] Descargar solo música y no videoclips
 
@@ -29,6 +47,8 @@
 - workload: Normal
 - defaultExpanded: false
     ```md
+    Implementado: se seleccionan grabaciones del catálogo de YouTube Music antes de descargar. Se rechazan videoclips OMV/UGC, versiones/artistas/duraciones incompatibles y fallbacks de vídeo. Las URLs guardadas se revalidan; YouTube Music también resuelve el ID principal. Búsqueda ISRC/metadatos acotada y con pacing existente. S3 y migración intactos; lógica en providers. Ver docs/SONG_RECORDING_SELECTION.md. Pendiente de revisión y CI; sin suites locales.
+
     Hacer que yt-dlp descargue solo música que no sean videoclips. Ajustar la búsqueda.
     ```
 
@@ -39,23 +59,10 @@
 - workload: Normal
 - defaultExpanded: false
     ```md
+    Implementado: se reutiliza core.user.volume y se expone mediante sesión y ruta autenticada. Web restaura el volumen por usuario y guarda cambios con debounce y escrituras serializadas. iOS/iPadOS inicia al 100% y no guarda ni aplica el volumen de BBDD. Contratos y cliente HTTP regenerados. Sin cambios de almacenamiento. Pendiente de revisión y CI; sin suites locales.
+
     Para frontend web Guardar el volumen del usuario en nuestra base de datos por cada usuario. Cuando el usuario ajuste el volumen, se guardará en la base de datos. Y luego, cuando el usuario salga de la página y vuelva a entrar, se cargará desde la base de datos. Hay una excepción: cuando el usuario cargue la web del móvil, es decir, la PWA de iOS, el volumen siempre será el 100%. Da igual lo que haya en la base de datos; no se guardará ni se cargará de ahí. Solo con esa excepción.
     ```
-
-## Idle
-
-### [LIBRARY] Investigar tiempo de carga
-
-- tags: [frontend, library, performance, kb-07]
-- priority: medium
-- workload: Easy
-- steps:
-    - [ ] Confirmar con Ignacio si la library tarda un segundo en cargar
-    ```md
-    Aparcada por indicación de Ignacio. No investigar ni modificar por ahora.
-    ```
-
-## To Review
 
 ### [HEADER] Intensidad gradual de la llama de racha
 
@@ -116,6 +123,17 @@
     ```
 
 ## Done
+
+### [LIBRARY] Investigar tiempo de carga
+
+- tags: [frontend, library, performance, kb-07]
+- priority: medium
+- workload: Easy
+- steps:
+    - [x] Confirmar con Ignacio si la library tarda un segundo en cargar
+    ```md
+    Cerrada tras la confirmación de Ignacio: la Library carga correctamente. No se requiere investigar ni modificar; la demora observada pudo corresponder a la primera carga.
+    ```
 
 ### [LIBRARY] Centrar botón library y arreglar random
 

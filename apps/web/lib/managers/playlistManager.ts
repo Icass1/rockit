@@ -13,6 +13,7 @@ import {
     type PlaylistDeletedMessage,
     type PlaylistRenamedMessage,
 } from "@rockit/shared";
+import type { LibraryDragMedia } from "@/models/interfaces/libraryDragDrop";
 import { Http } from "@/lib/http";
 import {
     addSongPlaylistRef,
@@ -130,20 +131,72 @@ export class PlaylistManager {
         media: TMedia,
         playlist: BasePlaylistWithoutMediasResponse
     ): Promise<HttpResult<{ status: string }>> {
-        // Keep parent-playlist references accurate for songs saved offline:
-        // no network call, just an IndexedDB write in the background.
+        const result = await Http.addMediaToPlaylistAsync(playlist.publicId, {
+            mediaPublicId: media.publicId,
+        });
         if (
+            result.isOk() &&
             isSong(media) &&
             (offlineStatusMap.get()[media.publicId] ?? "idle") === "downloaded"
         ) {
-            addSongPlaylistRef(media.publicId, playlist.publicId).catch(
+            void addSongPlaylistRef(media.publicId, playlist.publicId).catch(
                 () => {}
             );
         }
+        return result;
+    }
 
-        return await Http.addMediaToPlaylistAsync(playlist.publicId, {
-            mediaPublicId: media.publicId,
-        });
+    private libraryDropsPending = new Set<string>();
+
+    async addLibraryMediaToOwnedPlaylist(
+        media: LibraryDragMedia,
+        playlistPublicId: string
+    ): Promise<boolean> {
+        if (this.libraryDropsPending.has(playlistPublicId)) return false;
+        this.libraryDropsPending.add(playlistPublicId);
+        const vocabulary = rockIt.vocabularyManager.vocabulary;
+        try {
+            // The owned-list endpoint filters by owner_id on the server. Recheck at
+            // drop time instead of comparing display names or trusting a stale card.
+            const owned = await Http.getUserPlaylistsAsync();
+            if (!owned.isOk()) {
+                rockIt.notificationManager.notifyError(
+                    vocabulary.LIBRARY_DROP_ERROR
+                );
+                return false;
+            }
+            this._playlistsAtom.set(owned.result.playlists);
+            const target = owned.result.playlists.find(
+                (item) => item.publicId === playlistPublicId
+            );
+            if (!target) {
+                rockIt.notificationManager.notifyError(
+                    vocabulary.LIBRARY_DROP_OWNER_ONLY
+                );
+                return false;
+            }
+            const saved = await this.addMediaToPlaylist(media, target);
+            if (!saved.isOk()) {
+                rockIt.notificationManager.notifyError(
+                    vocabulary.LIBRARY_DROP_ERROR
+                );
+                return false;
+            }
+            rockIt.notificationManager.notifySuccess(
+                vocabulary.LIBRARY_DROP_SUCCESS.replace(
+                    "{media}",
+                    media.name
+                ).replace("{playlist}", target.name)
+            );
+            return true;
+        } catch {
+            rockIt.notificationManager.notifyError(
+                vocabulary.LIBRARY_DROP_ERROR
+            );
+            return false;
+        } finally {
+            this.libraryDropsPending.delete(playlistPublicId);
+        }
     }
 
     async removeMediaFromPlaylist(

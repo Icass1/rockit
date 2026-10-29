@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY: str | None = None
     S3_SECRET_KEY: str | None = None
     S3_BUCKET: str = Field(min_length=1)
+    S3_PREFIX: str = ""
     S3_REGION: str = "us-east-1"
     # Lifetime of presigned URLs used when a public endpoint is not configured.
     S3_PRESIGNED_URL_EXPIRES: int = 3600
@@ -106,6 +107,12 @@ class Settings(BaseSettings):
     def optional_download_setting(cls, value: object) -> object:
         """Treat blank optional downloader settings as absent."""
         return None if isinstance(value, str) and not value.strip() else value
+
+    @field_validator("S3_PREFIX", mode="before")
+    @classmethod
+    def optional_s3_prefix(cls, value: object) -> object:
+        """Treat a missing or blank S3 namespace as no prefix."""
+        return value.strip() if isinstance(value, str) and value.strip() else ""
 
     @model_validator(mode="after")
     def validate_database_authentication(self) -> "Settings":

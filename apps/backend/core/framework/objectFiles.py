@@ -24,6 +24,15 @@ from result import Result, ResultCode
 
 class ObjectFiles:
     @staticmethod
+    def _prefixed_key(value: str) -> str:
+        """Apply the configured namespace to an application-relative object key."""
+        key = ObjectFiles.key(value)
+        prefix = settings.S3_PREFIX.strip("/")
+        if prefix and key != prefix and not key.startswith(f"{prefix}/"):
+            return ObjectFiles.key(f"{prefix}/{key}")
+        return key
+
+    @staticmethod
     def key(value: str) -> str:
         if (
             not value
@@ -39,7 +48,9 @@ class ObjectFiles:
     def metadata(key: str) -> dict[str, Any]:
         try:
             return dict(
-                get_s3_client().head_object(Bucket=settings.S3_BUCKET, Key=ObjectFiles.key(key))
+                get_s3_client().head_object(
+                    Bucket=settings.S3_BUCKET, Key=ObjectFiles._prefixed_key(key)
+                )
             )
         except ClientError as error:
             if error.response.get("Error", {}).get("Code") in {"404", "NoSuchKey", "NotFound"}:
@@ -59,7 +70,7 @@ class ObjectFiles:
     ) -> Result[StorageObjectRow]:
         """Upload a processing file with bounded buffers and register its S3 key."""
         try:
-            key = ObjectFiles.key(key)
+            key = ObjectFiles._prefixed_key(key)
             content_type = mimetypes.guess_type(key)[0] or "application/octet-stream"
             await Storage.ensure_bucket_async()
             await asyncio.to_thread(
@@ -89,7 +100,7 @@ class ObjectFiles:
     @staticmethod
     async def store_processing_result_async(source: str, key: str) -> None:
         """Publish a reproducible processing result to S3 without a database row."""
-        key = ObjectFiles.key(key)
+        key = ObjectFiles._prefixed_key(key)
         await asyncio.to_thread(
             get_s3_client().upload_file,
             source,
@@ -103,8 +114,10 @@ class ObjectFiles:
         """Retain the old download in S3 when deleting or retrying a group."""
         from uuid import uuid4
 
-        key = ObjectFiles.key(key)
-        backup = f"backups/{uuid4().hex}/{key}"
+        key = ObjectFiles._prefixed_key(key)
+        prefix = settings.S3_PREFIX.strip("/")
+        backup_key = f"backups/{uuid4().hex}/{key.removeprefix(f'{prefix}/') if prefix else key}"
+        backup = ObjectFiles._prefixed_key(backup_key)
         try:
             await asyncio.to_thread(ObjectFiles.metadata, key)
         except FileNotFoundError:
@@ -126,14 +139,16 @@ class ObjectFiles:
     @staticmethod
     async def delete_async(key: str) -> None:
         await asyncio.to_thread(
-            get_s3_client().delete_object, Bucket=settings.S3_BUCKET, Key=ObjectFiles.key(key)
+            get_s3_client().delete_object,
+            Bucket=settings.S3_BUCKET,
+            Key=ObjectFiles._prefixed_key(key),
         )
 
     @staticmethod
     @asynccontextmanager
     async def local_copy_async(key: str) -> AsyncGenerator[str]:
         """Materialize an object only for the lifetime of a local processing operation."""
-        key = ObjectFiles.key(key)
+        key = ObjectFiles._prefixed_key(key)
         os.makedirs(settings.TEMP_PATH, exist_ok=True)
         with tempfile.TemporaryDirectory(
             prefix="rockit-object-", dir=settings.TEMP_PATH
@@ -148,7 +163,9 @@ class ObjectFiles:
         """Provide seekable temporary input for tag extraction and ZIP construction."""
         os.makedirs(settings.TEMP_PATH, exist_ok=True)
         with tempfile.TemporaryFile(dir=settings.TEMP_PATH) as handle:
-            get_s3_client().download_fileobj(settings.S3_BUCKET, ObjectFiles.key(key), handle)
+            get_s3_client().download_fileobj(
+                settings.S3_BUCKET, ObjectFiles._prefixed_key(key), handle
+            )
             handle.seek(0)
             yield cast(BinaryIO, handle)
 
@@ -159,7 +176,7 @@ class ObjectFiles:
         media_type: str | None = None,
     ) -> Result[StreamingResponse]:
         try:
-            key = ObjectFiles.key(key)
+            key = ObjectFiles._prefixed_key(key)
             metadata = await asyncio.to_thread(ObjectFiles.metadata, key)
             size = int(metadata["ContentLength"])
             start, end, status = 0, size - 1, 200
@@ -236,7 +253,7 @@ class ObjectFiles:
         response = await asyncio.to_thread(
             get_s3_client().create_multipart_upload,
             Bucket=settings.S3_BUCKET,
-            Key=ObjectFiles.key(key),
+            Key=ObjectFiles._prefixed_key(key),
             ContentType="application/vnd.android.package-archive",
         )
         return response["UploadId"]
@@ -246,7 +263,7 @@ class ObjectFiles:
         await asyncio.to_thread(
             get_s3_client().upload_part,
             Bucket=settings.S3_BUCKET,
-            Key=ObjectFiles.key(key),
+            Key=ObjectFiles._prefixed_key(key),
             UploadId=upload_id,
             PartNumber=number,
             Body=data,
@@ -258,7 +275,7 @@ class ObjectFiles:
             parts: list[dict[str, Any]] = []
             paginator = get_s3_client().get_paginator("list_parts")
             for page in paginator.paginate(
-                Bucket=settings.S3_BUCKET, Key=ObjectFiles.key(key), UploadId=upload_id
+                Bucket=settings.S3_BUCKET, Key=ObjectFiles._prefixed_key(key), UploadId=upload_id
             ):
                 parts.extend(
                     {"PartNumber": part["PartNumber"], "ETag": part["ETag"]}
@@ -277,7 +294,7 @@ class ObjectFiles:
         await asyncio.to_thread(
             client.complete_multipart_upload,
             Bucket=settings.S3_BUCKET,
-            Key=ObjectFiles.key(key),
+            Key=ObjectFiles._prefixed_key(key),
             UploadId=upload_id,
             MultipartUpload={"Parts": parts},
         )
@@ -287,6 +304,6 @@ class ObjectFiles:
         await asyncio.to_thread(
             get_s3_client().abort_multipart_upload,
             Bucket=settings.S3_BUCKET,
-            Key=ObjectFiles.key(key),
+            Key=ObjectFiles._prefixed_key(key),
             UploadId=upload_id,
         )

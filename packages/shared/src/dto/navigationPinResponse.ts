@@ -13,6 +13,15 @@ export const NavigationPinResponseSchema = z.object({
     name: z.string(),
     imageUrl: z.string().nullable(),
     url: z.string(),
+    builtinKey: z
+        .union([
+            z.literal("liked"),
+            z.literal("most-listened"),
+            z.literal("recent-mix"),
+            z.literal("last-month"),
+            z.literal("year-recap"),
+        ])
+        .nullable(),
 });
 
 export type NavigationPinResponse = z.infer<typeof NavigationPinResponseSchema>;

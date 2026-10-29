@@ -268,3 +268,29 @@ test("simultaneous wake events coalesce and refresh changes from another device"
     await tick();
     assert.equal(manager.pinsAtom.get().length, 1);
 });
+
+test("removed default Rockit lists are not recreated by refresh or login", async () => {
+    const { manager, state } = setup();
+    state.server = ["liked", "most-listened", "recent-mix"].map((key) => ({
+        ...pin,
+        type: "playlist",
+        publicId: key,
+        builtinKey: key,
+        url: `/playlist/${key}`,
+    }));
+    manager.init();
+    await tick();
+    assert.equal(await manager.setPinnedAsync("liked", false), true);
+    await manager.refreshAsync();
+    assert.deepEqual(
+        manager.pinsAtom.get().map((item) => item.publicId),
+        ["most-listened", "recent-mix"]
+    );
+    rockIt.userManager.loggedInAtom.set(false);
+    rockIt.userManager.loggedInAtom.set(true);
+    await tick();
+    assert.deepEqual(
+        manager.pinsAtom.get().map((item) => item.publicId),
+        ["most-listened", "recent-mix"]
+    );
+});

@@ -6,8 +6,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import type { NavigationPinResponse } from "@rockit/shared";
-import { LoaderCircle, Pin, PinOff } from "lucide-react";
+import { CalendarDays, Disc3, Heart, History, Pin } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { getNavigationPinName } from "@/lib/utils/navigationPins";
+import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
 
 function PinShortcut({
     pin,
@@ -20,6 +22,15 @@ function PinShortcut({
 }): JSX.Element {
     const activePage = usePathname();
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
+    const name = getNavigationPinName(pin, vocabulary);
+    const BuiltinIcon =
+        pin.builtinKey === "liked"
+            ? Heart
+            : pin.builtinKey === "most-listened"
+              ? Disc3
+              : pin.builtinKey === "recent-mix"
+                ? History
+                : CalendarDays;
     const fallback =
         pin.type === "artist"
             ? "/user-placeholder.png"
@@ -29,55 +40,51 @@ function PinShortcut({
     const [failed, setFailed] = useState<string | null>(null);
     const cover = pin.imageUrl || fallback;
     return (
-        <li className="group mx-2 flex min-h-10 shrink-0 items-center rounded-md">
-            <Link
-                href={pin.url}
-                title={pin.name}
-                aria-label={pin.name}
-                aria-current={activePage === pin.url ? "page" : undefined}
-                className={`flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 focus-visible:outline-2 focus-visible:outline-white ${activePage === pin.url ? "bg-white/15" : "hover:bg-white/10"}`}
+        <li
+            className="group mx-2 flex min-h-10 shrink-0 items-center rounded-md"
+            aria-busy={busy || undefined}
+        >
+            <NavigationPinMenu
+                publicId={pin.publicId}
+                title={name}
+                cover={pin.imageUrl}
+                className="min-w-0 flex-1"
             >
-                <Image
-                    src={failed === cover ? fallback : cover}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className={`h-8 w-8 shrink-0 object-cover ${pin.type === "artist" ? "rounded-full" : "rounded-md"}`}
-                    onError={() => setFailed(cover)}
-                />
-                {expanded && (
-                    <span className="truncate text-sm font-semibold">
-                        {pin.name}
-                    </span>
-                )}
-            </Link>
-            {expanded && (
-                <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                        void rockIt.navigationPinsManager.setPinnedAsync(
-                            pin.publicId,
-                            false
-                        )
-                    }
-                    title={vocabulary.NAV_UNPIN}
-                    aria-label={vocabulary.NAV_UNPIN_ITEM.replace(
-                        "{name}",
-                        pin.name
-                    )}
-                    className="ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
+                <Link
+                    href={pin.url}
+                    title={name}
+                    aria-label={name}
+                    aria-current={activePage === pin.url ? "page" : undefined}
+                    className={`flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 focus-visible:outline-2 focus-visible:outline-white ${activePage === pin.url ? "bg-white/15" : "hover:bg-white/10"}`}
                 >
-                    {busy ? (
-                        <LoaderCircle
-                            aria-hidden
-                            className="h-4 w-4 animate-spin motion-reduce:animate-none"
+                    <span className="relative h-8 w-8 shrink-0">
+                        <Image
+                            src={failed === cover ? fallback : cover}
+                            alt=""
+                            width={32}
+                            height={32}
+                            className={`h-8 w-8 shrink-0 object-cover ${pin.type === "artist" ? "rounded-full" : "rounded-md"}`}
+                            onError={() => setFailed(cover)}
                         />
-                    ) : (
-                        <PinOff aria-hidden className="h-4 w-4" />
+                        {pin.builtinKey && (
+                            <BuiltinIcon
+                                aria-hidden
+                                className="pointer-events-none absolute top-1/2 left-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-white"
+                                fill={
+                                    pin.builtinKey === "liked"
+                                        ? "currentColor"
+                                        : "none"
+                                }
+                            />
+                        )}
+                    </span>
+                    {expanded && (
+                        <span className="truncate text-sm font-semibold">
+                            {name}
+                        </span>
                     )}
-                </button>
-            )}
+                </Link>
+            </NavigationPinMenu>
         </li>
     );
 }

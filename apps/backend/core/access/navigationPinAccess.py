@@ -7,6 +7,7 @@ from sqlalchemy.sql import Select
 from sqlalchemy.sql.selectable import Subquery
 
 from core.access.collectionAccess import CollectionAccess
+from core.access.db.ormModels.user_navigation_list_pin import UserNavigationListPinRow
 from core.access.db.ormModels.user_navigation_pin import UserNavigationPinRow
 from core.access.db.shared_metadata import shared_metadata
 from core.models.navigationPin import NavigationPinRecord
@@ -116,6 +117,43 @@ class NavigationPinAccess:
                 UserNavigationPinRow.media_id.in_(
                     select(media.c.id).where(media.c.public_id == public_id)
                 ),
+            )
+        )
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def list_builtin_async(session: AsyncSession, user_id: int) -> Result[list[str]]:
+        """Read only: loading shortcuts must never reseed removed defaults."""
+        rows = await session.execute(
+            select(UserNavigationListPinRow.list_key)
+            .where(UserNavigationListPinRow.user_id == user_id)
+            .order_by(UserNavigationListPinRow.date_added, UserNavigationListPinRow.list_key)
+        )
+        return Result(code=ResultCode.OK, message="OK", result=list(rows.scalars().all()))
+
+    @staticmethod
+    @safe_async
+    async def add_builtins_async(
+        session: AsyncSession, user_id: int, keys: list[str]
+    ) -> Result[bool]:
+        """Insert already validated shortcut keys in a single idempotent batch."""
+        if keys:
+            await session.execute(
+                insert(UserNavigationListPinRow)
+                .values([dict(user_id=user_id, list_key=key) for key in dict.fromkeys(keys)])
+                .on_conflict_do_nothing(index_elements=["user_id", "list_key"])
+            )
+        return Result(code=ResultCode.OK, message="OK", result=True)
+
+    @staticmethod
+    @safe_async
+    async def remove_builtin_async(session: AsyncSession, user_id: int, key: str) -> Result[bool]:
+        """Remove only this user's reference, not the dynamic list itself."""
+        await session.execute(
+            delete(UserNavigationListPinRow).where(
+                UserNavigationListPinRow.user_id == user_id,
+                UserNavigationListPinRow.list_key == key,
             )
         )
         return Result(code=ResultCode.OK, message="OK", result=True)

@@ -23,6 +23,7 @@ from sqlalchemy.sql import Executable
 import core.access.collectionAccess as collection_access
 import core.access.navigationPinAccess as pin_access
 import default.access.collectionSource as default_source
+from core.access.db.ormModels.user_navigation_list_pin import UserNavigationListPinRow
 from core.access.db.ormModels.user_navigation_pin import UserNavigationPinRow
 from core.access.navigationPinAccess import NavigationPinAccess
 from core.framework.media.image import Image
@@ -109,6 +110,7 @@ def graph(monkeypatch: pytest.MonkeyPatch) -> Iterator[Graph]:
             connection.exec_driver_sql(f"ATTACH DATABASE ':memory:' AS {schema}")
         metadata.create_all(connection)
         cast(Table, UserNavigationPinRow.__table__).create(connection)
+        cast(Table, UserNavigationListPinRow.__table__).create(connection)
         connection.execute(user.insert(), [dict(id=1), dict(id=2), dict(id=3)])
         connection.execute(
             media.insert(),
@@ -254,6 +256,11 @@ async def test_images_are_resolved_once_and_urls_are_canonical(
         "list_async",
         AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=entries)),
     )
+    monkeypatch.setattr(
+        NavigationPinAccess,
+        "list_builtin_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=[])),
+    )
     images = AsyncMock(return_value={10: "cover", 20: "portrait"})
     monkeypatch.setattr(Image, "get_internal_image_urls_by_ids_async", images)
     session = AsyncMock(spec=AsyncSession)
@@ -290,7 +297,12 @@ def test_frontend_pin_account_and_concurrency_regressions() -> None:
 
     root = Path(__file__).resolve().parents[4]
     completed = subprocess.run(
-        ["node", "--test", str(root / "apps/web/tests/navigationPins.test.mjs")],
+        [
+            "node",
+            "--test",
+            str(root / "apps/web/tests/navigationPins.test.mjs"),
+            str(root / "apps/web/tests/contextMenuGestures.test.mjs"),
+        ],
         cwd=root,
         capture_output=True,
         text=True,
@@ -298,3 +310,121 @@ def test_frontend_pin_account_and_concurrency_regressions() -> None:
         check=False,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+async def test_rockit_lists_are_personal_idempotent_and_never_reseed_on_read(graph: Graph) -> None:
+    from core.models.navigationPin import DEFAULT_NAVIGATION_LISTS
+
+    session, _, _ = graph
+    existing = await NavigationPinAccess.list_builtin_async(session=session, user_id=1)
+    assert existing.is_ok() and existing.result() == []
+    seeded = await NavigationPinAccess.add_builtins_async(
+        session=session, user_id=1, keys=list(DEFAULT_NAVIGATION_LISTS)
+    )
+    assert seeded.is_ok(), seeded.info()
+    repeated = await NavigationPinAccess.add_builtins_async(
+        session=session, user_id=1, keys=list(DEFAULT_NAVIGATION_LISTS)
+    )
+    assert repeated.is_ok()
+    found = await NavigationPinAccess.list_builtin_async(session=session, user_id=1)
+    assert found.is_ok() and set(found.result()) == {"liked", "most-listened", "recent-mix"}
+    removed = await NavigationPinAccess.remove_builtin_async(
+        session=session, user_id=1, key="liked"
+    )
+    assert removed.is_ok()
+    for _ in range(2):
+        found = await NavigationPinAccess.list_builtin_async(session=session, user_id=1)
+        assert found.is_ok() and set(found.result()) == {"most-listened", "recent-mix"}
+    other = await NavigationPinAccess.list_builtin_async(session=session, user_id=2)
+    assert other.is_ok() and other.result() == []
+
+
+async def test_rockit_pin_support_does_not_materialize_or_expand_a_playlist(
+    graph: Graph, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    session, connection, metadata = graph
+    monkeypatch.setattr(Image, "get_internal_image_urls_by_ids_async", AsyncMock(return_value={}))
+    found = await NavigationPins.set_async(
+        session=session, user_id=1, public_id="liked", pinned=True
+    )
+    assert found.is_ok(), found.info()
+    assert len(found.result().pins) == 1
+    item = found.result().pins[0]
+    assert item.builtinKey == "liked" and item.type == "playlist" and item.url == "/playlist/liked"
+    assert (
+        connection.execute(
+            select(func.count()).select_from(metadata.tables["core.media"])
+        ).scalar_one()
+        == 4
+    )
+    assert (
+        connection.execute(
+            select(func.count()).select_from(UserNavigationPinRow.__table__)
+        ).scalar_one()
+        == 0
+    )
+    removed = await NavigationPins.set_async(
+        session=session, user_id=1, public_id="liked", pinned=False
+    )
+    assert removed.is_ok() and removed.result().pins == []
+
+
+async def test_registration_requests_only_the_three_defaults(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from core.access.db.ormModels.user import UserRow
+    from core.access.userAccess import UserAccess
+    from core.framework.auth.register import Register
+
+    user = UserRow(username="new", image_id=1, id=10)
+    monkeypatch.setattr(
+        UserAccess,
+        "get_user_from_username_async",
+        AsyncMock(return_value=Result(code=ResultCode.NOT_FOUND, message="missing")),
+    )
+    create = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=user))
+    monkeypatch.setattr(UserAccess, "create_user_async", create)
+    session = AsyncMock(spec=AsyncSession)
+    result = await Register.register_user_async(session=session, username="new", password="test")
+    assert result.is_ok()
+    create.assert_awaited_once_with(
+        session=session,
+        username="new",
+        password="test",
+        navigation_defaults=["liked", "most-listened", "recent-mix"],
+    )
+
+
+async def test_default_seed_failure_rolls_back_new_user_before_commit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from types import SimpleNamespace
+
+    from core.access.userAccess import UserAccess, pwd
+
+    def hash_password(secret: str) -> str:
+        return "hashed"
+
+    monkeypatch.setattr(pwd, "hash", hash_password)
+    monkeypatch.setattr(
+        Image,
+        "get_image_from_key_async",
+        AsyncMock(
+            return_value=Result(code=ResultCode.OK, message="OK", result=SimpleNamespace(id=1))
+        ),
+    )
+    failed = AsyncMock(return_value=Result(code=ResultCode.GENERAL_ERROR, message="seed failed"))
+    monkeypatch.setattr(NavigationPinAccess, "add_builtins_async", failed)
+    session = AsyncMock(spec=AsyncSession)
+
+    async def flush() -> None:
+        session.add.call_args.kwargs["instance"].id = 42
+
+    session.flush.side_effect = flush
+    result = await UserAccess.create_user_async(
+        session=session, username="new", password="test", navigation_defaults=["liked"]
+    )
+    assert result.is_not_ok() and result.message() == "seed failed"
+    session.commit.assert_not_awaited()
+    session.rollback.assert_awaited_once()
+    failed.assert_awaited_once_with(session=session, user_id=42, keys=["liked"])

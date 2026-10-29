@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.user import UserRow
 from core.access.userAccess import UserAccess
+from core.models.navigationPin import DEFAULT_NAVIGATION_LISTS
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -31,7 +32,10 @@ class Register:
             )
 
         a_result_user: Result[UserRow] = await UserAccess.create_user_async(
-            session, username=username, password=password
+            session=session,
+            username=username,
+            password=password,
+            navigation_defaults=list(DEFAULT_NAVIGATION_LISTS),
         )
         if a_result_user.is_not_ok():
             logger.info(f"Error creatinguser  in database. {a_result_user.info()}")

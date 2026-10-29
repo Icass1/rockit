@@ -885,4 +885,6 @@ export interface Vocabulary {
     NAV_PINS_UPDATE_ERROR: string;
     NAV_PIN_ADDED: string;
     NAV_PIN_REMOVED: string;
+    NAV_LAST_MONTH: string;
+    NAV_YEAR_RECAP: string;
 }

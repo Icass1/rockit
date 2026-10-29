@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { useStore } from "@nanostores/react";
+import type { Vocabulary } from "@rockit/shared";
 import { LoaderCircle, Pin, PinOff, RefreshCw } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { isPinnableMedia } from "@/lib/utils/navigationPins";
@@ -10,15 +11,28 @@ export default function PinNavigationAction({
     media,
     vocabulary,
 }: ActionComponentProps): JSX.Element {
+    if (!isPinnableMedia(media)) return <></>;
+    return (
+        <NavigationPinMenuAction
+            publicId={media.publicId}
+            vocabulary={vocabulary}
+        />
+    );
+}
+
+export function NavigationPinMenuAction({
+    publicId,
+    vocabulary,
+}: {
+    publicId: string;
+    vocabulary: Vocabulary;
+}): JSX.Element {
     const pins = useStore(rockIt.navigationPinsManager.pinsAtom);
     const status = useStore(rockIt.navigationPinsManager.statusAtom);
     const pending = useStore(rockIt.navigationPinsManager.pendingAtom);
-    if (!isPinnableMedia(media)) return <></>;
-    const pinned = pins.some((pin) => pin.publicId === media.publicId);
+    const pinned = pins.some((pin) => pin.publicId === publicId);
     const waiting =
-        status === "loading" ||
-        status === "idle" ||
-        pending.includes(media.publicId);
+        status === "loading" || status === "idle" || pending.includes(publicId);
     const retry = status === "error";
     const Icon = waiting
         ? LoaderCircle
@@ -34,7 +48,7 @@ export default function PinNavigationAction({
                 if (retry) void rockIt.navigationPinsManager.refreshAsync();
                 else
                     void rockIt.navigationPinsManager.setPinnedAsync(
-                        media.publicId,
+                        publicId,
                         !pinned
                     );
             }}

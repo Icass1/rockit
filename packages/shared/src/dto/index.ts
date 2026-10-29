@@ -863,4 +863,5 @@ export {
     NotificationEventKeySchema,
     type NotificationEventKey,
 } from "./notificationEventKey";
+export { RockitListKeySchema, type RockitListKey } from "./rockitListKey";
 export { StrictIntSchema, type StrictInt } from "./strictInt";

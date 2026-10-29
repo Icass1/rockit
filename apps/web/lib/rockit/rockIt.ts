@@ -11,6 +11,7 @@ import { ListenTogetherManager } from "@/lib/managers/listenTogetherManager";
 import { MediaManager } from "@/lib/managers/mediaManager";
 import { MediaPlayerManager } from "@/lib/managers/mediaPlayerManager";
 import { MediaSessionManager } from "@/lib/managers/mediaSessionManager";
+import { NavigationPinsManager } from "@/lib/managers/navigationPinsManager";
 import { NotificationManager } from "@/lib/managers/notificationManager";
 import { OfflineManager } from "@/lib/managers/offlineManager";
 import { PlayerUIManager } from "@/lib/managers/playerUIManager";
@@ -50,6 +51,7 @@ export class RockIt {
     stationManager = new StationManager();
     downloaderManager = new DownloaderManager();
     playlistManager = new PlaylistManager();
+    navigationPinsManager = new NavigationPinsManager();
     albumManager = new AlbumManager();
     authManager = new AuthManager();
     mediaPlayerManager = new MediaPlayerManager();
@@ -110,6 +112,7 @@ export class RockIt {
             rockIt.bookmarkManager.init(),
             rockIt.playlistManager.init(),
         ]);
+        rockIt.navigationPinsManager.init();
         rockIt.libraryManager.init();
         rockIt.friendManager.init();
         rockIt.sharingManager.init();

@@ -874,4 +874,15 @@ export interface Vocabulary {
     LIBRARY_DROP_SAVING: string;
     LIBRARY_SONG_SEARCH_HINT: string;
     LIBRARY_SONG_SEARCH_INCOMPLETE: string;
+    NAV_LABEL: string;
+    NAV_TOGGLE: string;
+    NAV_PINNED: string;
+    NAV_PIN: string;
+    NAV_UNPIN: string;
+    NAV_UNPIN_ITEM: string;
+    NAV_PINS_LOADING: string;
+    NAV_PINS_RETRY: string;
+    NAV_PINS_UPDATE_ERROR: string;
+    NAV_PIN_ADDED: string;
+    NAV_PIN_REMOVED: string;
 }

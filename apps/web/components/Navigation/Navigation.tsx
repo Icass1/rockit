@@ -1,7 +1,7 @@
 "use client";
 
 // import { Downloads } from "@/components/MusicDownloader";
-import { useRef, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@nanostores/react";
@@ -11,13 +11,13 @@ import {
     Home,
     Library,
     Menu,
-    Pin,
     RadioTower,
     Search,
     ShieldEllipsis,
     Users,
 } from "lucide-react";
 import { rockIt } from "@/lib/rockit/rockIt";
+import NavigationPins from "@/components/Navigation/NavigationPins";
 
 export default function Navigation(): JSX.Element {
     const [open, setOpen] = useState(false);
@@ -39,6 +39,13 @@ export default function Navigation(): JSX.Element {
         }
         setOpen(false);
     };
+
+    useEffect(
+        () => () => {
+            if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+        },
+        []
+    );
 
     const $downloads = [];
 
@@ -96,24 +103,31 @@ export default function Navigation(): JSX.Element {
     ];
 
     return (
-        <div
+        <nav
+            aria-label={$vocabulary.NAV_LABEL}
+            onFocusCapture={(event) => {
+                if ((event.target as Element).closest("a")) setOpen(true);
+            }}
             className={
-                "mx-auto h-full max-h-full min-h-0 overflow-hidden bg-black/50 pt-4 pb-4 transition-all duration-400 select-none" +
+                "mx-auto h-full max-h-full min-h-0 overflow-hidden bg-black/50 pt-4 pb-4 transition-[width] duration-200 select-none motion-reduce:transition-none" +
                 (open ? " w-56" : " w-12")
             }
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{ backdropFilter: "blur(10px)" }}
         >
-            <div className="flex h-full w-56 flex-col gap-4">
-                <div
-                    className="mx-2 flex h-8 w-8 items-center justify-center rounded-md transition-all"
+            <div className="flex h-full w-56 flex-col gap-2">
+                <button
+                    type="button"
+                    aria-label={$vocabulary.NAV_TOGGLE}
+                    aria-expanded={open}
+                    className="mx-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-all focus-visible:outline-2 focus-visible:outline-white"
                     onClick={(): void => {
                         setOpen((value): boolean => !value);
                     }}
                 >
-                    <Menu className="h-5 w-5" />
-                </div>
+                    <Menu aria-hidden className="h-5 w-5" />
+                </button>
                 {pages.map((page): JSX.Element => {
                     const hidden =
                         "adminOnly" in page && page.adminOnly && !$admin;
@@ -124,7 +138,7 @@ export default function Navigation(): JSX.Element {
                             href={page.href}
                             title={page.title}
                             aria-hidden={hidden || undefined}
-                            className={`relative mr-2 ml-2 flex h-8 items-center gap-2 rounded-md transition-all ${
+                            className={`relative mr-2 ml-2 flex h-8 shrink-0 items-center gap-2 rounded-md transition-all focus-visible:outline-2 focus-visible:outline-white ${
                                 activePage === page.href
                                     ? "bg-white text-black"
                                     : "text-white md:hover:bg-(--color-hover-bg)"
@@ -139,59 +153,15 @@ export default function Navigation(): JSX.Element {
                                     )}
                                 <page.icon className="h-5 w-5" />
                             </div>
-                            <label className="cursor-pointer font-semibold">
+                            <span className="cursor-pointer font-semibold">
                                 {page.title}
-                            </label>
+                            </span>
                         </Link>
                     );
                 })}
 
-                <div
-                    className={`ml-2 h-1 rounded-full bg-neutral-600 transition-all duration-400 ${
-                        open ? "w-52" : "w-8"
-                    }`}
-                ></div>
-
-                <div
-                    className="mr-2 ml-2 flex h-4 cursor-pointer items-center gap-2 rounded-md transition-all"
-                    style={{ fontSize: open ? "" : "0 px" }}
-                >
-                    <div className="flex h-8 w-8 items-center justify-center">
-                        <Pin className="h-5 w-5" />
-                    </div>
-                    <label className="text-md cursor-pointer font-semibold">
-                        {$vocabulary.PINNED_LISTS}
-                    </label>
-                </div>
-                {/* <div className="flex h-full flex-col gap-4 overflow-y-scroll">
-                    {$pinnedLists.map((list) => {
-                        return (
-                            <Link
-                                key={list.publicId}
-                                href={`/${list.type}/${list.publicId}`}
-                                title={list.name}
-                                className={`mr-2 ml-2 flex h-8 cursor-pointer items-center gap-3 rounded-md transition-all md:hover:bg-(--color-hover-bg)`}
-                            >
-                                <Image
-                                    alt={list.name}
-                                    width={32}
-                                    height={32}
-                                    className="flex h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-sm"
-                                    src={
-                                        list.imageUrl ??
-                                        (list.type == "album"
-                                            ? rockIt.ALBUM_PLACEHOLDER_IMAGE_URL
-                                            : rockIt.PLAYLIST_PLACEHOLDER_IMAGE_URL)
-                                    }
-                                />
-                                <label className="cursor-pointer truncate text-sm font-semibold">
-                                    {list.name}
-                                </label>
-                            </Link>
-                        );
-                    })}
-                </div> */}
+                <NavigationPins expanded={open} />
             </div>
-        </div>
+        </nav>
     );
 }

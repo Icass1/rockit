@@ -12,12 +12,13 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ArtistPageResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { EEvent } from "@rockit/shared";
+import { EEvent, EMediaContextLocation } from "@rockit/shared";
 import {
     ArrowUpRight,
     Check,
     Download,
     LoaderCircle,
+    MoreHorizontal,
     Play,
     Search,
 } from "lucide-react";
@@ -32,6 +33,8 @@ import {
     subscribeArtistPortrait,
 } from "@/lib/services/artistService";
 import { getTime } from "@/lib/utils/getTime";
+import { isPinnableMedia } from "@/lib/utils/navigationPins";
+import MediaContextMenu from "@/components/MediaContextMenu/MediaContextMenu";
 import "@/components/Artist/artist.css";
 import ArtistMetadataClient from "@/components/Artist/ArtistMetadataClient";
 
@@ -167,20 +170,38 @@ export default function ArtistClient({
                 )}
                 <div className="artist-intro">
                     <h1>{artist.name}</h1>
-                    {playable && (
+                    {(playable || isPinnableMedia(artist)) && (
                         <div className="artist-actions">
-                            <button
-                                className="artist-play"
-                                disabled={!playable}
-                                onClick={() => playArtistSongs(songs)}
-                            >
-                                <Play
-                                    size={18}
-                                    fill="currentColor"
-                                    aria-hidden
-                                />
-                                {v.ARTIST_PLAY}
-                            </button>
+                            {playable && (
+                                <button
+                                    className="artist-play"
+                                    disabled={!playable}
+                                    onClick={() => playArtistSongs(songs)}
+                                >
+                                    <Play
+                                        size={18}
+                                        fill="currentColor"
+                                        aria-hidden
+                                    />
+                                    {v.ARTIST_PLAY}
+                                </button>
+                            )}
+                            {isPinnableMedia(artist) && (
+                                <MediaContextMenu
+                                    media={artist}
+                                    location={EMediaContextLocation.HOME}
+                                    openOnLeftClick
+                                >
+                                    <button
+                                        type="button"
+                                        className="artist-filter"
+                                        aria-label={v.MORE_OPTIONS}
+                                        title={v.MORE_OPTIONS}
+                                    >
+                                        <MoreHorizontal size={20} aria-hidden />
+                                    </button>
+                                </MediaContextMenu>
+                            )}
                         </div>
                     )}
                 </div>

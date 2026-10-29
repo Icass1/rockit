@@ -109,6 +109,9 @@ from core.access.db.ormModels.user_media_listen_interval import (
 from core.access.db.ormModels.user_media_listened import (
     UserMediaListenedRow as UserMediaListenedRow,
 )
+from core.access.db.ormModels.user_navigation_pin import (
+    UserNavigationPinRow as UserNavigationPinRow,
+)
 from core.access.db.ormModels.user_queue import UserQueueRow as UserQueueRow
 from core.access.db.ormModels.user_seeks import UserSeeksRow as UserSeeksRow
 from core.access.db.ormModels.user_skipped_media import (

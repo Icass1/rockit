@@ -427,6 +427,14 @@ export {
     type MetadataResponse,
 } from "./metadataResponse";
 export {
+    NavigationPinResponseSchema,
+    type NavigationPinResponse,
+} from "./navigationPinResponse";
+export {
+    NavigationPinsResponseSchema,
+    type NavigationPinsResponse,
+} from "./navigationPinsResponse";
+export {
     NotificationDestinationSchema,
     type NotificationDestination,
 } from "./notificationDestination";
@@ -459,6 +467,10 @@ export {
     OnlineUsersMessageSchema,
     type OnlineUsersMessage,
 } from "./onlineUsersMessage";
+export {
+    PinNavigationRequestSchema,
+    type PinNavigationRequest,
+} from "./pinNavigationRequest";
 export {
     PlaylistContributorSchema,
     type PlaylistContributor,

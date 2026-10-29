@@ -60,6 +60,25 @@ class YoutubeMusic:
     provider_name: str
 
     @staticmethod
+    async def get_audio_url_async(session: AsyncSession, public_id: str) -> Result[str]:
+        """Resolve a legacy audio reference using the same S3 URL as song responses."""
+        found = await YoutubeMusicAccess.get_track_by_public_id_async(
+            session=session, public_id=public_id
+        )
+        if found.is_not_ok():
+            logger.error(f"Cannot resolve stored track audio: {found.info()}")
+            return Result(code=found.code(), message=found.message())
+        track = found.result()
+        if track.storage_object is None:
+            logger.warning("Requested audio has no downloaded object: %s", public_id)
+            return Result(code=ResultCode.NOT_FOUND, message="Track audio not downloaded")
+        url = Storage.get_public_url(track.storage_object)
+        if not url:
+            logger.error("Cannot create stored track audio URL: %s", public_id)
+            return Result(code=ResultCode.GENERAL_ERROR, message="Track audio unavailable")
+        return Result(code=ResultCode.OK, message="OK", result=url)
+
+    @staticmethod
     async def get_provider_id() -> Result[int]:
         a_result: Result[int] = YoutubeMusic.provider.get_id()
         if a_result.is_not_ok():

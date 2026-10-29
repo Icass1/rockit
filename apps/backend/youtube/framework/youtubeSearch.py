@@ -183,6 +183,11 @@ class YoutubeSearch:
     @staticmethod
     async def _search_ytmusic_async(song: YoutubeSongQuery) -> Result[list[YoutubeCandidate]]:
         queries = [YoutubeSearch.build_query(song=song)]
+        # Album editions and long imported labels can hide the actual recording.
+        # Search more broadly only when needed; identity/version/duration gates stay.
+        if song.album_title.strip():
+            queries.append(YoutubeSearch.build_query(song=replace(song, album_title="")))
+        queries = list(dict.fromkeys(queries))
         isrc = song.isrc.replace("-", "").upper()
         if re.fullmatch(r"[A-Z]{2}[A-Z0-9]{3}[0-9]{7}", isrc):
             queries.insert(0, isrc)
@@ -217,13 +222,46 @@ class YoutubeSearch:
                     is_live=bool(item.get("isLive")),
                 )
                 score_candidate(candidate=candidate, song=song)
-                candidates[identity] = candidate
-            if any(
-                candidate.score >= _MINIMUM_ACCEPTABLE_SCORE for candidate in candidates.values()
-            ):
+                previous = candidates.get(identity)
+                if previous is None or candidate.score > previous.score:
+                    candidates[identity] = candidate
+            accepted = [
+                candidate
+                for candidate in candidates.values()
+                if candidate.score >= _MINIMUM_ACCEPTABLE_SCORE
+            ]
+            if not accepted:
+                logger.warning(
+                    "Catalogue query had no accepted recording: query=%r title=%r artists=%r "
+                    "album=%r duration_ms=%s returned=%s",
+                    query,
+                    song.title,
+                    song.artists,
+                    song.album_title,
+                    song.duration_ms,
+                    len(raw[:10]),
+                )
+                for item in raw[:10]:
+                    identity = item.get("videoId")
+                    candidate = candidates.get(identity) if isinstance(identity, str) else None
+                    if candidate is not None:
+                        logger.warning(
+                            "Catalogue candidate rejected: id=%s title=%r artists=%r "
+                            "album=%r duration_s=%s video_type=%s reasons=%s",
+                            candidate.video_id,
+                            candidate.title,
+                            candidate.artists,
+                            candidate.album_title,
+                            candidate.duration_seconds,
+                            candidate.video_type,
+                            ",".join(candidate.reasons),
+                        )
+            if accepted:
                 break
-        if failures == len(queries):
-            logger.warning("All catalogue searches unavailable for %s", song.title)
+        if failures and not any(
+            candidate.score >= _MINIMUM_ACCEPTABLE_SCORE for candidate in candidates.values()
+        ):
+            logger.warning("Catalogue search incomplete for %s", song.title)
             return Result(
                 code=ResultCode.GENERAL_ERROR, message="Music catalogue temporarily unavailable"
             )

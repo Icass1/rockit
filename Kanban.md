@@ -2,6 +2,15 @@
 
 ## To Do
 
+### [NAVIGATION] Fijar álbumes, playlists y artistas
+
+- tags: [frontend, backend, navigation, pins, ui]
+- priority: medium
+- workload: Normal
+    ```md
+    Fijados por usuario para álbumes, playlists y artistas; no canciones. Acción de fijar/desfijar en menú contextual. Navegación izquierda limpia cuando está vacía; si hay fijados, divisor horizontal recortado, icono Pin de Lucide y accesos con portadas cuadradas redondeadas o avatares circulares para artistas. Al pulsar se abre el elemento sin reproducirlo. Persistencia entre sesiones/dispositivos, permisos y carga ligera por lotes. Textos en Vocabulary.xlsx en todos los idiomas existentes.
+    ```
+
 ## In Progress
 
 ## Idle

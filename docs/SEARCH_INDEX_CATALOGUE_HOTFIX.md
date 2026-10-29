@@ -32,3 +32,13 @@ still needs the new diagnostic output or the original metadata/candidate respons
 The broader lookup addresses a generic search limitation, not a confirmed diagnosis
 of that particular recording. Regression fixtures cover fallback, protected gates,
 partial outages and logging; local test suites were not run.
+
+The removed `/youtube-music/audio/{public_id}` path is restored as a compatibility
+redirect for retained playback URLs. It resolves the provider's track and registered
+storage object, then calls `Storage.get_public_url`, exactly as current track
+responses do. A 307 points directly at S3, preserves GET/Range semantics and uses
+no-store so an expiring private URL is not cached as a permanent location. Missing
+tracks or downloaded objects return NOT_FOUND; URL creation failures remain errors.
+The endpoint does not download, transcode, rewrite storage or proxy audio bytes.
+Current response builders already use S3. The origin of the reported old URL
+(stored client state, cache or an older deployed instance) is not established.

@@ -22,6 +22,7 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import Artists from "@/components/Artists/Artists";
 import { DownloadStatusIcon } from "@/components/DownloadStatusIcon/DownloadStatusIcon";
+import { LibraryDragDropSurface } from "@/components/Library/LibraryDragDrop";
 import {
     isZippable,
     useLibrarySelection,
@@ -40,8 +41,21 @@ const COVER_PX = 250;
 const COVER_SIZES = "(max-width: 640px) 50vw, 250px";
 
 /** Shared wrapper for every grid card — enforces the 250 px cap. */
-function CardShell({ children }: { children: ReactNode }): JSX.Element {
-    return <div className="mx-auto w-full max-w-62.5">{children}</div>;
+function CardShell({
+    media,
+    children,
+}: {
+    media: TMediaWithSearch;
+    children: ReactNode;
+}): JSX.Element {
+    return (
+        <LibraryDragDropSurface
+            media={media}
+            className="mx-auto w-full max-w-62.5"
+        >
+            {children}
+        </LibraryDragDropSurface>
+    );
 }
 
 /* ------------------------------------------------------- */
@@ -233,7 +247,7 @@ function LibraryCard({
     ) : null;
 
     return (
-        <CardShell>
+        <CardShell media={media}>
             <MediaContextMenu media={media} location={location}>
                 {href ? (
                     <div className={linkClass}>

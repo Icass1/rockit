@@ -866,4 +866,10 @@ export interface Vocabulary {
     ADD_TO_LIBRARY: string;
     ADD_TO_LIKED: string;
     FRIENDS_SESSION_MILESTONES: string;
+    LIBRARY_DROP_ERROR: string;
+    LIBRARY_DROP_OWNER_ONLY: string;
+    LIBRARY_DROP_SUCCESS: string;
+    LIBRARY_DRAGGING: string;
+    LIBRARY_DROP_TARGET: string;
+    LIBRARY_DROP_SAVING: string;
 }

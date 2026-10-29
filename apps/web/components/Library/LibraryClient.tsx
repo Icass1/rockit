@@ -22,6 +22,7 @@ import { EViewMode } from "@/models/enums/viewMode";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { downloadMediaAsZip } from "@/lib/services/downloadZip";
 import { cycleEnum } from "@/lib/utils/cycleEnum";
+import { LibraryDragDropProvider } from "@/components/Library/LibraryDragDrop";
 import { LibraryFilters } from "@/components/Library/LibraryFilters";
 import { LibraryLists } from "@/components/Library/LibraryLists";
 import {
@@ -176,86 +177,111 @@ export default function LibraryClient(): JSX.Element {
 
     return (
         <LibrarySelectionProvider>
-            <SelectionScrollSpacer />
-            <div className="mx-4 flex flex-col">
-                {/* DESKTOP HEADER */}
-                <header className="mb-6 hidden items-center gap-3 py-4 md:flex">
-                    {/* Left: title + pills */}
-                    <div className="mr-4 flex items-center gap-8">
-                        <h1 className="ml-2 shrink-0 text-4xl font-bold text-white select-none">
-                            {$vocabulary.LIBRARY}
-                        </h1>
-                        <LibraryFilters
-                            activeType={activeType}
-                            setActiveType={setActiveType}
-                        />
-                    </div>
+            <LibraryDragDropProvider enabled={activeType === EContentType.All}>
+                <SelectionScrollSpacer />
+                <div className="mx-4 flex flex-col">
+                    {/* DESKTOP HEADER */}
+                    <header className="mb-6 hidden items-center gap-3 py-4 md:flex">
+                        {/* Left: title + pills */}
+                        <div className="mr-4 flex items-center gap-8">
+                            <h1 className="ml-2 shrink-0 text-4xl font-bold text-white select-none">
+                                {$vocabulary.LIBRARY}
+                            </h1>
+                            <LibraryFilters
+                                activeType={activeType}
+                                setActiveType={setActiveType}
+                            />
+                        </div>
 
-                    {/* Right: sort + view toggle + upload + search */}
-                    <div className="ml-auto flex shrink-0 items-center gap-1">
-                        <LibrarySelectionButton />
-                        {/* Sort */}
-                        <button
-                            onClick={cycleSortMode}
-                            title="Sort"
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
-                        >
-                            {filterMode === EFilterMode.DEFAULT && (
-                                <ArrowUpDown className="h-5 w-5" />
-                            )}
-                            {filterMode === EFilterMode.ASC && (
-                                <ArrowDownAZ className="h-5 w-5" />
-                            )}
-                            {filterMode === EFilterMode.DESC && (
-                                <ArrowUpAZ className="h-5 w-5" />
-                            )}
-                            {filterMode === EFilterMode.RECENTLY_ADDED && (
-                                <ClockArrowDown className="h-5 w-5" />
-                            )}
-                        </button>
+                        {/* Right: sort + view toggle + upload + search */}
+                        <div className="ml-auto flex shrink-0 items-center gap-1">
+                            <LibrarySelectionButton />
+                            {/* Sort */}
+                            <button
+                                onClick={cycleSortMode}
+                                title="Sort"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
+                            >
+                                {filterMode === EFilterMode.DEFAULT && (
+                                    <ArrowUpDown className="h-5 w-5" />
+                                )}
+                                {filterMode === EFilterMode.ASC && (
+                                    <ArrowDownAZ className="h-5 w-5" />
+                                )}
+                                {filterMode === EFilterMode.DESC && (
+                                    <ArrowUpAZ className="h-5 w-5" />
+                                )}
+                                {filterMode === EFilterMode.RECENTLY_ADDED && (
+                                    <ClockArrowDown className="h-5 w-5" />
+                                )}
+                            </button>
 
-                        {/* View toggle (Grid → List → Masonry) */}
-                        <button
-                            onClick={(): void =>
-                                setViewMode((v): EViewMode =>
-                                    cycleEnum(EViewMode, v)
-                                )
-                            }
-                            title={
-                                viewMode === EViewMode.Grid
-                                    ? "Grid view"
-                                    : viewMode === EViewMode.List
-                                      ? "List view"
-                                      : "Masonry view"
-                            }
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
-                        >
-                            {viewMode === EViewMode.Grid ? (
-                                <LayoutGrid className="h-5 w-5" />
-                            ) : viewMode === EViewMode.List ? (
-                                <List className="h-5 w-5" />
-                            ) : (
-                                <Kanban className="h-5 w-5" />
-                            )}
-                        </button>
+                            {/* View toggle (Grid → List → Masonry) */}
+                            <button
+                                onClick={(): void =>
+                                    setViewMode((v): EViewMode =>
+                                        cycleEnum(EViewMode, v)
+                                    )
+                                }
+                                title={
+                                    viewMode === EViewMode.Grid
+                                        ? "Grid view"
+                                        : viewMode === EViewMode.List
+                                          ? "List view"
+                                          : "Masonry view"
+                                }
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-400 transition select-none hover:text-white"
+                            >
+                                {viewMode === EViewMode.Grid ? (
+                                    <LayoutGrid className="h-5 w-5" />
+                                ) : viewMode === EViewMode.List ? (
+                                    <List className="h-5 w-5" />
+                                ) : (
+                                    <Kanban className="h-5 w-5" />
+                                )}
+                            </button>
 
-                        {/* Upload */}
-                        <button
-                            onClick={(): void => setShowUploadModal(true)}
-                            title={$vocabulary.UPLOAD}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition select-none hover:text-white"
-                        >
-                            <Upload className="h-5 w-5" />
-                        </button>
+                            {/* Upload */}
+                            <button
+                                onClick={(): void => setShowUploadModal(true)}
+                                title={$vocabulary.UPLOAD}
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-400 transition select-none hover:text-white"
+                            >
+                                <Upload className="h-5 w-5" />
+                            </button>
 
-                        {/* Search - fixed width that expands on focus */}
-                        <div className="relative">
+                            {/* Search - fixed width that expands on focus */}
+                            <div className="relative">
+                                <input
+                                    className="h-8 w-56 rounded-full bg-neutral-900 pr-3 pl-8 text-sm font-medium shadow transition-[width] duration-200 focus:outline-none"
+                                    style={{
+                                        backgroundImage:
+                                            "url(/search-icon.png)",
+                                        backgroundPosition: "10px center",
+                                        backgroundSize: "13px",
+                                        backgroundRepeat: "no-repeat",
+                                    }}
+                                    type="search"
+                                    placeholder={$vocabulary.SEARCH_LIBRARY}
+                                    value={searchQuery}
+                                    onChange={(e): void =>
+                                        setSearchQuery(e.target.value)
+                                    }
+                                />
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* MOBILE HEADER */}
+                    <header className="mb-4 flex flex-col gap-2 px-4 md:hidden">
+                        {/* Row 1: search + upload */}
+                        <div className="flex items-center gap-2">
                             <input
-                                className="h-8 w-56 rounded-full bg-neutral-900 pr-3 pl-8 text-sm font-medium shadow transition-[width] duration-200 focus:outline-none"
+                                className="h-9 flex-1 rounded-full bg-neutral-900 pr-3 pl-9 text-sm font-medium shadow focus:outline-none"
                                 style={{
                                     backgroundImage: "url(/search-icon.png)",
-                                    backgroundPosition: "10px center",
-                                    backgroundSize: "13px",
+                                    backgroundPosition: "12px center",
+                                    backgroundSize: "14px",
                                     backgroundRepeat: "no-repeat",
                                 }}
                                 type="search"
@@ -265,59 +291,37 @@ export default function LibraryClient(): JSX.Element {
                                     setSearchQuery(e.target.value)
                                 }
                             />
+                            <button
+                                onClick={(): void => setShowUploadModal(true)}
+                                title={$vocabulary.UPLOAD}
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition select-none hover:bg-neutral-700 hover:text-white"
+                            >
+                                <Upload className="h-4 w-4" />
+                            </button>
+                            <LibrarySelectionButton />
                         </div>
-                    </div>
-                </header>
 
-                {/* MOBILE HEADER */}
-                <header className="mb-4 flex flex-col gap-2 px-4 md:hidden">
-                    {/* Row 1: search + upload */}
-                    <div className="flex items-center gap-2">
-                        <input
-                            className="h-9 flex-1 rounded-full bg-neutral-900 pr-3 pl-9 text-sm font-medium shadow focus:outline-none"
-                            style={{
-                                backgroundImage: "url(/search-icon.png)",
-                                backgroundPosition: "12px center",
-                                backgroundSize: "14px",
-                                backgroundRepeat: "no-repeat",
-                            }}
-                            type="search"
-                            placeholder={$vocabulary.SEARCH_LIBRARY}
-                            value={searchQuery}
-                            onChange={(e): void =>
-                                setSearchQuery(e.target.value)
-                            }
+                        {/* Row 2: pills */}
+                        <LibraryFilters
+                            activeType={activeType}
+                            setActiveType={setActiveType}
                         />
-                        <button
-                            onClick={(): void => setShowUploadModal(true)}
-                            title={$vocabulary.UPLOAD}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition select-none hover:bg-neutral-700 hover:text-white"
-                        >
-                            <Upload className="h-4 w-4" />
-                        </button>
-                        <LibrarySelectionButton />
-                    </div>
+                    </header>
 
-                    {/* Row 2: pills */}
-                    <LibraryFilters
+                    <LibrarySelectionBar />
+                    <LibraryLists
+                        filterMode={filterMode}
+                        searchQuery={searchQuery}
                         activeType={activeType}
-                        setActiveType={setActiveType}
+                        viewMode={viewMode}
                     />
-                </header>
 
-                <LibrarySelectionBar />
-                <LibraryLists
-                    filterMode={filterMode}
-                    searchQuery={searchQuery}
-                    activeType={activeType}
-                    viewMode={viewMode}
-                />
-
-                <UploadModal
-                    isOpen={showUploadModal}
-                    onClose={(): void => setShowUploadModal(false)}
-                />
-            </div>
+                    <UploadModal
+                        isOpen={showUploadModal}
+                        onClose={(): void => setShowUploadModal(false)}
+                    />
+                </div>
+            </LibraryDragDropProvider>
         </LibrarySelectionProvider>
     );
 }

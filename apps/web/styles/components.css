@@ -756,3 +756,81 @@ img {
         transform: none !important;
     }
 }
+
+/* Library copy-to-playlist gesture. Outlines do not move surrounding cards. */
+.library-dnd-surface {
+    position: relative;
+    border-radius: 0.625rem;
+    transition:
+        outline-color 120ms ease,
+        background-color 120ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+    .library-dnd-source,
+    .library-dnd-source a:not([data-artist-link]),
+    .library-dnd-source img {
+        cursor: grab;
+    }
+}
+.library-dnd-active,
+.library-dnd-active * {
+    cursor: grabbing !important;
+    user-select: none !important;
+}
+.library-dnd-active [data-library-drop-denied="true"],
+.library-dnd-active [data-library-drop-denied="true"] * {
+    cursor: not-allowed !important;
+}
+.library-dnd-active .library-item {
+    scale: 1 !important;
+    transform: none !important;
+}
+[data-library-dragging="true"] {
+    opacity: 0.45;
+}
+[data-library-drop-state="active"],
+[data-library-drop-state="pending"],
+[data-library-drop-state="success"] {
+    outline: 2px solid #34d399;
+    outline-offset: 5px;
+    background-color: rgb(16 185 129 / 0.14);
+}
+.library-drop-indicator {
+    pointer-events: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 20;
+    display: flex;
+    height: 1.75rem;
+    width: 1.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    background: #047857;
+    box-shadow: 0 0 0 2px #0a0a0a;
+}
+@media (prefers-reduced-motion: reduce) {
+    .library-dnd-surface {
+        transition: none;
+    }
+}
+@media (forced-colors: active) {
+    [data-library-drop-state] {
+        outline: 2px solid Highlight;
+    }
+    .library-drop-indicator {
+        color: HighlightText;
+        background: Highlight;
+    }
+}
+/* Dense list rows keep feedback inside their own cell. */
+[data-library-surface-layout="row"][data-library-drop-state] {
+    outline-offset: -1px;
+}
+[data-library-surface-layout="row"] > .library-drop-indicator {
+    top: 0.125rem;
+    left: 2.125rem;
+    right: auto;
+}

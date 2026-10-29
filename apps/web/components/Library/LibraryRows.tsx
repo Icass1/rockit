@@ -17,6 +17,7 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { artistPageUrl } from "@/lib/services/artistService";
 import Artists from "@/components/Artists/Artists";
+import { LibraryDragDropSurface } from "@/components/Library/LibraryDragDrop";
 import {
     isZippable,
     useLibrarySelection,
@@ -39,7 +40,9 @@ function SelectableRow({
     const selectable = selectionMode && isZippable(media);
 
     return (
-        <div
+        <LibraryDragDropSurface
+            media={media}
+            layout="row"
             className="relative"
             onClickCapture={(event): void => {
                 if (
@@ -65,7 +68,7 @@ function SelectableRow({
                     )}
                 </div>
             )}
-        </div>
+        </LibraryDragDropSurface>
     );
 }
 

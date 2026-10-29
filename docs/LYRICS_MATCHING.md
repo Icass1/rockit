@@ -16,6 +16,12 @@ decimal seconds, dropping valid integer timestamps such as `[01:02]`.
 - Normalize Unicode, casing and punctuation. Remove bracketed presentation labels
   such as Official Video and an exact artist prefix. Preserve live/remix/acoustic
   and other version text; do not fuzzy-match different titles/artists.
+- Version qualifiers in both the title and a track-named single/EP are identity
+  gates. For example, an unqualified track inside an album named after the track
+  with a version suffix cannot match the studio request. Parentheses and spaced
+  dash notation are equivalent; release packaging Single/EP is ignored. Explicit
+  live/session album names are also retained. Unknown or conflicting labels are
+  rejected conservatively; no artist/song-specific exceptions.
 - Rank eligible records by duration within three seconds, matching album, presence
   of synchronized lyrics, then duration distance and ID for deterministic ties.
   No record is excluded solely because its duration or album differs.
@@ -26,6 +32,10 @@ decimal seconds, dropping valid integer timestamps such as `[01:02]`.
 ## Timing and existing data
 
 A successful identity match does not prove synchronized timestamps fit a videoclip.
+When the requested duration is missing, non-finite, or differs by more than three
+seconds from the selected entry, return plain lyrics only (derived from LRC if
+necessary). This timing gate never blocks retrieval of the plain text. Agreement
+within three seconds is a heuristic, not proof of identical audio or correct LRC.
 Intros, dialogue or edits can cause constant or variable offsets. Timestamps remain
 as published; do not scale them using the duration ratio or invent an offset.
 The existing playback clock and manual offset controls remain unchanged.

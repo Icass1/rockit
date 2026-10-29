@@ -34,14 +34,41 @@ def clean_title(title: str, artist: str) -> str:
     return title.strip()
 
 
-def matches(record: LyricsResponse, artist: str, title: str) -> bool:
-    """Never select a homonymous song, cover or alternate musical version by duration."""
+def recording_identity(title: str, album: str, artist: str) -> tuple[str, frozenset[str]]:
+    """Read version labels from both title and single/EP name, without artist exceptions."""
+    title = clean_title(title=title, artist=artist)
+    labels = re.findall(r"[\[(]([^\])]+)[\])]", title)
+    base = re.sub(r"[\[(][^\])]+[\])]", "", title).strip()
+    parts = re.split(r"\s+[-–—]\s+", base, maxsplit=1)
+    if len(parts) == 2:
+        base = parts[0]
+        labels.append(parts[1])
+    normalized_base = normalize(value=base)
+    normalized_album = normalize(value=album)
+    if normalized_album.startswith(normalized_base + " "):
+        suffix = normalized_album[len(normalized_base) :].strip()
+        # Release packaging does not identify a different recording.
+        suffix = re.sub(r"\b(single|ep)\b", "", suffix).strip()
+        if suffix:
+            labels.append(suffix)
+    elif re.search(
+        r"\b(live|remix|acoustic|instrumental|karaoke|session|sessions|alt mix)\b",
+        normalized_album,
+    ):
+        # A live/session album also qualifies a track with an unqualified title.
+        labels.append(normalized_album)
+    versions = frozenset(normalize(value=label) for label in labels if normalize(value=label))
+    return normalized_base, versions
+
+
+def matches(record: LyricsResponse, artist: str, title: str, album: str) -> bool:
+    """Require matching artist and version, including versions carried by album metadata."""
     return (
         bool(normalize(value=artist))
         and bool(normalize(value=title))
         and normalize(value=record.artistName) == normalize(value=artist)
-        and normalize(value=clean_title(title=record.trackName, artist=artist))
-        == normalize(value=clean_title(title=title, artist=artist))
+        and recording_identity(title=record.trackName, album=record.albumName, artist=artist)
+        == recording_identity(title=title, album=album, artist=artist)
         and not record.instrumental
         and bool((record.plainLyrics or "").strip() or (record.syncedLyrics or "").strip())
     )
@@ -71,7 +98,9 @@ async def lookup_lyrics_async(
                 if response.status_code != 404:
                     response.raise_for_status()
                     record = LyricsResponse.model_validate(response.json())
-                    if matches(record=record, artist=artist_name, title=track_name):
+                    if matches(
+                        record=record, artist=artist_name, title=track_name, album=album_name
+                    ):
                         logger.info("LRCLIB exact match %s for %s", record.id, track_name)
                         return Result(code=ResultCode.OK, message="OK", result=record)
             # Search ignores duration and album. Retry with presentation labels removed only
@@ -92,7 +121,9 @@ async def lookup_lyrics_async(
                     except ValidationError:
                         logger.warning("Ignoring malformed LRCLIB search entry")
                         continue
-                    if matches(record=record, artist=artist_name, title=track_name):
+                    if matches(
+                        record=record, artist=artist_name, title=track_name, album=album_name
+                    ):
                         candidates.append(record)
                 if candidates:
 

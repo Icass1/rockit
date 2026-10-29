@@ -1,4 +1,5 @@
 import asyncio
+import math
 import re
 from logging import Logger
 from typing import TYPE_CHECKING
@@ -228,6 +229,12 @@ class Lrclib:
 
         if lyrics is None and dynamicLyrics:
             lyrics = [Lyrics(text=line.text) for line in dynamicLyrics]
+
+        # Identity can recover plain text despite video-length metadata, but duration
+        # disagreement cannot establish that published timestamps fit this recording.
+        if not math.isfinite(duration) or duration <= 0 or abs(parsed.duration - duration) > 3:
+            logger.warning("Keeping plain lyrics only: timing is unverified for %s", track_name)
+            dynamicLyrics = None
 
         dynamic_data: DynamicLyricsData | None = (
             DynamicLyricsData(lines=dynamicLyrics) if dynamicLyrics else None

@@ -169,8 +169,11 @@ def test_response_accepts_standard_api_fields_without_lyricsfile() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("duration,has_synced", [(225, True), (265, False), (0, False)])
 async def test_synced_only_response_exposes_plain_text_without_rescaling(
     monkeypatch: pytest.MonkeyPatch,
+    duration: float,
+    has_synced: bool,
 ) -> None:
     from lrclib.framework.lrclib import Lrclib
 
@@ -188,13 +191,16 @@ async def test_synced_only_response_exposes_plain_text_without_rescaling(
         artist_name="twenty one pilots",
         track_name="The Contract",
         album_name="Breach",
-        duration=265,
+        duration=duration,
     )
     assert result.is_ok()
     plain, synced = result.result()
     assert plain is not None and plain[0].text == "Example line"
-    assert synced is not None and synced.lines[0].timestamp_s == 12
-    assert synced.offset == 0
+    if has_synced:
+        assert synced is not None and synced.lines[0].timestamp_s == 12
+        assert synced.offset == 0
+    else:
+        assert synced is None
 
 
 @pytest.mark.parametrize("tag,expected", [("[01:02]", 62), ("[01:02.34]", 62.34)])
@@ -204,3 +210,55 @@ def test_lrc_integer_and_decimal_timestamps(tag: str, expected: float) -> None:
     result = Lrclib.parse_timestamp(line=tag + " Example line")
     assert result.is_ok()
     assert result.result() == (expected, "Example line")
+
+
+@pytest.mark.parametrize(
+    "requested_title,requested_album,candidate_title,candidate_album,accepted",
+    [
+        ("The Hype", "Trench", "The Hype", "The Hype", True),
+        ("The Hype", "Trench", "The Hype", "The Hype (Berlin)", False),
+        ("The Hype", "Trench", "The Hype", "The Hype (Alt Mix)", False),
+        ("The Hype", "Trench", "The Hype (Berlin)", "The Hype", False),
+        ("The Hype", "Trench", "The Hype - Alt Mix", "The Hype", False),
+        ("The Hype (Berlin)", "The Hype", "The Hype", "The Hype (Berlin)", True),
+        ("The Hype - Berlin", "The Hype", "The Hype (Berlin)", "The Hype", True),
+        ("The Hype (Berlin)", "The Hype", "The Hype", "The Hype", False),
+        ("The Hype (Alt Mix)", "The Hype", "The Hype", "The Hype (Berlin)", False),
+        ("The Hype", "Trench", "The Hype", "Live at a Festival", False),
+        ("The Hype", "The Hype - Single", "The Hype", "The Hype", True),
+        ("Another Song", "Album", "Another Song", "Another Song (Alternate Take)", False),
+    ],
+)
+def test_versions_in_titles_and_album_names_are_identity_gates(
+    requested_title: str,
+    requested_album: str,
+    candidate_title: str,
+    candidate_album: str,
+    accepted: bool,
+) -> None:
+    from lrclib.framework.lyricsLookup import matches
+
+    record = LyricsResponse.model_validate(
+        entry(trackName=candidate_title, albumName=candidate_album)
+    )
+    assert (
+        matches(
+            record=record, artist="twenty one pilots", title=requested_title, album=requested_album
+        )
+        is accepted
+    )
+
+
+@pytest.mark.asyncio
+async def test_exact_and_search_paths_reject_version_hidden_in_album(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result, _ = await lookup_with_responses(
+        monkeypatch=monkeypatch,
+        responses=[
+            (200, entry(albumName="The Contract (Alt Mix)")),
+            (200, [entry(albumName="The Contract (Alt Mix)")]),
+        ],
+    )
+    assert result.is_not_ok()
+    assert result.code_str() == "NOT_FOUND"

@@ -14,8 +14,28 @@ required the nonstandard `lyricsfile` field, and ignored integer LRC timestamps.
 Lookup now keeps the exact fast path and searches by title/artist without album
 or duration constraints on a miss. If exact lookup has only plain text, search
 can still find compatible timed lyrics; a search failure preserves that plain text.
-At most three 10-second HTTP requests, one closed client, at most 100 examined
-entries per search. The unified provider bundle fetches both lyric forms once.
+At most five HTTP requests (one exact lookup and four deduplicated searches),
+a 10-second per-request timeout and a 20-second overall network budget, one closed
+client, and at most 100 examined entries per search. The unified provider bundle fetches both lyric forms once.
+
+Unicode comparison first normalizes compatibility characters, composed/decomposed
+accents, invisible formatting, whitespace and apostrophe/dash presentation. It
+preserves original display text and meaningful symbols. Canonical identities with
+accents take priority over relaxed alternatives, regardless of duration score.
+Only when none is found does a second Latin-only comparison remove diacritics and
+expand Latin letters such as ligatures/stroked letters. It does not romanize Greek,
+Cyrillic, CJK or other scripts or discard their combining marks. This is not fuzzy
+spelling correction or an artist-alias database.
+
+Search uses original, cleaned and Latin-folded parameters, with a final title-only
+query to escape a server artist filter that missed diacritics. Every result still
+passes local artist/title/version gates. All bounded search results are inspected
+before accepting a relaxed identity; if folding collapses distinct canonical
+artist/title/version identities, no automatic choice is made. An incomplete search
+cannot authorize a relaxed identity. A valid canonical plain-text exact match is
+preserved if fallback search fails. No normalization mutates source lyrics or names.
+Optional unused name/release metadata and absent lyric forms do not invalidate an
+otherwise identified entry; invalid non-finite/negative durations are rejected.
 
 Artist and recording version are identity gates. Presentation labels and an exact
 artist prefix are removable; versions in titles AND track-named singles/EPs are

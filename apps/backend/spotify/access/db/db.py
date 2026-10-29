@@ -1,3 +1,4 @@
+from spotify.access import collectionCatalog as collectionCatalog
 from spotify.access import downloadStorage as downloadStorage
 from spotify.access.db.base import SpotifyBase
 from spotify.access.db.ormEnums.copyrightTypeEnum import (

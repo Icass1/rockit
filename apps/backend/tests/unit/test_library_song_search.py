@@ -7,15 +7,29 @@ from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
-from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, create_engine
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    create_engine,
+    literal,
+    select,
+    union_all,
+)
 from sqlalchemy.engine import Connection, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Executable
+from sqlalchemy.sql.selectable import CompoundSelect
 
 import core.access.collectionAccess as collection_access
 import core.access.librarySearchAccess as library_access
 import default.access.collectionSource as default_source
 from core.access.adminSearchAccess import AdminSearchAccess
+from core.access.collectionCatalog import CollectionCatalog, CollectionCatalogSource
 from core.access.librarySearchAccess import LibrarySearchAccess
 from core.framework.user.librarySearch import LibrarySearch
 from result import Result, ResultCode
@@ -108,6 +122,42 @@ def graph(monkeypatch: pytest.MonkeyPatch) -> Iterator[Graph]:
     """
         ),
     )
+    catalog = CollectionCatalog()
+
+    def metadata_statement() -> CompoundSelect[Any]:
+        return union_all(
+            *[
+                select(t.c.id, t.c.name, literal(None).label("image_id"))
+                for t in (albums, songs, playlists)
+            ]
+        )
+
+    def edge_statement(user_id: int) -> CompoundSelect[Any]:
+        album_edges = select(
+            songs.c.album_id.label("parent_id"),
+            songs.c.id.label("media_id"),
+            songs.c.id.label("position"),
+            songs.c.date_added.label("added_at"),
+        ).where(songs.c.album_id.is_not(None))
+        playlist_edges = select(
+            membership.c.playlist_id.label("parent_id"),
+            membership.c.media_id,
+            membership.c.position,
+            membership.c.date_added.label("added_at"),
+        ).where(membership.c.disabled.is_(False))
+        return union_all(
+            album_edges,
+            default_source.DefaultCollectionSource.filter_edges(
+                playlist_edges, membership, user_id
+            ),
+        )
+
+    catalog.register(
+        CollectionCatalogSource(
+            key="opaque-fixture", metadata=metadata_statement, edges=edge_statement
+        )
+    )
+    monkeypatch.setattr(collection_access, "collection_catalog", catalog)
     engine = create_engine("sqlite://")
     with engine.connect() as connection:
         for schema in ("core", "fixture", "default_schema"):

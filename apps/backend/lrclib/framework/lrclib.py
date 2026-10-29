@@ -3,7 +3,6 @@ import re
 from logging import Logger
 from typing import TYPE_CHECKING
 
-import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
@@ -13,7 +12,7 @@ from core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics
 from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
 from logger import getLogger
 from lrclib.access.lyricsAccess import LyricsAccess
-from lrclib.models.api import LyricsResponse
+from lrclib.framework.lyricsLookup import lookup_lyrics_async
 from result import Result, ResultCode
 
 if TYPE_CHECKING:
@@ -186,38 +185,16 @@ class Lrclib:
             https://lrclib.net/api/get?artist_name=twenty%20one%20pilots&track_name=The%20Hype&album_name=TRENCH&duration=265
         """
 
-        request_url = "https://lrclib.net/api/get"
-
-        params = {
-            "artist_name": artist_name,
-            "track_name": track_name,
-            "album_name": album_name,
-            "duration": str(duration),
-        }
-
-        logger.info(f"Fetching lyrics for song {track_name}.")
-
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(request_url, params=params, timeout=10)
-                if response.status_code == 404:
-                    logger.warning(f"Lyrics for params {params=} not found")
-                    return Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
-                        code=ResultCode.NOT_FOUND,
-                        message=f"Lyrics for params {params=} not found",
-                    )
-                response.raise_for_status()
-
-        except httpx.HTTPError as e:
-            logger.error(f"Error while making request to Lrclib {params=}: {e}")
-            return Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]](
-                code=ResultCode.GENERAL_ERROR,
-                message=f"Error while making request to Lrclib: {e}",
-            )
-
-        content = response.json()
-
-        parsed: LyricsResponse = LyricsResponse.model_validate(content)
+        lookup = await lookup_lyrics_async(
+            artist_name=artist_name,
+            track_name=track_name,
+            album_name=album_name,
+            duration=duration,
+        )
+        if lookup.is_not_ok():
+            logger.warning("Lyrics lookup failed: %s", lookup.info())
+            return Result(code=lookup.code(), message=lookup.message())
+        parsed = lookup.result()
 
         lyrics: list[Lyrics] | None = None
         dynamicLyrics: list[DynamicLyrics] | None = None
@@ -227,7 +204,7 @@ class Lrclib:
             for line in parsed.plainLyrics.split("\n"):
                 lyrics.append(Lyrics(text=line))
         else:
-            logger.warning(f"No plain lyrics found for {params=}")
+            logger.warning(f"No plain lyrics found for {track_name}")
 
         if parsed.syncedLyrics:
             dynamicLyrics = []
@@ -247,7 +224,10 @@ class Lrclib:
                     )
                 )
         else:
-            logger.warning(f"No synced lyrics found for {params=}")
+            logger.warning(f"No synced lyrics found for {track_name}")
+
+        if lyrics is None and dynamicLyrics:
+            lyrics = [Lyrics(text=line.text) for line in dynamicLyrics]
 
         dynamic_data: DynamicLyricsData | None = (
             DynamicLyricsData(lines=dynamicLyrics) if dynamicLyrics else None
@@ -267,7 +247,7 @@ class Lrclib:
         Returns: (15.72, "My interior world needs to sanitize")
         """
 
-        match = re.search(r"\[(\d+):(\d+\.\d+)\]", line)
+        match = re.search(r"^\[(\d+):([0-5]\d(?:\.\d+)?)\]", line)
 
         if match:
             minutes = int(match.group(1))

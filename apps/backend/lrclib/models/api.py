@@ -11,4 +11,4 @@ class LyricsResponse(BaseModel):
     instrumental: bool
     plainLyrics: str | None
     syncedLyrics: str | None
-    lyricsfile: str | None
+    lyricsfile: str | None = None

@@ -15,24 +15,34 @@ from sqlalchemy import (
     create_engine,
     func,
     select,
+    union_all,
 )
 from sqlalchemy.engine import Connection, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Executable
+from sqlalchemy.sql.selectable import CompoundSelect
 
 import core.access.collectionAccess as collection_access
 import core.access.navigationPinAccess as pin_access
 import default.access.collectionSource as default_source
+from core.access.collectionCatalog import CollectionCatalog, CollectionCatalogSource
 from core.access.db.ormModels.user_navigation_list_pin import UserNavigationListPinRow
 from core.access.db.ormModels.user_navigation_pin import UserNavigationPinRow
 from core.access.navigationPinAccess import NavigationPinAccess
+from core.framework import providers
 from core.framework.media.image import Image
 from core.framework.user.navigationPins import NavigationPins
 from core.models.navigationPin import NavigationPinRecord
+from featured.framework.provider.featuredProvider import FeaturedProvider
 from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
 Graph = tuple[AsyncMock, Connection, MetaData]
+
+
+@pytest.fixture(autouse=True)
+def navigation_sources(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(providers, "_providers", [FeaturedProvider()])
 
 
 @pytest.fixture
@@ -103,6 +113,16 @@ def graph(monkeypatch: pytest.MonkeyPatch) -> Iterator[Graph]:
     monkeypatch.setattr(
         collection_access, "collection_sources", [default_source.DefaultCollectionSource()]
     )
+    catalog = CollectionCatalog()
+
+    def metadata_statement() -> CompoundSelect[Any]:
+        return union_all(
+            *[select(t.c.id, t.c.name, t.c.image_id) for t in (album, artist, playlist)]
+        )
+
+    catalog.register(CollectionCatalogSource(key="fixture", metadata=metadata_statement))
+    monkeypatch.setattr(pin_access, "collection_catalog", catalog)
+    monkeypatch.setattr(collection_access, "collection_catalog", catalog)
     engine = create_engine("sqlite://")
     with engine.connect() as connection:
         connection.exec_driver_sql("PRAGMA foreign_keys=ON")
@@ -313,17 +333,15 @@ def test_frontend_pin_account_and_concurrency_regressions() -> None:
 
 
 async def test_rockit_lists_are_personal_idempotent_and_never_reseed_on_read(graph: Graph) -> None:
-    from core.models.navigationPin import DEFAULT_NAVIGATION_LISTS
+    defaults = [s.key for s in FeaturedProvider().get_navigation_shortcuts() if s.default]
 
     session, _, _ = graph
     existing = await NavigationPinAccess.list_builtin_async(session=session, user_id=1)
     assert existing.is_ok() and existing.result() == []
-    seeded = await NavigationPinAccess.add_builtins_async(
-        session=session, user_id=1, keys=list(DEFAULT_NAVIGATION_LISTS)
-    )
+    seeded = await NavigationPinAccess.add_builtins_async(session=session, user_id=1, keys=defaults)
     assert seeded.is_ok(), seeded.info()
     repeated = await NavigationPinAccess.add_builtins_async(
-        session=session, user_id=1, keys=list(DEFAULT_NAVIGATION_LISTS)
+        session=session, user_id=1, keys=defaults
     )
     assert repeated.is_ok()
     found = await NavigationPinAccess.list_builtin_async(session=session, user_id=1)
@@ -428,3 +446,46 @@ async def test_default_seed_failure_rolls_back_new_user_before_commit(
     session.commit.assert_not_awaited()
     session.rollback.assert_awaited_once()
     failed.assert_awaited_once_with(session=session, user_id=42, keys=["liked"])
+
+
+async def test_unknown_provider_can_supply_shortcuts_and_registration_defaults(
+    graph: Graph,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from core.framework.provider.baseProvider import BaseProvider
+    from core.models.navigationPin import NavigationShortcut
+
+    class AnotherProvider(BaseProvider):
+        def get_navigation_shortcuts(self) -> list[NavigationShortcut]:
+            return [
+                NavigationShortcut(
+                    key="opaque:custom",
+                    name="Personal collection",
+                    url="/custom/route",
+                    default=True,
+                )
+            ]
+
+    monkeypatch.setattr(providers, "_providers", [AnotherProvider()])
+    session, _, _ = graph
+    monkeypatch.setattr(Image, "get_internal_image_urls_by_ids_async", AsyncMock(return_value={}))
+    definitions = providers.get_navigation_shortcuts()
+    assert definitions.is_ok() and list(definitions.result()) == ["opaque:custom"]
+    result = await NavigationPins.set_async(
+        session=session, user_id=1, public_id="opaque:custom", pinned=True
+    )
+    assert result.is_ok(), result.info()
+    assert [(p.publicId, p.url, p.name) for p in result.result().pins] == [
+        ("opaque:custom", "/custom/route", "Personal collection")
+    ]
+    monkeypatch.setattr(providers, "_providers", [])
+    hidden = await NavigationPins.list_async(session=session, user_id=1)
+    assert hidden.is_ok() and hidden.result().pins == []
+
+
+def test_duplicate_shortcut_keys_fail_instead_of_overriding_another_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(providers, "_providers", [FeaturedProvider(), FeaturedProvider()])
+    result = providers.get_navigation_shortcuts()
+    assert result.is_not_ok()

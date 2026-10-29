@@ -1,4 +1,4 @@
-import type { NavigationPinResponse, TMediaWithSearch } from "@rockit/shared";
+import type { TMediaWithSearch } from "@rockit/shared";
 
 export type NavigationPinsStatus = "idle" | "loading" | "ready" | "error";
 export type PinnableMedia = Extract<
@@ -6,4 +6,5 @@ export type PinnableMedia = Extract<
     { type: "album" | "playlist" | "artist" }
 >;
 
-export type RockitListKey = NonNullable<NavigationPinResponse["builtinKey"]>;
+export type RockitListKey =
+    "liked" | "most-listened" | "recent-mix" | "last-month" | "year-recap";

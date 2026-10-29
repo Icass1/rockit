@@ -26,13 +26,14 @@ export function getNavigationPinName(
     vocabulary: Vocabulary
 ): string {
     return pin.builtinKey
-        ? getRockitListName(pin.builtinKey, vocabulary)
+        ? getRockitListName(pin.builtinKey, vocabulary, pin.name)
         : pin.name;
 }
 
 export function getRockitListName(
-    key: RockitListKey,
-    vocabulary: Vocabulary
+    key: string,
+    vocabulary: Vocabulary,
+    fallback: string = key
 ): string {
     const names: Record<RockitListKey, string> = {
         liked: vocabulary.LIKED_SONGS,
@@ -41,5 +42,5 @@ export function getRockitListName(
         "last-month": vocabulary.NAV_LAST_MONTH,
         "year-recap": vocabulary.NAV_YEAR_RECAP,
     };
-    return names[key];
+    return Object.hasOwn(names, key) ? names[key as RockitListKey] : fallback;
 }

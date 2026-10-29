@@ -3,8 +3,8 @@ from typing import Literal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.navigationPinAccess import NavigationPinAccess
+from core.framework import providers
 from core.framework.media.image import Image
-from core.models.navigationPin import ROCKIT_NAVIGATION_LISTS
 from core.responses.navigationPinsResponse import NavigationPinResponse, NavigationPinsResponse
 from logger import getLogger
 from result import Result, ResultCode
@@ -17,24 +17,28 @@ class NavigationPins:
     @staticmethod
     async def list_async(session: AsyncSession, user_id: int) -> Result[NavigationPinsResponse]:
         """Resolve all pin covers in one batch, without hydrating collections."""
+        definitions = providers.get_navigation_shortcuts()
+        if definitions.is_not_ok():
+            logger.error(f"Navigation shortcuts lookup failed: {definitions.info()}")
+            return Result(code=definitions.code(), message=definitions.message())
         records = await NavigationPinAccess.list_async(session=session, user_id=user_id)
         if records.is_not_ok():
             logger.error(f"Navigation pins lookup failed: {records.info()}")
             return Result(code=records.code(), message=records.message())
         builtins = await NavigationPinAccess.list_builtin_async(session=session, user_id=user_id)
         if builtins.is_not_ok():
-            logger.error(f"Rockit navigation list lookup failed: {builtins.info()}")
+            logger.error(f"Navigation shortcut lookup failed: {builtins.info()}")
             return Result(code=builtins.code(), message=builtins.message())
         shortcuts = [
             NavigationPinResponse(
                 type="playlist",
                 publicId=key,
-                name=name,
-                imageUrl="/rockit-background.png",
-                url=f"/playlist/{key}",
+                name=shortcut.name,
+                imageUrl=shortcut.image_url,
+                url=shortcut.url,
                 builtinKey=key,
             )
-            for key, name in ROCKIT_NAVIGATION_LISTS.items()
+            for key, shortcut in definitions.result().items()
             if key in builtins.result()
         ]
         entries = records.result()
@@ -64,7 +68,11 @@ class NavigationPins:
         session: AsyncSession, user_id: int, public_id: str, pinned: bool
     ) -> Result[NavigationPinsResponse]:
         """Change a personal reference and return the authoritative visible list."""
-        if public_id in ROCKIT_NAVIGATION_LISTS:
+        definitions = providers.get_navigation_shortcuts()
+        if definitions.is_not_ok():
+            logger.error(f"Navigation shortcuts lookup failed: {definitions.info()}")
+            return Result(code=definitions.code(), message=definitions.message())
+        if public_id in definitions.result():
             if pinned:
                 saved = await NavigationPinAccess.add_builtins_async(
                     session=session, user_id=user_id, keys=[public_id]

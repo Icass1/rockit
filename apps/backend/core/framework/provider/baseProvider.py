@@ -4,6 +4,7 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.models.navigationPin import NavigationShortcut
 from logger import getLogger
 from result import Result, ResultCode
 
@@ -34,6 +35,10 @@ class BaseProvider:
     async def check_health_async(self) -> ResultCode:
         """Check optional provider prerequisites without preventing API startup."""
         return ResultCode(code=ResultCode.OK, message="OK")
+
+    def get_navigation_shortcuts(self) -> list[NavigationShortcut]:
+        """Optional personal routes supplied by this provider without loading contents."""
+        return []
 
     def download_concurrency_limit(self) -> int:
         return 2

@@ -1,12 +1,10 @@
-from typing import Any
-
-from sqlalchemy import Integer, delete, literal, select, union_all
+from sqlalchemy import delete, literal, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select
 from sqlalchemy.sql.selectable import Subquery
 
 from core.access.collectionAccess import CollectionAccess
+from core.access.collectionCatalog import collection_catalog
 from core.access.db.ormModels.user_navigation_list_pin import UserNavigationListPinRow
 from core.access.db.ormModels.user_navigation_pin import UserNavigationPinRow
 from core.access.db.shared_metadata import shared_metadata
@@ -21,32 +19,8 @@ logger = getLogger(__name__)
 class NavigationPinAccess:
     @staticmethod
     def _metadata() -> Subquery:
-        """Summaries only: no provider imports, collection contents or external calls."""
-        sources: list[Select[Any]] = []
-        for table in shared_metadata.tables.values():
-            if table.schema == "core" or table.name not in {
-                "album",
-                "playlist",
-                "artist",
-                "channel",
-            }:
-                continue
-            name = table.c.get("name")
-            if name is None:
-                name = table.c.get("title")
-            if name is None or "id" not in table.c:
-                continue
-            image = table.c.get("image_id")
-            sources.append(
-                select(
-                    table.c.id.label("id"),
-                    name.label("name"),
-                    (image if image is not None else literal(None, type_=Integer)).label(
-                        "image_id"
-                    ),
-                )
-            )
-        return union_all(*sources).subquery("navigation_metadata")
+        """Consume the local summary capability supplied by registered providers."""
+        return collection_catalog.metadata()
 
     @staticmethod
     @safe_async

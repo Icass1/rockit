@@ -2,8 +2,6 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from core.models.navigationPin import RockitListKey
-
 
 class NavigationPinResponse(BaseModel):
     type: Literal["artist", "album", "playlist"]
@@ -11,7 +9,7 @@ class NavigationPinResponse(BaseModel):
     name: str
     imageUrl: str | None
     url: str
-    builtinKey: RockitListKey | None = None
+    builtinKey: str | None = None
 
 
 class NavigationPinsResponse(BaseModel):

@@ -1605,6 +1605,15 @@ export class BaseHttp {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
     }
 
+    static async updateVolume(payload: dto.UpdateVolumeRequest) {
+        return this.apiPostAsync(
+            `/user/volume`,
+            dto.UpdateVolumeRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
+    }
+
     static downloadApkURL(filename: string) {
         return `${BACKEND_URL}/version/apk/${encodeURIComponent(filename)}`;
     }

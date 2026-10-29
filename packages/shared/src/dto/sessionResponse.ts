@@ -10,6 +10,7 @@ export const SessionResponseSchema = z.object({
     queueType: z.enum(["RANDOM", "SORTED"]),
     repeatMode: z.enum(["OFF", "ONE", "ALL"]),
     currentTimeMs: z.number().nullable(),
+    volume: z.number().default(1),
 });
 
 export type SessionResponse = z.infer<typeof SessionResponseSchema>;

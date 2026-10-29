@@ -95,6 +95,12 @@ const nextConfig: NextConfig = {
                 hostname: "yt3.googleusercontent.com",
                 pathname: "/**",
             },
+            {
+                protocol: "https",
+                hostname: "fs-rockit.rockhosting.org",
+                pathname: "/**",
+                search: "",
+            },
             ...(s3PublicPattern ? [s3PublicPattern] : []),
         ],
     },

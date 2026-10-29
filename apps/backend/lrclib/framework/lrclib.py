@@ -1,9 +1,9 @@
 import asyncio
-import math
 import re
 from logging import Logger
 from typing import TYPE_CHECKING
 
+from cachetools import TTLCache
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.db.ormModels.media import CoreMediaRow
@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from lrclib.framework.provider.lrclibProvider import LrclibProvider
 
 logger: Logger = getLogger(__name__)
+_sync_retry_cache: TTLCache[int, bool] = TTLCache[int, bool](maxsize=1024, ttl=60)
 
 
 class Lrclib:
@@ -53,6 +54,33 @@ class Lrclib:
         else:
             missing_media_ids = list(media_ids)
 
+        # Retry plain-only cached entries at most once per minute/process. Only add
+        # missing synchronized data; never replace existing text or user offsets.
+        plain_only = [
+            mid
+            for mid, (_, plain, dynamic) in result_map.items()
+            if plain is not None and dynamic is None and mid not in _sync_retry_cache
+        ]
+        if plain_only:
+            for mid in plain_only:
+                _sync_retry_cache[mid] = True
+            upgraded = await Lrclib._fetch_and_save_lyrics_batch_async(
+                session=session,
+                media_ids=plain_only,
+                preserve_plain=True,
+            )
+            if upgraded.is_ok() and upgraded.result():
+                refreshed = await LyricsAccess.get_lyrics_by_media_ids_async(
+                    session=session,
+                    media_ids=plain_only,
+                )
+                if refreshed.is_ok():
+                    result_map.update(refreshed.result())
+                else:
+                    logger.warning("Could not read upgraded lyrics: %s", refreshed.info())
+            elif upgraded.is_not_ok():
+                logger.warning("Could not upgrade plain-only lyrics: %s", upgraded.info())
+
         if missing_media_ids:
             a_result_fetched = await Lrclib._fetch_and_save_lyrics_batch_async(
                 session=session, media_ids=missing_media_ids
@@ -71,6 +99,7 @@ class Lrclib:
     async def _fetch_and_save_lyrics_batch_async(
         session: AsyncSession,
         media_ids: list[int],
+        preserve_plain: bool = False,
     ) -> Result[dict[int, tuple[str, list[Lyrics] | None, DynamicLyricsData | None]]]:
         """Fetch lyrics from API for media IDs not in the database, save them, and return.
         Returns dict mapping media_id -> (lyrics_public_id, plain_lyrics, dynamic_lyrics_data).
@@ -147,11 +176,14 @@ class Lrclib:
 
             lyrics, dynamic_data = a_result.result()
 
+            if preserve_plain and dynamic_data is None:
+                continue
             save_result = await LyricsAccess.save_lyrics_async(
                 session=session,
                 media_id=media_id,
-                lyrics=lyrics,
+                lyrics=None if preserve_plain else lyrics,
                 dynamic_lyrics=dynamic_data.lines if dynamic_data else None,
+                offset=None if preserve_plain else (dynamic_data.offset if dynamic_data else 0.0),
             )
             if save_result.is_not_ok():
                 logger.error(f"Error saving lyrics for media {media_id}. {save_result.info()}")
@@ -210,6 +242,17 @@ class Lrclib:
         if parsed.syncedLyrics:
             dynamicLyrics = []
             for line in parsed.syncedLyrics.split("\n"):
+                if re.match(r"^\[(?:offset|ar|al|ti|by|length):", line, flags=re.IGNORECASE):
+                    continue
+                tags = list(re.finditer(r"\[\d+:[0-5]\d(?:\.\d+)?\]", line))
+                if len(tags) > 1 and tags[0].start() == 0:
+                    text = line[tags[-1].end() :].strip()
+                    for tag in tags:
+                        parsed_tag = Lrclib.parse_timestamp(line=tag.group() + text)
+                        if parsed_tag.is_ok():
+                            timestamp, clean = parsed_tag.result()
+                            dynamicLyrics.append(DynamicLyrics(text=clean, timestamp_s=timestamp))
+                    continue
                 a_result_parsed = Lrclib.parse_timestamp(line)
 
                 if a_result_parsed.is_not_ok():
@@ -227,17 +270,20 @@ class Lrclib:
         else:
             logger.warning(f"No synced lyrics found for {track_name}")
 
+        if dynamicLyrics:
+            dynamicLyrics.sort(key=lambda line: line.timestamp_s)
+        source_offset = 0.0
+        if parsed.syncedLyrics:
+            offset_tag = re.search(
+                r"^\[offset:([+-]?\d+)\]", parsed.syncedLyrics, re.MULTILINE | re.IGNORECASE
+            )
+            if offset_tag:
+                source_offset = int(offset_tag[1]) / 1000.0
         if lyrics is None and dynamicLyrics:
             lyrics = [Lyrics(text=line.text) for line in dynamicLyrics]
 
-        # Identity can recover plain text despite video-length metadata, but duration
-        # disagreement cannot establish that published timestamps fit this recording.
-        if not math.isfinite(duration) or duration <= 0 or abs(parsed.duration - duration) > 3:
-            logger.warning("Keeping plain lyrics only: timing is unverified for %s", track_name)
-            dynamicLyrics = None
-
         dynamic_data: DynamicLyricsData | None = (
-            DynamicLyricsData(lines=dynamicLyrics) if dynamicLyrics else None
+            DynamicLyricsData(lines=dynamicLyrics, offset=source_offset) if dynamicLyrics else None
         )
 
         return Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]](

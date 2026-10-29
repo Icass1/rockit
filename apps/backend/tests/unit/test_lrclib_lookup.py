@@ -169,7 +169,7 @@ def test_response_accepts_standard_api_fields_without_lyricsfile() -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("duration,has_synced", [(225, True), (265, False), (0, False)])
+@pytest.mark.parametrize("duration,has_synced", [(225, True), (265, True), (0, True)])
 async def test_synced_only_response_exposes_plain_text_without_rescaling(
     monkeypatch: pytest.MonkeyPatch,
     duration: float,
@@ -262,3 +262,131 @@ async def test_exact_and_search_paths_reject_version_hidden_in_album(
     )
     assert result.is_not_ok()
     assert result.code_str() == "NOT_FOUND"
+
+
+@pytest.mark.asyncio
+async def test_plain_exact_result_does_not_hide_matching_synced_entry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result, requests = await lookup_with_responses(
+        monkeypatch=monkeypatch,
+        duration=225,
+        responses=[(200, entry(syncedLyrics=None)), (200, [entry(id=2)])],
+    )
+    assert result.is_ok() and result.result().id == 2
+    assert len(requests) == 2
+
+
+@pytest.mark.asyncio
+async def test_search_outage_keeps_successful_plain_exact_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    result, _ = await lookup_with_responses(
+        monkeypatch=monkeypatch,
+        duration=225,
+        responses=[(200, entry(syncedLyrics=None)), (503, {})],
+    )
+    assert result.is_ok() and result.result().plainLyrics == "Example line"
+
+
+@pytest.mark.asyncio
+async def test_lrc_offset_and_repeated_tags_are_preserved(monkeypatch: pytest.MonkeyPatch) -> None:
+    from lrclib.framework.lrclib import Lrclib
+
+    async def fake_lookup(
+        artist_name: str, track_name: str, album_name: str, duration: float
+    ) -> Result[LyricsResponse]:
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=LyricsResponse.model_validate(
+                entry(
+                    plainLyrics=None, syncedLyrics="[offset:1000]\n[00:20][00:10.50] Repeated line"
+                )
+            ),
+        )
+
+    monkeypatch.setattr("lrclib.framework.lrclib.lookup_lyrics_async", fake_lookup)
+    result = await Lrclib.fetch_lyrics_async(
+        artist_name="twenty one pilots",
+        track_name="The Contract",
+        album_name="Breach",
+        duration=225,
+    )
+    assert result.is_ok()
+    _, data = result.result()
+    assert data is not None
+    assert data.offset == 1
+    assert [line.timestamp_s for line in data.lines] == [10.5, 20]
+    assert all(line.text == "Repeated line" for line in data.lines)
+
+
+@pytest.mark.asyncio
+async def test_plain_only_retry_adds_sync_without_overwriting_text_or_offset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from types import SimpleNamespace
+    from typing import cast
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from core.access.db.ormModels.media import CoreMediaRow
+    from core.access.mediaAccess import MediaAccess
+    from core.framework.media.media import Media
+    from core.models.lyrics import DynamicLyrics, DynamicLyricsData, Lyrics
+    from core.responses.baseSongWithAlbumResponse import BaseSongWithAlbumResponse
+    from lrclib.access.lyricsAccess import LyricsAccess
+    from lrclib.framework.lrclib import Lrclib
+
+    media = CoreMediaRow(id=1, provider_id=1, media_type_key=1, public_id="m")
+    saved: list[tuple[list[Lyrics] | None, float | None]] = []
+
+    async def medias(session: AsyncSession, ids: list[int]) -> Result[list[CoreMediaRow]]:
+        return Result(code=ResultCode.OK, message="OK", result=[media])
+
+    async def song(session: AsyncSession, public_id: str) -> Result[BaseSongWithAlbumResponse]:
+        source = cast(
+            BaseSongWithAlbumResponse,
+            SimpleNamespace(
+                artists=[SimpleNamespace(name="Artist")],
+                name="Title",
+                album=SimpleNamespace(name="Album"),
+                duration_ms=1000,
+                provider="local",
+            ),
+        )
+        return Result(code=ResultCode.OK, message="OK", result=source)
+
+    async def fetch(
+        artist_name: str, track_name: str, album_name: str, duration: float
+    ) -> Result[tuple[list[Lyrics] | None, DynamicLyricsData | None]]:
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=(
+                [Lyrics(text="Fetched text")],
+                DynamicLyricsData(lines=[DynamicLyrics(text="Synced text", timestamp_s=1)]),
+            ),
+        )
+
+    async def save(
+        session: AsyncSession,
+        media_id: int,
+        lyrics: list[Lyrics] | None,
+        dynamic_lyrics: list[DynamicLyrics] | None,
+        offset: float | None = None,
+    ) -> Result[str]:
+        saved.append((lyrics, offset))
+        return Result(code=ResultCode.OK, message="OK", result="original-id")
+
+    monkeypatch.setattr(MediaAccess, "get_medias_from_ids_async", medias)
+    monkeypatch.setattr(Media, "get_song_async", song)
+    monkeypatch.setattr(Lrclib, "fetch_lyrics_async", fetch)
+    monkeypatch.setattr(LyricsAccess, "save_lyrics_async", save)
+    result = await Lrclib._fetch_and_save_lyrics_batch_async(  # pyright: ignore[reportPrivateUsage]
+        session=cast(AsyncSession, object()),
+        media_ids=[1],
+        preserve_plain=True,
+    )
+    assert result.is_ok()
+    assert saved == [(None, None)]

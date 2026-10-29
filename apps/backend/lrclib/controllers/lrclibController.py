@@ -146,55 +146,5 @@ async def update_lrclib_lyrics_timestamps_async(
 ) -> GetLyricsResponse:
     """Update timestamps of dynamic lyrics lines for a media item."""
 
-    session: AsyncSession = DBSessionMiddleware.get_session(request=request)
-
-    a_result_media = await MediaAccess.get_media_from_public_id_async(
-        session=session, public_id=public_id, media_type_keys=None
-    )
-    if a_result_media.is_not_ok():
-        raise HTTPException(
-            status_code=a_result_media.get_http_code(),
-            detail=a_result_media.message(),
-        )
-
-    media: CoreMediaRow = a_result_media.result()
-    if media.media_type_key != MediaTypeEnum.SONG.value:
-        raise HTTPException(
-            status_code=404,
-            detail="Lyrics not available for this media type",
-        )
-
-    media_id = media.id
-
-    timestamps = [(t.line, t.timestamp_s) for t in body.timestamps]
-
-    a_result_update = await Lrclib.update_dynamic_lyrics_timestamps_async(
-        session=session, media_id=media_id, timestamps=timestamps
-    )
-    if a_result_update.is_not_ok():
-        raise HTTPException(
-            status_code=a_result_update.get_http_code(),
-            detail=a_result_update.message(),
-        )
-
-    a_result_lyrics = await Lrclib.get_lyrics_by_media_ids_async(
-        session=session, media_ids=[media_id]
-    )
-    result_map = a_result_lyrics.result()
-    lyrics_data = result_map.get(media_id)
-    if lyrics_data is None:
-        return GetLyricsResponse(lyrics=None, dynamicLyrics=None)
-
-    _, lyrics, dynamic_data = lyrics_data
-
-    return GetLyricsResponse(
-        lyrics=[LyricsItem(text=item_value.text) for item_value in lyrics] if lyrics else None,
-        dynamicLyrics=(
-            [
-                DynamicLyricsItem(text=item_value.text, timestamp_s=item_value.timestamp_s)
-                for item_value in dynamic_data.lines
-            ]
-            if dynamic_data
-            else None
-        ),
-    )
+    logger.warning("Direct timestamp mutation is retired; use reviewed lyrics proposals")
+    raise HTTPException(status_code=410, detail="Submit a lyrics correction for admin review")

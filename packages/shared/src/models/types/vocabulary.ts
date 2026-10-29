@@ -887,4 +887,27 @@ export interface Vocabulary {
     NAV_PIN_REMOVED: string;
     NAV_LAST_MONTH: string;
     NAV_YEAR_RECAP: string;
+    LYRICS_UNAVAILABLE: string;
+    LYRICS_LOADING: string;
+    LYRICS_LOCAL_REQUIRED: string;
+    LYRICS_PREVIEW: string;
+    LYRICS_PREVIEW_UNAVAILABLE: string;
+    LYRICS_CORRECTION_TITLE: string;
+    LYRICS_APPROVED: string;
+    LYRICS_PROVIDER_TIMING: string;
+    LYRICS_OFFSET_LABEL: string;
+    LYRICS_OFFSET_HELP: string;
+    LYRICS_EDIT_LINES: string;
+    LYRICS_TIME: string;
+    LYRICS_TEXT: string;
+    LYRICS_REMOVE_LINE: string;
+    LYRICS_ADD_LINE: string;
+    LYRICS_REVIEW_HELP: string;
+    LYRICS_PROPOSAL_SENT: string;
+    LYRICS_PROPOSE: string;
+    LYRICS_LEGACY_PROPOSAL: string;
+    LYRICS_STALE_PROPOSAL: string;
+    LYRICS_SHOW_CURRENT: string;
+    LYRICS_SHOW_PROPOSED: string;
+    LYRICS_INVALID_CORRECTION: string;
 }

@@ -28,7 +28,7 @@ def normalize(value: str) -> str:
 def clean_title(title: str, artist: str) -> str:
     """Remove presentation labels and an exact artist prefix, retaining musical versions."""
     title = _PRESENTATION.sub("", title).strip()
-    prefix = re.match(r"^(.+?)\s+[-–—]\s+(.+)$", title)
+    prefix = re.match(r"^(.+?)(?:\s+[-–—]\s+|:\s+)(.+)$", title)
     if prefix and normalize(value=prefix[1]) == normalize(value=artist):
         title = prefix[2]
     return title.strip()
@@ -89,6 +89,7 @@ async def lookup_lyrics_async(
         "album_name": album_name,
         "duration": str(duration),
     }
+    exact_plain: LyricsResponse | None = None
     try:
         async with httpx.AsyncClient(
             timeout=10, headers={"User-Agent": "Rockit (https://github.com/Icass1/rockit)"}
@@ -102,7 +103,9 @@ async def lookup_lyrics_async(
                         record=record, artist=artist_name, title=track_name, album=album_name
                     ):
                         logger.info("LRCLIB exact match %s for %s", record.id, track_name)
-                        return Result(code=ResultCode.OK, message="OK", result=record)
+                        if (record.syncedLyrics or "").strip():
+                            return Result(code=ResultCode.OK, message="OK", result=record)
+                        exact_plain = record
             # Search ignores duration and album. Retry with presentation labels removed only
             # when the original text differs; this keeps network work bounded to three calls.
             for query_title in dict.fromkeys([track_name, title]):
@@ -138,6 +141,8 @@ async def lookup_lyrics_async(
                             -record.id,
                         )
 
+                    if exact_plain is not None:
+                        candidates.append(exact_plain)
                     selected = max(candidates, key=rank)
                     logger.info(
                         "LRCLIB search match %s for %s (requested %.2fs, found %.2fs)",
@@ -149,6 +154,14 @@ async def lookup_lyrics_async(
                     return Result(code=ResultCode.OK, message="OK", result=selected)
     except (httpx.HTTPError, ValueError) as exc:
         logger.warning("LRCLIB lookup failed for %s: %s", track_name, exc)
+        if exact_plain is not None:
+            return Result(
+                code=ResultCode.OK, message="Exact plain lyrics available", result=exact_plain
+            )
         return Result(code=ResultCode.GENERAL_ERROR, message="LRCLIB temporarily unavailable")
+    if exact_plain is not None:
+        return Result(
+            code=ResultCode.OK, message="Exact plain lyrics available", result=exact_plain
+        )
     logger.warning("No LRCLIB identity match for %s / %s", artist_name, track_name)
     return Result(code=ResultCode.NOT_FOUND, message="No matching lyrics found")

@@ -6,6 +6,7 @@ from core.access.db.ormModels.userRequest import UserRequestRow
 from core.access.requestAccess import RequestAccess
 from core.enums.requestStatusEnum import RequestStatusEnum
 from core.enums.requestTypeEnum import RequestTypeEnum
+from core.framework.lyricsCorrections import LyricsCorrections
 from core.responses.userRequestResponse import (
     AdminRequestStatsResponse,
     UserRequestListResponse,
@@ -34,7 +35,7 @@ async def _map_request_to_response(
     if a_result_user.is_ok():
         user = a_result_user.result()
         user_name = user.username
-        user_image = user.image.public_id
+        user_image = user.image.public_id if user.image else None
 
     return Result(
         code=ResultCode.OK,
@@ -75,6 +76,15 @@ class UserRequest:
                 message=a_result_media.message(),
             )
         media_id = a_result_media.result()
+
+        if request_type == RequestTypeEnum.LYRICS:
+            prepared = await LyricsCorrections.prepare_async(
+                session=session, media_id=media_id, payload=proposed_value
+            )
+            if prepared.is_not_ok():
+                logger.warning("Cannot create lyrics request: %s", prepared.info())
+                return Result(code=prepared.code(), message=prepared.message())
+            proposed_value = prepared.result()
 
         a_result = await RequestAccess.create_request_async(
             session=session,
@@ -159,6 +169,24 @@ class UserRequest:
             return Result(code=a_result_request.code(), message=a_result_request.message())
 
         request_row = a_result_request.result()
+        if request_row.status_key != RequestStatusEnum.PENDING.value:
+            if request_row.status_key == status.value:
+                return await _map_request_to_response(session=session, row=request_row)
+            logger.warning("Cannot review a terminal request again")
+            return Result(code=ResultCode.BAD_REQUEST, message="Request already reviewed")
+        if status == RequestStatusEnum.PENDING:
+            logger.warning("A review must accept or reject")
+            return Result(code=ResultCode.BAD_REQUEST, message="Invalid review status")
+        if (
+            request_row.request_type_key == RequestTypeEnum.LYRICS.value
+            and status == RequestStatusEnum.ACCEPTED
+        ):
+            checked = await LyricsCorrections.validate_review_async(
+                session=session, media_id=request_row.media_id, payload=request_row.proposed_value
+            )
+            if checked.is_not_ok():
+                logger.warning("Lyrics review rejected: %s", checked.info())
+                return Result(code=checked.code(), message=checked.message())
         a_result = await RequestAccess.update_request_status_async(
             session=session,
             request_id=request_row.id,

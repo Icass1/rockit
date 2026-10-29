@@ -2,8 +2,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.framework.provider.baseLyricsProvider import BaseLyricsProvider
 from core.models.lyrics import DynamicLyricsData, LyricsData
+from logger import getLogger
 from lrclib.framework.lrclib import Lrclib
 from result import Result, ResultCode
+
+logger = getLogger(__name__)
 
 
 class LrclibProvider(BaseLyricsProvider):
@@ -13,6 +16,20 @@ class LrclibProvider(BaseLyricsProvider):
 
         self._id = provider_id
         self._name = provider_name
+
+    async def get_lyrics_bundle_async(
+        self, session: AsyncSession, media_ids: list[int]
+    ) -> Result[dict[int, tuple[LyricsData | None, DynamicLyricsData | None]]]:
+        """Fetch/cache once for the unified player and correction context."""
+        source = await Lrclib.get_lyrics_by_media_ids_async(session=session, media_ids=media_ids)
+        if source.is_not_ok():
+            logger.warning("Lyrics bundle lookup failed: %s", source.info())
+            return Result(code=source.code(), message=source.message())
+        bundled = {
+            mid: (LyricsData(public_id=pid, lines=plain) if plain is not None else None, dynamic)
+            for mid, (pid, plain, dynamic) in source.result().items()
+        }
+        return Result(code=ResultCode.OK, message="OK", result=bundled)
 
     async def get_lyrics_async(
         self, session: AsyncSession, media_ids: list[int]

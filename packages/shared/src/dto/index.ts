@@ -395,6 +395,18 @@ export {
 } from "./listeningMilestoneResponse";
 export { LoginRequestSchema, type LoginRequest } from "./loginRequest";
 export { LoginResponseSchema, type LoginResponse } from "./loginResponse";
+export {
+    LyricsCorrectionSchema,
+    type LyricsCorrection,
+} from "./lyricsCorrection";
+export {
+    LyricsCorrectionContextResponseSchema,
+    type LyricsCorrectionContextResponse,
+} from "./lyricsCorrectionContextResponse";
+export {
+    LyricsCorrectionLineSchema,
+    type LyricsCorrectionLine,
+} from "./lyricsCorrectionLine";
 export { LyricsItemSchema, type LyricsItem } from "./lyricsItem";
 export { LyricsResponseSchema, type LyricsResponse } from "./lyricsResponse";
 export {
@@ -719,6 +731,10 @@ export {
     StorageObjectResponseSchema,
     type StorageObjectResponse,
 } from "./storageObjectResponse";
+export {
+    StoredLyricsCorrectionSchema,
+    type StoredLyricsCorrection,
+} from "./storedLyricsCorrection";
 export {
     StreakBattleChallengeRequestSchema,
     type StreakBattleChallengeRequest,

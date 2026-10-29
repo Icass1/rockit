@@ -1,5 +1,7 @@
 import type { GetLyricsResponse } from "@/dto";
 
+export type PiPLyricsData = GetLyricsResponse & { offset?: number };
+
 export type PiPLayout = "cover-only" | "narrow" | "sidebar" | "pill" | "full";
 
 export interface DocumentPiP {
@@ -11,12 +13,12 @@ export interface DocumentPiP {
 
 export interface PiPLyricsResult {
     publicId: string;
-    data?: GetLyricsResponse;
+    data?: PiPLyricsData;
     failed: boolean;
 }
 
 export interface PiPLyricsState {
-    data?: GetLyricsResponse;
+    data?: PiPLyricsData;
     loading: boolean;
     failed: boolean;
 }

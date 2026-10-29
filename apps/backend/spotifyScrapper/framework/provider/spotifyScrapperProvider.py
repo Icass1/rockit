@@ -5,6 +5,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.enumAccess import EnumAccess
+from core.access.storedFiles import audio_identity_async
 from core.framework.audio.silence import request_bounds
 from core.framework.downloader.baseDownload import BaseDownload
 from core.framework.models.urlPattern import UrlPattern
@@ -30,6 +31,7 @@ from spotifyScrapper.access.artistCatalogAccess import ArtistCatalogAccess
 from spotifyScrapper.access.db.ormEnums.copyrightTypeEnum import (
     CopyrightTypeEnumRow,
 )
+from spotifyScrapper.access.db.ormModels.track import TrackRow
 from spotifyScrapper.access.spotifyScrapperAccess import SpotifyScrapperAccess
 from spotifyScrapper.access.trackAccess import TrackAccess
 from spotifyScrapper.enums.copyrightTypeEnum import CopyrightTypeEnum
@@ -70,6 +72,12 @@ SPOTIFY_SCRAPPER_URL_PATTERNS: list[UrlPattern] = [
 
 
 class SpotifyScrapperProvider(BaseMediaProvider):
+    async def get_audio_identity_async(self, session: AsyncSession, media_id: int) -> Result[str]:
+        """Expose only the hash of the local object's recorded revision."""
+        return await audio_identity_async(
+            session=session, table=TrackRow.__table__, media_id=media_id
+        )
+
     async def get_audio_bounds_async(
         self, session: AsyncSession, media_id: int
     ) -> Result[AudioBoundsResponse]:

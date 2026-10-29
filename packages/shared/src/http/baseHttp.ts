@@ -907,6 +907,20 @@ export class BaseHttp {
         );
     }
 
+    static async getLyricsCorrectionContextAsync(
+        publicId: string,
+        provider?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (provider !== undefined)
+            queryParams.append("provider", `${provider}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/lyrics/${encodeURIComponent(publicId)}/correction-context${queryString ? `?${queryString}` : ""}`,
+            dto.LyricsCorrectionContextResponseSchema
+        );
+    }
+
     static async getAlbum(
         publicId: string,
         offset?: number,

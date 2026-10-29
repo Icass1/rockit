@@ -37,7 +37,9 @@ class CollectionCatalog:
                     literal(None, Integer).label("image_id"),
                 ).where(literal(False))
             ]
-        return union_all(*statements).subquery("collection_metadata")
+        return union_all(*[select(statement.subquery()) for statement in statements]).subquery(
+            "collection_metadata"
+        )
 
     def edges(self, user_id: int) -> Subquery:
         statements = [s.edges(user_id) for s in self.sources.values() if s.edges is not None]
@@ -50,7 +52,9 @@ class CollectionCatalog:
                     literal(None, DateTime).label("added_at"),
                 ).where(literal(False))
             ]
-        return union_all(*statements).subquery("registered_edges")
+        return union_all(*[select(statement.subquery()) for statement in statements]).subquery(
+            "registered_edges"
+        )
 
     def details(self) -> Subquery:
         statements = [s.details() for s in self.sources.values() if s.details is not None]
@@ -73,7 +77,9 @@ class CollectionCatalog:
                     ]
                 ).where(literal(False))
             ]
-        return union_all(*statements).subquery("collection_details")
+        return union_all(*[select(statement.subquery()) for statement in statements]).subquery(
+            "collection_details"
+        )
 
     def artists(self) -> Subquery:
         statements = [s.artists() for s in self.sources.values() if s.artists is not None]
@@ -87,7 +93,9 @@ class CollectionCatalog:
                     literal(None, String).label("provider"),
                 ).where(literal(False))
             ]
-        return union_all(*statements).subquery("collection_artists")
+        return union_all(*[select(statement.subquery()) for statement in statements]).subquery(
+            "collection_artists"
+        )
 
 
 collection_catalog = CollectionCatalog()

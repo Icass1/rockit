@@ -19,7 +19,7 @@ import {
     BaseVideoResponse,
 } from "@/dto";
 import { useStore } from "@nanostores/react";
-import { Disc3, Heart, History, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { EContentType } from "@/models/enums/contentType";
 import { EViewMode } from "@/models/enums/viewMode";
 import { ILibraryListsProps } from "@/models/interfaces/library";
@@ -49,8 +49,11 @@ import {
     VideoRow,
 } from "@/components/Library/LibraryRows";
 import LibrarySkeleton from "@/components/Library/LibrarySkeleton";
+import { LibrarySongSearchResults } from "@/components/Library/LibrarySongSearchResults";
 import NewPlaylistButton from "@/components/Library/NewPlaylistButton";
 import PlayLibraryButton from "@/components/Library/PlayLibraryButton";
+import RockitFeaturedLists from "@/components/Library/RockitFeaturedLists";
+import NavigationPinMenu from "@/components/Navigation/NavigationPinMenu";
 
 /* ------------------------------------------------------- */
 /* LAYOUT CONSTANTS                                        */
@@ -451,7 +454,12 @@ export function LibraryLists({
     viewMode,
 }: ILibraryListsProps): JSX.Element {
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
-    const { filtered, loading } = useLibraryData({ filterMode, searchQuery });
+    const { filtered, loading, librarySongIds } = useLibraryData({
+        filterMode,
+        searchQuery,
+    });
+
+    const searching = !!searchQuery.trim();
 
     // Keep the All view bounded too; the playback/search source remains complete.
     const listKey = `${filterMode}:${searchQuery}`;
@@ -461,7 +469,7 @@ export function LibraryLists({
         filtered.albums,
         filtered.playlists,
         filtered.videos,
-        filtered.songs,
+        searching ? [] : filtered.songs,
         filtered.stations,
     ].some((items) => items.length > allLimit);
 
@@ -486,23 +494,6 @@ export function LibraryLists({
         filtered.videos,
         videosSentinelInView
     );
-
-    const lastMonthDate = useMemo(() => {
-        const d = new Date();
-        d.setMonth(d.getMonth() - 1);
-        return d;
-    }, []);
-
-    const lastMonthName = new Intl.DateTimeFormat("en", {
-        month: "long",
-    }).format(lastMonthDate);
-
-    const lastMonthKey = lastMonthName.toUpperCase();
-
-    const recapImageUrl = `/recap-covers/${lastMonthName.toLowerCase()}.png`;
-
-    const lastYear = useMemo(() => new Date().getFullYear() - 1, []);
-    const lastYearDigits = String(lastYear).split("");
 
     const TOP_LIMIT = 5;
     const [topAlbums, setTopAlbums] = useState<
@@ -533,6 +524,12 @@ export function LibraryLists({
     }, [fetchStats]);
 
     const showAll = activeType === EContentType.All;
+    const hasGeneralMatches = [
+        filtered.albums,
+        filtered.playlists,
+        filtered.videos,
+        filtered.stations,
+    ].some((items) => items.length > 0);
 
     const handlePlaySongs = async (): Promise<void> => {
         const songs = filtered.songs;
@@ -589,159 +586,73 @@ export function LibraryLists({
 
     return (
         <section>
-            {/* Recommended by Rockit Section */}
-            <SectionHeader title={$vocabulary.FEATURED_LISTS} />
-            <div className="scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent mb-4 flex gap-4 overflow-x-auto px-4 py-2 pb-2">
-                <Link
-                    href="/playlist/liked"
-                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
-                >
-                    <div
-                        className="relative aspect-square w-full rounded-lg bg-cover"
-                        style={{
-                            backgroundImage: "url(/rockit-background.png)",
-                        }}
-                    >
-                        <Heart
-                            className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 select-none"
-                            fill="white"
-                        />
+            {!searching && (
+                <>
+                    {/* Recommended by Rockit Section */}
+                    <SectionHeader title={$vocabulary.FEATURED_LISTS} />
+                    <div className="scrollbar-thin scrollbar-thumb-neutral-600 scrollbar-track-transparent mb-4 flex gap-4 overflow-x-auto px-4 py-2 pb-2">
+                        <RockitFeaturedLists />
+
+                        {topAlbums.slice(0, TOP_LIMIT).map((album) => (
+                            <NavigationPinMenu
+                                key={album.publicId}
+                                publicId={album.publicId}
+                                title={album.name}
+                                cover={album.imageUrl}
+                                className="w-40 shrink-0"
+                            >
+                                <Link
+                                    key={album.publicId}
+                                    href={album.href}
+                                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
+                                >
+                                    <Image
+                                        alt={album.name}
+                                        src={
+                                            album.imageUrl ??
+                                            "/song-placeholder.png"
+                                        }
+                                        width={160}
+                                        height={160}
+                                        className="aspect-square w-full rounded-md object-cover select-none"
+                                    />
+                                    <p className="mt-1 truncate text-center font-semibold">
+                                        {album.name}
+                                    </p>
+                                    <p
+                                        className="truncate text-center text-sm text-gray-400"
+                                        title={album.subtitle ?? undefined}
+                                    >
+                                        {album.subtitle}
+                                    </p>
+                                </Link>{" "}
+                            </NavigationPinMenu>
+                        ))}
                     </div>
-                    <p className="mt-2 block truncate text-center font-semibold">
-                        {$vocabulary.LIKED_SONGS}
-                    </p>
-                    <p className="block truncate text-center text-sm text-gray-400">
-                        {$vocabulary.BY} Rock It!
-                    </p>
-                </Link>
+                </>
+            )}
 
-                <Link
-                    href="/playlist/most-listened"
-                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
-                >
-                    <div
-                        className="relative aspect-square w-full rounded-lg bg-cover"
-                        style={{
-                            backgroundImage: "url(/rockit-background.png)",
-                        }}
-                    >
-                        <Disc3 className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 select-none" />
-                    </div>
-                    <p className="mt-2 block truncate text-center font-semibold">
-                        {$vocabulary.MOST_LISTENED}
-                    </p>
-                    <p className="block truncate text-center text-sm text-gray-400">
-                        {$vocabulary.BY} Rock It!
-                    </p>
-                </Link>
+            {searching && (showAll || activeType === EContentType.Songs) && (
+                <LibrarySongSearchResults
+                    query={searchQuery}
+                    filterMode={filterMode}
+                    viewMode={viewMode}
+                    directSongs={filtered.songs}
+                    librarySongIds={librarySongIds}
+                />
+            )}
 
-                <Link
-                    href="/playlist/recent-mix"
-                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
-                >
-                    <div
-                        className="relative aspect-square w-full rounded-lg bg-cover"
-                        style={{
-                            backgroundImage: "url(/rockit-background.png)",
-                        }}
-                    >
-                        <History className="absolute top-1/2 left-1/2 h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 select-none" />
-                    </div>
-                    <p className="mt-2 block truncate text-center font-semibold">
-                        {$vocabulary.RECENT_MIX}
-                    </p>
-                    <p className="block truncate text-center text-sm text-gray-400">
-                        {$vocabulary.BY} Rock It!
-                    </p>
-                </Link>
-
-                <Link
-                    href="/playlist/year-recap"
-                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
-                >
-                    <div
-                        className="relative aspect-square w-full rounded-lg bg-cover"
-                        style={{
-                            backgroundImage: "url(/rockit-background.png)",
-                        }}
-                    >
-                        <div
-                            className="absolute inset-0 flex items-center justify-center gap-1 text-white select-none"
-                            style={{
-                                fontFamily:
-                                    "'Nunito', 'Segoe UI', system-ui, sans-serif",
-                                fontWeight: 900,
-                                fontSize: "clamp(1.2rem, 5vw, 2.5rem)",
-                                letterSpacing: "-0.04em",
-                            }}
-                        >
-                            {lastYearDigits.map((digit, i) => (
-                                <span key={i}>{digit}</span>
-                            ))}
-                        </div>
-                    </div>
-                    <p className="mt-2 block truncate text-center font-semibold">
-                        {lastYear} Recap
-                    </p>
-                    <p className="block truncate text-center text-sm text-gray-400">
-                        {$vocabulary.BY} Rock It!
-                    </p>
-                </Link>
-
-                <Link
-                    href="/playlist/last-month"
-                    className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
-                >
-                    <div
-                        className="relative aspect-square w-full rounded-lg bg-cover"
-                        style={{
-                            backgroundImage: `url(${recapImageUrl})`,
-                        }}
-                    />
-                    <p className="mt-2 block truncate text-center font-semibold">
-                        {$vocabulary[lastMonthKey as keyof typeof $vocabulary]}{" "}
-                        Recap
-                    </p>
-                    <p className="block truncate text-center text-sm text-gray-400">
-                        {$vocabulary.BY} Rock It!
-                    </p>
-                </Link>
-
-                {topAlbums.slice(0, TOP_LIMIT).map((album) => (
-                    <Link
-                        key={album.publicId}
-                        href={album.href}
-                        className="w-40 flex-none transition duration-75 select-none [-webkit-touch-callout:none] md:hover:scale-105"
-                    >
-                        <Image
-                            alt={album.name}
-                            src={album.imageUrl ?? "/song-placeholder.png"}
-                            width={160}
-                            height={160}
-                            className="aspect-square w-full rounded-md object-cover select-none"
-                        />
-                        <p className="mt-1 truncate text-center font-semibold">
-                            {album.name}
-                        </p>
-                        <p
-                            className="truncate text-center text-sm text-gray-400"
-                            title={album.subtitle ?? undefined}
-                        >
-                            {album.subtitle}
-                        </p>
-                    </Link>
-                ))}
-            </div>
-
-            {showAll && (
+            {showAll && (!searching || hasGeneralMatches) && (
                 <>
                     <SectionHeader
                         title={$vocabulary.YOUR_ALBUMS_PLAYLISTS}
                         rightElement={
-                            <div className="flex items-center gap-2">
-                                <PlayLibraryButton />
-                                <DownloadLibraryButton />
-                            </div>
+                            !searching ? (
+                                <div className="flex items-center gap-2">
+                                    <PlayLibraryButton />
+                                    <DownloadLibraryButton />
+                                </div>
+                            ) : undefined
                         }
                     />
 
@@ -750,7 +661,11 @@ export function LibraryLists({
                             albums={filtered.albums.slice(0, allLimit)}
                             playlists={filtered.playlists.slice(0, allLimit)}
                             videos={filtered.videos.slice(0, allLimit)}
-                            songs={filtered.songs.slice(0, allLimit)}
+                            songs={
+                                searching
+                                    ? []
+                                    : filtered.songs.slice(0, allLimit)
+                            }
                             stations={filtered.stations.slice(0, allLimit)}
                         />
                     ) : viewMode === EViewMode.Masonry ? (
@@ -758,7 +673,11 @@ export function LibraryLists({
                             albums={filtered.albums.slice(0, allLimit)}
                             playlists={filtered.playlists.slice(0, allLimit)}
                             videos={filtered.videos.slice(0, allLimit)}
-                            songs={filtered.songs.slice(0, allLimit)}
+                            songs={
+                                searching
+                                    ? []
+                                    : filtered.songs.slice(0, allLimit)
+                            }
                             stations={filtered.stations.slice(0, allLimit)}
                         />
                     ) : (
@@ -766,7 +685,11 @@ export function LibraryLists({
                             albums={filtered.albums.slice(0, allLimit)}
                             playlists={filtered.playlists.slice(0, allLimit)}
                             videos={filtered.videos.slice(0, allLimit)}
-                            songs={filtered.songs.slice(0, allLimit)}
+                            songs={
+                                searching
+                                    ? []
+                                    : filtered.songs.slice(0, allLimit)
+                            }
                             stations={filtered.stations.slice(0, allLimit)}
                         />
                     )}
@@ -892,6 +815,7 @@ export function LibraryLists({
 
             {/* ── SONGS tab ─────────────────────────────────────────────── */}
             {activeType === EContentType.Songs &&
+                !searching &&
                 (filtered.songs.length === 0 ? (
                     <EmptyState message={$vocabulary.NO_SONGS} />
                 ) : (

@@ -1,3 +1,4 @@
+from radioBrowser.access import collectionCatalog as collectionCatalog
 from radioBrowser.access.db.base import RadioBase
 from radioBrowser.access.db.ormModels.codec import (
     CodecRow as CodecRow,

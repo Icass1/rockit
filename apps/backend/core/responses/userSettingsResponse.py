@@ -8,6 +8,7 @@ class UserSettingsResponse(BaseModel):
     username: str
     lang: str
     crossfade: int
+    volume: float = 1
     queueType: QueueTypeEnum
     repeatMode: RepeatModeEnum
 

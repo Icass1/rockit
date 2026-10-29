@@ -80,40 +80,23 @@ class SpotifyDownload(BaseDownload):
             self.title = track.name
             self.artist = ", ".join(artist_names)
 
-            youtube_url: str | None = track.download_url
-
-            alternative_urls: list[str] = []
-
-            if not youtube_url:
-                a_result_youtube: Result[list[str]] = await YoutubeSearch.find_video_urls_async(
-                    song=YoutubeSongQuery(
-                        title=track.name,
-                        artists=artist_names,
-                        album_title=track.album.name,
-                        duration_ms=track.duration_ms,
-                        isrc=track.isrc,
-                    )
-                )
-                if a_result_youtube.is_not_ok():
-                    logger.error(f"YouTube search failed: {a_result_youtube.info()}")
-                    # Propagate the search result code so a song that simply
-                    # has no match is not retried like a transient failure.
-                    return ResultCode(
-                        code=a_result_youtube.code(),
-                        message=f"YouTube search failed: {a_result_youtube.message()}",
-                    )
-
-                candidate_urls: list[str] = a_result_youtube.result()
-                youtube_url = candidate_urls[0]
-                alternative_urls = candidate_urls[1:]
-                logger.info(
-                    f"Found {len(candidate_urls)} YouTube candidates, best is {youtube_url}"
-                )
-                # The URL is deliberately not persisted yet: caching a
-                # video that turns out to be undownloadable would make
-                # every future retry of this track reuse it.
-            else:
-                logger.info(f"Using download URL from database: {youtube_url}")
+            # Stored URLs can be old videoclip matches: revalidate before reuse.
+            a_result_youtube = await YoutubeSearch.find_video_urls_async(
+                song=YoutubeSongQuery(
+                    title=track.name,
+                    artists=artist_names,
+                    album_title=track.album.name,
+                    duration_ms=track.duration_ms,
+                    isrc=track.isrc,
+                ),
+                preferred_url=self.download_url or track.download_url,
+            )
+            if a_result_youtube.is_not_ok():
+                logger.error("Song source lookup failed: %s", a_result_youtube.info())
+                return ResultCode(code=a_result_youtube.code(), message=a_result_youtube.message())
+            candidate_urls = a_result_youtube.result()
+            youtube_url = candidate_urls[0]
+            alternative_urls = candidate_urls[1:]
 
             filename: str = f"{track.spotify_id}_{self.download_id}"
 

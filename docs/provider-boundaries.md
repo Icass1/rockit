@@ -95,3 +95,28 @@ Strict Pyright analysis covers the complete configured repository, including
 backend tests. Resolve runtime and development dependencies in the interpreter
 used by the checker before interpreting missing-import cascades as code defects;
 see docs/backend-tests.md. No runtime tests were executed for this audit.
+
+## Library and navigation audit (2026-10-29)
+
+PR158 introduces no backend provider behavior. Playlist writes continue to dispatch
+through the owning provider, which checks permissions.
+
+PR160 replaces collection table introspection with `CollectionCatalogSource`
+projections registered by each business during database discovery. Providers own
+names, artwork, collection details, membership ordering/filtering and artist links.
+Core combines fixed column contracts for reachability, summaries and pagination;
+registration keys are opaque. Local registration remains available when remote
+providers are disabled. Empty registries produce valid empty SQL relations.
+
+Regression coverage compiles every registered projection, checks an empty registry
+and executes a source with arbitrary table/column names. The Library graph fixture
+registers its own projections and retains permission, cycle and pagination checks.
+
+PR161 consumes the same registered metadata for anclados. Optional personal routes
+are declared through `BaseProvider.get_navigation_shortcuts` and discovered through
+the provider registry. Featured owns its five list keys, routes, artwork and three
+registration defaults. Core stores opaque keys, checks collisions and resolves only
+registered definitions. Disabling/removing a source hides its shortcuts without
+recreating defaults or deleting references. Future sources can supply routes without
+changing Core. The shared DTO accepts an opaque string key; Web retains localized
+Featured labels and falls back to the provider's name for unfamiliar keys.

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { LyricsProposalPreview } from "@/components/Lyrics/LyricsProposalPreview";
 
 type RequestStatus = "ALL" | "PENDING" | "ACCEPTED" | "REJECTED";
 
@@ -100,18 +101,31 @@ export default function AdminRequests(): JSX.Element {
         status: "ACCEPTED" | "REJECTED"
     ): Promise<void> => {
         setReviewingId(publicId);
-        const result = await Http.reviewRequest(publicId, {
-            status,
-            reviewComment: null,
-        });
-        if (result.isOk()) {
-            setRequests((prev) =>
-                prev.map((r) =>
-                    r.publicId === publicId ? { ...r, status } : r
-                )
-            );
+        try {
+            const result = await Http.reviewRequest(publicId, {
+                status,
+                reviewComment: null,
+            });
+            if (result.isOk()) {
+                window.dispatchEvent(new Event("lyrics-updated"));
+                setError(null);
+                setRequests((prev) =>
+                    prev.map((r) =>
+                        r.publicId === publicId ? { ...r, status } : r
+                    )
+                );
+            } else {
+                setError(
+                    typeof result.detail === "string"
+                        ? result.detail
+                        : $vocabulary.EDIT_METADATA_ERROR
+                );
+            }
+        } catch {
+            setError($vocabulary.EDIT_METADATA_ERROR);
+        } finally {
+            setReviewingId(null);
         }
-        setReviewingId(null);
     };
 
     const filteredRequests =
@@ -243,9 +257,11 @@ export default function AdminRequests(): JSX.Element {
                 <div className="space-y-3">
                     {filteredRequests.map((req) => {
                         const badge =
-                            STATUS_BADGES[req.status] || STATUS_BADGES.pending;
+                            STATUS_BADGES[req.status.toLowerCase()] ||
+                            STATUS_BADGES.pending;
                         const typeIcon =
-                            REQUEST_TYPE_ICONS[req.requestType] || "📌";
+                            REQUEST_TYPE_ICONS[req.requestType.toLowerCase()] ||
+                            "📌";
                         const isPending = req.status === "PENDING";
 
                         return (
@@ -274,9 +290,21 @@ export default function AdminRequests(): JSX.Element {
                                                 <p className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
                                                     Proposed change
                                                 </p>
-                                                <p className="mt-1 text-sm text-white">
-                                                    {req.proposedValue}
-                                                </p>
+                                                {req.requestType === "LYRICS" &&
+                                                req.mediaPublicId ? (
+                                                    <LyricsProposalPreview
+                                                        mediaPublicId={
+                                                            req.mediaPublicId
+                                                        }
+                                                        payload={
+                                                            req.proposedValue
+                                                        }
+                                                    />
+                                                ) : (
+                                                    <p className="mt-1 text-sm text-white">
+                                                        {req.proposedValue}
+                                                    </p>
+                                                )}
                                             </div>
 
                                             {req.comment && (

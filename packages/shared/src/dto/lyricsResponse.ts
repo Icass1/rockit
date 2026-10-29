@@ -5,12 +5,12 @@ import { z } from "zod";
 
 export const LyricsResponseSchema = z.object({
     id: z.number(),
-    name: z.string(),
+    name: z.string().default(""),
     trackName: z.string(),
     artistName: z.string(),
-    albumName: z.string(),
-    duration: z.number(),
-    instrumental: z.boolean(),
+    albumName: z.string().default(""),
+    duration: z.number().default(0),
+    instrumental: z.boolean().default(false),
     plainLyrics: z.string().nullable(),
     syncedLyrics: z.string().nullable(),
     lyricsfile: z.string().nullable(),

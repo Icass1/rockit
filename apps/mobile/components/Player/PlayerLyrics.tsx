@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { COLORS } from "@/constants/theme";
-import { type BaseDynamicLyricsResponse } from "@/dto";
-import { getMediaArtists } from "@/shared/index";
+import { type LyricsCorrectionContextResponse } from "@/dto";
+import {
+    getMediaArtists,
+    lyricPlaybackTime,
+    lyricSeekTime,
+} from "@/shared/index";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Http } from "@/lib/http";
 import { usePlayer, usePlayerTime } from "@/lib/PlayerContext";
@@ -12,7 +16,8 @@ export default function PlayerLyrics() {
     const { currentTime } = usePlayerTime();
     const { vocabulary } = useVocabulary();
 
-    const [fetchedLyrics, setLyrics] = useState<BaseDynamicLyricsResponse>();
+    const [fetchedLyrics, setLyrics] =
+        useState<LyricsCorrectionContextResponse>();
     const [loadedPublicId, setLoadedPublicId] = useState<string>();
     const publicId = currentMedia?.publicId;
     const loading = !!publicId && loadedPublicId !== publicId;
@@ -24,25 +29,39 @@ export default function PlayerLyrics() {
         if (!publicId) return;
         let cancelled = false;
 
-        Http.getDynamicLyricsAsync(publicId).then((response) => {
-            if (cancelled) return;
-            setLyrics(response.isOk() ? response.result : undefined);
-            setLoadedPublicId(publicId);
-        });
+        void Http.getLyricsCorrectionContextAsync(publicId)
+            .then((response) => {
+                if (cancelled) return;
+                setLyrics(response.isOk() ? response.result : undefined);
+                setLoadedPublicId(publicId);
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setLyrics(undefined);
+                    setLoadedPublicId(publicId);
+                }
+            });
         return () => {
             cancelled = true;
         };
     }, [publicId]);
 
     const currentIndex = useMemo(() => {
-        if (loading || !lyrics || !currentTime) return null;
+        if (
+            loading ||
+            !lyrics ||
+            currentTime === null ||
+            currentTime === undefined
+        )
+            return null;
 
         const offset = lyrics.offset;
 
         for (let i = lyrics.lines.length - 1; i >= 0; i--) {
+            const timestamp = lyrics.lines[i].timestamp_s;
             if (
-                Math.round(currentTime * 100) / 100 >=
-                Math.round((lyrics.lines[i].timestamp_s - offset) * 100) / 100
+                timestamp !== null &&
+                currentTime >= lyricPlaybackTime(timestamp, offset)
             ) {
                 return i;
             }
@@ -64,8 +83,8 @@ export default function PlayerLyrics() {
 
     const goToLine = (index: number): void => {
         const timestamp = lyrics?.lines[index].timestamp_s;
-        if (timestamp !== undefined) {
-            seekTo(timestamp);
+        if (timestamp !== undefined && timestamp !== null) {
+            seekTo(lyricSeekTime(timestamp, lyrics?.offset));
         }
     };
 
@@ -89,13 +108,13 @@ export default function PlayerLyrics() {
                 </View>
             )}
 
-            {!loading && !lyrics && (
+            {!loading && (!lyrics || lyrics.lines.length === 0) && (
                 <View style={styles.centerContent}>
                     <Text style={styles.stateText}>No lyrics available</Text>
                 </View>
             )}
 
-            {!loading && lyrics && (
+            {!loading && lyrics && lyrics.lines.length > 0 && (
                 <ScrollView
                     ref={scrollRef}
                     contentContainerStyle={styles.content}

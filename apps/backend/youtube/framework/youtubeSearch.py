@@ -1,39 +1,38 @@
+"""Select catalogue recordings for song downloads, never music-video soundtracks."""
+
 import asyncio
 import re
-from dataclasses import dataclass, field
+import unicodedata
+from collections.abc import Callable
+from dataclasses import dataclass, field, replace
 from difflib import SequenceMatcher
-from typing import Any
+from functools import partial
+from typing import Any, cast
+from urllib.parse import parse_qs, urlparse
 
-from yt_dlp import YoutubeDL
+from requests import Response, Session
 from ytmusicapi import YTMusic
 
 from logger import getLogger
 from result import Result, ResultCode
-from youtube.framework.youtubeApi import RawYoutubeSearchResult, youtube_api
 from youtube.framework.youtubeGate import youtube_gate
 
 logger = getLogger(__name__)
-
-# A match at or above this score is good enough to stop searching.
-_GOOD_ENOUGH_SCORE: float = 0.85
-
-# A match below this is rejected outright: downloading the wrong song is worse
-# than reporting a failed download.
-_MINIMUM_ACCEPTABLE_SCORE: float = 0.45
-
-# Duration difference, in seconds, at which the duration score reaches zero.
-_DURATION_TOLERANCE_SECONDS: float = 15.0
-
-_OFFICIAL_CHANNEL_KEYWORDS: tuple[str, ...] = (
-    "official",
-    "vevo",
-    "topic",
+_MINIMUM_ACCEPTABLE_SCORE = 0.85
+_ART_TRACK = "MUSIC_VIDEO_TYPE_ATV"
+_VERSION_MARKERS = re.compile(
+    r"\b(live|remix|cover|karaoke|instrumental|acoustic|nightcore|extended|"
+    r"sped up|slowed|radio edit|remaster(?:ed)?)\b"
+)
+_PRESENTATION_LABEL = re.compile(
+    r"[\[(]\s*(?:official\s+)?(?:music\s+video|video|audio|lyric\s+video|lyrics)\s*[\])]",
+    re.IGNORECASE,
 )
 
 
 @dataclass
 class YoutubeSongQuery:
-    """What we know about the song we are trying to find on YouTube."""
+    """Metadata of the requested recording; duration is not inferred from a clip."""
 
     title: str
     artists: list[str]
@@ -42,14 +41,12 @@ class YoutubeSongQuery:
     isrc: str = ""
 
     def duration_seconds(self) -> float | None:
-        """Expected duration in seconds, None when unknown."""
-
-        return self.duration_ms / 1000.0 if self.duration_ms else None
+        return self.duration_ms / 1000.0 if self.duration_ms > 0 else None
 
 
 @dataclass
 class YoutubeCandidate:
-    """A single search hit, normalised across the three search backends."""
+    """A catalogue song with explicit source classification and artist credits."""
 
     video_id: str
     title: str
@@ -57,391 +54,263 @@ class YoutubeCandidate:
     album_title: str = ""
     duration_seconds: float | None = None
     is_live: bool = False
-    source: str = ""
+    source: str = "ytmusic"
     score: float = 0.0
-    reasons: list[str] = field(default_factory=lambda: [])
+    reasons: list[str] = field(default_factory=list[str])
+    catalog_song: bool = False
+    video_type: str | None = None
+    artists: list[str] = field(default_factory=list[str])
 
 
 def _normalize(value: str) -> str:
-    """Lowercase and strip punctuation so titles compare sensibly."""
-
-    value = value.lower()
-    value = re.sub(r"[^\w\s]", " ", value)
-    value = re.sub(r"\s+", " ", value)
-    return value.strip()
+    value = unicodedata.normalize("NFKC", value).casefold()
+    return " ".join(re.sub(r"[^\w\s]", " ", value).split())
 
 
-def _title_score(candidate_title: str, song_title: str) -> float:
-    """How well a video title matches the song title."""
-
-    normalized_candidate: str = _normalize(candidate_title)
-    normalized_song: str = _normalize(song_title)
-
-    if not normalized_song:
-        return 0.0
-
-    if normalized_song in normalized_candidate:
-        return 1.0
-
-    return SequenceMatcher(None, normalized_song, normalized_candidate).ratio()
-
-
-def _artist_score(channel_title: str, artists: list[str]) -> float:
-    """How well a channel name matches any of the song's artists."""
-
-    normalized_channel: str = _normalize(channel_title)
-    if not normalized_channel:
-        return 0.0
-
-    is_official: bool = any(keyword in normalized_channel for keyword in _OFFICIAL_CHANNEL_KEYWORDS)
-
-    for artist in artists:
-        normalized_artist: str = _normalize(artist)
-        if not normalized_artist:
-            continue
-        if normalized_artist in normalized_channel:
-            return 1.0 if is_official else 0.95
-        if SequenceMatcher(None, normalized_artist, normalized_channel).ratio() > 0.8:
-            return 0.9
-
-    return 0.0
-
-
-def _duration_score(
-    candidate_seconds: float | None, expected_seconds: float | None
-) -> float | None:
-    """Score the duration match, None when either duration is unknown.
-
-    This is the strongest signal available for rejecting covers, live versions
-    and extended edits, and it is the one the YouTube Data API cannot give us
-    without a second (quota-charged) request.
-    """
-
-    if not candidate_seconds or not expected_seconds:
-        return None
-
-    difference: float = abs(candidate_seconds - expected_seconds)
-    if difference <= 2.0:
-        return 1.0
-    if difference >= _DURATION_TOLERANCE_SECONDS:
-        return 0.0
-
-    return 1.0 - (difference - 2.0) / (_DURATION_TOLERANCE_SECONDS - 2.0)
-
-
-def _score_candidate(candidate: YoutubeCandidate, song: YoutubeSongQuery) -> None:
-    """Score a candidate in place, recording why it scored the way it did."""
-
-    title_score: float = _title_score(candidate_title=candidate.title, song_title=song.title)
-    artist_score: float = _artist_score(channel_title=candidate.channel_title, artists=song.artists)
-    duration_score: float | None = _duration_score(
-        candidate_seconds=candidate.duration_seconds,
-        expected_seconds=song.duration_seconds(),
+def _clean_title(title: str, artists: list[str]) -> str:
+    """Discard presentation labels, retaining musical versions and edit names."""
+    title = _PRESENTATION_LABEL.sub("", title).strip()
+    title = re.sub(
+        r"[\[(]\s*(?:feat\.?|ft\.?|featuring)\s+[^\])]+[\])]", "", title, flags=re.IGNORECASE
     )
+    for artist in artists:
+        prefix = re.match(r"^(.+?)\s+[-–—]\s+(.+)$", title)
+        if prefix and _normalize(prefix[1]) == _normalize(artist):
+            title = prefix[2]
+            break
+    return _normalize(title)
 
-    weights: dict[str, float] = {"title": 0.4, "artist": 0.3, "duration": 0.3}
-    scores: dict[str, float] = {"title": title_score, "artist": artist_score}
 
-    if duration_score is None:
-        # Redistribute the duration weight over the signals we do have, so
-        # backends without duration are not penalised across the board.
-        total_weight: float = weights["title"] + weights["artist"]
-        weights = {
-            "title": weights["title"] / total_weight,
-            "artist": weights["artist"] / total_weight,
-        }
-    else:
-        scores["duration"] = duration_score
-
-    total: float = sum(scores[key] * weights[key] for key in scores)
-
-    if candidate.album_title and song.album_title:
-        if _normalize(candidate.album_title) == _normalize(song.album_title):
-            total = min(1.0, total + 0.1)
-            candidate.reasons.append("album_match")
-
+def score_candidate(candidate: YoutubeCandidate, song: YoutubeSongQuery) -> None:
+    """Identity, version and timing are gates, not compensatable popularity bonuses."""
+    candidate.score = 0
+    candidate.reasons.clear()
+    if not candidate.catalog_song or candidate.video_type not in (None, _ART_TRACK):
+        candidate.reasons.append("not_catalog_audio")
+        return
     if candidate.is_live:
-        total *= 0.5
-        candidate.reasons.append("live_penalty")
-
-    if title_score >= 0.8:
-        candidate.reasons.append("title_match")
-    if artist_score >= 0.8:
-        candidate.reasons.append("artist_match")
-    if duration_score is not None and duration_score >= 0.9:
+        candidate.reasons.append("live_broadcast")
+        return
+    title = _clean_title(title=candidate.title, artists=song.artists)
+    expected_title = _clean_title(title=song.title, artists=song.artists)
+    if not title or not expected_title:
+        candidate.reasons.append("missing_title")
+        return
+    if set(_VERSION_MARKERS.findall(title)) != set(_VERSION_MARKERS.findall(expected_title)):
+        candidate.reasons.append("different_version")
+        return
+    title_score = SequenceMatcher(None, title, expected_title).ratio()
+    if title_score < 0.90:
+        candidate.reasons.append("different_title")
+        return
+    credits = candidate.artists or [candidate.channel_title]
+    expected_artists = {_normalize(artist) for artist in song.artists if artist.strip()}
+    normalized_credits = [
+        _normalize(re.sub(r"\s*-\s*Topic$", "", artist, flags=re.IGNORECASE)) for artist in credits
+    ]
+    if not expected_artists or expected_artists != set(normalized_credits):
+        candidate.reasons.append("different_artist")
+        return
+    expected_duration = song.duration_seconds()
+    duration_score = 1.0
+    if expected_duration is not None:
+        duration = candidate.duration_seconds
+        tolerance = min(6.0, max(3.0, expected_duration * 0.015))
+        if duration is None or abs(duration - expected_duration) > tolerance:
+            candidate.reasons.append("different_or_unknown_duration")
+            return
+        duration_score = 1 - abs(duration - expected_duration) / (tolerance * 2)
+    candidate.score = title_score * 0.6 + 0.3 + duration_score * 0.1
+    candidate.reasons.extend(["catalog_audio", "title_match", "artist_match"])
+    if expected_duration is not None:
         candidate.reasons.append("duration_match")
-
-    candidate.score = total
+    if song.album_title and _normalize(candidate.album_title) == _normalize(song.album_title):
+        candidate.score = min(1.0, candidate.score + 0.05)
+        candidate.reasons.append("album_match")
 
 
 def _parse_duration_text(duration: str | None) -> float | None:
-    """Parse a "3:45" style duration into seconds."""
-
     if not duration:
         return None
-
-    parts: list[str] = duration.split(":")
     try:
-        numbers: list[int] = [int(part) for part in parts]
+        seconds = 0
+        for part in duration.split(":"):
+            seconds = seconds * 60 + int(part)
+        return float(seconds)
     except ValueError:
         return None
 
-    seconds: float = 0.0
-    for number in numbers:
-        seconds = seconds * 60 + number
-    return seconds
+
+def _video_id(url: str) -> str | None:
+    parsed = urlparse(url)
+    if parsed.hostname == "youtu.be":
+        identity = parsed.path.strip("/")
+    elif parsed.hostname in ("youtube.com", "www.youtube.com", "music.youtube.com"):
+        identity = parse_qs(parsed.query).get("v", [""])[0]
+    else:
+        return None
+    return identity if re.fullmatch(r"[A-Za-z0-9_-]{11}", identity) else None
 
 
 class YoutubeSearch:
-    """Finds the YouTube video for a song without burning YouTube Data API quota.
-
-    The Data API allows 100 search calls a day on the default quota, which the
-    downloader used to exhaust in an afternoon. The two backends tried first
-    cost nothing, so the Data API is only reached for songs the others miss.
-    """
-
-    _ytmusic: YTMusic | None = None
+    """Bounded, paced metadata lookup; yt-dlp only transfers the selected recording."""
 
     @staticmethod
-    def _get_ytmusic() -> YTMusic:
-        """Return the shared unauthenticated YouTube Music client."""
+    def _get_ytmusic(session: Session) -> YTMusic:
+        # Independent sessions avoid sharing a mutable requests.Session across workers.
+        # ytmusicapi documents this requests-session timeout recipe. partial
+        # preserves keyword calls while its inferred positional signature shifts.
+        session.request = cast(Callable[..., Response], partial(session.request, timeout=10))
+        return YTMusic(requests_session=session)
 
-        if YoutubeSearch._ytmusic is None:
-            YoutubeSearch._ytmusic = YTMusic()
-        return YoutubeSearch._ytmusic
+    @staticmethod
+    def _catalog_search(query: str) -> list[dict[str, Any]]:
+        with Session() as session:
+            client = YoutubeSearch._get_ytmusic(session=session)
+            return client.search(query, filter="songs", limit=10, ignore_spelling=True)
+
+    @staticmethod
+    def _catalog_song(identity: str) -> dict[str, Any]:
+        with Session() as session:
+            client = YoutubeSearch._get_ytmusic(session=session)
+            return client.get_song(videoId=identity)
 
     @staticmethod
     def build_query(song: YoutubeSongQuery) -> str:
-        """Build the text query used against every backend."""
-
-        parts: list[str] = [song.title]
-        parts.extend(song.artists)
-        if song.album_title:
-            parts.append(song.album_title)
-        return " ".join(part for part in parts if part)
+        title = _clean_title(title=song.title, artists=song.artists)
+        return " ".join([title, *song.artists, song.album_title]).strip()
 
     @staticmethod
-    async def _search_ytmusic_async(
-        song: YoutubeSongQuery,
-    ) -> Result[list[YoutubeCandidate]]:
-        """Search YouTube Music. Free, unauthenticated, and knows about albums."""
-
-        query: str = YoutubeSearch.build_query(song=song)
-        loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-
-        try:
-            await youtube_gate.pace_async()
-            raw: list[dict[str, Any]] = await loop.run_in_executor(
-                None,
-                lambda: YoutubeSearch._get_ytmusic().search(query, filter="songs", limit=10),
-            )
-        except Exception as e:
-            logger.warning(f"YouTube Music search failed for '{query}': {e}")
-            return Result(code=ResultCode.GENERAL_ERROR, message=f"ytmusicapi search failed: {e}")
-
-        candidates: list[YoutubeCandidate] = []
-        for item in raw:
-            video_id: str | None = item.get("videoId")
-            if not video_id:
+    async def _search_ytmusic_async(song: YoutubeSongQuery) -> Result[list[YoutubeCandidate]]:
+        queries = [YoutubeSearch.build_query(song=song)]
+        isrc = song.isrc.replace("-", "").upper()
+        if re.fullmatch(r"[A-Z]{2}[A-Z0-9]{3}[0-9]{7}", isrc):
+            queries.insert(0, isrc)
+        candidates: dict[str, YoutubeCandidate] = {}
+        failures = 0
+        for query in queries:
+            try:
+                await youtube_gate.pace_async()
+                raw = await asyncio.to_thread(YoutubeSearch._catalog_search, query=query)
+            except Exception:
+                failures += 1
+                logger.warning("YouTube Music catalogue lookup failed", exc_info=True)
                 continue
-
-            raw_artists: list[dict[str, Any]] = item.get("artists") or []
-            artists: list[str] = [str(artist.get("name", "")) for artist in raw_artists]
-            album: dict[str, Any] = item.get("album") or {}
-
-            candidates.append(
-                YoutubeCandidate(
-                    video_id=video_id,
-                    title=item.get("title", ""),
-                    channel_title=", ".join(name for name in artists if name),
-                    album_title=album.get("name", "") or "",
+            for item in raw[:10]:
+                identity = item.get("videoId")
+                if not isinstance(identity, str) or not re.fullmatch(
+                    r"[A-Za-z0-9_-]{11}", identity
+                ):
+                    continue
+                raw_artists: list[dict[str, Any]] = item.get("artists") or []
+                artists = [str(artist["name"]) for artist in raw_artists if artist.get("name")]
+                album: dict[str, Any] = item.get("album") or {}
+                candidate = YoutubeCandidate(
+                    video_id=identity,
+                    title=item.get("title") or "",
+                    artists=artists,
+                    album_title=album.get("name") or "",
                     duration_seconds=item.get("duration_seconds")
                     or _parse_duration_text(item.get("duration")),
-                    source="ytmusic",
+                    catalog_song=item.get("resultType") == "song",
+                    video_type=item.get("videoType"),
+                    is_live=bool(item.get("isLive")),
                 )
+                score_candidate(candidate=candidate, song=song)
+                candidates[identity] = candidate
+            if any(
+                candidate.score >= _MINIMUM_ACCEPTABLE_SCORE for candidate in candidates.values()
+            ):
+                break
+        if failures == len(queries):
+            logger.warning("All catalogue searches unavailable for %s", song.title)
+            return Result(
+                code=ResultCode.GENERAL_ERROR, message="Music catalogue temporarily unavailable"
             )
-
-        return Result(code=ResultCode.OK, message="OK", result=candidates)
-
-    @staticmethod
-    async def _search_ytdlp_async(
-        song: YoutubeSongQuery,
-    ) -> Result[list[YoutubeCandidate]]:
-        """Search through yt-dlp's own ytsearch. Also free, but hits youtube.com."""
-
-        query: str = YoutubeSearch.build_query(song=song)
-        loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-
-        opts: dict[str, Any] = {
-            "quiet": True,
-            "no_warnings": True,
-            "extract_flat": "in_playlist",
-            "skip_download": True,
-            "socket_timeout": 20,
-            "extractor_args": {"youtube": {"player_client": ["android_vr"]}},
-        }
-
-        try:
-            await youtube_gate.pace_async()
-            info: dict[str, Any] | None = await loop.run_in_executor(
-                None,
-                lambda: YoutubeDL(opts).extract_info(  # type: ignore[arg-type]
-                    f"ytsearch10:{query}", download=False
-                ),
-            )
-        except Exception as e:
-            logger.warning(f"yt-dlp search failed for '{query}': {e}")
-            return Result(code=ResultCode.GENERAL_ERROR, message=f"yt-dlp search failed: {e}")
-
-        entries: list[dict[str, Any]] = (info or {}).get("entries") or []
-        candidates: list[YoutubeCandidate] = []
-        for entry in entries:
-            video_id: str | None = entry.get("id")
-            if not video_id:
-                continue
-
-            candidates.append(
-                YoutubeCandidate(
-                    video_id=video_id,
-                    title=entry.get("title") or "",
-                    channel_title=entry.get("channel") or entry.get("uploader") or "",
-                    duration_seconds=entry.get("duration"),
-                    is_live=bool(entry.get("is_live")),
-                    source="ytdlp",
-                )
-            )
-
-        return Result(code=ResultCode.OK, message="OK", result=candidates)
-
-    @staticmethod
-    async def _search_data_api_async(
-        song: YoutubeSongQuery,
-    ) -> Result[list[YoutubeCandidate]]:
-        """Search through the YouTube Data API. Costs 100 quota units per call."""
-
-        query: str = YoutubeSearch.build_query(song=song)
-
-        a_result: Result[list[RawYoutubeSearchResult]] = await youtube_api.search_videos_async(
-            query=query, max_results=15
-        )
-        if a_result.is_not_ok():
-            logger.warning(f"YouTube Data API search failed. {a_result.info()}")
-            return Result(code=a_result.code(), message=a_result.message())
-
-        candidates: list[YoutubeCandidate] = []
-        for video in a_result.result():
-            if not video.video_id:
-                continue
-
-            candidates.append(
-                YoutubeCandidate(
-                    video_id=video.video_id,
-                    title=video.title or "",
-                    channel_title=video.channel_title or "",
-                    is_live=video.live_broadcast_content == "live",
-                    source="data_api",
-                )
-            )
-
-        return Result(code=ResultCode.OK, message="OK", result=candidates)
-
-    @staticmethod
-    def _score_all(candidates: list[YoutubeCandidate], song: YoutubeSongQuery) -> None:
-        """Score every candidate in place."""
-
-        for candidate in candidates:
-            _score_candidate(candidate=candidate, song=song)
-            logger.debug(
-                f"[{candidate.source}] {candidate.title} - {candidate.channel_title} "
-                f"({candidate.video_id}) score={candidate.score:.2f} "
-                f"({', '.join(candidate.reasons) or 'no_match'})"
-            )
+        return Result(code=ResultCode.OK, message="OK", result=list(candidates.values()))
 
     @staticmethod
     async def find_best_video_url_async(song: YoutubeSongQuery) -> Result[str]:
-        """Find the single best YouTube URL for a song."""
-
-        a_result: Result[list[str]] = await YoutubeSearch.find_video_urls_async(song=song)
-        if a_result.is_not_ok():
-            return Result(code=a_result.code(), message=a_result.message())
-
-        return Result(code=ResultCode.OK, message="OK", result=a_result.result()[0])
+        result = await YoutubeSearch.find_video_urls_async(song=song)
+        if result.is_not_ok():
+            return Result(code=result.code(), message=result.message())
+        return Result(code=ResultCode.OK, message="OK", result=result.result()[0])
 
     @staticmethod
-    async def find_video_urls_async(song: YoutubeSongQuery, limit: int = 3) -> Result[list[str]]:
-        """Find ranked YouTube URLs for a song, cheapest search backend first.
+    async def find_video_urls_async(
+        song: YoutubeSongQuery,
+        limit: int = 3,
+        preferred_url: str | None = None,
+        duration_from_preferred: bool = False,
+    ) -> Result[list[str]]:
+        """Return only matched catalogue songs, including every fallback.
 
-        More than one is returned on purpose. YouTube gates individual videos
-        differently: an auto-generated "Art Track" can be undownloadable while
-        the artist's own upload of the same song is fine, so the downloader
-        needs somewhere to go when every client fails on the first candidate.
+        A cached/direct URL is never trusted solely because it was previously saved.
+        Metadata inspection may retain a proven art track, never an OMV/UGC upload.
+        The duration of an explicitly identified clip is not a recording reference.
         """
-
-        logger.info(
-            f"Searching YouTube for '{song.title}' by {', '.join(song.artists) or 'unknown artist'}"
-        )
-
-        backends = (
-            ("YouTube Music", YoutubeSearch._search_ytmusic_async),
-            ("yt-dlp", YoutubeSearch._search_ytdlp_async),
-            ("YouTube Data API", YoutubeSearch._search_data_api_async),
-        )
-
-        seen_video_ids: set[str] = set()
-        scored: list[YoutubeCandidate] = []
-
-        for backend_name, backend in backends:
-            a_result: Result[list[YoutubeCandidate]] = await backend(song)
-            if a_result.is_not_ok():
-                continue
-
-            candidates: list[YoutubeCandidate] = [
-                candidate
-                for candidate in a_result.result()
-                if candidate.video_id not in seen_video_ids
-            ]
-            if not candidates:
-                logger.warning(f"{backend_name} returned no new candidates")
-                continue
-
-            YoutubeSearch._score_all(candidates=candidates, song=song)
-            seen_video_ids.update(candidate.video_id for candidate in candidates)
-            scored.extend(candidates)
-
-            best_score: float = max(candidate.score for candidate in candidates)
-            if best_score >= _GOOD_ENOUGH_SCORE:
-                logger.info(f"{backend_name} produced a match scoring {best_score:.2f}")
-                break
-
-            logger.info(
-                f"{backend_name} best match scored {best_score:.2f}, below the "
-                f"{_GOOD_ENOUGH_SCORE} threshold. Trying the next backend"
-            )
-
-        usable: list[YoutubeCandidate] = sorted(
-            (c for c in scored if c.score >= _MINIMUM_ACCEPTABLE_SCORE),
-            key=lambda c: c.score,
-            reverse=True,
-        )[:limit]
-
+        preferred: YoutubeCandidate | None = None
+        identity = _video_id(url=preferred_url) if preferred_url else None
+        if identity:
+            try:
+                await youtube_gate.pace_async()
+                info = await asyncio.to_thread(YoutubeSearch._catalog_song, identity=identity)
+                details: dict[str, Any] = info.get("videoDetails") or {}
+                video_type: str | None = details.get("musicVideoType")
+                if details.get("videoId") == identity:
+                    if duration_from_preferred and video_type in (
+                        "MUSIC_VIDEO_TYPE_OMV",
+                        "MUSIC_VIDEO_TYPE_UGC",
+                    ):
+                        song = replace(song, duration_ms=0)
+                    if video_type == _ART_TRACK:
+                        length: str | int | None = details.get("lengthSeconds")
+                        preferred = YoutubeCandidate(
+                            video_id=identity,
+                            title=details.get("title") or "",
+                            channel_title=details.get("author") or "",
+                            duration_seconds=float(length) if length else None,
+                            catalog_song=True,
+                            video_type=video_type,
+                            is_live=bool(details.get("isLiveContent")),
+                        )
+                        score_candidate(candidate=preferred, song=song)
+            except Exception:
+                logger.warning(
+                    "Could not verify stored song URL; searching catalogue", exc_info=True
+                )
+        result = await YoutubeSearch._search_ytmusic_async(song=song)
+        candidates: dict[str, YoutubeCandidate] = {}
+        if preferred and preferred.score >= _MINIMUM_ACCEPTABLE_SCORE:
+            candidates[preferred.video_id] = preferred
+        if result.is_ok():
+            for candidate in result.result():
+                if candidate.score >= _MINIMUM_ACCEPTABLE_SCORE:
+                    candidates[candidate.video_id] = candidate
+        elif not candidates:
+            return Result(code=result.code(), message=result.message())
+        usable = sorted(candidates.values(), key=lambda candidate: candidate.score, reverse=True)[
+            : max(1, min(limit, 3))
+        ]
         if not usable:
-            logger.error(f"No suitable YouTube video found for '{song.title}'")
-            return Result(
-                code=ResultCode.NOT_FOUND,
-                message="No suitable YouTube video found",
+            logger.warning(
+                "No matching catalogue recording for %s; refusing video fallback", song.title
             )
-
+            return Result(
+                code=ResultCode.NOT_FOUND, message="No matching catalogue recording found"
+            )
         for candidate in usable:
             logger.info(
-                f"Candidate [{candidate.source}] {candidate.title} - "
-                f"{candidate.channel_title} score={candidate.score:.2f} "
-                f"({', '.join(candidate.reasons) or 'no_match'})"
+                "Song source %s: %s (%s), score %.2f",
+                candidate.video_id,
+                candidate.title,
+                ", ".join(candidate.reasons),
+                candidate.score,
             )
-
         return Result(
             code=ResultCode.OK,
             message="OK",
             result=[
-                f"https://www.youtube.com/watch?v={candidate.video_id}" for candidate in usable
+                f"https://music.youtube.com/watch?v={candidate.video_id}" for candidate in usable
             ],
         )

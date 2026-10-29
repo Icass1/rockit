@@ -47,6 +47,7 @@ import {
     PlayListAction,
 } from "@/components/MediaContextMenu/actions/ListQueueActions";
 import NavigateAction from "@/components/MediaContextMenu/actions/NavigateAction";
+import PinNavigationAction from "@/components/MediaContextMenu/actions/PinNavigationAction";
 import PlayAction from "@/components/MediaContextMenu/actions/PlayAction";
 import RedownloadAction from "@/components/MediaContextMenu/actions/RedownloadAction";
 import RemoveFromPlaylistAction from "@/components/MediaContextMenu/actions/RemoveFromPlaylistAction";
@@ -65,6 +66,7 @@ import SearchSourcePicker from "@/components/Search/SearchSourcePicker";
 const actionComponents: Partial<
     Record<EMediaContextAction, React.ComponentType<ActionComponentProps>>
 > = {
+    [EMediaContextAction.PinNavigation]: PinNavigationAction,
     [EMediaContextAction.Play]: PlayAction,
     [EMediaContextAction.Navigate]: NavigateAction,
     [EMediaContextAction.AddToLibrary]: AddToLibraryAction,

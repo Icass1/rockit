@@ -1,3 +1,4 @@
+from youtube.access import collectionCatalog as collectionCatalog
 from youtube.access import downloadStorage as downloadStorage
 from youtube.access.db.base import YoutubeBase
 from youtube.access.db.ormModels.channel import ChannelRow as ChannelRow

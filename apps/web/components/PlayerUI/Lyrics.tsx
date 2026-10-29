@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
-import { BaseDynamicLyricsResponse, BaseLyricsResponse } from "@/dto";
+import { BaseLyricsResponse } from "@/dto";
 import { useStore } from "@nanostores/react";
+import { useLyricsSnapshot } from "@/hooks/useLyricsSnapshot";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { lyricPlaybackTime, lyricSeekTime } from "@/lib/utils/lyricsTiming";
 import ProviderTag from "@/components/ProviderTag/ProviderTag";
 
 export default function PlayerUILyrics(): JSX.Element {
@@ -93,39 +95,23 @@ function DynamicLyrics(): JSX.Element {
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
 
-    const [lyrics, setLyrics] = useState<
-        BaseDynamicLyricsResponse | undefined
-    >();
-
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLyrics(undefined);
-        setLoading(false);
-        if ($currentMedia?.type !== "song") return;
-        setLoading(true);
-        let cancelled = false;
-
-        Http.getDynamicLyricsAsync($currentMedia.publicId).then((response) => {
-            if (cancelled) return;
-            if (response.isOk()) {
-                setLyrics(response.result);
-            }
-            setLoading(false);
-        });
-        return (): void => {
-            cancelled = true;
-        };
-    }, [$currentMedia]);
+    const snapshot = useLyricsSnapshot(
+        $currentMedia?.type === "song" ? $currentMedia.publicId : undefined
+    );
+    const lyrics = snapshot.data?.dynamic;
+    const loading = snapshot.loading;
 
     const currentIndex = useMemo(() => {
-        if (!lyrics || !$currentTime) return null;
+        if (!lyrics || $currentTime === null || $currentTime === undefined)
+            return null;
 
         const offset = lyrics.offset;
 
         for (let i = lyrics.lines.length - 1; i >= 0; i--) {
-            if ($currentTime >= lyrics.lines[i].timestamp_s - offset) {
+            if (
+                $currentTime >=
+                lyricPlaybackTime(lyrics.lines[i].timestamp_s, offset)
+            ) {
                 return i;
             }
         }
@@ -156,7 +142,9 @@ function DynamicLyrics(): JSX.Element {
         if (!lyrics) return;
         const timeStamp = lyrics.lines[index].timestamp_s;
         if (timeStamp !== undefined) {
-            rockIt.mediaPlayerManager.setCurrentTime(timeStamp - lyrics.offset);
+            rockIt.mediaPlayerManager.setCurrentTime(
+                lyricSeekTime(timeStamp, lyrics.offset)
+            );
         }
     };
 
@@ -170,8 +158,15 @@ function DynamicLyrics(): JSX.Element {
 
     if (!lyrics) {
         return (
-            <div className="flex h-full w-full items-center justify-center">
-                <p className="text-lg text-neutral-400">No lyrics available</p>
+            <div className="scrollbar-none h-full overflow-y-auto pl-7">
+                {snapshot.data?.lines.map((line, index) => (
+                    <p key={index} className="px-4 py-2 text-lg">
+                        {line.text}
+                    </p>
+                ))}
+                {!snapshot.data?.lines.length && (
+                    <p>{$vocabulary.LYRICS_UNAVAILABLE}</p>
+                )}
             </div>
         );
     }

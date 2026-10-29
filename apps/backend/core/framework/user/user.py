@@ -684,6 +684,15 @@ class User:
         )
 
     @staticmethod
+    async def update_volume_async(
+        session: AsyncSession, user_id: int, volume: float
+    ) -> Result[bool]:
+        """Save a user preference without changing other clients' active volume."""
+        return await UserAccess.update_user_volume_async(
+            session=session, user_id=user_id, volume=volume
+        )
+
+    @staticmethod
     async def update_crossfade_async(
         session: AsyncSession, user_id: int, crossfade_ms: int
     ) -> Result[bool]:

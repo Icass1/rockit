@@ -907,6 +907,20 @@ export class BaseHttp {
         );
     }
 
+    static async getLyricsCorrectionContextAsync(
+        publicId: string,
+        provider?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        if (provider !== undefined)
+            queryParams.append("provider", `${provider}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/lyrics/${encodeURIComponent(publicId)}/correction-context${queryString ? `?${queryString}` : ""}`,
+            dto.LyricsCorrectionContextResponseSchema
+        );
+    }
+
     static async getAlbum(
         publicId: string,
         offset?: number,
@@ -1496,6 +1510,24 @@ export class BaseHttp {
         );
     }
 
+    static async searchLibrarySongsAsync(
+        query: string,
+        offset?: number,
+        limit?: number,
+        sort?: string
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("query", `${query}`);
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        if (sort !== undefined) queryParams.append("sort", `${sort}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/user/library/songs/search${queryString ? `?${queryString}` : ""}`,
+            dto.LibrarySongSearchResponseSchema
+        );
+    }
+
     static async likeMediaAsync(payload: dto.LikeMediaRequest) {
         return this.apiPostAsync(
             `/user/like/media`,
@@ -1516,6 +1548,29 @@ export class BaseHttp {
         return this.apiGetAsync(
             `/user/liked-media`,
             dto.LikedMediaResponseSchema
+        );
+    }
+
+    static async getNavigationPinsAsync() {
+        return this.apiGetAsync(
+            `/user/navigation/pins`,
+            dto.NavigationPinsResponseSchema
+        );
+    }
+
+    static async pinNavigationMediaAsync(payload: dto.PinNavigationRequest) {
+        return this.apiPostAsync(
+            `/user/navigation/pins`,
+            dto.PinNavigationRequestSchema,
+            dto.NavigationPinsResponseSchema,
+            payload
+        );
+    }
+
+    static async unpinNavigationMediaAsync(publicId: string) {
+        return this.apiDeleteAsync(
+            `/user/navigation/pins/${encodeURIComponent(publicId)}`,
+            dto.NavigationPinsResponseSchema
         );
     }
 
@@ -1562,6 +1617,15 @@ export class BaseHttp {
 
     static async getSession() {
         return this.apiGetAsync(`/user/session`, dto.SessionResponseSchema);
+    }
+
+    static async updateVolume(payload: dto.UpdateVolumeRequest) {
+        return this.apiPostAsync(
+            `/user/volume`,
+            dto.UpdateVolumeRequestSchema,
+            dto.OkResponseSchema,
+            payload
+        );
     }
 
     static downloadApkURL(filename: string) {

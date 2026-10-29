@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useState, type JSX } from "react";
 import Image from "next/image";
-import type { BaseDynamicLyricsItem } from "@/dto";
 import { useStore } from "@nanostores/react";
 import {
     getMediaArtistsString,
@@ -15,6 +14,7 @@ import { Loader2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
+import { LyricsCorrectionEditor } from "@/components/Lyrics/LyricsCorrectionEditor";
 
 interface EditMetadataModalProps {
     media: TMediaWithSearch;
@@ -26,28 +26,6 @@ interface FieldDef {
     label: string;
     value: string;
     type: "text" | "textarea";
-}
-
-interface LyricsLine {
-    timestamp_s: number | null;
-    text: string;
-}
-
-function formatTimestamp(seconds: number | null): string {
-    if (seconds === null) return "";
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function parseTimestamp(str: string): number | null {
-    const parts = str.split(":");
-    if (parts.length === 2) {
-        const m = parseInt(parts[0], 10);
-        const s = parseInt(parts[1], 10);
-        if (!isNaN(m) && !isNaN(s)) return m * 60 + s;
-    }
-    return null;
 }
 
 function getOtherFields(media: TMediaWithSearch): FieldDef[] {
@@ -140,8 +118,6 @@ export default function EditMetadataModal({
     const [fields, setFields] = useState<FieldDef[]>(() =>
         getOtherFields(media)
     );
-    const [lyricsLines, setLyricsLines] = useState<LyricsLine[]>([]);
-    const [lyricsLoading, setLyricsLoading] = useState(false);
     const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -150,87 +126,10 @@ export default function EditMetadataModal({
     const isSong = media.type === "song";
     const mediaPublicId = isSearchResult(media) ? null : media.publicId;
 
-    useEffect(() => {
-        if (!isSong || !mediaPublicId) return;
-
-        const fetchLyrics = async (): Promise<void> => {
-            setLyricsLoading(true);
-            try {
-                const [dynamicResult, staticResult] = await Promise.all([
-                    Http.getDynamicLyricsAsync(mediaPublicId),
-                    Http.getLyricsAsync(mediaPublicId),
-                ]);
-
-                if (
-                    dynamicResult.isOk() &&
-                    dynamicResult.result.lines.length > 0
-                ) {
-                    const offset = dynamicResult.result.offset || 0;
-                    setLyricsLines(
-                        dynamicResult.result.lines.map(
-                            (line: BaseDynamicLyricsItem) => ({
-                                timestamp_s: line.timestamp_s - offset,
-                                text: line.text,
-                            })
-                        )
-                    );
-                } else if (
-                    staticResult.isOk() &&
-                    staticResult.result.lines.length > 0
-                ) {
-                    setLyricsLines(
-                        staticResult.result.lines.map((line: string) => ({
-                            timestamp_s: null,
-                            text: line,
-                        }))
-                    );
-                }
-            } catch {
-                // lyrics fetch failed, leave empty
-            }
-            setLyricsLoading(false);
-        };
-
-        fetchLyrics();
-    }, [isSong, mediaPublicId]);
-
     const handleFieldChange = (key: string, value: string): void => {
         setFields((prev) =>
             prev.map((f) => (f.key === key ? { ...f, value } : f))
         );
-    };
-
-    const handleLyricsTextChange = (index: number, text: string): void => {
-        setLyricsLines((prev) =>
-            prev.map((line, i) => (i === index ? { ...line, text } : line))
-        );
-    };
-
-    const handleLyricsTimestampChange = (index: number, raw: string): void => {
-        setLyricsLines((prev) =>
-            prev.map((line, i) =>
-                i === index
-                    ? { ...line, timestamp_s: parseTimestamp(raw) }
-                    : line
-            )
-        );
-    };
-
-    const addLyricsLine = (): void => {
-        setLyricsLines((prev) => [
-            ...prev,
-            {
-                timestamp_s:
-                    prev.length > 0
-                        ? (prev[prev.length - 1].timestamp_s ?? 0) + 30
-                        : 0,
-                text: "",
-            },
-        ]);
-    };
-
-    const removeLyricsLine = (index: number): void => {
-        setLyricsLines((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (): Promise<void> => {
@@ -242,17 +141,6 @@ export default function EditMetadataModal({
             if (f.value.trim()) {
                 changes[f.key] = f.value.trim();
             }
-        }
-
-        if (lyricsLines.length > 0) {
-            changes.lyrics = JSON.stringify(
-                lyricsLines.map((line) => ({
-                    text: line.text,
-                    ...(line.timestamp_s !== null
-                        ? { timestamp_s: line.timestamp_s }
-                        : {}),
-                }))
-            );
         }
 
         if (!mediaPublicId) return;
@@ -398,87 +286,11 @@ export default function EditMetadataModal({
                             </div>
                         ))}
 
-                        {/* Lyrics table */}
-                        {isSong && (
-                            <div>
-                                <label className="mb-1 block text-xs font-medium tracking-wider text-neutral-400 uppercase">
-                                    Lyrics
-                                </label>
-                                {lyricsLoading ? (
-                                    <div className="flex items-center justify-center py-6">
-                                        <Loader2 className="h-5 w-5 animate-spin text-neutral-500" />
-                                    </div>
-                                ) : (
-                                    <div className="max-h-40 overflow-y-auto rounded-lg border border-neutral-700 bg-neutral-800/50 text-white">
-                                        {/* Header */}
-                                        <div className="flex items-center border-b border-neutral-700 px-2 py-1.5 text-xs font-medium tracking-wider text-neutral-500 uppercase">
-                                            <span className="w-16 shrink-0 px-1">
-                                                Time
-                                            </span>
-                                            <span className="flex-1 px-1">
-                                                Text
-                                            </span>
-                                            <span className="w-8 shrink-0" />
-                                        </div>
-
-                                        {/* Rows */}
-                                        {lyricsLines.length === 0 && (
-                                            <p className="px-3 py-4 text-center text-xs text-neutral-500">
-                                                No lyrics found. Add some below.
-                                            </p>
-                                        )}
-                                        {lyricsLines.map((line, i) => (
-                                            <div
-                                                key={i}
-                                                className="flex items-center gap-1 border-b border-neutral-700/50 px-2 py-1 last:border-b-0"
-                                            >
-                                                <input
-                                                    type="text"
-                                                    value={formatTimestamp(
-                                                        line.timestamp_s
-                                                    )}
-                                                    onChange={(e): void =>
-                                                        handleLyricsTimestampChange(
-                                                            i,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="m:ss"
-                                                    className="w-16 shrink-0 rounded bg-neutral-800 px-1.5 py-1 text-center text-xs text-neutral-300 outline-none focus:bg-neutral-700"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={line.text}
-                                                    onChange={(e): void =>
-                                                        handleLyricsTextChange(
-                                                            i,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="Lyrics text"
-                                                    className="flex-1 rounded bg-neutral-800 px-2 py-1 text-sm text-white outline-none focus:bg-neutral-700"
-                                                />
-                                                <button
-                                                    onClick={(): void =>
-                                                        removeLyricsLine(i)
-                                                    }
-                                                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-neutral-500 hover:bg-red-500/20 hover:text-red-400"
-                                                >
-                                                    ×
-                                                </button>
-                                            </div>
-                                        ))}
-
-                                        {/* Add line button */}
-                                        <button
-                                            onClick={addLyricsLine}
-                                            className="flex w-full items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-700/50 hover:text-white"
-                                        >
-                                            + Add line
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                        {isSong && mediaPublicId && (
+                            <LyricsCorrectionEditor
+                                key={mediaPublicId}
+                                mediaPublicId={mediaPublicId}
+                            />
                         )}
 
                         {/* Comment */}

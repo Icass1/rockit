@@ -17,6 +17,7 @@ import useMedia from "@/hooks/useMedia";
 import { rockIt } from "@/lib/rockit/rockIt";
 import { artistPageUrl } from "@/lib/services/artistService";
 import Artists from "@/components/Artists/Artists";
+import { LibraryDragDropSurface } from "@/components/Library/LibraryDragDrop";
 import {
     isZippable,
     useLibrarySelection,
@@ -39,7 +40,9 @@ function SelectableRow({
     const selectable = selectionMode && isZippable(media);
 
     return (
-        <div
+        <LibraryDragDropSurface
+            media={media}
+            layout="row"
             className="relative"
             onClickCapture={(event): void => {
                 if (
@@ -65,7 +68,7 @@ function SelectableRow({
                     )}
                 </div>
             )}
-        </div>
+        </LibraryDragDropSurface>
     );
 }
 
@@ -263,8 +266,12 @@ export function VideoRow({
 
 export function SongRow({
     song: _song,
+    albumName,
+    location = EMediaContextLocation.LIBRARY,
 }: {
     song: BaseSongWithoutAlbumResponse;
+    albumName?: string;
+    location?: EMediaContextLocation;
 }): JSX.Element {
     const $song = useMedia(_song);
 
@@ -275,13 +282,22 @@ export function SongRow({
     };
 
     return (
-        <MediaContextMenu
-            media={$song}
-            location={EMediaContextLocation.LIBRARY}
-        >
+        <MediaContextMenu media={$song} location={location}>
             <SelectableRow media={$song}>
                 <div
-                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800"
+                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-(--color-rockit-pink)"
+                    role="button"
+                    data-library-drag-handle="true"
+                    tabIndex={0}
+                    onKeyDown={(event): void => {
+                        if (
+                            event.target === event.currentTarget &&
+                            (event.key === "Enter" || event.key === " ")
+                        ) {
+                            event.preventDefault();
+                            event.currentTarget.click();
+                        }
+                    }}
                     onClick={handlePlay}
                 >
                     <SquareCover
@@ -304,6 +320,14 @@ export function SongRow({
                             artists={$song.artists ?? []}
                             className="justify-start text-sm text-neutral-400"
                         />
+                        {albumName && (
+                            <p
+                                className="truncate text-sm text-neutral-400"
+                                title={albumName}
+                            >
+                                {albumName}
+                            </p>
+                        )}
                     </div>
                 </div>
             </SelectableRow>

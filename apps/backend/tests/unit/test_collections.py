@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -121,7 +121,7 @@ async def test_collection_queue_selects_and_persists_start_for_queue_mode(
     )
     entries = [
         CollectionEntry(
-            parent_id=root.id, media_id=track.id, position=i, added_at=datetime.now(tz=timezone.utc)
+            parent_id=root.id, media_id=track.id, position=i, added_at=datetime.now(tz=UTC)
         )
         for i, track in enumerate(tracks)
     ]

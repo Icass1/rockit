@@ -4,7 +4,6 @@
 import * as dto from "@/dto";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
-import { z } from "zod";
 
 type Middleware = <T>(
     next: () => Promise<HttpResult<T>>,

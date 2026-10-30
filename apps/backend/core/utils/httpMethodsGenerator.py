@@ -29,12 +29,12 @@ def format_route_path(path: str, param_name: str) -> str:
     )
 
 
-def response_schema(response_model: Any) -> str:
+def response_schema(response_model: object) -> str:
     """Build a response validator while preserving list item models."""
     if typing.get_origin(response_model) is list:
         item_model = typing.get_args(response_model)[0]
         return response_schema(response_model=item_model) + ".array()"
-    return f"dto.{response_model.__name__}Schema"
+    return f"dto.{cast(type[BaseModel], response_model).__name__}Schema"
 
 
 def build_query_params(

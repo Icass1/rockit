@@ -1,9 +1,16 @@
 import {
     ArtistPageResponseSchema,
-    OkResponseSchema,
+    DownloadZipRequestSchema,
     type ArtistPageResponse,
+    type DownloadZipRequest,
 } from "@/dto";
-import { BACKEND_URL, BaseHttp, IApiFetchOptions } from "@rockit/shared";
+import {
+    BACKEND_URL,
+    BaseHttp,
+    HttpResult,
+    IApiFetchOptions,
+} from "@rockit/shared";
+import { z } from "zod";
 
 export class Http extends BaseHttp {
     private static _lyricsContextRequests = new Map<
@@ -28,15 +35,59 @@ export class Http extends BaseHttp {
         return request;
     }
 
-    static async uploadProfileImage(file: File): Promise<boolean> {
-        const body = new FormData();
-        body.append("file", file);
-        const response = await this.baseApiFetchAsync("/user/image", {
-            method: "POST",
-            body,
-        });
-        if (!response.ok) return false;
-        return OkResponseSchema.safeParse(await response.json()).success;
+    static async downloadBinary(
+        path: string,
+        payload: DownloadZipRequest
+    ): Promise<HttpResult<Blob>> {
+        const parsed = DownloadZipRequestSchema.safeParse(payload);
+        if (!parsed.success) {
+            return new HttpResult<Blob>({
+                ok: false,
+                code: 400,
+                message: "Validation Error",
+                detail: parsed.error.message,
+            });
+        }
+
+        try {
+            const response = await this.baseApiFetchAsync(path, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(parsed.data),
+            });
+            if (!response.ok) {
+                const errorSchema = z.object({
+                    detail: z.union([
+                        z.string(),
+                        z.record(z.string(), z.unknown()),
+                        z.array(z.unknown()),
+                    ]),
+                });
+                const error = errorSchema.safeParse(
+                    await response.json().catch(() => undefined)
+                );
+                return new HttpResult<Blob>({
+                    ok: false,
+                    code: response.status,
+                    message: response.statusText,
+                    detail: error.success ? error.data.detail : "Unknown error",
+                });
+            }
+
+            return new HttpResult<Blob>({
+                ok: true,
+                code: response.status,
+                message: response.statusText,
+                result: await response.blob(),
+            });
+        } catch (error) {
+            return new HttpResult<Blob>({
+                ok: false,
+                code: 0,
+                message: "Network Error",
+                detail: error instanceof Error ? error.message : String(error),
+            });
+        }
     }
 
     static async getArtistPage(

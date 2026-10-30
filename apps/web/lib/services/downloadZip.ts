@@ -12,7 +12,9 @@ export async function downloadMediaAsZip(
     archiveName: string
 ): Promise<void> {
     const ids = media.flatMap((item) =>
-        "publicId" in item ? [item.publicId] : []
+        "publicId" in item && typeof item.publicId === "string"
+            ? [item.publicId]
+            : []
     );
     if (ids.length === 0) {
         return;

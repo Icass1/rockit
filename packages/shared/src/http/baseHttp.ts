@@ -1,8 +1,8 @@
-// This file is generated using: python3 -m apps.backend models
+// This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 
 import * as dto from "@/dto";
-import { BACKEND_URL } from "@/environment";
+import { z } from "zod";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
 
@@ -78,7 +78,7 @@ export class BaseHttp {
 
         if (!res.ok) {
             const obj = json as { detail?: FastApiError["detail"] };
-            console.error(obj.detail ?? "Unknown error");
+            // console.error(obj.detail ?? "Unknown error");
 
             return new HttpResult<T>({
                 ok: false,
@@ -140,65 +140,38 @@ export class BaseHttp {
 
     private static async apiPatchAsync<T>(
         path: string,
-        responseSchema: TZodSchema<T>,
-        payload?: unknown
+        responseSchema: TZodSchema<T>
     ): Promise<HttpResult<T>> {
         return this.apiFetchAsync(path, responseSchema, {
             method: "PATCH",
-            headers:
-                payload === undefined
-                    ? undefined
-                    : { "Content-Type": "application/json" },
-            body: payload === undefined ? undefined : JSON.stringify(payload),
         });
     }
 
-    static async downloadBinary(
-        url: string,
-        payload: unknown
-    ): Promise<HttpResult<Blob>> {
-        // This bypasses apiFetchAsync because the response is binary, so the
-        // network error handling it normally provides has to be repeated here.
-        let response: Response;
-        try {
-            response = await this.baseApiFetchAsync(
-                url.replace(BACKEND_URL, ""),
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                }
-            );
-        } catch (err) {
-            return new HttpResult({
-                ok: false,
-                code: 0,
-                message: "Network Error",
-                detail: (err as Error).message,
-            });
-        }
+    private static async apiPatchBodyAsync<T, G>(
+        path: string,
+        _requestSchema: TZodSchema<T>,
+        responseSchema: TZodSchema<G>,
+        body: T
+    ): Promise<HttpResult<G>> {
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+    }
 
-        if (!response.ok) {
-            let detail: string | unknown[] | Record<string, unknown> =
-                response.statusText;
-            try {
-                detail = (await response.json()).detail ?? detail;
-            } catch {
-                // Keep the HTTP status when the backend did not return JSON.
-            }
-            return new HttpResult({
-                ok: false,
-                code: response.status,
-                message: response.statusText,
-                detail,
-            });
-        }
+    private static async apiPostFileAsync<G>(
+        path: string,
+        responseSchema: TZodSchema<G>,
+        file: Blob,
+        filename: string
+    ): Promise<HttpResult<G>> {
+        const formData = new FormData();
+        formData.append("file", file, filename);
 
-        return new HttpResult({
-            ok: true,
-            code: response.status,
-            message: "OK",
-            result: await response.blob(),
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "POST",
+            body: formData,
         });
     }
 
@@ -292,7 +265,7 @@ export class BaseHttp {
         payload: dto.ReviewUserRequestRequest
     ) {
         return this.apiPostAsync(
-            `/admin/requests/${encodeURIComponent(publicId)}/review`,
+            `/admin/requests/${publicId}/review`,
             dto.ReviewUserRequestRequestSchema,
             dto.UserRequestResponseSchema,
             payload
@@ -348,7 +321,7 @@ export class BaseHttp {
 
     static async deleteBookmark(publicId: string) {
         return this.apiDeleteAsync(
-            `/bookmark/${encodeURIComponent(publicId)}`,
+            `/bookmark/${publicId}`,
             dto.OkResponseSchema
         );
     }
@@ -358,7 +331,7 @@ export class BaseHttp {
         payload: dto.UpdateBookmarkRequest
     ) {
         return this.apiPostAsync(
-            `/bookmark/${encodeURIComponent(publicId)}`,
+            `/bookmark/${publicId}`,
             dto.UpdateBookmarkRequestSchema,
             dto.BookmarkResponseSchema,
             payload
@@ -383,7 +356,7 @@ export class BaseHttp {
 
     static async deletePlaylistAsync(playlistPublicId: string) {
         return this.apiDeleteAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}`,
+            `/default/playlist/${playlistPublicId}`,
             dto.OkResponseSchema
         );
     }
@@ -400,7 +373,7 @@ export class BaseHttp {
         if (query !== undefined) queryParams.append("query", `${query}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}${queryString ? `?${queryString}` : ""}`,
+            `/default/playlist/${playlistPublicId}${queryString ? `?${queryString}` : ""}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
@@ -409,8 +382,9 @@ export class BaseHttp {
         playlistPublicId: string,
         payload: dto.UpdatePlaylistRequest
     ) {
-        return this.apiPatchAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}`,
+        return this.apiPatchBodyAsync(
+            `/default/playlist/${playlistPublicId}`,
+            dto.UpdatePlaylistRequestSchema,
             dto.BasePlaylistWithMediasResponseSchema,
             payload
         );
@@ -421,7 +395,7 @@ export class BaseHttp {
         payload: dto.AddContributorRequest
     ) {
         return this.apiPostAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}/contributor`,
+            `/default/playlist/${playlistPublicId}/contributor`,
             dto.AddContributorRequestSchema,
             dto.OkResponseSchema,
             payload
@@ -433,7 +407,7 @@ export class BaseHttp {
         targetUserPublicId: string
     ) {
         return this.apiDeleteAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}/contributor/${encodeURIComponent(targetUserPublicId)}`,
+            `/default/playlist/${playlistPublicId}/contributor/${targetUserPublicId}`,
             dto.OkResponseSchema
         );
     }
@@ -443,7 +417,7 @@ export class BaseHttp {
         payload: dto.AddMediaToPlaylistRequest
     ) {
         return this.apiPostAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}/media`,
+            `/default/playlist/${playlistPublicId}/media`,
             dto.AddMediaToPlaylistRequestSchema,
             dto.OkResponseSchema,
             payload
@@ -455,7 +429,7 @@ export class BaseHttp {
         playlistMediaPublicId: string
     ) {
         return this.apiDeleteAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}/media/${encodeURIComponent(playlistMediaPublicId)}`,
+            `/default/playlist/${playlistPublicId}/media/${playlistMediaPublicId}`,
             dto.OkResponseSchema
         );
     }
@@ -465,7 +439,7 @@ export class BaseHttp {
         playlistMediaPublicId: string
     ) {
         return this.apiGetAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}/media/${encodeURIComponent(playlistMediaPublicId)}/disable`,
+            `/default/playlist/${playlistPublicId}/media/${playlistMediaPublicId}/disable`,
             dto.OkResponseSchema
         );
     }
@@ -475,7 +449,7 @@ export class BaseHttp {
         playlistMediaPublicId: string
     ) {
         return this.apiGetAsync(
-            `/default/playlist/${encodeURIComponent(playlistPublicId)}/media/${encodeURIComponent(playlistMediaPublicId)}/enable`,
+            `/default/playlist/${playlistPublicId}/media/${playlistMediaPublicId}/enable`,
             dto.OkResponseSchema
         );
     }
@@ -499,7 +473,7 @@ export class BaseHttp {
     }
 
     static downloadZipURL() {
-        return `${BACKEND_URL}/downloader/download-zip`;
+        return `/downloader/download-zip`;
     }
 
     static async getDownloads() {
@@ -511,14 +485,14 @@ export class BaseHttp {
 
     static async deleteDownload(publicId: string) {
         return this.apiDeleteAsync(
-            `/downloader/downloads/${encodeURIComponent(publicId)}`,
+            `/downloader/downloads/${publicId}`,
             dto.OkResponseSchema
         );
     }
 
     static async retryDownload(publicId: string) {
         return this.apiFetchAsync(
-            `/downloader/downloads/${encodeURIComponent(publicId)}/retry`,
+            `/downloader/downloads/${publicId}/retry`,
             dto.OkResponseSchema,
             { method: "POST" }
         );
@@ -526,7 +500,7 @@ export class BaseHttp {
 
     static async markDownloadSeen(publicId: string) {
         return this.apiGetAsync(
-            `/downloader/downloads/${encodeURIComponent(publicId)}/seen`,
+            `/downloader/downloads/${publicId}/seen`,
             dto.OkResponseSchema
         );
     }
@@ -543,14 +517,14 @@ export class BaseHttp {
         if (q !== undefined) queryParams.append("q", `${q}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/downloader/groups/${encodeURIComponent(publicId)}/items${queryString ? `?${queryString}` : ""}`,
+            `/downloader/groups/${publicId}/items${queryString ? `?${queryString}` : ""}`,
             dto.DownloadItemsPageResponseSchema
         );
     }
 
     static async manageDownloadGroup(publicId: string, action: string) {
         return this.apiFetchAsync(
-            `/downloader/groups/${encodeURIComponent(publicId)}/${encodeURIComponent(action)}`,
+            `/downloader/groups/${publicId}/${action}`,
             dto.OkResponseSchema,
             { method: "POST" }
         );
@@ -639,7 +613,7 @@ export class BaseHttp {
         payload: dto.CollectionQueueRequest
     ) {
         return this.apiPostAsync(
-            `/featured/${encodeURIComponent(publicId)}/queue`,
+            `/featured/${publicId}/queue`,
             dto.CollectionQueueRequestSchema,
             dto.QueueResponseSchema,
             payload
@@ -659,7 +633,7 @@ export class BaseHttp {
 
     static async blockUser(userPublicId: string) {
         return this.apiFetchAsync(
-            `/friends/block/${encodeURIComponent(userPublicId)}`,
+            `/friends/block/${userPublicId}`,
             dto.OkResponseSchema,
             { method: "POST" }
         );
@@ -667,7 +641,7 @@ export class BaseHttp {
 
     static async unblockUser(userPublicId: string) {
         return this.apiDeleteAsync(
-            `/friends/block/${encodeURIComponent(userPublicId)}`,
+            `/friends/block/${userPublicId}`,
             dto.OkResponseSchema
         );
     }
@@ -681,7 +655,7 @@ export class BaseHttp {
 
     static async compareStats(userPublicId: string) {
         return this.apiGetAsync(
-            `/friends/compare/${encodeURIComponent(userPublicId)}`,
+            `/friends/compare/${userPublicId}`,
             dto.CompareStatsResponseSchema
         );
     }
@@ -742,7 +716,7 @@ export class BaseHttp {
 
     static async acceptFriendRequest(requestPublicId: string) {
         return this.apiFetchAsync(
-            `/friends/request/${encodeURIComponent(requestPublicId)}/accept`,
+            `/friends/request/${requestPublicId}/accept`,
             dto.OkResponseSchema,
             { method: "POST" }
         );
@@ -750,7 +724,7 @@ export class BaseHttp {
 
     static async rejectFriendRequest(requestPublicId: string) {
         return this.apiFetchAsync(
-            `/friends/request/${encodeURIComponent(requestPublicId)}/reject`,
+            `/friends/request/${requestPublicId}/reject`,
             dto.OkResponseSchema,
             { method: "POST" }
         );
@@ -758,7 +732,7 @@ export class BaseHttp {
 
     static async sendFriendRequest(userPublicId: string) {
         return this.apiFetchAsync(
-            `/friends/request/${encodeURIComponent(userPublicId)}`,
+            `/friends/request/${userPublicId}`,
             dto.OkResponseSchema,
             { method: "POST" }
         );
@@ -806,14 +780,14 @@ export class BaseHttp {
 
     static async deleteShare(sharePublicId: string) {
         return this.apiDeleteAsync(
-            `/friends/share/${encodeURIComponent(sharePublicId)}`,
+            `/friends/share/${sharePublicId}`,
             dto.OkResponseSchema
         );
     }
 
     static async markShareSeen(sharePublicId: string) {
         return this.apiFetchAsync(
-            `/friends/share/${encodeURIComponent(sharePublicId)}/seen`,
+            `/friends/share/${sharePublicId}/seen`,
             dto.OkResponseSchema,
             { method: "POST" }
         );
@@ -821,41 +795,41 @@ export class BaseHttp {
 
     static async removeFriend(userPublicId: string) {
         return this.apiDeleteAsync(
-            `/friends/${encodeURIComponent(userPublicId)}`,
+            `/friends/${userPublicId}`,
             dto.OkResponseSchema
         );
     }
 
     static async getUserLevel(userPublicId: string) {
         return this.apiGetAsync(
-            `/friends/${encodeURIComponent(userPublicId)}/level`,
+            `/friends/${userPublicId}/level`,
             dto.UserLevelResponseSchema
         );
     }
 
     static async getFriendStats(userPublicId: string) {
         return this.apiGetAsync(
-            `/friends/${encodeURIComponent(userPublicId)}/stats`,
+            `/friends/${userPublicId}/stats`,
             dto.FriendStatsResponseSchema
         );
     }
 
     static async getFriendStreak(userPublicId: string) {
         return this.apiGetAsync(
-            `/friends/${encodeURIComponent(userPublicId)}/streak`,
+            `/friends/${userPublicId}/streak`,
             dto.FriendStreakResponseSchema
         );
     }
 
     static async getVibeScore(userPublicId: string) {
         return this.apiGetAsync(
-            `/friends/${encodeURIComponent(userPublicId)}/vibe`,
+            `/friends/${userPublicId}/vibe`,
             dto.VibeScoreResponseSchema
         );
     }
 
     static getImageURL(path: string) {
-        return `${BACKEND_URL}/image/${encodeURIComponent(path)}`;
+        return `/image/${path}`;
     }
 
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
@@ -869,7 +843,7 @@ export class BaseHttp {
 
     static async getLrclibLyricsAsync(publicId: string) {
         return this.apiGetAsync(
-            `/lrclib/lyrics/${encodeURIComponent(publicId)}`,
+            `/lrclib/lyrics/${publicId}`,
             dto.GetLyricsResponseSchema
         );
     }
@@ -878,8 +852,9 @@ export class BaseHttp {
         publicId: string,
         payload: dto.UpdateTimestampsRequest
     ) {
-        return this.apiPatchAsync(
-            `/lrclib/lyrics/${encodeURIComponent(publicId)}/timestamps`,
+        return this.apiPatchBodyAsync(
+            `/lrclib/lyrics/${publicId}/timestamps`,
+            dto.UpdateTimestampsRequestSchema,
             dto.GetLyricsResponseSchema,
             payload
         );
@@ -891,7 +866,7 @@ export class BaseHttp {
             queryParams.append("provider", `${provider}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/lyrics/dynamic/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`,
+            `/lyrics/dynamic/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseDynamicLyricsResponseSchema
         );
     }
@@ -902,7 +877,7 @@ export class BaseHttp {
             queryParams.append("provider", `${provider}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/lyrics/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`,
+            `/lyrics/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseLyricsResponseSchema
         );
     }
@@ -916,7 +891,7 @@ export class BaseHttp {
             queryParams.append("provider", `${provider}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/lyrics/${encodeURIComponent(publicId)}/correction-context${queryString ? `?${queryString}` : ""}`,
+            `/lyrics/${publicId}/correction-context${queryString ? `?${queryString}` : ""}`,
             dto.LyricsCorrectionContextResponseSchema
         );
     }
@@ -933,14 +908,14 @@ export class BaseHttp {
         if (query !== undefined) queryParams.append("query", `${query}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/album/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`,
+            `/media/album/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BaseAlbumWithSongsResponseSchema
         );
     }
 
     static async getArtist(publicId: string) {
         return this.apiGetAsync(
-            `/media/artist/${encodeURIComponent(publicId)}`,
+            `/media/artist/${publicId}`,
             dto.BaseArtistResponseSchema
         );
     }
@@ -955,7 +930,7 @@ export class BaseHttp {
         if (limit !== undefined) queryParams.append("limit", `${limit}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/artist/${encodeURIComponent(publicId)}/page${queryString ? `?${queryString}` : ""}`,
+            `/media/artist/${publicId}/page${queryString ? `?${queryString}` : ""}`,
             dto.ArtistPageResponseSchema
         );
     }
@@ -988,14 +963,14 @@ export class BaseHttp {
         if (query !== undefined) queryParams.append("query", `${query}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/collection/${encodeURIComponent(publicId)}/items${queryString ? `?${queryString}` : ""}`,
+            `/media/collection/${publicId}/items${queryString ? `?${queryString}` : ""}`,
             dto.CollectionPageResponseSchema
         );
     }
 
     static async resolveCollectionQueue(publicId: string) {
         return this.apiGetAsync(
-            `/media/collection/${encodeURIComponent(publicId)}/playable`,
+            `/media/collection/${publicId}/playable`,
             dto.QueueResponseSchema
         );
     }
@@ -1005,7 +980,7 @@ export class BaseHttp {
         payload: dto.CollectionQueueRequest
     ) {
         return this.apiPostAsync(
-            `/media/collection/${encodeURIComponent(publicId)}/queue`,
+            `/media/collection/${publicId}/queue`,
             dto.CollectionQueueRequestSchema,
             dto.QueueResponseSchema,
             payload
@@ -1016,7 +991,7 @@ export class BaseHttp {
         const queryParams = new URLSearchParams();
         queryParams.append("timestamp_ms", `${timestampMs}`);
         const queryString = queryParams.toString();
-        return `${BACKEND_URL}/media/frame/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`;
+        return `/media/frame/${publicId}${queryString ? `?${queryString}` : ""}`;
     }
 
     static async getPlaylist(
@@ -1031,7 +1006,7 @@ export class BaseHttp {
         if (query !== undefined) queryParams.append("query", `${query}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/playlist/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`,
+            `/media/playlist/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
@@ -1063,14 +1038,14 @@ export class BaseHttp {
 
     static async getSong(publicId: string) {
         return this.apiGetAsync(
-            `/media/song/${encodeURIComponent(publicId)}`,
+            `/media/song/${publicId}`,
             dto.BaseSongWithAlbumResponseSchema
         );
     }
 
     static async getAudioBounds(publicId: string) {
         return this.apiGetAsync(
-            `/media/song/${encodeURIComponent(publicId)}/audio-bounds`,
+            `/media/song/${publicId}/audio-bounds`,
             dto.AudioBoundsResponseSchema
         );
     }
@@ -1086,14 +1061,14 @@ export class BaseHttp {
             queryParams.append("external", `${external}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/media/song/${encodeURIComponent(publicId)}/related${queryString ? `?${queryString}` : ""}`,
+            `/media/song/${publicId}/related${queryString ? `?${queryString}` : ""}`,
             dto.SongListResponseSchema
         );
     }
 
     static async getStationAsync(publicId: string) {
         return this.apiGetAsync(
-            `/media/station/${encodeURIComponent(publicId)}`,
+            `/media/station/${publicId}`,
             dto.BaseStationResponseSchema
         );
     }
@@ -1119,23 +1094,17 @@ export class BaseHttp {
 
     static async getVideoAsync(publicId: string) {
         return this.apiGetAsync(
-            `/media/video/${encodeURIComponent(publicId)}`,
+            `/media/video/${publicId}`,
             dto.BaseVideoResponseSchema
         );
     }
 
     static async deleteMediaFileAsync(publicId: string) {
-        return this.apiDeleteAsync(
-            `/media/${encodeURIComponent(publicId)}`,
-            dto.OkResponseSchema
-        );
+        return this.apiDeleteAsync(`/media/${publicId}`, dto.OkResponseSchema);
     }
 
     static async getMediaAsync(publicId: string) {
-        return this.apiGetAsync(
-            `/media/${encodeURIComponent(publicId)}`,
-            dto.MediaResponseSchema
-        );
+        return this.apiGetAsync(`/media/${publicId}`, dto.MediaResponseSchema);
     }
 
     static async searchArtists(
@@ -1152,7 +1121,7 @@ export class BaseHttp {
         if (refresh !== undefined) queryParams.append("refresh", `${refresh}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/metadata/${encodeURIComponent(provider)}/artists/search${queryString ? `?${queryString}` : ""}`,
+            `/metadata/${provider}/artists/search${queryString ? `?${queryString}` : ""}`,
             dto.MetadataResponseSchema
         );
     }
@@ -1171,7 +1140,7 @@ export class BaseHttp {
         if (refresh !== undefined) queryParams.append("refresh", `${refresh}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/metadata/${encodeURIComponent(provider)}/${encodeURIComponent(entity)}/${encodeURIComponent(externalId)}${queryString ? `?${queryString}` : ""}`,
+            `/metadata/${provider}/${entity}/${externalId}${queryString ? `?${queryString}` : ""}`,
             dto.MetadataResponseSchema
         );
     }
@@ -1195,14 +1164,14 @@ export class BaseHttp {
 
     static async getNotificationDestination(publicId: string) {
         return this.apiGetAsync(
-            `/notifications/${encodeURIComponent(publicId)}/destination`,
+            `/notifications/${publicId}/destination`,
             dto.NotificationDestinationResponseSchema
         );
     }
 
     static async markNotificationRead(publicId: string) {
         return this.apiPatchAsync(
-            `/notifications/${encodeURIComponent(publicId)}/read`,
+            `/notifications/${publicId}/read`,
             dto.NotificationResponseSchema
         );
     }
@@ -1219,15 +1188,15 @@ export class BaseHttp {
 
     static async getStation(publicId: string) {
         return this.apiGetAsync(
-            `/radio/station/${encodeURIComponent(publicId)}`,
+            `/radio/station/${publicId}`,
             dto.BaseStationResponseSchema
         );
     }
 
     static async getStationsByCountry(country: string) {
         return this.apiGetAsync(
-            `/radio/stations/by-country/${encodeURIComponent(country)}`,
-            dto.BaseStationResponseSchema.array()
+            `/radio/stations/by-country/${country}`,
+            z.array(dto.BaseStationResponseSchema)
         );
     }
 
@@ -1238,7 +1207,7 @@ export class BaseHttp {
         const queryString = queryParams.toString();
         return this.apiGetAsync(
             `/radio/stations/geo${queryString ? `?${queryString}` : ""}`,
-            dto.BaseStationResponseSchema.array()
+            z.array(dto.BaseStationResponseSchema)
         );
     }
 
@@ -1265,7 +1234,7 @@ export class BaseHttp {
             queryParams.append("external", `${external}`);
         const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/recommendation/playlist/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`,
+            `/recommendation/playlist/${publicId}${queryString ? `?${queryString}` : ""}`,
             dto.SongListResponseSchema
         );
     }
@@ -1303,14 +1272,14 @@ export class BaseHttp {
 
     static async getRockitAlbum(publicId: string) {
         return this.apiGetAsync(
-            `/rockit/album/${encodeURIComponent(publicId)}`,
+            `/rockit/album/${publicId}`,
             dto.BaseAlbumWithSongsResponseSchema
         );
     }
 
     static async getRockitSong(publicId: string) {
         return this.apiGetAsync(
-            `/rockit/song/${encodeURIComponent(publicId)}`,
+            `/rockit/song/${publicId}`,
             dto.BaseSongWithAlbumResponseSchema
         );
     }
@@ -1325,56 +1294,56 @@ export class BaseHttp {
 
     static async getAlbumAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify/album/${encodeURIComponent(spotifyId)}`,
+            `/spotify/album/${spotifyId}`,
             dto.SpotifyAlbumResponseSchema
         );
     }
 
     static async getArtistAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify/artist/${encodeURIComponent(spotifyId)}`,
+            `/spotify/artist/${spotifyId}`,
             dto.BaseArtistResponseSchema
         );
     }
 
     static async getSpotifyPlaylistAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify/playlist/${encodeURIComponent(spotifyId)}`,
+            `/spotify/playlist/${spotifyId}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
 
     static async getTrackAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify/track/${encodeURIComponent(spotifyId)}`,
+            `/spotify/track/${spotifyId}`,
             dto.SpotifyTrackResponseSchema
         );
     }
 
     static async getSpotifyScrapperAlbumAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify_scrapper/album/${encodeURIComponent(spotifyId)}`,
+            `/spotify_scrapper/album/${spotifyId}`,
             dto.SpotifyScrapperAlbumResponseSchema
         );
     }
 
     static async getSpotifyScrapperArtistAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify_scrapper/artist/${encodeURIComponent(spotifyId)}`,
+            `/spotify_scrapper/artist/${spotifyId}`,
             dto.BaseArtistResponseSchema
         );
     }
 
     static async getSpotifyScrapperPlaylistAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify_scrapper/playlist/${encodeURIComponent(spotifyId)}`,
+            `/spotify_scrapper/playlist/${spotifyId}`,
             dto.BasePlaylistWithMediasResponseSchema
         );
     }
 
     static async getSpotifyScrapperTrackAsync(spotifyId: string) {
         return this.apiGetAsync(
-            `/spotify_scrapper/track/${encodeURIComponent(spotifyId)}`,
+            `/spotify_scrapper/track/${spotifyId}`,
             dto.SpotifyScrapperTrackResponseSchema
         );
     }
@@ -1405,47 +1374,39 @@ export class BaseHttp {
         );
     }
 
-    static async getAllStorageObjects() {
-        return this.apiGetAsync(
-            `/storage-object`,
-            dto.StorageObjectResponseSchema.array()
-        );
-    }
-
-    static async getStorageObjectByKey(key: string) {
-        return this.apiGetAsync(
-            `/storage-object/by-key/${encodeURIComponent(key)}`,
-            dto.StorageObjectResponseSchema
-        );
-    }
-
-    static async getStorageObjectByPublicId(publicId: string) {
-        return this.apiGetAsync(
-            `/storage-object/by-public-id/${encodeURIComponent(publicId)}`,
-            dto.StorageObjectResponseSchema
-        );
-    }
-
-    static async deleteStorageObject(publicId: string) {
-        return this.apiDeleteAsync(
-            `/storage-object/${encodeURIComponent(publicId)}`,
-            dto.OkResponseSchema
-        );
-    }
-
-    static async getStorageObject(publicId: string) {
-        return this.apiGetAsync(
-            `/storage-object/${encodeURIComponent(publicId)}`,
-            dto.StorageObjectResponseSchema
-        );
-    }
-
     static async startAlbumUpload(payload: dto.UploadAlbumRequest) {
         return this.apiPostAsync(
             `/upload/album/start`,
             dto.UploadAlbumRequestSchema,
             dto.StartUploadResponseSchema,
             payload
+        );
+    }
+
+    static async uploadAlbumCover(
+        uploadId: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/upload/album/${uploadId}/cover`,
+            dto.OkResponseSchema,
+            file,
+            filename
+        );
+    }
+
+    static async uploadAlbumSongFile(
+        uploadId: string,
+        index: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/upload/album/${uploadId}/song-index/${index}`,
+            dto.UploadResponseSchema,
+            file,
+            filename
         );
     }
 
@@ -1467,6 +1428,19 @@ export class BaseHttp {
         );
     }
 
+    static async uploadMediaChunk(
+        uploadId: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/upload/${uploadId}/chunk`,
+            dto.OkResponseSchema,
+            file,
+            filename
+        );
+    }
+
     static async getUser() {
         return this.apiGetAsync(`/user`, dto.UserSettingsResponseSchema);
     }
@@ -1477,6 +1451,15 @@ export class BaseHttp {
             dto.UpdateCrossfadeRequestSchema,
             dto.OkResponseSchema,
             payload
+        );
+    }
+
+    static async uploadProfileImage(file: Blob, filename: string) {
+        return this.apiPostFileAsync(
+            `/user/image`,
+            dto.OkResponseSchema,
+            file,
+            filename
         );
     }
 
@@ -1491,14 +1474,14 @@ export class BaseHttp {
 
     static async addMediaToLibrary(mediaPublicId: string) {
         return this.apiGetAsync(
-            `/user/library/media/${encodeURIComponent(mediaPublicId)}`,
+            `/user/library/media/${mediaPublicId}`,
             dto.OkResponseSchema
         );
     }
 
     static async removeMediaFromLibrary(mediaPublicId: string) {
         return this.apiDeleteAsync(
-            `/user/library/media/${encodeURIComponent(mediaPublicId)}`,
+            `/user/library/media/${mediaPublicId}`,
             dto.OkResponseSchema
         );
     }
@@ -1539,7 +1522,7 @@ export class BaseHttp {
 
     static async unlikeMedia(mediaPublicId: string) {
         return this.apiDeleteAsync(
-            `/user/like/media/${encodeURIComponent(mediaPublicId)}`,
+            `/user/like/media/${mediaPublicId}`,
             dto.OkResponseSchema
         );
     }
@@ -1569,7 +1552,7 @@ export class BaseHttp {
 
     static async unpinNavigationMediaAsync(publicId: string) {
         return this.apiDeleteAsync(
-            `/user/navigation/pins/${encodeURIComponent(publicId)}`,
+            `/user/navigation/pins/${publicId}`,
             dto.NavigationPinsResponseSchema
         );
     }
@@ -1577,7 +1560,7 @@ export class BaseHttp {
     static async getNotificationEvents() {
         return this.apiGetAsync(
             `/user/notification-events`,
-            dto.NotificationEventResponseSchema.array()
+            z.array(dto.NotificationEventResponseSchema)
         );
     }
 
@@ -1591,8 +1574,9 @@ export class BaseHttp {
     static async setNotificationSubscriptions(
         payload: dto.UpdateNotificationSubscriptionsRequest
     ) {
-        return this.apiPatchAsync(
+        return this.apiPatchBodyAsync(
             `/user/notification-subscriptions`,
+            dto.UpdateNotificationSubscriptionsRequestSchema,
             dto.NotificationSubscriptionsResponseSchema,
             payload
         );
@@ -1607,13 +1591,13 @@ export class BaseHttp {
         );
     }
 
-    static async getQueue(offset?: string, limit?: number) {
+    static async getQueue(offset?: number, limit?: number) {
         const queryParams = new URLSearchParams();
-        if (offset !== undefined) queryParams.append("offset", offset);
-        if (limit !== undefined) queryParams.append("limit", String(limit));
-        const query = queryParams.toString();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        const queryString = queryParams.toString();
         return this.apiGetAsync(
-            `/user/queue${query ? `?${query}` : ""}`,
+            `/user/queue${queryString ? `?${queryString}` : ""}`,
             dto.QueueResponseSchema
         );
     }
@@ -1636,7 +1620,7 @@ export class BaseHttp {
     }
 
     static downloadApkURL(filename: string) {
-        return `${BACKEND_URL}/version/apk/${encodeURIComponent(filename)}`;
+        return `/version/apk/${filename}`;
     }
 
     static async getLatestVersion() {
@@ -1647,7 +1631,7 @@ export class BaseHttp {
     }
 
     static downloadLatestApkURL() {
-        return `${BACKEND_URL}/version/latest/apk`;
+        return `/version/latest/apk`;
     }
 
     static async getAllLanguages() {
@@ -1666,21 +1650,21 @@ export class BaseHttp {
 
     static async getVocabularyByCode(langCode: string) {
         return this.apiGetAsync(
-            `/vocabulary/${encodeURIComponent(langCode)}`,
+            `/vocabulary/${langCode}`,
             dto.VocabularyResponseSchema
         );
     }
 
     static async getChanelAsync(youtubeId: string) {
         return this.apiGetAsync(
-            `/youtube/chanel/${encodeURIComponent(youtubeId)}`,
+            `/youtube/chanel/${youtubeId}`,
             dto.YoutubeChannelResponseSchema
         );
     }
 
     static async getYoutubeVideoAsync(youtubeId: string) {
         return this.apiGetAsync(
-            `/youtube/video/${encodeURIComponent(youtubeId)}`,
+            `/youtube/video/${youtubeId}`,
             dto.YoutubeVideoResponseSchema
         );
     }

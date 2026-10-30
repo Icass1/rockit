@@ -2,7 +2,7 @@ import type { NavigationPinResponse } from "@rockit/shared";
 import type { NavigationPinsStatus } from "@/models/types/navigationPins";
 import { Http } from "@/lib/http";
 import { rockIt } from "@/lib/rockit/rockIt";
-import { createArrayAtom, createAtom } from "@/lib/store";
+import { createArrayAtom, createAtom, type ReadonlyAtom } from "@/lib/store";
 
 /** Personal shortcuts: no collection expansion, disk cache or optimistic permission claims. */
 export class NavigationPinsManager {
@@ -16,13 +16,13 @@ export class NavigationPinsManager {
     private tail: Promise<void> = Promise.resolve();
     private busy = new Set<string>();
 
-    get pinsAtom() {
+    get pinsAtom(): ReadonlyAtom<NavigationPinResponse[]> {
         return this.pins.getReadonlyAtom();
     }
-    get statusAtom() {
+    get statusAtom(): ReadonlyAtom<NavigationPinsStatus> {
         return this.status.getReadonlyAtom();
     }
-    get pendingAtom() {
+    get pendingAtom(): ReadonlyAtom<string[]> {
         return this.pending.getReadonlyAtom();
     }
 

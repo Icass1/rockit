@@ -24,17 +24,21 @@ export default function PlayerUIQueue({
     const queueFullyLoaded = rockIt.queueManager.isQueueFullyLoaded;
 
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-    const virtualWindow = useFixedVirtualWindow(
-        $queue.length,
-        QUEUE_ROW_HEIGHT
-    );
+    const {
+        containerRef,
+        onScroll,
+        startIndex,
+        endIndex,
+        topPadding,
+        bottomPadding,
+    } = useFixedVirtualWindow($queue.length, QUEUE_ROW_HEIGHT);
     const queueContainerRef = useRef<HTMLDivElement>(null);
     const setQueueContainer = useCallback(
         (node: HTMLDivElement | null): void => {
             queueContainerRef.current = node;
-            virtualWindow.containerRef(node);
+            containerRef(node);
         },
-        [virtualWindow.containerRef]
+        [containerRef]
     );
     const followTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const followDisabledRef = useRef(false);
@@ -139,7 +143,7 @@ export default function PlayerUIQueue({
             data-queue-scroll
             ref={setQueueContainer}
             onScroll={(event): void => {
-                virtualWindow.onScroll(event);
+                onScroll(event);
                 handleScroll();
                 const container = event.currentTarget;
                 if (
@@ -169,11 +173,11 @@ export default function PlayerUIQueue({
             className="flex h-full max-h-full min-h-0 w-full max-w-full min-w-0 flex-col overflow-y-auto mask-t-from-90% mask-b-from-90% py-16"
             style={{ scrollBehavior: "smooth" }}
         >
-            <div style={{ height: virtualWindow.topPadding, flexShrink: 0 }} />
+            <div style={{ height: topPadding, flexShrink: 0 }} />
             {$queue
-                .slice(virtualWindow.startIndex, virtualWindow.endIndex)
+                .slice(startIndex, endIndex)
                 .map((queueItem, offset): JSX.Element => {
-                    const index = virtualWindow.startIndex + offset;
+                    const index = startIndex + offset;
                     return (
                         <div
                             key={queueItem.queueMediaId}
@@ -204,9 +208,7 @@ export default function PlayerUIQueue({
                         </div>
                     );
                 })}
-            <div
-                style={{ height: virtualWindow.bottomPadding, flexShrink: 0 }}
-            />
+            <div style={{ height: bottomPadding, flexShrink: 0 }} />
 
             <AutoplayRecommendations />
         </div>

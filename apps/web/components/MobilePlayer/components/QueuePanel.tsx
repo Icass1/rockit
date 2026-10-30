@@ -37,10 +37,14 @@ export default function QueuePanel(): JSX.Element {
     } = useDragReorder(queue?.length ?? 0, (from: number, to: number) => {
         if (rockIt.queueManager.isQueueFullyLoaded) reorderQueue(from, to);
     });
-    const virtualWindow = useFixedVirtualWindow(
-        queue?.length ?? 0,
-        QUEUE_ROW_HEIGHT
-    );
+    const {
+        containerRef,
+        onScroll,
+        startIndex,
+        endIndex,
+        topPadding,
+        bottomPadding,
+    } = useFixedVirtualWindow(queue?.length ?? 0, QUEUE_ROW_HEIGHT);
     const totalDuration = useMemo(
         () => getTotalDuration(queue.map((item) => item.media)),
         [queue]
@@ -98,18 +102,18 @@ export default function QueuePanel(): JSX.Element {
             </div>
 
             <div
-                ref={virtualWindow.containerRef}
+                ref={containerRef}
                 onScroll={(event): void => {
-                    virtualWindow.onScroll(event);
+                    onScroll(event);
                     handleQueueScroll(event);
                 }}
                 className="hide-scroll-thumb flex-1 overflow-y-auto pb-10"
             >
-                <div style={{ height: virtualWindow.topPadding }} />
+                <div style={{ height: topPadding }} />
                 {queue
-                    .slice(virtualWindow.startIndex, virtualWindow.endIndex)
+                    .slice(startIndex, endIndex)
                     .map((item: QueueItem, offset: number): JSX.Element => {
-                        const index = virtualWindow.startIndex + offset;
+                        const index = startIndex + offset;
                         const playable = getPlayableMedia(item);
                         const isActive =
                             playable.publicId === currentMedia?.publicId;
@@ -139,7 +143,7 @@ export default function QueuePanel(): JSX.Element {
                             />
                         );
                     })}
-                <div style={{ height: virtualWindow.bottomPadding }} />
+                <div style={{ height: bottomPadding }} />
                 <AutoplayRecommendations />
             </div>
         </div>

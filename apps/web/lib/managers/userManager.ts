@@ -142,7 +142,8 @@ export class UserManager extends BaseUserManager {
         )
             return false;
         try {
-            if (!(await Http.uploadProfileImage(file))) return false;
+            const upload = await Http.uploadProfileImage(file, file.name);
+            if (upload.isNotOk()) return false;
             const session = await Http.getSession();
             if (
                 !session.isOk() ||

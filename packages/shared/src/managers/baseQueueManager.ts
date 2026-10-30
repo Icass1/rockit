@@ -239,7 +239,7 @@ export class BaseQueueManager {
         const load = (async (): Promise<boolean> => {
             const generation = this._queueGeneration;
             const response = await getRockIt().http.getQueue(
-                String(offset),
+                offset,
                 this._queuePageSize
             );
             if (response.isNotOk()) {

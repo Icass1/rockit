@@ -1,7 +1,7 @@
 import { atom } from "nanostores";
 
 export const networkStatus = atom<"online" | "offline">(
-    typeof window == "undefined"
+    typeof window === "undefined"
         ? "offline"
         : navigator.onLine
           ? "online"

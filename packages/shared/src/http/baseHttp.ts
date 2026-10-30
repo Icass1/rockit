@@ -1607,8 +1607,15 @@ export class BaseHttp {
         );
     }
 
-    static async getQueue() {
-        return this.apiGetAsync(`/user/queue`, dto.QueueResponseSchema);
+    static async getQueue(offset?: string, limit?: number) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", offset);
+        if (limit !== undefined) queryParams.append("limit", String(limit));
+        const query = queryParams.toString();
+        return this.apiGetAsync(
+            `/user/queue${query ? `?${query}` : ""}`,
+            dto.QueueResponseSchema
+        );
     }
 
     static async cycleRepeatMode() {

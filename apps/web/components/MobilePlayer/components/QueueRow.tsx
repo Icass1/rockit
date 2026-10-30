@@ -8,6 +8,7 @@ import { OfflineIndicator } from "@/components/OfflineIndicator/OfflineIndicator
 
 interface QueueRowProps {
     media: TPlayableMedia;
+    canEdit: boolean;
     index: number;
     isActive: boolean;
     isDragging: boolean;
@@ -20,6 +21,7 @@ interface QueueRowProps {
 
 export default function QueueRow({
     media,
+    canEdit,
     index,
     isActive,
     isDragging,
@@ -86,6 +88,7 @@ export default function QueueRow({
             <button
                 type="button"
                 onClick={onDelete}
+                disabled={!canEdit}
                 className="flex h-9 w-9 shrink-0 items-center justify-center text-white/40"
                 aria-label="Quitar de la cola"
             >
@@ -97,6 +100,7 @@ export default function QueueRow({
                 type="button"
                 data-drag-handle
                 onPointerDown={onDragHandlePointerDown}
+                disabled={!canEdit}
                 className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center text-white/35"
                 aria-label="Reordenar"
             >

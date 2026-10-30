@@ -4,11 +4,15 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.access.imageAccess import ImageAccess
 from core.framework.downloader.baseDownload import BaseDownload
+from core.framework.media.image import Image
 from core.framework.models.urlPattern import UrlPattern
 from core.framework.objectFiles import ObjectFiles
 from core.framework.provider.baseMediaProvider import BaseMediaProvider
 from core.framework.provider.types import AddFromUrlResult
+from core.framework.storage import Storage
+from core.responses.baseArtistResponse import BaseArtistResponse
 from core.responses.baseVideoResponse import BaseVideoResponse
 from core.responses.searchResponse import (
     ArtistSearchResultsItem,
@@ -231,44 +235,78 @@ class YoutubeProvider(BaseMediaProvider):
         self, session: AsyncSession, public_ids: list[str]
     ) -> Result[list[BaseVideoResponse]]:
         """Get videos by public_ids."""
+        if not public_ids:
+            return Result(code=ResultCode.OK, message="OK", result=[])
 
-        results: list[BaseVideoResponse] = []
-        for public_id in public_ids:
-            a_result_video: Result[VideoRow] = await Video.get_video_from_public_id_async(
-                session=session, public_id=public_id
-            )
-            if a_result_video.is_not_ok():
-                logger.error(f"Error getting video from public id {public_id}")
+        videos_result = await YouTubeAccess.get_videos_by_public_ids_async(
+            session=session, public_ids=public_ids
+        )
+        if videos_result.is_not_ok():
+            logger.error(f"Error loading queued YouTube videos. {videos_result.info()}")
+            return Result(code=videos_result.code(), message=videos_result.message())
+
+        records = videos_result.result()
+        image_ids = {
+            image_id
+            for video, _, channel in records
+            for image_id in (video.image_id, channel.image_id)
+        }
+        images_result = await ImageAccess.get_images_by_ids_async(
+            session=session, ids=list(image_ids)
+        )
+        if images_result.is_not_ok():
+            logger.error(f"Error loading queued YouTube images. {images_result.info()}")
+            return Result(code=images_result.code(), message=images_result.message())
+
+        images = images_result.result()
+        image_urls_result = await Image.get_internal_image_urls_async(images=list(images.values()))
+        if image_urls_result.is_not_ok():
+            return Result(code=image_urls_result.code(), message=image_urls_result.message())
+        image_urls = image_urls_result.result()
+
+        provider_name = self.get_name()
+        results_by_public_id: dict[str, BaseVideoResponse] = {}
+        for video, media, channel in records:
+            video_image = images.get(video.image_id)
+            channel_image = images.get(channel.image_id)
+            if video_image is None or channel_image is None:
+                logger.error(f"Missing image for queued YouTube video {media.public_id}")
                 continue
 
-            video: VideoRow = a_result_video.result()
-
-            a_result: Result[YoutubeVideoResponse] = await YouTube.get_video_async(
-                session=session, youtube_id=video.youtube_id
+            channel_response = BaseArtistResponse(
+                provider=provider_name,
+                publicId=channel.youtube_id,
+                url=f"https://www.youtube.com/channel/{channel.youtube_id}",
+                providerUrl=f"https://www.youtube.com/channel/{channel.youtube_id}",
+                name=channel.name,
+                imageUrl=image_urls[channel_image.id],
+                dominantColor=channel_image.dominant_color,
             )
-            if a_result.is_not_ok():
-                logger.error(f"Error getting video from YouTube. {a_result.info()}")
-                continue
-
-            youtube_video: YoutubeVideoResponse = a_result.result()
-
-            results.append(
-                BaseVideoResponse(
-                    provider=youtube_video.provider,
-                    publicId=youtube_video.publicId,
-                    providerUrl=youtube_video.providerUrl,
-                    name=youtube_video.name,
-                    imageUrl=youtube_video.imageUrl or "",
-                    dominantColor=youtube_video.dominantColor,
-                    duration_ms=youtube_video.duration_ms,
-                    artists=youtube_video.artists,
-                    downloaded=youtube_video.downloaded,
-                    videoUrl=youtube_video.videoUrl,
-                    audioUrl=youtube_video.audioUrl,
-                )
+            results_by_public_id[media.public_id] = BaseVideoResponse(
+                provider=provider_name,
+                publicId=media.public_id,
+                providerUrl=video.youtube_url,
+                name=video.name,
+                videoUrl=Storage.get_public_url(video.storage_object),
+                audioUrl=None,
+                imageUrl=image_urls[video_image.id],
+                dominantColor=video_image.dominant_color,
+                duration_ms=(
+                    video.real_duration_ms if video.real_duration_ms else video.duration_ms
+                ),
+                artists=[channel_response],
+                downloaded=video.storage_object is not None,
             )
 
-        return Result(code=ResultCode.OK, message="OK", result=results)
+        return Result(
+            code=ResultCode.OK,
+            message="OK",
+            result=[
+                results_by_public_id[public_id]
+                for public_id in public_ids
+                if public_id in results_by_public_id
+            ],
+        )
 
     def get_stats_media_info_cte_fragment(self) -> str | None:
         from core.enums.mediaTypeEnum import MediaTypeEnum

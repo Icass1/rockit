@@ -6,6 +6,28 @@ import {
 import { BACKEND_URL, BaseHttp, IApiFetchOptions } from "@rockit/shared";
 
 export class Http extends BaseHttp {
+    private static _lyricsContextRequests = new Map<
+        string,
+        ReturnType<typeof BaseHttp.getLyricsCorrectionContextAsync>
+    >();
+
+    static override getLyricsCorrectionContextAsync(
+        publicId: string,
+        provider?: string
+    ): ReturnType<typeof BaseHttp.getLyricsCorrectionContextAsync> {
+        const key = JSON.stringify([publicId, provider]);
+        const pending = this._lyricsContextRequests.get(key);
+        if (pending) return pending;
+
+        const request = super
+            .getLyricsCorrectionContextAsync(publicId, provider)
+            .finally(() => {
+                this._lyricsContextRequests.delete(key);
+            });
+        this._lyricsContextRequests.set(key, request);
+        return request;
+    }
+
     static async uploadProfileImage(file: File): Promise<boolean> {
         const body = new FormData();
         body.append("file", file);

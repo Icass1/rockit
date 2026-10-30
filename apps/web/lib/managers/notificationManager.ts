@@ -29,16 +29,14 @@ export class NotificationManager {
     private _revision = 0;
     private _offset = 0;
     private _unreadOnly = false;
-    private _timer?: ReturnType<typeof setInterval>;
-    private _refreshListener = (): void => {
-        if (document.visibilityState !== "hidden") void this.refreshAsync();
-    };
-
     init(): void {
         if (typeof window === "undefined") return;
         rockIt.webSocketManager.onMessage(
-            EWebSocketMessage.NotificationsChanged,
-            () => void this.refreshAsync()
+            EWebSocketMessage.NotificationState,
+            (message) => {
+                this._unreadCount.set(message.unreadCount);
+                this._totalCount.set(message.totalCount);
+            }
         );
     }
 
@@ -53,17 +51,8 @@ export class NotificationManager {
         this._totalCount.set(0);
         this._error.set(null);
         toast.dismiss();
-        if (this._timer) clearInterval(this._timer);
         if (typeof window === "undefined") return;
-        window.removeEventListener("focus", this._refreshListener);
-        window.removeEventListener("online", this._refreshListener);
-        document.removeEventListener("visibilitychange", this._refreshListener);
         if (!username) return;
-        window.addEventListener("focus", this._refreshListener);
-        window.addEventListener("online", this._refreshListener);
-        document.addEventListener("visibilitychange", this._refreshListener);
-        this._timer = setInterval(this._refreshListener, 30_000);
-        void this.refreshAsync();
     }
 
     setPage(offset: number, unreadOnly = false): void {

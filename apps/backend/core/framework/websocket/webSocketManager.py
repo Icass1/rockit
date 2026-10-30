@@ -17,6 +17,7 @@ from core.responses.downloadProgressMessage import DownloadProgressMessage
 from core.responses.friendsPresenceChangedMessage import (
     FriendsPresenceChangedMessage,
 )
+from core.responses.notificationResponses import NotificationStateMessage
 from core.responses.onlineUsersMessage import OnlineUsersMessage
 from logger import getLogger
 
@@ -84,14 +85,12 @@ class WebSocketManager:
         logger.info(f"WebSocket connected for user: {user_id}")
         if not was_online:
             await self.broadcast_online_users_async()
-            await self.notify_friends_presence_async(user_id)
+            await self.notify_friends_presence_async(user_id, is_online=True)
         else:
             async with self._presence_lock:
                 await self.send_to_socket_async(
                     websocket, OnlineUsersMessage(count=len(self.active_connections))
                 )
-        # Refresh the reconnecting tab even if another device kept this user online.
-        await self.send_to_socket_async(websocket, FriendsPresenceChangedMessage())
 
     async def disconnect_async(self, user_id: int, websocket: WebSocket) -> None:
         if websocket in self.active_connections.get(user_id, set()):
@@ -101,7 +100,7 @@ class WebSocketManager:
             if not self.active_connections[user_id]:
                 del self.active_connections[user_id]
                 await self.broadcast_online_users_async()
-                await self.notify_friends_presence_async(user_id)
+                await self.notify_friends_presence_async(user_id, is_online=False)
                 await close_listen_interval_on_disconnect_async(
                     user_id=user_id,
                     user_playback_states=self.user_playback_states,
@@ -123,7 +122,7 @@ class WebSocketManager:
         for user_id, socket in disconnected:
             await self.disconnect_async(user_id, socket)
 
-    async def notify_friends_presence_async(self, user_id: int) -> None:
+    async def notify_friends_presence_async(self, user_id: int, is_online: bool) -> None:
         from core.framework.friend.friend import Friend
 
         try:
@@ -133,11 +132,68 @@ class WebSocketManager:
                     logger.error("Cannot resolve presence recipients: %s", friends.info())
                     return
                 friend_ids = friends.result()
-            # Only accepted mutual friends receive an invalidation, without user IDs.
+                from sqlalchemy import select
+
+                from core.access.db.ormModels.user import UserRow
+
+                user = await session.scalar(select(UserRow).where(UserRow.id == user_id))
+                if user is None:
+                    return
+                public_id = user.public_id
+            # Only accepted mutual friends receive the changed user's public presence.
             for friend_id in friend_ids:
-                await self.send_to_user_async(friend_id, FriendsPresenceChangedMessage())
+                await self.send_to_user_async(
+                    friend_id,
+                    FriendsPresenceChangedMessage(
+                        userPublicId=public_id,
+                        isOnline=is_online,
+                    ),
+                )
         except Exception:
             logger.exception("Cannot notify friends of presence change")
+
+    async def send_social_snapshot_async(
+        self, user_id: int, websocket: WebSocket | None = None
+    ) -> None:
+        """Send initial social state when a client connects or after a social change."""
+        from core import db_context
+        from core.framework.friend.notifications import build_social_snapshot_async
+
+        try:
+            async with db_context.session_scope_async() as session:
+                message = await build_social_snapshot_async(session, user_id, self)
+            if message is None:
+                return
+            if websocket is not None:
+                await self.send_to_socket_async(websocket, message)
+            else:
+                await self.send_to_user_async(user_id=user_id, message=message)
+        except Exception:
+            logger.exception("Cannot send social snapshot to user %s", user_id)
+
+    async def send_notification_state_async(
+        self, user_id: int, websocket: WebSocket | None = None
+    ) -> None:
+        """Send unread notification counts to a newly connected client."""
+        from core import db_context
+        from core.access.notificationAccess import NotificationAccess
+
+        try:
+            async with db_context.session_scope_async() as session:
+                result = await NotificationAccess.list_async(
+                    session=session, user_id=user_id, limit=1, offset=0
+                )
+                if result.is_not_ok():
+                    logger.error("Cannot load notification state: %s", result.info())
+                    return
+                _, unread_count, total_count = result.result()
+            message = NotificationStateMessage(unreadCount=unread_count, totalCount=total_count)
+            if websocket is not None:
+                await self.send_to_socket_async(websocket, message)
+            else:
+                await self.send_to_user_async(user_id=user_id, message=message)
+        except Exception:
+            logger.exception("Cannot send notification state to user %s", user_id)
 
     async def send_to_user_async(
         self,

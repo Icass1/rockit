@@ -34,9 +34,7 @@ export class FriendManager {
         this._init = true;
         rockIt.userManager.loggedInAtom.subscribe((loggedIn) => {
             if (loggedIn) {
-                void this.fetchFriends();
                 void this.fetchBlocked();
-                void this.fetchRequests();
             } else {
                 ++this._friendsGeneration;
                 this._loadingAtom.set(false);
@@ -50,23 +48,59 @@ export class FriendManager {
 
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.SocialChanged,
-            () => {
-                void this.fetchFriends();
-                void this.fetchBlocked();
-                void this.fetchRequests();
-                void this.fetchActivity();
+            (message) => {
+                this._friendsAtom.set(message.friends);
+                this._incomingRequestsAtom.set(message.incoming);
+                this._sentRequestsAtom.set(message.sent);
+                this._activityAtom.set(message.activities);
+                this._loadingAtom.set(false);
+                this._errorAtom.set(null);
             }
         );
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.FriendsPresenceChanged,
-            () => {
-                void this.fetchFriends();
+            (message) => {
+                if (!message.userPublicId) return;
+                this._friendsAtom.set(
+                    this._friendsAtom.get().map((friend) =>
+                        friend.publicId === message.userPublicId
+                            ? {
+                                  ...friend,
+                                  isOnline: message.isOnline ?? false,
+                                  nowPlaying: message.nowPlaying ?? null,
+                              }
+                            : friend
+                    )
+                );
             }
         );
         rockIt.webSocketManager.onMessage(
             EWebSocketMessage.FriendActivity,
-            () => {
-                this.fetchActivity();
+            (message) => {
+                const existing = this._activityAtom.get();
+                if (
+                    existing.some(
+                        (item) =>
+                            item.userPublicId === message.userPublicId &&
+                            item.mediaPublicId === message.mediaPublicId &&
+                            item.listenedAt === message.listenedAt
+                    )
+                )
+                    return;
+                this._activityAtom.set(
+                    [
+                        {
+                            userPublicId: message.userPublicId,
+                            username: message.username,
+                            userImageUrl: message.userImageUrl,
+                            mediaPublicId: message.mediaPublicId,
+                            mediaName: message.mediaName,
+                            mediaImageUrl: message.mediaImageUrl,
+                            listenedAt: message.listenedAt,
+                        },
+                        ...existing,
+                    ].slice(0, 30)
+                );
             }
         );
     }
@@ -199,7 +233,6 @@ export class FriendManager {
         try {
             const res = await Http.sendFriendRequest(userPublicId);
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchRequests();
             this._searchResultsAtom.set(
                 this._searchResultsAtom
                     .get()
@@ -226,8 +259,12 @@ export class FriendManager {
         try {
             const res = await Http.acceptFriendRequest(requestPublicId);
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchRequests();
-            await this.fetchFriends();
+            this._incomingRequestsAtom.set(
+                this._incomingRequestsAtom
+                    .get()
+                    .filter((request) => request.publicId !== requestPublicId)
+            );
+            void this.fetchFriends();
             rockIt.notificationManager.notifySuccess(
                 rockIt.vocabularyManager.vocabulary.FRIENDS_REQUEST_ACCEPTED
             );
@@ -245,7 +282,11 @@ export class FriendManager {
         try {
             const res = await Http.rejectFriendRequest(requestPublicId);
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchRequests();
+            this._incomingRequestsAtom.set(
+                this._incomingRequestsAtom
+                    .get()
+                    .filter((request) => request.publicId !== requestPublicId)
+            );
             return true;
         } catch {
             return false;
@@ -256,7 +297,11 @@ export class FriendManager {
         try {
             const res = await Http.removeFriend(userPublicId);
             if (!res.isOk()) throw new Error(String(res.detail));
-            await this.fetchFriends();
+            this._friendsAtom.set(
+                this._friendsAtom
+                    .get()
+                    .filter((friend) => friend.publicId !== userPublicId)
+            );
             rockIt.notificationManager.notifySuccess(
                 rockIt.vocabularyManager.vocabulary.FRIENDS_REMOVED
             );
@@ -282,6 +327,24 @@ export class FriendManager {
         } catch {
             // silent
         }
+    }
+
+    updatePresence(
+        publicId: string,
+        isOnline: boolean,
+        nowPlaying?: string | null
+    ): void {
+        this._friendsAtom.set(
+            this._friendsAtom.get().map((friend) =>
+                friend.publicId === publicId
+                    ? {
+                          ...friend,
+                          isOnline,
+                          nowPlaying: nowPlaying ?? friend.nowPlaying,
+                      }
+                    : friend
+            )
+        );
     }
 
     async fetchLeaderboard(): Promise<{

@@ -195,7 +195,12 @@ class Notification:
         session: AsyncSession, user_id: int, public_id: str
     ) -> Result[NotificationRow]:
         """Mark a notification read for its authenticated owner."""
-        return await NotificationAccess.mark_read_async(session, user_id, public_id)
+        result = await NotificationAccess.mark_read_async(session, user_id, public_id)
+        if result.is_ok():
+            from core.framework.friend.notifications import notify_notifications_after_commit
+
+            notify_notifications_after_commit(session=session, user_id=user_id)
+        return result
 
     @staticmethod
     async def download_async(

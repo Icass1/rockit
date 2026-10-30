@@ -447,6 +447,10 @@ export {
     type NavigationPinsResponse,
 } from "./navigationPinsResponse";
 export {
+    NotificationChangedMessageSchema,
+    type NotificationChangedMessage,
+} from "./notificationChangedMessage";
+export {
     NotificationDestinationSchema,
     type NotificationDestination,
 } from "./notificationDestination";
@@ -470,6 +474,10 @@ export {
     NotificationResponseSchema,
     type NotificationResponse,
 } from "./notificationResponse";
+export {
+    NotificationStateMessageSchema,
+    type NotificationStateMessage,
+} from "./notificationStateMessage";
 export {
     NotificationSubscriptionsResponseSchema,
     type NotificationSubscriptionsResponse,
@@ -638,6 +646,10 @@ export {
     SkipClickedMessageRequestSchema,
     type SkipClickedMessageRequest,
 } from "./skipClickedMessageRequest";
+export {
+    SocialSnapshotMessageSchema,
+    type SocialSnapshotMessage,
+} from "./socialSnapshotMessage";
 export {
     SongListResponseSchema,
     type SongListResponse,

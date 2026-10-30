@@ -51,6 +51,13 @@ export class WebSocketManager {
                 this._onlineUsers.set(data.count);
             } else if (data.type === EWebSocketMessage.FriendsPresenceChanged) {
                 data = FriendsPresenceChangedMessageSchema.parse(data);
+                if (data.userPublicId) {
+                    rockIt.friendManager.updatePresence(
+                        data.userPublicId,
+                        data.isOnline,
+                        data.nowPlaying
+                    );
+                }
             } else if (data.type === EWebSocketMessage.CurrentMedia) {
                 data = CurrentMediaMessageSchema.parse(data);
                 if (this._outgoingPlayback?.playbackId !== data.playbackId) {

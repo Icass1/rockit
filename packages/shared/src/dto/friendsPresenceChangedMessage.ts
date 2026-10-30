@@ -7,9 +7,9 @@ export const FriendsPresenceChangedMessageSchema = z.object({
     type: z
         .union([z.literal("friends_presence_changed")])
         .default("friends_presence_changed"),
-    userPublicId: z.string().nullable().optional(),
+    userPublicId: z.string().nullable(),
     isOnline: z.boolean().default(false),
-    nowPlaying: z.string().nullable().optional(),
+    nowPlaying: z.string().nullable(),
 });
 
 export type FriendsPresenceChangedMessage = z.infer<

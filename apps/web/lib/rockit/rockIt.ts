@@ -70,10 +70,6 @@ export class RockIt {
     constructor() {
         setRockIt(this);
         if (typeof window === "undefined") return;
-        this.webSocketManager.onMessage(
-            EWebSocketMessage.NotificationsChanged,
-            () => void this.notificationManager.refreshAsync()
-        );
     }
 
     init(): Promise<void> {
@@ -87,7 +83,6 @@ export class RockIt {
         await this.init();
         await this.userManager.updateAsync();
         await this.vocabularyManager.init();
-        await this.notificationManager.refreshAsync();
         await this.webSocketManager.reconnectAsync();
         await this.queueManager.refreshAsync();
         await Promise.all([
@@ -97,15 +92,13 @@ export class RockIt {
     }
 
     private async initializeAsync(): Promise<void> {
-        rockIt.vocabularyManager.langAtom.listen(() => {
-            void rockIt.notificationManager.refreshAsync();
-        });
         rockIt.mediaPlayerManager.init();
         await rockIt.userManager.init();
+        rockIt.friendManager.init();
+        rockIt.notificationManager.init();
         if (rockIt.userManager.loggedInAtom.get()) {
             await rockIt.webSocketManager.init();
         }
-        await rockIt.notificationManager.refreshAsync();
         await rockIt.queueManager.init();
         await Promise.all([
             rockIt.downloaderManager.init(),
@@ -114,7 +107,6 @@ export class RockIt {
         ]);
         rockIt.navigationPinsManager.init();
         rockIt.libraryManager.init();
-        rockIt.friendManager.init();
         rockIt.sharingManager.init();
         rockIt.listenTogetherManager.init();
         rockIt.mediaSessionManager.init();

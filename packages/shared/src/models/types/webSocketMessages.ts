@@ -14,7 +14,10 @@ import type {
     PlaylistRenamedMessage,
     QueueTypeMessage,
 } from "@rockit/shared";
-import type { FriendsPresenceChangedMessage } from "../../dto/friendsPresenceChangedMessage";
+import type {
+    FriendsPresenceChangedMessage,
+    NotificationStateMessage,
+} from "../../dto";
 
 export interface FriendActivityMessage {
     type: "friend_activity";
@@ -40,12 +43,6 @@ export interface SocialChangedMessage {
 
 export interface NotificationsChangedMessage {
     type: "notifications_changed";
-    unreadCount: number;
-    totalCount: number;
-}
-
-export interface NotificationStateMessage {
-    type: "notification_state";
     unreadCount: number;
     totalCount: number;
 }

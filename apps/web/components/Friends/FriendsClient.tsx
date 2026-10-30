@@ -27,9 +27,11 @@ export default function FriendsClient(): JSX.Element {
             rockIt.sharingManager.fetchSent(),
             rockIt.listenTogetherManager.fetchSessions(),
         ]).finally(() => setReady(true));
-        const unsubscribe = rockIt.friendManager.friendsAtom.subscribe((value) => {
-            if (value.length > 0) setReady(true);
-        });
+        const unsubscribe = rockIt.friendManager.friendsAtom.subscribe(
+            (value) => {
+                if (value.length > 0) setReady(true);
+            }
+        );
         return unsubscribe;
     }, []);
     return (

@@ -47,8 +47,13 @@ logger = getLogger(__name__)
 
 class User:
     @staticmethod
-    async def get_user_queue_async(session: AsyncSession, user_id: int) -> Result[QueueResponse]:
-        """Get the user's queue with all songs."""
+    async def get_user_queue_async(
+        session: AsyncSession,
+        user_id: int,
+        offset: int | None = None,
+        limit: int = 50,
+    ) -> Result[QueueResponse]:
+        """Get one page of the user's queue, centered around current playback initially."""
 
         a_result_user: Result[UserRow] = await UserAccess.get_user_from_id(
             session=session, user_id=user_id
@@ -60,45 +65,87 @@ class User:
         user: UserRow = a_result_user.result()
         current_queue_id: int | None = user.current_queue_id
 
-        a_result_queue: Result[list[UserQueueRow]] = await UserQueueAccess.get_all_user_queues(
-            session=session, user_id=user_id
+        queue_type = QueueTypeEnum(user.queue_type_key)
+        a_result_queue: Result[
+            tuple[list[UserQueueRow], int, int]
+        ] = await UserQueueAccess.get_user_queue_page_async(
+            session=session,
+            user_id=user_id,
+            queue_type=queue_type,
+            current_queue_id=current_queue_id,
+            offset=offset,
+            limit=limit,
         )
         if a_result_queue.is_not_ok():
             logger.error(f"Error getting user queue. {a_result_queue.info()}")
             return Result(code=a_result_queue.code(), message=a_result_queue.message())
 
-        queue_items: list[UserQueueRow] = a_result_queue.result()
+        queue_items, total, page_offset = a_result_queue.result()
 
-        from core.access.collectionAccess import CollectionAccess
-        from core.framework.media.collection import Collection
-
-        ids = {item.media_id for item in queue_items} | {
-            item.list_media_id for item in queue_items if item.list_media_id is not None
-        }
-        identifiers = await CollectionAccess.public_ids_async(session=session, ids=list(ids))
-        if identifiers.is_not_ok():
-            logger.error(f"Error resolving queue identifiers. {identifiers.info()}")
-            return Result(code=identifiers.code(), message=identifiers.message())
-        public_ids = identifiers.result()
-        records = await CollectionAccess.records_async(
-            session=session,
-            public_ids=list({item.media.public_id for item in queue_items}),
-            user_id=user_id,
+        # Queue rows already include their media records. Resolve list IDs once,
+        # then hydrate media directly by provider instead of running the full
+        # collection visibility/summary pipeline over every queued track.
+        list_ids = list(
+            {item.list_media_id for item in queue_items if item.list_media_id is not None}
         )
-        if records.is_not_ok():
-            logger.error(f"Error resolving queue metadata. {records.info()}")
-            return Result(code=records.code(), message=records.message())
-        hydrated = await Collection.hydrate_async(session=session, records=records.result())
-        if hydrated.is_not_ok():
-            logger.error(f"Error hydrating queue. {hydrated.info()}")
-            return Result(code=hydrated.code(), message=hydrated.message())
-        medias = hydrated.result()
+        public_ids: dict[int, str] = {}
+        if list_ids:
+            from core.access.collectionAccess import CollectionAccess
+
+            identifiers = await CollectionAccess.public_ids_async(session=session, ids=list_ids)
+            if identifiers.is_not_ok():
+                logger.error(f"Error resolving queue list identifiers. {identifiers.info()}")
+                return Result(code=identifiers.code(), message=identifiers.message())
+            public_ids = identifiers.result()
+
+        grouped_ids: defaultdict[tuple[int, int], set[str]] = defaultdict(set)
+        for item in queue_items:
+            grouped_ids[(item.media.provider_id, item.media.media_type_key)].add(
+                item.media.public_id
+            )
+
+        hydrate_methods = {
+            MediaTypeEnum.SONG.value: "get_songs_async",
+            MediaTypeEnum.VIDEO.value: "get_videos_async",
+            MediaTypeEnum.RADIO.value: "get_stations_async",
+        }
+        medias: dict[str, Any] = {}
+        for (provider_id, media_type_key), media_public_id_set in grouped_ids.items():
+            media_public_ids = list(media_public_id_set)
+            method_name = hydrate_methods.get(media_type_key)
+            provider: BaseMediaProvider | None = providers.find_media_provider(
+                provider_id=provider_id
+            )
+            if provider is None or method_name is None:
+                logger.error(
+                    f"No queue media provider for provider {provider_id}, "
+                    f"media type {media_type_key}."
+                )
+                continue
+
+            # Keep parameter lists safely below PostgreSQL's bind limit while
+            # avoiding the old 200-item batches and their excess round trips.
+            for start in range(0, len(media_public_ids), 5000):
+                response = await getattr(provider, method_name)(
+                    session=session,
+                    public_ids=media_public_ids[start : start + 5000],
+                )
+                if response.is_not_ok():
+                    logger.error(
+                        f"Error hydrating queue media with provider {provider_id}. "
+                        f"{response.info()}"
+                    )
+                    return Result(code=response.code(), message=response.message())
+                medias.update({media.publicId: media for media in response.result()})
+
         return Result(
             code=ResultCode.OK,
             message="OK",
             result=QueueResponse(
                 currentQueueMediaId=current_queue_id,
-                queueType=QueueTypeEnum(user.queue_type_key),
+                queueType=queue_type,
+                offset=page_offset,
+                total=total,
                 queue=[
                     QueueResponseItem(
                         queueMediaId=item.queue_id,

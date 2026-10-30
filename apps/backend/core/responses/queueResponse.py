@@ -26,6 +26,8 @@ class QueueResponse(BaseModel):
     currentQueueMediaId: int | None
     queue: list[QueueResponseItem]
     queueType: QueueTypeEnum
+    offset: int = 0
+    total: int = 0
 
     @field_serializer("queueType")
     def serialize_queue_type(self, queue_type: QueueTypeEnum) -> str:

@@ -19,11 +19,16 @@ const eslintConfig = defineConfig([
                     ],
                 },
             ],
+            eqeqeq: ["error", "always"],
+        },
+    },
+    {
+        files: ["**/*.{ts,tsx,mts,cts}"],
+        rules: {
             "@typescript-eslint/explicit-function-return-type": [
                 "error",
                 { allowExpressions: true },
             ],
-            eqeqeq: ["error", "always"],
         },
     },
     // Override default ignores of eslint-config-next.

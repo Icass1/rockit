@@ -5,6 +5,7 @@ from sqlalchemy import Result as DBResult
 from sqlalchemy import Select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from core.access.db.ormModels.image import ImageRow
 from core.access.db.ormModels.media import CoreMediaRow
@@ -35,6 +36,38 @@ def parse_duration_to_seconds(duration: str) -> int:
 
 
 class YouTubeAccess:
+    @staticmethod
+    async def get_videos_by_public_ids_async(
+        session: AsyncSession,
+        public_ids: list[str],
+    ) -> Result[list[tuple[VideoRow, CoreMediaRow, ChannelRow]]]:
+        """Load cached YouTube video rows and their channels in a single query."""
+        try:
+            if not public_ids:
+                return Result(code=ResultCode.OK, message="OK", result=[])
+
+            stmt: Select[tuple[VideoRow, CoreMediaRow, ChannelRow]] = (
+                select(VideoRow, CoreMediaRow, ChannelRow)
+                .join(CoreMediaRow, CoreMediaRow.id == VideoRow.id)
+                .join(ChannelRow, ChannelRow.id == VideoRow.channel_id)
+                .options(selectinload(VideoRow.storage_object))
+                .where(CoreMediaRow.public_id.in_(public_ids))
+            )
+            result: DBResult[tuple[VideoRow, CoreMediaRow, ChannelRow]] = await session.execute(
+                stmt
+            )
+            return Result(
+                code=ResultCode.OK,
+                message="OK",
+                result=list(result.tuples().all()),
+            )
+        except Exception as e:
+            logger.error(f"Failed to bulk load videos: {e}", exc_info=True)
+            return Result(
+                code=ResultCode.GENERAL_ERROR,
+                message="Failed to bulk load videos",
+            )
+
     @staticmethod
     async def get_video_youtube_id_async(
         session: AsyncSession,

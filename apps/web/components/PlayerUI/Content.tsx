@@ -98,7 +98,7 @@ export default function PlayerUIContent(): JSX.Element {
         const queueEl = divRef.current?.querySelector(
             "[data-queue-scroll]"
         ) as HTMLDivElement | null;
-        if (queueEl) queueEl.scrollTop = index * 64;
+        if (queueEl) queueEl.scrollTop = index * 66;
     }, [$isPlayerUIVisible]);
 
     if (!$currentMedia)

@@ -2,7 +2,7 @@ from logging import Logger
 from typing import cast
 
 from argon2 import PasswordHasher
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from core.access.db.ormModels.image import ImageRow
@@ -188,8 +188,12 @@ async def get_session(request: Request) -> SessionResponse:
 
 
 @router.get(path="/queue")
-async def get_queue(request: Request) -> QueueResponse:
-    """TODO"""
+async def get_queue(
+    request: Request,
+    offset: int | None = Query(default=None, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+) -> QueueResponse:
+    """Get a bounded queue page. The first page is centered near current playback."""
 
     a_result_user: Result[UserRow] = AuthMiddleware.get_current_user(request)
     if a_result_user.is_not_ok():
@@ -200,7 +204,10 @@ async def get_queue(request: Request) -> QueueResponse:
     session: AsyncSession = DBSessionMiddleware.get_session(request=request)
 
     a_result_queue: Result[QueueResponse] = await User.get_user_queue_async(
-        session=session, user_id=a_result_user.result().id
+        session=session,
+        user_id=a_result_user.result().id,
+        offset=offset,
+        limit=limit,
     )
     if a_result_queue.is_not_ok():
         logger.error(f"Error getting user queue. {a_result_queue.info()}")

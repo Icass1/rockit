@@ -1719,6 +1719,24 @@ class YoutubeMusic:
         if a_result_artists_map.is_ok():
             artists_map = a_result_artists_map.result()
 
+        images_by_id = {
+            image.id: image
+            for image in [
+                *(track.image for track in db_tracks),
+                *(
+                    artist.image
+                    for track_artists in artists_map.values()
+                    for artist in track_artists
+                ),
+            ]
+        }
+        image_urls_result = await Image.get_internal_image_urls_async(
+            images=list(images_by_id.values())
+        )
+        if image_urls_result.is_not_ok():
+            return Result[list[BaseSongWithAlbumResponse]].from_result(image_urls_result)
+        image_urls = image_urls_result.result()
+
         track_by_public_id: dict[str, BaseSongWithAlbumResponse] = {}
         for db_track in db_tracks:
             artists_list: list[BaseArtistResponse] = []
@@ -1726,17 +1744,6 @@ class YoutubeMusic:
             for artist in track_artists:
                 core_artist = artist.core_artist
                 if core_artist:
-                    a_result_artist_image_url: Result[
-                        str
-                    ] = await Image.get_internal_image_url_async(image=artist.image)
-                    if a_result_artist_image_url.is_not_ok():
-                        logger.error(
-                            f"Error getting artist image URL. {a_result_artist_image_url.info()}"
-                        )
-                        return Result[list[BaseSongWithAlbumResponse]].from_result(
-                            a_result_artist_image_url
-                        )
-
                     artists_list.append(
                         BaseArtistResponse(
                             provider=YoutubeMusic.provider_name,
@@ -1744,19 +1751,12 @@ class YoutubeMusic:
                             url=f"/artist/{core_artist.public_id}",
                             providerUrl=f"https://music.youtube.com/channel/{artist.youtube_id}",
                             name=artist.name,
-                            imageUrl=a_result_artist_image_url.result(),
+                            imageUrl=image_urls[artist.image.id],
                             dominantColor=artist.image.dominant_color,
                         )
                     )
 
-            a_result_track_image_url: Result[str] = await Image.get_internal_image_url_async(
-                image=db_track.image
-            )
-            if a_result_track_image_url.is_not_ok():
-                logger.error(f"Error getting track image URL. {a_result_track_image_url.info()}")
-                return Result[list[BaseSongWithAlbumResponse]].from_result(a_result_track_image_url)
-
-            image_url = a_result_track_image_url.result()
+            image_url = image_urls[db_track.image.id]
             dominant_color = db_track.image.dominant_color
 
             is_downloaded = db_track.storage_object is not None

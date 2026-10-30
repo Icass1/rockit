@@ -3,10 +3,10 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev",
+        "dev": "next dev --webpack",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint --cache app components && npx tsc --noEmit",
+        "lint": "tsc --noEmit && eslint --cache app components",
         "prettier": "prettier --write app components hooks styles environment.ts",
         "typecheck": "tsc --noEmit"
     },

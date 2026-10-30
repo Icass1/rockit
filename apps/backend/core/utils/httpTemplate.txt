@@ -1,8 +1,7 @@
-// This file is generated using: python3 -m apps.backend models
+// This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 
 import * as dto from "@/dto";
-import { BACKEND_URL } from "@/environment";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
 
@@ -78,7 +77,7 @@ export class BaseHttp {
 
         if (!res.ok) {
             const obj = json as { detail?: FastApiError["detail"] };
-            console.error(obj.detail ?? "Unknown error");
+            // console.error(obj.detail ?? "Unknown error");
 
             return new HttpResult<T>({
                 ok: false,
@@ -140,59 +139,38 @@ export class BaseHttp {
 
     private static async apiPatchAsync<T>(
         path: string,
-        responseSchema: TZodSchema<T>,
-        payload?: unknown
+        responseSchema: TZodSchema<T>
     ): Promise<HttpResult<T>> {
         return this.apiFetchAsync(path, responseSchema, {
             method: "PATCH",
-            headers: payload === undefined ? undefined : { "Content-Type": "application/json" },
-            body: payload === undefined ? undefined : JSON.stringify(payload),
         });
     }
 
-    static async downloadBinary(
-        url: string,
-        payload: unknown
-    ): Promise<HttpResult<Blob>> {
-        // This bypasses apiFetchAsync because the response is binary, so the
-        // network error handling it normally provides has to be repeated here.
-        let response: Response;
-        try {
-            response = await this.baseApiFetchAsync(url.replace(BACKEND_URL, ""), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-        } catch (err) {
-            return new HttpResult({
-                ok: false,
-                code: 0,
-                message: "Network Error",
-                detail: (err as Error).message,
-            });
-        }
+    private static async apiPatchBodyAsync<T, G>(
+        path: string,
+        _requestSchema: TZodSchema<T>,
+        responseSchema: TZodSchema<G>,
+        body: T
+    ): Promise<HttpResult<G>> {
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+    }
 
-        if (!response.ok) {
-            let detail: string | unknown[] | Record<string, unknown> =
-                response.statusText;
-            try {
-                detail = (await response.json()).detail ?? detail;
-            } catch {
-                // Keep the HTTP status when the backend did not return JSON.
-            }
-            return new HttpResult({
-                ok: false,
-                code: response.status,
-                message: response.statusText,
-                detail,
-            });
-        }
+    private static async apiPostFileAsync<G>(
+        path: string,
+        responseSchema: TZodSchema<G>,
+        file: Blob,
+        filename: string
+    ): Promise<HttpResult<G>> {
+        const formData = new FormData();
+        formData.append("file", file, filename);
 
-        return new HttpResult({
-            ok: true,
-            code: response.status,
-            message: "OK",
-            result: await response.blob(),
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "POST",
+            body: formData,
         });
     }
 

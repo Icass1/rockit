@@ -30,6 +30,8 @@ export class BookmarkManager {
     private _showPopupAtom = createAtom<boolean>(false);
     private _editingBookmarkAtom = createAtom<BookmarkResponse | null>(null);
     private _initialized = false;
+    private _bookmarksMediaId?: string;
+    private _bookmarksRequest = 0;
 
     async init(): Promise<void> {
         if (this._initialized) return;
@@ -44,14 +46,23 @@ export class BookmarkManager {
 
     private async _fetchCurrentMediaBookmarksAsync(): Promise<void> {
         const media = rockIt.queueManager.currentMedia;
+        if (media?.publicId === this._bookmarksMediaId) return;
+        this._bookmarksMediaId = media?.publicId;
+        const request = ++this._bookmarksRequest;
+        this._currentMediaBookmarksAtom.set([]);
         if (!media) {
-            this._currentMediaBookmarksAtom.set([]);
             return;
         }
 
         const response = await Http.getBookmarks({
             mediaPublicId: media.publicId,
         });
+
+        if (
+            request !== this._bookmarksRequest ||
+            rockIt.queueManager.currentMedia?.publicId !== media.publicId
+        )
+            return;
 
         if (response.isOk() && response.result) {
             this._currentMediaBookmarksAtom.set(response.result.bookmarks);
@@ -68,12 +79,7 @@ export class BookmarkManager {
         const media = rockIt.queueManager.currentMedia;
         if (!media) return null;
 
-        console.log("Creating bookmark payload:", {
-            mediaPublicId: media.publicId,
-            timestamp,
-            description,
-            mode,
-        });
+        const request = this._bookmarksRequest;
         const response = await Http.createBookmark({
             mediaPublicId: media.publicId,
             timestamp,
@@ -82,7 +88,11 @@ export class BookmarkManager {
         });
 
         if (response.isOk() && response.result) {
-            this._currentMediaBookmarksAtom.push(response.result);
+            if (
+                request === this._bookmarksRequest &&
+                rockIt.queueManager.currentMedia?.publicId === media.publicId
+            )
+                this._currentMediaBookmarksAtom.push(response.result);
             rockIt.notificationManager.notifySuccess("Bookmark saved");
             return response.result;
         }

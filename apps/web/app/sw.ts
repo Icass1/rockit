@@ -23,7 +23,7 @@ declare const self: ServiceWorkerGlobalScope;
 // responses out of Cache Storage so partial responses remain untouched.
 const runtimeCaching = [
     {
-        matcher: ({ url, request }: { url: URL; request: Request }) =>
+        matcher: ({ request }: { url: URL; request: Request }) =>
             request.headers.has("range") ||
             request.destination === "audio" ||
             request.destination === "video",
@@ -137,7 +137,7 @@ const runtimeCaching = [
         handler: new NetworkOnly(),
     },
     {
-        matcher: ({ url, request }: { url: URL; request: Request }) =>
+        matcher: ({ request }: { url: URL; request: Request }) =>
             request.destination === "image",
         handler: new CacheFirst({
             cacheName: "rockit-images",

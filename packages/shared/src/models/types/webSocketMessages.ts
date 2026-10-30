@@ -14,13 +14,7 @@ import type {
     PlaylistRenamedMessage,
     QueueTypeMessage,
 } from "@rockit/shared";
-
-export interface FriendsPresenceChangedMessage {
-    type: "friends_presence_changed";
-    userPublicId?: string | null;
-    isOnline?: boolean;
-    nowPlaying?: string | null;
-}
+import type { FriendsPresenceChangedMessage } from "../../dto/friendsPresenceChangedMessage";
 
 export interface FriendActivityMessage {
     type: "friend_activity";

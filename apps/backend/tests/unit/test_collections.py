@@ -165,8 +165,12 @@ async def test_collection_queue_selects_and_persists_start_for_queue_mode(
             )
         ),
     )
+
     # Force a non-first track to lead the shuffle without relying on chance.
-    monkeypatch.setattr("core.framework.media.collection.shuffle", lambda values: values.reverse())
+    def reverse_order(values: list[int]) -> None:
+        values.reverse()
+
+    monkeypatch.setattr("core.framework.media.collection.shuffle", reverse_order)
     session = AsyncMock(spec=AsyncSession)
     session.execute.return_value = MagicMock()
     session.execute.return_value.scalar_one.return_value = queue_type.value

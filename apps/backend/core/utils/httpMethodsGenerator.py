@@ -1,3 +1,4 @@
+import re
 import typing
 from collections.abc import Sequence
 from pathlib import Path
@@ -17,6 +18,23 @@ def snake_to_pascal(string: str) -> str:
 def snake_to_camel(snake_str: str) -> str:
     camel_string = snake_to_pascal(snake_str)
     return snake_str[0].lower() + camel_string[1:]
+
+
+def format_route_path(path: str, param_name: str) -> str:
+    """Interpolate and encode a route parameter, including path converters."""
+    return re.sub(
+        pattern=r"\{" + re.escape(param_name) + r"(?::[^}]+)?\}",
+        repl="${encodeURIComponent(" + snake_to_camel(param_name) + ")}",
+        string=path,
+    )
+
+
+def response_schema(response_model: Any) -> str:
+    """Build a response validator while preserving list item models."""
+    if typing.get_origin(response_model) is list:
+        item_model = typing.get_args(response_model)[0]
+        return response_schema(response_model=item_model) + ".array()"
+    return f"dto.{response_model.__name__}Schema"
 
 
 def build_query_params(
@@ -125,7 +143,7 @@ async def http_methods_generator() -> None:
     routes: list[APIRoute] = collect_api_routes(app.routes)
     for route in sorted(routes, key=lambda r: (r.path, r.name)):
         methods = route.methods
-        if methods is None or len(methods) != 1:
+        if len(methods) != 1:
             print("Each endpoint must support only 1 method")
             continue
 
@@ -142,7 +160,7 @@ async def http_methods_generator() -> None:
         for param_name in route.param_convertors.keys():
             params.append(f"{snake_to_camel(param_name)}: string")
 
-            path = path.replace("{" + param_name + "}", "${" + snake_to_camel(param_name) + "}")
+            path = format_route_path(path=path, param_name=param_name)
 
         if not route.response_model:
             query_sig, query_preamble, query_suffix = build_query_params(
@@ -150,10 +168,7 @@ async def http_methods_generator() -> None:
             )
             params.extend(query_sig)
 
-            output = f"        return `{route.path}`\n".replace("{", "${")
-
-            for param_name in route.param_convertors.keys():
-                output = output.replace(param_name, snake_to_camel(param_name))
+            output = f"        return `{path}`\n"
 
             if query_suffix:
                 output = output.rsplit("`\n", 1)[0] + query_suffix + "`\n"
@@ -165,43 +180,26 @@ async def http_methods_generator() -> None:
 
             continue
 
+        schema = response_schema(response_model=route.response_model)
+
         if method == "GET":
             query_sig, query_preamble, query_suffix = build_query_params(
                 route.dependant.query_params
             )
 
-            if typing.get_origin(route.response_model) is list:
-                item_model = typing.get_args(route.response_model)[0]
-                name = item_model.__name__
-
-                params.extend(query_sig)
-                text += f"    static async {method_name}({','.join(params)})" + " {\n"
-                text += query_preamble
-                text += (
-                    f"        return this.apiGetAsync(`{path}{query_suffix}`, "
-                    f"z.array(dto.{name}Schema))\n"
-                )
-                text += "    }"
-            else:
-                params.extend(query_sig)
-                text += f"    static async {method_name}({','.join(params)})" + " {\n"
-                text += query_preamble
-                response_model = route.response_model.__name__
-                text += (
-                    f"        return this.apiGetAsync(`{path}{query_suffix}`, "
-                    f"dto.{response_model}Schema)\n"
-                )
-                text += "    }"
+            params.extend(query_sig)
+            text += f"    static async {method_name}({','.join(params)})" + " {\n"
+            text += query_preamble
+            text += f"        return this.apiGetAsync(`{path}{query_suffix}`, {schema})\n"
+            text += "    }"
 
         elif method == "POST":
             body_params = route.dependant.body_params
 
             if not body_params:
                 text += f"    static async {method_name}({','.join(params)})" + " {\n"
-                response_model = route.response_model.__name__
                 text += (
-                    f"        return this.apiFetchAsync(`{path}`, "
-                    f'dto.{response_model}Schema, {{ method: "POST" }})\n'
+                    f'        return this.apiFetchAsync(`{path}`, {schema}, {{ method: "POST" }})\n'
                 )
                 text += "    }"
                 continue
@@ -215,10 +213,8 @@ async def http_methods_generator() -> None:
             if isinstance(body_type, type) and issubclass(body_type, UploadFile):
                 params.extend(["file: Blob", "filename: string"])
                 text += f"    static async {method_name}({', '.join(params)})" + " {\n"
-                response_model = route.response_model.__name__
                 text += (
-                    f"        return this.apiPostFileAsync(`{path}`, "
-                    f"dto.{response_model}Schema, file, filename)\n"
+                    f"        return this.apiPostFileAsync(`{path}`, {schema}, file, filename)\n"
                 )
                 text += "    }"
                 continue
@@ -232,26 +228,22 @@ async def http_methods_generator() -> None:
             params.append(f"payload: dto.{request_model}")
 
             text += f"    static async {method_name}({', '.join(params)})" + " {\n"
-            response_model = route.response_model.__name__
             text += (
                 f"        return this.apiPostAsync(`{path}`, dto.{request_model}Schema, "
-                f"dto.{response_model}Schema, payload)\n"
+                f"{schema}, payload)\n"
             )
             text += "    }"
 
         elif method == "DELETE":
             text += f"    static async {method_name}({','.join(params)})" + " {\n"
-            response_model = route.response_model.__name__
-            text += f"        return this.apiDeleteAsync(`{path}`, dto.{response_model}Schema)\n"
+            text += f"        return this.apiDeleteAsync(`{path}`, {schema})\n"
             text += "    }"
 
         elif method == "PATCH":
-            response_model = route.response_model.__name__
-
             body_params = route.dependant.body_params
             if not body_params:
                 text += f"    static async {method_name}({','.join(params)})" + " {\n"
-                text += f"        return this.apiPatchAsync(`{path}`, dto.{response_model}Schema)\n"
+                text += f"        return this.apiPatchAsync(`{path}`, {schema})\n"
                 text += "    }"
                 continue
 
@@ -271,7 +263,7 @@ async def http_methods_generator() -> None:
             text += f"    static async {method_name}({', '.join(params)})" + " {\n"
             text += (
                 f"        return this.apiPatchBodyAsync(`{path}`, dto.{request_model}Schema, "
-                f"dto.{response_model}Schema, payload)\n"
+                f"{schema}, payload)\n"
             )
             text += "    }"
 

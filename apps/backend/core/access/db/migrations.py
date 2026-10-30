@@ -17,7 +17,17 @@ class Migration:
     statements: tuple[str, ...]
 
 
-MIGRATIONS: tuple[Migration, ...] = ()
+MIGRATIONS: tuple[Migration, ...] = (
+    Migration(
+        version=1,
+        name="remove_notification_source_key",
+        statements=(
+            "ALTER TABLE IF EXISTS core.notification "
+            "DROP CONSTRAINT IF EXISTS notification_user_source_uq",
+            "ALTER TABLE IF EXISTS core.notification DROP COLUMN IF EXISTS source_key",
+        ),
+    ),
+)
 
 
 def validate_migrations() -> None:

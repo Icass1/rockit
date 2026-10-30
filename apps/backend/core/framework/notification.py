@@ -94,7 +94,6 @@ class Notification:
         destination: NotificationDestination | None = None,
         *,
         recipient_user_id: int | None = None,
-        source_key: str | None = None,
     ) -> Result[int]:
         """Dispatch a registered event to subscribers in the caller's transaction.
 
@@ -119,7 +118,6 @@ class Notification:
                     replacements,
                     destination,
                     recipient_user_id,
-                    source_key,
                 )
                 if result.is_not_ok():
                     await transaction.rollback()
@@ -206,8 +204,6 @@ class Notification:
     async def download_async(
         session: AsyncSession,
         user_id: int,
-        public_id: str,
-        retry_count: int,
         success: bool,
         title: str,
     ) -> Result[int]:
@@ -219,12 +215,11 @@ class Notification:
             [NotificationReplacement(key="TITLE", value=title[:2000])],
             NotificationDestination(path="/downloads"),
             recipient_user_id=user_id,
-            source_key=f"download:{public_id}:{event.key}:{retry_count}",
         )
 
     @staticmethod
     async def import_async(
-        session: AsyncSession, user_id: int, operation_id: str, success: bool, title: str
+        session: AsyncSession, user_id: int, success: bool, title: str
     ) -> Result[int]:
         """Dispatch an import result only to its subscribed owner."""
         event = IMPORT_COMPLETED_NOTIFICATION if success else IMPORT_FAILED_NOTIFICATION
@@ -234,7 +229,6 @@ class Notification:
             [NotificationReplacement(key="TITLE", value=title[:2000])],
             NotificationDestination(path="/library"),
             recipient_user_id=user_id,
-            source_key=f"import:{operation_id}",
         )
 
     @staticmethod
@@ -258,5 +252,4 @@ class Notification:
             replacements,
             NotificationDestination(path="/friends"),
             recipient_user_id=user_id,
-            source_key=event_key,
         )

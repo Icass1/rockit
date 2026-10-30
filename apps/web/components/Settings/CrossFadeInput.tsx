@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useState, useSyncExternalStore, type JSX } from "react";
 import { useStore } from "@nanostores/react";
 import { useSettingsFeedback } from "@/hooks/useSettingsFeedback";
 import { rockIt } from "@/lib/rockit/rockIt";
+
+function subscribePlatform(): () => void {
+    return (): void => undefined;
+}
 
 export default function CrossFadeInput(): JSX.Element {
     const notifySaved = useSettingsFeedback();
@@ -11,6 +15,11 @@ export default function CrossFadeInput(): JSX.Element {
     const vocabulary = useStore(rockIt.vocabularyManager.vocabularyAtom);
     const lang = useStore(rockIt.vocabularyManager.langAtom);
     const es = lang.startsWith("es");
+    const supported = useSyncExternalStore(
+        subscribePlatform,
+        () => rockIt.mediaPlayerManager.supportsAdaptiveTransitions,
+        () => true
+    );
     const [duration, setDuration] = useState<string | null>(null);
     const saveDuration = (): void => {
         if (duration === null) return;
@@ -56,7 +65,11 @@ export default function CrossFadeInput(): JSX.Element {
                 <input
                     id="adaptive-transitions"
                     type="checkbox"
-                    checked={settings.enabled}
+                    checked={supported && settings.enabled}
+                    disabled={!supported}
+                    aria-describedby={
+                        !supported ? "transition-platform-note" : undefined
+                    }
                     onChange={(event): void =>
                         notifySaved(
                             rockIt.mediaPlayerManager.configureTransitions({
@@ -67,6 +80,14 @@ export default function CrossFadeInput(): JSX.Element {
                     className="h-4 w-4 accent-(--color-rockit-pink)"
                 />
             </label>
+            {!supported && (
+                <p
+                    id="transition-platform-note"
+                    className="text-xs text-neutral-400"
+                >
+                    {vocabulary.SETTINGS_TRANSITIONS_IOS_NATIVE}
+                </p>
+            )}
             <div className="flex items-center justify-between gap-3">
                 <label htmlFor="transition-duration">
                     {text(
@@ -82,7 +103,7 @@ export default function CrossFadeInput(): JSX.Element {
                         min={0.1}
                         step={0.1}
                         value={duration ?? settings.maxSeconds}
-                        disabled={!settings.enabled}
+                        disabled={!supported || !settings.enabled}
                         onChange={(event): void =>
                             setDuration(event.currentTarget.value)
                         }
@@ -113,7 +134,7 @@ export default function CrossFadeInput(): JSX.Element {
                     id="transition-preserve-album"
                     type="checkbox"
                     checked={settings.preserveAlbum}
-                    disabled={!settings.enabled}
+                    disabled={!supported || !settings.enabled}
                     onChange={(event): void =>
                         notifySaved(
                             rockIt.mediaPlayerManager.configureTransitions({

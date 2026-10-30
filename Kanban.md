@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [PLAYER] Cambio de canción en segundo plano de iOS
+
+- tags: [frontend, player, ios, pwa, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Hotfix: en iOS/iPadOS se conserva el audio nativo aunque haya transiciones guardadas; la mezcla Web Audio queda desactivada y explicada en ajustes. Recuperación del fin de pista compatible con elementos terminados/pausados, sin cortar el final, duplicar avances ni reanudar pausas manuales. Se mantiene la concesión de propietario del servidor. Fixtures de regresión para CI, sin suites locales. Pendiente de validar en una PWA real con pantalla bloqueada. Ver docs/IOS_BACKGROUND_PLAYBACK.md.
+    ```
+
 ### [NAVIGATION] Anclar álbumes, playlists y artistas
 
 - tags: [frontend, backend, navigation, pins, ui]

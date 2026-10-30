@@ -2,9 +2,9 @@
 // Do not modify this file manually.
 
 import { z } from "zod";
-import { FriendResponseSchema } from './friendResponse';
-import { FriendActivityItemSchema } from './friendActivityItem';
-import { FriendRequestResponseSchema } from './friendRequestResponse';
+import { FriendActivityItemSchema } from "./friendActivityItem";
+import { FriendRequestResponseSchema } from "./friendRequestResponse";
+import { FriendResponseSchema } from "./friendResponse";
 
 export const SocialSnapshotMessageSchema = z.object({
     type: z.union([z.literal("social_changed")]).default("social_changed"),

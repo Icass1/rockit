@@ -340,18 +340,6 @@ export class BaseQueueManager {
 
         shuffleInPlace(this.randomQueue);
 
-        const firstSortedId = this.sortedQueue[0]?.queueMediaId;
-        if (firstSortedId !== undefined) {
-            const firstRandomIndex = this.randomQueue.findIndex(
-                (item): boolean => item.queueMediaId === firstSortedId
-            );
-            if (firstRandomIndex > 0) {
-                const tmp = this.randomQueue[0];
-                this.randomQueue[0] = this.randomQueue[firstRandomIndex];
-                this.randomQueue[firstRandomIndex] = tmp;
-            }
-        }
-
         this.updateQueue();
     }
 

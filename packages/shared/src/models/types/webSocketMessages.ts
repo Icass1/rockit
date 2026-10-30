@@ -3,7 +3,6 @@ import type {
     CurrentQueueMessage,
     CurrentTimeMessage,
     DownloadProgressMessage,
-    FriendsPresenceChangedMessage,
     LibraryMediaAddedMessage,
     LibraryMediaRemovedMessage,
     MediaAddedToPlaylistMessage,
@@ -15,6 +14,13 @@ import type {
     PlaylistRenamedMessage,
     QueueTypeMessage,
 } from "@rockit/shared";
+
+export interface FriendsPresenceChangedMessage {
+    type: "friends_presence_changed";
+    userPublicId?: string | null;
+    isOnline?: boolean;
+    nowPlaying?: string | null;
+}
 
 export interface FriendActivityMessage {
     type: "friend_activity";
@@ -32,10 +38,22 @@ export interface ListenTogetherSyncMessage {
 }
 export interface SocialChangedMessage {
     type: "social_changed";
+    friends: import("../interfaces/friend").Friend[];
+    incoming: import("../interfaces/friend").FriendRequest[];
+    sent: import("../interfaces/friend").FriendRequest[];
+    activities: import("../interfaces/friend").FriendActivity[];
 }
 
 export interface NotificationsChangedMessage {
     type: "notifications_changed";
+    unreadCount: number;
+    totalCount: number;
+}
+
+export interface NotificationStateMessage {
+    type: "notification_state";
+    unreadCount: number;
+    totalCount: number;
 }
 
 export enum EWebSocketMessage {
@@ -45,6 +63,7 @@ export enum EWebSocketMessage {
     OnlineUsers = "online_users",
     FriendsPresenceChanged = "friends_presence_changed",
     NotificationsChanged = "notifications_changed",
+    NotificationState = "notification_state",
     LibraryMediaAdded = "library_media_added",
     LibraryMediaRemoved = "library_media_removed",
     ListenTogetherSync = "listen_together_sync",
@@ -65,6 +84,7 @@ export interface IWebSocketMessagePayloadMap {
     [EWebSocketMessage.FriendsPresenceChanged]: FriendsPresenceChangedMessage;
     [EWebSocketMessage.SocialChanged]: SocialChangedMessage;
     [EWebSocketMessage.NotificationsChanged]: NotificationsChangedMessage;
+    [EWebSocketMessage.NotificationState]: NotificationStateMessage;
     [EWebSocketMessage.DownloadProgress]: DownloadProgressMessage;
     [EWebSocketMessage.FriendActivity]: FriendActivityMessage;
     [EWebSocketMessage.LibraryMediaAdded]: LibraryMediaAddedMessage;
@@ -89,6 +109,7 @@ export type TWebSocketIncomingMessage =
     | FriendActivityMessage
     | SocialChangedMessage
     | NotificationsChangedMessage
+    | NotificationStateMessage
     | LibraryMediaAddedMessage
     | LibraryMediaRemovedMessage
     | ListenTogetherSyncMessage

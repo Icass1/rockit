@@ -28,7 +28,7 @@
             "runtimeArgs": [
                 "--user",
                 "--scope",
-                "--property=MemoryMax=2G",
+                "--property=MemoryMax=3G",
                 "pnpm",
                 "run",
                 "dev"

@@ -1,12 +1,15 @@
-from unittest.mock import AsyncMock
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access.collectionAccess import CollectionAccess
 from core.enums.playlistContributorRoleEnum import PlaylistContributorRoleEnum
+from core.enums.queueTypeEnum import QueueTypeEnum
 from core.framework.media.collection import Collection
 from core.framework.models.collection import CollectionEntry, CollectionRecord
+from core.responses.baseVideoResponse import BaseVideoResponse
 from result import Result, ResultCode
 
 pytestmark = pytest.mark.unit
@@ -89,3 +92,102 @@ async def test_empty_queue_does_not_replace_existing_queue(
     )
     assert result.code() == ResultCode.BAD_REQUEST
     save.assert_not_awaited()
+
+
+@pytest.mark.parametrize("queue_type", list(QueueTypeEnum))
+@pytest.mark.parametrize("start_public_id", [None, "track-1"])
+async def test_collection_queue_selects_and_persists_start_for_queue_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    queue_type: QueueTypeEnum,
+    start_public_id: str | None,
+) -> None:
+    """Shuffle the initial selection unless a particular track was requested."""
+    root = CollectionRecord(id=1, public_id="list", provider_id=1, media_type_key=3, name="List")
+    tracks = [
+        CollectionRecord(
+            id=i + 2, public_id=f"track-{i}", provider_id=1, media_type_key=5, name=f"Track {i}"
+        )
+        for i in range(3)
+    ]
+    monkeypatch.setattr(
+        CollectionAccess,
+        "records_async",
+        AsyncMock(
+            side_effect=[
+                Result(code=ResultCode.OK, message="OK", result=[root]),
+                Result(code=ResultCode.OK, message="OK", result=tracks),
+            ]
+        ),
+    )
+    entries = [
+        CollectionEntry(
+            parent_id=root.id, media_id=track.id, position=i, added_at=datetime.now(tz=timezone.utc)
+        )
+        for i, track in enumerate(tracks)
+    ]
+    monkeypatch.setattr(
+        CollectionAccess,
+        "entries_async",
+        AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=(entries, 3))),
+    )
+    monkeypatch.setattr(
+        CollectionAccess,
+        "public_ids_async",
+        AsyncMock(
+            return_value=Result(
+                code=ResultCode.OK,
+                message="OK",
+                result={track.id: track.public_id for track in tracks},
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        Collection,
+        "hydrate_async",
+        AsyncMock(
+            return_value=Result(
+                code=ResultCode.OK,
+                message="OK",
+                result={
+                    track.public_id: BaseVideoResponse(
+                        provider="test",
+                        publicId=track.public_id,
+                        providerUrl="",
+                        name=track.name,
+                        imageUrl="",
+                        dominantColor="",
+                        duration_ms=1000,
+                        artists=[],
+                        downloaded=False,
+                    )
+                    for track in tracks
+                },
+            )
+        ),
+    )
+    # Force a non-first track to lead the shuffle without relying on chance.
+    monkeypatch.setattr("core.framework.media.collection.shuffle", lambda values: values.reverse())
+    session = AsyncMock(spec=AsyncSession)
+    session.execute.return_value = MagicMock()
+    session.execute.return_value.scalar_one.return_value = queue_type.value
+
+    result = await Collection.queue_async(
+        session=session, public_id="list", user_id=1, start_public_id=start_public_id
+    )
+
+    assert result.is_ok(), result.info()
+    response = result.result()
+    expected_start = 1 if start_public_id else (2 if queue_type is QueueTypeEnum.RANDOM else 0)
+    assert response.queueType is queue_type
+    assert response.currentQueueMediaId == expected_start
+    selected = response.queue[expected_start]
+    assert selected.media.publicId == f"track-{expected_start}"
+    assert selected.sortedIndex == expected_start
+    assert selected.randomIndex == (0 if start_public_id or expected_start == 2 else 2)
+    assert sorted(item.randomIndex for item in response.queue) == [0, 1, 2]
+    assert [item.sortedIndex for item in response.queue] == [0, 1, 2]
+    persisted_update = session.execute.await_args_list[-1].args[0]
+    assert persisted_update.compile().params["current_queue_id"] == expected_start
+    inserted_rows = session.execute.await_args_list[2].args[1]
+    assert inserted_rows[expected_start]["random_index"] == selected.randomIndex
+    session.commit.assert_awaited_once()

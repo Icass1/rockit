@@ -241,7 +241,7 @@ class CollectionAccess:
                     subtitle=String,
                     media_type_key=Integer,
                     provider_name=String,
-                    image_url=String,
+                    image_id=Integer,
                 )
                 .subquery("collection_search")
             )

@@ -259,7 +259,10 @@ class BaseMediaProvider(BaseProvider):
         """SELECT fragment for search_index.
 
         Columns: internal_id, public_id, name, subtitle, media_type_key,
-        provider_name, image_url.
+        provider_name, image_id.
+
+        image_id must be an internal integer image ID or a typed NULL integer,
+        never an external URL. UNION resolves types before media filters apply.
 
         The subtitle column carries the item's related context (e.g. artist /
         channel / album names for songs, albums and videos; NULL otherwise). It

@@ -1661,7 +1661,7 @@ export class BaseHttp {
     }
 
     static getYoutubeMusicAudioURL(publicId: string) {
-        return `${BACKEND_URL}/youtube-music/audio/${encodeURIComponent(publicId)}`;
+        return `/youtube-music/audio/${encodeURIComponent(publicId)}`;
     }
 
     static async getChanelAsync(youtubeId: string) {

@@ -320,9 +320,14 @@ class Collection:
             )
         random_order = list(range(len(ordered)))
         shuffle(random_order)
-        random_order.remove(start)
-        random_order.insert(0, start)
+        if start_public_id:
+            random_order.remove(start)
+            random_order.insert(0, start)
         random_indexes = {value: i for i, value in enumerate(random_order)}
+        start_by_queue_type = {
+            QueueTypeEnum.SORTED.value: start,
+            QueueTypeEnum.RANDOM.value: random_order[0],
+        }
         hydrated = await Collection.hydrate_async(
             session=session,
             records=[r for r in records.values() if r.media_type_key in (4, 5)],
@@ -359,7 +364,7 @@ class Collection:
             root_id=root.id,
             ordered_ids=ordered,
             random_indexes=random_indexes,
-            start=start,
+            start_by_queue_type=start_by_queue_type,
         )
         if saved.is_not_ok():
             logger.error(f"Queue save failed: {saved.info()}")
@@ -368,7 +373,7 @@ class Collection:
             code=ResultCode.OK,
             message="OK",
             result=QueueResponse(
-                currentQueueMediaId=start,
+                currentQueueMediaId=start_by_queue_type[saved.result()],
                 queueType=QueueTypeEnum(saved.result()),
                 queue=[
                     QueueResponseItem(

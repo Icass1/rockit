@@ -34,6 +34,7 @@ export class WebSocketManager {
     private _init = false;
     private _latestPlaybackId = "";
     private _outgoingPlayback?: CurrentMediaMessageRequest;
+    private _supersededPlaybackIds = new Set<string>();
     private initializing = false;
     private _connectionGeneration = 0;
     private _messageHandlers: Map<
@@ -51,8 +52,18 @@ export class WebSocketManager {
                 this._onlineUsers.set(data.count);
             } else if (data.type === EWebSocketMessage.FriendsPresenceChanged) {
                 data = FriendsPresenceChangedMessageSchema.parse(data);
+                if (data.userPublicId) {
+                    rockIt.friendManager.updatePresence(
+                        data.userPublicId,
+                        data.isOnline,
+                        data.nowPlaying
+                    );
+                }
             } else if (data.type === EWebSocketMessage.CurrentMedia) {
                 data = CurrentMediaMessageSchema.parse(data);
+                // An earlier local selection may be acknowledged after another skip.
+                // Drop it before either the queue or the player sees it.
+                if (this._supersededPlaybackIds.has(data.playbackId)) return;
                 if (this._outgoingPlayback?.playbackId !== data.playbackId) {
                     this._outgoingPlayback = undefined;
                 }
@@ -236,6 +247,12 @@ export class WebSocketManager {
     }
 
     sendCurrentMedia(data: CurrentMediaMessageRequest): void {
+        if (
+            this._outgoingPlayback &&
+            this._outgoingPlayback.playbackId !== data.playbackId
+        ) {
+            this._supersededPlaybackIds.add(this._outgoingPlayback.playbackId);
+        }
         this._latestPlaybackId = data.playbackId;
         this._outgoingPlayback = { ...data };
         this.send({

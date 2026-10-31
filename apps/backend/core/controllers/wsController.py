@@ -41,6 +41,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         return
 
     await ws_manager.connect(user_id, websocket)
+    await ws_manager.send_social_snapshot_async(user_id=user_id, websocket=websocket)
+    await ws_manager.send_notification_state_async(user_id=user_id, websocket=websocket)
 
     try:
         while True:

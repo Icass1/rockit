@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { X } from "lucide-react";
@@ -25,6 +25,9 @@ export default function NotificationMenu({
     const lang = useStore(rockIt.vocabularyManager.langAtom);
     const [unreadOnly, setUnreadOnly] = useState(false);
     const router = useRouter();
+    useEffect(() => {
+        manager.setPage(0, unreadOnly);
+    }, [manager, unreadOnly]);
     return (
         <HeaderPopover
             id="notification-center"
@@ -49,7 +52,6 @@ export default function NotificationMenu({
                     checked={unreadOnly}
                     onChange={(event) => {
                         setUnreadOnly(event.target.checked);
-                        manager.setPage(0, event.target.checked);
                     }}
                 />
                 {vocabulary.NOTIFICATIONS_UNREAD}

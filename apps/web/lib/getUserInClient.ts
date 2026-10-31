@@ -1,10 +1,11 @@
+import type { SessionResponse } from "@/dto";
 import { Http } from "@/lib/http";
 
-export async function getUserInClient() {
+export async function getUserInClient(): Promise<SessionResponse | undefined> {
     const session = await Http.getSession();
 
     if (session.isNotOk()) {
-        console.warn(
+        console.error(
             "Failed to fetch user session:",
             session.code,
             session.message

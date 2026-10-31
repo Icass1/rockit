@@ -1,8 +1,7 @@
-// This file is generated using: python3 -m apps.backend models
+// This file is generated using: python3 -m backend models
 // Do not modify this file manually.
 
 import * as dto from "@/dto";
-import { BACKEND_URL } from "@/environment";
 import { IApiFetchOptions, TZodSchema } from "@/models/types/api";
 import { FastApiError, HttpResult } from "@/models/types/httpTypes";
 
@@ -78,7 +77,7 @@ export class BaseHttp {
 
         if (!res.ok) {
             const obj = json as { detail?: FastApiError["detail"] };
-            console.error(obj.detail ?? "Unknown error");
+            // console.error(obj.detail ?? "Unknown error");
 
             return new HttpResult<T>({
                 ok: false,
@@ -140,65 +139,38 @@ export class BaseHttp {
 
     private static async apiPatchAsync<T>(
         path: string,
-        responseSchema: TZodSchema<T>,
-        payload?: unknown
+        responseSchema: TZodSchema<T>
     ): Promise<HttpResult<T>> {
         return this.apiFetchAsync(path, responseSchema, {
             method: "PATCH",
-            headers:
-                payload === undefined
-                    ? undefined
-                    : { "Content-Type": "application/json" },
-            body: payload === undefined ? undefined : JSON.stringify(payload),
         });
     }
 
-    static async downloadBinary(
-        url: string,
-        payload: unknown
-    ): Promise<HttpResult<Blob>> {
-        // This bypasses apiFetchAsync because the response is binary, so the
-        // network error handling it normally provides has to be repeated here.
-        let response: Response;
-        try {
-            response = await this.baseApiFetchAsync(
-                url.replace(BACKEND_URL, ""),
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                }
-            );
-        } catch (err) {
-            return new HttpResult({
-                ok: false,
-                code: 0,
-                message: "Network Error",
-                detail: (err as Error).message,
-            });
-        }
+    private static async apiPatchBodyAsync<T, G>(
+        path: string,
+        _requestSchema: TZodSchema<T>,
+        responseSchema: TZodSchema<G>,
+        body: T
+    ): Promise<HttpResult<G>> {
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+    }
 
-        if (!response.ok) {
-            let detail: string | unknown[] | Record<string, unknown> =
-                response.statusText;
-            try {
-                detail = (await response.json()).detail ?? detail;
-            } catch {
-                // Keep the HTTP status when the backend did not return JSON.
-            }
-            return new HttpResult({
-                ok: false,
-                code: response.status,
-                message: response.statusText,
-                detail,
-            });
-        }
+    private static async apiPostFileAsync<G>(
+        path: string,
+        responseSchema: TZodSchema<G>,
+        file: Blob,
+        filename: string
+    ): Promise<HttpResult<G>> {
+        const formData = new FormData();
+        formData.append("file", file, filename);
 
-        return new HttpResult({
-            ok: true,
-            code: response.status,
-            message: "OK",
-            result: await response.blob(),
+        return this.apiFetchAsync(path, responseSchema, {
+            method: "POST",
+            body: formData,
         });
     }
 
@@ -409,8 +381,9 @@ export class BaseHttp {
         playlistPublicId: string,
         payload: dto.UpdatePlaylistRequest
     ) {
-        return this.apiPatchAsync(
+        return this.apiPatchBodyAsync(
             `/default/playlist/${encodeURIComponent(playlistPublicId)}`,
+            dto.UpdatePlaylistRequestSchema,
             dto.BasePlaylistWithMediasResponseSchema,
             payload
         );
@@ -499,7 +472,7 @@ export class BaseHttp {
     }
 
     static downloadZipURL() {
-        return `${BACKEND_URL}/downloader/download-zip`;
+        return `/downloader/download-zip`;
     }
 
     static async getDownloads() {
@@ -855,7 +828,7 @@ export class BaseHttp {
     }
 
     static getImageURL(path: string) {
-        return `${BACKEND_URL}/image/${encodeURIComponent(path)}`;
+        return `/image/${encodeURIComponent(path)}`;
     }
 
     static async getLrclibLyricsBatchAsync(payload: dto.GetLyricsBatchRequest) {
@@ -878,8 +851,9 @@ export class BaseHttp {
         publicId: string,
         payload: dto.UpdateTimestampsRequest
     ) {
-        return this.apiPatchAsync(
+        return this.apiPatchBodyAsync(
             `/lrclib/lyrics/${encodeURIComponent(publicId)}/timestamps`,
+            dto.UpdateTimestampsRequestSchema,
             dto.GetLyricsResponseSchema,
             payload
         );
@@ -1016,7 +990,7 @@ export class BaseHttp {
         const queryParams = new URLSearchParams();
         queryParams.append("timestamp_ms", `${timestampMs}`);
         const queryString = queryParams.toString();
-        return `${BACKEND_URL}/media/frame/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`;
+        return `/media/frame/${encodeURIComponent(publicId)}${queryString ? `?${queryString}` : ""}`;
     }
 
     static async getPlaylist(
@@ -1405,47 +1379,39 @@ export class BaseHttp {
         );
     }
 
-    static async getAllStorageObjects() {
-        return this.apiGetAsync(
-            `/storage-object`,
-            dto.StorageObjectResponseSchema.array()
-        );
-    }
-
-    static async getStorageObjectByKey(key: string) {
-        return this.apiGetAsync(
-            `/storage-object/by-key/${encodeURIComponent(key)}`,
-            dto.StorageObjectResponseSchema
-        );
-    }
-
-    static async getStorageObjectByPublicId(publicId: string) {
-        return this.apiGetAsync(
-            `/storage-object/by-public-id/${encodeURIComponent(publicId)}`,
-            dto.StorageObjectResponseSchema
-        );
-    }
-
-    static async deleteStorageObject(publicId: string) {
-        return this.apiDeleteAsync(
-            `/storage-object/${encodeURIComponent(publicId)}`,
-            dto.OkResponseSchema
-        );
-    }
-
-    static async getStorageObject(publicId: string) {
-        return this.apiGetAsync(
-            `/storage-object/${encodeURIComponent(publicId)}`,
-            dto.StorageObjectResponseSchema
-        );
-    }
-
     static async startAlbumUpload(payload: dto.UploadAlbumRequest) {
         return this.apiPostAsync(
             `/upload/album/start`,
             dto.UploadAlbumRequestSchema,
             dto.StartUploadResponseSchema,
             payload
+        );
+    }
+
+    static async uploadAlbumCover(
+        uploadId: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/upload/album/${encodeURIComponent(uploadId)}/cover`,
+            dto.OkResponseSchema,
+            file,
+            filename
+        );
+    }
+
+    static async uploadAlbumSongFile(
+        uploadId: string,
+        index: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/upload/album/${encodeURIComponent(uploadId)}/song-index/${encodeURIComponent(index)}`,
+            dto.UploadResponseSchema,
+            file,
+            filename
         );
     }
 
@@ -1467,6 +1433,19 @@ export class BaseHttp {
         );
     }
 
+    static async uploadMediaChunk(
+        uploadId: string,
+        file: Blob,
+        filename: string
+    ) {
+        return this.apiPostFileAsync(
+            `/upload/${encodeURIComponent(uploadId)}/chunk`,
+            dto.OkResponseSchema,
+            file,
+            filename
+        );
+    }
+
     static async getUser() {
         return this.apiGetAsync(`/user`, dto.UserSettingsResponseSchema);
     }
@@ -1477,6 +1456,15 @@ export class BaseHttp {
             dto.UpdateCrossfadeRequestSchema,
             dto.OkResponseSchema,
             payload
+        );
+    }
+
+    static async uploadProfileImage(file: Blob, filename: string) {
+        return this.apiPostFileAsync(
+            `/user/image`,
+            dto.OkResponseSchema,
+            file,
+            filename
         );
     }
 
@@ -1591,8 +1579,9 @@ export class BaseHttp {
     static async setNotificationSubscriptions(
         payload: dto.UpdateNotificationSubscriptionsRequest
     ) {
-        return this.apiPatchAsync(
+        return this.apiPatchBodyAsync(
             `/user/notification-subscriptions`,
+            dto.UpdateNotificationSubscriptionsRequestSchema,
             dto.NotificationSubscriptionsResponseSchema,
             payload
         );
@@ -1607,8 +1596,15 @@ export class BaseHttp {
         );
     }
 
-    static async getQueue() {
-        return this.apiGetAsync(`/user/queue`, dto.QueueResponseSchema);
+    static async getQueue(offset?: number, limit?: number) {
+        const queryParams = new URLSearchParams();
+        if (offset !== undefined) queryParams.append("offset", `${offset}`);
+        if (limit !== undefined) queryParams.append("limit", `${limit}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/user/queue${queryString ? `?${queryString}` : ""}`,
+            dto.QueueResponseSchema
+        );
     }
 
     static async cycleRepeatMode() {
@@ -1629,7 +1625,7 @@ export class BaseHttp {
     }
 
     static downloadApkURL(filename: string) {
-        return `${BACKEND_URL}/version/apk/${encodeURIComponent(filename)}`;
+        return `/version/apk/${encodeURIComponent(filename)}`;
     }
 
     static async getLatestVersion() {
@@ -1640,7 +1636,7 @@ export class BaseHttp {
     }
 
     static downloadLatestApkURL() {
-        return `${BACKEND_URL}/version/latest/apk`;
+        return `/version/latest/apk`;
     }
 
     static async getAllLanguages() {
@@ -1665,7 +1661,7 @@ export class BaseHttp {
     }
 
     static getYoutubeMusicAudioURL(publicId: string) {
-        return `${BACKEND_URL}/youtube-music/audio/${encodeURIComponent(publicId)}`;
+        return `/youtube-music/audio/${encodeURIComponent(publicId)}`;
     }
 
     static async getChanelAsync(youtubeId: string) {

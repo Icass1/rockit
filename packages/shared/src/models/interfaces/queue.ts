@@ -6,6 +6,8 @@ export interface QueueMediaItem {
     queueMediaId: number;
     listPublicId: string | null;
     media: TQueueMedia;
+    sortedIndex?: number;
+    randomIndex?: number;
 }
 
 // Backwards-compatible alias for existing web imports of `QueueItem` from

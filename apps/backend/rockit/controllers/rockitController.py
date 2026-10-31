@@ -109,7 +109,6 @@ async def upload_rockit_song(
     notification = await Notification.import_async(
         session=session,
         user_id=a_result_user.result().id,
-        operation_id=upload_id,
         success=a_result.is_ok(),
         title=upload_request.title,
     )
@@ -237,7 +236,6 @@ async def upload_rockit_album(
     notification = await Notification.import_async(
         session=session,
         user_id=a_result_user.result().id,
-        operation_id=upload_id,
         success=a_result.is_ok(),
         title=upload_request.title,
     )

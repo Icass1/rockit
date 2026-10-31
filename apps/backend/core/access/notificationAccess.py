@@ -50,7 +50,6 @@ class NotificationAccess:
         replacements: list[NotificationReplacement],
         destination: NotificationDestination | None = None,
         recipient_user_id: int | None = None,
-        source_key: str | None = None,
     ) -> Result[int]:
         """Persist one untranslated notification per current subscriber without committing."""
         subscribers = select(NotificationSubscriptionRow.user_id).where(
@@ -70,7 +69,6 @@ class NotificationAccess:
                     vocabulary_key=vocabulary_key,
                     replacements=[replacement.model_dump() for replacement in replacements],
                     destination=destination.model_dump() if destination is not None else None,
-                    source_key=source_key,
                 )
                 for user_id in user_ids
             ]

@@ -1,10 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-    lyricPlaybackTime,
-    lyricSeekTime,
-} from "../../../packages/shared/src/utils/lyricsTiming.ts";
-import { lyricsCorrectionSchema } from "../models/schemas/lyricsCorrection.ts";
+import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
+
+const result = await build({
+    absWorkingDir: fileURLToPath(new URL("..", import.meta.url)),
+    stdin: {
+        contents: `export { lyricPlaybackTime, lyricSeekTime } from "@rockit/shared/utils/lyricsTiming";
+            export { lyricsCorrectionSchema } from "@/models/schemas/lyricsCorrection";`,
+        resolveDir: fileURLToPath(new URL("..", import.meta.url)),
+    },
+    bundle: true,
+    platform: "node",
+    format: "esm",
+    write: false,
+});
+const { lyricPlaybackTime, lyricSeekTime, lyricsCorrectionSchema } = await import(
+    `data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString("base64")}`
+);
 
 test("delay and advance use the same original clock for highlighting and seeking", () => {
     assert.equal(lyricPlaybackTime(10, -1), 11);

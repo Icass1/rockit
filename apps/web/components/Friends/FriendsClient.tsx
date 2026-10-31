@@ -22,20 +22,17 @@ export default function FriendsClient(): JSX.Element {
     const [ready, setReady] = useState(false);
     const onlineCount = friends.filter((friend) => friend.isOnline).length;
     useEffect(() => {
-        let current = true;
         void Promise.allSettled([
-            rockIt.friendManager.fetchFriends(),
-            rockIt.friendManager.fetchActivity(),
-            rockIt.friendManager.fetchRequests(),
             rockIt.sharingManager.fetchInbox(),
             rockIt.sharingManager.fetchSent(),
             rockIt.listenTogetherManager.fetchSessions(),
-        ]).then(() => {
-            if (current) setReady(true);
-        });
-        return () => {
-            current = false;
-        };
+        ]).finally(() => setReady(true));
+        const unsubscribe = rockIt.friendManager.friendsAtom.subscribe(
+            (value) => {
+                if (value.length > 0) setReady(true);
+            }
+        );
+        return unsubscribe;
     }, []);
     return (
         <div className={styles.root}>

@@ -74,3 +74,15 @@ class NotificationPageResponse(IBaseModel):
     items: list[NotificationResponse]
     unreadCount: int
     totalCount: int
+
+
+class NotificationChangedMessage(IBaseModel):
+    type: Literal["notifications_changed"] = "notifications_changed"
+    unreadCount: int
+    totalCount: int
+
+
+class NotificationStateMessage(IBaseModel):
+    type: Literal["notification_state"] = "notification_state"
+    unreadCount: int
+    totalCount: int

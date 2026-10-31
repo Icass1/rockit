@@ -438,6 +438,12 @@ class Rockit:
                 logger.error(f"Error loading song images. {a_result_images.info()}")
                 return Result(code=a_result_images.code(), message=a_result_images.message())
             images = a_result_images.result()
+            a_result_image_urls = await Image.get_internal_image_urls_async(
+                images=list(images.values())
+            )
+            if a_result_image_urls.is_not_ok():
+                return Result[list[BaseSongWithAlbumResponse]].from_result(a_result_image_urls)
+            image_urls = a_result_image_urls.result()
             responses: list[BaseSongWithAlbumResponse] = []
             for song in songs:
                 a_result_response = await Rockit._build_song_response_async(
@@ -445,6 +451,7 @@ class Rockit:
                     song=song,
                     public_id=id_to_public_id.get(song.id, ""),
                     images=images,
+                    image_urls=image_urls,
                     public_ids=id_to_public_id,
                 )
                 if a_result_response.is_ok():
@@ -738,6 +745,7 @@ class Rockit:
         song: RockitSongRow,
         public_id: str,
         images: dict[int, ImageRow],
+        image_urls: dict[int, str],
         public_ids: dict[int, str],
     ) -> Result[BaseSongWithAlbumResponse]:
         """Build a song from relationships and images loaded by the batch caller."""
@@ -746,13 +754,7 @@ class Rockit:
             logger.error(f"Missing song image for {public_id}")
             return Result(code=ResultCode.NOT_FOUND, message="Song image not found")
 
-        a_result_image_url: Result[str] = await Image.get_internal_image_url_async(image=image)
-        if a_result_image_url.is_not_ok():
-            logger.error(
-                f"Error getting song image URL for {public_id}. {a_result_image_url.info()}"
-            )
-            return Result[BaseSongWithAlbumResponse].from_result(a_result_image_url)
-        image_url: str = a_result_image_url.result()
+        image_url = image_urls[song.image_id]
         song_artists = [
             BaseArtistResponse(
                 provider=Rockit.provider_name,
@@ -782,16 +784,7 @@ class Rockit:
             album_image = images.get(album.image_id)
             album_image_url: str = ""
             if album_image is not None:
-                a_result_album_image_url: Result[str] = await Image.get_internal_image_url_async(
-                    image=album_image
-                )
-                if a_result_album_image_url.is_not_ok():
-                    logger.error(
-                        f"Error getting album image URL for {public_id}. "
-                        f"{a_result_album_image_url.info()}"
-                    )
-                    return Result[BaseSongWithAlbumResponse].from_result(a_result_album_image_url)
-                album_image_url = a_result_album_image_url.result()
+                album_image_url = image_urls[album.image_id]
             album_response = BaseAlbumWithoutSongsResponse(
                 provider=Rockit.provider_name,
                 publicId=album_id,

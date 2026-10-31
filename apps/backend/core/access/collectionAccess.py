@@ -307,7 +307,7 @@ class CollectionAccess:
         root_id: int,
         ordered_ids: list[int],
         random_indexes: dict[int, int],
-        start: int,
+        start_by_queue_type: dict[int, int],
     ) -> Result[int]:
         """Serialize replacement per user and commit queue and selection atomically."""
         users = shared_metadata.tables["core.user"]
@@ -334,7 +334,7 @@ class CollectionAccess:
         await session.execute(
             update(users)
             .where(users.c.id == user_id)
-            .values(current_queue_id=start, current_time_ms=0)
+            .values(current_queue_id=start_by_queue_type[queue_type], current_time_ms=0)
         )
         await session.commit()
         return Result(code=ResultCode.OK, message="OK", result=queue_type)

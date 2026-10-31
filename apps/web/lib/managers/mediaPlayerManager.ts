@@ -115,10 +115,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     private async _prepareBounds(publicId: string): Promise<void> {
-        if (
-            !this._transitionSettings.get().enabled ||
-            this._boundsPending.has(publicId)
-        )
+        if (!this._transitionsEnabled() || this._boundsPending.has(publicId))
             return;
         this._boundsPending.add(publicId);
         try {
@@ -126,7 +123,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 const queue = getRockIt().queueManager;
                 const next = queue.peekNextQueueItem();
                 if (
-                    !this._transitionSettings.get().enabled ||
+                    !this._transitionsEnabled() ||
                     (queue.currentMedia?.publicId !== publicId &&
                         next?.media.publicId !== publicId)
                 )
@@ -240,6 +237,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     else this._restoreForegroundVideo();
                 }
                 if (!document.hidden) {
+                    if (MediaPlayerManager._isiOS()) this._recoverEndedAudio();
                     this.activateTransitionsOnGesture();
                     void this.preloadNextTrack();
                     this._stopEndedPoll();
@@ -325,6 +323,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                     "audio"
             )
                 return;
+            if (!this._playRequested) return;
             const now = Date.now();
             if (now - this._lastEndedTime < 500) return;
             this._lastEndedTime = now;
@@ -419,8 +418,21 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         return false;
     }
 
+    get supportsAdaptiveTransitions(): boolean {
+        // iOS may suspend Web Audio and disallow starting the second deck while
+        // locked. Retain its user-authorized native element across track changes.
+        return !MediaPlayerManager._isiOS();
+    }
+
+    private _transitionsEnabled(): boolean {
+        return (
+            this.supportsAdaptiveTransitions &&
+            this._transitionSettings.get().enabled
+        );
+    }
+
     activateTransitionsOnGesture(): void {
-        if (this._transitionSettings.get().enabled) this._mixer.activate();
+        if (this._transitionsEnabled()) this._mixer.activate();
     }
 
     get transitionSettingsAtom(): ReadonlyAtom<WebTransitionSettings> {
@@ -501,8 +513,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
             old.load();
         }
         if (this._audio) this._mixer.reset(this._audio, true);
-        if (old && this._transitionSettings.get().enabled)
-            void this.preloadNextTrack();
+        if (old && this._transitionsEnabled()) void this.preloadNextTrack();
     }
 
     private _startBlend(): void {
@@ -529,7 +540,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (
             !audio ||
             audio.paused ||
-            !settings.enabled ||
+            !this._transitionsEnabled() ||
             !this._syncOwner ||
             !this._playRequested ||
             this._isSeeking ||
@@ -730,9 +741,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (kind === "audio") {
             const media = getRockIt().queueManager.currentMedia;
             const eligible =
-                this._transitionSettings.get().enabled &&
-                !!media &&
-                isSong(media);
+                this._transitionsEnabled() && !!media && isSong(media);
             const promotion =
                 this._promotionQueueId ===
                     getRockIt().queueManager.currentQueueMediaId &&
@@ -883,7 +892,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
                 media &&
                 isSong(media) &&
                 this._syncOwner &&
-                this._transitionSettings.get().enabled &&
+                this._transitionsEnabled() &&
                 getRockIt().userManager.repeatModeAtom.get() !== "ONE"
             ) {
                 sec =
@@ -919,7 +928,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     }
 
     protected override _onPlayingStarted(): void {
-        if (this._transitionSettings.get().enabled && !this._transitionTimer) {
+        if (this._transitionsEnabled() && !this._transitionTimer) {
             this._transitionTimer = setInterval(
                 (): void => this._transitionTick(),
                 250
@@ -928,7 +937,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         if (
             typeof document !== "undefined" &&
             document.hidden &&
-            !this._transitionSettings.get().enabled
+            !this._transitionsEnabled()
         )
             return;
         void this.preloadNextTrack();
@@ -964,7 +973,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         )
             return;
         if (
-            this._transitionSettings.get().enabled &&
+            this._transitionsEnabled() &&
             this._mixer.running &&
             isSong(next.media)
         ) {
@@ -981,7 +990,7 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
         this._preloadAudio.load();
         this._preloadedUri = uri;
         this._preloadedForQueueMediaId = next.queueMediaId;
-        if (isSong(next.media) && this._transitionSettings.get().enabled) {
+        if (isSong(next.media) && this._transitionsEnabled()) {
             // Refresh source identity on each preparation, including after redownload.
             this._bounds.delete(next.media.publicId);
             void this._prepareBounds(next.media.publicId);
@@ -1014,18 +1023,37 @@ export class MediaPlayerManager extends BaseMediaPlayerManager {
     private _startEndedPoll(): void {
         if (!MediaPlayerManager._isiOS() || this._endedPollTimer) return;
 
-        this._endedPollTimer = setInterval((): void => {
-            const el = this._audio;
-            if (!el || el.paused || !el.duration || isNaN(el.duration)) return;
+        this._endedPollTimer = setInterval(
+            (): void => this._recoverEndedAudio(),
+            1000
+        );
+    }
 
-            if (el.currentTime >= el.duration - 0.3) {
-                const now = Date.now();
-                if (now - this._lastEndedTime < 500) return;
-                this._lastEndedTime = now;
-                this._stopEndedPoll();
-                this.onNativeEnded();
-            }
-        }, 1000);
+    private _recoverEndedAudio(): void {
+        const el = this._audio;
+        if (
+            !el ||
+            !this._playRequested ||
+            !this._syncOwner ||
+            this._loadingPlayback ||
+            this._effectiveKind(getRockIt().queueManager.currentMedia) !==
+                "audio"
+        )
+            return;
+        // ended media is normally paused. Checking paused first discarded exactly
+        // the state this Safari fallback needs to recover. Never skip the tail or
+        // turn a manual pause near the end into a queue advance.
+        const exhausted =
+            !el.paused &&
+            Number.isFinite(el.duration) &&
+            el.duration > 0 &&
+            el.currentTime >= el.duration;
+        if (!el.ended && !exhausted) return;
+        const now = Date.now();
+        if (now - this._lastEndedTime < 500) return;
+        this._lastEndedTime = now;
+        this._stopEndedPoll();
+        this.onNativeEnded();
     }
 
     private _stopEndedPoll(): void {

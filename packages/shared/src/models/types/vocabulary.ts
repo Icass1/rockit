@@ -910,4 +910,5 @@ export interface Vocabulary {
     LYRICS_SHOW_CURRENT: string;
     LYRICS_SHOW_PROPOSED: string;
     LYRICS_INVALID_CORRECTION: string;
+    SETTINGS_TRANSITIONS_IOS_NATIVE: string;
 }

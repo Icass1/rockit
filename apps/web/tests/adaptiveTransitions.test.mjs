@@ -35,7 +35,12 @@ const { outputFiles } = await build({
 async function flush() {
     for (let i = 0; i < 40; i++) await Promise.resolve();
 }
-function setup({ connected = false, sameAlbum = false } = {}) {
+function setup({
+    connected = false,
+    sameAlbum = false,
+    ios = false,
+    ipad = false,
+} = {}) {
     let level = 0.3,
         serial = 0,
         repeat = "OFF";
@@ -90,6 +95,7 @@ function setup({ connected = false, sameAlbum = false } = {}) {
     }
     class Element {
         paused = true;
+        ended = false;
         currentTime = 0;
         duration = 60;
         readyState = 4;
@@ -100,6 +106,7 @@ function setup({ connected = false, sameAlbum = false } = {}) {
         style = {};
         buffered = { length: 1, start: () => 0, end: () => 10 };
         play() {
+            this.ended = false;
             this.paused = false;
             this.onplaying?.();
             return Promise.resolve();
@@ -119,10 +126,13 @@ function setup({ connected = false, sameAlbum = false } = {}) {
             if (n === "src") this.src = "";
         }
     }
+    const visibilityHandlers = [];
     const document = {
         hidden: false,
         createElement: () => new Element(),
-        addEventListener() {},
+        addEventListener(name, handler) {
+            if (name === "visibilitychange") visibilityHandlers.push(handler);
+        },
         getElementById: () => null,
         body: { appendChild() {} },
     };
@@ -136,7 +146,13 @@ function setup({ connected = false, sameAlbum = false } = {}) {
             },
         },
         document,
-        navigator: { userAgent: "iPhone" },
+        navigator: ipad
+            ? {
+                  userAgent: "Macintosh",
+                  platform: "MacIntel",
+                  maxTouchPoints: 5,
+              }
+            : { userAgent: ios ? "iPhone" : "Desktop" },
         Audio: Element,
         AudioContext: Context,
         HTMLMediaElement: { HAVE_CURRENT_DATA: 2 },
@@ -203,6 +219,8 @@ function setup({ connected = false, sameAlbum = false } = {}) {
     return {
         player,
         queue,
+        document,
+        visibilityHandlers,
         timers,
         handlers,
         messages,
@@ -423,7 +441,7 @@ test("a routed stream error retries once on a native element", async () => {
 });
 
 test("videos retain native background audio when transitions are enabled", async () => {
-    const e = setup();
+    const e = setup({ ios: true });
     await start(e);
     const previous = e.player.audioElement;
     e.queue.currentMedia = {
@@ -435,13 +453,13 @@ test("videos retain native background audio when transitions are enabled", async
     };
     e.queue.currentQueueMediaId = 7;
     await e.player.setMedia();
-    assert.notEqual(e.player.audioElement, previous);
+    assert.equal(e.player.audioElement, previous);
     assert.equal(e.player.audioElement.crossOrigin, undefined);
     assert.equal(e.player.audioElement.src, "https://test/audio");
     e.player.pause();
 });
 
-test("file errors advance without a timer, skip unavailable songs, and stop a failed-file loop", () => {
+test("file errors retain the recovery delay, skip unavailable songs, and stop a failed-file loop", () => {
     const e = setup();
     e.queue.queueIdentity = {};
     e.queue.lastNavigationDirection = 1;
@@ -451,9 +469,12 @@ test("file errors advance without a timer, skip unavailable songs, and stop a fa
     e.player.play = () => played.push(e.queue.currentQueueMediaId);
     e.player.pause = () => pauses++;
     const timerCount = e.timers.size;
+    e.player._playRequested = true;
     e.player._handleMediaError();
+    assert.deepEqual(played, []);
+    assert.equal(e.timers.size, timerCount + 1);
+    [...e.timers.values()].at(-1)();
     assert.deepEqual(played, [3]);
-    assert.equal(e.timers.size, timerCount);
     e.player._handleMediaError();
     assert.deepEqual(played, [3]);
     assert.equal(pauses, 1);
@@ -466,7 +487,10 @@ test("backward error navigation skips unavailable songs in the correct direction
     e.queue.queue[1].media.downloaded = false;
     const played = [];
     e.player.play = () => played.push(e.queue.currentQueueMediaId);
+    e.player._playRequested = true;
     e.player._handleMediaError();
+    assert.deepEqual(played, []);
+    [...e.timers.values()].at(-1)();
     assert.deepEqual(played, [1]);
 });
 
@@ -483,5 +507,113 @@ test("native resource duration keeps the playback clock moving beyond catalog le
     audio.duration = 320;
     audio.ondurationchange();
     assert.equal(e.player.durationAtom.get(), 320);
+    e.player.pause();
+});
+
+test("iOS background uses one native element even with saved transitions enabled", async () => {
+    const e = setup({ ios: true });
+    e.document.hidden = true;
+    await start(e);
+    const audio = e.player.audioElement;
+    assert.equal(e.player.transitionSettingsAtom.get().enabled, true);
+    assert.equal(e.player.supportsAdaptiveTransitions, false);
+    assert.equal(e.player._mixer.has(audio), false);
+    assert.equal(e.player._mixer.running, false);
+    audio.currentTime = audio.duration;
+    audio.ended = true;
+    audio.paused = true;
+    audio.onended();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(e.player.audioElement, audio);
+    assert.equal(audio.src, "https://test/b");
+    assert.equal(audio.paused, false);
+    assert.equal(e.messages.filter((m) => m.kind === "ended").length, 1);
+    e.player.pause();
+});
+
+test("iOS background recovers a missed ended event even though the element is paused", async () => {
+    const e = setup({ ios: true });
+    e.document.hidden = true;
+    await start(e);
+    const audio = e.player.audioElement;
+    const poll = [...e.timers.values()].at(-1);
+    assert.ok(poll);
+    audio.currentTime = audio.duration;
+    audio.ended = true;
+    audio.paused = true;
+    poll();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(e.player.audioElement, audio);
+    assert.equal(audio.paused, false);
+    poll();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(e.messages.filter((m) => m.kind === "ended").length, 1);
+    e.player.pause();
+});
+
+test("iOS background preserves the tail and never advances a manual pause", async () => {
+    const e = setup({ ios: true });
+    e.document.hidden = true;
+    await start(e);
+    const audio = e.player.audioElement;
+    const poll = [...e.timers.values()].at(-1);
+    audio.currentTime = audio.duration - 0.2;
+    poll();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    e.player.pause();
+    audio.currentTime = audio.duration;
+    audio.ended = true;
+    poll();
+    audio.onended(); // A delayed native event must respect the manual pause too.
+    e.document.hidden = false;
+    for (const handler of e.visibilityHandlers) handler();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 1);
+    assert.equal(audio.paused, true);
+});
+
+test("iOS background recovers on visibility when timers were suspended", async () => {
+    const e = setup({ ios: true });
+    e.document.hidden = true;
+    await start(e);
+    const audio = e.player.audioElement;
+    audio.currentTime = audio.duration;
+    audio.ended = true;
+    audio.paused = true;
+    e.document.hidden = false;
+    for (const handler of e.visibilityHandlers) handler();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(audio.paused, false);
+    e.player.pause();
+});
+
+test("iOS background handoff still waits for the server owner grant", async () => {
+    const e = setup({ ios: true, connected: true });
+    e.document.hidden = true;
+    await start(e);
+    const audio = e.player.audioElement;
+    audio.currentTime = audio.duration;
+    audio.ended = true;
+    audio.paused = true;
+    audio.onended();
+    await flush();
+    assert.equal(e.queue.currentQueueMediaId, 2);
+    assert.equal(audio.paused, true);
+    await e.grant();
+    assert.equal(audio.paused, false);
+    e.player.pause();
+});
+
+test("iPadOS desktop identity also keeps native background playback", async () => {
+    const e = setup({ ipad: true });
+    await start(e);
+    assert.equal(e.player.supportsAdaptiveTransitions, false);
+    assert.equal(e.player._mixer.has(e.player.audioElement), false);
+    assert.equal(e.player._mixer.running, false);
     e.player.pause();
 });

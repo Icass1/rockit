@@ -3,12 +3,14 @@
 import sys
 from pathlib import Path
 from typing import cast
-from urllib.parse import parse_qs, urlsplit
+from unittest.mock import Mock
+from urllib.parse import urlsplit
 
 import pytest
 
 from core.access.db.ormModels.storageObject import StorageObjectRow  # noqa: E402
 from core.framework import storage  # noqa: E402
+from result import ResultCode
 
 BACKEND_ROOT = Path(__file__).parents[2]
 if str(BACKEND_ROOT) not in sys.path:
@@ -25,7 +27,7 @@ class FakeS3Client:
 def test_private_and_public_clients_use_separate_endpoints(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Backend operations and presigned URLs can target different endpoints."""
+    """Backend and client-facing operations can target different endpoints."""
 
     clients: list[FakeS3Client] = []
 
@@ -69,27 +71,25 @@ def test_public_client_falls_back_to_private_endpoint(
     assert client.endpoint_url == "http://minio:9000"
 
 
-@pytest.mark.parametrize("public", [False, True])
 @pytest.mark.parametrize("region", ["eu-south-2", "eu-west-1", "us-east-1"])
-def test_aws_presigned_urls_use_regional_sigv4(
-    monkeypatch: pytest.MonkeyPatch, public: bool, region: str
+def test_aws_public_urls_do_not_require_s3_clients_or_credentials(
+    monkeypatch: pytest.MonkeyPatch, region: str
 ) -> None:
-    """Real SDK presigning targets the configured region and uses SigV4."""
+    """Public objects use regional AWS URLs without signing or credential lookup."""
 
     monkeypatch.setattr(storage.settings, "S3_PRIVATE_ENDPOINT_URL", None)
     monkeypatch.setattr(storage.settings, "S3_PUBLIC_ENDPOINT_URL", None)
     monkeypatch.setattr(storage.settings, "S3_REGION", region)
-    monkeypatch.setattr(storage.settings, "S3_ACCESS_KEY", "test-access-key")
-    monkeypatch.setattr(storage.settings, "S3_SECRET_KEY", "test-secret-key")
-    monkeypatch.setattr(storage, "_private_client", None)
-    monkeypatch.setattr(storage, "_public_client", None)
+    monkeypatch.setattr(storage.settings, "S3_ACCESS_KEY", None)
+    monkeypatch.setattr(storage.settings, "S3_SECRET_KEY", None)
+    client = Mock(side_effect=AssertionError("URL generation must not create an S3 client"))
+    monkeypatch.setattr(storage.boto3, "client", client)
 
-    client = storage.get_s3_client(public=public)
-    url = client.generate_presigned_url(
-        "get_object", Params={"Bucket": "example-bucket", "Key": "images/logo.webp"}
+    url = storage.Storage.get_public_url(
+        storage_object=StorageObjectRow(bucket="example-bucket", key="images/logo.webp")
     )
+    assert url is not None
     parsed = urlsplit(url)
-    query = parse_qs(parsed.query)
 
     expected_host = (
         "example-bucket.s3.amazonaws.com"
@@ -98,29 +98,64 @@ def test_aws_presigned_urls_use_regional_sigv4(
     )
     assert parsed.hostname == expected_host
     assert parsed.path == "/images/logo.webp"
-    assert query["X-Amz-Algorithm"] == ["AWS4-HMAC-SHA256"]
-    assert f"/{region}/s3/aws4_request" in query["X-Amz-Credential"][0]
-    assert "AWSAccessKeyId" not in query
-    assert client is storage.get_s3_client(public=public)
+    assert parsed.scheme == "https"
+    assert parsed.query == ""
+    client.assert_not_called()
 
 
-def test_object_url_preserves_custom_public_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Custom public hosts keep path addressing and use SigV4."""
+@pytest.mark.parametrize("public_endpoint", [None, "https://files.example.com/prefix/"])
+@pytest.mark.parametrize(
+    "key,expected_path",
+    [
+        ("images/logo.webp", "images/logo.webp"),
+        ("music/Björk #1?100%+.mp3", "music/Bj%C3%B6rk%20%231%3F100%25%2B.mp3"),
+        ("/images//logo.webp", "/images//logo.webp"),
+    ],
+)
+def test_object_urls_preserve_custom_endpoints_and_encode_keys(
+    monkeypatch: pytest.MonkeyPatch,
+    public_endpoint: str | None,
+    key: str,
+    expected_path: str,
+) -> None:
+    """Public and fallback endpoints preserve paths and escape reserved key characters."""
 
     monkeypatch.setattr(storage.settings, "S3_PRIVATE_ENDPOINT_URL", "http://minio:9000")
-    monkeypatch.setattr(storage.settings, "S3_PUBLIC_ENDPOINT_URL", "https://files.example.com")
-    monkeypatch.setattr(storage.settings, "S3_ACCESS_KEY", "test-access-key")
-    monkeypatch.setattr(storage.settings, "S3_SECRET_KEY", "test-secret-key")
-    monkeypatch.setattr(storage, "_public_client", None)
+    monkeypatch.setattr(storage.settings, "S3_PUBLIC_ENDPOINT_URL", public_endpoint)
+    client = Mock(side_effect=AssertionError("URL generation must not create an S3 client"))
+    monkeypatch.setattr(storage.boto3, "client", client)
 
-    url = storage.Storage.get_object_url(
-        StorageObjectRow(bucket="example-bucket", key="images/logo.webp")
+    obj = StorageObjectRow(bucket="example-bucket", key=key)
+    expected_url = (
+        f"{(public_endpoint or 'http://minio:9000').rstrip('/')}/example-bucket/{expected_path}"
     )
-    assert url is not None
-    parsed = urlsplit(url)
-    assert parsed.hostname == "files.example.com"
-    assert parsed.path == "/example-bucket/images/logo.webp"
-    assert parse_qs(parsed.query)["X-Amz-Algorithm"] == ["AWS4-HMAC-SHA256"]
+    assert storage.Storage.get_public_url(storage_object=obj) == expected_url
+    assert storage.Storage.get_object_url(storage_object=obj) == expected_url
+    client.assert_not_called()
+
+
+async def test_image_url_is_public(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Image responses resolve the stored object without signing it."""
+    from core.access.db.ormModels.image import ImageRow
+    from core.framework.media.image import Image
+
+    monkeypatch.setattr(storage.settings, "S3_PUBLIC_ENDPOINT_URL", "https://files.example.com")
+    client = Mock(side_effect=AssertionError("URL generation must not create an S3 client"))
+    monkeypatch.setattr(storage.boto3, "client", client)
+    image = ImageRow(id=1, storage_object_id=1)
+    image.storage_object = StorageObjectRow(bucket="example-bucket", key="images/cover.webp")
+    result = await Image.get_internal_image_url_async(image=image)
+
+    assert result.is_ok()
+    assert result.result() == "https://files.example.com/example-bucket/images/cover.webp"
+    client.assert_not_called()
+
+
+async def test_missing_object_has_no_public_url() -> None:
+    """Missing storage objects retain their empty URL and NOT_FOUND behavior."""
+    assert storage.Storage.get_public_url(storage_object=None) is None
+    result = await storage.Storage.get_public_url_async(storage_object=None)
+    assert result.code() == ResultCode.NOT_FOUND
 
 
 @pytest.mark.asyncio

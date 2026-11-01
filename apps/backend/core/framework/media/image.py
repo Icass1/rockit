@@ -278,18 +278,19 @@ class Image:
 
     @staticmethod
     async def get_internal_image_url_async(image: ImageRow) -> Result[str]:
-        """Return a short-lived presigned URL of an image."""
+        """Return the public URL of an image."""
 
         storage_object = image.__dict__.get("storage_object", None)
         if storage_object is None:
+            logger.error(f"Storage object not found for image {image.id}")
             return Result[str](code=ResultCode.NOT_FOUND, message="Storage object not found")
-        return await Storage.get_presigned_url_async(storage_object)
+        return await Storage.get_public_url_async(storage_object=storage_object)
 
     @staticmethod
     async def get_internal_image_urls_async(
         images: list[ImageRow],
     ) -> Result[dict[int, str]]:
-        """Generate presigned URLs concurrently for a batch of images."""
+        """Resolve public URLs concurrently for a batch of images."""
         unique_images = {image.id: image for image in images}
         urls: dict[int, str] = {}
         image_items = list(unique_images.items())
@@ -309,7 +310,7 @@ class Image:
     async def get_internal_image_url_by_public_id_async(
         session: AsyncSession, public_id: str | None
     ) -> str | None:
-        """Resolve an image public ID to its short-lived S3 URL."""
+        """Resolve an image public ID to its public S3 URL."""
 
         if not public_id:
             return None

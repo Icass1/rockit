@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     # Object storage (S3-compatible, e.g. MinIO / AWS S3)
     # S3-compatible endpoint used by backend-to-storage operations.
     S3_PRIVATE_ENDPOINT_URL: str | None = None
-    # Endpoint embedded in presigned URLs returned to clients. This must be
+    # Endpoint used for public object URLs returned to clients. This must be
     # reachable by clients; it may be different from the private endpoint.
     S3_PUBLIC_ENDPOINT_URL: str | None = None
     S3_ACCESS_KEY: str | None = None
@@ -62,8 +62,6 @@ class Settings(BaseSettings):
     S3_BUCKET: str = Field(min_length=1)
     S3_PREFIX: str = ""
     S3_REGION: str = "us-east-1"
-    # Lifetime of presigned URLs used when a public endpoint is not configured.
-    S3_PRESIGNED_URL_EXPIRES: int = 3600
 
     # Rockit capabilities extend the same shared Settings used by the template.
     TEMP_PATH: str

@@ -176,11 +176,16 @@ export function useLibraryData({
     );
     const [snapshot, dispatch] = useReducer(libraryReducer, undefined);
     // An account/data change must never expose the previous reducer snapshot.
-    const libraryData = data
-        ? snapshot?.source === data
-            ? snapshot
-            : extractItems(data)
-        : undefined;
+    // Keep fallback arrays stable until the INIT effect commits the snapshot.
+    const libraryData = useMemo(
+        () =>
+            data
+                ? snapshot?.source === data
+                    ? snapshot
+                    : extractItems(data)
+                : undefined,
+        [data, snapshot]
+    );
     useEffect((): void => {
         if (data) dispatch({ type: "INIT", data });
     }, [data]);

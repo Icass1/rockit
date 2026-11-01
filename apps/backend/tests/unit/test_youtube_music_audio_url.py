@@ -27,7 +27,7 @@ async def test_legacy_audio_redirect_uses_the_registered_object_and_storage_help
     track = cast(TrackRow, SimpleNamespace(storage_object=obj))
     lookup = AsyncMock(return_value=Result(code=ResultCode.OK, message="OK", result=track))
     monkeypatch.setattr(YoutubeMusicAccess, "get_track_by_public_id_async", lookup)
-    url = "https://objects.example/fixture/youtubeMusic/source.mp3?signature=test"
+    url = "https://objects.example/fixture/youtubeMusic/source.mp3"
     resolve = Mock(return_value=url)
     monkeypatch.setattr(Storage, "get_public_url", resolve)
     session = AsyncMock(spec=AsyncSession)

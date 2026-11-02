@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 from collections.abc import Callable
 from pathlib import Path
@@ -100,6 +101,102 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNotNone(suggestion)
                 assert suggestion is not None
                 self.assertEqual(suggestion.image_url, expected)
+
+    async def test_lazy_album_artwork_is_deduplicated_and_cached(self) -> None:
+        cover = "https://lastfm.freetls.fastly.net/i/u/300x300/cover.jpg"
+        provider, transport = self.make_provider(
+            lambda request: httpx.Response(
+                200,
+                json={
+                    "track": {
+                        "name": "Belief",
+                        "artist": {"name": "John Mayer"},
+                        "album": {"image": [{"#text": cover}]},
+                    }
+                },
+            )
+        )
+        results = await asyncio.gather(
+            *[
+                provider.get_artwork_async(artist_name="John Mayer", track_name="Belief")
+                for _ in range(5)
+            ]
+        )
+        for result in results:
+            self.assertTrue(result.is_ok())
+            self.assertEqual(result.result(), cover)
+        cached = await provider.get_artwork_async(artist_name="JOHN MAYER", track_name="Belief")
+        self.assertTrue(cached.is_ok())
+        self.assertEqual(cached.result(), cover)
+        self.assertEqual(len(transport.requests), 1)
+        self.assertEqual(transport.requests[0].url.params["method"], "track.getInfo")
+        self.assertEqual(transport.requests[0].url.params["artist"], "John Mayer")
+
+    async def test_artwork_rejects_mismatched_tracks_and_versions_and_caches_misses(self) -> None:
+        for artist, title in [("Another Artist", "Belief"), ("John Mayer", "Belief (Live)")]:
+            provider, transport = self.make_provider(
+                lambda _: httpx.Response(
+                    200,
+                    json={
+                        "track": {
+                            "name": title,
+                            "artist": {"name": artist},
+                            "album": {
+                                "image": [
+                                    {
+                                        "#text": "https://lastfm.freetls.fastly.net/i/u/300x300/wrong.jpg"
+                                    }
+                                ]
+                            },
+                        }
+                    },
+                )
+            )
+            for _ in range(2):
+                result = await provider.get_artwork_async(
+                    artist_name="John Mayer", track_name="Belief"
+                )
+                self.assertTrue(result.is_ok())
+                self.assertIsNone(result.result())
+            self.assertEqual(len(transport.requests), 1)
+
+    async def test_artwork_failure_is_bounded_and_does_not_break_discovery(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.params["method"] == "track.getInfo":
+                return httpx.Response(503)
+            return httpx.Response(
+                200,
+                json={
+                    "similartracks": {
+                        "track": [{"name": "Belief", "artist": {"name": "John Mayer"}}]
+                    }
+                },
+            )
+
+        provider, transport = self.make_provider(handler)
+        result = await provider.get_artwork_async(artist_name="John Mayer", track_name="Belief")
+        self.assertTrue(result.is_not_ok())
+        repeated = await provider.get_artwork_async(artist_name="John Mayer", track_name="Belief")
+        self.assertTrue(repeated.is_not_ok())
+        self.assertEqual(len(transport.requests), 1)
+        discovered = await provider.get_suggestions_async(context=SEED_CONTEXT, limit=10)
+        self.assertTrue(discovered.is_ok())
+        self.assertEqual(len(transport.requests), 2)
+        self.assertEqual(transport.requests[-1].url.params["method"], "track.getsimilar")
+
+    async def test_artwork_not_found_or_missing_album_is_a_cached_empty_answer(self) -> None:
+        for payload in [
+            {"error": 6},
+            {"track": {"name": "Belief", "artist": {"name": "John Mayer"}}},
+        ]:
+            provider, transport = self.make_provider(lambda _: httpx.Response(200, json=payload))
+            for _ in range(2):
+                result = await provider.get_artwork_async(
+                    artist_name="John Mayer", track_name="Belief"
+                )
+                self.assertTrue(result.is_ok())
+                self.assertIsNone(result.result())
+            self.assertEqual(len(transport.requests), 1)
 
     async def test_unknown_track_is_an_empty_answer(self) -> None:
         provider, _ = self.make_provider(

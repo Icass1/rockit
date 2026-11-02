@@ -5,7 +5,7 @@ from core.framework.models.recommendation import (
     ExternalSuggestion,
 )
 from core.framework.provider.baseProvider import BaseProvider
-from result import Result
+from result import Result, ResultCode
 
 
 class BaseExternalRecommendationProvider(BaseProvider, ABC):
@@ -45,3 +45,7 @@ class BaseExternalRecommendationProvider(BaseProvider, ABC):
         self, context: ExternalRecommendationContext, limit: int
     ) -> Result[list[ExternalSuggestion]]:
         """Fetch suggestions from the service (see class docstring)."""
+
+    async def get_artwork_async(self, artist_name: str, track_name: str) -> Result[str | None]:
+        """Optional lazy artwork capability; never blocks suggestion discovery."""
+        return Result(code=ResultCode.OK, message="No artwork capability", result=None)

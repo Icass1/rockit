@@ -1207,6 +1207,22 @@ export class BaseHttp {
         );
     }
 
+    static async getRecommendationArtwork(
+        provider: string,
+        artist: string,
+        track: string
+    ) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("provider", `${provider}`);
+        queryParams.append("artist", `${artist}`);
+        queryParams.append("track", `${track}`);
+        const queryString = queryParams.toString();
+        return this.apiGetAsync(
+            `/recommendation/artwork${queryString ? `?${queryString}` : ""}`,
+            dto.RecommendationArtworkResponseSchema
+        );
+    }
+
     static async getRecommendationsForYou(limit?: number, external?: boolean) {
         const queryParams = new URLSearchParams();
         if (limit !== undefined) queryParams.append("limit", `${limit}`);

@@ -7,7 +7,8 @@ const { outputFiles } = await build({
     stdin: {
         contents: `export {getFixedVirtualRange} from './lib/utils/fixedVirtualRange';
                    export {startVinylRotation} from './lib/utils/vinylRotation';
-                   export {buildRecommendationQueue} from '../../packages/shared/src/audio/recommendationQueue';`,
+                   export {buildRecommendationQueue} from '../../packages/shared/src/audio/recommendationQueue';
+                   export {RecommendationArtworkManager} from './lib/managers/recommendationArtworkManager';`,
         resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true,
@@ -15,6 +16,22 @@ const { outputFiles } = await build({
     format: "iife",
     globalName: "helpers",
     tsconfig: new URL("../tsconfig.json", import.meta.url).pathname,
+    plugins: [
+        {
+            name: "artwork-http-boundary",
+            setup(builder) {
+                builder.onResolve(
+                    { filter: /^@\/lib\/rockit\/rockIt$/ },
+                    () => ({ path: "rockit", namespace: "fixture" })
+                );
+                builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({
+                    contents:
+                        "export const rockIt = new Proxy({}, {get: (_, key) => globalThis.artworkFixture[key]});",
+                    loader: "js",
+                }));
+            },
+        },
+    ],
 });
 const context = vm.createContext({
     requestAnimationFrame() {
@@ -185,4 +202,43 @@ test("external recommendations replace local picks; empty or failed discovery fa
         ).length,
         0
     );
+});
+
+test("artwork requests share cache/inflight work and never exceed two concurrent lookups", async () => {
+    const started = [],
+        release = [];
+    context.artworkFixture = {
+        http: {
+            getRecommendationArtwork: (_provider, _artist, track) => {
+                started.push(track);
+                return new Promise((resolve) =>
+                    release.push(() =>
+                        resolve({
+                            isOk: () => true,
+                            result: {
+                                imageUrl: "https://covers.example/" + track,
+                            },
+                        })
+                    )
+                );
+            },
+        },
+    };
+    const manager = new context.helpers.RecommendationArtworkManager();
+    const a = manager.resolveAsync("External", "Artist", "A");
+    assert.equal(manager.resolveAsync("External", "Artist", "A"), a);
+    const b = manager.resolveAsync("External", "Artist", "B");
+    const c = manager.resolveAsync("External", "Artist", "C");
+    assert.deepEqual(started, ["A", "B"]);
+    release.shift()();
+    await a;
+    assert.deepEqual(started, ["A", "B", "C"]);
+    release.shift()();
+    release.shift()();
+    await Promise.all([b, c]);
+    assert.equal(
+        await manager.resolveAsync("External", "Artist", "A"),
+        "https://covers.example/A"
+    );
+    assert.equal(started.length, 3);
 });

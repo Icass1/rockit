@@ -75,6 +75,11 @@ export default function AutoplayRecommendations(): JSX.Element {
                     >
                         <RecommendationArtwork
                             src={media.imageUrl}
+                            provider={
+                                entry.kind === "discover" ? media.provider : ""
+                            }
+                            artist={media.artists[0]?.name}
+                            track={media.name}
                             size={48}
                             className="h-12 w-12 shrink-0 rounded object-cover"
                         />

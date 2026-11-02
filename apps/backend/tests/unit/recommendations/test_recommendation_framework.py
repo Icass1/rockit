@@ -390,6 +390,33 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(local.imageUrl, "https://covers.example/local.jpg")
 
+    async def test_artwork_delegates_to_configured_capability_only(self) -> None:
+        provider = FakeProvider("external", ok())
+        self.use_providers(provider)
+        with mock.patch.object(
+            provider,
+            "get_artwork_async",
+            mock.AsyncMock(return_value=ok_result("https://covers.example/album.jpg")),
+        ) as lookup:
+            result = await Recommendation.get_artwork_async(
+                provider_name="External", artist="Artist", track="Song"
+            )
+            self.assertTrue(result.is_ok())
+            self.assertEqual(result.result(), "https://covers.example/album.jpg")
+            lookup.assert_awaited_once_with(artist_name="Artist", track_name="Song")
+            unsupported = await Recommendation.get_artwork_async(
+                provider_name="Unknown", artist="Artist", track="Song"
+            )
+            self.assertTrue(unsupported.is_ok())
+            self.assertIsNone(unsupported.result())
+            provider._configured = False  # pyright: ignore[reportPrivateUsage]
+            disabled = await Recommendation.get_artwork_async(
+                provider_name="External", artist="Artist", track="Song"
+            )
+            self.assertTrue(disabled.is_ok())
+            self.assertIsNone(disabled.result())
+            lookup.assert_awaited_once()
+
     async def test_response_contract(self) -> None:
         self.use_providers(FakeProvider("primary", ok(("New Artist", "New Song"))))
         result = await self.for_you()

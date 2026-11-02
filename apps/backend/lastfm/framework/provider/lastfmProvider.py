@@ -1,3 +1,6 @@
+import asyncio
+import time
+import unicodedata
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -60,6 +63,9 @@ class LastfmProvider(BaseExternalRecommendationProvider):
         )
         # Only set by tests, to mock HTTP.
         self._transport = transport
+        self._artwork_cache: dict[tuple[str, str], tuple[float, Result[str | None]]] = {}
+        self._artwork_tasks: dict[tuple[str, str], asyncio.Task[Result[str | None]]] = {}
+        self._artwork_slots = asyncio.Semaphore(2)
 
     def is_configured(self) -> bool:
         return bool(self._api_key)
@@ -163,6 +169,111 @@ class LastfmProvider(BaseExternalRecommendationProvider):
         return Result(code=ResultCode.OK, message="OK", result=suggestions)
 
     @staticmethod
+    def _artwork_identity(value: str) -> str:
+        # Retain version words (live/remix/etc.) while tolerating Unicode punctuation.
+        normalized = unicodedata.normalize("NFKD", value).casefold()
+        return " ".join(
+            "".join(
+                c if c.isalnum() else " " for c in normalized if not unicodedata.combining(c)
+            ).split()
+        )
+
+    async def get_artwork_async(self, artist_name: str, track_name: str) -> Result[str | None]:
+        """Lazy track.getInfo album artwork, cached and shared across callers."""
+        key = (self._artwork_identity(artist_name), self._artwork_identity(track_name))
+        if not all(key) or not self.is_configured():
+            return Result(code=ResultCode.OK, message="No artwork", result=None)
+        cached = self._artwork_cache.get(key)
+        if cached and cached[0] > time.monotonic():
+            return cached[1]
+        task = self._artwork_tasks.get(key)
+        if task is None:
+            if len(self._artwork_tasks) >= 16:
+                logger.warning("Last.fm artwork queue is full")
+                return Result(code=ResultCode.RATE_LIMITED, message="Artwork queue full")
+            task = asyncio.create_task(
+                self._cached_artwork_async(key=key, artist_name=artist_name, track_name=track_name)
+            )
+            self._artwork_tasks[key] = task
+        return await asyncio.shield(task)
+
+    async def _cached_artwork_async(
+        self, key: tuple[str, str], artist_name: str, track_name: str
+    ) -> Result[str | None]:
+        result: Result[str | None]
+        try:
+            # Includes queue time; slow images never hold discovery or playback.
+            async with asyncio.timeout(8.0):
+                async with self._artwork_slots:
+                    result = await self._lookup_artwork_async(
+                        key=key, artist_name=artist_name, track_name=track_name
+                    )
+        except Exception as error:
+            logger.warning(f"Last.fm artwork lookup failed: {type(error).__name__}")
+            result = Result(code=ResultCode.GENERAL_ERROR, message="Artwork unavailable")
+        finally:
+            self._artwork_tasks.pop(key, None)
+        if len(self._artwork_cache) >= 2048:
+            self._artwork_cache.pop(next(iter(self._artwork_cache)))
+        ttl = 30.0
+        if result.is_ok():
+            ttl = 86400.0 if result.result() else 3600.0
+        self._artwork_cache[key] = (time.monotonic() + ttl, result)
+        return result
+
+    async def _lookup_artwork_async(
+        self, key: tuple[str, str], artist_name: str, track_name: str
+    ) -> Result[str | None]:
+        async with httpx.AsyncClient(
+            timeout=min(self._timeout, 3.0),
+            transport=self._transport,
+            headers={"User-Agent": LASTFM_USER_AGENT},
+        ) as client:
+            response = await send_rate_limited_request_async(
+                client=client,
+                limiter=self._limiter,
+                provider_name=self.display_name,
+                method="GET",
+                url=LASTFM_API_URL,
+                params={
+                    "method": "track.getInfo",
+                    "artist": artist_name,
+                    "track": track_name,
+                    "api_key": self._api_key,
+                    "format": "json",
+                    "autocorrect": 1,
+                },
+            )
+        if response.is_not_ok():
+            logger.warning(f"Last.fm artwork request unavailable. {response.info()}")
+            return Result(code=response.code(), message=response.message())
+        raw_response = response.result()
+        if raw_response.status_code != 200:
+            logger.warning(f"Last.fm artwork returned HTTP {raw_response.status_code}")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Artwork request failed")
+        try:
+            data = as_json_object(raw_response.json()) or {}
+        except ValueError:
+            logger.warning("Last.fm artwork returned invalid JSON")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Invalid artwork response")
+        if data.get("error") == LASTFM_ERROR_NOT_FOUND:
+            return Result(code=ResultCode.OK, message="Track not found", result=None)
+        if "error" in data:
+            if data.get("error") == LASTFM_ERROR_RATE_LIMIT:
+                self._limiter.update_from_response(status_code=429, headers={})
+            logger.warning("Last.fm artwork returned an API error")
+            return Result(code=ResultCode.GENERAL_ERROR, message="Artwork API failed")
+        track = as_json_object(data.get("track")) or {}
+        artist = as_json_object(track.get("artist")) or {}
+        if (
+            self._artwork_identity(str(artist.get("name", ""))),
+            self._artwork_identity(str(track.get("name", ""))),
+        ) != key:
+            return Result(code=ResultCode.OK, message="Artwork track mismatch", result=None)
+        album = as_json_object(track.get("album")) or {}
+        return Result(code=ResultCode.OK, message="OK", result=self._image_url(album.get("image")))
+
+    @staticmethod
     def _parse_track(value: object) -> ExternalSuggestion | None:
         """One similar-track entry -> suggestion, or None without a usable
         title or artist."""
@@ -195,7 +306,7 @@ class LastfmProvider(BaseExternalRecommendationProvider):
 
     @staticmethod
     def _image_url(value: object) -> str | None:
-        """Use supplied artwork only; never fetch extra metadata per suggestion."""
+        """Validate Last.fm CDN artwork; reject its generic placeholder."""
 
         images = as_json_list(value) or []
         for value in reversed(images):

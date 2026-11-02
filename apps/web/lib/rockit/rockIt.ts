@@ -16,6 +16,7 @@ import { OfflineManager } from "@/lib/managers/offlineManager";
 import { PlayerUIManager } from "@/lib/managers/playerUIManager";
 import { PlaylistManager } from "@/lib/managers/playlistManager";
 import { QueueManager } from "@/lib/managers/queueManager";
+import { RecommendationArtworkManager } from "@/lib/managers/recommendationArtworkManager";
 import { SearchManager } from "@/lib/managers/searchManager";
 import { SharingManager } from "@/lib/managers/sharingManager";
 import { StationManager } from "@/lib/managers/stationManager";
@@ -40,6 +41,7 @@ export class RockIt {
         process.env.NEXT_PUBLIC_BACKEND_URL + "/image/radio-placeholder.png";
     public readonly USER_PLACEHOLDER_IMAGE_URL = "/user-placeholder.png";
 
+    recommendationArtworkManager = new RecommendationArtworkManager();
     bookmarkManager = new BookmarkManager();
     notificationManager = new NotificationManager();
     webSocketManager = new WebSocketManager();

@@ -1,6 +1,6 @@
 from logging import Logger
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from core.framework.models.recommendation import SeedTrack
 from core.framework.recommendation import Recommendation, RecommendationResult
@@ -10,6 +10,7 @@ from core.middlewares.dbSessionMiddleware import DBSessionMiddleware
 from core.requests.prepareRecommendationsRequest import (
     PrepareRecommendationsRequest,
 )
+from core.responses.recommendationArtworkResponse import RecommendationArtworkResponse
 from core.responses.songListResponse import SongListResponse
 from logger import getLogger
 from result import Result
@@ -105,3 +106,19 @@ async def prepare_recommendations(
         logger.error(f"Could not prepare recommendations. {prepared.info()}")
         raise HTTPException(status_code=prepared.get_http_code(), detail=prepared.message())
     return prepared.result()
+
+
+@router.get("/artwork")
+async def get_recommendation_artwork(
+    provider: str = Query(min_length=1, max_length=100),
+    artist: str = Query(min_length=1, max_length=300),
+    track: str = Query(min_length=1, max_length=300),
+) -> RecommendationArtworkResponse:
+    """Resolve artwork only when a recommendation becomes visible."""
+    image = await Recommendation.get_artwork_async(
+        provider_name=provider, artist=artist.strip(), track=track.strip()
+    )
+    if image.is_not_ok():
+        logger.warning(f"Recommendation artwork unavailable. {image.info()}")
+        return RecommendationArtworkResponse()
+    return RecommendationArtworkResponse(imageUrl=image.result())

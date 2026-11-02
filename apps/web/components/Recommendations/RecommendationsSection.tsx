@@ -115,6 +115,7 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
         <RecommendationCard
             name={item.name}
             imageUrl={item.imageUrl}
+            artworkProvider={item.provider}
             artistNames={item.artists.map((a): string => a.name)}
             dimmed={!inLibrary}
             hint={!inLibrary ? $vocabulary.CLICK_TO_DOWNLOAD : undefined}
@@ -161,6 +162,7 @@ function DiscoverCard({ item }: { item: BaseSearchResultsItem }): JSX.Element {
 function RecommendationCard({
     name,
     imageUrl,
+    artworkProvider = "",
     artistNames,
     dimmed,
     hint,
@@ -168,6 +170,7 @@ function RecommendationCard({
 }: {
     name: string;
     imageUrl: string;
+    artworkProvider?: string;
     artistNames: string[];
     dimmed: boolean;
     hint?: string;
@@ -181,6 +184,9 @@ function RecommendationCard({
         >
             <RecommendationArtwork
                 src={imageUrl}
+                provider={artworkProvider}
+                artist={artistNames[0]}
+                track={name}
                 size={350}
                 className="aspect-square w-full rounded-lg object-cover select-none"
                 alt={vocabulary.COVER_OF.replace("{name}", name)}

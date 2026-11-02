@@ -120,6 +120,7 @@ function setup({
         },
     };
     const context = vm.createContext({
+        process: { env: {} },
         window: {},
         document,
         navigator: supported

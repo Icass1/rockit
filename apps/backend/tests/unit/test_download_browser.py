@@ -33,7 +33,7 @@ async def test_browse_limits_headers_and_previews_before_loading_metadata(
     monkeypatch.setattr(
         Image,
         "get_internal_image_url_by_public_id_async",
-        AsyncMock(return_value="https://s3.example.test/cover?signature=presigned"),
+        AsyncMock(return_value="https://s3.example.test/cover"),
     )
     now = datetime.now(UTC)
     rows = [
@@ -92,7 +92,7 @@ async def test_browse_limits_headers_and_previews_before_loading_metadata(
     assert group.sourceType == "playlist" and group.sourceUrl == "/playlist/playlist"
     assert group.providerUrl == "https://open.spotify.com/playlist/spotify-playlist"
     assert group.imageUrl is not None
-    assert group.imageUrl == "https://s3.example.test/cover?signature=presigned"
+    assert group.imageUrl == "https://s3.example.test/cover"
     assert group.total == 1000 and group.hasMoreItems and group.canManage
 
 

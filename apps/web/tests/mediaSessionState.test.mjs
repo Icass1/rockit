@@ -54,7 +54,7 @@ function song(id) {
         publicId: id,
         name: id,
         artists: [],
-        album: { name: "Album" },
+        album: { name: "Album", artists: [] },
         duration_ms: 180000,
         imageUrl: "",
     };

@@ -8,6 +8,24 @@
 
 ## To Review
 
+### [PIP] Mantener el giro del vinilo al minimizar el navegador
+
+- tags: [frontend, pip, animation, bug]
+- priority: medium
+- workload: Easy
+    ```md
+    El vinilo usa el reloj de animación y la cancelación de la ventana que contiene el disco, incluida la ventana PiP, conservando aceleración y parada suave. Comparación dirigida en Chromium con el reloj principal suspendido; regresiones para CI. No cambia reproducción ni transiciones de audio. Pendiente de revisión en Vivaldi minimizado. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
+    ```
+
+### [PLAYER] Estabilizar el scroll de recomendaciones bajo la cola
+
+- tags: [frontend, queue, recommendations, scroll, bug]
+- priority: high
+- workload: Normal
+    ```md
+    El virtualizador limita los índices al tamaño real de la cola para que el espacio no crezca al bajar a las recomendaciones. Se conserva la altura natural de recomendaciones y se respeta el scroll manual con puntero/teclado. Comparación dirigida con componentes reales en Chromium: mismas 80 recomendaciones y altura estable, sin solicitudes adicionales; regresiones para CI, sin suites locales. Pendiente de revisión del usuario. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
+    ```
+
 ### [NAVIGATION] Anclar álbumes, playlists y artistas
 
 - tags: [frontend, backend, navigation, pins, ui]

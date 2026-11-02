@@ -22,7 +22,7 @@ export default function AutoplayRecommendations(): JSX.Element {
 
     return (
         <section
-            className="border-foreground-strong/10 mt-4 border-t pt-4"
+            className="border-foreground-strong/10 mt-4 shrink-0 border-t pt-4"
             aria-busy={loading}
         >
             <h3 className="text-muted-foreground px-4 pb-3 text-sm font-semibold">

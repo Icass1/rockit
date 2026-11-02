@@ -1450,7 +1450,7 @@ export class BaseQueueManager {
             const response = await getRockIt().http.getRelatedSongs(
                 seed.publicId,
                 20,
-                false
+                true
             );
             if (
                 generation !== this._lifecycleGeneration ||
@@ -1469,35 +1469,6 @@ export class BaseQueueManager {
                     new Set(this.queue.map((entry) => entry.media.publicId))
                 )
             );
-            // Discover is additive and never delays a playable local answer.
-            void getRockIt()
-                .http.getRelatedSongs(seed.publicId, 20, true)
-                .then((external) => {
-                    if (
-                        generation !== this._lifecycleGeneration ||
-                        !external.isOk() ||
-                        this.queueIdentity !== identity ||
-                        this._autoplaySeedPublicId !== seed.publicId ||
-                        this.queue.at(-1)?.media.publicId !== seed.publicId
-                    )
-                        return;
-                    const queued = new Set(
-                        this.queue.map((item) => item.media.publicId)
-                    );
-                    this._setRecommendations(
-                        buildRecommendationQueue(
-                            {
-                                ...external.result,
-                                songs: this._autoplayRecommendationsAtom
-                                    .get()
-                                    .flatMap((item) =>
-                                        item.kind === "song" ? [item.song] : []
-                                    ),
-                            },
-                            queued
-                        )
-                    );
-                });
         })();
         this._autoplayLoading = loading;
         try {

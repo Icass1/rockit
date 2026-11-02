@@ -8,6 +8,15 @@
 
 ## To Review
 
+### [RECOMMENDATIONS] Portadas fiables y prioridad de recomendaciones externas
+
+- tags: [frontend, backend, recommendations, artwork, bug]
+- priority: high
+- workload: Normal
+    ```md
+    Las recomendaciones conservan las portadas de canciones resueltas por lotes y las imágenes válidas que aporte el provider. Placeholder local para imágenes ausentes o rotas. Last.fm filtra sus placeholders dentro de su provider; core conserva metadatos genéricos sin imports concretos. Las recomendaciones externas sustituyen las locales cuando hay resultados; Rockit queda como respaldo ante ausencia o fallo. Sin peticiones extra por canción ni cambios de almacenamiento. Revisión dirigida en Chromium con respuestas controladas y regresiones para CI. Pendiente de revisión del usuario. Ver docs/PIP_RECOMMENDATION_SCROLL.md.
+    ```
+
 ### [PIP] Mantener el giro del vinilo al minimizar el navegador
 
 - tags: [frontend, pip, animation, bug]

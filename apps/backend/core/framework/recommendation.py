@@ -266,6 +266,7 @@ class Recommendation:
         suggestion: ExternalSuggestion,
         provider_name: str,
         public_id: str | None,
+        image_url: str | None = None,
     ) -> BaseSearchResultsItem:
         """External suggestion -> the search-result shape the UI already
         knows how to play (publicId set) or download (artist + track via
@@ -277,7 +278,7 @@ class Recommendation:
             type="song",
             name=suggestion.track_name,
             providerUrl="",
-            imageUrl="",
+            imageUrl=image_url or suggestion.image_url or "",
             artists=[ArtistSearchResultsItem(name=suggestion.artist_name, url="")],
             provider=provider_name,
             downloaded=public_id is not None,
@@ -334,6 +335,7 @@ class Recommendation:
             session=session, public_ids=candidate_ids
         )
         downloaded = {song.publicId for song in resolved if song.downloaded}
+        artwork = {song.publicId: song.imageUrl or song.album.imageUrl for song in resolved}
         in_library = {
             idx: next((pid for pid in ids if pid in downloaded), None)
             for idx, ids in matches.items()
@@ -351,11 +353,18 @@ class Recommendation:
                 if public_id in exclude_public_ids or public_id in seen_public_ids:
                     continue
                 seen_public_ids.add(public_id)
+            image_url = artwork.get(public_id) if public_id else None
+            if not image_url:
+                image_url = next(
+                    (artwork[pid] for pid in matches.get(idx + 1, []) if artwork.get(pid)),
+                    None,
+                )
             discover.append(
                 Recommendation.build_discover_item(
                     suggestion=suggestion,
                     provider_name=result.provider_name,
                     public_id=public_id,
+                    image_url=image_url,
                 )
             )
 

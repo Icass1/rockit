@@ -71,6 +71,36 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(a_result.result()[0].recording_mbid)
         self.assertEqual(transport.requests[0].url.params["method"], "track.getsimilar")
 
+    def test_supplied_artwork_ignores_empty_placeholders_and_unsafe_urls(self) -> None:
+        for images, expected in [
+            (None, None),
+            ([{"#text": ""}], None),
+            (
+                [
+                    {
+                        "#text": "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
+                    }
+                ],
+                None,
+            ),
+            ([{"#text": "javascript:alert(1)"}], None),
+            ([{"#text": "https://unknown.example/cover.jpg"}], None),
+            (
+                [
+                    {"#text": "https://lastfm.freetls.fastly.net/i/u/34s/small.jpg"},
+                    {"#text": "https://lastfm.freetls.fastly.net/i/u/300x300/cover.jpg"},
+                ],
+                "https://lastfm.freetls.fastly.net/i/u/300x300/cover.jpg",
+            ),
+        ]:
+            with self.subTest(images=images):
+                suggestion = LastfmProvider._parse_track(  # pyright: ignore[reportPrivateUsage]
+                    {"name": "Song", "artist": {"name": "Artist"}, "image": images}
+                )
+                self.assertIsNotNone(suggestion)
+                assert suggestion is not None
+                self.assertEqual(suggestion.image_url, expected)
+
     async def test_unknown_track_is_an_empty_answer(self) -> None:
         provider, _ = self.make_provider(
             lambda _: httpx.Response(200, json={"error": 6, "message": "not found"})

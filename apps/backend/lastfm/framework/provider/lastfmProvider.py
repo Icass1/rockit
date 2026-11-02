@@ -1,4 +1,5 @@
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -188,8 +189,33 @@ class LastfmProvider(BaseExternalRecommendationProvider):
             artist_name=artist_name.strip(),
             track_name=name.strip(),
             score=match,
+            image_url=LastfmProvider._image_url(raw.get("image")),
             recording_mbid=raw_mbid if isinstance(raw_mbid, str) and raw_mbid else None,
         )
+
+    @staticmethod
+    def _image_url(value: object) -> str | None:
+        """Use supplied artwork only; never fetch extra metadata per suggestion."""
+
+        images = as_json_list(value) or []
+        for value in reversed(images):
+            image = as_json_object(value)
+            url = image.get("#text") if image else None
+            if not isinstance(url, str) or not url.strip():
+                continue
+            url = url.strip()
+            try:
+                parsed = urlsplit(url)
+            except ValueError:
+                continue
+            if (
+                parsed.scheme == "https"
+                and parsed.netloc in {"lastfm.freetls.fastly.net", "lastfm-img2.akamaized.net"}
+                and parsed.path.startswith("/i/u/")
+                and "2a96cbd8b46e442fc41c2b86b821562f" not in parsed.path
+            ):
+                return url
+        return None
 
 
 # The ordinary core registry discovers this module by its provider directory.

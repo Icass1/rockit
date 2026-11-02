@@ -6,7 +6,8 @@ import { build } from "esbuild";
 const { outputFiles } = await build({
     stdin: {
         contents: `export {getFixedVirtualRange} from './lib/utils/fixedVirtualRange';
-                   export {startVinylRotation} from './lib/utils/vinylRotation';`,
+                   export {startVinylRotation} from './lib/utils/vinylRotation';
+                   export {buildRecommendationQueue} from '../../packages/shared/src/audio/recommendationQueue';`,
         resolveDir: new URL("../", import.meta.url).pathname,
     },
     bundle: true,
@@ -154,4 +155,34 @@ test("a detached document without a window needs no global animation clock", () 
     const stop = startVinylRotation(disc, () => true);
     stop();
     assert.equal(disc.style.transform, undefined);
+});
+
+test("external recommendations replace local picks; empty or failed discovery falls back locally", () => {
+    const { buildRecommendationQueue } = context.helpers;
+    const song = { publicId: "local" };
+    const external = { publicId: "external", name: "Last.fm pick" };
+    for (const status of ["ok", "empty", "unavailable", "disabled"]) {
+        const result = buildRecommendationQueue(
+            {
+                songs: [song, song],
+                discover: status === "ok" ? [external, external] : [],
+                discoverStatus: status,
+            },
+            new Set()
+        );
+        assert.equal(result.length, 1);
+        assert.equal(result[0].kind, status === "ok" ? "discover" : "song");
+    }
+    const filtered = buildRecommendationQueue(
+        { songs: [song], discover: [external] },
+        new Set(["external"])
+    );
+    assert.equal(filtered[0].kind, "song");
+    assert.equal(
+        buildRecommendationQueue(
+            { songs: [song], discover: [] },
+            new Set(["local"])
+        ).length,
+        0
+    );
 });

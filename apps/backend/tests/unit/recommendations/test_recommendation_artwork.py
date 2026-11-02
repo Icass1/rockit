@@ -20,7 +20,7 @@ def test_artwork_validates_metadata_and_returns_optional_cover() -> None:
         patch(
             "core.controllers.recommendationController.Recommendation.get_artwork_async",
             AsyncMock(
-                return_value=Result[str | None](
+                return_value=Result[str](
                     code=ResultCode.OK, message="OK", result="https://covers.example/album.jpg"
                 )
             ),
@@ -41,7 +41,14 @@ def test_artwork_validates_metadata_and_returns_optional_cover() -> None:
             == 422
         )
         assert lookup.await_count == 1
-        lookup.return_value = Result[str | None](code=ResultCode.GENERAL_ERROR, message="Timeout")
+        lookup.return_value = Result[str](code=ResultCode.OK, message="No cover", result="")
+        absent = client.get(
+            "/recommendation/artwork",
+            params={"provider": "External", "artist": "Artist", "track": "Song"},
+        )
+        assert absent.status_code == 200
+        assert absent.json() == {"imageUrl": None}
+        lookup.return_value = Result[str](code=ResultCode.GENERAL_ERROR, message="Timeout")
         unavailable = client.get(
             "/recommendation/artwork",
             params={"provider": "External", "artist": "Artist", "track": "Song"},

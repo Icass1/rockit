@@ -63,8 +63,8 @@ class LastfmProvider(BaseExternalRecommendationProvider):
         )
         # Only set by tests, to mock HTTP.
         self._transport = transport
-        self._artwork_cache: dict[tuple[str, str], tuple[float, Result[str | None]]] = {}
-        self._artwork_tasks: dict[tuple[str, str], asyncio.Task[Result[str | None]]] = {}
+        self._artwork_cache: dict[tuple[str, str], tuple[float, Result[str]]] = {}
+        self._artwork_tasks: dict[tuple[str, str], asyncio.Task[Result[str]]] = {}
         self._artwork_slots = asyncio.Semaphore(2)
 
     def is_configured(self) -> bool:
@@ -178,11 +178,11 @@ class LastfmProvider(BaseExternalRecommendationProvider):
             ).split()
         )
 
-    async def get_artwork_async(self, artist_name: str, track_name: str) -> Result[str | None]:
+    async def get_artwork_async(self, artist_name: str, track_name: str) -> Result[str]:
         """Lazy track.getInfo album artwork, cached and shared across callers."""
         key = (self._artwork_identity(artist_name), self._artwork_identity(track_name))
         if not all(key) or not self.is_configured():
-            return Result(code=ResultCode.OK, message="No artwork", result=None)
+            return Result(code=ResultCode.OK, message="No artwork", result="")
         cached = self._artwork_cache.get(key)
         if cached and cached[0] > time.monotonic():
             return cached[1]
@@ -199,8 +199,8 @@ class LastfmProvider(BaseExternalRecommendationProvider):
 
     async def _cached_artwork_async(
         self, key: tuple[str, str], artist_name: str, track_name: str
-    ) -> Result[str | None]:
-        result: Result[str | None]
+    ) -> Result[str]:
+        result: Result[str]
         try:
             # Includes queue time; slow images never hold discovery or playback.
             async with asyncio.timeout(8.0):
@@ -223,7 +223,7 @@ class LastfmProvider(BaseExternalRecommendationProvider):
 
     async def _lookup_artwork_async(
         self, key: tuple[str, str], artist_name: str, track_name: str
-    ) -> Result[str | None]:
+    ) -> Result[str]:
         async with httpx.AsyncClient(
             timeout=min(self._timeout, 3.0),
             transport=self._transport,
@@ -257,7 +257,7 @@ class LastfmProvider(BaseExternalRecommendationProvider):
             logger.warning("Last.fm artwork returned invalid JSON")
             return Result(code=ResultCode.GENERAL_ERROR, message="Invalid artwork response")
         if data.get("error") == LASTFM_ERROR_NOT_FOUND:
-            return Result(code=ResultCode.OK, message="Track not found", result=None)
+            return Result(code=ResultCode.OK, message="Track not found", result="")
         if "error" in data:
             if data.get("error") == LASTFM_ERROR_RATE_LIMIT:
                 self._limiter.update_from_response(status_code=429, headers={})
@@ -269,9 +269,11 @@ class LastfmProvider(BaseExternalRecommendationProvider):
             self._artwork_identity(str(artist.get("name", ""))),
             self._artwork_identity(str(track.get("name", ""))),
         ) != key:
-            return Result(code=ResultCode.OK, message="Artwork track mismatch", result=None)
+            return Result(code=ResultCode.OK, message="Artwork track mismatch", result="")
         album = as_json_object(track.get("album")) or {}
-        return Result(code=ResultCode.OK, message="OK", result=self._image_url(album.get("image")))
+        return Result(
+            code=ResultCode.OK, message="OK", result=self._image_url(album.get("image")) or ""
+        )
 
     @staticmethod
     def _parse_track(value: object) -> ExternalSuggestion | None:

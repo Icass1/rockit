@@ -157,7 +157,7 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
                     artist_name="John Mayer", track_name="Belief"
                 )
                 self.assertTrue(result.is_ok())
-                self.assertIsNone(result.result())
+                self.assertEqual(result.result(), "")
             self.assertEqual(len(transport.requests), 1)
 
     async def test_artwork_failure_is_bounded_and_does_not_break_discovery(self) -> None:
@@ -195,7 +195,7 @@ class LastfmProviderTests(unittest.IsolatedAsyncioTestCase):
                     artist_name="John Mayer", track_name="Belief"
                 )
                 self.assertTrue(result.is_ok())
-                self.assertIsNone(result.result())
+                self.assertEqual(result.result(), "")
             self.assertEqual(len(transport.requests), 1)
 
     async def test_unknown_track_is_an_empty_answer(self) -> None:

@@ -108,7 +108,7 @@ class Recommendation:
     external: ExternalRecommendations = external_recommendations
 
     @staticmethod
-    async def get_artwork_async(provider_name: str, artist: str, track: str) -> Result[str | None]:
+    async def get_artwork_async(provider_name: str, artist: str, track: str) -> Result[str]:
         """Delegate public artwork metadata to the configured capability owner."""
         for provider in Recommendation.external.providers:
             if provider.display_name == provider_name and provider.is_configured():
@@ -117,7 +117,7 @@ class Recommendation:
                     logger.warning(f"Recommendation artwork unavailable. {result.info()}")
                     return Result(code=result.code(), message=result.message())
                 return result
-        return Result(code=ResultCode.OK, message="No artwork provider", result=None)
+        return Result(code=ResultCode.OK, message="No artwork provider", result="")
 
     @staticmethod
     def to_song_list_response(result: RecommendationResult) -> SongListResponse:

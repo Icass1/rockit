@@ -46,6 +46,6 @@ class BaseExternalRecommendationProvider(BaseProvider, ABC):
     ) -> Result[list[ExternalSuggestion]]:
         """Fetch suggestions from the service (see class docstring)."""
 
-    async def get_artwork_async(self, artist_name: str, track_name: str) -> Result[str | None]:
-        """Optional lazy artwork capability; never blocks suggestion discovery."""
-        return Result(code=ResultCode.OK, message="No artwork capability", result=None)
+    async def get_artwork_async(self, artist_name: str, track_name: str) -> Result[str]:
+        """Optional lazy artwork capability; empty string means no available cover."""
+        return Result(code=ResultCode.OK, message="No artwork capability", result="")

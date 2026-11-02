@@ -121,4 +121,4 @@ async def get_recommendation_artwork(
     if image.is_not_ok():
         logger.warning(f"Recommendation artwork unavailable. {image.info()}")
         return RecommendationArtworkResponse()
-    return RecommendationArtworkResponse(imageUrl=image.result())
+    return RecommendationArtworkResponse(imageUrl=image.result() or None)

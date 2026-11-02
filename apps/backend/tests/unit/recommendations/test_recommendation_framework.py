@@ -408,13 +408,13 @@ class RecommendationFrameworkTests(unittest.IsolatedAsyncioTestCase):
                 provider_name="Unknown", artist="Artist", track="Song"
             )
             self.assertTrue(unsupported.is_ok())
-            self.assertIsNone(unsupported.result())
+            self.assertEqual(unsupported.result(), "")
             provider._configured = False  # pyright: ignore[reportPrivateUsage]
             disabled = await Recommendation.get_artwork_async(
                 provider_name="External", artist="Artist", track="Song"
             )
             self.assertTrue(disabled.is_ok())
-            self.assertIsNone(disabled.result())
+            self.assertEqual(disabled.result(), "")
             lookup.assert_awaited_once()
 
     async def test_response_contract(self) -> None:

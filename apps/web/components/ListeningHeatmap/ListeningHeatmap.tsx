@@ -75,11 +75,11 @@ export default function ListeningHeatmap({
                 aria-expanded={open}
                 aria-controls={id}
                 onClick={() => setOpen(!open)}
-                className="group flex w-full cursor-pointer items-end gap-2 rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-pink-400"
+                className="group flex w-full cursor-pointer items-end gap-2 rounded-md outline-offset-4 focus-visible:outline-2 focus-visible:outline-(--rockit-pink)"
             >
                 <Activity
                     size={12}
-                    className="mb-0.5 shrink-0 text-pink-300/70"
+                    className="mb-0.5 shrink-0 text-neutral-400 group-hover:text-white"
                 />
                 <span
                     className="relative block h-5 flex-1 overflow-hidden rounded-t-sm"
@@ -89,18 +89,18 @@ export default function ListeningHeatmap({
                     {segments.map((s) => (
                         <span
                             key={s.startMs}
-                            className="absolute bottom-0 rounded-t-[2px] transition-[height] duration-300"
+                            className="absolute bottom-0 rounded-t-[2px] motion-safe:transition-[height] motion-safe:duration-300"
                             style={{
                                 left: `${(s.startMs / (duration * 1000)) * 100}%`,
                                 width: `${((s.endMs - s.startMs) / (duration * 1000)) * 100}%`,
                                 height: `${4 + (s.count / peak) * 16}px`,
-                                background: `linear-gradient(to top, #9d174d, ${s.count === peak ? "#fda4af" : "#ec4899"})`,
+                                backgroundColor: "var(--rockit-pink)",
                                 opacity: 0.35 + (s.count / peak) * 0.65,
                             }}
                         />
                     ))}
                 </span>
-                <span className="mb-0.5 shrink-0 text-[10px] font-medium text-pink-200/80 tabular-nums">
+                <span className="mb-0.5 shrink-0 text-[10px] font-medium text-neutral-400 tabular-nums group-hover:text-white">
                     {history.status === "loading"
                         ? "…"
                         : history.status === "error"
@@ -109,7 +109,7 @@ export default function ListeningHeatmap({
                 </span>
                 <ChevronDown
                     size={10}
-                    className={`mb-1 text-white/40 transition-transform ${open ? "rotate-180" : ""}`}
+                    className={`mb-1 text-neutral-400 motion-safe:transition-transform ${open ? "rotate-180" : ""}`}
                 />
             </button>
             {open && (
@@ -119,45 +119,39 @@ export default function ListeningHeatmap({
                         "LISTENING_HEATMAP_TITLE",
                         "Listening history"
                     )}
-                    className="absolute inset-x-0 bottom-full z-50 mb-4 overflow-hidden rounded-2xl border border-pink-200/15 bg-[#18131f] p-5 shadow-[0_16px_70px_#000b] md:mb-14"
+                    className="absolute inset-x-0 bottom-full z-50 mb-4 rounded-xl border border-white/10 bg-neutral-900 p-4 shadow-2xl md:mb-14"
                 >
-                    <div className="mb-4 flex items-start justify-between gap-3">
-                        <div>
-                            <p className="mb-1 flex items-center gap-2 text-[10px] font-semibold tracking-[0.18em] text-pink-300">
-                                <Activity size={13} />{" "}
-                                {text(
-                                    "LISTENING_HEATMAP_DNA",
-                                    "YOUR LISTENING DNA"
-                                )}
-                            </p>
-                            <h3 className="text-lg font-semibold tracking-tight">
-                                {text(
-                                    "LISTENING_HEATMAP_TRACE",
-                                    "Every replay leaves a trace."
-                                )}
-                            </h3>
-                        </div>
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                        <h3 className="text-base font-semibold">
+                            {text(
+                                "LISTENING_HEATMAP_TITLE",
+                                "Listening history"
+                            )}
+                        </h3>
                         <button
                             type="button"
                             aria-label={text(
                                 "LISTENING_HEATMAP_CLOSE",
                                 "Close listening history"
                             )}
-                            onClick={() => setOpen(false)}
-                            className="rounded-full p-1 text-white/50 hover:bg-white/10 hover:text-white"
+                            onClick={() => {
+                                setOpen(false);
+                                trigger.current?.focus();
+                            }}
+                            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-neutral-400 outline-offset-2 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-(--rockit-pink)"
                         >
                             <X size={15} />
                         </button>
                     </div>
                     {history.status === "ready" && peak > 0 ? (
                         <>
-                            <div className="mb-5 grid grid-cols-3 divide-x divide-white/10 rounded-xl bg-white/5 py-3 text-center">
+                            <div className="mb-5 grid grid-cols-3 gap-3 border-b border-white/10 pb-4">
                                 <div>
-                                    <p className="text-xl font-semibold text-pink-200">
+                                    <p className="text-xl font-semibold tabular-nums">
                                         {peak}
                                         <span className="text-xs">×</span>
                                     </p>
-                                    <p className="mt-1 text-[10px] text-white/45">
+                                    <p className="mt-1 text-xs text-neutral-400">
                                         {text(
                                             "LISTENING_HEATMAP_PEAK",
                                             "Peak listens"
@@ -165,11 +159,11 @@ export default function ListeningHeatmap({
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-xl font-semibold">
+                                    <p className="text-xl font-semibold tabular-nums">
                                         {coverage}
                                         <span className="text-xs">%</span>
                                     </p>
-                                    <p className="mt-1 text-[10px] text-white/45">
+                                    <p className="mt-1 text-xs text-neutral-400">
                                         {text(
                                             "LISTENING_HEATMAP_EXPLORED",
                                             "Explored"
@@ -177,11 +171,11 @@ export default function ListeningHeatmap({
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-xl font-semibold">
+                                    <p className="text-xl font-semibold tabular-nums">
                                         {currentCount}
                                         <span className="text-xs">×</span>
                                     </p>
-                                    <p className="mt-1 text-[10px] text-white/45">
+                                    <p className="mt-1 text-xs text-neutral-400">
                                         {text(
                                             "LISTENING_HEATMAP_AT",
                                             "At {time}"
@@ -220,7 +214,7 @@ export default function ListeningHeatmap({
                                                 "{count}",
                                                 String(s.count)
                                             )}
-                                        className="group absolute bottom-0 rounded-t-sm border-r border-[#18131f]/40 bg-linear-to-t from-pink-800 to-rose-300 outline-offset-2 hover:brightness-125 focus-visible:brightness-125"
+                                        className="group absolute bottom-0 rounded-t-sm border-r border-neutral-900/40 bg-(--rockit-pink) outline-offset-2 hover:brightness-125 focus-visible:outline-2 focus-visible:outline-white focus-visible:brightness-125"
                                         style={{
                                             left: `${(s.startMs / (duration * 1000)) * 100}%`,
                                             width: `${((s.endMs - s.startMs) / (duration * 1000)) * 100}%`,
@@ -229,7 +223,7 @@ export default function ListeningHeatmap({
                                                 0.35 + (s.count / peak) * 0.65,
                                         }}
                                     >
-                                        <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 rounded-lg bg-white px-2 py-1 text-[10px] font-semibold whitespace-nowrap text-black group-hover:block group-focus-visible:block">
+                                        <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 rounded bg-white px-2 py-1 text-xs font-semibold whitespace-nowrap text-black group-hover:block group-focus-visible:block">
                                             {time(s.startMs)}–{time(s.endMs)} ·{" "}
                                             {s.count}×
                                         </span>
@@ -244,11 +238,11 @@ export default function ListeningHeatmap({
                                     <span className="absolute -top-1 -left-0.5 h-1.5 w-1.5 rounded-full bg-white" />
                                 </span>
                             </div>
-                            <div className="mt-2 flex justify-between text-[10px] text-white/40 tabular-nums">
+                            <div className="mt-2 flex justify-between text-xs text-neutral-400 tabular-nums">
                                 <span>0:00</span>
                                 <span>{getTime(duration)}</span>
                             </div>
-                            <div className="mt-4 flex items-center justify-between gap-2 text-[10px] text-white/45">
+                            <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-neutral-400">
                                 <span>
                                     {text(
                                         "LISTENING_HEATMAP_CAPTION",
@@ -257,13 +251,29 @@ export default function ListeningHeatmap({
                                 </span>
                                 <span className="flex items-center gap-1.5">
                                     {text("LISTENING_HEATMAP_LESS", "Less")}{" "}
-                                    <span className="h-1.5 w-12 rounded-full bg-linear-to-r from-pink-950 to-rose-300" />{" "}
+                                    <span
+                                        className="flex gap-0.5"
+                                        aria-hidden="true"
+                                    >
+                                        {[0.35, 0.55, 0.75, 1].map(
+                                            (opacity) => (
+                                                <span
+                                                    key={opacity}
+                                                    className="h-2 w-2 rounded-sm bg-(--rockit-pink)"
+                                                    style={{ opacity }}
+                                                />
+                                            )
+                                        )}
+                                    </span>{" "}
                                     {text("LISTENING_HEATMAP_MORE", "More")}
                                 </span>
                             </div>
                         </>
                     ) : (
-                        <p role="status" className="py-5 text-sm text-white/55">
+                        <p
+                            role="status"
+                            className="py-5 text-sm text-neutral-400"
+                        >
                             {history.status === "loading"
                                 ? text(
                                       "LISTENING_HEATMAP_LOADING",
@@ -280,12 +290,6 @@ export default function ListeningHeatmap({
                                     )}
                         </p>
                     )}
-                    <p className="mt-3 text-[9px] text-white/30">
-                        {text(
-                            "LISTENING_HEATMAP_REFRESH",
-                            "Your personal history · refreshes every 30 seconds"
-                        )}
-                    </p>
                 </section>
             )}
         </div>

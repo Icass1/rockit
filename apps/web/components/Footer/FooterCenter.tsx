@@ -154,13 +154,6 @@ export default function FooterCenter(): JSX.Element {
                             }
                         />
                     </button>
-                    {$showBookmarkPopup && (
-                        <BookmarkPopup
-                            onClose={(): void =>
-                                rockIt.bookmarkManager.hidePopup()
-                            }
-                        />
-                    )}
                 </div>
             </div>
 
@@ -182,11 +175,21 @@ export default function FooterCenter(): JSX.Element {
                     </span>
                     <div className="relative flex-1">
                         <div className="absolute inset-x-0 bottom-full pb-1">
-                            <ListeningHeatmap
-                                publicId={$currentMedia.publicId}
-                                duration={duration}
-                                currentTime={$currentTime ?? 0}
-                            />
+                            <div className="relative">
+                                <ListeningHeatmap
+                                    publicId={$currentMedia.publicId}
+                                    duration={duration}
+                                    currentTime={$currentTime ?? 0}
+                                />
+                                {$showBookmarkPopup && (
+                                    <BookmarkPopup
+                                        className="absolute inset-x-0 bottom-full z-50 mb-4 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-2xl md:mb-14"
+                                        onClose={(): void =>
+                                            rockIt.bookmarkManager.hidePopup()
+                                        }
+                                    />
+                                )}
+                            </div>
                         </div>
                         <Slider
                             id="default-slider"

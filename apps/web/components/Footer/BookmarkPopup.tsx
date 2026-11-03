@@ -232,8 +232,10 @@ function BookmarkEditForm({
 
 export default function BookmarkPopup({
     onClose,
+    className = "absolute right-0 bottom-full z-50 mb-2 w-72 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-2xl",
 }: {
     onClose: () => void;
+    className?: string;
 }): JSX.Element {
     const $currentTime = useStore(rockIt.mediaPlayerManager.currentTimeAtom);
     const $currentMedia = useStore(rockIt.queueManager.currentMediaAtom);
@@ -284,10 +286,7 @@ export default function BookmarkPopup({
 
     if (formBookmark) {
         return (
-            <div
-                ref={popupRef}
-                className="absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border border-neutral-700 bg-(--color-elevated) p-2 shadow-xl"
-            >
+            <div ref={popupRef} className={className}>
                 <BookmarkEditForm
                     bookmark={formBookmark === "new" ? null : formBookmark}
                     onBack={handleBackToList}
@@ -297,10 +296,7 @@ export default function BookmarkPopup({
     }
 
     return (
-        <div
-            ref={popupRef}
-            className="absolute right-0 bottom-full z-50 mb-2 w-72 rounded-lg border border-neutral-700 bg-(--color-elevated) p-2 shadow-xl"
-        >
+        <div ref={popupRef} className={className}>
             <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold text-neutral-400">
                     {$vocabulary.BOOKMARKS}

@@ -390,6 +390,14 @@ export {
     type ListeningBadgeResponse,
 } from "./listeningBadgeResponse";
 export {
+    ListeningHeatmapResponseSchema,
+    type ListeningHeatmapResponse,
+} from "./listeningHeatmapResponse";
+export {
+    ListeningHeatmapSegmentSchema,
+    type ListeningHeatmapSegment,
+} from "./listeningHeatmapSegment";
+export {
     ListeningMilestoneResponseSchema,
     type ListeningMilestoneResponse,
 } from "./listeningMilestoneResponse";

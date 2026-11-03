@@ -18,6 +18,7 @@ import { rockIt } from "@/lib/rockit/rockIt";
 import { getTime } from "@/lib/utils/getTime";
 import Bookmarks from "@/components/Bookmark/Bookmarks";
 import BookmarkPopup from "@/components/Footer/BookmarkPopup";
+import ListeningHeatmap from "@/components/ListeningHeatmap/ListeningHeatmap";
 import Slider from "@/components/Slider/Slider";
 
 const ICON_BTN =
@@ -58,7 +59,7 @@ export default function FooterCenter(): JSX.Element {
     );
 
     return (
-        <div className="hidden w-1/3 flex-col items-center justify-center space-y-1 md:flex">
+        <div className="hidden w-1/3 flex-col items-center justify-center space-y-4 md:flex">
             <div className="relative grid grid-cols-7 items-center justify-items-center gap-2">
                 {/* Spacer to keep play button centered with 7 items */}
                 <div className="h-4.5 w-4.5" />
@@ -180,6 +181,13 @@ export default function FooterCenter(): JSX.Element {
                         {getTime($currentTime ?? 0)}
                     </span>
                     <div className="relative flex-1">
+                        <div className="absolute inset-x-0 bottom-full pb-1">
+                            <ListeningHeatmap
+                                publicId={$currentMedia.publicId}
+                                duration={duration}
+                                currentTime={$currentTime ?? 0}
+                            />
+                        </div>
                         <Slider
                             id="default-slider"
                             className="h-1 w-full rounded bg-neutral-700 accent-(--color-rockit-pink)"

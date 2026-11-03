@@ -6,6 +6,7 @@ import { useStore } from "@nanostores/react";
 import { BOOKMARK_MODE_COLORS } from "@/lib/managers/bookmarkManager";
 import { usePlayerTime } from "@/lib/PlayerContext";
 import { rockIt } from "@/lib/rockit/rockIt";
+import ListeningHeatmap from "@/components/ListeningHeatmap/ListeningHeatmap";
 import { formatTime } from "@/components/MobilePlayer/utils/format";
 import Slider from "@/components/Slider/Slider";
 
@@ -17,6 +18,7 @@ export default function PlayerProgressBar({
     onSeek,
 }: PlayerProgressBarProps): JSX.Element {
     const { currentTime, duration } = usePlayerTime();
+    const media = useStore(rockIt.queueManager.currentMediaAtom);
     const $bookmarks = useStore(
         rockIt.bookmarkManager.currentMediaBookmarksAtom
     );
@@ -28,6 +30,11 @@ export default function PlayerProgressBar({
 
     return (
         <div className="w-full px-1">
+            <ListeningHeatmap
+                publicId={media?.publicId}
+                duration={duration}
+                currentTime={displayTime}
+            />
             <div className="relative flex h-8 items-center">
                 <Slider
                     id="default-slider"
